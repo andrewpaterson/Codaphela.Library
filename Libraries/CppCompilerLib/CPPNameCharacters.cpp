@@ -126,6 +126,11 @@ const char* InvalidCPPNameCharacter(const char* szName, size uiLength)
 	szEnd = szName + uiLength;
 	for (sz = szName; sz < szEnd;)
 	{
+		if (*sz == '\\')
+		{
+			//Respell leaves a universal character name that may not be in a name as it was.  [lex.charset] 2
+			return "A universal character name outside a literal doesn't name a basic, control or surrogate character: write the character itself";
+		}
 		if ((uint8)*sz < 0x80)
 		{
 			sz++;

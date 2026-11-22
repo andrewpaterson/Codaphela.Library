@@ -40,6 +40,10 @@ int main()
 }
 ### LexUniversalCharacterNameSurrogateRefused | REFUSED | 2.3 [lex.charset] p2: a universal-character-name is not a surrogate's code point
 int main() { return u'\uD800' ? 1 : 2; }
+### LexUniversalCharacterNameShortRefused | REFUSED | 2.3 [lex.charset] p2: \u has four hexadecimal digits
+int main() { return u'\u41' ? 1 : 2; }
+### LexUniversalCharacterNameSurrogateInStringRefused | REFUSED | 2.3 [lex.charset] p2: a universal-character-name is not a surrogate's code point, in a string too
+int main() { return u"\uDC00"[0] ? 1 : 2; }
 ### LexUniversalCharacterNameBasicInNameRefused | REFUSED | 2.3 [lex.charset] p2: outside a literal a universal-character-name doesn't name a basic source character
 int main() { int \u0041 = 1; return A; }
 ### LexTrigraphs | 63 | 2.4 [lex.trigraph] p1: the nine trigraph sequences are replaced first, in strings too, and the backslash one splices a line
@@ -59,6 +63,16 @@ int main()
 	if (sizeof("?" "?=") == 4 && sizeof("??\?") == 4) r += 32;
 	return r;
 ??>
+### LexTrigraphsInComments | 7 | 2.4 [lex.trigraph] p1, 2.2 [lex.phases] p1.2: a trigraph in a comment is replaced too: ??/ at a // comment's end goes on to the next line
+int main()
+{
+	int r = 1;
+	// the next line is this comment's ??/
+	r += 100;
+	/* ??> and ??< in a comment */ r += 2;
+	r += 4;
+	return r;
+}
 ### LexMaximalMunch | 31 | 2.5 [lex.pptoken] p3: the longest token that can be made is made: a+++b is a++ + b; <:: before a name is < ::
 template<class T> struct W { T v; };
 struct X { int i; };
@@ -102,6 +116,16 @@ int main()
 	if (q == 5 && &p == &x) r += 32;
 	return r;
 %>
+### LexAlternativeTokenSpelling | 7 | 2.6 [lex.digraph] p2, 16.3.2 [cpp.stringize]: an alternative token is spelled as written when it is made a string
+#define STR(x) #x
+int main()
+{
+	int r = 0;
+	if (sizeof(STR(%:)) == 3 && STR(%:)[0] == '%') r += 1;
+	if (sizeof(STR(<%)) == 3 && STR(<:)[1] == ':') r += 2;
+	if (sizeof(STR(and)) == 4) r += 4;
+	return r;
+}
 ### LexComments | 15 | 2.8 [lex.comment]: /* */ ends at the first */ and holds //; // holds /* and */; neither is in a string
 int main()
 {
@@ -339,6 +363,8 @@ int main()
 }
 ### LexStringConcatenationMixedRefused | REFUSED | 2.14.5 [lex.string] p13: u and U strings aren't joined
 int main() { return sizeof(u"a" U"b"); }
+### LexStringConcatenationUtf8WideRefused | REFUSED | 2.14.5 [lex.string] p13: a UTF-8 string isn't joined with a wide one
+int main() { return sizeof(u8"a" L"b"); }
 ### LexStringUnterminatedRefused | REFUSED | 2.14.5 [lex.string] p1: a string ends on its line
 int main() { const char* s = "abc;
 return s[0]; }
@@ -389,6 +415,19 @@ int main()
 	if ("ab" "cd"_s == 41 && "ab"_s "cd" == 41) r += 32;
 	if (R"(ab)"_s == 21) r += 64;
 	if (12_i + 1 == 14) r += 128;
+	return r;
+}
+### LexUserDefinedWideCharacterLiterals | 7 | 2.14.8 [lex.ext] p6: a character literal's operator is given the literal's own type: wchar_t, char16_t or char32_t
+int operator"" _k(char c) { return 1; }
+int operator"" _k(wchar_t c) { return 2; }
+int operator"" _k(char16_t c) { return 3; }
+int operator"" _k(char32_t c) { return 4; }
+int main()
+{
+	int r = 0;
+	if ('a'_k == 1 && L'a'_k == 2) r += 1;
+	if (u'a'_k == 3) r += 2;
+	if (U'a'_k == 4) r += 4;
 	return r;
 }
 ### LexUserDefinedRawAndTemplateLiterals | 31 | 2.14.8 [lex.ext] p3, p4: a raw literal operator gets the characters; a literal operator template gets them as its arguments

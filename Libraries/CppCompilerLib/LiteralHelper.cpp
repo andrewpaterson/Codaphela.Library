@@ -609,6 +609,10 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 			{
 				return CLR_InvalidEscape;
 			}
+			if (bCodePoint && !IsCharacterCodePoint(uiCharacter))
+			{
+				return CLR_NotACharacter;
+			}
 			if (!bCodePoint && (uiCharacter > uiLargest))
 			{
 				return CLR_EscapeTooLarge;
@@ -657,6 +661,18 @@ ECharacterLiteralResult ParseCharacterLiteral(const char* szText, size uiLength,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a universal character name's value names a character: not a
+// surrogate's code point, and not past the last.  [lex.charset] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsCharacterCodePoint(uint32 uiCharacter)
+{
+	return (uiCharacter <= 0x10FFFF) && !((uiCharacter >= 0xD800) && (uiCharacter <= 0xDFFF));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What is wrong with a character literal, for an error; NULL if nothing.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -678,6 +694,8 @@ const char* CharacterLiteralError(ECharacterLiteralResult eResult)
 		return "The character is more than one code unit of the character literal's encoding";
 	case CLR_SeveralCharacters:
 		return "More than one character in a u8, u or U character literal";
+	case CLR_NotACharacter:
+		return "The universal character name names no character: a surrogate (D800 to DFFF) or a value past 10FFFF";
 	}
 	return "Invalid character literal";
 }
@@ -769,8 +787,9 @@ bool DecodeEscape(const char** psz, const char* szEnd, uint32* puiValue)
 			}
 			sz++;
 		}
-		if (iDigits == 0)
+		if ((iDigits == 0) || ((**psz != 'x') && (iDigits != iMaxDigits)))
 		{
+			//\u has four digits and \U eight.  [lex.charset] 2
 			return false;
 		}
 		break;

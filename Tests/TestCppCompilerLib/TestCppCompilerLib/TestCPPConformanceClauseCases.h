@@ -68,6 +68,16 @@ static const SConformanceCase gasConformanceClause2[] =
 		"LexUniversalCharacterNameSurrogateRefused", CONFORMANCE_REFUSED,
 		"int main() { return u'\\uD800' ? 1 : 2; }\n"
 	},
+	//2.3 [lex.charset] p2: \u has four hexadecimal digits
+	{
+		"LexUniversalCharacterNameShortRefused", CONFORMANCE_REFUSED,
+		"int main() { return u'\\u41' ? 1 : 2; }\n"
+	},
+	//2.3 [lex.charset] p2: a universal-character-name is not a surrogate's code point, in a string too
+	{
+		"LexUniversalCharacterNameSurrogateInStringRefused", CONFORMANCE_REFUSED,
+		"int main() { return u\"\\uDC00\"[0] ? 1 : 2; }\n"
+	},
 	//2.3 [lex.charset] p2: outside a literal a universal-character-name doesn't name a basic source character
 	{
 		"LexUniversalCharacterNameBasicInNameRefused", CONFORMANCE_REFUSED,
@@ -92,6 +102,19 @@ static const SConformanceCase gasConformanceClause2[] =
 		"	if (sizeof(\"?\" \"?=\") == 4 && sizeof(\"?\?\\?\") == 4) r += 32;\n"
 		"	return r;\n"
 		"?\?>\n"
+	},
+	//2.4 [lex.trigraph] p1, 2.2 [lex.phases] p1.2: a trigraph in a comment is replaced too: ??/ at a // comment's end goes on to the next line
+	{
+		"LexTrigraphsInComments", 7,
+		"int main()\n"
+		"{\n"
+		"	int r = 1;\n"
+		"	// the next line is this comment's ?\?/\n"
+		"	r += 100;\n"
+		"	/* ?\?> and ?\?< in a comment */ r += 2;\n"
+		"	r += 4;\n"
+		"	return r;\n"
+		"}\n"
 	},
 	//2.5 [lex.pptoken] p3: the longest token that can be made is made: a+++b is a++ + b; <:: before a name is < ::
 	{
@@ -144,6 +167,19 @@ static const SConformanceCase gasConformanceClause2[] =
 		"	if (q == 5 && &p == &x) r += 32;\n"
 		"	return r;\n"
 		"%>\n"
+	},
+	//2.6 [lex.digraph] p2, 16.3.2 [cpp.stringize]: an alternative token is spelled as written when it is made a string
+	{
+		"LexAlternativeTokenSpelling", 7,
+		"#define STR(x) #x\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if (sizeof(STR(%:)) == 3 && STR(%:)[0] == '%') r += 1;\n"
+		"	if (sizeof(STR(<%)) == 3 && STR(<:)[1] == ':') r += 2;\n"
+		"	if (sizeof(STR(and)) == 4) r += 4;\n"
+		"	return r;\n"
+		"}\n"
 	},
 	//2.8 [lex.comment]: /* */ ends at the first */ and holds //; // holds /* and */; neither is in a string
 	{
@@ -505,6 +541,11 @@ static const SConformanceCase gasConformanceClause2[] =
 		"LexStringConcatenationMixedRefused", CONFORMANCE_REFUSED,
 		"int main() { return sizeof(u\"a\" U\"b\"); }\n"
 	},
+	//2.14.5 [lex.string] p13: a UTF-8 string isn't joined with a wide one
+	{
+		"LexStringConcatenationUtf8WideRefused", CONFORMANCE_REFUSED,
+		"int main() { return sizeof(u8\"a\" L\"b\"); }\n"
+	},
 	//2.14.5 [lex.string] p1: a string ends on its line
 	{
 		"LexStringUnterminatedRefused", CONFORMANCE_REFUSED,
@@ -568,6 +609,22 @@ static const SConformanceCase gasConformanceClause2[] =
 		"	if (\"ab\" \"cd\"_s == 41 && \"ab\"_s \"cd\" == 41) r += 32;\n"
 		"	if (R\"(ab)\"_s == 21) r += 64;\n"
 		"	if (12_i + 1 == 14) r += 128;\n"
+		"	return r;\n"
+		"}\n"
+	},
+	//2.14.8 [lex.ext] p6: a character literal's operator is given the literal's own type: wchar_t, char16_t or char32_t
+	{
+		"LexUserDefinedWideCharacterLiterals", 7,
+		"int operator\"\" _k(char c) { return 1; }\n"
+		"int operator\"\" _k(wchar_t c) { return 2; }\n"
+		"int operator\"\" _k(char16_t c) { return 3; }\n"
+		"int operator\"\" _k(char32_t c) { return 4; }\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"	if ('a'_k == 1 && L'a'_k == 2) r += 1;\n"
+		"	if (u'a'_k == 3) r += 2;\n"
+		"	if (U'a'_k == 4) r += 4;\n"
 		"	return r;\n"
 		"}\n"
 	},
@@ -17688,6 +17745,42 @@ static const SConformanceCase gasConformanceClause16[] =
 		"#ifdef A B\n"
 		"#endif\n"
 		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #else has nothing after it
+	{
+		"CppConditionalElseExtraTokensRefused", CONFORMANCE_REFUSED,
+		"#if 0\n"
+		"#else X\n"
+		"#endif\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1: #endif has nothing after it
+	{
+		"CppConditionalEndifExtraTokensRefused", CONFORMANCE_REFUSED,
+		"#ifdef X\n"
+		"#endif X\n"
+		"int main() { return 0; }\n"
+	},
+	//16.1 [cpp.cond] p1, 2.8 [lex.comment]: a comment after #ifdef's name, #else and #endif is white space
+	{
+		"CppConditionalCommentsAfterDirectives", 3,
+		"#define A\n"
+		"int main()\n"
+		"{\n"
+		"	int r = 0;\n"
+		"#ifdef A // a comment\n"
+		"	r += 1;\n"
+		"#else /* a comment */\n"
+		"	r += 100;\n"
+		"#endif // A\n"
+		"#ifndef A /* a comment */\n"
+		"	r += 100;\n"
+		"#else\n"
+		"	r += 2;\n"
+		"#endif /* a\n"
+		"comment over two lines */\n"
+		"	return r;\n"
+		"}\n"
 	},
 	//16.2 [cpp.include]: <header> and "header", and a header named by a macro
 	{

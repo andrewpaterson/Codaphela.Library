@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ErrorHandler.h"
 #include "CppTokeniser.h"
 #include "SourceFile.h"
+#include "CPPNameCharacters.h"
 #include "CTBoolean.h"
 #include "CTChar.h"
 #include "CTIdentifier.h"
@@ -397,6 +398,33 @@ bool CCPPTokeniser::Punctuator(SPreprocessedToken* psToken)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a token from the source comes straight after a number (1'' is
+// 1 and ''), for the errors of a digit separator in the wrong place.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTokeniser::FollowsNumber(SPreprocessedToken* psToken)
+{
+	const char*	szStart;
+	const char*	sz;
+
+	if (!psToken->pcFile || psToken->HasLeadingSpace())
+	{
+		return false;
+	}
+	szStart = psToken->pcFile->GetContents();
+	if ((psToken->szText <= szStart) || (psToken->szText > szStart + psToken->pcFile->GetContentsLength()))
+	{
+		return false;
+	}
+	for (sz = psToken->szText; (sz > szStart) && (IsCPPNameCharacter(sz[-1]) || (sz[-1] == '.') || (sz[-1] == '\'')); sz--)
+	{
+	}
+	return (sz < psToken->szText) && (((*sz >= '0') && (*sz <= '9')) || ((*sz == '.') && (sz[1] >= '0') && (sz[1] <= '9')));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A number, character or string.  One with a user-defined suffix, as
 // 10_km and "text"_s, is the literal without it in a CCTUserLiteral.
 // [lex.literal], [lex.ext]
@@ -416,6 +444,10 @@ bool CCPPTokeniser::Literal(SPreprocessedToken* psToken)
 	else
 	{
 		uiLength = QuotedLiteralLength(psToken->szText, psToken->uiLength);
+		if ((uiLength == 0) && (psToken->uiKind == PTK_Character) && FollowsNumber(psToken))
+		{
+			return Error(psToken, "A digit separator is between two digits: this ' after a number starts a character literal, which has no end.");
+		}
 		if (uiLength == 0)
 		{
 			return Error(psToken, (psToken->uiKind == PTK_Character) ? "Unterminated character literal." : IsRawString(psToken->szText) ? "Raw string literal has no end, or its delimiter is not one." : "Unterminated string literal.");
@@ -553,6 +585,12 @@ CCPPToken* CCPPTokeniser::Character(SPreprocessedToken* psToken, size uiLength)
 	CCTInt*				pcInt;
 
 	szError = CharacterLiteralError(ParseCharacterLiteral(psToken->szText, uiLength, &sLiteral));
+	if (szError && (psToken->szText[0] == '\'') && FollowsNumber(psToken))
+	{
+		//1''0 is 1, '' and 0.  [lex.icon] 1, [lex.pptoken]
+		SharedError(psToken, "A digit separator is between two digits: this ' after a number starts a character literal");
+		return NULL;
+	}
 	if (szError)
 	{
 		SharedError(psToken, szError);

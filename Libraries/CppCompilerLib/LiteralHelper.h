@@ -73,6 +73,7 @@ enum ECharacterLiteralResult
 	CLR_EscapeTooLarge,		//A numeric escape's value doesn't fit the literal's character type.
 	CLR_NotOneCodeUnit,		//The character isn't one code unit of the literal's encoding, as u8'\u00E9' and u'\U0001F600'.
 	CLR_SeveralCharacters,	//More than one character in a u8, u or U literal.
+	CLR_NotACharacter,		//A universal character name of a surrogate or past 10FFFF.
 };
 
 
@@ -96,6 +97,7 @@ size					RawStringLength(const char* szQuote, const char* szEnd);
 void					RawStringCharacters(const char* szQuote, const char* szCloseQuote, const char** pszFirst, const char** pszEnd);
 ECharacterLiteralResult	ParseCharacterLiteral(const char* szText, size uiLength, SCharacterLiteral* psLiteral);
 const char*				CharacterLiteralError(ECharacterLiteralResult eResult);
+bool					IsCharacterCodePoint(uint32 uiCharacter);
 int64					CharacterLiteralValue(SCharacterLiteral* psLiteral);
 bool					DecodeEscape(const char** psz, const char* szEnd, uint32* puiValue);
 

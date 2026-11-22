@@ -39,6 +39,7 @@ protected:
 	const char*				mszDoubleQuoteStart;
 	const char*				mszSingleQuoteStart;
 	const char*				mszHashStart;
+	size					muiHashes;			//# and %: in the hashes from mszHashStart.
 	const char*				mszNumberStart;
 	bool					mbOnlyWhitespace;
 	CPreprocessorParser*	mpcParser;
@@ -65,6 +66,7 @@ public:
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, const char* szStart, const char* szEndExclusive);
 	void		NullAll(void);
+	bool		IsDigraphHash(void);
 	void		MarkStart(void);
 	void		Respell(CChars* psz, const char* szStart, const char* szEnd);
 };

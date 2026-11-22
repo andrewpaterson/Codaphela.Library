@@ -53,6 +53,7 @@ public:
 			void				Unload(void);
 			void				ClearContents(void);
 			void				SetContents(const char* sz);
+			void				ReplaceTrigraphs(void);
 			bool				IsLoaded(void) const;
 			bool				IsNamed(char* szName);
 	virtual bool				IsTranslationUnit(void) const =0;

@@ -27,6 +27,7 @@ class CPPHashes : public CPPToken
 {
 public:
 	size		miCount;
+	bool		mbDigraph;		//Spelled %: (and %:%:), which stringizing keeps.  [lex.digraph] 2
 
 	PP_TOKEN_CONSTRUCT(CPPHashes);
 	void	Init(size iLine, size iColumn, char* szFileName);

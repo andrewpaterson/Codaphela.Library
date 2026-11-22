@@ -409,7 +409,7 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        - Assignment lays its class out before looking for its operator= (SupportLib's ShapeSubtraction failed
          without it: using Base::operator= wasn't seen in a class not yet laid out).
        - clauses.py writes ?? as ?\? in the header, so a case's trigraphs aren't the test's own.
-   - Clauses 2 and 16, measured 2026-11-21, waiting for the user to pick what is fixed.  The same on both targets,
+   - Clauses 2 and 16, measured 2026-11-21.  The user, 2026-11-22: "Fix all of clause 2 and 16, commit as you go".  The same on both targets,
      and the semantic pass misses the same cases.
        Clause 2, 50 of 56.  Not built: LexTrigraphs (no trigraphs at all), LexAlternativeTokens (%: and %:%: aren't
        # and ##), LexUserDefinedLiterals (U'a'_c doesn't find operator"" _c(char32_t)).  Accepted: u'\uD800' (a
@@ -421,6 +421,25 @@ A. The clause sweep (agreed with the user 2026-11-20: measured first, shown as a
        Refused with a misleading message: 1' and 1''0 ("Unterminated" / "Empty character literal"), x ## + (no
        error for the paste; the expression after it is wrong instead).
      (Writing a case with the Write tool turned \u escapes into the characters: write \u through Python.)
+     All fixed 2026-11-22, with cases for each new refusal and its valid partner:
+       - The preprocessor: and, or, not and the rest are their operators in #if (CCPPPreprocessor::AlternativeOperator);
+         #line's tokens are macro replaced; #ifdef/#ifndef name one macro and #else/#endif have nothing after them
+         (in groups that aren't skipped); #define: defined isn't a macro's name, parameters differ, a redefinition is
+         the same (DefineSpelling: white space between tokens as one space), # in a function-like macro is followed
+         by a parameter, ## isn't first or last, __VA_ARGS__ only with ... (CheckReplacementList); a variadic macro's
+         call has an argument for its ... (it was let off, as C++20 does); ## that doesn't make one token is an error
+         (the GNU ", ## __VA_ARGS__" is handled before and isn't a paste).
+       - Trigraphs: CSourceFile::ReplaceTrigraphs, phase 1, before a file is tokenised; raw strings keep theirs (it
+         follows comments, strings, characters and digit separators to find them).  Columns after a trigraph on its
+         line are two less than the source's.  %: and %:%: are # and ## (a directive's start, the line tokeniser's
+         hashes, muiHashes), spelled as written (CPPHashes::mbDigraph: #x of %: is "%:").
+       - TestPreprocessor had the old behaviour in three places: an invalid paste kept as two tokens (D6, CAT(+, /))
+         and C++20's G(a) for G(X, ...).  Those calls were taken out, or given an empty argument after a comma.
+       - Literals: \u has four digits and \U eight; one naming a surrogate or past 10FFFF is refused, in characters
+         and strings; outside a literal one naming a basic or control character is left spelled in the name, which
+         InvalidCPPNameCharacter refuses.  Adjacent strings with different prefixes are refused.  A wide character's
+         user-defined literal gives its operator its own type (CCPPUnit::CharacterTokenType).  A ' after a number
+         that starts a bad character literal says the separator is misplaced (CCPPTokeniser::FollowsNumber).
 
 B. Gaps that are known.  Each was probed against g++; none is common.
    1. A union's inactive member read in a constant, on the 65C64: accepted where the two members are the same size

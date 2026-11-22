@@ -227,8 +227,9 @@ bool CCPPPreprocessor::TokeniseFile(CSourceFile* pcFile)
 	pacBlockSets = pcFile->GetBlockSets();
 	if (!pacBlockSets->IsRawProcessed())
 	{
-		//Its lines are found now (NumLines finds them the first time), not when the generator first asks, so they are
-		//only read after.
+		//Its trigraphs are replaced first.  Its lines are found now (NumLines finds them the first time), not when the
+		//generator first asks, so they are only read after.  [lex.phases] 1.1
+		pcFile->ReplaceTrigraphs();
 		pcFile->NumLines();
 		cTokeniser.Init(pcFile->ShortName());
 		cTokeniser.SetComments(pcFile->GetComments());
@@ -661,17 +662,17 @@ void CCPPPreprocessor::ConvertTokens(CPPTokenList* pcTokens, CSourceFile* pcFile
 			{
 				if (iCount >= 2)
 				{
-					sToken.Init(PTK_Punctuator, "##", 2, pcFile, pcToken->Line(), iColumn);
+					sToken.Init(PTK_Punctuator, pcHashes->mbDigraph ? "%:%:" : "##", pcHashes->mbDigraph ? 4 : 2, pcFile, pcToken->Line(), iColumn);
 					sToken.uiFlags = uiFlags | (pcDefine ? PTF_PASTE : 0);
 					iCount -= 2;
-					iColumn += 2;
+					iColumn += sToken.uiLength;
 				}
 				else
 				{
-					sToken.Init(PTK_Punctuator, "#", 1, pcFile, pcToken->Line(), iColumn);
+					sToken.Init(PTK_Punctuator, pcHashes->mbDigraph ? "%:" : "#", pcHashes->mbDigraph ? 2 : 1, pcFile, pcToken->Line(), iColumn);
 					sToken.uiFlags = uiFlags | (pcDefine ? PTF_STRINGIFY : 0);
 					iCount--;
-					iColumn++;
+					iColumn += sToken.uiLength;
 				}
 				pacDest->Add(&sToken);
 				uiFlags = 0;
@@ -1051,6 +1052,121 @@ CDefine* CCPPPreprocessor::AddDefine(const char* szDefine, const char* szReplace
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// A macro's definition as two definitions of it are compared: function
+// like or not, its parameters, and its replacement list's tokens with any
+// white space between two of them as one space.  [cpp.replace] 1
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IsPaste(CPPToken* pcToken)
+{
+	return pcToken->IsHash() && (((CPPHashes*)pcToken)->miCount == 2);
+}
+
+
+static void DefineSpelling(CDefine* pcDefine, CChars* psz)
+{
+	CPPTokenList*	pcTokens;
+	CPPToken*		pcToken;
+	size			i;
+	bool			bSpace;
+
+	psz->Append(pcDefine->IsBracketed() ? "(" : "");
+	for (i = 0; i < pcDefine->GetArguments()->NumElements(); i++)
+	{
+		psz->Append(pcDefine->GetArguments()->GetText(i));
+		psz->Append(',');
+	}
+	psz->Append(pcDefine->IsVariadic() ? "...)" : (pcDefine->IsBracketed() ? ")" : ""));
+	pcTokens = pcDefine->GetReplacement()->GetTokenList();
+	bSpace = false;
+	for (i = 0; i < pcTokens->NumTokens(); i++)
+	{
+		pcToken = pcTokens->Get(i);
+		if (pcToken->IsWhitespace())
+		{
+			bSpace = true;
+			continue;
+		}
+		if (bSpace)
+		{
+			psz->Append(' ');
+		}
+		bSpace = false;
+		pcToken->Print(psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The rules of a replacement list: # in a function-like macro is followed
+// by a parameter, ## is neither first nor last, __VA_ARGS__ is only in a
+// variadic macro's.  An error if one is broken.  [cpp.replace] 5,
+// [cpp.stringize] 1, [cpp.concat] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPPreprocessor::CheckReplacementList(CDefine* pcDefine, SPreprocessorPosition* psPos)
+{
+	CPPTokenList*	pcTokens;
+	CPPToken*		pcToken;
+	CPPToken*		pcNext;
+	CPPText*		pcText;
+	size			i;
+	size			j;
+	size			uiFirst;
+	size			uiLast;
+
+	pcTokens = pcDefine->GetReplacement()->GetTokenList();
+	uiFirst = ARRAY_ELEMENT_NOT_FOUND;
+	uiLast = ARRAY_ELEMENT_NOT_FOUND;
+	for (i = 0; i < pcTokens->NumTokens(); i++)
+	{
+		pcToken = pcTokens->Get(i);
+		if (pcToken->IsWhitespace())
+		{
+			continue;
+		}
+		if (uiFirst == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			uiFirst = i;
+		}
+		uiLast = i;
+		if (pcToken->IsText())
+		{
+			pcText = (CPPText*)pcToken;
+			if ((pcText->meType == PPT_Identifier) && (pcText->mcText.miLen == mszVaArgs.Length()) && (memcmp(pcText->mcText.msz, mszVaArgs.Text(), mszVaArgs.Length()) == 0))
+			{
+				return Error(psPos, "__VA_ARGS__ is only in the replacement list of a macro with ...", NULL);
+			}
+		}
+		if (pcToken->IsHash() && (((CPPHashes*)pcToken)->miCount == 1) && pcDefine->IsBracketed())
+		{
+			pcNext = NULL;
+			for (j = i + 1; j < pcTokens->NumTokens(); j++)
+			{
+				pcNext = pcTokens->Get(j);
+				if (!pcNext->IsWhitespace())
+				{
+					break;
+				}
+				pcNext = NULL;
+			}
+			if (!pcNext || !pcNext->IsReplacement())
+			{
+				return Error(psPos, "# in a function-like macro is followed by a parameter", NULL);
+			}
+		}
+	}
+	if ((uiFirst != ARRAY_ELEMENT_NOT_FOUND) && ((IsPaste(pcTokens->Get(uiFirst))) || (IsPaste(pcTokens->Get(uiLast)))))
+	{
+		return Error(psPos, "## is between two tokens: it isn't first or last in a replacement list", NULL);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -1071,15 +1187,26 @@ bool CCPPPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocesso
 	bool					bVariadic;
 	SPreprocessorPosition	sPos;
 	CPPTokenMemory*			pcTokenMemory;
+	CChars					szExisting;
+	CChars					szNew;
+	bool					bRedefined;
 
 	MarkPositionForError(pcParser, &sPos);
 
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
+		if ((cIdentifier.miLen == 7) && (memcmp(cIdentifier.msz, "defined", 7) == 0))
+		{
+			//[cpp.replace] 8
+			return Error(&sPos, "defined can't be a macro's name");
+		}
 		pcExisting = mcDefines.Get(&cIdentifier);
+		szExisting.Init();
+		bRedefined = pcExisting != NULL;
 		if (pcExisting)
 		{
+			DefineSpelling(pcExisting, &szExisting);
 			mcDefines.Remove(&cIdentifier);
 		}
 		pcDefine = mcDefines.AddDefine(&cIdentifier);
@@ -1145,7 +1272,21 @@ bool CCPPPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocesso
 
 			pcParser->NextToken();
 		}
-		return true;
+
+		bResult = CheckReplacementList(pcDefine, &sPos);
+		if (bResult && bRedefined)
+		{
+			//A macro defined again is defined the same.  [cpp.replace] 2
+			szNew.Init();
+			DefineSpelling(pcDefine, &szNew);
+			if (!szNew.Equals(&szExisting))
+			{
+				bResult = Error(&sPos, "The macro is defined again differently: a macro is only defined again as it was (#undef it first)");
+			}
+			szNew.Kill();
+		}
+		szExisting.Kill();
+		return bResult;
 	}
 	else
 	{
@@ -1183,6 +1324,11 @@ bool CCPPPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcP
 		}
 		else if (pcParser->GetIdentifier(&cArgument))
 		{
+			if (pcDefine->GetArguments()->GetIndex(cArgument.msz, cArgument.miLen) != ARRAY_ELEMENT_NOT_FOUND)
+			{
+				//[cpp.replace] 6
+				return Error(&sPos, "Two of the macro's parameters have the same name.");
+			}
 			pcDefine->AddArgument(&cArgument);
 			if (pcParser->GetExactDecorator("..."))
 			{
@@ -1223,39 +1369,62 @@ bool CCPPPreprocessor::ProcessHashDefineBracketted(CPreprocessorTokenParser* pcP
 //////////////////////////////////////////////////////////////////////////
 bool CCPPPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser)
 {
-	SPreprocessorPosition	sPos;
-	CExternalString			cNumber;
-	CChars					szRest;
-	SPPSource*				psSource;
-	int64					lliLine;
-	size					i;
+	SPreprocessorPosition		sPos;
+	CArrayPreprocessedTokens	acRaw;
+	CArrayPreprocessedTokens	acExpanded;
+	CArrayPreprocessedTokens*	pacTokens;
+	SPreprocessedToken*			psNumber;
+	SPreprocessedToken*			psName;
+	CChars						szName;
+	SPPSource*					psSource;
+	int64						lliLine;
+	size						i;
+	bool						bResult;
+	bool						bNameWrong;
 
+	//#line's tokens are macro replaced unless they are already a number.  [cpp.line] 6
 	MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
-	pcParser->SkipWhitespace();
-	lliLine = 0;
-	if (!pcParser->GetNumber(&cNumber) || (cNumber.miLen > 10))
+	acRaw.Init();
+	acExpanded.Init();
+	ConvertTokens(pcDirective->GetTokenList(), mpcCurrentFile, NULL, false, &acRaw);
+	pacTokens = &acRaw;
+	psNumber = acRaw.SafeGet(0);
+	if (psNumber && (psNumber->uiKind != PTK_Number))
 	{
-		return Error(&sPos, "Expected a line number after #line.");
+		ExpandTokens(&acRaw, &acExpanded);
+		pacTokens = &acExpanded;
 	}
-	for (i = 0; i < cNumber.miLen; i++)
+
+	psNumber = pacTokens->SafeGet(0);
+	psName = pacTokens->SafeGet(1);
+	lliLine = 0;
+	bResult = psNumber && (psNumber->uiKind == PTK_Number) && (psNumber->uiLength <= 10);
+	for (i = 0; bResult && (i < psNumber->uiLength); i++)
 	{
-		if ((cNumber.msz[i] < '0') || (cNumber.msz[i] > '9'))
-		{
-			return Error(&sPos, "Expected a line number after #line.");
-		}
-		lliLine = lliLine * 10 + (cNumber.msz[i] - '0');
+		bResult = (psNumber->szText[i] >= '0') && (psNumber->szText[i] <= '9');
+		lliLine = lliLine * 10 + (psNumber->szText[i] - '0');
+	}
+	szName.Init();
+	if (bResult && psName)
+	{
+		psName->Append(&szName);
+	}
+	bNameWrong = psName && ((pacTokens->NumElements() > 2) || (psName->uiKind != PTK_String));
+	acRaw.Kill();
+	acExpanded.Kill();
+	if (!bResult)
+	{
+		szName.Kill();
+		return Error(&sPos, "Expected a line number after #line.");
 	}
 	if ((lliLine < 1) || (lliLine > 2147483647))
 	{
+		szName.Kill();
 		return Error(&sPos, "The #line number must be from 1 to 2147483647.");
 	}
-
-	szRest.Init();
-	pcParser->AppendRemaining(&szRest);
-	szRest.StripWhitespace();
-	if (!szRest.Empty() && ((szRest.Length() < 2) || (szRest.GetChar(0) != '"') || (szRest.GetChar(szRest.Length() - 1) != '"')))
+	if (bNameWrong || (!szName.Empty() && ((szName.Length() < 2) || (szName.GetChar(0) != '"') || (szName.GetChar(szName.Length() - 1) != '"'))))
 	{
-		szRest.Kill();
+		szName.Kill();
 		return Error(&sPos, "Expected a file name in quotes after the #line number.");
 	}
 
@@ -1264,13 +1433,13 @@ bool CCPPPreprocessor::ProcessHashLine(CPPDirective* pcDirective, CPreprocessorT
 	{
 		InvalidateRecordings();
 		psSource->iLineOffset = (int)(lliLine - (pcDirective->Line() + 2));
-		if (!szRest.Empty())
+		if (!szName.Empty())
 		{
-			psSource->szLineFile.Set(szRest.Text());
+			psSource->szLineFile.Set(szName.Text());
 		}
 		mpcOutput->AddLineDirective(mpcCurrentFile, (int)pcDirective->Line() + 1, psSource->iLineOffset, psSource->szLineFile.Text());
 	}
-	szRest.Kill();
+	szName.Kill();
 	return true;
 }
 
@@ -2160,10 +2329,14 @@ bool CCPPPreprocessor::CollectArguments(CDefine* pcDefine, SPreprocessedToken* p
 
 	if (bVariadic && (iNumArguments + 1 == iNumParameters))
 	{
-		//The variadic argument may be left out.
-		pacArgument = pacArguments->Add();
-		pacArgument->Init();
-		iNumArguments++;
+		//A call has an argument for ..., if only an empty one after a comma (C++20 lets it be left out).
+		//[cpp.replace] 4
+		szError.Init("Macro ");
+		szError.Append(pcDefine->GetName());
+		szError.Append(" needs an argument for its ...: put a comma after the last argument.");
+		Error(psName, szError.Text());
+		szError.Kill();
+		return false;
 	}
 
 	if (iNumArguments != iNumParameters)
@@ -2381,6 +2554,7 @@ void CCPPPreprocessor::PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPr
 	SPreprocessedToken*			psLeft;
 	SPreprocessedToken			sToken;
 	size						i;
+	CChars						szError;
 
 	acPasted.Init();
 	for (i = 0; i < pacTokens->NumElements(); i++)
@@ -2397,7 +2571,14 @@ void CCPPPreprocessor::PasteTokens(CArrayPreprocessedTokens* pacTokens, CArrayPr
 				}
 				else
 				{
-					//Not a valid token.  The compilers that allow it keep the two tokens.
+					//What ## makes is one preprocessing token.  [cpp.concat] 3
+					szError.Init("Pasting \"");
+					psLeft->Append(&szError);
+					szError.Append("\" and \"");
+					pacTokens->Get(i + 1)->Append(&szError);
+					szError.Append("\" doesn't make one token.");
+					Error(psLeft, szError.Text());
+					szError.Kill();
 					acPasted.Add(pacTokens->Get(i + 1));
 				}
 				i++;
@@ -3170,6 +3351,7 @@ bool CCPPPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 	SPreprocessedToken			sToken;
 	TRISTATE					tResult;
 	bool						bDefined;
+	bool						bExtra;
 	SPPSource*					psSource;
 	size						iFileDepth;
 	SPreprocessorPosition		sPos;
@@ -3205,6 +3387,14 @@ bool CCPPPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 			cParser.Kill();
 			MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
 			return Error(&sPos, "Expected an identifier.");
+		}
+		cParser.SkipWhitespace();
+		if (cParser.HasToken())
+		{
+			//#ifdef and #ifndef name one macro.  [cpp.cond] 1
+			cParser.Kill();
+			MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+			return Error(&sPos, (char*)(pcDirective->Is(PPD_ifdef) ? "#ifdef names one macro: there is more after it." : "#ifndef names one macro: there is more after it."));
 		}
 		cParser.Kill();
 
@@ -3267,6 +3457,20 @@ bool CCPPPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 		return true;
 	}
 
+	if ((pcDirective->Is(PPD_else) || pcDirective->Is(PPD_endif)) && mcConditionalStack.IsParentParsing())
+	{
+		//#else and #endif have nothing after them.  [cpp.cond] 1
+		cParser.Init(pcDirective);
+		cParser.SkipWhitespace();
+		bExtra = cParser.HasToken();
+		cParser.Kill();
+		if (bExtra)
+		{
+			MarkPositionForError(pcDirective->Line(), pcDirective->Column(), &sPos);
+			return Error(&sPos, (char*)(pcDirective->Is(PPD_else) ? "#else has nothing after it." : "#endif has nothing after it."));
+		}
+	}
+
 	if (pcDirective->Is(PPD_else))
 	{
 		mcConditionalStack.SwapForElse();
@@ -3279,6 +3483,32 @@ bool CCPPPreprocessor::ProcessConditional(CPPDirective* pcDirective)
 		return true;
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The operator an alternative token written as a name stands for (and is
+// &&), or NULL for any other name.  [lex.digraph] 2, Table 2
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CCPPPreprocessor::AlternativeOperator(const char* szName, size uiLength)
+{
+	static const char*	aszAlternatives[][2] =
+	{
+		{ "and", "&&" }, { "and_eq", "&=" }, { "bitand", "&" }, { "bitor", "|" }, { "compl", "~" }, { "not", "!" },
+		{ "not_eq", "!=" }, { "or", "||" }, { "or_eq", "|=" }, { "xor", "^" }, { "xor_eq", "^=" },
+	};
+	size	i;
+
+	for (i = 0; i < sizeof(aszAlternatives) / sizeof(aszAlternatives[0]); i++)
+	{
+		if ((strlen(aszAlternatives[i][0]) == uiLength) && (memcmp(aszAlternatives[i][0], szName, uiLength) == 0))
+		{
+			return aszAlternatives[i][1];
+		}
+	}
+	return NULL;
 }
 
 
@@ -3299,6 +3529,7 @@ TRISTATE CCPPPreprocessor::EvaluateCondition(CPPDirective* pcDirective)
 	size						i;
 	SPreprocessorPosition		sPos;
 	bool						bResult;
+	const char*					szAlternative;
 
 	//[cpp.cond]  defined and the __has_ operators are evaluated before macro replacement and again after it, for
 	//macros that make them.  Identifiers left over are 0, except true and false.
@@ -3337,7 +3568,16 @@ TRISTATE CCPPPreprocessor::EvaluateCondition(CPPDirective* pcDirective)
 		{
 			sz.Append(' ');
 		}
-		acFinal.Get(i)->Append(&sz);
+		//and, or, not and the rest are the operators they stand for, not names (which would be 0).  [lex.digraph]
+		szAlternative = acFinal.Get(i)->IsIdentifier() ? AlternativeOperator(acFinal.Get(i)->szText, acFinal.Get(i)->uiLength) : NULL;
+		if (szAlternative)
+		{
+			sz.Append(szAlternative);
+		}
+		else
+		{
+			acFinal.Get(i)->Append(&sz);
+		}
 	}
 
 	szCalculatorError.Init();
@@ -3552,7 +3792,7 @@ bool CCPPPreprocessor::ReplaceConditionOperators(CArrayPreprocessedTokens* pacSo
 			continue;
 		}
 
-		if (psNext && psNext->IsPunctuator("(") && !GetDefine(psToken))
+		if (psNext && psNext->IsPunctuator("(") && !GetDefine(psToken) && !AlternativeOperator(psToken->szText, psToken->uiLength))
 		{
 			//An unknown function-like name, as in __has_feature(x) without a definition, is 0.
 			i++;

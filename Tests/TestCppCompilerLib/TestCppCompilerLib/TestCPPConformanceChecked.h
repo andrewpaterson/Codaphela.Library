@@ -37,7 +37,7 @@ static const SConformanceChecked gasConformanceChecked[] =
 	{ "Exceptions",
 		"GotoIntoTryRefused(M) GotoIntoHandlerRefused(M) SwitchIntoTryRefused(M) ConstructorFunctionTryReturnRefused(M) ThrowPrivateCopyRefused(M) " },
 	{ "Clause2",
-		"LexUniversalCharacterNameSurrogateRefused(M) LexUniversalCharacterNameBasicInNameRefused(M) LexTrigraphs(F) LexAlternativeTokens(F) LexStringConcatenationMixedRefused(M) LexUserDefinedLiterals(F) " },
+		"" },
 	{ "Clause3",
 		"BasicSwitchFloatConditionRefused(M) BasicGotoPastDeclarationRefused(M) BasicGotoIntoBlockRefused(M) BasicIncompleteArraySizeofRefused(M) BasicSizeofVoidRefused(M) BasicAlignmentLocalNotPowerOfTwoRefused(M) " },
 	{ "Clause4",
@@ -63,5 +63,5 @@ static const SConformanceChecked gasConformanceChecked[] =
 	{ "Clause14",
 		"TempNonTypeNotLvalueRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempResDependentOrdinaryLookupRefused(M) TempInstMemberUsedRefused(M) TempSfinaeBodyErrorRefused(M) " },
 	{ "Clause16",
-		"CppConditionalArithmetic(F) CppConditionalIfdefExtraTokensRefused(M) CppMacroVariadicNeedsArgumentRefused(M) CppMacroRedefinedDifferentlyRefused(M) CppMacroDefinedRefused(M) CppMacroVaArgsOutsideRefused(M) CppMacroDuplicateParameterRefused(M) CppStringizeNotParameterRefused(M) CppTokenPastingAtEdgeRefused(M) CppLine(F) " },
+		"" },
 };

@@ -93,6 +93,7 @@ bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 	int						iLine;
 	int						iIndex;
 	bool					bMustAdd;
+	const char*				szHash;
 
 	if (pacDestBlockSets->IsRawProcessed())
 	{
@@ -120,10 +121,16 @@ bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 	{
 		iLine = mcParser.miLine;
 		mcParser.SkipWhitespace();
-		if ((*mcParser.GetPos()) == '#')
+		szHash = mcParser.GetPos();
+		if ((*szHash == '#') || ((*szHash == '%') && (szHash < mcParser.GetEnd()) && (szHash[1] == ':')))
 		{
+			//A directive starts with # or its alternative token %:.  [cpp] 1, [lex.digraph]
 			bDirective = true;
 			mcParser.StepRight();
+			if (*szHash == '%')
+			{
+				mcParser.StepRight();
+			}
 			eDirective = GetDirective();
 			pcLine = NULL;
 			pcDirective = TokeniseDirective(pcTokenMemory, eDirective, iBlock, iIndex);

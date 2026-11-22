@@ -73,6 +73,7 @@ void CPreprocessorLineTokeniser::Kill(void)
 void CPreprocessorLineTokeniser::Preprocess(void)
 {
 	size	uiLength;
+	bool	bDigraph;
 
 	//Remember that at this point the hash and directive have already been strippeed if they existed.
 	//Any existing hashes are... something else.
@@ -157,8 +158,10 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 				break;
 			}
 		}
-		else if ((*mpcParser->GetPos()) == '#')
+		else if (((*mpcParser->GetPos()) == '#') || IsDigraphHash())
 		{
+			//# and its alternative token %:.  [lex.digraph]
+			bDigraph = (*mpcParser->GetPos()) == '%';
 			if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 			{
 				if (!mszHashStart)
@@ -168,8 +171,13 @@ void CPreprocessorLineTokeniser::Preprocess(void)
 					mszHashStart = mpcParser->GetPos();
 					MarkStart();
 				}
+				muiHashes++;
 			}
 			mpcParser->StepRight();
+			if (bDigraph)
+			{
+				mpcParser->StepRight();
+			}
 		}
 		else if (mpcParser->IsFirstIdentifier())
 		{
@@ -543,7 +551,8 @@ void CPreprocessorLineTokeniser::AddRelevantToken(void)
 	else if ((mszHashStart) && (mszHashStart <= mpcParser->GetEnd()))
 	{
 		pcHashes = mpcTokens->AddToken<CPPHashes>();
-		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), miStartLine, miStartColumn, mpcParser->mszFileName);
+		pcHashes->Init((int)muiHashes, miStartLine, miStartColumn, mpcParser->mszFileName);
+		pcHashes->mbDigraph = *mszHashStart == '%';
 
 		mpcTokenHolder->Add(pcHashes);
 		mbOnlyWhitespace = false;
@@ -599,6 +608,24 @@ void CPreprocessorLineTokeniser::MarkStart(void)
 
 //																		//
 //																		//
+bool CPreprocessorLineTokeniser::IsDigraphHash(void)
+{
+	const char*	sz;
+
+	//%: outside a literal, and not the : after <% (which is {).
+	sz = mpcParser->GetPos();
+	if ((*sz != '%') || (sz >= mpcParser->GetEnd()) || (sz[1] != ':') || mszSingleQuoteStart || mszDoubleQuoteStart)
+	{
+		return false;
+	}
+	return (sz == mpcParser->mszStartOfText) || (sz[-1] != '<');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokeniser::NullAll(void)
 {
 	mszWhitespaceStart = NULL;
@@ -607,6 +634,7 @@ void CPreprocessorLineTokeniser::NullAll(void)
 	mszDoubleQuoteStart = NULL;
 	mszSingleQuoteStart = NULL;
 	mszHashStart = NULL;
+	muiHashes = 0;
 	mszNumberStart = NULL;
 	mbContainsLineContinuers = false;
 	mbContainsUniversalNames = false;
@@ -645,7 +673,16 @@ void CPreprocessorLineTokeniser::Respell(CChars* psz, const char* szStart, const
 		{
 			szName = pc + 1;
 			DecodeEscape(&szName, pc + uiLength, &uiCharacter);
-			psz->Append(szUTF8, EncodeUTF8(uiCharacter, szUTF8));
+			if ((uiCharacter < 0xA0) || !IsCharacterCodePoint(uiCharacter))
+			{
+				//A basic, control or surrogate character isn't named so outside a literal: the name is left spelled
+				//with it, for the tokeniser's error (InvalidCPPNameCharacter).  [lex.charset] 2
+				psz->Append(pc, (int)uiLength);
+			}
+			else
+			{
+				psz->Append(szUTF8, EncodeUTF8(uiCharacter, szUTF8));
+			}
 			pc += uiLength - 1;
 		}
 		else

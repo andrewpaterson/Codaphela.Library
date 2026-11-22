@@ -154,6 +154,33 @@ int main() { return 0; }
 #ifdef A B
 #endif
 int main() { return 0; }
+### CppConditionalElseExtraTokensRefused | REFUSED | 16.1 [cpp.cond] p1: #else has nothing after it
+#if 0
+#else X
+#endif
+int main() { return 0; }
+### CppConditionalEndifExtraTokensRefused | REFUSED | 16.1 [cpp.cond] p1: #endif has nothing after it
+#ifdef X
+#endif X
+int main() { return 0; }
+### CppConditionalCommentsAfterDirectives | 3 | 16.1 [cpp.cond] p1, 2.8 [lex.comment]: a comment after #ifdef's name, #else and #endif is white space
+#define A
+int main()
+{
+	int r = 0;
+#ifdef A // a comment
+	r += 1;
+#else /* a comment */
+	r += 100;
+#endif // A
+#ifndef A /* a comment */
+	r += 100;
+#else
+	r += 2;
+#endif /* a
+comment over two lines */
+	return r;
+}
 ### CppInclude | 3 | 16.2 [cpp.include]: <header> and "header", and a header named by a macro
 #include <stddef.h>
 #include "stddef.h"

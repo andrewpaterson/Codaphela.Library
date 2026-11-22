@@ -69,6 +69,7 @@ protected:
 	bool				Identifier(SPreprocessedToken* psToken);
 	bool				Punctuator(SPreprocessedToken* psToken);
 	bool				Literal(SPreprocessedToken* psToken);
+	bool				FollowsNumber(SPreprocessedToken* psToken);
 	CCPPToken*			Number(SPreprocessedToken* psToken, size* puiLength);
 	CCPPToken*			Integer(SNumberLiteral* psLiteral);
 	CCPPToken*			Floating(SPreprocessedToken* psToken, SNumberLiteral* psLiteral);

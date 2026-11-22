@@ -860,6 +860,30 @@ CCTUserLiteral* CCPPUnit::UserLiteralToken(CCPPSyntax* pcLiteral)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The type of a character literal's token (char, wchar_t, char16_t or
+// char32_t), or NULL if it is no character literal of one character.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPUnit::CharacterTokenType(CCPPToken* pcToken)
+{
+	if (pcToken->IsChar())
+	{
+		return &mcTypes.msChar;
+	}
+	if (pcToken->IsNumber() && (((CCTNumber*)pcToken)->meType == CTNT_Short))
+	{
+		return ((CCTShort*)pcToken)->mbChar16 ? &mcTypes.msChar16 : &mcTypes.msWChar;
+	}
+	if (pcToken->IsNumber() && (((CCTNumber*)pcToken)->meType == CTNT_Int) && ((CCTInt*)pcToken)->mbChar32)
+	{
+		return &mcTypes.msChar32;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The call a user-defined literal is, worked out once for its node: its
 // suffix's literal operator and what it is given ([lex.ext]).  "text"_s is
 // operator "" _s("text", 4) and 'c'_c operator "" _c('c').  12_k is
@@ -913,9 +937,10 @@ SCPPLiteralCall* CCPPUnit::GetLiteralCall(CCPPSyntax* pcLiteral)
 		}
 		auiBytes.Kill();
 	}
-	else if (pcUser->mpcLiteral->IsChar())
+	else if (CharacterTokenType(pcUser->mpcLiteral))
 	{
-		pcArgument = LiteralArgument(pcLiteral, &mcTypes.msChar, papcArguments);
+		//'c'_x is given a char, L'c'_x a wchar_t, u'c'_x a char16_t and U'c'_x a char32_t.  [lex.ext] 6
+		pcArgument = LiteralArgument(pcLiteral, CharacterTokenType(pcUser->mpcLiteral), papcArguments);
 		pcArgument->mbConstant = TokenConstant(pcUser->mpcLiteral, &pcArgument->mlliValue);
 		sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
 	}
@@ -4603,6 +4628,10 @@ bool CCPPUnit::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int i
 		if (!DecodeEscape(&sz, szEnd, &uiValue))
 		{
 			return Error(pcString, "Invalid escape sequence in a string literal");
+		}
+		if (((cEscape == 'u') || (cEscape == 'U')) && !IsCharacterCodePoint(uiValue))
+		{
+			return Error(pcString, "The universal character name names no character: a surrogate (D800 to DFFF) or a value past 10FFFF");
 		}
 		if ((cEscape == 'u') || (cEscape == 'U'))
 		{

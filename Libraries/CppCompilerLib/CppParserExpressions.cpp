@@ -1130,7 +1130,9 @@ CCPPSyntaxExpression* CCPPParser::ParseStringExpression(CCPPSyntax* pcParent)
 {
 	CCPPSyntaxStringExpression*	pcString;
 	CCPPToken*					pcToken;
+	CCPPToken*					pcLiteral;
 	int32						iSuffix;
+	ECTEncoding					eEncoding;
 
 	//Adjacent string literals are one.  [lex.string] 13
 	pcString = mpcMemory->Create<CCPPSyntaxStringExpression>(pcParent);
@@ -1141,11 +1143,23 @@ CCPPSyntaxExpression* CCPPParser::ParseStringExpression(CCPPSyntax* pcParent)
 		return NULL;
 	}
 
-	//Those with user-defined suffixes must all have the same one.  [lex.ext] 8
+	//Those with user-defined suffixes must all have the same one.  [lex.ext] 8  Those with prefixes have the same
+	//one: one without a prefix takes the others', and u8 with L is ill-formed, as joining any other two is for g++
+	//(conditionally-supported).  [lex.string] 13
 	iSuffix = -1;
+	eEncoding = CTE_Narrow;
 	while (IsStringPart())
 	{
 		pcToken = Peek(0);
+		pcLiteral = pcToken->IsUserString() ? ((CCTUserLiteral*)pcToken)->mpcLiteral : pcToken;
+		if (pcLiteral->IsString() && (((CCTString*)pcLiteral)->meEncoding != CTE_Narrow))
+		{
+			if ((eEncoding != CTE_Narrow) && (eEncoding != ((CCTString*)pcLiteral)->meEncoding))
+			{
+				Error("Adjacent string literals have different prefixes: only one without a prefix joins one with a prefix.");
+			}
+			eEncoding = ((CCTString*)pcLiteral)->meEncoding;
+		}
 		if (pcToken->IsUserString())
 		{
 			if ((iSuffix != -1) && (iSuffix != ((CCTUserLiteral*)pcToken)->miSuffix))

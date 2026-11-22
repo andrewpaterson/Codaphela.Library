@@ -237,6 +237,8 @@ protected:
 	bool 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
 	bool 				ProcessHashUnknown(CPPDirective* pcDirective);
 	TRISTATE			EvaluateCondition(CPPDirective* pcDirective);
+	static const char*	AlternativeOperator(const char* szName, size uiLength);
+	bool				CheckReplacementList(CDefine* pcDefine, SPreprocessorPosition* psPos);
 	bool				ReplaceConditionOperators(CArrayPreprocessedTokens* pacSource, CArrayPreprocessedTokens* pacDest);
 	bool				GetIncludeName(CArrayPreprocessedTokens* pacTokens, size* piIndex, CChars* pszName, bool* pbSystem);
 	void				FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap, bool bNext);

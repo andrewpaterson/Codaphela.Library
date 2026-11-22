@@ -110,12 +110,12 @@ void DoStuff()\n\
 	char sz3[] = D8(Hello, World);\n\
 	char sz5[] = D1(Hello, World);\n\
 	char sz4[] = D2(Hello, World);\n\
-	char sz2[] = D6(Hello, World);\n\
 }\n\
 ", &szDest);
 
 	//D4 and the " " in D8 are empty here: the quotes end and restart the C++ string literal this test is written in.
-	//D6 pastes ")" with "D4", which is not a valid token.  That is undefined; the tokens are kept apart, as MSVC does.
+	//D6 (not called) pastes ")" with "D4", which is not a valid token: that is an error, as g++ has it (the standard
+	//leaves it undefined).  [cpp.concat] 3
 	AssertString("\
 void DoStuff()\n\
 {\n\
@@ -124,7 +124,6 @@ char sz1[] = \"Hello\" \"World\";\n\
 char sz3[] = \"Hello\" \"World\";\n\
 char sz5[] = \"Hello\"\"World\";\n\
 char sz4[] = \"Hello\" \"World\";\n\
-char sz2[] = \"Hello\"\"World\";\n\
 }\n\
 ", szDest.Text());
 	szDest.Kill();
@@ -1317,8 +1316,8 @@ void TestPreprocessorStandardExample5(void)
 //
 // An empty argument next to ## leaves the other token, and two leave no token.
 // An argument next to ## isn't
-// macro replaced, one elsewhere is.  What ## can't make a token of stays two
-// tokens.  An object-like macro with no replacement is 0 in #if, and one that
+// macro replaced, one elsewhere is.  (What ## can't make a token of is an
+// error: TestCPPConformance's CppTokenPastingInvalidRefused.)  An object-like macro with no replacement is 0 in #if, and one that
 // makes nothing gives its spacing to what follows.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1334,7 +1333,6 @@ void TestPreprocessorMacroSubstitution(void)
 		"#define EMPTY\n"
 		"[CAT(, x)] [CAT(x, )] [CAT(, )]\n"
 		"RAW(V)\n"
-		"CAT(+, /)\n"
 		"#if EMPTY\n"
 		"no\n"
 		"#else\n"
@@ -1344,7 +1342,6 @@ void TestPreprocessorMacroSubstitution(void)
 	AssertString(
 		"[x] [x] []\n"
 		"3 V1\n"
-		"+ /\n"
 		"yes\n"
 		"a b\n", szDest.Text());
 	szDest.Kill();
@@ -1359,7 +1356,8 @@ void TestPreprocessorStandardExample7(void)
 {
 	CChars	szDest;
 
-	//C11 6.10.3.5 EXAMPLE 7: variadic macros, and the GNU , ## __VA_ARGS__.
+	//C11 6.10.3.5 EXAMPLE 7: variadic macros, and the GNU , ## __VA_ARGS__.  C++14 needs an argument for ..., if an
+	//empty one after a comma (C++20 lets G(a) leave it out).  [cpp.replace] 4
 	szDest.Init();
 	CCPPPreprocessor::Preprocess(
 		"#define debug(...) fprintf(stderr, __VA_ARGS__)\n"
@@ -1374,17 +1372,17 @@ void TestPreprocessorStandardExample7(void)
 		"#define G(X, ...) f(0, X __VA_ARGS__)\n"
 		"#define SDEF(sname, ...) S sname = { __VA_ARGS__ }\n"
 		"#define EMP\n"
-		"F(a,b,c) F() F(EMP) G(a,b,c) G(a,) G(a)\n"
-		"SDEF(foo); SDEF(bar, 1, 2);\n"
+		"F(a,b,c) F() F(EMP) G(a,b,c) G(a,)\n"
+		"SDEF(foo,); SDEF(bar, 1, 2);\n"
 		"#define GNU(fmt, ...) printf(fmt, ## __VA_ARGS__)\n"
-		"GNU(\"a\") GNU(\"b\", 1, 2)\n", &szDest);
+		"GNU(\"a\",) GNU(\"b\", 1, 2)\n", &szDest);
 
 	AssertString(
 		"fprintf(stderr, \"Flag\");\n"
 		"fprintf(stderr, \"X = %d\\n\", x);\n"
 		"puts(\"The first, second, and third items.\");\n"
 		"((x>y)?puts(\"x>y\"): printf(\"x is %d but y is %d\", x, y));\n"
-		"f(0 a,b,c) f(0) f(0) f(0, a b,c) f(0, a) f(0, a)\n"
+		"f(0 a,b,c) f(0) f(0) f(0, a b,c) f(0, a)\n"
 		"S foo = { }; S bar = { 1, 2 };\n"
 		"printf(\"a\") printf(\"b\", 1, 2)\n", szDest.Text());
 	szDest.Kill();

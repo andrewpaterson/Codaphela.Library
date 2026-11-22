@@ -28,6 +28,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CPPHashes::Init(size iLine, size iColumn, char* szFileName)
 {
 	CPPToken::Init((int)iLine, (int)iColumn, szFileName);
+	miCount = 0;
+	mbDigraph = false;
 }
 
 
@@ -40,6 +42,7 @@ void CPPHashes::Init(size iCount, size iLine, size iColumn, char* szFileName)
 	CPPToken::Init((int)iLine, (int)iColumn, szFileName);
 	Set((int)iLine, (int)iColumn);
 	miCount = iCount;
+	mbDigraph = false;
 }
 
 
@@ -68,7 +71,19 @@ bool CPPHashes::IsHash(void) const
 //////////////////////////////////////////////////////////////////////////
 char* CPPHashes::Print(CChars* psz)
 {
-	psz->Append('#', miCount);
+	size	i;
+
+	if (mbDigraph)
+	{
+		for (i = 0; i < miCount; i++)
+		{
+			psz->Append("%:");
+		}
+	}
+	else
+	{
+		psz->Append('#', miCount);
+	}
 	return psz->Text();
 }
 
@@ -85,6 +100,7 @@ void CPPHashes::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	{
 		pcCast = (CPPHashes*)pcSource;
 		Init(pcCast->miCount, pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
+		mbDigraph = pcCast->mbDigraph;
 	}
 }
 

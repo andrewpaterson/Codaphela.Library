@@ -269,6 +269,234 @@ void CSourceFile::Path(CChars* pszPath)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// The character a trigraph (??= and the others) stands for, or 0 if sz
+// doesn't start one.  [lex.trigraph] 1
+//
+//////////////////////////////////////////////////////////////////////////
+static char TrigraphCharacter(const char* sz, const char* szEnd)
+{
+	if ((szEnd - sz < 3) || (sz[0] != '?') || (sz[1] != '?'))
+	{
+		return 0;
+	}
+	switch (sz[2])
+	{
+	case '=':	return '#';
+	case '/':	return '\\';
+	case '\'':	return '^';
+	case '(':	return '[';
+	case ')':	return ']';
+	case '!':	return '|';
+	case '<':	return '{';
+	case '>':	return '}';
+	case '-':	return '~';
+	default:	return 0;
+	}
+}
+
+
+static bool IsTrigraphNameCharacter(char c)
+{
+	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_') || ((uint8)c >= 0x80);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Translation phase 1: each trigraph is the character it stands for, but
+// in a raw string, where the replacement is undone.  The contents are only
+// changed if they have one; columns after one on its line are two less
+// than the source's.  Comments, strings, characters (and digit
+// separators, which aren't) are followed only to know where a raw string
+// starts.  [lex.phases] 1.1, [lex.trigraph], [lex.pptoken] 3.1
+//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::ReplaceTrigraphs(void)
+{
+	enum ETrigraphState
+	{
+		TS_Code,
+		TS_LineComment,
+		TS_BlockComment,
+		TS_String,
+		TS_Character,
+	};
+	const char*		sz;
+	const char*		szEnd;
+	const char*		szClose;
+	CChars			szDest;
+	CChars			szDelimiter;
+	ETrigraphState	eState;
+	size			uiPrefix;
+	size			uiLength;
+	char			c;
+	char			cPrevious;
+	bool			bInNumber;
+	bool			bEscaped;
+	bool			bChanged;
+
+	sz = mszContents.Text();
+	szEnd = sz + mszContents.Length();
+	if (!strstr(sz, "??"))
+	{
+		return;
+	}
+
+	szDest.Init();
+	eState = TS_Code;
+	bInNumber = false;
+	bEscaped = false;
+	bChanged = false;
+	cPrevious = '\n';
+	while (sz < szEnd)
+	{
+		c = TrigraphCharacter(sz, szEnd);
+		if (c != 0)
+		{
+			sz += 3;
+			bChanged = true;
+		}
+		else
+		{
+			c = *sz;
+			sz++;
+		}
+
+		switch (eState)
+		{
+		case TS_Code:
+			if (c == '"')
+			{
+				//R", u8R", uR", UR" and LR" start a raw string, whose characters are copied as they are.
+				uiLength = szDest.Length();
+				uiPrefix = 0;
+				if ((uiLength >= 1) && (szDest.GetChar(uiLength - 1) == 'R'))
+				{
+					uiPrefix = 1;
+					if ((uiLength >= 3) && (szDest.GetChar(uiLength - 3) == 'u') && (szDest.GetChar(uiLength - 2) == '8'))
+					{
+						uiPrefix = 3;
+					}
+					else if ((uiLength >= 2) && ((szDest.GetChar(uiLength - 2) == 'u') || (szDest.GetChar(uiLength - 2) == 'U') || (szDest.GetChar(uiLength - 2) == 'L')))
+					{
+						uiPrefix = 2;
+					}
+					if ((uiLength > uiPrefix) && IsTrigraphNameCharacter(szDest.GetChar(uiLength - uiPrefix - 1)))
+					{
+						uiPrefix = 0;
+					}
+				}
+				if (uiPrefix != 0)
+				{
+					szDest.Append(c);
+					szDelimiter.Init(")");
+					while ((sz < szEnd) && (*sz != '(') && (*sz != '\n'))
+					{
+						szDelimiter.Append(*sz);
+						szDest.Append(*sz);
+						sz++;
+					}
+					szDelimiter.Append('"');
+					szClose = strstr(sz, szDelimiter.Text());
+					szClose = szClose ? szClose + szDelimiter.Length() : szEnd;
+					szDest.Append(sz, (int)(szClose - sz));
+					sz = szClose;
+					szDelimiter.Kill();
+					cPrevious = '"';
+					continue;
+				}
+				eState = TS_String;
+				bEscaped = false;
+			}
+			else if (c == '\'')
+			{
+				szDest.Append(c);
+				if (!(bInNumber && (sz < szEnd) && IsTrigraphNameCharacter(*sz)))
+				{
+					eState = TS_Character;
+					bEscaped = false;
+				}
+				cPrevious = c;
+				continue;
+			}
+			else if ((c == '/') && (sz < szEnd) && (*sz == '/'))
+			{
+				eState = TS_LineComment;
+			}
+			else if ((c == '/') && (sz < szEnd) && (*sz == '*'))
+			{
+				szDest.Append(c);
+				szDest.Append(*sz);
+				sz++;
+				eState = TS_BlockComment;
+				cPrevious = ' ';
+				continue;
+			}
+			else if (IsTrigraphNameCharacter(c) || (c == '.'))
+			{
+				if (!IsTrigraphNameCharacter(cPrevious) && (cPrevious != '.') && (cPrevious != '\''))
+				{
+					bInNumber = ((c >= '0') && (c <= '9')) || ((c == '.') && (sz < szEnd) && (*sz >= '0') && (*sz <= '9'));
+				}
+			}
+			else if (!(((c == '+') || (c == '-')) && bInNumber && ((cPrevious == 'e') || (cPrevious == 'E') || (cPrevious == 'p') || (cPrevious == 'P'))))
+			{
+				bInNumber = false;
+			}
+			break;
+
+		case TS_LineComment:
+			if ((c == '\n') && (cPrevious != '\\') && !((cPrevious == '\r') && (szDest.Length() >= 2) && (szDest.GetChar(szDest.Length() - 2) == '\\')))
+			{
+				eState = TS_Code;
+			}
+			break;
+
+		case TS_BlockComment:
+			if ((c == '/') && (cPrevious == '*'))
+			{
+				eState = TS_Code;
+				c = '/';
+				szDest.Append(c);
+				cPrevious = ' ';
+				continue;
+			}
+			break;
+
+		case TS_String:
+		case TS_Character:
+			if (bEscaped)
+			{
+				bEscaped = false;
+			}
+			else if (c == '\\')
+			{
+				bEscaped = true;
+			}
+			else if (((c == '"') && (eState == TS_String)) || ((c == '\'') && (eState == TS_Character)) || (c == '\n'))
+			{
+				eState = TS_Code;
+				bInNumber = false;
+			}
+			break;
+		}
+		szDest.Append(c);
+		cPrevious = c;
+	}
+
+	if (bChanged)
+	{
+		mszContents.Kill();
+		mszContents.Init(szDest.Text());
+		maiLineStarts.Kill();
+		maiLineStarts.Init();
+	}
+	szDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////

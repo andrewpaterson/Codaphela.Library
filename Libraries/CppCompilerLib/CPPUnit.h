@@ -804,6 +804,7 @@ public:
 	bool					FunctionNameText(int64 lliName, CChars* pszText);
 	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
 	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
+	SCPP65Type*				CharacterTokenType(CCPPToken* pcToken);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					TokenConstant(CCPPToken* pcToken, int64* plliValue);
