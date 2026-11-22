@@ -1,0 +1,335 @@
+CppCompilerLib: the semantic layer, put right
+=============================================
+
+A plan for findings 15 to 29 of SmellCheckFindings.txt: CCPPUnit and the classes round it.  Written 2026-11-22 at
+the user's "Plan fixes for the semantic layer".  The findings say where each thing is and what the clean form
+would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
+this plan finishes what they left and what has been added since.
+
+Where it is: stage 0 is begun (2026-11-22).  The user answered questions 1, 2, 3 and 5 that day; question 4
+is still open, and nothing before stage 15 depends on it.
+
+
+What was checked before writing (2026-11-22, master 9a11fabbd)
+
+  - The findings were read at about 95556e055; 51 commits have changed the compiler since.  Every name the fifteen
+    findings rest on was looked for again: all of it is still there (the four dead members of 29 still have no
+    caller, CCPPWarnings, IsComparison and IsAssignment still don't exist, mcData.GetText() is still reached 93
+    times from the unit, 70 of them in CPPUnitVtables.cpp).  Line numbers have moved; the names have not.
+  - CCPPUnit has 605 functions in 13 files and 22,117 lines today.  It had 219 at stage 5's checkpoint
+    (2026-11-14) and 556 when the findings were written (2026-11-21): the C++14 work and exceptions were built in
+    it.  That answers finding 15's "does not match today's size; I did not find out why", and it is the plan's
+    first risk: the class grows by about fifty functions a day while that work goes on (question 1).
+  - The IDE does not name CCPPUnit anywhere.  It reaches this layer through CCPPSemanticPass (Check, GetType,
+    AppendType, FindChanges, the recorded enum, GetResolved, GetErrors), so nothing here changes the IDE's code
+    but stage 14, and the IDE's checks are the proof that the pass still answers as it did.
+  - Eleven of TestCppCompilerLib's files name CCPPUnit (TestCPP65Context, TestCPP65Declarations, TestCppIndex
+    and others), and so do TestProject65.cpp and HCP65's TestLibc65Context.cpp; they change with it.
+  - 40 of the diagnostics no test raised (appendix A, at b87a252bc) are in the CPPUnit*.cpp files, and 6 in
+    CPPConstants.cpp.
+
+
+The rules (the questions say which the user settled, 2026-11-22)
+
+  1. The code the compiler writes stays as it is in every stage but two.  This layer decides what the C++ means;
+     putting its decisions in one place should not change them.  A stage marked "same code" must leave every
+     unit's listing as it was.  Stages 8 and 11 may change it (which declarations are one function; which
+     constants are folded): there ConsolidationPlan's rule holds (it must work, and ideally is faster), with
+     OptimiserPlan's bar: every program of the three *65 suites passes on both processors and no suite's total
+     of cycles or of bytes is worse on either.
+  2. What the compiler says stays as it is too, but where saying it twice, or without a place, was the fault
+     (question 3).  Every difference in a diagnostic is read and goes in the record.
+  3. A class taken out of the unit is given what it needs when it is made (the types, the context, the
+     diagnostics, the tokeniser) and does not hold the unit if that is enough.  Where it must still ask the
+     unit, what it asks is counted and listed in the record: finding 44 says the classes that left before ask
+     it nearly everything, and this plan must not add to that.
+  4. CPP65 becomes CPP in a name when its class or table is reworked here (ConsolidationPlan's decision):
+     CCPP65CheckChildren, CCPP65CheckLambdas, gasCPP65Builtins.  SCPP65Type and CCPP65Types are the type
+     checker's area's and keep their names.
+  5. A helper that replaces several copies gets cases of its own in TestCppCompilerLib.
+  6. A stage is merged to master when it has passed.  The work is done in D:\gameengine-semantic (branch
+     semantic-layer), brought up to master before each stage.  Nothing is pushed.
+  7. Plan first; measure before and after.
+
+
+How a stage is proved
+
+  - TestCppCompilerLib whole (RunParallel.py, about 165 s).
+  - "Same code": each of the three *65 suites' projects compiled for each processor a unit at a time with the
+    listings kept (TEST_PROJECT65_LISTINGS, TEST_PROJECT65_ONLY=NoSuchTest, TEST_PROJECT65_SERIAL=1), and every
+    listing compared with the stage before's, from the same folder.
+  - Otherwise (stages 8 and 11): the three suites run on both processors (Tests/CompilerMeasure.py --raw), every
+    program's cycles and bytes set beside the stage before's.
+  - The same diagnostics: stage 0 makes the kit.  Every conformance case's diagnostics (file, line, column,
+    text), from a build on each target and from the semantic pass, written to one file and compared with the
+    stage before's.  TestCppErrors and the conformance lists pin texts already; this pins all of them.
+  - The IDE: HCP65-IDE builds, and its checks pass as they did (the known failures stay the known failures),
+    at stages 4, 7, 10 and 14 and at the end: those are the ones that touch what the semantic pass reports.
+  - The 20 HCP65 projects and TestLibc65 at stages 4, 8, 11 and 15 and at the end.
+  - The compiler's own time and counts for TestSupportLib65's project (CompilerMeasure.py --compile --serial):
+    the declarations, types and front end phases, TypeOf's calls and those worked out, quiet trials and those
+    that failed, and stage 0's new counts.  TestCPP65Declarations' asserted counts stay as they are.  A stage
+    that makes the compiler slower says so and why.
+  - The machine has 7.9 GB: a *65 suite and TestCppCompilerLib are never run at the same time.
+
+
+The stages
+
+Each names its findings and its size (S, M, L, XL as ConsolidationPlan's).  The order is by what needs what:
+the tests that are missing; what only takes away; then the two things every class taken out must be handed
+(where the compiler is, and where its errors go); then each idea that is written several times, made one;
+then the jobs that are left, which by then need little from the unit.  A job leaves the unit in the stage
+that makes it one thing, so stage 15 has only what no earlier stage took.
+
+0. The baseline, the diagnostics kit, and what reading suspected, run.  (M)
+
+   - The measures above, taken at the plan's commit and kept (the record).
+   - The diagnostics kit: a switch of TestCPPConformance that writes what each case made the compiler say.
+   - Counts for what this plan removes, so each stage can show they went: errors made and then taken away
+     (Truncate), work run a second time only to report (ReportTypeOf, ReportFailedDeclaration, the second
+     DeclareFunction), constants asked of each of the three evaluators, base lists walked, and mpcUnit-> in
+     each class beside the unit.
+   - The findings say six things "may" go wrong and ran none of them.  Each gets a program, tried on both
+     targets and by g++:
+       16  a type remembered by TypeOf inside sizeof or decltype and asked for again outside it (the memo's
+           key has no "unevaluated");
+       16  this, after a function scope is entered and left inside a member function (LeaveFunctionScope
+           works mbThis out again), and after NoThis, which nothing leaves;
+       17  MayThrow's early return, which skips its Truncate;
+       20  a pack's binding left holding element k when the pattern fails between the set and the clear;
+       23  two declarations that differ only in a const below the top level, at the two places that compare
+           with Equals and not Same (a generic lambda's instance; CCPPOverloads' two loops);
+       25  a variable marked used only because its label was written (AppendVariableLabel).
+     What is wrong becomes a conformance case and is put right in the stage that owns it (or here, if it is a
+     line).  What is right is said to be so, with the reason.
+   - A case, with its text asserted, for each of the 46 diagnostics of appendix A in this layer that still has
+     none.  Stage 4 changes how every one of them is reported, so they are pinned first.  One that no source
+     can raise is said to be so, and why.
+
+1. What is dead, and what says what is not so (29).  Same code.  (S)
+
+   IsNullPointerLiteral, CCPPVtable::IsOverriddenBy, CCPPContext::IsStaticLocal and mbStaticLocal go;
+   EndFunction loses its parameter.  The stale comments (CPPUnitOverloads.cpp's and CPPUnitLabels.cpp's
+   headers, AddFunction's overload number, ExpandPackCall, the 16 "the generator"s) say what is true.  The two
+   files are named for what they hold, or their functions go where their jobs go in later stages (said then).
+
+2. The small questions (26).  Same code.  (M)
+
+   - IsComparison and IsAssignment are a token's (columns of the punctuator table), and every list of the six
+     comparison operators or of the assignment operators in the library reads them: the unit's five, and the
+     type checker's and the IR front end's too, because one helper with two lists left beside it is not done.
+     That closes those lists of findings 39 and 52 (question 2).
+   - What an integer type can hold is a range from the type (least, most), asked by the four places that work
+     it out, ConstantFits, ConstantOfType and IntegerLiteralType.
+   - Names the compiler knows (__PRETTY_FUNCTION__, memcpy, the float builtins) are interned once, as
+     mlliOverride is; no hand-counted length is left.
+   - CCPPSymbol::DeclSpecifiers() for "the specifiers this was declared with" (nine walks);
+     SCPP65Type::ElementType(); WithoutReference() where it is written out (twelve).
+
+3. Where the compiler is (16).  Same code.  (M)
+
+   - The function is entered and left like the rest of the context: an entry that keeps the function, whether
+     there is a this, its locals and its packs.  EnterFunctionScope's memcpy goes; mbThis is restored, not
+     worked out again.  Who enters a function leaves it: the unit, on success too (the IR front end's half is
+     finding 46's; it is done here because one cannot be right without the other).
+   - NoThis, quiet and unevaluated are entries, so CheckContext catches one left unbalanced.  "Unevaluated"
+     has one answer; the walk up the tree goes.  If stage 0's program shows TypeOf's memo can be wrong, the
+     key gets it; if it cannot, the record says why.
+   - mpcDefining is GlobalDeclaration's parameter.  mbValueArgumentRefused is what ValueArgumentFits and
+     FoldConstant return.
+   - One guard for "this is being worked out now" (mapcObjectConstants, mapcConstantTypes, CCPPConstants'
+     mapcWorking, miWarningChecks), entered and left through the context.
+   - The element of a pack being expanded is a context entry (stage 5 uses it).
+   - CPPContext.h's "nothing is saved and put back by hand" is true.  TestCPP65Context grows to each entry.
+   Ends when: no member of the unit is set before a call and put back after it.
+
+4. Errors (17, and 36).  (L)
+
+   - CCPPDiagnostics: the errors, the warnings and the trials (job a of finding 15, about 20 functions).  One
+     body for an error and a warning at a node or a token; the eight ways in become what they really are:
+     an error here, and an error kept with a result.
+   - A trial owns its errors.  What is tried writes to the trial's list, loud or not, and the caller keeps
+     them or drops them.  The 25 calls of Truncate go (14 in the unit today; 6 in CCPPBinder, 2 in
+     CCPPOverloads, 2 in the IR front end and one each in the type checker and CCPPConstants: finding 36 is
+     this same mechanism seen from the binder, and two mechanisms cannot share one list, so they go
+     together).  With them go 36's other three: "did the callee say something" by counting errors,
+     CCPPAccess::Refuse (which is ReportOnce written again), and the bReport parameters that run a binding a
+     second time to say its errors.
+   - A remembered result keeps its errors.  TypeOf's memo, a class's layout, a closure, a declaration that
+     failed and a constant each hold what was said when they were worked out, and reporting is appending that
+     list: ReportTypeOf and ReportFailedDeclaration stop running the work again, the second DeclareFunction
+     for operator new and delete goes, and so do masClassErrors, SCPPLambda's szError and pcErrorNode,
+     mapcFailed's re-run and ReportOnce's strstr over every error.
+   - Quiet mode is left for what only asks "does this work": ConsolidationPlan's stage 4 step 9 sorted the
+     sites once; they are sorted again, and each is a trial (its errors may be wanted) or a question.
+   - The errors with no place (ErrorAt(-1, ...): the finding names three, there are seven today) get the node
+     that is at hand, where one is.
+   Not same diagnostics, on purpose: an error said twice is said once, and some gain a place.  Nothing else
+   may differ.  Stage 0's counts of errors taken away and of work run again are zero at the end.
+
+5. One way through a pack (20).  Same code.  (M)
+
+   One "for each element of these packs" (it finds the packs a pattern names, checks their lengths, enters each
+   element through stage 3's entry), used by ExpandPattern, ExpandTemplateArguments and DeclareSignature.  The
+   two messages are said in one place; SCPPExpandedArgument has an Init.  Nothing writes an element into the
+   pack's own binding.  CCPPPacks holds it with the pack tables (masPackElements, mapapsPacks, mapalliPacks,
+   mapcPackSymbols): CPPUnitPacks.cpp's 16 functions leave the unit.
+
+6. A class's bases (21).  Same code.  (M)
+
+   CCPPClass lists its base paths once, when its bases are resolved: each path's class, offset, whether it is
+   public all the way and whether it goes through a virtual base.  IsDerived, CountBases, CountFixedBases,
+   VirtualBaseOf, CompleteOffset, IsPublicBase, IsOnePublicBase (and CountBasePaths' nine parameters),
+   FindInBases, IsAmbiguousInBases, HasMember's walk, FindBaseInstance, CCPPClass::HasBase and
+   CCPPAccess::HasBase read the list.  The four answers to "is B a base of C" become one function whose
+   parameters say what each caller means (itself counted or not), and each difference between today's four is
+   looked at: meant, or an accident (then a case, and the stage is not same code for that caller).  One
+   CollectVirtualBases, in the layout's order.  mpcBase goes.  Only ResolveBases stays with the unit;
+   AllowsOnlyWhat moves beside CCPPExceptionSpec.
+
+7. Which class a name means (22).  Same code.  (M-L)
+
+   One resolver from a CCPPSyntaxName to what it names (a class, a type or a member, with the bindings of the
+   class that declares it), the binder's.  The fifteen ways in become calls of it; the choice between
+   GetComponentClass and QualifiersClass is made once, inside; GetComponentClass's ladder on the symbol's kind
+   and CCPPDeclarators' twin of it are one.  Stage 5 of ConsolidationPlan bound names in expressions; this is
+   the same for type names and qualifiers.  The IDE's GetResolved is checked after it.
+
+8. A function's signature (23).  (M)
+
+   - CCPPSignature, made once from a declarator: the kind, the name, the parameter types and defaults, the
+     qualifiers and the flags.  DeclareFunction takes it in place of seven parameters; CCPPFunction can match
+     one and adopt one.  The "(void)" rule and the parameter types from a suffix are written once.
+   - One SameParameters, used by all six loops.  Four compare with Same and two with Equals today: stage 0
+     says whether that is a wrong answer.  If it is, this stage changes what is one function, and is measured.
+   - DeclareQuietly (with stage 4's trial: the declarator that failed keeps its errors) for the five copies;
+     AddImplicitFunction for the eight; SCPPField::Init for the four.
+
+9. Definitions outside their class template (24).  Same code.  (M)
+
+   A definition written outside is classified once into a record: what it is (the fourteen arms and
+   IsOutsideMemberTemplate's fifteenth become one function that returns a kind), the template that owns it, its
+   name, its declaration.  One typed list of the records replaces the five untyped ones
+   (mapcMemberSpecialisations, mapcMemberTemplateSpecialisations, mapcMemberClassTemplates,
+   mapcMemberVariableTemplates, mapcStaticMemberTemplates), and no reader works the name out again through the
+   cast chain.  Declarations walks the list once.
+
+10. One printer of types (19).  Same code.  (S-M)
+
+   CCPPTypeWriter with its policies as switches (may fail or not; "(void)"; placeholders; "<lambda>" and
+   "(anonymous namespace)::").  AppendTypeName, AppendTypeNameAround, AppendClassName, AppendScopeName and
+   AppendIdentifier go from the unit.  What type_info::name gives, what an error says of a type and what the
+   IDE shows are each asserted before and after: the text may not move.
+
+11. One evaluator of constants (18).  (L)
+
+   - A constant is one value: an integer, a floating point number or an object, with its type.
+   - CCPPConstantFolder, out of the unit (job b, about 30 functions and CPPUnitFloat.cpp): one walk of the
+     tree for integers and floats together, so a named cast and ?: are folded for both.  It answers folded,
+     not a constant, or "needs running", and CCPPConstants (the IR interpreter, which is clean and stays) is
+     asked in that last case: RunConstant's third ladder goes.
+   - "Is this name a const or constexpr variable with an initialiser" is asked in one place; signed overflow
+     reads the operators' opcodes from the table the front end uses.
+   - Stage 3's guard and stage 4's kept errors are what it stands on: mszReason is the constant's own errors.
+   Not same code: a float constant the tree folder could not fold is initialised at run time today (finding 92
+   saw it give the right answer) and is a constant in the data after.  Measured by the suites.  Every case of
+   TestCPPConformance's constant-expression clauses is the proof that no constant changed its value.
+
+12. Lambdas (27).  Same code.  (M)
+
+   CCPPLambda with its own functions (the 21 that take SCPPLambda* first, of CPPUnitLambdas.cpp's 38).  One
+   "finish laying out a class" (the implicit destructor, the vtable, the layout, the states) for LayoutClass
+   and LayoutClosure.  A generic lambda's instance is found by stage 8's SameParameters.  A closure's errors
+   are stage 4's.
+
+13. Class data, labels and what runs at exit (25).  Same code.  (M)
+
+   - CCPPClassData beside CCPPUnitData writes vtables, VTTs, type info and typeid names (CPPUnitVtables.cpp's
+     18 functions and the type info part of CPPUnitObjects.cpp), through AppendData, AppendAddress and
+     AppendSection: the unit and it never reach into the data's text.
+   - CCPPMangler makes every label: static locals' S and G, __vcall_, the type info's, __Name, __Bound,
+     R_Finalise and __ExitNode.  The IR front end asks it for the two it types out today.  The exit node's
+     size and alignment are named once.
+   - One record for each exit finaliser (label, type, shared) and for each thrown object's destroyer.
+   - GlobalStartUpRoutines is two calls of one function, not a loop of two with six tests of which.
+     BoundTemporary returns one thing.  AppendVariableLabel only appends; what must be marked used is marked
+     by who uses it (stage 0 says whether today's side effect hides anything).
+   - The eight functions that decode strings go to a class that needs only the tokeniser and the types.
+
+14. The IDE's check asks; the compiler doesn't know it is asked (28).  Same code.  (S-M)
+
+   EnumType makes an enum's type and knows nothing of the refactoring: the pass is told "a type was made"
+   through the one interface the unit already tells it things by (Typed, Changed, Resolved), and marks the enum
+   itself.  The null tests of mpcSemanticPass (about ten) become calls on an observer that does nothing when
+   code is generated.  The check's own walk (CPPUnitCheck.cpp, 38 functions) becomes CCPPCheck, driven by the
+   pass.  Finding 106 (Convert Enum's doubled cast) is another session's and is not touched: what the records
+   hold stays as it is.
+
+15. What is left of the dozen jobs (15).  Same code.  (XL, six parts, each proved and merged alone)
+
+   By now the diagnostics (a), constants (b), lambdas (f), class data (g), names (h), bases (i), start-up and
+   exit (j) and packs have gone in their own stages.  What is left:
+     a. CCPPWarnings (c): the twelve checks of CPPUnitExpressions.cpp.  ConsolidationPlan's layer list has
+        named it since 2026-11-11.
+     b. CCPPBuiltins (k): one table for the builtins, the float builtins and the memcpy names, and the seven
+        questions asked of it.
+     c. Exception specifications (d), about 30, beside CCPPExceptionSpec: what a function is declared to
+        throw, what an expression may throw, the pointer and assignment checks, CheckThrown and CheckTryJumps.
+        Moved, not changed: the Exceptions group passes on both targets before and after.
+     d. The desugarings (l): range-for, user-defined literals, braced lists regrouped, decltype members and
+        the implicit arguments, each a small class over one "made once for a node" memo.
+     e. What an expression is (m), about 50: value, place or object and what it binds to go to the binder;
+        the conditional's and the composite pointer's types to the types; TypeOf and its memo to the type
+        checker.  Moved as they are: bound nodes for the rest of an expression (ConsolidationPlan's stage 6)
+        were dropped at the checkpoint and are not reopened here (question 4).
+     f. Templates (e), CPPUnitTemplates.cpp's 75 functions less what stage 9 took: CCPPInstantiator makes a
+        class's, a function's and a variable template's instance and gives the specialisations and outside
+        definitions to them.
+   Ends when: CCPPUnit is the walk of the declarations, the queue of functions and the unit's options, and
+   owns the classes that do the rest.  The number it ends at is set at this stage's start, when what is left
+   has been read; finding 15 puts the walk and the queue at about 60 functions.
+
+16. The end.  (S)
+
+   Each of findings 15 to 29 gets its "Since:", and 36 and the parts taken of 39, 46 and 52 theirs.
+   ConsolidationPlan's layer list is made what the layer now is.  CPP65Generator.txt where it names what moved.
+   This plan's last table: each stage's commit, the unit's functions and lines after it, the counts, the
+   compile's phases.
+
+
+What this plan takes from the other areas' findings, and what it leaves
+
+  Taken, because the same mechanism cannot be half moved: 36 (trials by counting the error list) with 17; the
+  half of 46 that is who ends a function, with 16; the comparison and assignment lists of 39 and 52, with 26.
+  Left: 30 to 35, 37, 38 and 40 to 44 (overloads, conversions, the checker and the front end deciding the same
+  cascades), all of 45 to 59 but those, and the wrong programs 89 to 91, which are 30's and 31's.  Finding 44
+  ("the classes that left the unit still ask it nearly everything") is not taken but is watched: rule 3 counts
+  it, and it should fall as the jobs they ask for become classes they can be handed.
+
+
+Questions for the user
+
+Open:
+
+  4. Expressions' classification moves to the binder and the checker as functions; bound nodes for the rest of
+     an expression stay dropped.  Recommended: yes.  (Saying no makes stage 15e ConsolidationPlan's stage 6,
+     which is larger than the rest of this plan together.)  Not answered with the others; it is asked again
+     before stage 15, and nothing earlier depends on it.
+
+Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
+
+  1. Is the C++14 session still working in these files?  "Not really."  So the plan does not wait for it and
+     it is not asked to wait.  The work is still done in its own worktree and each stage is brought up to
+     master before it starts, because a commit of that session's may still land in these files.
+  2. The plan may change the binder's, the type checker's and the IR front end's files where a mechanism of
+     its own reaches into them: finding 36, who ends a function (46), the comparison and assignment lists (39
+     and 52).
+  3. Stage 4's bar for diagnostics is "said once where it was said twice, a place where there was none, and
+     nothing else different", each difference read and recorded.
+  5. Stages 8 and 11 may change the code written, to OptimiserPlan's bar: every program passes, and no
+     suite's total of cycles or of bytes is worse on either processor.
+
+
+The record
+
+Nothing yet.  Stage 0's baseline goes here, then what each stage found, and at the end the table.
