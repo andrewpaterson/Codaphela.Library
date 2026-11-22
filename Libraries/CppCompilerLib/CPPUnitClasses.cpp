@@ -1550,7 +1550,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				bResult &= ClassError(pcInit->miFirstToken, "A union has no reference member");
 				continue;
 			}
-			psElement = psType->IsArray() ? psType->psBase : psType;
+			psElement = psType->ElementType();
 			if (psElement->IsClass() && !CompleteClass(psElement->pcClass, pcInit))
 			{
 				bResult = false;

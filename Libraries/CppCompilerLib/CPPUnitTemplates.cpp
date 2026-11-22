@@ -1469,7 +1469,7 @@ bool CCPPUnit::ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, b
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
 		psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-		apsParameters.Add((psType && psType->IsReference()) ? psType->psBase : psType);
+		apsParameters.Add(psType ? psType->WithoutReference() : NULL);
 	}
 	cDeduction.Init(this, pcTemplate);
 	cDeduction.Deduce(&apsParameters, NULL);
@@ -2941,7 +2941,7 @@ CCPPTemplate* CCPPUnit::FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CCha
 			{
 				pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(j);
 				psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-				apsParameters.Add((psType && psType->IsReference()) ? psType->psBase : psType);
+				apsParameters.Add(psType ? psType->WithoutReference() : NULL);
 			}
 			cDeduction.Init(this, pcPrimary);
 			cDeduction.Deduce(&apsParameters, NULL);

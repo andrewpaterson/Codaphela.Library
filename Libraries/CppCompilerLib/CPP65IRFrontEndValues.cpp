@@ -1390,7 +1390,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 		//(x = y) and (x op= y) of a scalar are x's place after the assignment.
 		psType = mpcUnit->TypeOf(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft);
-		if (mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && psType && !psType->IsClass() &&
+		if (IsCPPAssignment(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && psType && !psType->IsClass() &&
 			!(psType->IsReference() && psType->psBase->IsClass()))
 		{
 			return Assignment((CCPPSyntaxBinaryExpression*)pcExpression, &sAddress, psPlace);

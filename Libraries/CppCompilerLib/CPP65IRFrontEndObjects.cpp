@@ -159,7 +159,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 		return mpcUnit->UserLiteralToken(pcExpression) != NULL;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		return !mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary));
+		return !IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary));
 	case CPPS_UnaryExpression:
 		eOperator = ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator;
 		return (eOperator == CT_Subtract) || (eOperator == CT_Add) || (eOperator == CT_BitwiseNot);
@@ -2116,7 +2116,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 			//(x, object) with no operator, of its own: x is worked out, then the object.  [expr.comma] 1
 			return Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, &sLeft) && Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
 		}
-		if (!mpcUnit->IsAssignmentOperator(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
+		if (!IsCPPAssignment(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator))
 		{
 			return OperatorExpression(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, ((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);
 		}
@@ -2701,7 +2701,7 @@ bool CCPP65IRFrontEnd::AssignParts(CCPPClass* pcClass, SIRReference sDestination
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
 		psField = pcClass->macFields.Get(i);
-		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
+		psType = psField->psType->ElementType();
 		if (!psType->IsClass())
 		{
 			CopyPieces(AddressAt(sDestination, psField->iOffset), AddressAt(sSource, psField->iOffset), psField->psType->iBytes);

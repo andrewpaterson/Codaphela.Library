@@ -23,6 +23,30 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The specifiers a declaration was written with: those of the simple
+// declaration an init-declarator is in, or a function definition's.  NULL
+// for anything else (and for NULL), and where there are none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxDeclSpecifiers* CCPPSyntaxDeclSpecifiers::Of(CCPPSyntax* pcDeclaration)
+{
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator))
+	{
+		pcSimple = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->GetDeclaration();
+		return pcSimple ? pcSimple->mpcSpecifiers : NULL;
+	}
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_FunctionDefinition))
+	{
+		return ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxDeclSpecifiers::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent)
@@ -171,9 +195,9 @@ CCPPSyntaxDeclarator* CCPPSyntaxDeclSpecifiers::TypedefDeclarator(CCPPSyntaxDecl
 		}
 		pcSymbol = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName->mpcSymbol;
 		pcDeclaration = (pcSymbol && (pcSymbol->meKind == CPPSK_Typedef)) ? pcSymbol->mpcDeclaration : NULL;
-		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && ((CCPPSyntaxInitDeclarator*)pcDeclaration)->GetDeclaration())
 		{
-			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
+			pcSpecifiers = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->GetDeclaration()->mpcSpecifiers;
 			pcDeclarator = ((CCPPSyntaxInitDeclarator*)pcDeclaration)->mpcDeclarator;
 		}
 		else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_AliasDeclaration))

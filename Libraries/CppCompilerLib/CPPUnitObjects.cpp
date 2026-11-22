@@ -1338,7 +1338,7 @@ SCPP65Type* CCPPUnit::BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode)
 			ReportTypeOf(papcElements->GetPtr(i));
 			return NULL;
 		}
-		psType = (psType->IsArray() || psType->IsFunction()) ? mcTypes.Pointer(psType->IsArray() ? psType->psBase : psType) : psType;
+		psType = (psType->IsArray() || psType->IsFunction()) ? mcTypes.Pointer(psType->ElementType()) : psType;
 		psType = psType->Unqualified();
 		if (psElement && !psElement->Same(psType))
 		{

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 
 
@@ -107,4 +108,14 @@ bool CCPPSymbol::IsFunction(void) const
 	return (meKind == CPPSK_Function) || (meKind == CPPSK_FunctionTemplate);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The specifiers the name was first declared with (CCPPSyntaxDeclSpecifiers::Of).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxDeclSpecifiers* CCPPSymbol::DeclSpecifiers(void) const
+{
+	return CCPPSyntaxDeclSpecifiers::Of(mpcDeclaration);
+}
 

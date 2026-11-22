@@ -1030,6 +1030,18 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 	SCPP65Type*		psLeft;
 	SCPP65Type*		psRight;
 
+	if (IsCPPAssignment(pcBinary->meOperator))
+	{
+		if ((pcBinary->meOperator == CT_Assignment) && !mpcUnit->CheckAssignedExceptions(pcBinary))
+		{
+			return NULL;
+		}
+		return Assignment(pcBinary);
+	}
+	if (IsCPPComparison(pcBinary->meOperator))
+	{
+		return ConditionValue(pcBinary);
+	}
 	switch (pcBinary->meOperator)
 	{
 	case CT_MemberByPointerFunctionPointerIndirection:
@@ -1040,23 +1052,6 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 		return Load(Place(pcBinary), pcBinary);
 	case CT_MemberFunctionPointerIndirection:
 		return Load(Place(pcBinary), pcBinary);
-	case CT_Assignment:
-		if (!mpcUnit->CheckAssignedExceptions(pcBinary))
-		{
-			return NULL;
-		}
-		return Assignment(pcBinary);
-	case CT_AssignmentAdd:
-	case CT_AssignmentSubtract:
-	case CT_AssignmentMultiply:
-	case CT_AssignmentDivide:
-	case CT_AssignmentModulus:
-	case CT_AssignmentBitwiseAnd:
-	case CT_AssignmentBitwiseOr:
-	case CT_AssignmentBitwiseXor:
-	case CT_AssignmentLeftShift:
-	case CT_AssignmentRightShift:
-		return Assignment(pcBinary);
 	case CT_Comma:
 		if (mpcUnit->IsOverloadedComma(pcBinary))
 		{
@@ -1069,12 +1064,6 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 		return Value(pcBinary->mpcRight);
 	case CT_LogicalAnd:
 	case CT_LogicalOr:
-	case CT_EqualTo:
-	case CT_NotEqualTo:
-	case CT_LessThan:
-	case CT_LessThanEqualTo:
-	case CT_GreaterThan:
-	case CT_GreaterThanEqualTo:
 		return ConditionValue(pcBinary);
 	default:
 		if (HasOperatorFunction(pcBinary))
@@ -1649,25 +1638,18 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 	else if (pcExpression->GetKind() == CPPS_BinaryExpression)
 	{
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		switch (pcBinary->meOperator)
+		if ((pcBinary->meOperator == CT_LogicalAnd) || (pcBinary->meOperator == CT_LogicalOr))
 		{
-		case CT_LogicalAnd:
-		case CT_LogicalOr:
 			return Condition(pcBinary->mpcLeft) && Condition(pcBinary->mpcRight);
-		case CT_EqualTo:
-		case CT_NotEqualTo:
-		case CT_LessThan:
-		case CT_LessThanEqualTo:
-		case CT_GreaterThan:
-		case CT_GreaterThanEqualTo:
+		}
+		if (IsCPPComparison(pcBinary->meOperator))
+		{
 			if (HasOperatorFunction(pcBinary))
 			{
 				return Truth(OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary), pcBinary);
 			}
 			mpcUnit->ComparisonRange(pcBinary);
 			return Operands(pcBinary, &psLeft, &psRight) && Compare(pcBinary, psLeft, psRight);
-		default:
-			break;
 		}
 	}
 
@@ -2603,7 +2585,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		}
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		pcLeft = mpcUnit->SkipParentheses(pcBinary->mpcLeft);
-		if (mpcUnit->IsAssignmentOperator(pcBinary->meOperator) && !mpcUnit->IsObject(pcLeft))
+		if (IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsObject(pcLeft))
 		{
 			//(x = y) and (x op= y) are x, once it is assigned.  [expr.ass] 1
 			return Assignment(pcBinary) ? Place(pcLeft) : NULL;
@@ -3833,7 +3815,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		bResult = true;
 		for (i = 0; i < papcElements->NumElements(); i++)
 		{
-			bResult &= Initialise(psType->IsArray() ? psType->psBase : psType, papcElements->GetPtr(i), pcNode, bBraced);
+			bResult &= Initialise(psType->ElementType(), papcElements->GetPtr(i), pcNode, bBraced);
 		}
 		return bResult;
 	}

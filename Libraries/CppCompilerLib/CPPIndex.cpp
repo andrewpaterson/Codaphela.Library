@@ -735,9 +735,7 @@ void CCPPIndex::FindUsageTypes(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens,
 		break;
 	case CPPS_BinaryExpression:
 		eOperator = ((CCPPSyntaxBinaryExpression*)pcNode)->meOperator;
-		if ((eOperator == CT_Assignment) || (eOperator == CT_AssignmentAdd) || (eOperator == CT_AssignmentSubtract) || (eOperator == CT_AssignmentMultiply) ||
-			(eOperator == CT_AssignmentDivide) || (eOperator == CT_AssignmentModulus) || (eOperator == CT_AssignmentBitwiseAnd) || (eOperator == CT_AssignmentBitwiseOr) ||
-			(eOperator == CT_AssignmentBitwiseXor) || (eOperator == CT_AssignmentLeftShift) || (eOperator == CT_AssignmentRightShift))
+		if (IsCPPAssignment(eOperator))
 		{
 			SetNameUsageType(((CCPPSyntaxBinaryExpression*)pcNode)->mpcLeft, pasTokens, CPPUT_Write);
 		}

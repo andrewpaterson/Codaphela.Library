@@ -287,32 +287,6 @@ uint8 CCPPSemanticPass::GetChanges(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IsCPPAssignment(ECppTokens eOperator)
-{
-	switch (eOperator)
-	{
-	case CT_Assignment:
-	case CT_AssignmentAdd:
-	case CT_AssignmentSubtract:
-	case CT_AssignmentMultiply:
-	case CT_AssignmentDivide:
-	case CT_AssignmentModulus:
-	case CT_AssignmentBitwiseAnd:
-	case CT_AssignmentBitwiseOr:
-	case CT_AssignmentBitwiseXor:
-	case CT_AssignmentLeftShift:
-	case CT_AssignmentRightShift:
-		return true;
-	default:
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // How the variable (or field) pcExpression names can be changed where
 // it is written, CPPPC_ flags, 0 if it is only read: by what is done to
 // it, and to what is a part of it - in parentheses, a member of it

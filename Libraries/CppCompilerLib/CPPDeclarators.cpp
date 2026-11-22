@@ -499,7 +499,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		psType = mpcUnit->ValueTypeOf(pcInitialiser);
 		if (psType && (psType->IsArray() || psType->IsFunction()))
 		{
-			psType = pcTypes->Pointer(psType->IsArray() ? psType->psBase : psType);
+			psType = pcTypes->Pointer(psType->ElementType());
 		}
 		else if (psType && psType->IsPointer() && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcInitialiser)))
 		{
@@ -959,10 +959,10 @@ SCPP65Type* CCPPDeclarators::GetSymbolType(CCPPSymbol* pcSymbol, CCPPSyntax* pcN
 	CCPPSyntaxParameter*		pcParameter;
 
 	pcDeclaration = pcSymbol->mpcDeclaration;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && ((CCPPSyntaxInitDeclarator*)pcDeclaration)->GetDeclaration())
 	{
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration;
-		return GetType(((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator, pcNode, pcInit->mpcInitializer);
+		return GetType(pcInit->GetDeclaration()->mpcSpecifiers, pcInit->mpcDeclarator, pcNode, pcInit->mpcInitializer);
 	}
 	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_Parameter))
 	{

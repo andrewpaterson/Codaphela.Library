@@ -269,6 +269,14 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 	SCPP65IRValue	sRight;
 	SCPP65IRPlace	sPlace;
 
+	if (IsCPPAssignment(pcBinary->meOperator))
+	{
+		return Assignment(pcBinary, psValue);
+	}
+	if (IsCPPComparison(pcBinary->meOperator))
+	{
+		return ConditionValue(pcBinary, psValue);
+	}
 	switch (pcBinary->meOperator)
 	{
 	case CT_MemberByPointerFunctionPointerIndirection:
@@ -280,18 +288,6 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 	case CT_MemberFunctionPointerIndirection:
 		//object.*field (a member function can only be called).
 		return MemberPointerPlace(pcBinary, &sPlace) && Load(&sPlace, psValue);
-	case CT_Assignment:
-	case CT_AssignmentAdd:
-	case CT_AssignmentSubtract:
-	case CT_AssignmentMultiply:
-	case CT_AssignmentDivide:
-	case CT_AssignmentModulus:
-	case CT_AssignmentBitwiseAnd:
-	case CT_AssignmentBitwiseOr:
-	case CT_AssignmentBitwiseXor:
-	case CT_AssignmentLeftShift:
-	case CT_AssignmentRightShift:
-		return Assignment(pcBinary, psValue);
 	case CT_Comma:
 		if (mpcUnit->IsOverloadedComma(pcBinary))
 		{
@@ -300,12 +296,6 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 		return Value(pcBinary->mpcLeft, &sLeft) && Value(pcBinary->mpcRight, psValue);
 	case CT_LogicalAnd:
 	case CT_LogicalOr:
-	case CT_EqualTo:
-	case CT_NotEqualTo:
-	case CT_LessThan:
-	case CT_LessThanEqualTo:
-	case CT_GreaterThan:
-	case CT_GreaterThanEqualTo:
 		return ConditionValue(pcBinary, psValue);
 	default:
 		if (HasOperatorFunction(pcBinary))
@@ -964,10 +954,8 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	else if (pcExpression->GetKind() == CPPS_BinaryExpression)
 	{
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		switch (pcBinary->meOperator)
+		if ((pcBinary->meOperator == CT_LogicalAnd) || (pcBinary->meOperator == CT_LogicalOr))
 		{
-		case CT_LogicalAnd:
-		case CT_LogicalOr:
 			pcRight = NewBlock();
 			if (!Condition(pcBinary->mpcLeft, (pcBinary->meOperator == CT_LogicalAnd) ? pcRight : pcTrue, (pcBinary->meOperator == CT_LogicalAnd) ? pcFalse : pcRight))
 			{
@@ -978,12 +966,9 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 			bResult = Condition(pcBinary->mpcRight, pcTrue, pcFalse);
 			miConditional--;
 			return bResult;
-		case CT_EqualTo:
-		case CT_NotEqualTo:
-		case CT_LessThan:
-		case CT_LessThanEqualTo:
-		case CT_GreaterThan:
-		case CT_GreaterThanEqualTo:
+		}
+		if (IsCPPComparison(pcBinary->meOperator))
+		{
 			if (HasOperatorFunction(pcBinary))
 			{
 				//An operator function's result.
@@ -1001,8 +986,6 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 			}
 			mpcBlock->Branch(sCondition, pcTrue, pcFalse);
 			return true;
-		default:
-			break;
 		}
 	}
 	else if (pcExpression->GetKind() == CPPS_SimpleDeclaration)

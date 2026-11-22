@@ -38,6 +38,18 @@ void CCPPSyntaxInitDeclarator::Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The simple declaration the declarator is one of, or NULL where it isn't
+// in one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxSimpleDeclaration* CCPPSyntaxInitDeclarator::GetDeclaration(void)
+{
+	return (mpcParent && (mpcParent->GetKind() == CPPS_SimpleDeclaration)) ? (CCPPSyntaxSimpleDeclaration*)mpcParent : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPSyntaxInitDeclarator::PrettyPrint(CChars* pszDest, int iDepth)

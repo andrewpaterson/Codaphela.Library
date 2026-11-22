@@ -110,25 +110,6 @@ inline ECPPContextualTypes CPPBinaryOperandTypes(ECppTokens eOperator)
 }
 
 
-//The operator of x op= y, which is x = x op y.  [expr.ass] 7
-inline ECppTokens CPPCompoundOperation(ECppTokens eAssignment)
-{
-	switch (eAssignment)
-	{
-	case CT_AssignmentAdd:			return CT_Add;
-	case CT_AssignmentSubtract:		return CT_Subtract;
-	case CT_AssignmentMultiply:		return CT_Multiply;
-	case CT_AssignmentDivide:		return CT_Divide;
-	case CT_AssignmentModulus:		return CT_Modulus;
-	case CT_AssignmentBitwiseAnd:	return CT_BitwiseAnd;
-	case CT_AssignmentBitwiseOr:	return CT_BitwiseOr;
-	case CT_AssignmentBitwiseXor:	return CT_BitwiseXor;
-	case CT_AssignmentLeftShift:	return CT_LeftShift;
-	default:						return CT_RightShift;
-	}
-}
-
-
 //The object without its const and volatile: what a function that takes the arguments but not the object would take.
 inline ECPPCalledObject CPPCalledUnqualified(ECPPCalledObject eObject)
 {

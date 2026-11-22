@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 class CCPPSyntaxDeclarator;
 class CCPPSyntaxExpression;
+class CCPPSyntaxSimpleDeclaration;
 
 
 class CCPPSyntaxInitDeclarator : public CCPPSyntax
@@ -37,6 +38,7 @@ public:
 	CCPPSymbol*				mpcSymbol;
 
 	void					Init(CCPPSyntaxTree* pcTree, CCPPSyntax* pcParent) override;
+	CCPPSyntaxSimpleDeclaration*	GetDeclaration(void);
 	CPP_SYNTAX_NODE(InitDeclarator)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;

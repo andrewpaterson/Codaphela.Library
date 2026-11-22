@@ -819,7 +819,6 @@ public:
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
 	bool					IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments);
 
-	bool					IsAssignmentOperator(ECppTokens eOperator);
 
 	bool					FunctionNameText(int64 lliName, CChars* pszText);
 	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);

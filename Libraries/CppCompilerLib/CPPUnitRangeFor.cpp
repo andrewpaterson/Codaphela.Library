@@ -194,7 +194,7 @@ bool CCPPUnit::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	{
 		return psType ? Error(pcFor, "This declaration is not supported by the compiler yet") : false;
 	}
-	psElement = psType->IsArray() ? psType->psBase : psType;
+	psElement = psType->ElementType();
 	if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcFor))
 	{
 		return false;

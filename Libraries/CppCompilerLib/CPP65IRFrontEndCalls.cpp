@@ -1012,7 +1012,7 @@ bool CCPP65IRFrontEnd::BoundOperatorCall(CCPPBoundCall* pcBound, ECppTokens eOpe
 
 	//a = b and a op= b work out b first, other operators their left first, as the built in ones do.  [over.match.oper] 2
 	bResult = Call(pcBound->mpcFunction, FunctionSymbol(pcBound->mpcFunction), NULL, &apcArguments, psValue, pcBound->mpcObject, false, pcBound->mpcClass, pcBound->mbVirtual,
-				   IRNone(), mpcUnit->IsAssignmentOperator(eOperator));
+				   IRNone(), IsCPPAssignment(eOperator));
 	apcArguments.Kill();
 	return bResult;
 }

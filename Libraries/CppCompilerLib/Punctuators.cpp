@@ -35,7 +35,7 @@ struct SPunctuator
 #define PUNCTUATOR(sz)	{ sz, sizeof(sz) - 1 }
 
 
-#define CPP_PUNCTUATOR_ENTRY(sz, eToken)	PUNCTUATOR(sz),
+#define CPP_PUNCTUATOR_ENTRY(sz, eToken, ...)	PUNCTUATOR(sz),
 static const SPunctuator gasPunctuators[] =
 {
 	CPP_PUNCTUATORS(CPP_PUNCTUATOR_ENTRY)

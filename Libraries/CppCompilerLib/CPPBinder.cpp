@@ -2259,7 +2259,7 @@ bool CCPPBinder::HasMemberMadeByCode(CCPPClass* pcClass)
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
 		psField = pcClass->macFields.Get(i);
-		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
+		psType = psField->psType->ElementType();
 		if (psType->IsClass() && psType->pcClass->NeedsConstructor())
 		{
 			return true;

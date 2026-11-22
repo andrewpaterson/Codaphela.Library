@@ -98,7 +98,7 @@ CCPPSyntaxExpression* CCPPParser::ParseAssignmentExpression(CCPPSyntax* pcParent
 		return NULL;
 	}
 
-	if (Is(CT_Assignment) || Is(CT_AssignmentAdd) || Is(CT_AssignmentSubtract) || Is(CT_AssignmentMultiply) || Is(CT_AssignmentDivide) || Is(CT_AssignmentModulus) || Is(CT_AssignmentBitwiseAnd) || Is(CT_AssignmentBitwiseOr) || Is(CT_AssignmentBitwiseXor) || Is(CT_AssignmentLeftShift) || (Is(CT_AssignmentRightShift) && !mbNoGreater))
+	if (Peek(0) && Peek(0)->IsReservedWord() && IsCPPAssignment(((CCTReservedWord*)Peek(0))->GetToken()))
 	{
 		eOperator = ((CCTReservedWord*)Peek(0))->GetToken();
 		Next();
@@ -356,20 +356,9 @@ bool CCPPParser::IsDecltypeMemberCast(CCPPSyntaxName* pcName)
 	case CT_Colon:
 	case CT_Member:
 	case CT_MemberByPointer:
-	case CT_Assignment:
-	case CT_AssignmentAdd:
-	case CT_AssignmentSubtract:
-	case CT_AssignmentMultiply:
-	case CT_AssignmentDivide:
-	case CT_AssignmentModulus:
-	case CT_AssignmentBitwiseAnd:
-	case CT_AssignmentBitwiseOr:
-	case CT_AssignmentBitwiseXor:
-	case CT_AssignmentLeftShift:
-	case CT_AssignmentRightShift:
 		return false;
 	default:
-		return GetBinaryPrecedence() == 0;
+		return !IsCPPAssignment(((CCTReservedWord*)pcToken)->GetToken()) && (GetBinaryPrecedence() == 0);
 	}
 }
 

@@ -408,6 +408,53 @@ static void TestCPPClassLayoutBasesAndVtables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What an integer type holds, an array's element and a reference's type,
+// which the unit asks of the type (they were worked out where they were
+// wanted).  int is 2 bytes here, as the W65C816's.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65TypeQuestions(void)
+{
+	CCPP65Types	cTypes;
+	SCPP65Type*	psArray;
+	SCPP65Type*	psRows;
+	SCPP65Type*	psReference;
+
+	cTypes.Init(2, 4);
+
+	AssertLong(-128, cTypes.msSignedChar.Least());
+	AssertLong(127, cTypes.msSignedChar.Most());
+	AssertLong(0, cTypes.msUnsignedChar.Least());
+	AssertLong(255, cTypes.msUnsignedChar.Most());
+	AssertLong(-32768, cTypes.msInt.Least());
+	AssertLong(32767, cTypes.msInt.Most());
+	AssertLong(0, cTypes.msUnsignedInt.Least());
+	AssertLong(65535, cTypes.msUnsignedInt.Most());
+	AssertLong(-2147483647LL - 1, cTypes.msLong.Least());
+	AssertLong(2147483647LL, cTypes.msLong.Most());
+	AssertLong(4294967295LL, cTypes.msUnsignedLong.Most());
+	AssertLong(-2147483647LL - 1, CPPIntegerLeast(4, true));
+	AssertLong(4294967295LL, CPPIntegerMost(4, false));
+	AssertLong(0, CPPIntegerLeast(1, false));
+	AssertLong(127, CPPIntegerMost(1, true));
+
+	psArray = cTypes.Array(&cTypes.msShort, 3);
+	psRows = cTypes.Array(psArray, 2);
+	AssertPointer(&cTypes.msShort, psArray->ElementType());
+	AssertPointer(psArray, psRows->ElementType());
+	AssertPointer(&cTypes.msShort, cTypes.msShort.ElementType());
+
+	psReference = cTypes.Reference(psArray);
+	AssertPointer(psArray, psReference->WithoutReference());
+	AssertPointer(psArray, psArray->WithoutReference());
+	AssertPointer(psReference, psReference->ElementType());
+
+	cTypes.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPPClassLayout(void)
@@ -419,6 +466,7 @@ void TestCPPClassLayout(void)
 	TestCPPClassLayoutUnion();
 	TestCPPClassLayoutBitFields();
 	TestCPPClassLayoutBasesAndVtables();
+	TestCPP65TypeQuestions();
 
 	TestStatistics();
 }

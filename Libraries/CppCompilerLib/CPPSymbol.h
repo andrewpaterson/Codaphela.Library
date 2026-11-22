@@ -49,6 +49,7 @@ enum ECPPSymbolKind
 
 class CCPPScope;
 class CCPPSyntax;
+class CCPPSyntaxDeclSpecifiers;
 
 
 //A declared name.  Names are resolved while parsing so the parser can tell types from values.  [basic.lookup]
@@ -84,6 +85,7 @@ public:
 	bool	IsNamespace(void) const;
 	bool	IsClass(void) const;
 	bool	IsFunction(void) const;
+	CCPPSyntaxDeclSpecifiers*	DeclSpecifiers(void) const;
 };
 
 

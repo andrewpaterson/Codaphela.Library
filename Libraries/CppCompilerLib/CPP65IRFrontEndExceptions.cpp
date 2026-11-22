@@ -876,7 +876,7 @@ SCPP65Type* CCPP65IRFrontEnd::ThrownType(SCPP65Type* psType)
 	psType = psType->WithoutReference()->Unqualified();
 	if (psType->IsArray() || psType->IsFunction())
 	{
-		return mpcTypes->Pointer(psType->IsArray() ? psType->psBase : psType);
+		return mpcTypes->Pointer(psType->ElementType());
 	}
 	return psType;
 }

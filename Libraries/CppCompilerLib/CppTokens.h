@@ -22,6 +22,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __C_P_P_TOKENS_H__
 
 
+//What kind of operator a punctuator is (CPPPunctuatorList.h's third column).
+#define CPPOF_ASSIGNMENT	0x01	//= and the compound assignments (+= ...).
+#define CPPOF_COMPARISON	0x02	//== != < > <= >=.
+
+
 //Punctuators [lex.operators] and keywords [lex.key] of C++14, and the Microsoft and GNU keywords that the Windows
 //headers use.  The alternative tokens (and, bitor, ...) and digraphs (<:, %>, ...) are the punctuators they stand for.
 //The order must match gasCPPReservedWords in CppTokeniser.cpp.
@@ -189,6 +194,14 @@ enum ECppTokens
 
 	NUM_CPP_TOKENS
 };
+
+
+//What an operator token is, from the punctuators' table (CppTokeniser.cpp).  False for a token that is no punctuator.
+bool		IsCPPAssignment(ECppTokens eToken);		//= or a compound assignment.
+bool		IsCPPComparison(ECppTokens eToken);		//== != < > <= or >=.
+
+//The operator of x op= y, which is x = x op y ([expr.ass] 7); any other token is itself.
+ECppTokens	CPPCompoundOperation(ECppTokens eAssignment);
 
 
 #endif // !__C_P_P_TOKENS_H__

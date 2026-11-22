@@ -49,6 +49,13 @@ public:
 
 	int64					mlliOverride;
 	int64					mlliFinal;
+	int64					mlliFunc;				//__func__, __FUNCTION__, __PRETTY_FUNCTION__, __FUNCSIG__ and __FUNCDNAME__: the name of the
+	int64					mlliFunction;			//function they are written in (CCPPUnit::FunctionNameText).
+	int64					mlliPrettyFunction;
+	int64					mlliFuncSig;
+	int64					mlliFuncDName;
+	int64					mlliMemcpy;				//memcpy and __builtin_memcpy, which the compiler may write as a copy (CCPPUnit::IsInlineMemcpy).
+	int64					mlliBuiltinMemcpy;
 
 	void 				Init(CMallocator* pcTokens = NULL);
 	void 				Kill(void);

@@ -3992,7 +3992,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		{
 			pcInitialiser = BoundInitialiser(psType, pcInitialiser);
 		}
-		psElement = psType->IsArray() ? psType->psBase : psType;
+		psElement = psType->ElementType();
 		if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcInit))
 		{
 			bResult = false;
@@ -4810,10 +4810,10 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 		}
 	}
 
-	if ((pcNode->GetKind() == CPPS_InitDeclarator) && pcNode->mpcParent && (pcNode->mpcParent->GetKind() == CPPS_SimpleDeclaration))
+	if ((pcNode->GetKind() == CPPS_InitDeclarator) && ((CCPPSyntaxInitDeclarator*)pcNode)->GetDeclaration())
 	{
 		pcInit = (CCPPSyntaxInitDeclarator*)pcNode;
-		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcNode->mpcParent;
+		pcDeclaration = pcInit->GetDeclaration();
 		if (pcInit->mpcSymbol && (pcInit->mpcSymbol->meKind == CPPSK_Variable))
 		{
 			if (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN)
@@ -4839,7 +4839,7 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 			{
 				return Error(pcNode, "This type of local variable is not supported by the compiler yet");
 			}
-			if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !CompleteObjectClass((psType->IsArray() ? psType->psBase : psType)->pcClass, pcNode))
+			if (psType->ElementType()->IsClass() && !CompleteObjectClass(psType->ElementType()->pcClass, pcNode))
 			{
 				return false;
 			}
@@ -5126,7 +5126,7 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	{
 		return false;
 	}
-	psElement = psType->IsArray() ? psType->psBase : psType;
+	psElement = psType->ElementType();
 	bObject = psElement->IsClass() || psType->IsReference();
 	if (psElement->IsClass() && !CompleteClass(psElement->pcClass, pcInit))
 	{

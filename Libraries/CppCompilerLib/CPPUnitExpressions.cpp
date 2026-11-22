@@ -100,7 +100,7 @@ SCPP65Type* CCPPUnit::IntegerLiteralType(CCTInt* pcInt)
 
 	//An L literal is long (unsigned long if it's unsigned), whatever int is.
 	ulliValue = (uint32)pcInt->mcValue;
-	ulliIntMax = (mcTypes.msInt.iBytes < 4) ? 0x7FFF : 0x7FFFFFFF;
+	ulliIntMax = (uint64)mcTypes.msInt.Most();
 	if (pcInt->IsSigned())
 	{
 		if (!pcInt->mbLong && (ulliValue <= ulliIntMax))
@@ -134,17 +134,8 @@ bool CCPPUnit::FunctionNameText(int64 lliName, CChars* pszText)
 	int		iLength;
 	bool	bPretty;
 
-	if (lliName < 0)
-	{
-		return false;
-	}
-	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
-	if (!szName)
-	{
-		return false;
-	}
-	bPretty = ((iLength == 19) && (memcmp(szName, "__PRETTY_FUNCTION__", 19) == 0)) || ((iLength == 11) && (memcmp(szName, "__FUNCSIG__", 11) == 0));
-	if (!bPretty && !((iLength == 8) && (memcmp(szName, "__func__", 8) == 0)) && !((iLength == 12) && (memcmp(szName, "__FUNCTION__", 12) == 0)))
+	bPretty = (lliName == mpcTokeniser->mlliPrettyFunction) || (lliName == mpcTokeniser->mlliFuncSig);
+	if (!bPretty && (lliName != mpcTokeniser->mlliFunc) && (lliName != mpcTokeniser->mlliFunction))
 	{
 		return false;
 	}
@@ -498,7 +489,7 @@ bool CCPPUnit::ConstructionMayThrow(CCPPClass* pcClass, CArraySyntax* papcArgume
 	if (papcArguments && (papcArguments->NumElements() == 1))
 	{
 		psArgument = TypeOf(papcArguments->GetPtr(0));
-		psArgument = (psArgument && psArgument->IsReference()) ? psArgument->psBase : psArgument;
+		psArgument = psArgument ? psArgument->WithoutReference() : NULL;
 		if (psArgument && psArgument->IsClass() && (psArgument->pcClass == pcClass))
 		{
 			return ClassMayThrow(pcClass, CPPSM_Copy);
@@ -666,7 +657,7 @@ bool CCPPUnit::DeleteMayThrow(CCPPSyntaxDeleteExpression* pcDelete)
 	SCPP65Type*		psType;
 
 	psType = TypeOf(pcDelete->mpcOperand);
-	psType = (psType && psType->IsReference()) ? psType->psBase : psType;
+	psType = psType ? psType->WithoutReference() : NULL;
 	psType = (psType && psType->IsPointer()) ? psType->psBase->Unqualified() : NULL;
 	if (!psType || !psType->IsClass())
 	{
@@ -748,7 +739,7 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 		//typeid of an object of a polymorphic class throws std::bad_typeid for *null.  [expr.typeid] 2
 		pcTypeid = (CCPPSyntaxTypeidExpression*)pcExpression;
 		psType = pcTypeid->mpcOperand ? TypeOf(pcTypeid->mpcOperand) : NULL;
-		psType = (psType && psType->IsReference()) ? psType->psBase : psType;
+		psType = psType ? psType->WithoutReference() : NULL;
 		bThrows = psType && psType->IsClass() && psType->pcClass->IsPolymorphic();
 		break;
 	default:
@@ -1397,16 +1388,9 @@ char* CCPPUnit::BuiltinName(int64 lliName, int* piLength)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments)
 {
-	char*	szName;
-	int		iLength;
 	int64	lliBytes;
 
-	if ((lliName < 0) || (papcArguments->NumElements() != 3))
-	{
-		return false;
-	}
-	szName = mpcTokeniser->GetIdentifier(lliName, &iLength);
-	if (!szName || !(((iLength == 6) && (memcmp(szName, "memcpy", 6) == 0)) || ((iLength == 16) && (memcmp(szName, "__builtin_memcpy", 16) == 0))))
+	if (((lliName != mpcTokeniser->mlliMemcpy) && (lliName != mpcTokeniser->mlliBuiltinMemcpy)) || (papcArguments->NumElements() != 3))
 	{
 		return false;
 	}
@@ -2061,7 +2045,6 @@ void CCPPUnit::ReportFailedDeclaration(int64 lliName)
 {
 	CCPPSyntaxDeclarator*		pcDeclarator;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	CCPPSyntax*					pcParent;
 	size						i;
 
 	for (i = 0; i < mapcFailed.NumElements(); i++)
@@ -2071,16 +2054,7 @@ void CCPPUnit::ReportFailedDeclaration(int64 lliName)
 		{
 			continue;
 		}
-		pcParent = pcDeclarator->mpcParent;
-		pcSpecifiers = NULL;
-		if (pcParent && (pcParent->GetKind() == CPPS_InitDeclarator) && pcParent->mpcParent && (pcParent->mpcParent->GetKind() == CPPS_SimpleDeclaration))
-		{
-			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcParent->mpcParent)->mpcSpecifiers;
-		}
-		else if (pcParent && (pcParent->GetKind() == CPPS_FunctionDefinition))
-		{
-			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcParent)->mpcSpecifiers;
-		}
+		pcSpecifiers = CCPPSyntaxDeclSpecifiers::Of(pcDeclarator->mpcParent);
 		mpcStatistics->Count(CPPCC_ReportedAgain);
 		DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false);
 		return;
@@ -2375,33 +2349,6 @@ bool CCPPUnit::CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// = and the compound assignments (+= ...).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsAssignmentOperator(ECppTokens eOperator)
-{
-	switch (eOperator)
-	{
-	case CT_Assignment:
-	case CT_AssignmentAdd:
-	case CT_AssignmentSubtract:
-	case CT_AssignmentMultiply:
-	case CT_AssignmentDivide:
-	case CT_AssignmentModulus:
-	case CT_AssignmentBitwiseAnd:
-	case CT_AssignmentBitwiseOr:
-	case CT_AssignmentBitwiseXor:
-	case CT_AssignmentLeftShift:
-	case CT_AssignmentRightShift:
-		return true;
-	default:
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
@@ -2550,17 +2497,8 @@ bool CCPPUnit::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		}
 		break;
 	case CPPS_BinaryExpression:
-		switch (((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator)
+		if (!IsCPPComparison(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && (((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator != CT_Subtract))
 		{
-		case CT_EqualTo:
-		case CT_NotEqualTo:
-		case CT_LessThan:
-		case CT_LessThanEqualTo:
-		case CT_GreaterThan:
-		case CT_GreaterThanEqualTo:
-		case CT_Subtract:
-			break;
-		default:
 			return false;
 		}
 		break;
@@ -2624,7 +2562,6 @@ SCPP65Type* CCPPUnit::ObjectConstantType(CCPPSyntax* pcExpression)
 bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
 {
 	CCPPSymbol*						pcSymbol;
-	CCPPSyntax*						pcDeclaration;
 	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
 	size							i;
 
@@ -2639,16 +2576,7 @@ bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
 	if (pcNode->GetKind() == CPPS_IdExpression)
 	{
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcNode)->mpcName->mpcSymbol;
-		pcDeclaration = pcSymbol ? pcSymbol->mpcDeclaration : NULL;
-		pcSpecifiers = NULL;
-		if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
-		{
-			pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
-		}
-		else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_FunctionDefinition))
-		{
-			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
-		}
+		pcSpecifiers = pcSymbol ? pcSymbol->DeclSpecifiers() : NULL;
 		return pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR);
 	}
 	for (i = 0; i < pcNode->NumChildren(); i++)
@@ -2936,7 +2864,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			return false;
 		}
 		psType = psType->WithoutReference();
-		if ((psType->IsArray() ? psType->psBase : psType)->IsClass() && !CompleteClass((psType->IsArray() ? psType->psBase : psType)->pcClass, pcExpression))
+		if (psType->ElementType()->IsClass() && !CompleteClass(psType->ElementType()->pcClass, pcExpression))
 		{
 			return false;
 		}
@@ -3085,24 +3013,23 @@ bool CCPPUnit::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLef
 
 	psResult = ConstantTypeOf(pcBinary);
 	psOperands = psResult;
-	switch (pcBinary->meOperator)
+	if (pcBinary->meOperator == CT_LogicalAnd)
 	{
-	case CT_LogicalAnd:		*plliValue = lliLeft && lliRight;	return true;
-	case CT_LogicalOr:		*plliValue = lliLeft || lliRight;	return true;
-	case CT_EqualTo:
-	case CT_NotEqualTo:
-	case CT_LessThan:
-	case CT_LessThanEqualTo:
-	case CT_GreaterThan:
-	case CT_GreaterThanEqualTo:
+		*plliValue = lliLeft && lliRight;
+		return true;
+	}
+	if (pcBinary->meOperator == CT_LogicalOr)
+	{
+		*plliValue = lliLeft || lliRight;
+		return true;
+	}
+	if (IsCPPComparison(pcBinary->meOperator))
+	{
 		psLeft = ConstantTypeOf(pcBinary->mpcLeft);
 		psRight = ConstantTypeOf(pcBinary->mpcRight);
-		psLeft = (psLeft && psLeft->IsReference()) ? psLeft->psBase : psLeft;
-		psRight = (psRight && psRight->IsReference()) ? psRight->psBase : psRight;
+		psLeft = psLeft ? psLeft->WithoutReference() : NULL;
+		psRight = psRight ? psRight->WithoutReference() : NULL;
 		psOperands = (psLeft && psRight && psLeft->IsInteger() && psRight->IsInteger()) ? mcTypes.Arithmetic(psLeft, psRight) : NULL;
-		break;
-	default:
-		break;
 	}
 	bUnsigned = psOperands && psOperands->IsInteger() && !psOperands->bSigned;
 	lliLeft = ConstantOfType(psOperands, lliLeft);
@@ -3203,7 +3130,6 @@ bool CCPPUnit::IsSignedOverflow(ECppTokens eOperator, int iBits, int64 lliLeft, 
 void CCPPUnit::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps)
 {
 	SCPP65Type*	psType;
-	int			iBits;
 	int64		lliMin;
 	int64		lliMax;
 	CChars		szMessage;
@@ -3219,28 +3145,19 @@ void CCPPUnit::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool b
 	{
 		return;
 	}
-	iBits = psType->iBytes * 8;
-	if (psType->bSigned)
+	if (!psType->bSigned && bUnsignedWraps)
 	{
-		lliMin = -((int64)1 << (iBits - 1));
-		lliMax = ((int64)1 << (iBits - 1)) - 1;
+		return;
 	}
-	else
-	{
-		if (bUnsignedWraps)
-		{
-			return;
-		}
-		lliMin = 0;
-		lliMax = ((int64)1 << iBits) - 1;
-	}
+	lliMin = psType->Least();
+	lliMax = psType->Most();
 	if ((lliValue >= lliMin) && (lliValue <= lliMax))
 	{
 		return;
 	}
 
 	szMessage.Init("Integer overflow: the constant expression is ");
-	szMessage.Append(lliValue)->Append(", which doesn't fit its ")->Append(iBits)->Append(" bit ")->Append(psType->bSigned ? "signed" : "unsigned")->Append(" type.");
+	szMessage.Append(lliValue)->Append(", which doesn't fit its ")->Append(psType->iBytes * 8)->Append(" bit ")->Append(psType->bSigned ? "signed" : "unsigned")->Append(" type.");
 	Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }
@@ -3261,7 +3178,6 @@ void CCPPUnit::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 {
 	SCPP65Type*	psFrom;
 	int64		lliValue;
-	int			iBits;
 	bool		bConstant;
 	CChars		szMessage;
 
@@ -3296,14 +3212,14 @@ void CCPPUnit::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 		return;
 	}
 
-	iBits = psTo->iBytes * 8;
-	if ((lliValue >= -((int64)1 << (iBits - 1))) && (lliValue <= ((int64)1 << iBits) - 1))
+	//It fits the type's width, as signed or as unsigned.
+	if ((lliValue >= CPPIntegerLeast(psTo->iBytes, true)) && (lliValue <= CPPIntegerMost(psTo->iBytes, false)))
 	{
 		return;
 	}
 
 	szMessage.Init("Integer conversion overflow: the constant ");
-	szMessage.Append(lliValue)->Append(" doesn't fit the ")->Append(iBits)->Append(" bit type it is converted to and is truncated.");
+	szMessage.Append(lliValue)->Append(" doesn't fit the ")->Append(psTo->iBytes * 8)->Append(" bit type it is converted to and is truncated.");
 	Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }
@@ -3646,8 +3562,6 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	int64			lliValue;
 	int64			lliMin;
 	int64			lliMax;
-	int64			lliMask;
-	int				iBits;
 	bool			bConstant;
 	bool			bAlways;
 	CChars			szMessage;
@@ -3693,25 +3607,10 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 
 	//The constant as the comparison's type sees it.
-	iBits = psCommon->iBytes * 8;
-	lliMask = ((int64)1 << iBits) - 1;
-	lliValue &= lliMask;
-	if (psCommon->bSigned && (lliValue > (lliMask >> 1)))
-	{
-		lliValue -= lliMask + 1;
-	}
+	lliValue = ConstantOfType(psCommon, lliValue);
 
-	iBits = psVariable->iBytes * 8;
-	if (psVariable->bSigned)
-	{
-		lliMin = -((int64)1 << (iBits - 1));
-		lliMax = ((int64)1 << (iBits - 1)) - 1;
-	}
-	else
-	{
-		lliMin = 0;
-		lliMax = ((int64)1 << iBits) - 1;
-	}
+	lliMin = psVariable->Least();
+	lliMax = psVariable->Most();
 	if ((lliValue >= lliMin) && (lliValue <= lliMax))
 	{
 		ComparisonAtLimit(pcBinary, pcConstant, psVariable, lliValue, lliMin, lliMax);
@@ -3731,7 +3630,7 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	}
 
 	szMessage.Init("Comparison is always ");
-	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is out of the range of the ")->Append(iBits)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
+	szMessage.Append(bAlways ? "true" : "false")->Append(": the constant ")->Append(lliValue)->Append(" is out of the range of the ")->Append(psVariable->iBytes * 8)->Append(" bit ")->Append(psVariable->bSigned ? "signed" : "unsigned")->Append(" value it is compared with.");
 	Warning(pcBinary, szMessage.Text());
 	szMessage.Kill();
 }
@@ -4098,7 +3997,6 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 	int64					lliValue;
 	int64					lliMin;
 	int64					lliMax;
-	int						iBits;
 	int						iBytes;
 	bool					bSigned;
 	bool					bNonNegative;
@@ -4172,20 +4070,19 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 		}
 		bNonNegative = (i == pcSpecifier->macpEnumerators.NumElements()) && (lliMin >= 0);
 
-		iBits = mcTypes.msInt.iBytes * 8;
-		if ((lliMin >= -((int64)1 << (iBits - 1))) && (lliMax < ((int64)1 << (iBits - 1))))
+		if ((lliMin >= mcTypes.msInt.Least()) && (lliMax <= mcTypes.msInt.Most()))
 		{
 			//int.
 		}
-		else if ((lliMin >= 0) && (lliMax < ((int64)1 << iBits)))
+		else if ((lliMin >= 0) && (lliMax <= mcTypes.msUnsignedInt.Most()))
 		{
 			bSigned = false;
 		}
-		else if ((lliMin >= -((int64)1 << 31)) && (lliMax < ((int64)1 << 31)))
+		else if ((lliMin >= CPPIntegerLeast(4, true)) && (lliMax <= CPPIntegerMost(4, true)))
 		{
 			iBytes = 4;
 		}
-		else if ((lliMin >= 0) && (lliMax <= (int64)0xFFFFFFFF))
+		else if ((lliMin >= 0) && (lliMax <= CPPIntegerMost(4, false)))
 		{
 			iBytes = 4;
 			bSigned = false;
@@ -4417,7 +4314,7 @@ bool CCPPUnit::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 		}
 		szIdentifier = pcToken->IsIdentifier() ? mpcTokeniser->GetIdentifier(((CCTIdentifier*)pcToken)->miIdentifier, &iLength) : NULL;
 		szName.Init();
-		if (szIdentifier && (iLength == 13) && (memcmp(szIdentifier, "__FUNCDNAME__", 13) == 0))
+		if (szIdentifier && (((CCTIdentifier*)pcToken)->miIdentifier == mpcTokeniser->mlliFuncDName))
 		{
 			if (mcContext.GetFunction())
 			{

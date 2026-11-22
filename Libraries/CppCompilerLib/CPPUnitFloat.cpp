@@ -274,8 +274,8 @@ bool CCPPUnit::ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCP
 	}
 	//Its declaration says constexpr; the initialiser is there or, for a static member, in its class.
 	pcInit = VariableDeclarator(pcVariable);
-	pcDeclaration = pcInit ? (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent : NULL;
-	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
+	pcDeclaration = pcInit ? pcInit->GetDeclaration() : NULL;
+	if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
 	{
 		return false;
 	}
@@ -308,6 +308,12 @@ bool CCPPUnit::ConstexprFloat(CCPPSyntaxIdExpression* pcId, double* pdValue, SCP
 // forms float.  NaNs are quiet and positive; a payload string is ignored.
 //
 //////////////////////////////////////////////////////////////////////////
+static bool IsBuiltinNamed(const char* szName, int iLength, const char* szBuiltin)
+{
+	return ((size)iLength == strlen(szBuiltin)) && (memcmp(szName, szBuiltin, iLength) == 0);
+}
+
+
 bool CCPPUnit::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
 {
 	CCPPSyntaxCallExpression*	pcCall;
@@ -338,11 +344,11 @@ bool CCPPUnit::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Typ
 	szName = BuiltinName(lliName, &iLength);
 	bFloat = (iLength > 0) && (szName[iLength - 1] == 'f');
 	iLength -= bFloat ? 1 : 0;
-	if (((iLength == 8) && (memcmp(szName, "huge_val", 8) == 0)) || ((iLength == 3) && (memcmp(szName, "inf", 3) == 0)))
+	if (IsBuiltinNamed(szName, iLength, "huge_val") || IsBuiltinNamed(szName, iLength, "inf"))
 	{
 		bNaN = false;
 	}
-	else if ((iLength == 3) && (memcmp(szName, "nan", 3) == 0))
+	else if (IsBuiltinNamed(szName, iLength, "nan"))
 	{
 		bNaN = true;
 	}

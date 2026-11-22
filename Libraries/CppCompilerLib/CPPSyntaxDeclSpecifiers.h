@@ -43,6 +43,7 @@ public:
 	bool						NamesFunctionType(CCPPSyntaxDeclSpecifiers** ppcSpecifiers, CCPPSyntaxDeclarator** ppcDeclarator);
 	bool						NamesArrayOrFunctionType(void);
 	size						NumTypeKeywords(void) const;
+	static CCPPSyntaxDeclSpecifiers*	Of(CCPPSyntax* pcDeclaration);
 	CPP_SYNTAX_NODE(DeclSpecifiers)
 	void						PrettyPrint(CChars* pszDest, int iDepth) override;
 	void						VisitFields(CCPPSyntaxFields* pcFields) override;

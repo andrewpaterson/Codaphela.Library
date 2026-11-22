@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 and 1 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
+Where it is: stages 0 to 2 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -551,3 +551,39 @@ Stage 1 (2026-11-22): what is dead, and what says what is not so.
 	are the baseline's; the counts compiling TestSupportLib65's project are stage 0's to the unit.
 	Tests/CompilerProof.py names the W65C816's listings folders <Suite>_W65C816; the baseline's, taken by hand
 	before the tool was written, were renamed to match.
+
+Stage 2 (2026-11-22): the small questions.
+
+	What an operator token is.  CPPPunctuatorList.h has two more columns for each punctuator, what kind of operator
+	it is and the operation of a compound assignment, and CppTokens.h asks them: IsCPPAssignment, IsCPPComparison,
+	CPPCompoundOperation (which was a switch in CPPFunction.h).  The lists that are gone: of the eleven
+	assignments, in the IR front end's and the type checker's BinaryExpression, the parser (twice), CCPPIndex,
+	CCPPSemanticPass's own IsCPPAssignment and CCPPUnit::IsAssignmentOperator; of the six comparisons, in the
+	front end's and the type checker's BinaryExpression and Condition, RunConstant and BinaryConstant.  Left,
+	because each says something of every operator and not which are in a set: the operators' names in
+	CCPPMangler, their precedence in the parser, their IR opcodes in the front end, and the arithmetic of
+	BinaryConstant and ComparisonRange.  Those are finding 39's and 52's still.
+	What an integer type holds.  SCPP65Type::Least and Most (CPPIntegerLeast, CPPIntegerMost) for ConstantOverflow,
+	ConversionOverflow, ComparisonRange, EnumType and IntegerLiteralType; ComparisonRange and CheckSwitch cut a
+	value to a type with ConstantOfType, where each did it with its own shifts.
+	The names the compiler knows.  __func__, __FUNCTION__, __PRETTY_FUNCTION__, __FUNCSIG__, __FUNCDNAME__, memcpy
+	and __builtin_memcpy have their numbers from the tokeniser, as override and final have: FunctionNameText,
+	IsInlineMemcpy and the string decoder compare numbers.  The float builtins' names (huge_val, inf, nan) are
+	what is left of an identifier after its prefix and its f, so they are compared as text, by a helper with no
+	counted length; stage 15b's table takes them.
+	The specifiers a declaration was written with.  CCPPSyntaxInitDeclarator::GetDeclaration,
+	CCPPSyntaxDeclSpecifiers::Of and CCPPSymbol::DeclSpecifiers, for eleven walks from a symbol or a declarator
+	to its simple declaration.  One more was seen after the stage's proof had begun (FoldConstant's, of a const
+	variable); stage 3 takes it.
+	SCPP65Type::ElementType for "IsArray() ? psBase : psType" in 16 places of nine files, and WithoutReference
+	where it was written out in the unit (7).
+
+	Tests: TestCppTokeniserOperators (every token, a keyword too), TestCppTokeniserKnownNames, and
+	TestCPP65TypeQuestions.
+
+	Proved: TestCppCompilerLib passes (271,713); the 5,780 diagnostics entries are stage 1's; the 4,201 listings
+	are the baseline's, so giving seven names their numbers first moved nothing; the counts are stage 0's.
+	The suite's total (stage 0's question): two runs' logs set side by side differ in one file,
+	TestIRW65C816Backend, which is run in two processes and counts 210,065 or 218,805 by how its calls are
+	shared between them.  Every other file's count is steady.  It is the test's, not the compiler's, and is
+	left to Tests/TestSpeedPlan.txt's owner.

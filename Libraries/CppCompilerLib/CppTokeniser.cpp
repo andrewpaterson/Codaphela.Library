@@ -46,10 +46,59 @@ struct SCPPReservedWord
 };
 
 
+//What kind of operator each punctuator is, and the operation of a compound assignment, in ECppTokens order.
+struct SCPPOperator
+{
+	uint8		uiFlags;		//CPPOF_.
+	ECppTokens	eOperation;
+};
+
+
+static const SCPPOperator gasCPPOperators[] =
+{
+#define CPP_OPERATOR_ENTRY(sz, eToken, uiOperator, eOperation)	{ uiOperator, eOperation },
+	CPP_PUNCTUATORS(CPP_OPERATOR_ENTRY)
+#undef CPP_OPERATOR_ENTRY
+};
+
+
+#define NUM_CPP_OPERATORS	(sizeof(gasCPPOperators) / sizeof(SCPPOperator))
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsCPPAssignment(ECppTokens eToken)
+{
+	return ((size)eToken < NUM_CPP_OPERATORS) && ((gasCPPOperators[eToken].uiFlags & CPPOF_ASSIGNMENT) != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsCPPComparison(ECppTokens eToken)
+{
+	return ((size)eToken < NUM_CPP_OPERATORS) && ((gasCPPOperators[eToken].uiFlags & CPPOF_COMPARISON) != 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+ECppTokens CPPCompoundOperation(ECppTokens eAssignment)
+{
+	return ((size)eAssignment < NUM_CPP_OPERATORS) ? gasCPPOperators[eAssignment].eOperation : eAssignment;
+}
+
+
 //The first spelling of each token is in ECppTokens order and is how the token prints.  The alternative spellings follow.
 static SCPPReservedWord gasCPPReservedWords[] =
 {
-#define CPP_RESERVED_SPELLING(sz, eToken)	{ sz, eToken },
+#define CPP_RESERVED_SPELLING(sz, eToken, ...)	{ sz, eToken },
 	CPP_PUNCTUATORS(CPP_RESERVED_SPELLING)
 
 
@@ -240,6 +289,15 @@ void CCPPTokeniser::Init(CMallocator* pcTokens)
 	//Identifiers with special meaning in some places.  [lex.name] 2
 	mlliOverride = GetIdentifierID("override");
 	mlliFinal = GetIdentifierID("final");
+
+	//Names the compiler knows, asked for by their numbers.
+	mlliFunc = GetIdentifierID("__func__");
+	mlliFunction = GetIdentifierID("__FUNCTION__");
+	mlliPrettyFunction = GetIdentifierID("__PRETTY_FUNCTION__");
+	mlliFuncSig = GetIdentifierID("__FUNCSIG__");
+	mlliFuncDName = GetIdentifierID("__FUNCDNAME__");
+	mlliMemcpy = GetIdentifierID("memcpy");
+	mlliBuiltinMemcpy = GetIdentifierID("__builtin_memcpy");
 }
 
 

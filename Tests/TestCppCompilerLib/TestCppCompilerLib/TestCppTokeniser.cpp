@@ -904,6 +904,82 @@ void TestCppTokeniserIdentifierIndex(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What an operator token is, which is asked of the punctuators' table: the
+// eleven assignments, the six comparisons, and the operation of each
+// compound assignment.  Every other token, a keyword too, is neither and
+// is its own operation.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserOperators(void)
+{
+	static const ECppTokens	aeAssignments[] = { CT_Assignment, CT_AssignmentAdd, CT_AssignmentSubtract, CT_AssignmentMultiply, CT_AssignmentDivide, CT_AssignmentModulus,
+												CT_AssignmentBitwiseAnd, CT_AssignmentBitwiseOr, CT_AssignmentBitwiseXor, CT_AssignmentLeftShift, CT_AssignmentRightShift };
+	static const ECppTokens	aeOperations[] = { CT_Assignment, CT_Add, CT_Subtract, CT_Multiply, CT_Divide, CT_Modulus, CT_BitwiseAnd, CT_BitwiseOr, CT_BitwiseXor, CT_LeftShift, CT_RightShift };
+	static const ECppTokens	aeComparisons[] = { CT_EqualTo, CT_NotEqualTo, CT_LessThan, CT_LessThanEqualTo, CT_GreaterThan, CT_GreaterThanEqualTo };
+	int		iToken;
+	size	i;
+	size	uiAssignments;
+	size	uiComparisons;
+
+	for (i = 0; i < sizeof(aeAssignments) / sizeof(ECppTokens); i++)
+	{
+		AssertTrue(IsCPPAssignment(aeAssignments[i]));
+		AssertFalse(IsCPPComparison(aeAssignments[i]));
+		AssertInt(aeOperations[i], CPPCompoundOperation(aeAssignments[i]));
+	}
+	for (i = 0; i < sizeof(aeComparisons) / sizeof(ECppTokens); i++)
+	{
+		AssertTrue(IsCPPComparison(aeComparisons[i]));
+		AssertFalse(IsCPPAssignment(aeComparisons[i]));
+		AssertInt(aeComparisons[i], CPPCompoundOperation(aeComparisons[i]));
+	}
+
+	//Nothing else is either: the punctuators, and the keywords after them, which the table doesn't have.
+	uiAssignments = 0;
+	uiComparisons = 0;
+	for (iToken = CT_OpenRoundBracket; iToken < NUM_CPP_TOKENS; iToken++)
+	{
+		uiAssignments += IsCPPAssignment((ECppTokens)iToken) ? 1 : 0;
+		uiComparisons += IsCPPComparison((ECppTokens)iToken) ? 1 : 0;
+	}
+	AssertSize(11, uiAssignments);
+	AssertSize(6, uiComparisons);
+	AssertInt(CT_Add, CPPCompoundOperation(CT_Add));
+	AssertInt(CT_LogicalAnd, CPPCompoundOperation(CT_LogicalAnd));
+	AssertInt(CT___thread, CPPCompoundOperation(CT___thread));
+	AssertFalse(IsCPPAssignment(CT___thread));
+	AssertFalse(IsCPPComparison(CT_LeftShift));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The names the compiler knows have numbers from the start, the same ones
+// the source's own uses of them get.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppTokeniserKnownNames(void)
+{
+	CTranslationUnit	cFile;
+	CCPPTokeniser		cTokeniser;
+
+	AssertTrue(TokeniseText(&cFile, &cTokeniser, (char*)"memcpy __func__ __FUNCTION__ __PRETTY_FUNCTION__ __FUNCSIG__ __FUNCDNAME__ __builtin_memcpy other"));
+	AssertLong(cTokeniser.mlliMemcpy, ((CCTIdentifier*)cTokeniser.Get(0))->miIdentifier);
+	AssertLong(cTokeniser.mlliFunc, ((CCTIdentifier*)cTokeniser.Get(1))->miIdentifier);
+	AssertLong(cTokeniser.mlliFunction, ((CCTIdentifier*)cTokeniser.Get(2))->miIdentifier);
+	AssertLong(cTokeniser.mlliPrettyFunction, ((CCTIdentifier*)cTokeniser.Get(3))->miIdentifier);
+	AssertLong(cTokeniser.mlliFuncSig, ((CCTIdentifier*)cTokeniser.Get(4))->miIdentifier);
+	AssertLong(cTokeniser.mlliFuncDName, ((CCTIdentifier*)cTokeniser.Get(5))->miIdentifier);
+	AssertLong(cTokeniser.mlliBuiltinMemcpy, ((CCTIdentifier*)cTokeniser.Get(6))->miIdentifier);
+	AssertTrue(((CCTIdentifier*)cTokeniser.Get(7))->miIdentifier != cTokeniser.mlliMemcpy);
+	AssertTrue(cTokeniser.mlliFunc != cTokeniser.mlliFunction);
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCppTokeniser(void)
@@ -926,6 +1002,8 @@ void TestCppTokeniser(void)
 	TestCppTokeniserUserLiterals();
 	TestCppTokeniserRawStrings();
 	TestCppTokeniserIdentifierIndex();
+	TestCppTokeniserOperators();
+	TestCppTokeniserKnownNames();
 
 	TypeConverterKill();
 	TypesKill();

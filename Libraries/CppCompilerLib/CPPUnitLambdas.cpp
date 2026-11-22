@@ -374,8 +374,7 @@ bool CCPPUnit::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 bool CCPPUnit::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 {
 	CCPPScope*		pcScope;
-	CCPPSyntax*		pcDeclaration;
-	uint32			uiFlags;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 
 	if (!pcSymbol || ((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Parameter)) || !pcSymbol->mpcScope)
 	{
@@ -392,13 +391,8 @@ bool CCPPUnit::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 			return false;
 		}
 	}
-	pcDeclaration = pcSymbol->mpcDeclaration;
-	uiFlags = 0;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration) && ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers)
-	{
-		uiFlags = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers->muiFlags;
-	}
-	return (uiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == 0;
+	pcSpecifiers = pcSymbol->DeclSpecifiers();
+	return !pcSpecifiers || ((pcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == 0);
 }
 
 
@@ -436,8 +430,7 @@ bool CCPPUnit::IsOuterLocal(CCPPSymbol* pcSymbol)
 {
 	CCPPFunction*	pcFunction;
 	CCPPScope*		pcScope;
-	CCPPSyntax*		pcDeclaration;
-	uint32			uiFlags;
+	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 
 	if (!pcSymbol || ((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Parameter)) || !pcSymbol->mpcScope)
 	{
@@ -459,13 +452,8 @@ bool CCPPUnit::IsOuterLocal(CCPPSymbol* pcSymbol)
 			return false;
 		}
 	}
-	pcDeclaration = pcSymbol->mpcDeclaration;
-	uiFlags = 0;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration) && ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers)
-	{
-		uiFlags = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers->muiFlags;
-	}
-	return (uiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == 0;
+	pcSpecifiers = pcSymbol->DeclSpecifiers();
+	return !pcSpecifiers || ((pcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_EXTERN | CPPDS_THREAD_LOCAL)) == 0);
 }
 
 
@@ -528,8 +516,8 @@ SCPP65Type* CCPPUnit::EnclosingConstantType(CCPPSymbol* pcSymbol)
 	{
 		return NULL;
 	}
-	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
-	if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
+	pcDeclaration = pcInit->GetDeclaration();
+	if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
 	{
 		return NULL;
 	}
@@ -590,8 +578,8 @@ bool CCPPUnit::IsOdrUse(CCPPSyntax* pcNode)
 	if (pcParent->GetKind() == CPPS_InitDeclarator)
 	{
 		pcInit = (CCPPSyntaxInitDeclarator*)pcParent;
-		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
-		if ((pcInit->mpcInitializer != pcNode) || !pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration))
+		pcDeclaration = pcInit->GetDeclaration();
+		if ((pcInit->mpcInitializer != pcNode) || !pcDeclaration)
 		{
 			return false;
 		}
@@ -610,23 +598,13 @@ bool CCPPUnit::IsOdrUse(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsThisMember(CCPPSymbol* pcSymbol)
 {
-	CCPPSyntax*					pcDeclaration;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 
 	if (!pcSymbol || ((pcSymbol->meKind != CPPSK_Field) && (pcSymbol->meKind != CPPSK_Function)) || !pcSymbol->mpcScope || (pcSymbol->mpcScope->meKind != CPPSC_Class))
 	{
 		return false;
 	}
-	pcDeclaration = pcSymbol->mpcDeclaration;
-	pcSpecifiers = NULL;
-	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_InitDeclarator) && pcDeclaration->mpcParent && (pcDeclaration->mpcParent->GetKind() == CPPS_SimpleDeclaration))
-	{
-		pcSpecifiers = ((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcParent)->mpcSpecifiers;
-	}
-	else if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_FunctionDefinition))
-	{
-		pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcSpecifiers;
-	}
+	pcSpecifiers = pcSymbol->DeclSpecifiers();
 	return !pcSpecifiers || !(pcSpecifiers->muiFlags & CPPDS_STATIC);
 }
 

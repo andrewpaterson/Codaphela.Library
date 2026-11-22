@@ -390,7 +390,7 @@ bool CCPPClass::NeedsConstructor(void)
 		{
 			return true;
 		}
-		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
+		psType = psField->psType->ElementType();
 		if (psType->IsClass() && psType->pcClass->NeedsConstructor())
 		{
 			return true;
@@ -451,7 +451,7 @@ bool CCPPClass::NeedsDestructor(void)
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
 		psField = macFields.Get(i);
-		psType = psField->psType->IsArray() ? psField->psType->psBase : psField->psType;
+		psType = psField->psType->ElementType();
 		if (psType->IsClass() && psType->pcClass->mpcDestructor)
 		{
 			return true;
@@ -611,7 +611,7 @@ bool CCPPClass::IsTriviallyAssignable(void)
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
 		psType = macFields.Get(i)->psType;
-		psType = psType->IsArray() ? psType->psBase : psType;
+		psType = psType->ElementType();
 		if (psType->IsClass() && !psType->pcClass->IsTriviallyAssignable())
 		{
 			return false;
@@ -646,7 +646,7 @@ bool CCPPClass::IsTriviallyCopyable(void)
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
 		psType = macFields.Get(i)->psType;
-		psType = psType->IsArray() ? psType->psBase : psType;
+		psType = psType->ElementType();
 		if (psType->IsClass() && !psType->pcClass->IsTriviallyCopyable())
 		{
 			return false;

@@ -124,12 +124,29 @@ struct SCPP65Type
 	SCPP65Type*	Unqualified(void);
 	bool		IsScopedEnum(void) const;
 	SCPP65Type*	WithoutReference(void);
+	SCPP65Type*	ElementType(void);
+	int64		Least(void) const;
+	int64		Most(void) const;
 	int		GetElementBytes(void) const;
 	void	Append(CChars* psz);
 };
 
 
 typedef CArrayTemplatePtr<SCPP65Type>	CArrayCPP65Types;
+
+
+//The least and the most an integer of iBytes bytes holds, signed or not.  For under 8 bytes: an int64 has no room for
+//the most of an unsigned 8.
+inline int64 CPPIntegerLeast(int iBytes, bool bSigned)
+{
+	return bSigned ? -((int64)1 << (iBytes * 8 - 1)) : 0;
+}
+
+
+inline int64 CPPIntegerMost(int iBytes, bool bSigned)
+{
+	return bSigned ? ((int64)1 << (iBytes * 8 - 1)) - 1 : ((int64)1 << (iBytes * 8)) - 1;
+}
 
 
 //The first and last types made with one key, in the order they were made, linked by a next pointer.

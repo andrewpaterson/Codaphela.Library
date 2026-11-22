@@ -603,7 +603,6 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 	size			i;
 	size			uiDefaults;
 	int64			lliValue;
-	int				iBits;
 	bool			bInScope;
 	bool			bResult;
 
@@ -640,15 +639,7 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 		{
 			continue;
 		}
-		iBits = psType->iBytes * 8;
-		if (iBits < 64)
-		{
-			lliValue &= ((int64)1 << iBits) - 1;
-			if (psType->bSigned && (lliValue & ((int64)1 << (iBits - 1))))
-			{
-				lliValue -= (int64)1 << iBits;
-			}
-		}
+		lliValue = ConstantOfType(psType, lliValue);
 		if (alliValues.Contains(&lliValue))
 		{
 			bResult = ReportOnce(pcCase, "Two cases of the switch have one value");
