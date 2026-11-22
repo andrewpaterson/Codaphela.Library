@@ -214,11 +214,9 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		pcFunction = NULL;
 		if (!papcExplicit)
 		{
-			uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-			mpcDiagnostics->BeginTrial();
+			mpcDiagnostics->BeginSilentTrial();
 			pcFunction = mcOverloads.FindNamedFunction(pcName, pcSymbol->mlliName, pcBound->mpapcArguments, pcCall);
-			mpcDiagnostics->EndTrial();
-			mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+			mpcDiagnostics->EndSilentTrial();
 			if (pcFunction && TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
 			{
 				mpcUnit->Resolved(pcName, pcFunction);
@@ -348,8 +346,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	}
 	if (pcDeclaration)
 	{
-		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-		mpcDiagnostics->BeginTrial();
+		mpcDiagnostics->BeginSilentTrial();
 		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
 		bInlineMemcpy = pcFunction && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments);
 		if (!bInlineMemcpy && (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments)))
@@ -361,8 +358,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 				pcFunction = pcInstance;
 			}
 		}
-		mpcDiagnostics->EndTrial();
-		mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+		mpcDiagnostics->EndSilentTrial();
 		if (pcFunction)
 		{
 			mpcUnit->Resolved(pcName, pcFunction);
@@ -544,7 +540,6 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	int							iOffset;
 	ECPPCalledObject			eObject;
 	size						uiErrors;
-	size						uiTrial;
 	bool						bArrow;
 	bool						bVirtual;
 
@@ -704,11 +699,9 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		//The member template's instance, if it takes the arguments better than the function that converts them, as a
 		//function's is chosen (Resolve).  [over.match.best] 1
-		uiTrial = mpcDiagnostics->GetErrors()->NumErrors();
-		mpcDiagnostics->BeginTrial();
+		mpcDiagnostics->BeginSilentTrial();
 		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
-		mpcDiagnostics->EndTrial();
-		mpcDiagnostics->GetErrors()->Truncate(uiTrial);
+		mpcDiagnostics->EndSilentTrial();
 		if (pcInstance && mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments))
 		{
 			pcFunction = pcInstance;
@@ -921,7 +914,6 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	CCPPFunction*	pcMember;
 	CCPPFunction*	pcFunction;
 	CArraySyntax	apcArguments;
-	size			uiErrors;
 	int				iBetter;
 
 	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
@@ -935,11 +927,9 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		}
 
 		//That none of its own fits is no error: one that is no class's may.
-		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-		mpcDiagnostics->BeginQuiet();
+		mpcDiagnostics->BeginSilent();
 		pcMember = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, &apcArguments, pcNode, CalledObject(pcBound->mpcLeft, false));
-		mpcDiagnostics->EndQuiet();
-		mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+		mpcDiagnostics->EndSilent();
 		apcArguments.ReInit();
 	}
 
@@ -1168,7 +1158,6 @@ CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65T
 	CCPPFunction*	pcFunction;
 	CCPPClass*		pcClass;
 	int64			lliName;
-	size			uiErrors;
 
 	*pbFailed = false;
 	lliName = mpcUnit->GetOperatorName(CT_new, mpcUnit->IsArrayNew(pcNew));
@@ -1184,11 +1173,9 @@ CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65T
 		return NULL;
 	}
 
-	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-	mpcDiagnostics->BeginTrial();
+	mpcDiagnostics->BeginSilentTrial();
 	pcFunction = mcOverloads.FindFunction(NULL, lliName, CPPFK_Function, papcArguments, false, pcNew, CPPCO_None);
-	mpcDiagnostics->EndTrial();
-	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndSilentTrial();
 	if (pcFunction && IsReservedPlacement(pcFunction))
 	{
 		//operator new(size_t, void*) is the library's, which returns the address, whoever declares it.
@@ -1637,16 +1624,13 @@ CCPPFunction* CCPPBinder::BindRangeFunction(int64 lliName, CCPPClass* pcClass, C
 {
 	CArraySyntax	apcArguments;
 	CCPPFunction*	pcFunction;
-	size			uiErrors;
 
 	apcArguments.Init();
 	if (pcClass)
 	{
-		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-		mpcDiagnostics->BeginQuiet();
+		mpcDiagnostics->BeginSilent();
 		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, &apcArguments, true, pcNode, CalledObject(pcRange, false));
-		mpcDiagnostics->EndQuiet();
-		mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+		mpcDiagnostics->EndSilent();
 	}
 	else
 	{

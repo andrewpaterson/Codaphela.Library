@@ -1822,19 +1822,16 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 bool CCPPUnit::ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedArgument* psArgument, int64 lliValue, CCPPTemplateArguments* pcBindings)
 {
 	SCPP65Type*	psType;
-	size		uiErrors;
 
 	if (psArgument->bExpanded)
 	{
 		return true;
 	}
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 	mcContext.EnterBindings(pcBindings);
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-	mcDiagnostics.EndQuiet();
+	mcDiagnostics.EndSilent();
 	mcContext.LeaveBindings();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
 	if (!psType || ConstantFits(psType, lliValue))
 	{
 		return true;
@@ -2741,15 +2738,13 @@ CCPPFunction* CCPPUnit::InstantiateFunctionFor(CCPPTemplate* pcTemplate, SCPP65T
 	CArrayCPP65Types		apsArguments;
 	CCPPDeduction			cDeduction;
 	CChars					szArguments;
-	size					uiErrors;
 	size					i;
 
 	if (!psFunction->IsFunction() || (pcTemplate->mpcClass && !DefineMemberTemplate(pcTemplate, pcNode)))
 	{
 		return NULL;
 	}
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	apsArguments.Init();
 	for (i = 0; psFunction->papsParameters && (i < psFunction->papsParameters->NumElements()); i++)
 	{
@@ -2763,8 +2758,7 @@ CCPPFunction* CCPPUnit::InstantiateFunctionFor(CCPPTemplate* pcTemplate, SCPP65T
 	cDeduction.Kill();
 	pcFunction = pcBindings ? InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
 	szArguments.Kill();
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	if (pcFunction && !psFunction->Equals(FunctionType(pcFunction)))
 	{
 		return NULL;

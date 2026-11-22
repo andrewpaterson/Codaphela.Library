@@ -3386,14 +3386,11 @@ const char* CCPP65TypeChecker::NotAPlace(CCPPSyntaxName* pcName)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::CanInitialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser)
 {
-	size	uiErrors;
 	bool	bResult;
 
-	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-	mpcDiagnostics->BeginTrial();
+	mpcDiagnostics->BeginSilentTrial();
 	bResult = Construct(psType->Unqualified(), NULL, pcInitialiser, pcInitialiser);
-	mpcDiagnostics->EndTrial();
-	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndSilentTrial();
 	return bResult;
 }
 

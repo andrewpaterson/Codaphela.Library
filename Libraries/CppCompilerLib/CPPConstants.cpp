@@ -1000,13 +1000,10 @@ bool CCPPConstants::CheckBody(CCPPSyntax* pcNode)
 bool CCPPConstants::NeedsInitialiser(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntax* pcNode)
 {
 	SCPP65Type*	psType;
-	size		uiErrors;
 
-	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-	mpcDiagnostics->BeginQuiet();
+	mpcDiagnostics->BeginSilent();
 	psType = mpcUnit->GetDeclarators()->GetType(pcSpecifiers, pcDeclarator, pcNode);
-	mpcDiagnostics->EndQuiet();
-	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndSilent();
 	while (psType && psType->IsArray())
 	{
 		psType = psType->psBase;

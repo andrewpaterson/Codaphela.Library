@@ -37,6 +37,7 @@ void CCPPDiagnostics::Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, C
 	mpcContext = pcContext;
 	mcErrors.Init();
 	mcWarnings.Init();
+	mauiSilent.Init();
 	SetStatistics(pcStatistics);
 }
 
@@ -47,6 +48,7 @@ void CCPPDiagnostics::Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, C
 //////////////////////////////////////////////////////////////////////////
 void CCPPDiagnostics::Kill(void)
 {
+	mauiSilent.Kill();
 	mcWarnings.Kill();
 	mcErrors.Kill();
 }
@@ -352,6 +354,70 @@ void CCPPDiagnostics::BeginLoud(void)
 void CCPPDiagnostics::EndLoud(void)
 {
 	mpcContext->EndLoud();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Quiet code of which nothing is kept: what it does is judged by what it
+// returns, and whatever it says, loudly too, goes when it ends.  For asking
+// whether something can be done, by trying it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDiagnostics::BeginSilent(void)
+{
+	size	uiErrors;
+
+	uiErrors = mcErrors.NumErrors();
+	mauiSilent.Add(&uiErrors);
+	BeginQuiet();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// As EndQuiet: false if an error happened in it.  Its errors are taken
+// away.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::EndSilent(void)
+{
+	bool	bPassed;
+
+	bPassed = EndQuiet();
+	mcErrors.Truncate(*mauiSilent.Tail());
+	mauiSilent.RemoveTail();
+	return bPassed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A trial of which nothing is kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPDiagnostics::BeginSilentTrial(void)
+{
+	size	uiErrors;
+
+	uiErrors = mcErrors.NumErrors();
+	mauiSilent.Add(&uiErrors);
+	BeginTrial();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::EndSilentTrial(void)
+{
+	bool	bPassed;
+
+	bPassed = EndTrial();
+	mcErrors.Truncate(*mauiSilent.Tail());
+	mauiSilent.RemoveTail();
+	return bPassed;
 }
 
 

@@ -502,18 +502,15 @@ CCPPFunction* CCPPOverloads::MemberInstance(CCPPClass* pcClass, int64 lliName, C
 {
 	CCPPTemplate*	pcTemplate;
 	CCPPFunction*	pcInstance;
-	size			uiErrors;
 
 	pcTemplate = FindMemberTemplate(pcClass, lliName, papcArguments ? papcArguments->NumElements() : 0, eObject);
 	if (!pcTemplate)
 	{
 		return NULL;
 	}
-	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-	mpcDiagnostics->BeginQuiet();
+	mpcDiagnostics->BeginSilent();
 	pcInstance = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
-	mpcDiagnostics->EndQuiet();
-	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndSilent();
 	return pcInstance;
 }
 
@@ -655,7 +652,6 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 	CCPPSyntaxName*					pcName;
 	CCPPScope*						pcLookup;
 	CCPPOverloadScopes				apcNamespaces;
-	size							uiErrors;
 	size							i;
 	bool							bDeclared;
 
@@ -669,9 +665,8 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 		}
 	}
 
-	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = NULL;
-	mpcDiagnostics->BeginQuiet();
+	mpcDiagnostics->BeginSilent();
 	apcNamespaces.Init();
 	pcLookup = CurrentLookupScope();
 	if (pcLookup)
@@ -707,8 +702,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 		}
 	}
 	apcNamespaces.Kill();
-	mpcDiagnostics->EndQuiet();
-	mpcDiagnostics->GetErrors()->Truncate(uiErrors);
+	mpcDiagnostics->EndSilent();
 	return pcFunction;
 }
 

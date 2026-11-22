@@ -34,8 +34,9 @@ struct SPreprocessedToken;
 //What a unit's compiling says: its errors, its warnings, and when it says nothing.  An error is at a node or a token
 //of the unit, as "File (line, column): message [token]" with where the macro that made the token was used.  In quiet
 //code (CCPPContext) an error is only noted: what is done there is judged by what it returns.  A trial is quiet code
-//whose failing is its own, and a loud part is said whatever is quiet around it.  A warning is said once for a token
-//and doesn't fail the unit.
+//whose failing is its own, and a loud part is said whatever is quiet around it.  A silent part is quiet code, or a
+//trial, of which nothing is kept, what was said loudly in it too: the errors made in it are its own, and go when it
+//ends.  A warning is said once for a token and doesn't fail the unit.
 class CCPPDiagnostics
 {
 protected:
@@ -44,6 +45,7 @@ protected:
 	CCPPCompileStatistics*	mpcStatistics;	//Where quiet trials are counted (SetStatistics).
 	CCPPErrors				mcErrors;
 	CCPPErrors				mcWarnings;		//Each at most once (by token); they don't fail the unit.
+	CArrayTemplate<size>	mauiSilent;		//How many errors there were when each silent part began, the last begun last.
 
 public:
 	void		Init(CCPPTokeniser* pcTokeniser, CCPPContext* pcContext, CCPPCompileStatistics* pcStatistics);
@@ -64,6 +66,10 @@ public:
 	bool		EndTrial(void);
 	void		BeginLoud(void);
 	void		EndLoud(void);
+	void		BeginSilent(void);
+	bool		EndSilent(void);
+	void		BeginSilentTrial(void);
+	bool		EndSilentTrial(void);
 
 	CCPPErrors*	GetErrors(void);
 	CCPPErrors*	GetWarnings(void);

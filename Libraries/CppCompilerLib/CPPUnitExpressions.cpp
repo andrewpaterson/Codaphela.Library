@@ -365,7 +365,6 @@ bool CCPPUnit::CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit)
 	CArraySyntax*						papcElements;
 	CCPPExceptionSpec					cPointer;
 	SCPP65Type*							psType;
-	size								uiErrors;
 	bool								bAllowed;
 
 	pcSpecification = WrittenSpecification(PointedFunctionSuffix(pcInit->mpcDeclarator));
@@ -387,12 +386,10 @@ bool CCPPUnit::CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit)
 
 	cPointer.Init();
 	WrittenExceptions(pcSpecification, &cPointer);
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	bAllowed = !psType || ValueAllowsOnly(pcValue, psType, &cPointer);
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	cPointer.Kill();
 	if (!bAllowed)
 	{
@@ -412,20 +409,17 @@ bool CCPPUnit::CheckAssignedExceptions(CCPPSyntaxBinaryExpression* pcAssignment)
 {
 	CCPPExceptionSpec	cPointer;
 	SCPP65Type*			psType;
-	size				uiErrors;
 	bool				bAllowed;
 
 	cPointer.Init();
 	bAllowed = true;
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	if (PointerExceptions(pcAssignment->mpcLeft, &cPointer) && !cPointer.IsAnything())
 	{
 		psType = TypeOf(pcAssignment->mpcLeft);
 		bAllowed = !psType || ValueAllowsOnly(pcAssignment->mpcRight, psType, &cPointer);
 	}
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	cPointer.Kill();
 	if (!bAllowed)
 	{
@@ -689,12 +683,10 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 	CCPPBoundCall					cBound;
 	CCPPThrowFinder					cFinder;
 	SCPP65Type*						psType;
-	size							uiErrors;
 	bool							bThrows;
 
 	bThrows = false;
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_ThrowExpression:
@@ -704,7 +696,7 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 	case CPPS_TypeTraitExpression:
 	case CPPS_NoexceptExpression:
 	case CPPS_LambdaExpression:
-		mcDiagnostics.EndQuiet();
+		mcDiagnostics.EndSilent();
 		return false;
 	case CPPS_CallExpression:
 		bThrows = CallMayThrow((CCPPSyntaxCallExpression*)pcExpression);
@@ -745,8 +737,7 @@ bool CCPPUnit::MayThrow(CCPPSyntax* pcExpression)
 	default:
 		break;
 	}
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	if (bThrows)
 	{
 		return true;
@@ -1531,17 +1522,14 @@ CCPPSymbol* CCPPUnit::DecltypeEnumerator(CCPPSyntaxName* pcName)
 	SCPP65Type*	psType;
 	CCPPSymbol*	pcEnum;
 	CCPPSymbol*	pcSymbol;
-	size		uiErrors;
 
 	if (!pcName->IsQualifiedByDecltype() || (pcName->macpComponents.NumElements() != 2))
 	{
 		return NULL;
 	}
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	psType = mcDeclarators.GetTypeIdType(((CCPPSyntaxNameComponent*)pcName->macpComponents.GetPtr(0))->mpcType);
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	pcEnum = psType ? psType->WithoutReference()->pcEnum : NULL;
 	if (!pcEnum)
 	{
@@ -1569,7 +1557,6 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 {
 	SCPP65Type*	psType;
 	CCPPSyntax*	pcMember;
-	size		uiErrors;
 
 	if (!pcType)
 	{
@@ -1580,11 +1567,9 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 	{
 		return mcDeclarators.GetTypeIdType(pcType);
 	}
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	psType = mcDeclarators.GetTypeIdType(pcType);
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	return psType ? psType : UnevaluatedTypeOf(pcMember);
 }
 
@@ -1727,7 +1712,6 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 	CCPPSyntaxNameComponent*	pcQualifier;
 	CCPPClass*				pcClass;
 	CCPPSymbol*					pcSymbol;
-	size						uiErrors;
 	bool						bAmbiguous;
 
 	if (pcName->macpComponents.NumElements() < 2)
@@ -1757,13 +1741,11 @@ CCPPSymbol* CCPPUnit::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKi
 		return NULL;
 	}
 
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	pcClass = (pcQualifier->mpcSymbol && (pcName->macpComponents.NumElements() == 2)) ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
 	pcSymbol = (pcClass && CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	bAmbiguous = pcSymbol && (pcClass->macBases.NumElements() > 1) && IsAmbiguousInBases(pcClass, GetComponentName(pcName->GetLast()));
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	if (bAmbiguous)
 	{
 		//C::T, where two of C's bases each have a T.  [class.member.lookup] 6
@@ -2939,14 +2921,11 @@ SCPP65Type* CCPPUnit::ConstantTypeOf(CCPPSyntax* pcExpression)
 bool CCPPUnit::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue)
 {
 	CCPPBoundCall	cBound;
-	size			uiErrors;
 	bool			bBound;
 
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	bBound = mcBinder.Bind(pcCall, &cBound, false);
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	return bBound && ConstexprResult(cBound.mpcFunction, pcCall, plliValue);
 }
 

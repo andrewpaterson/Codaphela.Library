@@ -1578,18 +1578,15 @@ bool CCPPUnit::IsUncapturedConstant(CCPPSyntax* pcExpression)
 bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	CCPPBoundCall	cBound;
-	size			uiErrors;
 	bool			bOverloaded;
 
 	if (!IsObject(pcBinary->mpcLeft) && !IsObject(pcBinary->mpcRight))
 	{
 		return false;
 	}
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	bOverloaded = mcBinder.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	return bOverloaded;
 }
 

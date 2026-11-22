@@ -534,7 +534,6 @@ CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 {
 	CCPPSymbol*	pcSymbol;
 	CCPPClass*	pcClass;
-	size		uiErrors;
 
 	//P<char>::Q<long>: P<char>'s member class template's instance.
 	pcSymbol = pcName->mpcSymbol;
@@ -545,11 +544,9 @@ CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance())
 	{
 		//P<char>::Inner: that instance's member class.  [temp.mem.class]
-		uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-		mcDiagnostics.BeginQuiet();
+		mcDiagnostics.BeginSilent();
 		pcClass = QualifiedClass(pcName, pcNode);
-		mcDiagnostics.EndQuiet();
-		mcDiagnostics.GetErrors()->Truncate(uiErrors);
+		mcDiagnostics.EndSilent();
 		if (pcClass)
 		{
 			return pcClass;
@@ -1192,7 +1189,6 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 	int64			lliName;
 	CCPPSymbol*		pcSymbol;
 	CCPPClass*		pcDeclaring;
-	size			uiErrors;
 	bool			bReached;
 
 	pcName = pcUsing->mpcName;
@@ -1226,11 +1222,9 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 	}
 	if (pcSymbol)
 	{
-		uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-		mcDiagnostics.BeginQuiet();
+		mcDiagnostics.BeginSilent();
 		bReached = mcBinder.UsingReaches(pcSymbol, pcUsing);
-		mcDiagnostics.EndQuiet();
-		mcDiagnostics.GetErrors()->Truncate(uiErrors);
+		mcDiagnostics.EndSilent();
 		if (!bReached)
 		{
 			ClassError(pcUsing->miFirstToken, "The using-declaration names a base's private member, which the class can't reach");
@@ -1591,7 +1585,6 @@ bool CCPPUnit::InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers*
 {
 	CCPPSyntaxName*	pcName;
 	CCPPClass*		pcNamed;
-	size			uiErrors;
 	bool			bReached;
 
 	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier))
@@ -1612,11 +1605,9 @@ bool CCPPUnit::InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers*
 	{
 		return true;
 	}
-	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-	mcDiagnostics.BeginQuiet();
+	mcDiagnostics.BeginSilent();
 	bReached = mcBinder.ReachesBase(pcClass, pcNamed, pcNode);
-	mcDiagnostics.EndQuiet();
-	mcDiagnostics.GetErrors()->Truncate(uiErrors);
+	mcDiagnostics.EndSilent();
 	return bReached || ClassError(pcNode->miFirstToken, "The class's name here is its injected name, found through a base that can't be reached from here: write ::Name");
 }
 
