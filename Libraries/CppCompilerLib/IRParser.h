@@ -20,20 +20,21 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __I_R_PARSER_H__
 #define __I_R_PARSER_H__
+#include "BaseLib/TextParser.h"
 #include "CPPErrors.h"
 #include "IRModule.h"
 
 
 //Reads IR text (IR.txt Text form) into a module.  Parsing stops at the first error.  Types and dominance are not
 //checked here: run CIRVerifier on the result.  Numbered temporaries and blocks (%3, 7:) become unnamed ones.
+//The text is read with a CTextParser given the IR's white space (; comments), names and keywords.
 class CIRParser
 {
 protected:
 	CIRModule*				mpcModule;
 	CCPPErrors*				mpcErrors;
 	const char*				mszFile;
-	const char*				mszText;
-	size					muiPosition;
+	CTextParser				mcParser;
 	bool					mbError;
 	CChars					mszName;				//The name just read.
 	CChars					mszNumber;				//The number just read.
@@ -56,14 +57,15 @@ public:
 	bool	Parse(const char* szText);
 
 protected:
+	bool	ParseText(void);
 	bool	Error(const char* szMessage);
 	bool	ErrorAt(size uiPosition, const char* szMessage);
-	void	SkipSpace(void);
-	bool	AtEnd(void);
+	size	Offset(void);
+	void	GoTo(size uiOffset);
+	char	At(int iAhead);
 	char	Peek(void);
 	bool	GetChar(char c);
 	bool	ExpectChar(char c);
-	bool	IsNameCharacter(char c);
 	bool	GetName(void);
 	bool	ExpectName(const char* szError);
 	bool	GetKeyword(const char* szKeyword);

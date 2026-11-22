@@ -20,10 +20,107 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include "BaseLib/StringHelper.h"
+#include "BaseLib/Newline.h"
+#include "BaseLib/CPPString.h"
 #include "IRParser.h"
 
 
 #define IR_MAX_NUMBERED		(1 << 20)		//Numbered temporaries and blocks above this are not accepted.
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The characters of a name: letters, digits, _, . and $ (a number is a
+// name).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IRIsNameCharacter(char c)
+{
+	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_') || (c == '.') || (c == '$');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IR text's white space, for the text parser: spaces, tabs, new lines and
+// ; comments.
+//
+//////////////////////////////////////////////////////////////////////////
+static void IRSkipWhitespace(CTextParser* pcParser)
+{
+	char	c;
+
+	while (!pcParser->IsOutside())
+	{
+		c = pcParser->Current();
+		if (c == ';')
+		{
+			while (!pcParser->IsOutside() && (pcParser->Current() != '\n'))
+			{
+				pcParser->StepRight();
+			}
+		}
+		else if ((c == ' ') || (c == '\t') || (c == '\n'))
+		{
+			pcParser->StepRight();
+		}
+		else
+		{
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A name, for the text parser (its length is all CIRParser asks for: it
+// takes the name from the text).
+//
+//////////////////////////////////////////////////////////////////////////
+static TRISTATE IRParseIdentifier(CTextParser* pcParser, char* szIdentifier, size* piLength)
+{
+	size	uiLength;
+
+	uiLength = 0;
+	while (!pcParser->IsOutside() && IRIsNameCharacter(pcParser->Current()))
+	{
+		if (szIdentifier)
+		{
+			szIdentifier[uiLength] = pcParser->Current();
+		}
+		uiLength++;
+		pcParser->StepRight();
+	}
+	if (szIdentifier)
+	{
+		szIdentifier[uiLength] = '\0';
+	}
+	SafeAssign(piLength, uiLength);
+	return (uiLength > 0) ? TRITRUE : TRIFALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A keyword, for the text parser: szIdentifier with no character of a name
+// after it.
+//
+//////////////////////////////////////////////////////////////////////////
+static TRISTATE IRParseExactIdentifier(CTextParser* pcParser, const char* szIdentifier)
+{
+	size	ui;
+
+	for (ui = 0; szIdentifier[ui]; ui++)
+	{
+		if (pcParser->IsOutside() || (pcParser->Current() != szIdentifier[ui]))
+		{
+			return TRIFALSE;
+		}
+		pcParser->StepRight();
+	}
+	return (!pcParser->IsOutside() && IRIsNameCharacter(pcParser->Current())) ? TRIFALSE : TRITRUE;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,8 +133,6 @@ void CIRParser::Init(CIRModule* pcModule, CCPPErrors* pcErrors, const char* szFi
 	mpcModule = pcModule;
 	mpcErrors = pcErrors;
 	mszFile = szFile;
-	mszText = NULL;
-	muiPosition = 0;
 	mbError = false;
 	mszName.Init();
 	mszNumber.Init();
@@ -81,37 +176,65 @@ void CIRParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::Parse(const char* szText)
 {
-	size	uiStart;
-	size	ui;
-	bool	bResult;
+	STextParserConfig	sConfig;
+	CChars				szPassive;
+	bool				bResult;
 
-	mszText = szText;
-	muiPosition = 0;
+	//The text parser takes no carriage returns: they are white space, and go.
+	szPassive.Init();
+	if (CountCarriageReturns(szText, (lsize)strlen(szText)) != 0)
+	{
+		szPassive.Append(szText);
+		szPassive.PassifyNewlines();
+		szText = szPassive.Text();
+	}
+	sConfig.Init(IRSkipWhitespace, ParseCPPString, IRParseExactIdentifier, IRParseIdentifier);
+	mcParser.Init(szText, &sConfig);
 	mbError = false;
+	bResult = ParseText();
+	mcParser.Kill();
+	szPassive.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text's spaces, globals, functions and symbols' attributes, each
+// begun by its keyword.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRParser::ParseText(void)
+{
+	static const char* const	aszKeywords[] = { "space", "global", "function" };
+	size						uiStart;
+	size						ui;
+	bool						bResult;
 
 	for (;;)
 	{
-		SkipSpace();
-		if (AtEnd())
+		mcParser.SkipWhitespace();
+		if (mcParser.IsOutside())
 		{
 			return true;
 		}
 
-		uiStart = muiPosition;
-		if (GetKeyword("space"))
+		uiStart = Offset();
+		for (ui = 0; (ui < 3) && !GetKeyword(aszKeywords[ui]); ui++)
 		{
+		}
+		switch (ui)
+		{
+		case 0:
 			bResult = ParseSpace();
-		}
-		else if (GetKeyword("global"))
-		{
+			break;
+		case 1:
 			bResult = ParseGlobal();
-		}
-		else if (GetKeyword("function"))
-		{
+			break;
+		case 2:
 			bResult = ParseFunction();
-		}
-		else
-		{
+			break;
+		default:
 			for (ui = 0; (ui < IRSA_NumWritten) && !GetKeyword(gasIRSymbolAttributeNames[ui].szName); ui++)
 			{
 			}
@@ -123,6 +246,7 @@ bool CIRParser::Parse(const char* szText)
 			{
 				bResult = ErrorAt(uiStart, "Expected space, global, function, restrict, regcall, nowrites or nothrow.");
 			}
+			break;
 		}
 		if (!bResult)
 		{
@@ -140,9 +264,7 @@ bool CIRParser::Parse(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::Error(const char* szMessage)
 {
-	size	ui;
-	int		iLine;
-	int		iColumn;
+	int		i;
 	CChars	szDetail;
 
 	if (mbError)
@@ -151,39 +273,24 @@ bool CIRParser::Error(const char* szMessage)
 	}
 	mbError = true;
 
-	iLine = 0;
-	iColumn = 0;
-	for (ui = 0; ui < muiPosition; ui++)
-	{
-		if (mszText[ui] == '\n')
-		{
-			iLine++;
-			iColumn = 0;
-		}
-		else
-		{
-			iColumn++;
-		}
-	}
-
 	szDetail.Init();
-	ui = muiPosition;
-	if ((mszText[ui] == '%') || (mszText[ui] == '@') || IsNameCharacter(mszText[ui]))
+	i = 0;
+	if ((At(0) == '%') || (At(0) == '@') || IRIsNameCharacter(At(0)))
 	{
 		do
 		{
-			szDetail.Append(mszText[ui]);
-			ui++;
-		} while (IsNameCharacter(mszText[ui]) && (ui < muiPosition + 32));
+			szDetail.Append(At(i));
+			i++;
+		} while (IRIsNameCharacter(At(i)) && (i < 32));
 	}
 	else
 	{
-		for (; mszText[ui] && (mszText[ui] != '\n') && (mszText[ui] != ' ') && (mszText[ui] != '\t') && (ui < muiPosition + 32); ui++)
+		for (; At(i) && (At(i) != '\n') && (At(i) != ' ') && (At(i) != '\t') && (i < 32); i++)
 		{
-			szDetail.Append(mszText[ui]);
+			szDetail.Append(At(i));
 		}
 	}
-	mpcErrors->Add(mszFile, iLine, iColumn, -1, szMessage, szDetail.Empty() ? NULL : szDetail.Text());
+	mpcErrors->Add(mszFile, (int)mcParser.miLine, (int)mcParser.miColumn, -1, szMessage, szDetail.Empty() ? NULL : szDetail.Text());
 	szDetail.Kill();
 	return false;
 }
@@ -195,50 +302,55 @@ bool CIRParser::Error(const char* szMessage)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::ErrorAt(size uiPosition, const char* szMessage)
 {
-	muiPosition = uiPosition;
-	SkipSpace();
+	GoTo(uiPosition);
+	mcParser.SkipWhitespace();
 	return Error(szMessage);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Spaces, new lines and ; comments.
+// Where the text is at, in characters from its start: what an error that
+// is only found later is reported at (ErrorAt).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRParser::SkipSpace(void)
+size CIRParser::Offset(void)
 {
-	char	c;
+	return (size)mcParser.UsedLength();
+}
 
-	for (;;)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Back (or on) to where the text was at before, a step at a time, so the
+// text parser's line and column stay right: it is never far.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRParser::GoTo(size uiOffset)
+{
+	while (Offset() > uiOffset)
 	{
-		c = mszText[muiPosition];
-		if ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r'))
-		{
-			muiPosition++;
-		}
-		else if (c == ';')
-		{
-			while (mszText[muiPosition] && (mszText[muiPosition] != '\n'))
-			{
-				muiPosition++;
-			}
-		}
-		else
-		{
-			return;
-		}
+		mcParser.StepLeft();
+	}
+	while ((Offset() < uiOffset) && !mcParser.IsOutside())
+	{
+		mcParser.StepRight();
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The character iAhead on from where the text is at (or back, when it is
+// negative); 0 past either end.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRParser::AtEnd(void)
+char CIRParser::At(int iAhead)
 {
-	return mszText[muiPosition] == '\0';
+	const char*	sz;
+
+	sz = mcParser.Position(iAhead);
+	return ((sz < mcParser.mszStartOfText) || (sz > mcParser.mszEndOfText)) ? '\0' : *sz;
 }
 
 
@@ -248,8 +360,8 @@ bool CIRParser::AtEnd(void)
 //////////////////////////////////////////////////////////////////////////
 char CIRParser::Peek(void)
 {
-	SkipSpace();
-	return mszText[muiPosition];
+	mcParser.SkipWhitespace();
+	return At(0);
 }
 
 
@@ -259,12 +371,8 @@ char CIRParser::Peek(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::GetChar(char c)
 {
-	if (Peek() == c)
-	{
-		muiPosition++;
-		return true;
-	}
-	return false;
+	mcParser.SkipWhitespace();
+	return mcParser.GetExactCharacter(c, false) == TRITRUE;
 }
 
 
@@ -291,35 +399,22 @@ bool CIRParser::ExpectChar(char c)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIRParser::IsNameCharacter(char c)
-{
-	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_') || (c == '.') || (c == '$');
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Letters, digits, _, . and $ into mszName.
+// The name the text is at into mszName.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::GetName(void)
 {
-	size	uiStart;
+	const char*	szStart;
+	size		uiLength;
 
-	SkipSpace();
-	uiStart = muiPosition;
-	while (IsNameCharacter(mszText[muiPosition]))
-	{
-		muiPosition++;
-	}
+	mcParser.SkipWhitespace();
+	szStart = mcParser.Position();
 	mszName.Clear();
-	if (muiPosition == uiStart)
+	if (mcParser.GetIdentifier(NULL, &uiLength, false) != TRITRUE)
 	{
 		return false;
 	}
-	mszName.AppendSubString(&mszText[uiStart], &mszText[muiPosition]);
+	mszName.AppendSubString(szStart, &szStart[uiLength]);
 	return true;
 }
 
@@ -341,22 +436,8 @@ bool CIRParser::ExpectName(const char* szError)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::GetKeyword(const char* szKeyword)
 {
-	size	uiLength;
-
-	SkipSpace();
-	for (uiLength = 0; szKeyword[uiLength]; uiLength++)
-	{
-		if (mszText[muiPosition + uiLength] != szKeyword[uiLength])
-		{
-			return false;
-		}
-	}
-	if (IsNameCharacter(mszText[muiPosition + uiLength]))
-	{
-		return false;
-	}
-	muiPosition += uiLength;
-	return true;
+	mcParser.SkipWhitespace();
+	return mcParser.GetExactIdentifier(szKeyword, false) == TRITRUE;
 }
 
 
@@ -388,32 +469,34 @@ bool CIRParser::GetEllipsis(bool* pbFound)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::GetNumber(void)
 {
-	size	uiStart;
-	char	c;
-	bool	bHex;
+	const char*	szStart;
+	char		c;
+	bool		bHex;
 
-	SkipSpace();
-	uiStart = muiPosition;
-	if (mszText[muiPosition] == '-')
+	mcParser.SkipWhitespace();
+	szStart = mcParser.Position();
+	mcParser.PushPosition();
+	if (At(0) == '-')
 	{
-		muiPosition++;
+		mcParser.StepRight();
 	}
-	if ((mszText[muiPosition] < '0') || (mszText[muiPosition] > '9'))
+	if ((At(0) < '0') || (At(0) > '9'))
 	{
-		muiPosition = uiStart;
+		mcParser.PopPosition();
 		return false;
 	}
-	bHex = (mszText[muiPosition] == '0') && (ToLower(mszText[muiPosition + 1]) == 'x');
+	mcParser.PassPosition();
+	bHex = (At(0) == '0') && (ToLower(At(1)) == 'x');
 	for (;;)
 	{
-		c = mszText[muiPosition];
-		if (IsNameCharacter(c))
+		c = At(0);
+		if (IRIsNameCharacter(c))
 		{
-			muiPosition++;
+			mcParser.StepRight();
 		}
-		else if (!bHex && ((c == '+') || (c == '-')) && (ToLower(mszText[muiPosition - 1]) == 'e'))
+		else if (!bHex && ((c == '+') || (c == '-')) && (ToLower(At(-1)) == 'e'))
 		{
-			muiPosition++;
+			mcParser.StepRight();
 		}
 		else
 		{
@@ -421,7 +504,7 @@ bool CIRParser::GetNumber(void)
 		}
 	}
 	mszNumber.Clear();
-	mszNumber.AppendSubString(&mszText[uiStart], &mszText[muiPosition]);
+	mszNumber.AppendSubString(szStart, mcParser.Position());
 	return true;
 }
 
@@ -534,26 +617,27 @@ bool CIRParser::GetString(CArrayTemplate<uint8>* pacBytes)
 	}
 	for (;;)
 	{
-		c = mszText[muiPosition];
+		c = At(0);
 		if ((c == '\0') || (c == '\n'))
 		{
 			return Error("Unterminated string.");
 		}
-		muiPosition++;
+		mcParser.StepRight();
 		if (c == '"')
 		{
 			return true;
 		}
 		if (c == '\\')
 		{
-			uiHigh = GetCharHex(ToLower(mszText[muiPosition]));
-			uiLow = (uiHigh < 16) ? GetCharHex(ToLower(mszText[muiPosition + 1])) : 16;
+			uiHigh = GetCharHex(ToLower(At(0)));
+			uiLow = (uiHigh < 16) ? GetCharHex(ToLower(At(1))) : 16;
 			if ((uiHigh >= 16) || (uiLow >= 16))
 			{
-				muiPosition--;
+				mcParser.StepLeft();
 				return Error("Expected two hexadecimal digits after \\.");
 			}
-			muiPosition += 2;
+			mcParser.StepRight();
+			mcParser.StepRight();
 			uc = (uint8)((uiHigh << 4) | uiLow);
 		}
 		else
@@ -617,8 +701,8 @@ bool CIRParser::ParseType(SIRType* psType, bool bAllowVoid)
 {
 	size	uiStart;
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (GetName() && MatchType(mszName.Text(), psType, bAllowVoid))
 	{
 		return true;
@@ -676,8 +760,8 @@ bool CIRParser::ParseNewSymbol(uint32* puiSymbol)
 {
 	size	uiStart;
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
 	{
 		return false;
@@ -701,8 +785,8 @@ bool CIRParser::ParseSpace(void)
 	uint64	ulliBytes;
 	size	uiStart;
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (!ExpectName("Expected the space's name."))
 	{
 		return false;
@@ -729,7 +813,7 @@ bool CIRParser::ParseSpace(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIRParser::ParseSymbolAttribute(uint8 uiAttribute)
 {
-	SkipSpace();
+	mcParser.SkipWhitespace();
 	if (!ExpectChar('@') || !ExpectName("Expected a symbol's name."))
 	{
 		return false;
@@ -898,8 +982,8 @@ bool CIRParser::ParseFunction(void)
 				return false;
 			}
 			bRestrict = GetKeyword("restrict");
-			SkipSpace();
-			muiResultPosition = muiPosition;
+			mcParser.SkipWhitespace();
+			muiResultPosition = Offset();
 			if (!ExpectChar('%') || !ExpectName("Expected a parameter."))
 			{
 				return false;
@@ -953,13 +1037,13 @@ bool CIRParser::ParseBody(void)
 		{
 			return true;
 		}
-		if (AtEnd())
+		if (mcParser.IsOutside())
 		{
 			return Error("Expected '}'.");
 		}
 
-		SkipSpace();
-		uiStart = muiPosition;
+		mcParser.SkipWhitespace();
+		uiStart = Offset();
 		if ((Peek() != '%') && GetName() && GetChar(':'))
 		{
 			pcBlock = Block(mszName.Text(), uiStart);
@@ -972,7 +1056,7 @@ bool CIRParser::ParseBody(void)
 			mpcBlock = pcBlock;
 			continue;
 		}
-		muiPosition = uiStart;
+		GoTo(uiStart);
 
 		if (mpcBlock == NULL)
 		{
@@ -1005,7 +1089,7 @@ bool CIRParser::ParseStatement(void)
 	bResult = false;
 	if (Peek() == '%')
 	{
-		muiResultPosition = muiPosition;
+		muiResultPosition = Offset();
 		GetChar('%');
 		if (!ExpectName("Expected a temporary's name.") || !ExpectChar('='))
 		{
@@ -1016,8 +1100,8 @@ bool CIRParser::ParseStatement(void)
 		bResult = true;
 	}
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (!GetName())
 	{
 		return Error("Expected an instruction.");
@@ -1035,7 +1119,7 @@ bool CIRParser::ParseStatement(void)
 		{
 			return ErrorAt(uiStart, "Expected an opcode with a result.");
 		}
-		muiPosition = uiStart;
+		GoTo(uiStart);
 		return ParseJump();
 	}
 	if (psOpcode->uiShape == IRSH_Call)
@@ -1065,11 +1149,11 @@ bool CIRParser::ParsePointerOperand(SIRReference* psReference)
 	SIRType	sType;
 	size	uiStart;
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (!GetName() || !MatchType(mszName.Text(), &sType, false) || !sType.IsPointer())
 	{
-		muiPosition = uiStart;
+		GoTo(uiStart);
 		sType = IRType(IRTK_Pointer);
 	}
 	return ParseValue(sType, psReference);
@@ -1314,8 +1398,8 @@ bool CIRParser::ParseJump(void)
 	}
 	if (GetKeyword("ret"))
 	{
-		SkipSpace();
-		uiStart = muiPosition;
+		mcParser.SkipWhitespace();
+		uiStart = Offset();
 		if (GetName() && MatchType(mszName.Text(), &sType, false))
 		{
 			if (!ParseValue(sType, &sValue))
@@ -1326,7 +1410,7 @@ bool CIRParser::ParseJump(void)
 		}
 		else
 		{
-			muiPosition = uiStart;
+			GoTo(uiStart);
 			mpcBlock->Return();
 		}
 		return true;
@@ -1355,8 +1439,8 @@ bool CIRParser::ParseValue(SIRType sType, SIRReference* psReference)
 	uint64	ulliBits;
 	size	uiStart;
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (GetChar('%'))
 	{
 		if (!ExpectName("Expected a temporary's name."))
@@ -1398,8 +1482,8 @@ bool CIRParser::ParseBlockName(CIRBlock** ppcBlock)
 {
 	size	uiStart;
 
-	SkipSpace();
-	uiStart = muiPosition;
+	mcParser.SkipWhitespace();
+	uiStart = Offset();
 	if (!ExpectName("Expected a block's name."))
 	{
 		return false;
