@@ -1,100 +1,198 @@
 W65C816 alignment plan
 ======================
 
-Written 2026-11-22.  The user: "Make every type's alignment 1 on the W65C816", then "We're aiming for speed so I'm
-happy to keep padding structs to two bytes but alignment can stay at 1 byte", then "Plan capping the padding at 2
-bytes and making the alignof 1".  This is the plan only: nothing is built until the user says so.
-
-It closes Cpp14CompliancePlan.txt B 7 (a local's int at an odd address on the W65C816, where alignof(int) is 2).
-The 65C64 is not changed.
+Written 2026-11-22 for the session that builds it.  Read all of it before starting: the user's rulings and the house
+rules come first, then the facts, then the steps in order.  Nothing here has been built.  Start only when the user
+says to: a plan agreed is not a go-ahead.
 
 
-What is decided
----------------
+1. What the user decided (2026-11-22)
+-------------------------------------
 
-1. On the W65C816, alignof of every type is 1: a char, an int, a long, a pointer, a double, a class, an array.
-   alignas still asks for more and gets it (a class's alignas, a variable's alignas, alignas(n)); alignof(T) of a
-   type with an alignas is what alignas asked.  alignas(type) gives alignof(type), so alignas(long) is 1 there.
-2. A class's members are placed as now, but at most at a multiple of 2: a member of 2 or more bytes (int, long,
-   pointer, float, double, a class with such a member) at an even offset, a char anywhere; a class with such a member
-   is a whole number of 2 bytes (trailing padding to 2).  Today they go to multiples of 4 and 8.  This is a default
-   #pragma pack(2) for the target: an explicit #pragma pack(1) still packs to 1, and alignas still asks for more.
-3. Globals and statics are placed as alignof says (1) but for alignas.  Locals already are (the frame's alignment is
-   1, CCPPTargetW65C816::GetFrameAlignment).
-4. Why padding is kept: a char followed by padding can later be stored with a 16 bit sta, without sep/rep (6 cycles).
-   That optimisation is not part of this plan (step 9 is only a measurement); the 816 has no cost for an odd
-   address, so alignof 1 costs nothing.
+In order, the user's own words:
+  - "Make every type's alignment 1 on the W65C816; chat about this.  The 816 doesn't care from the point of view that
+    there is no cost to access 1 byte aligned data but there is a cost to acces 1 byte of data if the 816's memory is
+    in 16 bit mode"
+  - "We're aiming for speed so I'm happy to keep padding structs to two bytes but alignment can stay at 1 byte."
+  - "Plan capping the padding at 2 bytes and making the alignof 1."
 
+So, on the W65C816 only (the 65C64 doesn't change at all):
+  a. alignof of every type is 1: char, int, long, long long, float, double, pointers, references, member pointers,
+     enums, arrays, classes.  alignas still asks for more and gets it: alignof of a class (or variable) with alignas
+     is what alignas asked.  alignas(type) is alignof(type), so alignas(long) is 1 there.
+  b. A class's members are padded to at most 2: a member of 2 or more bytes (or a class member containing one) goes
+     at an even offset; a char-sized one anywhere; a class with an even-aligned member is a whole number of 2 bytes.
+     Today 4 byte things go to multiples of 4 and 8 byte things to multiples of 8.  This is a default #pragma pack(2)
+     for the target.  #pragma pack(n) only ever lowers alignment, so a member goes at a multiple of the least of its
+     type's alignment, 2 and n: pack(1) still packs to 1, pack(4) and pack(8) change nothing.  A class's alignas
+     still raises its own alignment past the cap (as it does past #pragma pack today: "It is kept whatever #pragma
+     pack says, as MSVC does").
+  c. Globals and statics are placed by alignof (so byte aligned) unless alignas says more.  Locals already are: the
+     816's frame alignment is 1 (CCPPTargetW65C816::GetFrameAlignment).
 
-What it changes, and what may depend on it
-------------------------------------------
-
-Structs whose 816 layout changes are those with a member of 4 or 8 bytes after members that don't fill a multiple
-of 4 (or 8), and those whose size was padded to 4 or 8: their offsets and sizes shrink.  Looked at so far (2026-11-22):
-   - BaseLib's FAT classes: the FAT assembly (Fat*W65C816.asm) takes their offsets from FatW65C816.inc, which
-     TestBaseLib65 generates (TestFatW65C816Layout.cpp): regenerate it.  The frame constants (F_*) are the
-     assembly's own, not a class's.
-   - SKernalInterrupt (KernalInterrupts.asm reads it by offset, 16 bytes a slot): 4, 4, 4, 2, 2 bytes: unchanged.
-   - HCP65SFT.h's records (SSFTHeader, SSFTImage, SSFTContainer, SSFTPalette), written by host tools and read on the
-     816: unchanged (their uint32 is at 8 either way).
-   - BaseLib's SChunkFileHeader: unchanged.
-Not looked at yet: everything else.  Step 2 finds them all rather than guessing.
-
-
-Steps
------
-
-1. A count, not a change: a switch (TEST_CPP_LAYOUT_CHANGES, or a statistic) makes the W65C816 compiler lay each
-   class out both ways and list those whose offsets or size differ (class, file).  Run over every W65C816 compile:
-   TestBaseLib65, TestStandardLib65, TestSupportLib65, TestLibc65 and the 20 HCP65 projects.
-
-2. The survey, from that list: for each class that changes, whether anything outside the compiler assumes its
-   layout:
-   - hand-written assembly (the 29 .asm files: Kernal, Boot, Drivers, Libc65, UserLib, BaseLib's FAT) and any
-     .inc of offsets;
-   - data that leaves the 816 or comes in as bytes: files written with a struct's bytes and read by a host tool or
-     the emulator (or the other way), SD card structures, the executable format, debugger and IDE views that read
-     target memory by fixed offsets (HCP65-Emulator, HCP65Lib, HCP65-IDE);
-   - static_asserts and tests of sizes or offsets on the W65C816 (TestCPP816*, TestCPPW65C816*, the *65 tests).
-   The list goes to the user before step 3.
-
-3. The target says it: CCPPTarget gains what the layout and alignof ask (a member alignment limit, 0 for none and 2
-   on the W65C816; and whether alignof is 1).  CCPPClassLayout takes the limit as it takes #pragma pack
-   (PackAlignment), so a class's miAlign (used to place it as a member) is at most 2.  CCPPClassLayout::TypeAlignment
-   splits in two: the layout's (the type's own, capped) and the object's (1 on the W65C816 but for alignas, the
-   type's own on the 65C64).  Its users move to the right one:
-   - CCPPClassLayout (fields, bases, virtual bases, the class's own alignment and size): the layout's;
-   - alignof (CPPUnitExpressions), alignas(type) (AlignasAlignment), VariableAlignment (globals, statics, locals
-     with alignas): the object's.
-   The semantic pass checks with the W65C816 target too, so the IDE says the same.
-
-4. Libc65: max_align_t is long long, so alignof(max_align_t) is 1 on the 816: nothing to change, but checked.
-   __STDCPP_DEFAULT_NEW_ALIGNMENT__ (C++17's) is left.  The allocator's own alignment is not changed.
-
-5. What the survey found that depends on a layout: fixed (regenerated .inc files; constants; host mirrors),
-   each with a test that fails if the two drift apart, as TestFatW65C816Layout does for the FAT classes.
-
-6. Tests:
-   - TestCPPW65C816: sizes, offsets and alignof on the 816 (struct { char c; long l; } is 6 bytes with l at 2,
-     struct { char c; } 1, struct { char a; short b; char c; } 6, alignof(long) 1, alignas(8) still 8, #pragma pack(1)
-     still 1), and the same source on the 65C64 unchanged.
-   - Conformance: the cases are the same on both targets and the host, so they compare sizes with sizeof rather
-     than numbers; any that compare an alignment with a number are looked at (BasicAlignment, AlignofRules,
-     BasicAlignasObjects).  A case that a local int's address is a multiple of alignof(int) on both targets.
-
-7. Docs: HCP65's language.md says what the W65C816's alignment and layout are.
-
-8. Verify as always: TestCppCompilerLib, the three *65 library tests on both targets, TestLibc65, the 20 HCP65
-   projects; HCP65Emulator and the IDE if the survey touched them.
-
-9. Afterwards, a measurement only: how many byte stores in the libraries and HCP65 have padding after them, and the
-   cycles a 16 bit store there would save, for the user to decide on that optimisation.
+Why (from the discussion, for anyone asking):
+  - The 65816 has an 8 bit data bus: a 16 bit access is two bus cycles at any address, odd or even.  The only
+    address penalty is a cycle per direct page access when D's low byte isn't 0, which is about D, not alignment.
+    So byte alignment costs nothing to access.
+  - Cpp14CompliancePlan.txt B 7 (open until this is built): a local's place in a 816 frame is D + offset with D
+    wherever S was, so today (uintptr_t)&i % alignof(int) can be 1, which C++ doesn't allow.  With alignof 1 that is
+    correct, with no cost to any call.  The other choices offered, and not taken: align some or all frames (about
+    10 cycles a call), make padding 1 too (smaller structs, no 16 bit store trick), or leave it.
+  - The padding is kept for speed: a char followed by a padding byte can be stored with a 16 bit sta (the padding
+    takes the junk), instead of sep/lda/sta/rep, which costs 6 cycles more.  The compiler doesn't do that yet; step 10
+    only measures what it would save, for the user to decide.
 
 
-Questions for the user (asked one by one when reached)
+2. House rules (the user's standing rules; see also the memory index)
+---------------------------------------------------------------------
+
+  - Commit messages have no Co-Authored-By line.  Commit by pathspec (only your own files); never push.
+  - Other sessions edit and test in the same checkouts at the same time: check git status, don't touch or commit
+    their files, and verify on a private copy (the scripts below do).
+  - Questions to the user: one at a time, in plain words, only when a decision is theirs.
+  - Show the user the survey (step 3's list) before changing any layout for real (step 4).
+  - Release x64 builds by default.  A sweep of builds fills the disk: delete private build folders when done, and
+    check df before starting big ones.
+  - Each change gets tests; agree with g++ where the language decides (alignment is implementation-defined, so
+    this change is the user's ruling, not g++'s).
+
+
+3. The facts, as of 2026-11-22
+------------------------------
+
+Today on the W65C816 (measured with TEST_CPP_CONFORMANCE_TRY):
+  alignof(int) 2, alignof(long) 4, a pointer 4, long long and double 8; struct { char c; int i; } is 4 bytes;
+  struct { char c; int i; char d; } is 6 with i at 2 and d at 4.
+  A byte store is written as sep m / lda / sta / rep m (look at a listing: TEST_CPP_CONFORMANCE_LISTINGS=<dir>).
+
+Where alignment comes from (CommonLibraries/Libraries/CppCompilerLib):
+  CPPClassLayout.cpp
+    CCPPClassLayout::TypeAlignment (line ~71), static and the same for both targets: a class's miAlign, an array's
+      element's, 4 for a pointer, reference or member pointer, 8 for 8+ bytes, 4 for 4+, else the size.
+    CCPPClassLayout::PackAlignment(iAlign, iPack) (~57): the alignment limited by #pragma pack (0 = none).
+    CCPPClassLayout::Init(pcClass, iPack, iPointerBytes) (~28); Align (~103) moves to a multiple and raises miAlign.
+    Every placement goes through PackAlignment(x, miPack): bases (~220), virtual bases (~293), the vtable pointer
+      (~319), fields (~343), bit-field units (~384).  Layout (~117) applies the class's alignas (iClassAlign) after,
+      rounds the size to miAlign, and stores mpcClass->miAlign and miAlignas.
+  CPPUnitClasses.cpp
+    CCPPUnit::LayoutClass calls cLayout.Init(pcClass, pcSpecifier->miPack, mpcTarget->GetPointerBytes()) (~1008):
+      the one place classes are laid out.
+    CCPPUnit::VariableAlignment (~216): a variable's alignment, TypeAlignment of its type or more for alignas;
+      used for globals and statics (CPPUnit.cpp ~1213) and locals with alignas (CPP65IRFrontEnd.cpp ~1699).
+    CCPPUnit::AlignasAlignment (~251): alignas(n) and alignas(type), which uses TypeAlignment (~276).
+  CPPUnitExpressions.cpp ~2928: alignof is TypeAlignment.
+  CPPClass.h: CCPPClass::miAlign (the class's alignment, used to place it as a member or base) and miAlignas.
+  CPPTarget.h: CCPPTarget (GetPointerBytes, GetFrameAlignment ...); CPPTargetW65C816 and CPPTarget65C64 override.
+  __STDCPP_DEFAULT_NEW_ALIGNMENT__ is defined per target (CPPTargetW65C816.cpp ~145, 8UL); it is C++17's, and left.
+  Libc65's stddef.h: typedef long long max_align_t; so alignof(max_align_t) becomes 1 on the 816 by itself.
+
+What may depend on the 816's layouts (looked at so far; step 3 finds the rest):
+  - BaseLib's FAT classes: the FAT assembly (BaseLib/Fat*W65C816.asm) takes their offsets from
+    BaseLib/FatW65C816.inc, which TestBaseLib65 generates with the 816 compiler (Tests/TestBaseLib65/TestBaseLib65/
+    TestFatW65C816Layout.cpp, writing Output/<target>/FatW65C816.inc).  After the change, copy the new one over
+    BaseLib's and read the assembly that uses what moved.  The assembly's F_* frame constants are its own.
+  - SKernalInterrupt (HCP65/Kernal/KernalInterrupts.h; KernalInterrupts.asm reads it by offset, 16 bytes a slot):
+    4, 4, 4, 2, 2 bytes, so unchanged.
+  - HCP65/Libraries/UserLib/HCP65SFT.h's records (SSFTHeader, SSFTImage, SSFTContainer, SSFTPalette), written by
+    host tools and read on the 816: unchanged (SSFTPalette's uint32 is at 8 either way).
+  - BaseLib's SChunkFileHeader: unchanged.
+  - There are 29 hand written .asm files (HCP65: Boot, Kernal, Drivers, Libc65, UserLib; BaseLib's FAT).  Only the
+    FAT ones and KernalInterrupts.asm were looked at.
+
+
+4. Steps
+--------
+
+Step 1. The change, behind a switch that is off.
+  CCPPTarget gains:
+    virtual int  GetMemberAlignmentLimit(void);   0 (no limit) by default; 2 for the W65C816.
+    virtual bool IsByteAligned(void);             false by default; true for the W65C816 (alignof is 1).
+  For the survey both read a switch (an environment variable, CPP65_ALIGN_816 say, or a CCPPCompileOptions member)
+  that is off: off, everything is as today.
+  - Layout: LayoutClass passes the pack and the limit together: the least of the #pragma pack (if any) and the limit
+    (if any), into CCPPClassLayout::Init as its iPack.  Nothing else in CCPPClassLayout changes: every placement
+    already goes through PackAlignment, a class's miAlign comes out at most 2, and a class's alignas still raises it.
+  - The object's alignment: a new CCPPUnit (or CCPPClassLayout, given the target) function, ObjectAlignment(type):
+    on a byte aligned target, the type's alignas (CCPPClassLayout::TypeAlignas, the class's miAlignas) or 1; else
+    TypeAlignment as now.  alignof (CPPUnitExpressions ~2928), alignas(type) (AlignasAlignment ~276) and
+    VariableAlignment (~224) use it instead of TypeAlignment.  The layout keeps using TypeAlignment (capped).
+  - The semantic pass (the IDE's checker) checks with the same target object, so it says the same; nothing more.
+  - A dump for step 2: another switch (CPP65_DUMP_LAYOUTS=<file>) appends, for each class laid out, one line:
+    its qualified name, the source file, its size, alignment, and each field's offset (and each base's).  Builds run
+    units on threads, so write it under a mutex (or one file per process, joined after).
+
+Step 2. The count.  With the dump on, compile every W65C816 build twice, the switch off and on, and compare:
+  - TestBaseLib65, TestStandardLib65 and TestSupportLib65 (their *65 programs compile the libraries for both targets:
+    TEST_PROJECT65_ONLY=NoSuchTest compiles without running the tests);
+  - TestLibc65;
+  - the twenty HCP65 projects (hcp65build <project>.hcp65build -config "Release|W65C816").
+  Sort and diff the two dumps: the classes whose 816 layout changes, each once, with where it is declared.
+
+Step 3. The survey, from that list.  For each class that changes, does anything outside the compiler assume its
+  layout?
+  - hand written assembly: the 29 .asm files and any .inc of offsets (grep the asm for the class's member names and
+    for numbers that look like offsets; the FAT .inc is generated, see above);
+  - bytes that leave the 816 or arrive as bytes: files written from a struct's memory and read by a host tool or the
+    emulator, or the other way; SD card structures; the executable format; host code that reads 816 memory at fixed
+    offsets (HCP65-Emulator, HCP65Lib, HCP65-IDE's debugger);
+  - static_asserts and tests of sizes or offsets on the 816 (TestCPP816*, TestCPPW65C816*, TestCPP65*, the *65
+    library tests, TestLibc65).
+  Write the list, with what each needs, into this file, and show it to the user (one question at a time if any
+  decision is theirs).  Don't go on until they've seen it.
+
+Step 4. Turn it on: the switch's default becomes on for the W65C816 (or the switch goes, the target just answers).
+  The 65C64 is unchanged.
+
+Step 5. Fix what step 3 found.  Each fix gets a test that fails if the two sides drift apart again, as
+  TestFatW65C816Layout does for the FAT classes.  Regenerate FatW65C816.inc (copy TestBaseLib65's
+  Output/W65C816/FatW65C816.inc over BaseLib's) and read every FAT .asm use of a member that moved.
+
+Step 6. Tests.
+  - TestCPPW65C816 (or a new TestCPPW65C816Alignment.cpp; a new source file goes in CppCompilerLib's and the test's
+    .vcxproj and .filters, which keep CRLF line endings): on the 816,
+      struct { char c; long l; } is 6 bytes with l at 2 (8 with l at 4 on the 65C64);
+      struct { char c; } is 1; struct { char a; short b; char c; } is 6; struct { char c; double d; } is 10;
+      alignof(int), alignof(long), alignof(double), alignof(void*) and alignof of a class are 1;
+      alignas(8) on a class and on a variable still gives 8 (and an 8-aligned address for a global and a local);
+      #pragma pack(1) still packs to 1; pack(4) changes nothing;
+      a class member containing a long is placed at an even offset;
+      bit-fields as before but capped;
+    and the same source on the 65C64 unchanged.
+  - Conformance: its cases give the same result on both targets and the host, so they compare sizes with sizeof,
+    never numbers.  Run them all; look at any that compare an alignment with a number or assume alignof(T) ==
+    sizeof(T) (BasicAlignment, BasicAlignasObjects, AlignofRules, SizeofRules, the clause 3 [basic.align] cases):
+    such a case is target dependent and must be written so it holds on both (g++ checked, -m32 and -m64).  Add a case
+    that a local int's address is a multiple of alignof(int) on both targets (it is, trivially, on the 816).
+  - TestCPP65Declarations' counts (class layouts, quiet trials) are unchanged: the change adds no work.
+
+Step 7. Docs: HCP65/Website/docs/compiler/language.md says what the W65C816's alignment and layout are (alignof 1,
+  members at most 2, alignas honoured); Cpp14CompliancePlan.txt B 7 is marked done.
+
+Step 8. Verify, as Cpp14CompliancePlan.txt "How a change is checked" says: the whole of TestCppCompilerLib, the
+  conformance lists, the three *65 library tests on both targets, TestLibc65, the twenty HCP65 projects; and, if
+  step 3 touched them, HCP65Emulator and the IDE.  Then commit (no co-author line, by pathspec).
+
+Step 9. Clean up the switch if it is no longer wanted, and the dump if it isn't worth keeping (ask: a layout dump may
+  be useful to keep).
+
+Step 10. A measurement only, for the user: how many byte stores in the libraries and HCP65 have a padding byte after
+  them, and the cycles a 16 bit store there would save (6 each).  Show the numbers; build nothing for it unless the
+  user says.
+
+
+5. How to build and check on this machine (dev7, Linux)
 -------------------------------------------------------
 
-- After step 2: the list of what depends on the old layouts, and how each is to be fixed if it isn't obvious.
-
-(#pragma pack(n) only ever lowers a member's alignment, so a member is placed at a multiple of the least of its type's
-alignment, 2 and n: pack(1) packs to 1, pack(4) and pack(8) change nothing on the 816.)
+The previous session's scripts are in /home/r2d2/.claude/projects/-home-r2d2-Codaphela/sweep-clause4-5/ with a
+README.txt.  Each starts with S=<a scratch folder>: point it at your own first (they were last used from
+/tmp/claude-1024/-home-r2d2-Codaphela/c1314, which may be gone).
+  build.sh                 builds a private TestCppCompilerLib
+  try.sh <file.cpp>        compiles and runs one program on both targets, and says what the IDE's checker says
+  runcases.py / checkcases.py <case>...   conformance cases by name, compiler / checker
+  verify.sh <tag>          snapshot of the checkouts, own builds, conformance lists, the whole suite, the three
+                           library compiles on both targets, TestLibc65 (about 7 minutes); one at a time
+  hcpcheck.sh <tag>        the twenty HCP65 projects from the snapshot (after verify.sh, before the next one)
+  snapcommit.sh <msg file> commits the snapshot's versions of the changed files, the conformance lists too
+Without the scripts: build CommonLibraries/Tests/TestCppCompilerLib with CMake (Release, -DBASELIB_64=ON) and run
+RunParallel.py -exe <the test> -jobs 12 from Tests/TestCppCompilerLib; the *65 tests take the target as their
+argument (65C64 or W65C816).
