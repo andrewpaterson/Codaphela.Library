@@ -47,7 +47,7 @@ static const SConformanceChecked gasConformanceChecked[] =
 	{ "Clause6",
 		"" },
 	{ "Clause7",
-		"" },
+		"DclConstexprStaticMemberNeverInitialisedRefused(M) " },
 	{ "Clause8",
 		"DclReturnCopyRepeatedBaseRefused(M) " },
 	{ "Clause9",
@@ -61,7 +61,7 @@ static const SConformanceChecked gasConformanceChecked[] =
 	{ "Clause13",
 		"" },
 	{ "Clause14",
-		"TempNonTypeNotLvalueRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempResDependentOrdinaryLookupRefused(M) TempInstMemberUsedRefused(M) TempSfinaeBodyErrorRefused(M) " },
+		"TempNonTypeNotLvalueRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempResDependentOrdinaryLookupRefused(M) TempInstMemberUsedRefused(M) TempSfinaeBodyErrorRefused(M) TempVariadicNestedInParameters(F) " },
 	{ "Clause16",
 		"" },
 };

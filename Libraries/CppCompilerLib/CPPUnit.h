@@ -83,11 +83,12 @@ enum ECPPConversionRank
 
 
 //An error in a class's own declaration (a bit-field's width), found when it is laid out: kept apart from mcErrors,
-//which quiet trials and the IR front end truncate, and reported when the unit ends (ReportClassErrors).
+//which quiet trials and the IR front end truncate, and reported when the unit ends (ReportClassErrors).  The text is
+//the error's own: who made it may have built it (a constant's reason), and is gone by the time it is said.
 struct SCPPClassError
 {
 	int				iToken;
-	const char*		szMessage;
+	CChars			szMessage;
 };
 
 
@@ -750,6 +751,7 @@ public:
 	bool					HasFieldNeedingInitialiser(CCPPClass* pcClass);
 	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
 	void					ReportClassErrors(void);
+	void					FreeClassErrors(void);
 	void					ReportUndeclaredTypes(void);
 	void					UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed);
 	void					ReportNamedInstances(void);

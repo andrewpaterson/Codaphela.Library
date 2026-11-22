@@ -452,3 +452,11 @@ int main() { return 0; }
 union U { int a; };
 struct U* p;
 int main() { return 0; }
+
+### DclConstexprObjectDefaultConstructed | 1 | 7.1.5 [dcl.constexpr] p9: a constexpr object of a class is initialised by its constexpr default constructor, with no initialiser written
+struct P { constexpr P() : x(1) {} int x; };
+int main() { constexpr P p; return p.x; }
+
+### DclConstexprStaticMemberNeverInitialisedRefused | REFUSED | 7.1.5 [dcl.constexpr] p9, 9.4.2 [class.static.data] p3: a constexpr static member with no initialiser in its class is an error where it is declared, with no definition outside to say it of
+struct S { static constexpr int a; };
+int main() { return S::a; }

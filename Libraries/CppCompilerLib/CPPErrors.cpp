@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CPPErrors.h"
+#include "CPPCompileStatistics.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,6 +32,7 @@ void CCPPErrors::Init(void)
 	masPositions.Init();
 	maszFiles.Init();
 	mszText.Init();
+	mpcStatistics = NULL;
 }
 
 
@@ -132,11 +134,28 @@ size CCPPErrors::GetFileIndex(const char* szFile)
 //////////////////////////////////////////////////////////////////////////
 void CCPPErrors::Truncate(size uiNumErrors)
 {
+	if (mpcStatistics && (maszErrors.NumElements() > uiNumErrors))
+	{
+		mpcStatistics->Count(CPPCC_ErrorsTakenAway, maszErrors.NumElements() - uiNumErrors);
+	}
 	while (maszErrors.NumElements() > uiNumErrors)
 	{
 		maszErrors.RemoveTail();
 		masPositions.Pop();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The errors Truncate takes away are counted in pcStatistics from now on
+// (CPPCC_ErrorsTakenAway): an error made and then taken away is work done
+// for nothing, or an error that has to be made again to be said.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPErrors::CountTakenAway(CCPPCompileStatistics* pcStatistics)
+{
+	mpcStatistics = pcStatistics;
 }
 
 

@@ -90,14 +90,18 @@ static const SConformanceGroup gasConformanceGroups[] =
 		"ConstantInactiveUnionMemberRefused(A) ",
 		""),
 	CONFORMANCE_GROUP(Clause6, "", ""),
-	CONFORMANCE_GROUP(Clause7, "", ""),
+	CONFORMANCE_GROUP(Clause7,
+		"DclConstexprObjectDefaultConstructed(C) DclConstexprStaticMemberNeverInitialisedRefused(A) ",
+		"DclConstexprObjectDefaultConstructed(C) DclConstexprStaticMemberNeverInitialisedRefused(A) "),
 	CONFORMANCE_GROUP(Clause8, "", ""),
 	CONFORMANCE_GROUP(Clause9, "", ""),
 	CONFORMANCE_GROUP(Clause10, "", ""),
 	CONFORMANCE_GROUP(Clause11, "", ""),
 	CONFORMANCE_GROUP(Clause12, "", ""),
 	CONFORMANCE_GROUP(Clause13, "", ""),
-	CONFORMANCE_GROUP(Clause14, "", ""),
+	CONFORMANCE_GROUP(Clause14,
+		"TempVariadicNestedSamePack(W) TempVariadicNestedInParameters(C) ",
+		"TempVariadicNestedSamePack(W) TempVariadicNestedInParameters(C) "),
 	CONFORMANCE_GROUP(Clause16, "", ""),
 };
 
@@ -107,10 +111,38 @@ static const SConformanceGroup gasConformanceGroups[] =
 
 //////////////////////////////////////////////////////////////////////////
 //
+// TEST_CPP_CONFORMANCE_DIAGNOSTICS in the environment names a file: what
+// the compiler says of every case is written to it (its errors, then its
+// warnings), for each target's build and for the semantic pass, in the
+// order the cases are run.  Two compilers' files are compared to see that a
+// change to how errors are made or kept changed nothing that is said
+// (SemanticLayerPlan.txt).  Run the file alone, in one process.
+//
+//////////////////////////////////////////////////////////////////////////
+static FILE*		gpConformanceDiagnostics = NULL;
+static const char*	gszConformanceGroup = "";
+
+
+static void ConformanceDiagnostics(const char* szCase, const char* szBy, const char* szErrors, const char* szWarnings)
+{
+	if (gpConformanceDiagnostics)
+	{
+		fprintf(gpConformanceDiagnostics, "== %s.%s %s\n%s", gszConformanceGroup, szCase, szBy, szErrors ? szErrors : "");
+		if (szWarnings && (szWarnings[0] != '\0'))
+		{
+			fprintf(gpConformanceDiagnostics, "-- warnings\n%s", szWarnings);
+		}
+		fflush(gpConformanceDiagnostics);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the program compiles for the target, alone (nothing is linked).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, bool bExceptions, CChars* pszErrors)
+static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, bool bExceptions, CChars* pszErrors, CChars* pszWarnings)
 {
 	CCPP65Builder		cBuilder;
 	CCPPCompileOptions	cOptions;
@@ -122,7 +154,7 @@ static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, bool b
 	cOptions.Init();
 	cOptions.mbExceptions = bExceptions;
 	szAssembly.Init();
-	bCompiled = CCPP65Builder::Generate(&szAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, NULL, NULL, false, false, false, true, &cOptions) && pszErrors->Empty();
+	bCompiled = CCPP65Builder::Generate(&szAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, pszWarnings, NULL, false, false, false, true, &cOptions) && pszErrors->Empty();
 	szAssembly.Kill();
 	cBuilder.Kill();
 	return bCompiled;
@@ -326,15 +358,19 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 {
 	CCPP65Builder	cBuilder;
 	CChars			szErrors;
+	CChars			szWarnings;
 	const char*		szNotDone;
+	const char*		szTarget;
 	int32			iResult;
 	bool			bStopped;
 
 	szErrors.Init();
 	szNotDone = NULL;
+	szTarget = (eTarget == CPPT_W65C816) ? "W65C816" : "65C64";
 	if (psCase->iExpected == CONFORMANCE_REFUSED)
 	{
-		if (ConformanceCompiles(psCase->szSource, eTarget, bExceptions, &szErrors))
+		szWarnings.Init();
+		if (ConformanceCompiles(psCase->szSource, eTarget, bExceptions, &szErrors, &szWarnings))
 		{
 			szNotDone = "(A)";
 		}
@@ -342,11 +378,15 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 		{
 			szNotDone = "(U)";
 		}
+		ConformanceDiagnostics(psCase->szName, szTarget, szErrors.Text(), szWarnings.Text());
+		szWarnings.Kill();
 	}
 	else
 	{
 		cBuilder.Init();
-		if (!ConformanceBuild(&cBuilder, psCase->szSource, eTarget, bExceptions, &szErrors))
+		bStopped = ConformanceBuild(&cBuilder, psCase->szSource, eTarget, bExceptions, &szErrors);
+		ConformanceDiagnostics(psCase->szName, szTarget, szErrors.Text(), cBuilder.GetWarnings());
+		if (!bStopped)
 		{
 			szNotDone = "(C)";
 		}
@@ -367,7 +407,7 @@ static const char* ConformanceCase(const SConformanceCase* psCase, ECPPTarget eT
 
 	if (szNotDone && (getenv("TEST_CPP_CONFORMANCE_VERBOSE") || (psCase->iExpected == CONFORMANCE_TRIED)))
 	{
-		fprintf(stderr, "%s %s%s: %s\n", (eTarget == CPPT_W65C816) ? "W65C816" : "65C64", psCase->szName, szNotDone, szErrors.Text());
+		fprintf(stderr, "%s %s%s: %s\n", szTarget, psCase->szName, szNotDone, szErrors.Text());
 	}
 	szErrors.Kill();
 	return szNotDone;
@@ -454,7 +494,7 @@ static bool ConformanceUnsupported(const char* szErrors)
 // compiler's target, nothing generated.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceChecks(const char* szSource, bool bExceptions, bool bPrint = false)
+static bool ConformanceChecks(const char* szCase, const char* szSource, bool bExceptions, bool bPrint = false)
 {
 	CTranslationUnit	cFile;
 	CCPPPreprocessor	cPreprocessor;
@@ -487,6 +527,7 @@ static bool ConformanceChecks(const char* szSource, bool bExceptions, bool bPrin
 		//TEST_CPP_CONFORMANCE_TRY: what the semantic pass (the IDE's checker) says of the program.
 		fprintf(stderr, "Checked Try(%s): %s\n", bResult ? "-" : "E", (cPass.GetErrors()->NumErrors() > 0) ? cPass.GetErrors()->Get(0) : (bResult ? "no errors" : "the parser's or preprocessor's errors"));
 	}
+	ConformanceDiagnostics(szCase, "Checked", cPass.GetErrors()->Text(), NULL);
 	cPass.Kill();
 	cTree.Kill();
 	cTokeniser.Kill();
@@ -527,7 +568,7 @@ static void TestCPPConformanceChecked(const SConformanceGroup* psGroup)
 			continue;
 		}
 		uiCases++;
-		bChecks = ConformanceChecks(psCase->szSource, psGroup->bExceptions);
+		bChecks = ConformanceChecks(psCase->szName, psCase->szSource, psGroup->bExceptions);
 		if (bChecks != (psCase->iExpected != CONFORMANCE_REFUSED))
 		{
 			szNotDone.Append(psCase->szName);
@@ -645,7 +686,7 @@ static void TestCPPConformanceTry(const char* szFileName)
 	bExceptions = getenv("TEST_CPP_CONFORMANCE_EXCEPTIONS") != NULL;
 	ConformanceCase(&sCase, CPPT_65C64, bExceptions);
 	ConformanceCase(&sCase, CPPT_W65C816, bExceptions);
-	ConformanceChecks(szSource.Text(), bExceptions, true);
+	ConformanceChecks(sCase.szName, szSource.Text(), bExceptions, true);
 	szSource.Kill();
 }
 
@@ -676,11 +717,21 @@ void TestCPPConformance(void)
 	{
 		TestCPPConformanceExport(getenv("TEST_CPP_CONFORMANCE_EXPORT"));
 	}
+	if (getenv("TEST_CPP_CONFORMANCE_DIAGNOSTICS"))
+	{
+		gpConformanceDiagnostics = fopen(getenv("TEST_CPP_CONFORMANCE_DIAGNOSTICS"), "wb");
+	}
 	for (i = 0; i < NUM_CONFORMANCE_GROUPS; i++)
 	{
+		gszConformanceGroup = gasConformanceGroups[i].szName;
 		TEST_PART(TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_65C64));
 		TEST_PART(TestCPPConformanceGroup(&gasConformanceGroups[i], CPPT_W65C816));
 		TEST_PART(TestCPPConformanceChecked(&gasConformanceGroups[i]));
+	}
+	if (gpConformanceDiagnostics)
+	{
+		fclose(gpConformanceDiagnostics);
+		gpConformanceDiagnostics = NULL;
 	}
 
 	TypeConverterKill();

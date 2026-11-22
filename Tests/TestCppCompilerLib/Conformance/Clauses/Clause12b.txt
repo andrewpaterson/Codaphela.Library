@@ -325,3 +325,8 @@ int main()
 	static_assert(d.v == 3, "");
 	return 1;
 }
+
+### SpecialInheritingConstBelowNotHidden | 1 | 12.9 [class.inhctor] p3: a constructor is left out only for one of the class's with the same signature: const int* is not int*
+struct B { int v; B(int* p) : v(1) {} };
+struct D : B { using B::B; D(const int* p) : B((int*)0) { v = 2; } };
+int main() { int x; int* p = &x; D d(p); return d.v; }

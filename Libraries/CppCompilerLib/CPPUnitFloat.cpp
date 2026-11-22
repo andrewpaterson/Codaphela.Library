@@ -71,7 +71,13 @@ bool CCPPUnit::FloatConstant(CCPPSyntax* pcExpression, double* pdValue)
 {
 	SCPP65Type*		psType;
 
-	return FloatValue(pcExpression, pdValue, &psType) && psType;
+	mpcStatistics->Count(CPPCC_FloatConstants);
+	if (FloatValue(pcExpression, pdValue, &psType) && psType)
+	{
+		mpcStatistics->Count(CPPCC_FloatConstantsFolded);
+		return true;
+	}
+	return false;
 }
 
 

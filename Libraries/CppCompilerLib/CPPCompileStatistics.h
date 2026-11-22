@@ -80,6 +80,19 @@ enum ECPPCompileCount
 	CPPCC_ClassLayouts,				//Classes laid out (CCPPUnit::LayoutClass)...
 	CPPCC_ClassLayoutsWhereDefined,	//...and those of them laid out where they are defined, to check override and final.
 	CPPCC_NamedInstanceNodes,		//Syntax nodes CCPPUnit::ReportNamedInstances looked at.
+	CPPCC_ErrorsTakenAway,			//Errors made and then taken off the unit's list (CCPPErrors::Truncate).
+	CPPCC_ReportedAgain,			//Work done a second time only to say its errors (ReportTypeOf, ReportFailedDeclaration).
+	CPPCC_Constants,				//CCPPUnit::Constant calls...
+	CPPCC_ConstantsFolded,			//...those the tree folder answered (FoldConstant)...
+	CPPCC_ConstantsRun,				//...and those that took RunConstant.
+	CPPCC_FloatConstants,			//CCPPUnit::FloatConstant calls...
+	CPPCC_FloatConstantsFolded,		//...and those it answered.
+	CPPCC_BaseWalks,				//Calls of the unit's functions that walk a class's bases, each call of a walk that calls itself counted.
+	CPPCC_PlaceOf,					//CCPPUnit::PlaceOf calls: each runs the type checker's Place.
+	CPPCC_IsRvalue,					//CCPPUnit::IsRvalue, IsObject, MakesObject and IsObjectLvalue calls: what an expression is,
+	CPPCC_IsObject,					//asked again each time (SemanticLayerPlan.txt, question 4).
+	CPPCC_MakesObject,
+	CPPCC_IsObjectLvalue,
 	CPPCC_NumCounts
 };
 

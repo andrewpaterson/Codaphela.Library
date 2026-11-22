@@ -24,6 +24,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplate.h"
 
 
+class CCPPCompileStatistics;
+
+
 //Where an error is.  Lines and columns are 0 based; -1 if not known.  iToken is the index of the token in the
 //stage's own tokens (preprocessed tokens for the preprocessor and tokeniser, C++ tokens for the parser and the
 //65C64 generator), -1 if there isn't one.
@@ -48,6 +51,7 @@ protected:
 	CArrayCPPErrorPositions	masPositions;
 	CArrayChars				maszFiles;
 	CChars					mszText;
+	CCPPCompileStatistics*	mpcStatistics;	//Where errors taken off the list are counted (CountTakenAway), or NULL.
 
 public:
 	void	Init(void);
@@ -56,6 +60,7 @@ public:
 
 	void	Add(const char* szFile, int iLine, int iColumn, int iToken, const char* szMessage, const char* szDetail = NULL);
 	void	Truncate(size uiNumErrors);
+	void	CountTakenAway(CCPPCompileStatistics* pcStatistics);
 
 	size	NumErrors(void) const;
 	char*	Get(size iIndex);

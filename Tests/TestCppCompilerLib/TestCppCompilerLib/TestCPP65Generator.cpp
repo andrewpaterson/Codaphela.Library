@@ -3760,6 +3760,59 @@ void TestCPP65GeneratorErrors(void)
 	AssertCPP65Error("Generated.cpp (1, 12): try can't be used: the program is built without exceptions (the Exceptions option) [try]\n", "void f() { try { } catch (...) { } }");
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The errors of the semantic layer (CCPPUnit and the classes round it) that
+// no test raised: each with the text it is said in, and where (appendix A
+// of SmellCheckFindings.txt; SemanticLayerPlan.txt stage 0).  Where one text
+// is said in two places there is a program for each.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorSemanticErrors(void)
+{
+	AssertCPP65Error("Generated.cpp (1, 51): A constexpr variable's initialiser must be a constant: It is the address of a variable of the function, which has none until the program runs [*]\n", "int f() { constexpr int a = 1; constexpr const int* p = &a; return *p; } int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 12): A destructor can't be constexpr [constexpr]\n", "struct S { constexpr ~S() {} }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 30): A constexpr function must return a literal type [constexpr]\n", "struct N { N() {} ~N() {} }; constexpr N f() { return N(); } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): A function whose return type is written after it is declared auto, and nothing more [*]\n", "auto* f() -> int { return 0; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 20): The alignment must be a constant [n]\n", "int n = 4; alignas(n) int x; int main() { return x; }");
+	AssertCPP65Error("Generated.cpp (1, 48): A template template parameter used outside an instantiation [m]\n", "template<template<class> class C> struct S { C m; }; template<class T> struct V {}; S<V> s; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 42): A class template needs template arguments [s]\n", "template<class T> struct S { int a; }; S s; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 64): The qualifier is not the object's class or one of its bases [b]\n", "struct A { int x; }; struct B { int y; }; int f(B* b) { return b->A::x; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 12): This virtual function's declaration is not supported by the compiler yet [virtual]\n", "struct S { virtual int f(int a[-1]) { return 0; } }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 24): This virtual function's declaration is not supported by the compiler yet [f]\n", "struct S { virtual int f(int a[-1]); }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 32): A member function declared by a type that depends on a template parameter is not supported by the compiler yet [f]\n", "template<class T> struct S { T f; }; S<int()> s; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 23): A bit-field can't be static [a]\n", "struct S { static int a : 3; }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 18): A bit-field must be an integer, bool or enum [a]\n", "struct S { float a : 3; }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 10): The type trait needs more types [__is_base_of]\nGenerated.cpp (1, 10): This sizeof or type trait is not supported by the compiler yet [__is_base_of]\n", "bool b = __is_base_of(int); int main() { return b; }");
+	AssertCPP65Error("Generated.cpp (1, 29): The function's name can't be part of a wide string literal [L\"a\"]\n", "const wchar_t* f() { return L\"a\" __FUNCTION__; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 57): Only the parameter pack of the function the lambda is in can be captured as a pack [v]\n", "template<class... A> int f(A... a) { int v = 0; return [v...]{ return 0; }(); } int main() { return f(1); }");
+	AssertCPP65Error("Generated.cpp (1, 85): The lambda doesn't capture the parameter pack [a]\n", "int g(int x) { return x; } template<class... A> int f(A... a) { return []{ return g(a...); }(); } int main() { return f(1); }");
+	AssertCPP65Error("Generated.cpp (1, 33): The variable is captured twice [a]\n", "int f() { int a = 0; return [a, a]{ return a; }(); } int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 79): The variable is captured twice [a]\n", "int g(int x) { return x; } template<class... A> int f(A... a) { return [a..., a...]{ return g(a...); }(); } int main() { return f(1); }");
+	AssertCPP65Error("Generated.cpp (1, 47): The lambda doesn't capture this [m]\n", "struct S { int m; int f() { return []{ return m; }(); } }; int main() { S s; s.m = 1; return s.f(); }");
+	AssertCPP65Error("Generated.cpp (1, 40): The lambda doesn't capture this [this]\n", "struct S { int f() { return []{ return this != 0; }(); } }; int main() { S s; return s.f(); }");
+	AssertCPP65Error("Generated.cpp (1, 22): What the lambda captures can't be worked out [&]\n", "int main() { return [&r = 1 + 2]{ return r; }(); }");
+	AssertCPP65Error("Generated.cpp (1, 19): A list in braces is a std::initializer_list, which needs <initializer_list> [x]\n", "int main() { auto x = {1, 2}; return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 126): The values in braces aren't all of the same type, which auto needs [2.0]\n", "namespace std { template<class T> class initializer_list { const T* p; decltype(sizeof(0)) n; }; } int main() { auto x = {1, 2.0}; return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 66): The pack expansion names no parameter pack [int]\n", "template<class T> struct S {}; template<class... A> struct W { S<int...> s; }; W<int> w; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 46): The pack expansion names no parameter pack [B]\n", "struct B {}; template<class... A> struct D : B... {}; D<int> d; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 141): The packs the pack expansion expands have different lengths [P]\n", "template<class... T> struct L {}; template<class A, class B> struct P {}; template<class... A> struct X { template<class... B> struct Y { L<P<A, B>...> m; }; }; X<int, char>::Y<int> y; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 124): The packs the pack expansion expands have different lengths [M]\n", "struct B1 {}; template<class T, class U> struct M : B1 {}; template<class... A> struct X { template<class... B> struct Y : M<A, B>... {}; }; X<int, char>::Y<int> y; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 54): An array that is a range must have a length [a]\n", "extern int a[]; int main() { int s = 0; for (int x : a) s += x; return s; }");
+	AssertCPP65Error("Generated.cpp (1, 51): A variable template is named with its template arguments [v]\nGenerated.cpp (1, 51): A variable template is named with its template arguments [v]\nGenerated.cpp (1, 51): Only variables are supported by the compiler here yet [v]\n", "template<class T> T v = T(1); int main() { return v; }");
+	AssertCPP65Error("Generated.cpp (1, 44): Only explicit instantiations of class templates, their member functions and function templates are supported by the compiler yet [v]\n", "template<class T> T v = T(1); template int v<int>; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 45): The explicit instantiation names no function template [k]\n", "template<class T> struct W {}; template int k(int); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 43): The template argument must be a constant [n]\n", "int n = 1; template<int N> struct S {}; S<n> s; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 34): The template argument must be a constant [s]\n", "template<int N> struct S {}; S<> s; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 67): The template argument must name a global or a function [&]\n", "template<int* P> struct S {}; int main() { static int q; int x; S<&x> s; return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 50): The template argument must be a class template or an alias template [int]\n", "template<template<class> class C> struct S {}; S<int> s; int main() { return 0; }");
+	//A class's error built with a constant's reason was said as whatever was in its memory afterwards (stage 0): the text is asserted.
+	AssertCPP65Error("Generated.cpp (1, 32): A bit-field's width must be a constant of 0 or more [gN]\n", "int gN = 3; struct S { int a : gN; }; int main() { S s; s.a = 1; return s.a; }");
+	AssertCPP65Error("Generated.cpp (1, 20): A bit-field's width must be a constant of 0 or more [-]\n", "struct S { int a : -1; }; int main() { return sizeof(S); }");
+	AssertCPP65Error("Generated.cpp (1, 20): A bit-field can't be wider than its type [99]\n", "struct S { int a : 99; }; int main() { return sizeof(S); }");
+	AssertCPP65Error("Generated.cpp (1, 20): A named bit-field can't have a width of 0 [0]\n", "struct S { int a : 0; }; int main() { return sizeof(S); }");
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -4127,6 +4180,7 @@ void TestCPP65Generator(void)
 	TEST_PART(TestCPP65GeneratorLazy());
 	TEST_PART(TestCPP65GeneratorLockstep());
 	TEST_PART(TestCPP65GeneratorErrors());
+	TEST_PART(TestCPP65GeneratorSemanticErrors());
 	TEST_PART(TestCPP65GeneratorListing());
 	TEST_PART(TestCPP65GeneratorLayoutsFile());
 	TEST_PART(TestCPP65GeneratorEnumClass());

@@ -6,8 +6,8 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stage 0 is begun (2026-11-22).  The user answered questions 1, 2, 3 and 5 that day; question 4
-is still open, and nothing before stage 15 depends on it.
+Where it is: stage 0 is done (2026-11-22; "The record" has what it found).  The user that day: "Finish and
+commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
 What was checked before writing (2026-11-22, master 9a11fabbd)
@@ -47,8 +47,9 @@ The rules (the questions say which the user settled, 2026-11-22)
      CCPP65CheckChildren, CCPP65CheckLambdas, gasCPP65Builtins.  SCPP65Type and CCPP65Types are the type
      checker's area's and keep their names.
   5. A helper that replaces several copies gets cases of its own in TestCppCompilerLib.
-  6. A stage is merged to master when it has passed.  The work is done in D:\gameengine-semantic (branch
-     semantic-layer), brought up to master before each stage.  Nothing is pushed.
+  6. The work is done in D:\gameengine\CommonLibraries itself, on master: this is the only session on the
+     computer (the user, 2026-11-22: "Why do you keep working in worktrees?").  A stage is committed when it
+     has passed, by its own paths.  Nothing is pushed.
   7. Plan first; measure before and after.
 
 
@@ -57,7 +58,7 @@ How a stage is proved
   - TestCppCompilerLib whole (RunParallel.py, about 165 s).
   - "Same code": each of the three *65 suites' projects compiled for each processor a unit at a time with the
     listings kept (TEST_PROJECT65_LISTINGS, TEST_PROJECT65_ONLY=NoSuchTest, TEST_PROJECT65_SERIAL=1), and every
-    listing compared with the stage before's, from the same folder.
+    listing compared with the stage before's.
   - Otherwise (stages 8 and 11): the three suites run on both processors (Tests/CompilerMeasure.py --raw), every
     program's cycles and bytes set beside the stage before's.
   - The same diagnostics: stage 0 makes the kit.  Every conformance case's diagnostics (file, line, column,
@@ -278,10 +279,8 @@ that makes it one thing, so stage 15 has only what no earlier stage took.
         Moved, not changed: the Exceptions group passes on both targets before and after.
      d. The desugarings (l): range-for, user-defined literals, braced lists regrouped, decltype members and
         the implicit arguments, each a small class over one "made once for a node" memo.
-     e. What an expression is (m), about 50: value, place or object and what it binds to go to the binder;
-        the conditional's and the composite pointer's types to the types; TypeOf and its memo to the type
-        checker.  Moved as they are: bound nodes for the rest of an expression (ConsolidationPlan's stage 6)
-        were dropped at the checkpoint and are not reopened here (question 4).
+     e. What an expression is (m), about 50.  Question 4 is how; "What an expression is: the plan
+        recommended for question 4", after the questions, is the plan for it.
      f. Templates (e), CPPUnitTemplates.cpp's 75 functions less what stage 9 took: CCPPInstantiator makes a
         class's, a function's and a variable template's instance and gives the specialisations and outside
         definitions to them.
@@ -311,16 +310,17 @@ Questions for the user
 
 Open:
 
-  4. Expressions' classification moves to the binder and the checker as functions; bound nodes for the rest of
-     an expression stay dropped.  Recommended: yes.  (Saying no makes stage 15e ConsolidationPlan's stage 6,
-     which is larger than the rest of this plan together.)  Not answered with the others; it is asked again
-     before stage 15, and nothing earlier depends on it.
+  4. How stage 15e is done.  Three ways: move the fifty functions as they are (M); remember what an expression
+     is once, and read it (L; recommended, and planned below); or reopen ConsolidationPlan's stage 6, a bound
+     node for every kind of expression (XL, larger than the rest of this plan together).  Asked 2026-11-22;
+     the user asked for the first to be explained, then for a plan to be recommended, then "Given the answers
+     to questions 1 through 5 what is the plan": read as the recommended way being taken, and said back to them
+     as that.  It stays here until they say so in their own words.  Nothing before stage 15 depends on it.
 
 Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
 
   1. Is the C++14 session still working in these files?  "Not really."  So the plan does not wait for it and
-     it is not asked to wait.  The work is still done in its own worktree and each stage is brought up to
-     master before it starts, because a commit of that session's may still land in these files.
+     it is not asked to wait, and rule 6 has no worktree.
   2. The plan may change the binder's, the type checker's and the IR front end's files where a mechanism of
      its own reaches into them: finding 36, who ends a function (46), the comparison and assignment lists (39
      and 52).
@@ -330,6 +330,207 @@ Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
      suite's total of cycles or of bytes is worse on either processor.
 
 
+What an expression is: the plan recommended for question 4
+
+What was read (2026-11-22).  The fifty functions are not one job.  Sorted by what they answer:
+
+  - Whether an expression is a value, a place, or an object to be made (its value category, [basic.lval]):
+    IsRvalue, IsObjectLvalue, MakesObject, IsMadeObject, PlaceOf, IsReturnedLocal, CommaResult, IsObject,
+    ObjectClass.  This is one fact, and it is decided by five ladders on the node's kind: IsRvalue's,
+    IsObjectLvalue's and MakesObject's in the unit, the type checker's PlaceType (ten kinds) and the IR front
+    end's Place.  They do not say the same of every kind (IsObjectLvalue takes any member expression for a
+    place; IsRvalue takes the member of an rvalue object for an rvalue), and nothing checks that they agree.
+    The walkers already call the same functions, so they agree with each other; it is the ladders that can
+    differ.  Moving them to the binder as they are would keep all five.
+  - Only the type is remembered (TypeOf's memo: the type, and the type as declared).  PlaceOf runs the type
+    checker's Place again inside a trial each time it is asked; IsRvalue asks PlaceOf, DeclaredTypeOf and
+    MakesObject, which asks IsObject of each operand.
+  - Rules about types that need no expression: CompositePointerType and CompositePointee, the five
+    Conditional...Type functions, VariadicArgumentType, CalleePointerType.  [expr.cond], [expr.rel].
+  - Lists in braces and aggregates (BracedFor, IsAggregate, AggregateMember, InitialisesWhole, ElidesBraces,
+    Regroup, the four InitializerList functions): stage 15d's.  typeid's (TypeInfoClass, TypeidType,
+    AppendTypeidLabel): stage 13's.  The five Append...Name: stage 10's.  IsNamed and IsStdName: stage 2's.
+  - TypeOf, ValueTypeOf, DeclaredTypeOf, PlaceTypeOf, UnevaluatedTypeOf, ReportTypeOf: one memo with six ways
+    in; TypeOf alone is asked from 79 places in the unit, the type checker, the IR front end, the binder and
+    the overloads.
+
+What is recommended.  ConsolidationPlan's stage 6 says of a bound node: "A bound node has its type and whether
+it is a place, a value or an object in memory."  That sentence is taken, as the checkpoint took conversions and
+making objects from the same stage, and the rest of stage 6 stays dropped: no class for each kind of
+expression, the two walks stay two, the front end still writes code from the syntax tree.  What changes is that
+what an expression is, is worked out once, by the type checker, and read by everything else.
+
+  1. Measured before.  Counts of each question (PlaceOf's runs of the type checker, IsRvalue, IsObject,
+     MakesObject, IsObjectLvalue) compiling TestSupportLib65's project, and the types phase's time.  And the
+     five ladders set side by side by reading: for each kind of node, what each says.
+  2. The record.  SCPPTypeOf becomes what is known of an expression: its type, its type as declared, its
+     category (a place, a value, an object that is made, something about to go: lvalue, prvalue, a class
+     prvalue, xvalue), the place's type if it is a place, and the errors made working it out (stage 4).  It is
+     the type checker's: mcTypeOfs leaves the unit.  A part not asked for is not worked out: each has a
+     "known" bit, so nothing is done that is not done today.
+  3. One function says the category, written once from [basic.lval] and the clauses for each kind, in the
+     type checker beside where the kind's type is decided.  It is first built beside the old ladders and run
+     against them: in a checking build every answer of IsRvalue, IsObjectLvalue, MakesObject and PlaceOf is
+     compared with the record's over TestCppCompilerLib and the three *65 suites' projects on both
+     processors, and each disagreement is listed.  Each is then read: where the old ladders differ from each
+     other one of them is wrong for some program, which becomes a conformance case; where the new function
+     differs from all of them it is put right.
+  4. The switch.  IsRvalue, IsObjectLvalue, MakesObject, IsMadeObject, IsObject, ObjectClass and PlaceOf
+     become reads of the record, in the type checker; their callers ask it.  The type checker's PlaceType and
+     the front end's Place keep their switches for what they do with a place (its type; its code) and ask the
+     record whether there is one.  Same code, but for what step 3 found wrong: those are measured, and named.
+  5. The type rules go to CCPP65Types (the composite pointer's) and to the type checker's conditional (the
+     five Conditional functions, whose only other caller, the front end, reads the record's type).
+  6. TypeOf's six ways in become the type checker's: one question that gives the record, and the named
+     shorthands the callers use most.  ReportTypeOf is stage 4's appending of kept errors.
+  7. BindsToTemporary, BoundInitialiser, IsUncapturedConstant, IsOverloadedComma, IsOperatorOperand,
+     BitFieldOf, BindMemberOf and MemberEnumerator are binding ([dcl.init.ref], operators, members) and go to
+     the binder as they are; BindsToTemporary reads the record where it asks PlaceOf and ValueTypeOf.
+  Measured after: step 1's counts (PlaceOf's runs of the type checker should be about the number of places,
+  not of questions), the types phase, the listings, the diagnostics.
+  Ends when: no ladder on a node's kind outside the type checker and the front end's Place says what category
+  an expression has; CPPUnitObjects.cpp is gone.
+
+Why this and not the others.  Moving alone is cheaper and leaves five ladders that can disagree, which is the
+fault this clean-up exists for.  Stage 6 whole would also end the second walk and the front end's questions,
+but the checkpoint measured what that buys: the walkers are 5% of a compile, and binding calls took a fifth off
+one walker and two fifths off the other for 290 more lines.  The record gets the part of stage 6 that is about
+one fact having one answer, for about a tenth of its size, and it is what every bound node would have begun
+with if stage 6 is ever wanted.
+
+
 The record
 
-Nothing yet.  Stage 0's baseline goes here, then what each stage found, and at the end the table.
+Stage 0 (2026-11-22): the baseline, the kit, and what reading suspected, run.
+
+	The baseline, at the plan's commit (35b08b69c):
+	- TestCppCompilerLib: 271,540 run, none failed.
+	- What the compiler says of the conformance cases: 5,759 entries (1,942 cases built for each processor, 1,875
+	  checked by the semantic pass); 2,375 of them say something, in 2,747 lines.
+	- Listings of the three *65 suites' projects: 4,201 (TestBaseLib65 608 for the 65C64 and 607 for the
+	  W65C816, TestStandardLib65 609 and 608, TestSupportLib65 885 and 884).
+	- What each class beside the unit asks it (mpcUnit->, asks and different questions): the IR front end 520 and
+	  167, the type checker 336 and 123, CCPPBinder 212 and 64, CCPPOverloads 153 and 44, CCPPDeclarators 128 and
+	  43, CCPPConstants 46 and 20, CCPPDeduction 35 and 19, CCPPAccess 13 and 8.  Rule 3 watches these.
+	- TestSupportLib65's project compiled a unit at a time (stage 0's compiler, which only counts more than the
+	  baseline's):
+	                                65C64      W65C816
+	    declarations (ms)            6,407        6,440
+	    types (ms)                   6,189        6,248
+	    front end (ms)               3,299        3,379
+	    TypeOf                   4,936,785    4,815,304
+	    TypeOf worked out        1,102,681    1,066,019
+	    quiet trials             1,748,724    1,730,567
+	    quiet trials failed          1,002        1,000
+	    errors taken away               14           14
+	    reported again                   0            0
+	    constants                1,248,116    1,230,961
+	    constants folded         1,067,544    1,056,600
+	    constants run                   56           56
+	    float constants             40,346       40,248
+	    float constants folded      30,984       30,445
+	    base walks              11,797,818   11,466,955
+	    PlaceOf                    139,858      137,611
+	    IsRvalue                   138,908      136,337
+	    IsObject                 1,262,524    1,220,655
+	    MakesObject                 60,817       60,721
+	    IsObjectLvalue               1,196        1,101
+	  Two of these say where the stages will be felt.  A class's bases are walked 11.8 million times to compile
+	  one project (stage 6).  And in a compile with nothing wrong almost nothing is taken away or said again (14
+	  errors; no re-run): what stage 4 mends is what is said of a wrong program, not time.
+
+	The kit.  TEST_CPP_CONFORMANCE_DIAGNOSTICS=<file> makes TestCPPConformance write what is said of every case.
+	Tests/CompilerProof.py keeps the listings and the diagnostics and compares two runs of either.  The new
+	counts (CPPCompileStatistics.h): errors taken away, reported again, constants and those folded and run, float
+	constants and those folded, base walks, and PlaceOf, IsRvalue, IsObject, MakesObject and IsObjectLvalue for
+	question 4.
+
+	What reading suspected, run (each program by g++ 15 -std=c++14 too):
+	- 16, a type remembered inside sizeof or decltype: not found wrong.  A default argument that names a member
+	  with no object, used first inside sizeof and then called (and the other way round), and a function with a
+	  deduced return type first named in decltype, are refused as they should be: "A member that isn't static is
+	  used without an object" is said before the memo comes into it.
+	- 16, this after NoThis or a function scope: not found wrong.  A template's static member and a variable
+	  template first used inside a member function, and a static local whose initialiser calls a constexpr
+	  function and then reads a field, all give the right answer.  Stage 3 still makes NoThis something that is
+	  left.
+	- 17, MayThrow's early return: right as it is.  Nothing is done between BeginQuiet and that return, so there
+	  is no error to take away.
+	- 20, a pack's binding: WRONG, though not as the finding feared (no return comes between the set and the
+	  clear).  A pattern that expands the pack it is an element of, Pair<Count<Ts...>, Ts>..., gives 0 where it
+	  should give 43, and in a function's parameters the function is not found at all.  Without the nested
+	  Count<Ts...> the same program is right; with it on either side of Ts it is wrong.  By reading: the inner
+	  expansion sets the pack's own binding to each element and clears it, which is the outer expansion's
+	  element.  Cases TempVariadicNestedSamePack(W) and TempVariadicNestedInParameters(C), on Clause14's lists
+	  until stage 5.
+	- 23, Same against Equals: WRONG at both places that used Equals.  A class's D(const int*) stood for the
+	  inherited B(int*), and its f(const int*) hid the base's f(int*) brought in by using: both returned 2 for
+	  1.  Put right here (a word each: Same).  Beside the second, f(int) hid the base's f(int) const
+	  ([namespace.udecl] 15 counts const, volatile and & or &&): put right here too.  Cases
+	  SpecialInheritingConstBelowNotHidden, UsingMemberConstBelowNotHidden, UsingMemberConstNotHidden.
+	- 25, AppendVariableLabel marking the variable used: right as it is.  "Used" is read in two places and both
+	  mean "its label is named": a static member that is named and never defined, and an instance's static
+	  defined when it is.  What misleads is the name; stage 13 has it.
+
+	The diagnostics no test raised.  Of appendix A's 46 lines in this layer, 37 are raised now: 35 with the text
+	asserted, by the 40 programs of TestCPP65GeneratorSemanticErrors (where one text is said in two places there
+	is a program for each; two of the 35 are said in other words than the appendix has), and 2 said by
+	conformance cases added since the appendix ("A constexpr variable needs an initialiser", "This member is not
+	supported by the compiler yet").  Not raised by any program tried, 9:
+	- "It needs its own value" and "Too many constants need each other" (CCPPConstants::Value): the programs
+	  that should raise them overflow the compiler's stack before they get there (below).
+	- "Its initialiser uses what the compiler can't work out yet" (CCPPConstants), "The class template has not
+	  been defined" (GetComponentClass), "This literal is not supported by the compiler yet" (Literal), "This
+	  part of a string literal is not supported by the compiler yet" and "Invalid escape sequence in a string
+	  literal" (the string decoder), "This template parameter is not supported by the compiler yet"
+	  (BindArguments): each is the last arm of a ladder whose other arms took every program tried (another error
+	  is said first, or the tokeniser or the parser refuses the source before the unit sees it).
+	- "Integers wider than 64 bits are not supported by the compiler" (Supported): no type the compiler has is a
+	  scalar wider than 8 bytes; long double is 8.
+
+	Found on the way, by the kit and by the programs tried:
+	- A class's error built with a constant's reason was said as whatever was in its memory afterwards.  The
+	  first comparison of two diagnostics files showed it: "Test.cpp (2, 20): <four bytes of nothing> [gN]" for
+	  a bit-field whose width isn't a constant, different each run.  SCPPClassError kept the caller's pointer
+	  and ClassBitField killed the string.  The two conformance cases that have such a bit-field passed all the
+	  same, since a refused case passes whatever is said (finding 94).  Put right here: the error owns its
+	  text, and four programs assert the bit-field texts.  masClassErrors is one of finding 17's five side
+	  stores; stage 4 takes it away.
+	- The compiler overflows its stack (it stops, saying nothing) on a constant that needs itself.  Two paths,
+	  each with no guard (finding 16's guards cover three others):
+	    constexpr int a = a + 1;                      FoldConstant follows the name to its initialiser, which is
+	                                                  the name again (FoldConstant, Constant, FoldConstant, ...).
+	    constexpr int g(int x) { return x; }
+	    template<int N> struct F { static constexpr int v = g(F<N - 1>::v) + 1; };
+	    template<> struct F<0> { static constexpr int v = 1; };
+	    int main() { return F<2>::v; }                valid, and 3 by g++: typing F<1>::v asks its constant,
+	                                                  RunConstant asks its type, which asks its constant
+	                                                  (IdExpression, Constant, RunConstant, TypeOf, ...).  F<1>
+	                                                  alone is right.
+	  A crash cannot be a conformance case.  Stage 3's one guard is where both end; they are tried again there
+	  and become cases.
+	- constexpr P p; of a class with a constexpr default constructor is refused ("A constexpr variable needs an
+	  initialiser"); it is valid.  Case DclConstexprObjectDefaultConstructed(C), on Clause7's lists until
+	  stage 11.
+	- struct S { static constexpr int a; }; with no definition outside is accepted, and fails only at the link.
+	  Case DclConstexprStaticMemberNeverInitialisedRefused(A), and (M) for the semantic pass; stage 11.
+	- Errors said twice at one place, for stage 4 to say once: "A class template needs template arguments"
+	  (sizeof(S) of a template), "A variable template is named with its template arguments" (twice, and then
+	  "Only variables are supported by the compiler here yet").
+	- An error said quietly and then lost, for stage 4: a class with a member the compiler refuses (a
+	  using-directive, an asm declaration, a namespace alias or a linkage specification written in a class)
+	  gives only "This function uses C++ the 65C64 compiler doesn't support yet (CPP65IRFrontEndValues.cpp line
+	  161)" where the class is used; "This member is not supported by the compiler yet" is not said (it is said
+	  of a using-declaration that names no base).  struct
+	  alignas(n) S with n not a constant goes the same way, where alignas(n) on a variable says "The alignment
+	  must be a constant".
+
+	Proved (the compiler with the counts, the four repairs and the new tests, against the baseline):
+	- TestCppCompilerLib: 271,624 run, none failed.  (The run before, with four programs fewer, counted 271,640:
+	  the total moves between two runs that both pass.  Why is looked at in stage 1, where two runs' logs are
+	  set side by side.)
+	- Diagnostics: 5,780 entries.  The 21 new are the seven new cases'; 6 differ, the two bit-field cases on
+	  each processor and in the check, which say "A bit-field's width must be a constant of 0 or more" where
+	  they said nothing readable.  Nothing else differs.
+	- Listings: 4,201, none different.  So the counts cost the code nothing, and no unit of the three libraries
+	  has a constructor, a used function or a bit-field the repairs touch.

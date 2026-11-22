@@ -392,3 +392,21 @@ int main()
 	if (sizeof(::B) == sizeof(B)) r += 8;
 	return r;
 }
+
+### TempVariadicNestedSamePack | 43 | 14.5.3 [temp.variadic] p4, p7: a pattern that expands the pack it is an element of (Count<Ts...> in Pair<Count<Ts...>, Ts>...)
+template<class... Ts> struct Count { enum { value = sizeof...(Ts) }; };
+template<class A, class B> struct Pair { enum { value = A::value * 10 + sizeof(B) }; };
+template<class... Ps> struct Sum;
+template<> struct Sum<> { enum { value = 0 }; };
+template<class P, class... Ps> struct Sum<P, Ps...> { enum { value = P::value + Sum<Ps...>::value }; };
+template<class... Ts> struct Outer { enum { value = Sum<Pair<Count<Ts...>, Ts>...>::value }; };
+int main() { return Outer<char, short>::value; }
+
+### TempVariadicNestedInParameters | 45 | 14.5.3 [temp.variadic] p4, p7: the same in a function's parameters
+template<class... Ts> struct Count { enum { value = sizeof...(Ts) }; };
+template<class A, class B> struct Pair { enum { value = A::value * 10 + sizeof(B) }; };
+template<class... Ps> struct Sum;
+template<> struct Sum<> { enum { value = 0 }; };
+template<class P, class... Ps> struct Sum<P, Ps...> { enum { value = P::value + Sum<Ps...>::value }; };
+template<class... Ts> struct Holder { static int g(Pair<Count<Ts...>, Ts>... p) { return Sum<Pair<Count<Ts...>, Ts>...>::value + (int)sizeof...(p); } };
+int main() { return Holder<char, short>::g(Pair<Count<char, short>, char>(), Pair<Count<char, short>, short>()); }

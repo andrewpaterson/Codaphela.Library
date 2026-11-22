@@ -10356,6 +10356,18 @@ static const SConformanceCase gasConformanceClause7[] =
 		"struct U* p;\n"
 		"int main() { return 0; }\n"
 	},
+	//7.1.5 [dcl.constexpr] p9: a constexpr object of a class is initialised by its constexpr default constructor, with no initialiser written
+	{
+		"DclConstexprObjectDefaultConstructed", 1,
+		"struct P { constexpr P() : x(1) {} int x; };\n"
+		"int main() { constexpr P p; return p.x; }\n"
+	},
+	//7.1.5 [dcl.constexpr] p9, 9.4.2 [class.static.data] p3: a constexpr static member with no initialiser in its class is an error where it is declared, with no definition outside to say it of
+	{
+		"DclConstexprStaticMemberNeverInitialisedRefused", CONFORMANCE_REFUSED,
+		"struct S { static constexpr int a; };\n"
+		"int main() { return S::a; }\n"
+	},
 	//7.2 [dcl.enum] p5, p6, 4.5 [conv.prom] p4: an enum's underlying type, fixed or big enough for its values; a fixed one's values promoted
 	{
 		"DclEnumUnderlyingType", 15,
@@ -10764,6 +10776,20 @@ static const SConformanceCase gasConformanceClause7[] =
 		"DclAttributeCarriesDependency", 1,
 		"int F([[carries_dependency]] int* p) { return *p; }\n"
 		"int main() { int x = 1; return F(&x); }\n"
+	},
+	//7.3.3 [namespace.udecl] p15: a member hides a used one only with the same parameter types: const int* is not int*
+	{
+		"UsingMemberConstBelowNotHidden", 1,
+		"struct B { int f(int* p) { return 1; } };\n"
+		"struct D : B { using B::f; int f(const int* p) { return 2; } };\n"
+		"int main() { int x; D d; return d.f(&x); }\n"
+	},
+	//7.3.3 [namespace.udecl] p15: a member hides a used one only with the same const: f(int) doesn't hide the base's f(int) const
+	{
+		"UsingMemberConstNotHidden", 1,
+		"struct B { int f(int) const { return 1; } };\n"
+		"struct D : B { using B::f; int f(int) { return 2; } };\n"
+		"int main() { const D d = D(); return d.f(0); }\n"
 	},
 };
 
@@ -15056,6 +15082,13 @@ static const SConformanceCase gasConformanceClause12[] =
 		"	return 1;\n"
 		"}\n"
 	},
+	//12.9 [class.inhctor] p3: a constructor is left out only for one of the class's with the same signature: const int* is not int*
+	{
+		"SpecialInheritingConstBelowNotHidden", 1,
+		"struct B { int v; B(int* p) : v(1) {} };\n"
+		"struct D : B { using B::B; D(const int* p) : B((int*)0) { v = 2; } };\n"
+		"int main() { int x; int* p = &x; D d(p); return d.v; }\n"
+	},
 };
 
 
@@ -17752,6 +17785,28 @@ static const SConformanceCase gasConformanceClause14[] =
 		"	if (sizeof(::B) == sizeof(B)) r += 8;\n"
 		"	return r;\n"
 		"}\n"
+	},
+	//14.5.3 [temp.variadic] p4, p7: a pattern that expands the pack it is an element of (Count<Ts...> in Pair<Count<Ts...>, Ts>...)
+	{
+		"TempVariadicNestedSamePack", 43,
+		"template<class... Ts> struct Count { enum { value = sizeof...(Ts) }; };\n"
+		"template<class A, class B> struct Pair { enum { value = A::value * 10 + sizeof(B) }; };\n"
+		"template<class... Ps> struct Sum;\n"
+		"template<> struct Sum<> { enum { value = 0 }; };\n"
+		"template<class P, class... Ps> struct Sum<P, Ps...> { enum { value = P::value + Sum<Ps...>::value }; };\n"
+		"template<class... Ts> struct Outer { enum { value = Sum<Pair<Count<Ts...>, Ts>...>::value }; };\n"
+		"int main() { return Outer<char, short>::value; }\n"
+	},
+	//14.5.3 [temp.variadic] p4, p7: the same in a function's parameters
+	{
+		"TempVariadicNestedInParameters", 45,
+		"template<class... Ts> struct Count { enum { value = sizeof...(Ts) }; };\n"
+		"template<class A, class B> struct Pair { enum { value = A::value * 10 + sizeof(B) }; };\n"
+		"template<class... Ps> struct Sum;\n"
+		"template<> struct Sum<> { enum { value = 0 }; };\n"
+		"template<class P, class... Ps> struct Sum<P, Ps...> { enum { value = P::value + Sum<Ps...>::value }; };\n"
+		"template<class... Ts> struct Holder { static int g(Pair<Count<Ts...>, Ts>... p) { return Sum<Pair<Count<Ts...>, Ts>...>::value + (int)sizeof...(p); } };\n"
+		"int main() { return Holder<char, short>::g(Pair<Count<char, short>, char>(), Pair<Count<char, short>, short>()); }\n"
 	},
 };
 

@@ -1809,6 +1809,7 @@ bool CCPPUnit::IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName)
 	size				j;
 	bool				bHidden;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if (pcClass->macBases.NumElements() == 0)
 	{
 		return false;
@@ -1880,6 +1881,7 @@ void CCPPUnit::FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses* 
 	CCPPScope*	pcScope;
 	size		i;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	pcScope = pcClass->mpcSpecifier ? pcClass->mpcSpecifier->mpcScope : ((pcClass->mpcSymbol) ? pcClass->mpcSymbol->mpcMembers : NULL);
 	if (pcScope && pcScope->FindHere(lliName))
 	{
@@ -2079,6 +2081,7 @@ void CCPPUnit::ReportFailedDeclaration(int64 lliName)
 		{
 			pcSpecifiers = ((CCPPSyntaxFunctionDefinition*)pcParent)->mpcSpecifiers;
 		}
+		mpcStatistics->Count(CPPCC_ReportedAgain);
 		DeclareFunction(pcSpecifiers, pcDeclarator, false, NULL, false);
 		return;
 	}
@@ -2325,6 +2328,7 @@ SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
 void CCPPUnit::ReportTypeOf(CCPPSyntax* pcExpression)
 {
 	BeginLoud();
+	mpcStatistics->Count(CPPCC_ReportedAgain);
 	mpcStatistics->Begin(CPPCP_Types);
 	mcTypeChecker.Value(pcExpression);
 	mpcStatistics->End(CPPCP_Types);
@@ -2454,7 +2458,18 @@ bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDecla
 bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 {
 	mpcConstants->ClearReason();
-	return FoldConstant(pcExpression, plliValue) || RunConstant(pcExpression, plliValue);
+	mpcStatistics->Count(CPPCC_Constants);
+	if (FoldConstant(pcExpression, plliValue))
+	{
+		mpcStatistics->Count(CPPCC_ConstantsFolded);
+		return true;
+	}
+	if (RunConstant(pcExpression, plliValue))
+	{
+		mpcStatistics->Count(CPPCC_ConstantsRun);
+		return true;
+	}
+	return false;
 }
 
 

@@ -73,6 +73,7 @@ bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 	CCPPBoundName				cBound;
 	SCPP65Type*					psType;
 
+	mpcStatistics->Count(CPPCC_IsRvalue);
 	pcExpression = CommaResult(pcExpression);
 	switch (pcExpression->GetKind())
 	{
@@ -165,6 +166,7 @@ bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 	CCPPSyntaxUnaryExpression*			pcUnary;
 	CCPPSyntaxConditionalExpression*	pcConditional;
 
+	mpcStatistics->Count(CPPCC_MakesObject);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_CallExpression:
@@ -1412,6 +1414,7 @@ bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
+	mpcStatistics->Count(CPPCC_IsObjectLvalue);
 	pcExpression = SkipParentheses(pcExpression);
 	psType = DeclaredTypeOf(pcExpression);
 	if (psType && psType->IsReference())
@@ -1442,6 +1445,7 @@ SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psPlace;
 
+	mpcStatistics->Count(CPPCC_PlaceOf);
 	//A failure here is not one of the quiet code around it.
 	BeginTrial();
 	mpcStatistics->Begin(CPPCP_Types);
@@ -1599,6 +1603,7 @@ bool CCPPUnit::IsObject(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
+	mpcStatistics->Count(CPPCC_IsObject);
 	psType = ValueTypeOf(pcExpression);
 	return psType && psType->IsClass();
 }

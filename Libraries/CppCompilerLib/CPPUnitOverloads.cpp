@@ -91,6 +91,7 @@ bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 	size		i;
 	int			iOffset;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if ((pcClass != pcBase) && !pcClass->IsComplete())
 	{
 		//The bases are enough to know; their offsets need the class laid out.
@@ -138,6 +139,7 @@ size CCPPUnit::CountBases(CCPPClass* pcClass, CCPPClass* pcBase)
 	size				uiCount;
 	size				i;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if (!IsDerived(pcClass, pcBase, NULL))
 	{
 		return 0;
@@ -165,6 +167,7 @@ void CCPPUnit::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVir
 	SCPPBase*	psBase;
 	size		i;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
@@ -189,6 +192,7 @@ size CCPPUnit::CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase)
 	size		uiCount;
 	size		i;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if (pcClass == pcBase)
 	{
 		return 1;
@@ -219,6 +223,7 @@ SCPPVirtualBase* CCPPUnit::VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, 
 	size				i;
 	int					iOffset;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(i);
@@ -244,6 +249,7 @@ bool CCPPUnit::CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffs
 	SCPPVirtualBase*	psVirtual;
 	int					iBelow;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if (!IsDerived(pcClass, pcBase, piOffset))
 	{
 		return false;

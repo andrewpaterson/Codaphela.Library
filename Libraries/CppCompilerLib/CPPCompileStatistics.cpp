@@ -75,6 +75,19 @@ static const char*	gaszCPPCompileCounts[CPPCC_NumCounts] =
 	"class layouts",
 	"class layouts where defined",
 	"named instance nodes",
+	"errors taken away",
+	"reported again",
+	"constants",
+	"constants folded",
+	"constants run",
+	"float constants",
+	"float constants folded",
+	"base walks",
+	"PlaceOf",
+	"IsRvalue",
+	"IsObject",
+	"MakesObject",
+	"IsObjectLvalue",
 };
 
 

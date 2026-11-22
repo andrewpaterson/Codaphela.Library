@@ -447,6 +447,7 @@ void CCPPUnit::CountBasePaths(CCPPClass* pcClass, CCPPClass* pcBase, int iOffset
 	SCPPBase*	psBase;
 	size		i;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if (pcClass == pcBase)
 	{
 		if (bVirtual)

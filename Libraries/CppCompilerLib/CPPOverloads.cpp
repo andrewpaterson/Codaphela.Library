@@ -178,9 +178,14 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 		{
 			continue;
 		}
+		if ((pcOwn->mbConstThis != pcFunction->mbConstThis) || (pcOwn->mbVolatileThis != pcFunction->mbVolatileThis) || (pcOwn->meRefQualifier != pcFunction->meRefQualifier))
+		{
+			//f() doesn't hide the base's f() const: the same parameters, const, volatile and & or && hide.  [namespace.udecl] 15
+			continue;
+		}
 		for (j = 0; j < pcOwn->mapsParameters.NumElements(); j++)
 		{
-			if (!pcOwn->mapsParameters.GetPtr(j)->Equals(pcFunction->mapsParameters.GetPtr(j)))
+			if (!pcOwn->mapsParameters.GetPtr(j)->Same(pcFunction->mapsParameters.GetPtr(j)))
 			{
 				break;
 			}

@@ -150,6 +150,7 @@ void CCPPUnit::SetStatistics(CCPPCompileStatistics* pcStatistics)
 {
 	mpcStatistics = pcStatistics ? pcStatistics : &mcOwnStatistics;
 	mpcIRFrontEnd->SetStatistics(mpcStatistics);
+	mcErrors.CountTakenAway(mpcStatistics);
 }
 
 
@@ -342,6 +343,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcConstants->Init(this);
 	mcTypeChecker.Init(this);
 	mcErrors.Init();
+	mcErrors.CountTakenAway(mpcStatistics);
 	masClassErrors.Init();
 	mcWarnings.Init();
 
@@ -528,6 +530,7 @@ void CCPPUnit::Kill(void)
 	mapcGlobals.Kill();
 
 	mcWarnings.Kill();
+	FreeClassErrors();
 	masClassErrors.Kill();
 	mcErrors.Kill();
 	maiExitShared.Kill();

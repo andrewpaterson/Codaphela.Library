@@ -327,3 +327,13 @@ int main() { return F(); }
 ### DclAttributeCarriesDependency | 1 | 7.6.4 [dcl.attr.depend]: [[carries_dependency]] on a parameter is accepted
 int F([[carries_dependency]] int* p) { return *p; }
 int main() { int x = 1; return F(&x); }
+
+### UsingMemberConstBelowNotHidden | 1 | 7.3.3 [namespace.udecl] p15: a member hides a used one only with the same parameter types: const int* is not int*
+struct B { int f(int* p) { return 1; } };
+struct D : B { using B::f; int f(const int* p) { return 2; } };
+int main() { int x; D d; return d.f(&x); }
+
+### UsingMemberConstNotHidden | 1 | 7.3.3 [namespace.udecl] p15: a member hides a used one only with the same const: f(int) doesn't hide the base's f(int) const
+struct B { int f(int) const { return 1; } };
+struct D : B { using B::f; int f(int) { return 2; } };
+int main() { const D d = D(); return d.f(0); }

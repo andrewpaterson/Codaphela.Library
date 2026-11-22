@@ -440,6 +440,7 @@ CCPPClass* CCPPUnit::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTempla
 	CCPPClass*	pcBase;
 	size			i;
 
+	mpcStatistics->Count(CPPCC_BaseWalks);
 	if (pcClass->mpcTemplate && (pcClass->mpcTemplate->mpcPrimary == pcTemplate))
 	{
 		return pcClass;
@@ -1294,7 +1295,8 @@ void CCPPUnit::InheritConstructors(CCPPClass* pcClass)
 			bSame = true;
 			for (k = 0; bSame && (k < pcOwn->mapsParameters.NumElements()); k++)
 			{
-				bSame = pcOwn->mapsParameters.GetPtr(k)->Equals(pcInherited->mapsParameters.GetPtr(k));
+				//The same signature: const below the top makes another (D(const int*) doesn't stand for B(int*)).
+				bSame = pcOwn->mapsParameters.GetPtr(k)->Same(pcInherited->mapsParameters.GetPtr(k));
 			}
 		}
 		if (bSame)
@@ -1668,7 +1670,7 @@ bool CCPPUnit::ClassError(int iToken, const char* szMessage)
 
 	psError = masClassErrors.Add();
 	psError->iToken = iToken;
-	psError->szMessage = szMessage;
+	psError->szMessage.Init(szMessage);
 	return false;
 }
 
@@ -1742,7 +1744,24 @@ void CCPPUnit::ReportClassErrors(void)
 
 	for (i = 0; i < masClassErrors.NumElements(); i++)
 	{
-		ErrorAt(masClassErrors.Get(i)->iToken, masClassErrors.Get(i)->szMessage);
+		ErrorAt(masClassErrors.Get(i)->iToken, masClassErrors.Get(i)->szMessage.Text());
+	}
+	FreeClassErrors();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class errors kept are let go, said or not.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::FreeClassErrors(void)
+{
+	size	i;
+
+	for (i = 0; i < masClassErrors.NumElements(); i++)
+	{
+		masClassErrors.Get(i)->szMessage.Kill();
 	}
 	masClassErrors.ReInit();
 }
