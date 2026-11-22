@@ -3143,7 +3143,7 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 		if (VariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
 		{
 			//A member variable template is specialised outside its class, as g++ has it.  [temp.class.spec] 5
-			return ClassError(pcDeclaration->miFirstToken, "A member variable template is specialised outside its class");
+			return mcDiagnostics.Defer(pcDeclaration->miFirstToken, "A member variable template is specialised outside its class");
 		}
 		//template<class T> static const int size = sizeof(T); in a class: a variable template that is its static member.
 		pcTemplate = NewTemplate(VariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSymbol, pcTemplateDeclaration, pcDeclaration, false);
