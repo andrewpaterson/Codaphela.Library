@@ -710,6 +710,47 @@ bool CCPPUnit::FindSpecifier(CCPPClass* pcClass)
 // Lays out a class the first time it is needed whole.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// Keeps a definition written outside its class template (masOutsideDefinitions)
+// with the pieces of it its readers want: pcDefined is the function
+// definition or the simple declaration it is, pcDeclaration the template
+// declaration whose parameters name the class template's, and pcMember a
+// member template's own, in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined)
+{
+	SCPPOutsideDefinition*	psDefinition;
+
+	psDefinition = masOutsideDefinitions.Add();
+	memset(psDefinition, 0, sizeof(SCPPOutsideDefinition));
+	psDefinition->eKind = eKind;
+	psDefinition->pcDeclaration = pcDeclaration;
+	psDefinition->pcMember = pcMember;
+	if (pcDefined->GetKind() == CPPS_FunctionDefinition)
+	{
+		psDefinition->pcFunction = (CCPPSyntaxFunctionDefinition*)pcDefined;
+		psDefinition->pcName = psDefinition->pcFunction->mpcDeclarator->GetName();
+		return;
+	}
+	psDefinition->pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDefined;
+	switch (eKind)
+	{
+	case CPPOD_MemberClass:
+		psDefinition->pcSpecifier = (CCPPSyntaxClassSpecifier*)psDefinition->pcSimple->mpcSpecifiers->mpcType;
+		break;
+	case CPPOD_StaticMember:
+		psDefinition->pcInit = (CCPPSyntaxInitDeclarator*)psDefinition->pcSimple->macpDeclarators.GetPtr(0);
+		psDefinition->pcName = psDefinition->pcInit->mpcDeclarator->GetName();
+		break;
+	default:
+		psDefinition->pcName = MemberVariableTemplateName(psDefinition->pcSimple);
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 {
 	if (pcClass->IsComplete())
@@ -740,7 +781,7 @@ void CCPPUnit::MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition)
 	CCPPClass*	pcClass;
 	size		i;
 
-	mapcMemberSpecialisations.Add(pcDefinition);
+	AddOutsideDefinition(CPPOD_MemberSpecialisation, NULL, NULL, pcDefinition);
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClass = mapcClasses.GetPtr(i);
@@ -761,9 +802,12 @@ void CCPPUnit::SpecialiseMembers(CCPPClass* pcClass)
 {
 	size	i;
 
-	for (i = 0; i < mapcMemberSpecialisations.NumElements(); i++)
+	for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 	{
-		SpecialiseMember(pcClass, (CCPPSyntaxFunctionDefinition*)mapcMemberSpecialisations.GetPtr(i));
+		if (masOutsideDefinitions.Get(i)->eKind == CPPOD_MemberSpecialisation)
+		{
+			SpecialiseMember(pcClass, masOutsideDefinitions.Get(i)->pcFunction);
+		}
 	}
 }
 

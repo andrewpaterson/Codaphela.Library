@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 8 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 9 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -831,3 +831,21 @@ Stage 14 (2026-11-22): the IDE's hook, its first part.
 	only with a semantic pass, so no listing can move.  The IDE's three Convert Enum checks: enum-to-class-no-casts
 	and enum-to-class-casts-shown pass, and enum-to-class fails, as it did on 2026-11-21, with the same output
 	before and after.
+
+Stage 9 (2026-11-22): definitions outside their class template.
+
+	The six untyped lists of syntax (mapcMemberSpecialisations, mapcMemberTemplateSpecialisations,
+	mapcMemberClassTemplates, mapcMemberVariableTemplates, mapcMemberVariableSpecialisations and
+	mapcStaticMemberTemplates; the plan counted five) are one typed list, masOutsideDefinitions, of
+	SCPPOutsideDefinition records: what the definition is (ECPPOutsideDefinition), the template declaration whose
+	parameters name the class template's, a member template's own, and the function, declaration, class
+	specifier, declarator and name it defines.  AddOutsideDefinition works those out once when the definition is
+	seen; the seven readers take them from the record, where each cast the syntax back and worked the name out
+	again (MemberClassDefinition had to ask which of two shapes it had been given).
+	Not done: TemplateDeclaration's arms that classify the definition are as they were (each now ends in
+	AddOutsideDefinition with its kind); making them one function that returns a kind moves the arms, not what
+	they decide, and is left.  Declarations still asks IsOutsideMemberTemplate of each declaration twice; it is a
+	walk of a few nodes.
+
+	Proved: TestCppCompilerLib passes (272,049); the 5,840 diagnostics entries and the 4,205 listings are as they
+	were; time is as it was (declarations 6,408 and 6,401 ms, types 6,408 and 6,453).

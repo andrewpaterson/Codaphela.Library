@@ -99,11 +99,15 @@ bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 	bool							bDefined;
 
 	bDefined = false;
-	for (i = 0; i < mapcStaticMemberTemplates.NumElements(); i++)
+	for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 	{
-		pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcStaticMemberTemplates.GetPtr(i);
-		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration;
-		pcName = ((CCPPSyntaxInitDeclarator*)pcSimple->macpDeclarators.GetPtr(0))->mpcDeclarator->GetName();
+		if (masOutsideDefinitions.Get(i)->eKind != CPPOD_StaticMember)
+		{
+			continue;
+		}
+		pcDeclaration = masOutsideDefinitions.Get(i)->pcDeclaration;
+		pcSimple = masOutsideDefinitions.Get(i)->pcSimple;
+		pcName = masOutsideDefinitions.Get(i)->pcName;
 		pcOwner = GetComponentTemplate(pcName->GetQualifier());
 		for (j = 0; j < mapcClasses.NumElements(); j++)
 		{
@@ -139,20 +143,16 @@ bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPUnit::InstanceStaticInitialiser(CCPPClass* pcClass, CCPPSymbol* pcSymbol, CCPPTemplateArguments** ppcBindings)
 {
-	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
-	CCPPSyntaxInitDeclarator*		pcInit;
-	CCPPSyntaxName*					pcName;
-	size							i;
+	SCPPOutsideDefinition*	psDefinition;
+	size					i;
 
-	for (i = 0; i < mapcStaticMemberTemplates.NumElements(); i++)
+	for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 	{
-		pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcStaticMemberTemplates.GetPtr(i);
-		pcInit = (CCPPSyntaxInitDeclarator*)((CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration)->macpDeclarators.GetPtr(0);
-		pcName = pcInit->mpcDeclarator->GetName();
-		if ((pcName->mpcSymbol == pcSymbol) && pcInit->mpcInitializer && (GetComponentTemplate(pcName->GetQualifier()) == pcClass->mpcTemplate))
+		psDefinition = masOutsideDefinitions.Get(i);
+		if ((psDefinition->eKind == CPPOD_StaticMember) && (psDefinition->pcName->mpcSymbol == pcSymbol) && psDefinition->pcInit->mpcInitializer && (GetComponentTemplate(psDefinition->pcName->GetQualifier()) == pcClass->mpcTemplate))
 		{
-			*ppcBindings = RenameBindings(pcClass, pcDeclaration);
-			return pcInit->mpcInitializer;
+			*ppcBindings = RenameBindings(pcClass, psDefinition->pcDeclaration);
+			return psDefinition->pcInit->mpcInitializer;
 		}
 	}
 	return NULL;
@@ -310,21 +310,17 @@ CCPPTemplate* CCPPUnit::ClassVariableTemplate(CCPPSymbol* pcSymbol, CCPPClass* p
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DefineMemberVariableTemplate(CCPPTemplate* pcTemplate)
 {
-	CCPPSyntaxTemplateDeclaration*	pcOutside;
-	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
-	CCPPSyntaxSimpleDeclaration*	pcSimple;
-	size							i;
+	SCPPOutsideDefinition*	psDefinition;
+	size					i;
 
-	for (i = 0; i < mapcMemberVariableTemplates.NumElements(); i++)
+	for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 	{
-		pcOutside = (CCPPSyntaxTemplateDeclaration*)mapcMemberVariableTemplates.GetPtr(i);
-		pcDeclaration = (CCPPSyntaxTemplateDeclaration*)pcOutside->mpcDeclaration;
-		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration->mpcDeclaration;
-		if (MemberVariableTemplateName(pcSimple)->mpcSymbol == pcTemplate->mpcSymbol)
+		psDefinition = masOutsideDefinitions.Get(i);
+		if ((psDefinition->eKind == CPPOD_MemberVariableTemplate) && (psDefinition->pcName->mpcSymbol == pcTemplate->mpcSymbol))
 		{
-			pcTemplate->mpcDeclaration = pcDeclaration;
-			pcTemplate->mpcDefinition = pcSimple;
-			pcTemplate->mpcClassDeclaration = pcOutside;
+			pcTemplate->mpcDeclaration = psDefinition->pcMember;
+			pcTemplate->mpcDefinition = psDefinition->pcSimple;
+			pcTemplate->mpcClassDeclaration = psDefinition->pcDeclaration;
 			return;
 		}
 	}
@@ -553,7 +549,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 	{
 		//template<> template<> int S<int>::f<char>(char) { ... }: a member template's explicit specialisation for one
 		//instance of its class template, found when that instance's member template is instantiated.  [temp.expl.spec] 16
-		mapcMemberTemplateSpecialisations.Add(pcDeclaration);
+		AddOutsideDefinition(CPPOD_MemberTemplateSpecialisation, (CCPPSyntaxTemplateDeclaration*)pcDeclaration, NULL, ((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration);
 		return true;
 	}
 
@@ -572,7 +568,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		{
 			//template<class T> template<class U> struct Outer<T>::Pair { ... }; defines each instance's member class template
 			//(MemberTemplate).
-			mapcMemberClassTemplates.Add(pcClassTemplate);
+			AddOutsideDefinition(CPPOD_MemberClass, pcClassTemplate, pcTemplateDeclaration, pcDeclaration);
 			return true;
 		}
 		if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
@@ -580,7 +576,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			//template<class C> template<class T> constexpr bool W<C>::same<T*> = true; partially specialises each instance's
 			//member variable template: those laid out already, and the others' as they are (MemberTemplate).
 			//[temp.class.spec] 5
-			mapcMemberVariableSpecialisations.Add(pcClassTemplate);
+			AddOutsideDefinition(CPPOD_MemberVariableSpecialisation, pcClassTemplate, pcTemplateDeclaration, pcDeclaration);
 			pcName = MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
 			for (i = 0; i < mapcTemplates.NumElements(); i++)
 			{
@@ -596,7 +592,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		{
 			//template<class C> template<class T> T W<C>::value = T(2); defines each instance's member variable template:
 			//those of the instances laid out already, and the others' as they are (MemberTemplate).
-			mapcMemberVariableTemplates.Add(pcClassTemplate);
+			AddOutsideDefinition(CPPOD_MemberVariableTemplate, pcClassTemplate, pcTemplateDeclaration, pcDeclaration);
 			pcName = MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
 			for (i = 0; i < mapcTemplates.NumElements(); i++)
 			{
@@ -630,7 +626,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 			else if (!bExplicit && pcSpecifier->mpcName->IsQualifiedByClass() && pcSpecifier->mpcSymbol && (pcSpecifier->mpcSymbol->meKind == CPPSK_Class))
 			{
 				//template<class T> struct Outer<T>::Inner { ... }; defines each instance's member class (FindSpecifier).
-				mapcMemberClassTemplates.Add(pcTemplateDeclaration);
+				AddOutsideDefinition(CPPOD_MemberClass, pcTemplateDeclaration, NULL, pcSimple);
 			}
 			else if (!bExplicit)
 			{
@@ -645,7 +641,7 @@ bool CCPPUnit::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDecl
 		else if (!bExplicit && IsStaticMemberDefinition(pcSimple))
 		{
 			//template<class T> int S<T>::count = 3; is each instance's (DefineInstanceStatics).
-			mapcStaticMemberTemplates.Add(pcTemplateDeclaration);
+			AddOutsideDefinition(CPPOD_StaticMember, pcTemplateDeclaration, NULL, pcSimple);
 		}
 		else if (bExplicit && IsStaticMemberDefinition(pcSimple))
 		{
@@ -2865,11 +2861,15 @@ void CCPPUnit::AddMemberTemplateSpecialisations(CCPPTemplate* pcPrimary)
 	size							j;
 	bool							bMade;
 
-	for (i = 0; i < mapcMemberTemplateSpecialisations.NumElements(); i++)
+	for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 	{
-		pcInner = (CCPPSyntaxTemplateDeclaration*)mapcMemberTemplateSpecialisations.GetPtr(i);
-		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcInner->mpcDeclaration;
-		pcName = pcDefinition->mpcDeclarator->GetName();
+		if (masOutsideDefinitions.Get(i)->eKind != CPPOD_MemberTemplateSpecialisation)
+		{
+			continue;
+		}
+		pcInner = masOutsideDefinitions.Get(i)->pcDeclaration;
+		pcDefinition = masOutsideDefinitions.Get(i)->pcFunction;
+		pcName = masOutsideDefinitions.Get(i)->pcName;
 		if (!pcName || (GetFunctionName(pcName->GetLast()) != pcPrimary->mlliName))
 		{
 			continue;
@@ -3033,24 +3033,16 @@ bool CCPPUnit::IsClassTemplateDefinition(CCPPSyntax* pcDeclaration)
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxClassSpecifier* CCPPUnit::MemberClassDefinition(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration** ppcDeclaration)
 {
-	CCPPSyntaxTemplateDeclaration*	pcDeclaration;
-	CCPPSyntax*						pcDeclared;
-	CCPPSyntaxClassSpecifier*		pcSpecifier;
-	size							i;
+	SCPPOutsideDefinition*	psDefinition;
+	size					i;
 
-	for (i = 0; i < mapcMemberClassTemplates.NumElements(); i++)
+	for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 	{
-		pcDeclaration = (CCPPSyntaxTemplateDeclaration*)mapcMemberClassTemplates.GetPtr(i);
-		pcDeclared = pcDeclaration->mpcDeclaration;
-		if (pcDeclared->GetKind() == CPPS_TemplateDeclaration)
+		psDefinition = masOutsideDefinitions.Get(i);
+		if ((psDefinition->eKind == CPPOD_MemberClass) && (psDefinition->pcSpecifier->mpcSymbol == pcSymbol))
 		{
-			pcDeclared = ((CCPPSyntaxTemplateDeclaration*)pcDeclared)->mpcDeclaration;
-		}
-		pcSpecifier = (CCPPSyntaxClassSpecifier*)((CCPPSyntaxSimpleDeclaration*)pcDeclared)->mpcSpecifiers->mpcType;
-		if (pcSpecifier->mpcSymbol == pcSymbol)
-		{
-			*ppcDeclaration = pcDeclaration;
-			return pcSpecifier;
+			*ppcDeclaration = psDefinition->pcDeclaration;
+			return psDefinition->pcSpecifier;
 		}
 	}
 	return NULL;
@@ -3149,9 +3141,12 @@ bool CCPPUnit::MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration*
 		pcTemplate = NewTemplate(VariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSymbol, pcTemplateDeclaration, pcDeclaration, false);
 		pcTemplate->mpcClass = pcClass;
 		DefineMemberVariableTemplate(pcTemplate);
-		for (i = 0; i < mapcMemberVariableSpecialisations.NumElements(); i++)
+		for (i = 0; i < masOutsideDefinitions.NumElements(); i++)
 		{
-			SpecialiseMemberVariableTemplate(pcTemplate, (CCPPSyntaxTemplateDeclaration*)mapcMemberVariableSpecialisations.GetPtr(i));
+			if (masOutsideDefinitions.Get(i)->eKind == CPPOD_MemberVariableSpecialisation)
+			{
+				SpecialiseMemberVariableTemplate(pcTemplate, masOutsideDefinitions.Get(i)->pcDeclaration);
+			}
 		}
 		return true;
 	}

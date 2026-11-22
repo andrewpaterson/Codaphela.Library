@@ -223,6 +223,36 @@ struct SCPPFailedDeclaration
 typedef CArrayTemplate<SCPPFailedDeclaration>	CArrayCPPFailedDeclarations;
 
 
+//What a definition written outside its class template defines (SCPPOutsideDefinition).
+enum ECPPOutsideDefinition
+{
+	CPPOD_MemberSpecialisation,			//template<> R Class<Arguments>::f() { ... }, given to its instance (SpecialiseMembers).
+	CPPOD_MemberTemplateSpecialisation,	//template<> template<> R Class<Arguments>::f<T>(...) { ... }, given to the instance's member template (AddMemberTemplateSpecialisations).
+	CPPOD_MemberClass,					//template<class T> struct Class<T>::Inner { ... }; and template<class T> template<class U> struct Class<T>::Pair { ... }; (MemberClassDefinition).
+	CPPOD_MemberVariableTemplate,		//template<class C> template<class T> T W<C>::value = ...;, each instance's member variable template's definition (DefineMemberVariableTemplate).
+	CPPOD_MemberVariableSpecialisation,	//template<class C> template<class T> T W<C>::value<T*> = ...;, each instance's member variable template's partial specialisation.
+	CPPOD_StaticMember,					//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
+};
+
+
+//A definition written outside its class template, kept to be given to each instance: what it is, and the pieces of it
+//its readers want, worked out once when it is seen (AddOutsideDefinition).
+struct SCPPOutsideDefinition
+{
+	ECPPOutsideDefinition			eKind;
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;	//The template declaration whose parameters name the class template's (the inner template<> of a member template's specialisation); NULL for a member's specialisation.
+	CCPPSyntaxTemplateDeclaration*	pcMember;		//A member template's own template declaration, in pcDeclaration; else NULL.
+	CCPPSyntaxFunctionDefinition*	pcFunction;		//The function defined, or NULL.
+	CCPPSyntaxSimpleDeclaration*	pcSimple;		//The declaration of the class, variable or static member defined, or NULL.
+	CCPPSyntaxClassSpecifier*		pcSpecifier;	//The member class defined, or NULL.
+	CCPPSyntaxInitDeclarator*		pcInit;			//The static member's declarator, or NULL.
+	CCPPSyntaxName*					pcName;			//The name defined (Class<T>::s, W<C>::value), or NULL for a class.
+};
+
+
+typedef CArrayTemplate<SCPPOutsideDefinition>	CArrayCPPOutsideDefinitions;
+
+
 //What a function has while it is entered (CCPPUnit::EnterFunction): its parameters and locals, and the function
 //parameter packs it can expand.  The unit's first is no function's: what is asked of when none is entered.
 struct SCPPFunctionScope
@@ -290,12 +320,7 @@ protected:
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
-	CArraySyntax			mapcMemberSpecialisations;	//template<> R Class<Arguments>::f() { ... }, each given to its instance.
-	CArraySyntax			mapcMemberTemplateSpecialisations;	//template<> template<> R Class<Arguments>::f<T>(...) { ... }: the inner template<>, given to the instance's member template (FindFunctionSpecialisation).
-	CArraySyntax			mapcMemberClassTemplates;	//template<class T> struct Class<T>::Inner { ... };, the definitions of class templates' member classes and member class templates (MemberClassDefinition).
-	CArraySyntax			mapcMemberVariableTemplates;	//template<class C> template<class T> T W<C>::value = ...;, each instance's member variable template's definition (DefineMemberVariableTemplate).
-	CArraySyntax			mapcMemberVariableSpecialisations;	//template<class C> template<class T> T W<C>::value<T*> = ...;, each instance's member variable template's partial specialisation (SpecialiseMemberVariableTemplate).
-	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
+	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
 	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
 	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
@@ -692,6 +717,7 @@ public:
 	void					AddLayout(CCPPClass* pcClass);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
+	void					AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined);
 	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);
 	bool					DefineInstanceData(void);
 	bool					DefineInstanceStatics(bool* pbResult);

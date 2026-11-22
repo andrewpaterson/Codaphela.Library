@@ -371,12 +371,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mapsLambdas.Init();
-	mapcMemberSpecialisations.Init();
-	mapcMemberTemplateSpecialisations.Init();
-	mapcMemberClassTemplates.Init();
-	mapcMemberVariableTemplates.Init();
-	mapcMemberVariableSpecialisations.Init();
-	mapcStaticMemberTemplates.Init();
+	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
 	mpcImplicitZero = NULL;
@@ -506,12 +501,7 @@ void CCPPUnit::Kill(void)
 	mcImplicitAssignments.Kill();
 	mcExplicitInstances.Kill();
 	FreeLambdas();
-	mapcMemberSpecialisations.Kill();
-	mapcMemberTemplateSpecialisations.Kill();
-	mapcStaticMemberTemplates.Kill();
-	mapcMemberVariableTemplates.Kill();
-	mapcMemberVariableSpecialisations.Kill();
-	mapcMemberClassTemplates.Kill();
+	masOutsideDefinitions.Kill();
 	mapcVariableInstances.Kill();
 	mcImplicitValues.Kill();
 	mapcQueue.Kill();
