@@ -71,6 +71,33 @@ typedef CArrayTemplate<SCPPDeducedPack>	CArrayCPPDeducedPacks;
 typedef CArrayTemplatePtr<SCPPBinding>	CArrayCPPBindingPtrs;
 
 
+//What a pack's binding had before one of its elements was entered (CCPPPackElements).
+struct SCPPPackWas
+{
+	SCPP65Type*		psType;
+	int64			lliValue;
+};
+
+
+typedef CArrayTemplate<SCPPPackWas>	CArrayCPPPackWas;
+
+
+//The packs a pattern names, one element of each at a time: element k is entered (Enter), and is what the pack's
+//parameter names, until the next is entered or the expansion is left (Kill), when what each pack's binding had
+//before comes back: an expansion inside another, of the same pack, leaves the outer's element as it found it.
+class CCPPPackElements
+{
+protected:
+	CArrayCPPBindingPtrs*	mpapsPacks;
+	CArrayCPPPackWas		masWas;
+
+public:
+	void	Init(CArrayCPPBindingPtrs* papsPacks);
+	void	Kill(void);
+	void	Enter(size uiElement);
+};
+
+
 //A template argument once its pack expansions are expanded (CCPPUnit::ExpandTemplateArguments): an argument as
 //written (pcArgument), or one element of a pack expansion, which is its type or, for a non-type pack, its value.
 struct SCPPExpandedArgument

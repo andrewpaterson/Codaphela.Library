@@ -23,8 +23,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 //Finds the parameter packs a pack expansion's pattern names: the packs of the bindings in use whose parameters it
-//names, other than one already being expanded (a type pack whose type is one element for now), and the function
-//parameter packs it names, of those the function being generated can expand (CCPPUnit::FindFunctionPack).
+//names, and the function parameter packs it names, of those the function being generated can expand
+//(CCPPUnit::FindFunctionPack).  Not in a pack expansion written inside the pattern, or in sizeof...: what is named
+//there is expanded there, as a whole (Pair<Count<Ts...>, Ts>... expands the second Ts).  [temp.variadic] 5
 class CCPPPackFinder : public CCPPSyntaxChildVisitor
 {
 public:
@@ -34,7 +35,25 @@ public:
 
 	void	Visit(CCPPSyntax* pcChild) override
 	{
-		pcChild->VisitFields(this);
+		if (!IsExpansion(pcChild))
+		{
+			pcChild->VisitFields(this);
+		}
+	}
+
+	static bool	IsExpansion(CCPPSyntax* pcNode)
+	{
+		switch (pcNode->GetKind())
+		{
+		case CPPS_PackExpansionExpression:
+			return true;
+		case CPPS_TypeId:
+			return ((CCPPSyntaxTypeId*)pcNode)->mbPack;
+		case CPPS_SizeofExpression:
+			return ((CCPPSyntaxSizeofExpression*)pcNode)->mbPack;
+		default:
+			return false;
+		}
 	}
 
 	void	SymbolField(CCPPSymbol** ppcSymbol) override
@@ -50,7 +69,7 @@ public:
 			return;
 		}
 		psBinding = *ppcSymbol ? mpcUnit->FindBinding(*ppcSymbol) : NULL;
-		if (psBinding && psBinding->IsPack() && !(psBinding->papsPack && psBinding->psType) && (mpapsPacks->Find(psBinding) == ARRAY_ELEMENT_NOT_FOUND))
+		if (psBinding && psBinding->IsPack() && (mpapsPacks->Find(psBinding) == ARRAY_ELEMENT_NOT_FOUND))
 		{
 			mpapsPacks->Add(psBinding);
 		}
@@ -217,6 +236,42 @@ void CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks,
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many elements a pattern's packs have (FindPacks found them): the
+// same for each, and one pack at least.  An error at pcNode, and false, if
+// not.  [temp.variadic] 5, 6
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks, CCPPSyntax* pcNode, size* puiElements)
+{
+	size	i;
+	bool	bFound;
+
+	bFound = false;
+	*puiElements = 0;
+	for (i = 0; papcFunctionPacks && (i < papcFunctionPacks->NumElements()); i++)
+	{
+		if (bFound && (FindFunctionPack(papcFunctionPacks->GetPtr(i))->apcElements.NumElements() != *puiElements))
+		{
+			return mcDiagnostics.Error(pcNode, "The packs the pack expansion expands have different lengths");
+		}
+		*puiElements = FindFunctionPack(papcFunctionPacks->GetPtr(i))->apcElements.NumElements();
+		bFound = true;
+	}
+	for (i = 0; i < papsPacks->NumElements(); i++)
+	{
+		if (bFound && (papsPacks->GetPtr(i)->PackSize() != *puiElements))
+		{
+			return mcDiagnostics.Error(pcNode, "The packs the pack expansion expands have different lengths");
+		}
+		*puiElements = papsPacks->GetPtr(i)->PackSize();
+		bFound = true;
+	}
+	return bFound || mcDiagnostics.Error(pcNode, "The pack expansion names no parameter pack");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function parameter pack of the symbol, with its elements, if the
 // function being generated can expand it: its own, or in a lambda's body
 // one of a function the lambda is in.  NULL if the symbol isn't one.
@@ -258,22 +313,13 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 	asPacks.Init();
 	apcFunctionPacks.Init();
 	FindPacks(pcPattern, &apsFound, &apcFunctionPacks);
+	bResult = PackExpansionLength(&apsFound, &apcFunctionPacks, pcPattern, &uiElements);
 	for (i = 0; i < apsFound.NumElements(); i++)
 	{
 		*asPacks.Add() = *apsFound.GetPtr(i);
 	}
 	apsFound.Kill();
 
-	bResult = ((apcFunctionPacks.NumElements() > 0) || (asPacks.NumElements() > 0)) || mcDiagnostics.Error(pcPattern, "The pack expansion names no parameter pack");
-	uiElements = (apcFunctionPacks.NumElements() > 0) ? FindFunctionPack(apcFunctionPacks.GetPtr(0))->apcElements.NumElements() : ((asPacks.NumElements() > 0) ? asPacks.Get(0)->PackSize() : 0);
-	for (i = 0; bResult && (i < apcFunctionPacks.NumElements()); i++)
-	{
-		bResult = (FindFunctionPack(apcFunctionPacks.GetPtr(i))->apcElements.NumElements() == uiElements) || mcDiagnostics.Error(pcPattern, "The packs the pack expansion expands have different lengths");
-	}
-	for (i = 0; bResult && (i < asPacks.NumElements()); i++)
-	{
-		bResult = (asPacks.Get(i)->PackSize() == uiElements) || mcDiagnostics.Error(pcPattern, "The packs the pack expansion expands have different lengths");
-	}
 	for (k = 0; bResult && (k < uiElements); k++)
 	{
 		cCopier.Init(mpcTree->GetMemory());
@@ -356,6 +402,22 @@ CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An expanded template argument written as pcArgument: an element of a
+// pack expansion (bExpanded) or the argument as it is, its type or value
+// to be given.
+//
+//////////////////////////////////////////////////////////////////////////
+static void ExpandedArgument(SCPPExpandedArgument* psExpanded, CCPPSyntax* pcArgument, bool bExpanded)
+{
+	psExpanded->pcArgument = pcArgument;
+	psExpanded->psType = NULL;
+	psExpanded->lliValue = 0;
+	psExpanded->bExpanded = bExpanded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A template argument list with its pack expansions expanded: T... and
 // T*... for a type parameter pack T are each of T's types (or pointers to
 // them), N... and N + 1... for a non-type pack N each of N's values (plus
@@ -368,12 +430,11 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 {
 	CArrayCPPBindingPtrs	apsPacks;
 	SCPPExpandedArgument*	psExpanded;
-	SCPPBinding*			psPack;
+	CCPPPackElements		cElements;
 	CCPPSyntax*				pcArgument;
 	CCPPSyntax*				pcPattern;
 	size					uiElements;
 	size					i;
-	size					j;
 	size					k;
 	bool					bResult;
 
@@ -393,49 +454,19 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 		}
 		if (!pcPattern)
 		{
-			psExpanded = pasExpanded->Add();
-			psExpanded->pcArgument = pcArgument;
-			psExpanded->psType = NULL;
-			psExpanded->lliValue = 0;
-			psExpanded->bExpanded = false;
+			ExpandedArgument(pasExpanded->Add(), pcArgument, false);
 			continue;
 		}
 
 		apsPacks.ReInit();
 		FindPacks(pcPattern, &apsPacks, NULL);
-		if (apsPacks.NumElements() == 0)
-		{
-			bResult = mcDiagnostics.Error(pcArgument, "The pack expansion names no parameter pack");
-			break;
-		}
-		uiElements = apsPacks.GetPtr(0)->PackSize();
-		for (j = 1; j < apsPacks.NumElements(); j++)
-		{
-			if (apsPacks.GetPtr(j)->PackSize() != uiElements)
-			{
-				bResult = mcDiagnostics.Error(pcArgument, "The packs the pack expansion expands have different lengths");
-				break;
-			}
-		}
+		bResult = PackExpansionLength(&apsPacks, NULL, pcArgument, &uiElements);
+		cElements.Init(&apsPacks);
 		for (k = 0; bResult && (k < uiElements); k++)
 		{
-			for (j = 0; j < apsPacks.NumElements(); j++)
-			{
-				psPack = apsPacks.GetPtr(j);
-				if (psPack->papsPack)
-				{
-					psPack->psType = psPack->papsPack->GetPtr(k);
-				}
-				else
-				{
-					psPack->lliValue = psPack->palliPack->GetValue(k);
-				}
-			}
+			cElements.Enter(k);
 			psExpanded = pasExpanded->Add();
-			psExpanded->pcArgument = pcArgument;
-			psExpanded->psType = NULL;
-			psExpanded->lliValue = 0;
-			psExpanded->bExpanded = true;
+			ExpandedArgument(psExpanded, pcArgument, true);
 			if (pcPattern->GetKind() == CPPS_TypeId)
 			{
 				psExpanded->psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcPattern);
@@ -446,11 +477,7 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 				bResult = Constant(pcPattern, &psExpanded->lliValue) || ConstantError(pcArgument, "The template argument must be a constant");
 			}
 		}
-		for (j = 0; j < apsPacks.NumElements(); j++)
-		{
-			apsPacks.GetPtr(j)->psType = NULL;
-			apsPacks.GetPtr(j)->lliValue = 0;
-		}
+		cElements.Kill();
 	}
 	apsPacks.Kill();
 	return bResult;

@@ -61,7 +61,7 @@ static const SConformanceChecked gasConformanceChecked[] =
 	{ "Clause13",
 		"" },
 	{ "Clause14",
-		"TempNonTypeNotLvalueRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempResDependentOrdinaryLookupRefused(M) TempInstMemberUsedRefused(M) TempSfinaeBodyErrorRefused(M) TempVariadicNestedInParameters(F) " },
+		"TempNonTypeNotLvalueRefused(M) TempVariadicLengthMismatchRefused(M) TempVariadicUnexpandedRefused(M) TempResDependentOrdinaryLookupRefused(M) TempInstMemberUsedRefused(M) TempSfinaeBodyErrorRefused(M) " },
 	{ "Clause16",
 		"" },
 };

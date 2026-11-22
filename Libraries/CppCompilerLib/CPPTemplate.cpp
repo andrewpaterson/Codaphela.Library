@@ -233,4 +233,68 @@ CCPPSyntaxDeclSpecifiers* CCPPTemplate::FunctionSpecifiers(void)
 
 
 bool SCPPBinding::IsPack(void) const { return (papsPack != NULL) || (palliPack != NULL); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The packs' elements are entered from here, what each binding has now
+// being what Kill puts back.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPPackElements::Init(CArrayCPPBindingPtrs* papsPacks)
+{
+	SCPPPackWas*	psWas;
+	size			i;
+
+	mpapsPacks = papsPacks;
+	masWas.Init();
+	for (i = 0; i < papsPacks->NumElements(); i++)
+	{
+		psWas = masWas.Add();
+		psWas->psType = papsPacks->GetPtr(i)->psType;
+		psWas->lliValue = papsPacks->GetPtr(i)->lliValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPPackElements::Kill(void)
+{
+	size	i;
+
+	for (i = 0; i < masWas.NumElements(); i++)
+	{
+		mpapsPacks->GetPtr(i)->psType = masWas.Get(i)->psType;
+		mpapsPacks->GetPtr(i)->lliValue = masWas.Get(i)->lliValue;
+	}
+	masWas.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Element uiElement of each pack is what its parameter names.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPPackElements::Enter(size uiElement)
+{
+	SCPPBinding*	psPack;
+	size			i;
+
+	for (i = 0; i < mpapsPacks->NumElements(); i++)
+	{
+		psPack = mpapsPacks->GetPtr(i);
+		if (psPack->papsPack)
+		{
+			psPack->psType = psPack->papsPack->GetPtr(uiElement);
+		}
+		else
+		{
+			psPack->lliValue = psPack->palliPack->GetValue(uiElement);
+		}
+	}
+}
 size SCPPBinding::PackSize(void) const { return papsPack ? papsPack->NumElements() : (palliPack ? palliPack->NumElements() : 0); }

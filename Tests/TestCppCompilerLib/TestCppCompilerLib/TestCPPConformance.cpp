@@ -99,9 +99,7 @@ static const SConformanceGroup gasConformanceGroups[] =
 	CONFORMANCE_GROUP(Clause11, "", ""),
 	CONFORMANCE_GROUP(Clause12, "", ""),
 	CONFORMANCE_GROUP(Clause13, "", ""),
-	CONFORMANCE_GROUP(Clause14,
-		"TempVariadicNestedSamePack(W) TempVariadicNestedInParameters(C) ",
-		"TempVariadicNestedSamePack(W) TempVariadicNestedInParameters(C) "),
+	CONFORMANCE_GROUP(Clause14, "", ""),
 	CONFORMANCE_GROUP(Clause16, "", ""),
 };
 

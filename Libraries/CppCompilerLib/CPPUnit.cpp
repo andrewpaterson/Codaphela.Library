@@ -2611,7 +2611,8 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	ECPPFunctionKind			eKind;
 	CArrayCPP65Types			apsParameters;
 	CArraySyntax				apcDefaults;
-	SCPPBinding*				psPack;
+	CArrayCPPBindingPtrs		apsPacks;
+	CCPPPackElements			cElements;
 	size						i;
 	size						j;
 	size						uiPack;
@@ -2706,25 +2707,37 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	bConstThis = pcClass && pcSuffix->IsConst();
 	bVolatileThis = pcClass && pcSuffix->IsVolatile();
 	eRefQualifier = pcClass ? RefQualifier(pcSuffix) : CPPRQ_None;
+	apsPacks.Init();
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psPack = PackBinding(pcParameter);
-		uiPack = psPack ? psPack->papsPack->NumElements() : 1;
+		//Args... args, and any pack expansion a parameter is declared with (Pair<Count<Ts...>, Ts>... p), is a parameter
+		//for each of its packs' elements.  [temp.variadic] 5
+		apsPacks.ReInit();
+		uiPack = 1;
+		if (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack && pcParameter->mpcSpecifiers)
+		{
+			FindPacks(pcParameter->mpcSpecifiers, &apsPacks, NULL);
+			if ((apsPacks.NumElements() > 0) && !PackExpansionLength(&apsPacks, NULL, pcParameter, &uiPack))
+			{
+				apsPacks.Kill();
+				apcDefaults.Kill();
+				apsParameters.Kill();
+				return NULL;
+			}
+		}
+		cElements.Init(&apsPacks);
 		for (j = 0; j < uiPack; j++)
 		{
-			//Args ... args is a parameter for each of the pack's types.
-			if (psPack)
+			if (apsPacks.NumElements() > 0)
 			{
-				psPack->psType = psPack->papsPack->GetPtr(j);
+				cElements.Enter(j);
 			}
 			psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-			if (psPack)
-			{
-				psPack->psType = NULL;
-			}
 			if (!psType || (psType->IsVoid() && !mcDeclarators.IsWholeVoid(pcSuffix, pcParameter)))
 			{
+				cElements.Kill();
+				apsPacks.Kill();
 				apcDefaults.Kill();
 				apsParameters.Kill();
 				return NULL;
@@ -2736,7 +2749,9 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			apsParameters.Add(ParameterType(psType));
 			apcDefaults.Add(pcParameter->mpcDefault);
 		}
+		cElements.Kill();
 	}
+	apsPacks.Kill();
 	if (!pcTemplate && (!CheckAllocationFunction(lliName, psReturn, &apsParameters, pcDeclarator) || !CheckOperatorSignature(pcName->GetLast(), lliName, &apsParameters, &apcDefaults, pcClass, pcDeclarator)))
 	{
 		apcDefaults.Kill();

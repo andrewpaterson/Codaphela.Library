@@ -655,6 +655,7 @@ public:
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
 	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks);
+	bool					PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks, CCPPSyntax* pcNode, size* puiElements);
 	SCPPFunctionPack*		FindFunctionPack(CCPPSymbol* pcSymbol);
 	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
 	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);

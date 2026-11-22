@@ -17828,6 +17828,17 @@ static const SConformanceCase gasConformanceClause14[] =
 		"template<class... Ts> struct Holder { static int g(Pair<Count<Ts...>, Ts>... p) { return Sum<Pair<Count<Ts...>, Ts>...>::value + (int)sizeof...(p); } };\n"
 		"int main() { return Holder<char, short>::g(Pair<Count<char, short>, char>(), Pair<Count<char, short>, short>()); }\n"
 	},
+	//14.5.3 [temp.variadic] p4, p7: the pack an element is of, expanded inside the pattern after the element (Pair<Ts, Count<Ts...>>...)
+	{
+		"TempVariadicNestedAfterElement", 43,
+		"template<class... Ts> struct Count { enum { value = sizeof...(Ts) }; };\n"
+		"template<class A, class B> struct Pair { enum { value = B::value * 10 + sizeof(A) }; };\n"
+		"template<class... Ps> struct Sum;\n"
+		"template<> struct Sum<> { enum { value = 0 }; };\n"
+		"template<class P, class... Ps> struct Sum<P, Ps...> { enum { value = P::value + Sum<Ps...>::value }; };\n"
+		"template<class... Ts> struct Outer { enum { value = Sum<Pair<Ts, Count<Ts...>>...>::value }; };\n"
+		"int main() { return Outer<char, short>::value; }\n"
+	},
 };
 
 
