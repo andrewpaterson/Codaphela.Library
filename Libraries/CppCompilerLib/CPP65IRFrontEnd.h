@@ -188,7 +188,6 @@ protected:
 	CIRFunction*			mpcFunction;
 	CIRBlock*				mpcBlock;
 	CCPPFunction*			mpcCPPFunction;
-	bool					mbVersionFollows;	//Another version of the function being written follows it (Body): the unit's context stays the function's.
 	bool					mbBaseVersion;		//The base version of a constructor or destructor is being written: its class's virtual bases are left alone.
 	CCPPClass*				mpcBaseObject;		//The class whose base version the next constructor or destructor call is (a base subobject's), or NULL.
 	SIRReference			msThis;				//A member function's this, IRNone in others; in a lambda's body the enclosing object's, if it captures it.

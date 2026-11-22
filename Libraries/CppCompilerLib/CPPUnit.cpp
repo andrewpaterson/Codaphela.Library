@@ -360,8 +360,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcAllBindings.Init();
 	mapapsPacks.Init();
 	mapalliPacks.Init();
-	mcFunctionPacks.Init();
-	mapcObjectConstants.Init();
 	masBracedLists.Init();
 	mbValueArgumentRefused = false;
 	masPackElements.Init();
@@ -382,9 +380,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcMemberVariableTemplates.Init();
 	mapcMemberVariableSpecialisations.Init();
 	mapcStaticMemberTemplates.Init();
-	mpcDefining = NULL;
 	mapcVariableInstances.Init();
-	miUnevaluated = 0;
 	miSaysDeprecated = -1;
 	mpcImplicitZero = NULL;
 	mcImplicitValues.Init(true);
@@ -393,8 +389,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcFailed.Init();
 	mcTypeOfs.Init(true);
 	maszEmitted.Init();
-	miWarningChecks = 0;
-	mapcConstantTypes.Init();
 	mbPureVirtual = false;
 	mbBadCast = false;
 	mbRecursiveInit = false;
@@ -408,7 +402,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapsThrownDestroyers.Init();
 	maiExitShared.Init();
 
-	mapcLocals.Init();
+	mapsFunctionScopes.Init();
+	PushFunctionScope();
 	mapcStaticLocals.Init();
 	miStatics = 0;
 	miLabels = 0;
@@ -432,8 +427,11 @@ void CCPPUnit::Kill(void)
 	mcTypeChecker.Kill();
 	SafeKill(mpcConstants);
 	SafeKill(mpcIRFrontEnd);
-	FreeVariables(&mapcLocals);
-	mapcLocals.Kill();
+	while (mapsFunctionScopes.NumElements() > 0)
+	{
+		PopFunctionScope();
+	}
+	mapsFunctionScopes.Kill();
 	FreeVariables(&mapcStaticLocals);
 	mapcStaticLocals.Kill();
 	mcBackendScratch.Kill();
@@ -483,8 +481,6 @@ void CCPPUnit::Kill(void)
 		SafeKill(palliPack);
 	}
 	mapalliPacks.Kill();
-	mcFunctionPacks.Kill();
-	mapcObjectConstants.Kill();
 	masBracedLists.Kill();
 	masPackElements.Kill();
 	for (i = 0; i < masExpandedArguments.NumElements(); i++)
@@ -521,7 +517,6 @@ void CCPPUnit::Kill(void)
 	mapcMemberClassTemplates.Kill();
 	mapcVariableInstances.Kill();
 	mcImplicitValues.Kill();
-	mapcConstantTypes.Kill();
 	mapcQueue.Kill();
 	mapcFailed.Kill();
 	mcTypeOfs.Kill();
@@ -1032,7 +1027,7 @@ bool CCPPUnit::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
 	}
 	if (pcHandler->mpcParameter->mpcSymbol)
 	{
-		AddVariable(&mapcLocals, pcHandler->mpcParameter->mpcSymbol, psType, CPPVS_Local, 0);
+		AddVariable(GetLocals(), pcHandler->mpcParameter->mpcSymbol, psType, CPPVS_Local, 0);
 	}
 	return true;
 }
@@ -2227,17 +2222,15 @@ void CCPPUnit::WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecificati
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::DeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest)
 {
-	SCPPFunctionScope	sScope;
-
 	if (!pcSpecification->mpcCondition)
 	{
 		WrittenExceptions(pcSpecification, pcDest);
 		return;
 	}
-	EnterFunctionScope(&sScope, pcFunction);
+	EnterFunction(pcFunction);
 	AddParameters(pcFunction, pcDeclarator);
 	WrittenExceptions(pcSpecification, pcDest);
-	LeaveFunctionScope(&sScope);
+	LeaveFunction();
 }
 
 
@@ -2649,7 +2642,6 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 	CCPPSyntaxFunctionSuffix*		pcSuffix;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	CCPPSyntaxTypeId*				pcTrailing;
-	SCPPFunctionScope				sScope;
 	SCPP65Type*						psReturn;
 	CArraySyntax					apcReturns;
 	size							i;
@@ -2670,7 +2662,7 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 		return true;
 	}
 
-	EnterFunctionScope(&sScope, pcFunction);
+	EnterFunction(pcFunction);
 	AddParameters(pcFunction, pcDeclarator);
 	if (pcTrailing && !bWritten)
 	{
@@ -2705,7 +2697,7 @@ bool CCPPUnit::ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers*
 		}
 		apcReturns.Kill();
 	}
-	LeaveFunctionScope(&sScope);
+	LeaveFunction();
 	if (psReturn)
 	{
 		pcFunction->mpsReturn = psReturn;
@@ -2833,20 +2825,18 @@ SCPP65Type* CCPPUnit::ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDecla
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts a function scope inside whatever is being written: pcFunction's
-// parameters and locals can be made (AddParameters, AllocateLocals) and
-// its expressions typed, and LeaveFunctionScope puts back the function
-// that was being written, with its own.
+// Enters a function, in whatever is being written: pcFunction is the
+// context's function, with a scope of its own in which its parameters and
+// locals are made (AddParameters, AllocateLocals) and its expressions typed
+// or its body written.  LeaveFunction lets its locals go and what was being
+// written is as it was, its function, its this and its locals.  Who enters
+// a function leaves it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EnterFunctionScope(SCPPFunctionScope* psScope, CCPPFunction* pcFunction)
+void CCPPUnit::EnterFunction(CCPPFunction* pcFunction)
 {
-	psScope->pcFunction = mcContext.GetFunction();
-	memcpy(&psScope->apcLocals, &mapcLocals, sizeof(CArrayCPPVariables));
-	memcpy(&psScope->cFunctionPacks, &mcFunctionPacks, sizeof(CCPPFunctionPacks));
-	mapcLocals.Init();
-	mcFunctionPacks.Init();
-	BeginFunction(pcFunction);
+	PushFunctionScope();
+	mcContext.EnterFunction(pcFunction);
 }
 
 
@@ -2854,18 +2844,44 @@ void CCPPUnit::EnterFunctionScope(SCPPFunctionScope* psScope, CCPPFunction* pcFu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::LeaveFunctionScope(SCPPFunctionScope* psScope)
+void CCPPUnit::LeaveFunction(void)
 {
-	mcContext.EndFunction();
-	FreeVariables(&mapcLocals);
-	mapcLocals.Kill();
-	mcFunctionPacks.Kill();
-	memcpy(&mapcLocals, &psScope->apcLocals, sizeof(CArrayCPPVariables));
-	memcpy(&mcFunctionPacks, &psScope->cFunctionPacks, sizeof(CCPPFunctionPacks));
-	if (psScope->pcFunction)
-	{
-		mcContext.BeginFunction(psScope->pcFunction);
-	}
+	mcContext.LeaveFunction();
+	PopFunctionScope();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new last scope, with no locals and no packs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::PushFunctionScope(void)
+{
+	SCPPFunctionScope*	psScope;
+
+	psScope = (SCPPFunctionScope*)malloc(sizeof(SCPPFunctionScope));
+	psScope->apcLocals.Init();
+	psScope->cFunctionPacks.Init();
+	mapsFunctionScopes.Add(psScope);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last scope goes, and its locals with it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::PopFunctionScope(void)
+{
+	SCPPFunctionScope*	psScope;
+
+	psScope = mapsFunctionScopes.GetPtr(mapsFunctionScopes.NumElements() - 1);
+	FreeVariables(&psScope->apcLocals);
+	psScope->apcLocals.Kill();
+	psScope->cFunctionPacks.Kill();
+	free(psScope);
+	mapsFunctionScopes.RemoveTail();
 }
 
 
@@ -3850,9 +3866,12 @@ bool CCPPUnit::Emit(CChars* pszLabel)
 // are zero and made by their R_Initialise before main, and destroyed (last first) by
 // their R_Finalise after it.  A qualified name defines a static data member.  Function
 // and extern declarations the compiler cannot do are only errors when used.
+// pcDefining is the variable being defined when the declaration is a
+// template's, written once and defined for each instance (a class
+// template's static member, a variable template): NULL for any other.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
+bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable* pcDefining)
 {
 	size						i;
 	CCPPSyntaxInitDeclarator*	pcInit;
@@ -3925,8 +3944,8 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 
 		lliName = GetName(pcInit->mpcDeclarator);
 		pcName = pcInit->mpcDeclarator->GetName();
-		pcVariable = pcInit->mpcSymbol ? (mpcDefining ? mpcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
-		if (!pcVariable && pcInit->mpcSymbol && !mpcDefining)
+		pcVariable = pcInit->mpcSymbol ? (pcDefining ? pcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
+		if (!pcVariable && pcInit->mpcSymbol && !pcDefining)
 		{
 			//int x; after extern int x; is the same variable.
 			pcVariable = RedeclaredVariable(pcInit->mpcSymbol);
@@ -3935,11 +3954,11 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		{
 			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.  The member is the
 			//class's own: each instance of a class template has one of the symbol (template<> int S<int>::k = 5;).
-			pcClass = mpcDefining ? mpcDefining->mpcClass : GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
+			pcClass = pcDefining ? pcDefining->mpcClass : GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 			if (pcClass)
 			{
 				CompleteClass(pcClass, pcInit);
-				pcVariable = (pcInit->mpcSymbol && !mpcDefining) ? OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
+				pcVariable = (pcInit->mpcSymbol && !pcDefining) ? OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
 			}
 		}
 		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(pcVariable && pcVariable->mpcClass)))
@@ -4033,7 +4052,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 		AppendVariableLabel(&szLabel, pcVariable);
 		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
 		bBss = !bConstantData && IsBss(pcInitialiser, psType);
-		szOptions = mpcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
+		szOptions = pcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
 		szBound.Init();
 		if (psType->IsReference() && !BoundTemporary(psType, pcInitialiser, &szLabel, !pcVariable->mbInternal, szOptions, &szBound, &iBound, &bResult))
 		{
@@ -4045,7 +4064,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
-		mcContext.NoThis();
+		mcContext.EnterNoThis();
 		if (bConstantData && mpcConstants->AppendData(pcVariable, &mcData))
 		{
 			//A constexpr variable's value, worked out when it was defined: its data, with nothing to run.
@@ -4091,6 +4110,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 			mcData.AppendZeros(psType->iBytes);
 			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
 		}
+		mcContext.LeaveNoThis();
 		mcData.NextStartUp();
 		szBound.Kill();
 		szLabel.Kill();
@@ -4296,9 +4316,9 @@ CCPPVariable* CCPPUnit::GetVariable(CCPPSymbol* pcSymbol)
 	size			i;
 	CCPPVariable*	pcVariable;
 
-	for (i = 0; i < mapcLocals.NumElements(); i++)
+	for (i = 0; i < GetLocals()->NumElements(); i++)
 	{
-		pcVariable = mapcLocals.GetPtr(i);
+		pcVariable = GetLocals()->GetPtr(i);
 		if (pcVariable->mpcSymbol == pcSymbol)
 		{
 			return pcVariable;
@@ -4573,7 +4593,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 	if (pcFunction->mpcCovariantOf)
 	{
 		//A covariant thunk (CCPPVtable::EntryFor).
-		BeginFunction(pcFunction);
+		EnterFunction(pcFunction);
 		if (!WriteBody(pcFunction))
 		{
 			szLabel.Init("A covariant result the IR front end can't write a thunk for is not supported on this target yet: ");
@@ -4581,13 +4601,13 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			AppendUnsupported(&szLabel);
 			ErrorAt(-1, szLabel.Text());
 			szLabel.Kill();
-			EndFunction();
 		}
+		LeaveFunction();
 	}
 	else if (pcFunction->mbImplicit)
 	{
 		//An implicit default constructor, an inherited one or a destructor, or a copy defaulted after its class.
-		BeginFunction(pcFunction);
+		EnterFunction(pcFunction);
 		if (((pcFunction->mapsParameters.NumElements() != 0) && !pcFunction->mpcInherited && !pcFunction->IsCopy()) || !WriteBody(pcFunction))
 		{
 			szLabel.Init("An implicit copy constructor or assignment (or one the IR front end can't write) is not supported on this target yet: ");
@@ -4598,8 +4618,8 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 			}
 			ErrorAt(-1, szLabel.Text());
 			szLabel.Kill();
-			EndFunction();
 		}
+		LeaveFunction();
 	}
 	else
 	{
@@ -4628,11 +4648,11 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 		return Error(pcDefinition, "Only constructors have member initialisers");
 	}
 
-	BeginFunction(pcFunction);
+	EnterFunction(pcFunction);
 	AddParameters(pcFunction);
 	if (!CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator) || !CheckMemberInitialisers(pcFunction) || !AllocateLocals(pcDefinition->mpcBody) || !CheckTryJumps(pcDefinition->mpcBody))
 	{
-		EndFunction();
+		LeaveFunction();
 		return false;
 	}
 
@@ -4641,6 +4661,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 	uiErrors = mcErrors.NumErrors();
 	if (WriteBody(pcFunction))
 	{
+		LeaveFunction();
 		return true;
 	}
 	if (mcErrors.NumErrors() > uiErrors)
@@ -4662,7 +4683,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 		Error(pcDefinition, szMessage.Text());
 		szMessage.Kill();
 	}
-	EndFunction();
+	LeaveFunction();
 	return false;
 }
 
@@ -4706,7 +4727,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 			uiPack = pcFunction->mapsParameters.NumElements() - j;
 			if (pcParameter->mpcSymbol)
 			{
-				mcFunctionPacks.Add(pcParameter->mpcSymbol);
+				GetFunctionPacks()->Add(pcParameter->mpcSymbol);
 			}
 		}
 		for (k = 0; k < uiPack; k++)
@@ -4715,7 +4736,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 			pcSymbol = (bPack && pcParameter->mpcSymbol) ? FunctionPackElement(pcFunction, pcParameter->mpcSymbol, k) : pcParameter->mpcSymbol;
 			if (pcSymbol)
 			{
-				pcVariable = AddVariable(&mapcLocals, pcSymbol, ParameterVariableType(psType, pcParameter), CPPVS_Parameter, (int)j);
+				pcVariable = AddVariable(GetLocals(), pcSymbol, ParameterVariableType(psType, pcParameter), CPPVS_Parameter, (int)j);
 				pcVariable->mbRestrict = !bPack && pcParameter->mpcDeclarator && IsRestrictPointer(pcParameter->mpcDeclarator);
 				if (psType->IsClass())
 				{
@@ -4732,7 +4753,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 	psLambda = BodyLambda(pcFunction);
 	if (psLambda)
 	{
-		mcFunctionPacks.AddAll(&psLambda->cFunctionPacks);
+		GetFunctionPacks()->AddAll(&psLambda->cFunctionPacks);
 	}
 }
 
@@ -4746,32 +4767,6 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 void CCPPUnit::AppendUnsupported(CChars* psz)
 {
 	mpcIRFrontEnd->AppendUnsupported(psz);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Starts generating a function's body.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::BeginFunction(CCPPFunction* pcFunction)
-{
-	mcContext.BeginFunction(pcFunction);
-	FreeVariables(&mapcLocals);
-	mcFunctionPacks.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Leaves the function BeginFunction started, as the IR front end leaves a
-// function it writes.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EndFunction(void)
-{
-	//Only a function the IR front end couldn't write ends here (it ends the ones it writes itself): nothing is written.
-	mcContext.EndFunction();
 }
 
 
@@ -4844,7 +4839,7 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 				return false;
 			}
 
-			AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Local, 0);
+			AddVariable(GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Local, 0);
 		}
 	}
 
@@ -4896,7 +4891,7 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		{
 			return Error(pcSpecifier, "Bit-fields in anonymous local classes are not supported by the compiler yet");
 		}
-		pcVariable = AddVariable(&mapcLocals, psField->pcSymbol, psField->psType, CPPVS_Local, psField->iOffset);
+		pcVariable = AddVariable(GetLocals(), psField->pcSymbol, psField->psType, CPPVS_Local, psField->iOffset);
 		pcVariable->mpcAnonymous = pcClass;
 	}
 	return true;
@@ -5055,7 +5050,7 @@ bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 		//It names the variable of the namespace it is in, which has one type.  [basic.link] 6, 10
 		return Error(pcInit, "The variable is declared again with another type");
 	}
-	AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
+	AddVariable(GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Global, 0);
 	return true;
 }
 
@@ -5139,13 +5134,13 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	if (pcShared)
 	{
 		iNumber = 0;
-		for (i = 0; i < mapcLocals.NumElements(); i++)
+		for (i = 0; i < GetLocals()->NumElements(); i++)
 		{
-			iNumber += (mapcLocals.GetPtr(i)->meStorage == CPPVS_Static) ? 1 : 0;
+			iNumber += (GetLocals()->GetPtr(i)->meStorage == CPPVS_Static) ? 1 : 0;
 		}
 	}
 	szOptions = pcShared ? ", comdat" : NULL;
-	pcVariable = AddVariable(&mapcLocals, pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
+	pcVariable = AddVariable(GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
 	miStatics++;
 	pcVariable->mbDefined = true;
 	pcVariable->mbThreadLocal = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
@@ -5175,9 +5170,9 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	}
 	else
 	{
-		mcContext.EnterStaticLocal();
+		//Constant data if the initialiser is a constant; else it is worked out where the function first comes to it,
+		//with the function's this.  [stmt.dcl] 4
 		bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
-		mcContext.LeaveStaticLocal();
 	}
 
 	pcVariable->mbGuarded = bResult && (bObject || bInitialise);
@@ -5521,7 +5516,8 @@ CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }
 CCPP65TypeChecker* CCPPUnit::GetTypeChecker(void) { return &mcTypeChecker; }
 CChars* CCPPUnit::GetCode(void) { return &mszCode; }
 CArrayCPPTemplates* CCPPUnit::GetTemplates(void) { return &mapcTemplates; }
-CArrayCPPVariables* CCPPUnit::GetLocals(void) { return &mapcLocals; }
+CArrayCPPVariables* CCPPUnit::GetLocals(void) { return &mapsFunctionScopes.GetPtr(mapsFunctionScopes.NumElements() - 1)->apcLocals; }
+CCPPFunctionPacks* CCPPUnit::GetFunctionPacks(void) { return &mapsFunctionScopes.GetPtr(mapsFunctionScopes.NumElements() - 1)->cFunctionPacks; }
 CArrayLargeTemplate<uint16>* CCPPUnit::GetCodePieces(void) { return &mauiCodePieces; }
 int* CCPPUnit::GetLabelCounter(void) { return &miLabels; }
 CCPPTarget* CCPPUnit::GetTarget(void) const { return mpcTarget; }
@@ -5537,4 +5533,3 @@ bool CCPPUnit::HasLineTable(void) const { return mbLineTable; }
 bool CCPPUnit::HasListing(void) const { return mbListing; }
 bool CCPPUnit::HasNoFloats(void) const { return mbNoFloats; }
 int64 CCPPUnit::GetCompileTime(void) const { return mlliCompileTime; }
-bool CCPPUnit::IsUnevaluated(void) const { return miUnevaluated > 0; }

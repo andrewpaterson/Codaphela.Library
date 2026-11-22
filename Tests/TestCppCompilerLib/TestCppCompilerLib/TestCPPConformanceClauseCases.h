@@ -9768,6 +9768,12 @@ static const SConformanceCase gasConformanceClause6[] =
 		"	return s;\n"
 		"}\n"
 	},
+	//6.7 [stmt.dcl] p4: a static local of a member function is initialised the first time the function comes to it, from the fields of the object it is then called on
+	{
+		"StmtStaticLocalFromField", 8,
+		"struct S { int m; int f() { static int s = m + 1; return s; } };\n"
+		"int main() { S a; a.m = 3; S b; b.m = 9; return a.f() + b.f(); }\n"
+	},
 };
 
 
@@ -10367,6 +10373,20 @@ static const SConformanceCase gasConformanceClause7[] =
 		"DclConstexprStaticMemberNeverInitialisedRefused", CONFORMANCE_REFUSED,
 		"struct S { static constexpr int a; };\n"
 		"int main() { return S::a; }\n"
+	},
+	//7.1.5 [dcl.constexpr] p9, 5.19 [expr.const] p2: a constexpr variable's initialiser can't be the variable's own value, which it has not got yet
+	{
+		"DclConstexprOwnValueRefused", CONFORMANCE_REFUSED,
+		"constexpr int a = a + 1;\n"
+		"int main() { return a; }\n"
+	},
+	//7.1.5 [dcl.constexpr] p9, 14.7.1 [temp.inst] p1: an instance's constexpr static member is worked out from another instance's, through a constexpr function
+	{
+		"DclConstexprStaticOfInstances", 3,
+		"constexpr int g(int x) { return x; }\n"
+		"template<int N> struct F { static constexpr int v = g(F<N - 1>::v) + 1; };\n"
+		"template<> struct F<0> { static constexpr int v = 1; };\n"
+		"int main() { return F<2>::v; }\n"
 	},
 	//7.2 [dcl.enum] p5, p6, 4.5 [conv.prom] p4: an enum's underlying type, fixed or big enough for its values; a fixed one's values promoted
 	{

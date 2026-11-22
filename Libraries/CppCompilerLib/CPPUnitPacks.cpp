@@ -120,7 +120,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 		psElement = masPackElements.Get(i);
 		if ((psElement->pcFunction == pcFunction) && (psElement->pcPack == pcPack) && (psElement->uiIndex == k))
 		{
-			mcFunctionPacks.Add(pcPack)->apcElements.Add(psElement->pcElement);
+			GetFunctionPacks()->Add(pcPack)->apcElements.Add(psElement->pcElement);
 			return psElement->pcElement;
 		}
 	}
@@ -128,7 +128,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 	pcSymbol = NewMalloc<CCPPSymbol>();
 	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
 	mapcPackSymbols.Add(pcSymbol);
-	mcFunctionPacks.Add(pcPack)->apcElements.Add(pcSymbol);
+	GetFunctionPacks()->Add(pcPack)->apcElements.Add(pcSymbol);
 
 	psElement = masPackElements.Add();
 	psElement->pcBindings = NULL;
@@ -224,7 +224,7 @@ void CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks,
 //////////////////////////////////////////////////////////////////////////
 SCPPFunctionPack* CCPPUnit::FindFunctionPack(CCPPSymbol* pcSymbol)
 {
-	return mcFunctionPacks.Find(pcSymbol);
+	return GetFunctionPacks()->Find(pcSymbol);
 }
 
 

@@ -567,9 +567,9 @@ SCPP65Type* CCPPDeclarators::DecltypeType(CCPPSyntax* pcOperand, CCPPSyntax* pcN
 	SCPP65Type*		psType;
 
 	//The operand isn't evaluated.
-	mpcUnit->BeginUnevaluated();
+	mpcUnit->GetContext()->EnterUnevaluated();
 	psType = OperandType(pcOperand);
-	mpcUnit->EndUnevaluated();
+	mpcUnit->GetContext()->LeaveUnevaluated();
 	return psType;
 }
 

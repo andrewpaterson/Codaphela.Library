@@ -460,3 +460,13 @@ int main() { constexpr P p; return p.x; }
 ### DclConstexprStaticMemberNeverInitialisedRefused | REFUSED | 7.1.5 [dcl.constexpr] p9, 9.4.2 [class.static.data] p3: a constexpr static member with no initialiser in its class is an error where it is declared, with no definition outside to say it of
 struct S { static constexpr int a; };
 int main() { return S::a; }
+
+### DclConstexprOwnValueRefused | REFUSED | 7.1.5 [dcl.constexpr] p9, 5.19 [expr.const] p2: a constexpr variable's initialiser can't be the variable's own value, which it has not got yet
+constexpr int a = a + 1;
+int main() { return a; }
+
+### DclConstexprStaticOfInstances | 3 | 7.1.5 [dcl.constexpr] p9, 14.7.1 [temp.inst] p1: an instance's constexpr static member is worked out from another instance's, through a constexpr function
+constexpr int g(int x) { return x; }
+template<int N> struct F { static constexpr int v = g(F<N - 1>::v) + 1; };
+template<> struct F<0> { static constexpr int v = 1; };
+int main() { return F<2>::v; }

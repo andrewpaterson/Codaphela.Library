@@ -34,6 +34,7 @@ void CCPPContext::Init(void)
 	mpcObject = NULL;
 	mbLinkageExtern = false;
 	mbCLinkage = false;
+	miUnevaluated = 0;
 	miQuiet = 0;
 	mbQuietFailed = false;
 	masEntered.Init();
@@ -62,6 +63,7 @@ SCPPContextEntry* CCPPContext::Enter(ECPPContextEntry eKind)
 	psEntry = masEntered.Add();
 	psEntry->eKind = eKind;
 	psEntry->pvSaved = NULL;
+	psEntry->pvOtherSaved = NULL;
 	psEntry->iSaved = 0;
 	psEntry->bSaved = false;
 	psEntry->bOtherSaved = false;
@@ -183,12 +185,19 @@ void CCPPContext::LeaveLinkage(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A function's body is being written: a member function that isn't static
-// has this, and no parameter pack is being expanded yet.
+// A function is being written, or its parameters and locals made to type
+// what is in it, until LeaveFunction: a member function that isn't static
+// has this.  The function it was entered from, and whether that had a
+// this, come back when it is left.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPContext::BeginFunction(CCPPFunction* pcFunction)
+void CCPPContext::EnterFunction(CCPPFunction* pcFunction)
 {
+	SCPPContextEntry*	psEntry;
+
+	psEntry = Enter(CPPCE_Function);
+	psEntry->pvSaved = mpcFunction;
+	psEntry->bSaved = mbThis;
 	mpcFunction = pcFunction;
 	mbThis = pcFunction->mpcClass && !pcFunction->mbStatic;
 }
@@ -198,10 +207,15 @@ void CCPPContext::BeginFunction(CCPPFunction* pcFunction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPContext::EndFunction(void)
+void CCPPContext::LeaveFunction(void)
 {
-	mpcFunction = NULL;
-	mbThis = false;
+	SCPPContextEntry	sEntry;
+
+	if (Leave(CPPCE_Function, &sEntry))
+	{
+		mpcFunction = (CCPPFunction*)sEntry.pvSaved;
+		mbThis = sEntry.bSaved;
+	}
 }
 
 
@@ -246,13 +260,15 @@ CCPPClass* CCPPContext::GetObject(void) const { return mpcObject; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A static local's data is being written, in the function it is in: its
-// initialiser has no this.
+// What is written until LeaveNoThis has no this, in whatever function it is
+// written: the data of a static local, or of a global defined while a
+// member function is written (a template's static member, first used
+// there).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPContext::EnterStaticLocal(void)
+void CCPPContext::EnterNoThis(void)
 {
-	Enter(CPPCE_StaticLocal)->bSaved = mbThis;
+	Enter(CPPCE_NoThis)->bSaved = mbThis;
 	mbThis = false;
 }
 
@@ -261,13 +277,42 @@ void CCPPContext::EnterStaticLocal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPContext::LeaveStaticLocal(void)
+void CCPPContext::LeaveNoThis(void)
 {
 	SCPPContextEntry	sEntry;
 
-	if (Leave(CPPCE_StaticLocal, &sEntry))
+	if (Leave(CPPCE_NoThis, &sEntry))
 	{
 		mbThis = sEntry.bSaved;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An operand that isn't evaluated (sizeof's, decltype's, noexcept's) is
+// being typed until LeaveUnevaluated: a member is named with no object, and
+// nothing it names is used.  One inside another is the same.  [expr] 8
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::EnterUnevaluated(void)
+{
+	Enter(CPPCE_Unevaluated);
+	miUnevaluated++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::LeaveUnevaluated(void)
+{
+	SCPPContextEntry	sEntry;
+
+	if (Leave(CPPCE_Unevaluated, &sEntry))
+	{
+		miUnevaluated--;
 	}
 }
 
@@ -287,6 +332,7 @@ bool CCPPContext::BeginQuiet(void)
 	{
 		mbQuietFailed = false;
 	}
+	Enter(CPPCE_Quiet);
 	miQuiet++;
 	return bOutermost;
 }
@@ -300,7 +346,12 @@ bool CCPPContext::BeginQuiet(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPContext::EndQuiet(void)
 {
-	miQuiet--;
+	SCPPContextEntry	sEntry;
+
+	if (Leave(CPPCE_Quiet, &sEntry))
+	{
+		miQuiet--;
+	}
 	return !mbQuietFailed;
 }
 
@@ -378,8 +429,69 @@ void CCPPContext::EndLoud(void)
 CCPPTemplateArguments* CCPPContext::GetBindings(void) const { return mpcBindings; }
 CCPPScope* CCPPContext::GetNamespace(void) const { return mpcDeclaringNamespace; }
 bool CCPPContext::IsCLinkage(void) const { return mbCLinkage; }
+//////////////////////////////////////////////////////////////////////////
+//
+// eWhat is being worked out of pvOn (an expression), with the template
+// arguments there are, until LeaveWorking.  False, and nothing is entered,
+// if it is being worked out already: it has been asked for from inside
+// itself.  The same expression with other template arguments is another
+// thing (one instance's constant may need another's, written by the same
+// tokens).  pvOn is NULL where there is one thing of the kind at a time,
+// whatever the template arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPContext::EnterWorking(ECPPWorking eWhat, void* pvOn)
+{
+	SCPPContextEntry*	psEntry;
+
+	if (IsWorking(eWhat, pvOn))
+	{
+		return false;
+	}
+	psEntry = Enter(CPPCE_Working);
+	psEntry->iSaved = eWhat;
+	psEntry->pvSaved = pvOn;
+	psEntry->pvOtherSaved = mpcBindings;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPContext::LeaveWorking(void)
+{
+	SCPPContextEntry	sEntry;
+
+	Leave(CPPCE_Working, &sEntry);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPContext::IsWorking(ECPPWorking eWhat, void* pvOn) const
+{
+	SCPPContextEntry*	psEntry;
+	size				i;
+
+	for (i = masEntered.NumElements(); i > 0; i--)
+	{
+		psEntry = ((CArrayCPPContextEntries*)&masEntered)->Get(i - 1);
+		if ((psEntry->eKind == CPPCE_Working) && (psEntry->iSaved == eWhat) && (psEntry->pvSaved == pvOn) && (!pvOn || (psEntry->pvOtherSaved == mpcBindings)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
 bool CCPPContext::IsLinkageExtern(void) const { return mbLinkageExtern; }
 CCPPFunction* CCPPContext::GetFunction(void) const { return mpcFunction; }
 bool CCPPContext::HasThis(void) const { return mbThis; }
 bool CCPPContext::IsQuiet(void) const { return miQuiet > 0; }
+bool CCPPContext::IsUnevaluated(void) const { return miUnevaluated > 0; }
 bool CCPPContext::IsBroken(void) const { return mbBroken || (masEntered.NumElements() != 0); }

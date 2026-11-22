@@ -37,6 +37,7 @@ void TestCPP65HeaderCache(void);
 void TestIRImportsTurns(void);
 void TestDefineMap(void);
 void TestCPPClassLayout(void);
+void TestCPPContext(void);
 void TestCPPOverloads(void);
 void TestPreprocessorHeaderCache(void);
 
@@ -57,6 +58,7 @@ static const STestCppCompilerLibFile gasTestFiles[] =
 	{ TestPreprocessor, "TestPreprocessor", false },
 	{ TestDefineMap, "TestDefineMap", false },
 	{ TestCPPClassLayout, "TestCPPClassLayout", false },
+	{ TestCPPContext, "TestCPPContext", false },
 	{ TestCPPOverloads, "TestCPPOverloads", false },
 	{ TestPreprocessorHeaderCache, "TestPreprocessorHeaderCache", false },
 	{ TestProject, "TestProject", false },

@@ -119,9 +119,7 @@ bool CCPPUnit::DefineInstanceStatics(bool* pbResult)
 				continue;
 			}
 			mcContext.EnterBindings(RenameBindings(pcClass, pcDeclaration));
-			mpcDefining = pcVariable;
-			*pbResult &= GlobalDeclaration(pcSimple);
-			mpcDefining = NULL;
+			*pbResult &= GlobalDeclaration(pcSimple, pcVariable);
 			mcContext.LeaveBindings();
 			bDefined = true;
 		}
@@ -184,9 +182,7 @@ bool CCPPUnit::DefineVariableInstances(bool* pbResult)
 			continue;
 		}
 		mcContext.EnterBindings(pcVariable->mpcBindings);
-		mpcDefining = pcVariable;
-		*pbResult &= GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcVariable->mpcTemplate->mpcDefinition);
-		mpcDefining = NULL;
+		*pbResult &= GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcVariable->mpcTemplate->mpcDefinition, pcVariable);
 		mcContext.LeaveBindings();
 		pcVariable->mbDefined = true;
 		bDefined = true;

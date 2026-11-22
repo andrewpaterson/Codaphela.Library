@@ -179,14 +179,14 @@ bool CCPPUnit::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 		ReportTypeOf(pcFor->mpcRange);
 		return false;
 	}
-	AddVariable(&mapcLocals, psRangeFor->pcRange, mcTypes.Reference(psRanged, bRvalue), CPPVS_Local, 0);
+	AddVariable(GetLocals(), psRangeFor->pcRange, mcTypes.Reference(psRanged, bRvalue), CPPVS_Local, 0);
 
 	if (!RangeIterators(pcFor, &psBegin, &psEnd, NULL, NULL, NULL))
 	{
 		return false;
 	}
-	AddVariable(&mapcLocals, psRangeFor->pcBegin, psBegin, CPPVS_Local, 0);
-	AddVariable(&mapcLocals, psRangeFor->pcEnd, psEnd, CPPVS_Local, 0);
+	AddVariable(GetLocals(), psRangeFor->pcBegin, psBegin, CPPVS_Local, 0);
+	AddVariable(GetLocals(), psRangeFor->pcEnd, psEnd, CPPVS_Local, 0);
 
 	pcName = pcFor->mpcDeclarator->GetName();
 	psType = mcDeclarators.GetType(pcFor->mpcSpecifiers, pcFor->mpcDeclarator, pcFor, psRangeFor->pcElement);
@@ -199,7 +199,7 @@ bool CCPPUnit::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	{
 		return false;
 	}
-	AddVariable(&mapcLocals, pcName->mpcSymbol, psType, CPPVS_Local, 0);
+	AddVariable(GetLocals(), pcName->mpcSymbol, psType, CPPVS_Local, 0);
 	return true;
 }
 

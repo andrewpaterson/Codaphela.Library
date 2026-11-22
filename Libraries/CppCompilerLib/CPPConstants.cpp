@@ -43,7 +43,6 @@ void CCPPConstants::Init(CCPPUnit* pcUnit)
 	muiWriting = 0;
 	masFunctions.Init();
 	masVariables.Init();
-	mapcWorking.Init();
 	muiNames = 0;
 	mszReason.Init();
 }
@@ -68,7 +67,6 @@ void CCPPConstants::Kill(void)
 		masVariables.Get(i)->szLabel.Kill();
 	}
 	masVariables.Kill();
-	mapcWorking.Kill();
 	for (i = 0; i < mapcFrontEnds.NumElements(); i++)
 	{
 		mapcFrontEnds.GetPtr(i)->Kill();
@@ -169,7 +167,7 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 	bool				bResult;
 
 	mszReason.Clear();
-	if (mapcWorking.Find(pcExpression) != ARRAY_ELEMENT_NOT_FOUND)
+	if (mpcUnit->GetContext()->IsWorking(CPPWK_ConstantValue, pcExpression))
 	{
 		mszReason.Append("It needs its own value");
 		return false;
@@ -182,9 +180,9 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 	}
 	szName.Init();
 	NewName("__constant", &szName);
-	mapcWorking.Add(pcExpression);
+	mpcUnit->GetContext()->EnterWorking(CPPWK_ConstantValue, pcExpression);
 	pcIR = pcFrontEnd->ConstantExpression(szName.Text(), pcExpression, psType);
-	mapcWorking.Pop();
+	mpcUnit->GetContext()->LeaveWorking();
 	szName.Kill();
 	EndWriting();
 	if (!pcIR)
@@ -425,7 +423,6 @@ CIRFunction* CCPPConstants::ConstantFunction(const char* szName, CIRModule** ppc
 	CCPP65IRFrontEnd*		pcFrontEnd;
 	CCPPFunction*			pcFunction;
 	CIRFunction*			pcIR;
-	SCPPFunctionScope		sScope;
 	size					uiFunction;
 	bool					bLocals;
 
@@ -442,7 +439,7 @@ CIRFunction* CCPPConstants::ConstantFunction(const char* szName, CIRModule** ppc
 		pcFrontEnd = IsConstexpr(pcFunction) ? BeginWriting() : NULL;
 		if (pcFrontEnd)
 		{
-			mpcUnit->EnterFunctionScope(&sScope, pcFunction);
+			mpcUnit->EnterFunction(pcFunction);
 			mpcUnit->GetContext()->EnterBindings(pcFunction->mpcBindings);
 			if (pcFunction->mpcDefinition)
 			{
@@ -454,7 +451,7 @@ CIRFunction* CCPPConstants::ConstantFunction(const char* szName, CIRModule** ppc
 			mpcUnit->EndQuiet();
 			pcIR = bLocals ? pcFrontEnd->ConstantFunction(pcFunction) : NULL;
 			mpcUnit->GetContext()->LeaveBindings();
-			mpcUnit->LeaveFunctionScope(&sScope);
+			mpcUnit->LeaveFunction();
 			EndWriting();
 
 			//Writing it may have noted more functions.

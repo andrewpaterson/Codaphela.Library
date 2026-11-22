@@ -253,6 +253,7 @@
     <ClCompile Include="TestIRImportsTurns.cpp" />
     <ClCompile Include="TestDefineMap.cpp" />
     <ClCompile Include="TestCPPClassLayout.cpp" />
+    <ClCompile Include="TestCPPContext.cpp" />
     <ClCompile Include="TestCPPOverloads.cpp" />
     <ClCompile Include="TestPreprocessorHeaderCache.cpp" />
     <ClCompile Include="TestCPP65Jobs.cpp" />

@@ -669,3 +669,7 @@ int main()
 	for (int x : b) s += x;
 	return s;
 }
+
+### StmtStaticLocalFromField | 8 | 6.7 [stmt.dcl] p4: a static local of a member function is initialised the first time the function comes to it, from the fields of the object it is then called on
+struct S { int m; int f() { static int s = m + 1; return s; } };
+int main() { S a; a.m = 3; S b; b.m = 9; return a.f() + b.f(); }

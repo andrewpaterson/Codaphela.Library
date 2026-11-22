@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 2 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
+Where it is: stages 0 to 3 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -587,3 +587,65 @@ Stage 2 (2026-11-22): the small questions.
 	TestIRW65C816Backend, which is run in two processes and counts 210,065 or 218,805 by how its calls are
 	shared between them.  Every other file's count is steady.  It is the test's, not the compiler's, and is
 	left to Tests/TestSpeedPlan.txt's owner.
+
+Stage 3 (2026-11-22): where the compiler is.
+
+	A function is entered and left.  CCPPContext::EnterFunction keeps the function it was entered from and whether
+	that had a this, and LeaveFunction puts both back: nothing is worked out again.  The unit has a scope for each
+	function entered (SCPPFunctionScope: its parameters and locals, and the packs it can expand), the last the
+	one being written; EnterFunction and LeaveFunction are the one way in and out, for a body being written, a
+	trailing return type, a noexcept condition, a lambda's check and a constexpr function being run.  The memcpy
+	of the locals into a struct on the caller's stack is gone, and so are BeginFunction and EndFunction.  Who
+	enters leaves: the unit leaves a function whether its body was written or not, the IR front end no longer
+	ends what it did not begin, and its mbVersionFollows, which was there only so the first of two versions did
+	not end it, is gone (the unit's half of finding 46).  A function's locals now go when it is left, where they
+	went when the next one began.
+	mpcDefining is GlobalDeclaration's parameter.
+	What is being worked out now is the context's (EnterWorking, LeaveWorking, IsWorking: what, of which
+	expression, with which template arguments), where the unit kept two lists and a count and CCPPConstants a
+	third list.  With the template arguments in it, one instance's constant can need another's that is written
+	by the same tokens.
+	The two stack overflows of stage 0 were each a step with no guard, and have one:
+	- FoldConstant followed a const variable's name to its initialiser, which could be the name again.
+	  constexpr int a = a + 1; is refused ("... It reads what isn't a constant").  Case
+	  DclConstexprOwnValueRefused.
+	- RunConstant asked an expression's type, which (for a static member, to see that it needs no definition)
+	  asks its constant, which asked its type.  The inner asking is answered no and the type comes back.
+	  F<2>::v, each instance's value made from the one before through a constexpr function, is 3.  Case
+	  DclConstexprStaticOfInstances.
+	Having no this, an operand that isn't evaluated, and quiet code are entries, so CheckContext catches one left
+	unbalanced: EnterNoThis and LeaveNoThis (it was NoThis, which nothing left, and EnterStaticLocal),
+	EnterUnevaluated and LeaveUnevaluated (the unit's counter), and BeginQuiet and EndQuiet on the same stack.
+	None was found unbalanced by any test.
+
+	Looked at, and not as the stage was written:
+	- "Unevaluated has one answer; the walk up the tree goes."  They are two questions.  The context says an
+	  operand is being typed that isn't evaluated, whatever is being typed in it; IsInUnevaluatedOperand says a
+	  lambda is written inside such an operand, which is what [expr.prim.lambda] 2 forbids.  The walk stays.
+	- TypeOf's memo was not given "unevaluated" in its key: stage 0 found no program it gets wrong, and a node is
+	  inside such an operand or it is not.
+	- mbValueArgumentRefused is not a parameter or a return value yet.  It is how FoldConstant learns that
+	  something five calls below it said "The constant's value isn't one of the type it is converted to": an
+	  error's side channel.  Stage 4 gives a trial its errors, and FoldConstant asks the trial.
+	- The element of a pack being expanded is not a context entry yet: stage 5 adds it where it is used.
+
+	Found by leaving what is entered: a static local's initialiser had no this (EnterStaticLocal), so
+	    struct S { int m; int f() { static int s = m + 1; return s; } };
+	was refused ("A field needs an object"), and the same with a constexpr call before the field was accepted,
+	only because leaving the called function's scope worked this out again and got it back.  A static local is
+	initialised where its function first comes to it, with the function's this ([stmt.dcl] 4): its initialiser
+	is typed with it, and is data only if it is a constant.  Case StmtStaticLocalFromField.
+
+	Tests: TestCPPContext.cpp (a function, a function in a function and in a part with no this; what is being
+	worked out, by kind, expression and template arguments; unevaluated and quiet, and a context broken by
+	leaving what was not last entered).  Three conformance cases, all done on both processors and by the check.
+
+	Proved: TestCppCompilerLib passes (271,766).  Diagnostics: 5,789 entries; the 9 new are the three cases', and
+	4 differ only in the line of CPP65IRFrontEnd.cpp an unsupported exit cites (the file is nine lines shorter).
+	Listings: 4,201, none different, so no unit of the three libraries has a static local made from a field or
+	a constant that needs itself.  Counts: stage 0's.  Time, a unit at a time: declarations 6,460 ms and 6,458
+	(stage 2: 6,357 and 6,306), types 6,176 and 6,233 (6,142 and 6,171).  The declarations are about 2% slower:
+	1.75 million quiet regions are each an entry made and taken off the context's stack now, and the guards are
+	looked for on it.
+	(One of the six listings runs was stopped by a debugger attached to it in error, and was taken again; its
+	half-written folder had each unit's first compile, which a second compile replaces.)

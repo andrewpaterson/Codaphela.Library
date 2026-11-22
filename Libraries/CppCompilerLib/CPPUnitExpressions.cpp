@@ -2129,7 +2129,7 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	BeginUnevaluated();
+	mcContext.EnterUnevaluated();
 	pcExpression = SkipParentheses(pcExpression);
 	psType = mcDeclarators.EntityType(pcExpression);
 	if (!psType)
@@ -2140,7 +2140,7 @@ SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 	{
 		psType = TypeOf(pcExpression);
 	}
-	EndUnevaluated();
+	mcContext.LeaveUnevaluated();
 	return psType;
 }
 
@@ -2516,7 +2516,14 @@ bool CCPPUnit::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	{
 		return false;
 	}
+	//Its type, which may ask for its constant (a static member's, to see that it needs no definition): that asking
+	//is answered no, and the type comes back.
+	if (!mcContext.EnterWorking(CPPWK_RunType, pcExpression))
+	{
+		return false;
+	}
 	psType = TypeOf(pcExpression);
+	mcContext.LeaveWorking();
 	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
 	{
 		return false;
@@ -2537,17 +2544,16 @@ SCPP65Type* CCPPUnit::ObjectConstantType(CCPPSyntax* pcExpression)
 	CCPPFunction*	pcConversion;
 	SCPP65Type*		psType;
 
-	if (mapcObjectConstants.Find(pcExpression) != ARRAY_ELEMENT_NOT_FOUND)
+	if (!mcContext.EnterWorking(CPPWK_ObjectConstant, pcExpression))
 	{
 		//Its type is being worked out, which asked whether it is a constant: it isn't known to be an object.
 		return NULL;
 	}
-	mapcObjectConstants.Add(pcExpression);
 	BeginQuiet();
 	psType = ValueTypeOf(pcExpression);
 	pcConversion = (psType && psType->IsClass()) ? mcBinder.FindIntegerConversion(psType->pcClass, pcExpression) : NULL;
 	EndQuiet();
-	mapcObjectConstants.Pop();
+	mcContext.LeaveWorking();
 	return (pcConversion && pcConversion->mbConstexpr) ? pcConversion->mpsReturn->WithoutReference()->Unqualified() : NULL;
 }
 
@@ -2731,8 +2737,8 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
-		if (!pcDeclaration || (pcDeclaration->GetKind() != CPPS_SimpleDeclaration) || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
+		pcDeclaration = pcInit->GetDeclaration();
+		if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
 		{
 			return false;
 		}
@@ -2746,14 +2752,20 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 			//(A volatile const's value is read when the program runs.  [expr.const] 2)
 			return false;
 		}
-		if (pcClass)
+		//The variable's value is its initialiser's, which can't be the variable's again (constexpr int a = a + 1).
+		mcContext.EnterBindings(pcClass ? pcBindings : mcContext.GetBindings());
+		bResult = mcContext.EnterWorking(CPPWK_Initialiser, pcInitialiser);
+		if (bResult)
 		{
-			mcContext.EnterBindings(pcBindings);
 			bResult = Constant(pcInitialiser, plliValue);
-			mcContext.LeaveBindings();
-			return bResult;
+			mcContext.LeaveWorking();
 		}
-		return Constant(pcInitialiser, plliValue);
+		else
+		{
+			mpcConstants->SetReason("It needs its own value");
+		}
+		mcContext.LeaveBindings();
+		return bResult;
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
@@ -2907,13 +2919,12 @@ SCPP65Type* CCPPUnit::ConstantTypeOf(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	if (mapcConstantTypes.Find(pcExpression) != ARRAY_ELEMENT_NOT_FOUND)
+	if (!mcContext.EnterWorking(CPPWK_ConstantType, pcExpression))
 	{
 		return NULL;
 	}
-	mapcConstantTypes.Add(pcExpression);
 	psType = TypeOf(pcExpression);
-	mapcConstantTypes.RemoveTail();
+	mcContext.LeaveWorking();
 	return psType;
 }
 
@@ -3134,13 +3145,12 @@ void CCPPUnit::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool b
 	int64		lliMax;
 	CChars		szMessage;
 
-	if (miWarningChecks > 0)
+	if (!mcContext.EnterWorking(CPPWK_Warning, NULL))
 	{
 		return;
 	}
-	miWarningChecks++;
 	psType = TypeOf(pcExpression);
-	miWarningChecks--;
+	mcContext.LeaveWorking();
 	if (!psType || !psType->IsInteger() || (psType->iBytes >= 8))
 	{
 		return;
@@ -3181,13 +3191,12 @@ void CCPPUnit::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 	bool		bConstant;
 	CChars		szMessage;
 
-	if (!psTo || !psTo->IsInteger() || (psTo->eKind == CPP65TK_Bool) || (miWarningChecks > 0))
+	if (!psTo || !psTo->IsInteger() || (psTo->eKind == CPP65TK_Bool) || !mcContext.EnterWorking(CPPWK_Warning, NULL))
 	{
 		return;
 	}
-	miWarningChecks++;
 	psFrom = TypeOf(pcExpression);
-	miWarningChecks--;
+	mcContext.LeaveWorking();
 	if (!psFrom || !psFrom->IsInteger())
 	{
 		return;
@@ -3243,7 +3252,7 @@ void CCPPUnit::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, 
 	int64						lliValue;
 	bool						bConstant;
 
-	if ((psFrom->eKind != CPP65TK_Integer) || (psTo->eKind != CPP65TK_Integer) || (psTo->iBytes <= psFrom->iBytes) || (miWarningChecks > 0))
+	if ((psFrom->eKind != CPP65TK_Integer) || (psTo->eKind != CPP65TK_Integer) || (psTo->iBytes <= psFrom->iBytes) || mcContext.IsWorking(CPPWK_Warning, NULL))
 	{
 		return;
 	}
@@ -3282,7 +3291,7 @@ void CCPPUnit::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits)
 	int64	lliCount;
 	bool	bConstant;
 
-	if (miWarningChecks > 0)
+	if (mcContext.IsWorking(CPPWK_Warning, NULL))
 	{
 		return;
 	}
@@ -3335,9 +3344,9 @@ CCPPSyntaxBinaryExpression* CCPPUnit::NarrowMultiply(CCPPSyntax* pcExpression, S
 	//Only a side already the type the whole is done in: a wider side would have made the whole wider.
 	for (i = 0; i < 2; i++)
 	{
-		miWarningChecks++;
+		mcContext.EnterWorking(CPPWK_Warning, NULL);
 		psSide = TypeOf((i == 0) ? pcBinary->mpcLeft : pcBinary->mpcRight);
-		miWarningChecks--;
+		mcContext.LeaveWorking();
 		if (!psSide || (psSide->eKind != CPP65TK_Integer) || (psSide->iBytes != psType->iBytes))
 		{
 			continue;
@@ -3366,7 +3375,7 @@ void CCPPUnit::LoopCounterWidth(CCPPSyntaxForStatement* pcFor)
 {
 	CArrayVoidPtr	apcCounters;
 
-	if (!pcFor->mpcCondition || !pcFor->mpcIncrement || (miWarningChecks > 0))
+	if (!pcFor->mpcCondition || !pcFor->mpcIncrement || mcContext.IsWorking(CPPWK_Warning, NULL))
 	{
 		return;
 	}
@@ -3482,10 +3491,10 @@ void CCPPUnit::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* pa
 		pcBound = pcBinary->mpcLeft;
 	}
 
-	miWarningChecks++;
+	mcContext.EnterWorking(CPPWK_Warning, NULL);
 	psCounter = TypeOf(pcCounter);
 	psBound = TypeOf(pcBound);
-	miWarningChecks--;
+	mcContext.LeaveWorking();
 	if (!psCounter || !psBound || (psCounter->eKind != CPP65TK_Integer) || (psBound->eKind != CPP65TK_Integer) || (psBound->iBytes <= psCounter->iBytes))
 	{
 		return;
@@ -3566,14 +3575,13 @@ void CCPPUnit::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	bool			bAlways;
 	CChars			szMessage;
 
-	if (miWarningChecks > 0)
+	if (!mcContext.EnterWorking(CPPWK_Warning, NULL))
 	{
 		return;
 	}
-	miWarningChecks++;
 	psLeft = TypeOf(pcBinary->mpcLeft);
 	psRight = TypeOf(pcBinary->mpcRight);
-	miWarningChecks--;
+	mcContext.LeaveWorking();
 	if (!psLeft || !psRight || (psLeft->eKind != CPP65TK_Integer) || (psRight->eKind != CPP65TK_Integer))
 	{
 		return;

@@ -270,7 +270,7 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 		return;
 	}
 
-	BeginFunction(pcFunction);
+	EnterFunction(pcFunction);
 	AddParameters(pcFunction);
 	CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator);
 	CheckMemberInitialisers(pcFunction);
@@ -280,7 +280,7 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 		CheckChildren(pcDefinition->macpMemberInitializers.GetPtr(i));
 	}
 	CheckNode(pcDefinition->mpcBody);
-	EndFunction();
+	LeaveFunction();
 }
 
 
@@ -1239,7 +1239,6 @@ void CCPPUnit::CheckLambdas(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 {
-	SCPPFunctionScope	sScope;
 	SCPPLambda*			psLambda;
 	CCPPFunction*		pcCall;
 
@@ -1252,11 +1251,11 @@ void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 		return;
 	}
 	pcCall->mbGenerated = true;
-	EnterFunctionScope(&sScope, pcCall);
+	EnterFunction(pcCall);
 	AddParameters(pcCall, pcCall->mpcDeclarator);
 	AllocateLocals(pcLambda->mpcDefinition->mpcBody);
 	CheckNode(pcLambda->mpcDefinition->mpcBody);
-	LeaveFunctionScope(&sScope);
+	LeaveFunction();
 }
 
 

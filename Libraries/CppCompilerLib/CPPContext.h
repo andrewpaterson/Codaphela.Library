@@ -32,10 +32,27 @@ enum ECPPContextEntry
 	CPPCE_Bindings,
 	CPPCE_Namespace,
 	CPPCE_Linkage,
-	CPPCE_StaticLocal,
+	CPPCE_Function,
+	CPPCE_NoThis,
+	CPPCE_Unevaluated,
+	CPPCE_Quiet,
 	CPPCE_Object,
 	CPPCE_Trial,
 	CPPCE_Loud,
+	CPPCE_Working,
+};
+
+
+//What is being worked out (EnterWorking): something that would need itself to be worked out is known not to be
+//there yet, where it would otherwise be asked for without end.
+enum ECPPWorking
+{
+	CPPWK_ObjectConstant,	//An expression's type, to see whether it is an object that converts to a constant (CCPPUnit::ObjectConstantType).
+	CPPWK_ConstantType,		//An expression's type, for folding its constant (CCPPUnit::ConstantTypeOf).
+	CPPWK_RunType,			//An expression's type, for running its constant (CCPPUnit::RunConstant).
+	CPPWK_ConstantValue,	//An expression's value, by running it (CCPPConstants::Value).
+	CPPWK_Initialiser,		//A const variable's initialiser, for the variable's value (CCPPUnit::FoldConstant).
+	CPPWK_Warning,			//A warning's check, which works types and constants out: one at a time (on NULL).
 };
 
 
@@ -44,6 +61,7 @@ struct SCPPContextEntry
 {
 	ECPPContextEntry	eKind;
 	void*				pvSaved;
+	void*				pvOtherSaved;
 	int					iSaved;
 	bool				bSaved;
 	bool				bOtherSaved;
@@ -55,9 +73,10 @@ typedef CArrayTemplate<SCPPContextEntry>	CArrayCPPContextEntries;
 
 //Where the compiler is in the unit: what a declaration or an expression means depends on it.  The template
 //arguments of what is being generated or laid out, the namespace declarations are in, the linkage, and the
-//function being written.  A part of it is entered and left (EnterBindings and LeaveBindings), and what was
-//there before comes back when it is left: nothing is saved and put back by hand.  Leaving what wasn't the
-//last thing entered is a mistake in the compiler, and is kept (IsBroken) for the unit to report.
+//function being written, whether there is a this, whether what is typed is evaluated, and what is being worked
+//out.  A part of it is entered and left (EnterBindings and LeaveBindings), and what was there before comes back
+//when it is left: nothing is saved and put back by hand.  Leaving what wasn't the last thing entered is a mistake
+//in the compiler, and is kept (IsBroken) for the unit to report.
 //
 //It is also where errors go.  In quiet code they are not reported: what is done there is judged by what it
 //returns, and a declaration the compiler can't do yet is only an error when it is used.  Quiet code in quiet
@@ -73,6 +92,7 @@ protected:
 	CCPPClass*				mpcObject;				//An aggregate being filled, which is this for its default member initialisers; else NULL.
 	bool					mbLinkageExtern;		//In extern "C" without braces: declarations are extern.
 	bool					mbCLinkage;				//In extern "C": functions declared have C linkage.
+	int						miUnevaluated;			//How deep in operands that aren't evaluated (sizeof, decltype, noexcept) the compiler is.
 	int						miQuiet;				//Above 0, errors are not reported, only noted in mbQuietFailed.
 	bool					mbQuietFailed;
 	CArrayCPPContextEntries	masEntered;
@@ -95,17 +115,20 @@ public:
 	bool					IsCLinkage(void) const;
 	bool					IsLinkageExtern(void) const;
 
-	void					BeginFunction(CCPPFunction* pcFunction);
-	void					EndFunction(void);
-	void					NoThis(void) { mbThis = false; }
+	void					EnterFunction(CCPPFunction* pcFunction);
+	void					LeaveFunction(void);
 	CCPPFunction*			GetFunction(void) const;
 	bool					HasThis(void) const;
 
 	void					EnterObject(CCPPClass* pcClass);
 	void					LeaveObject(void);
 	CCPPClass*				GetObject(void) const;
-	void					EnterStaticLocal(void);
-	void					LeaveStaticLocal(void);
+	void					EnterNoThis(void);
+	void					LeaveNoThis(void);
+
+	void					EnterUnevaluated(void);
+	void					LeaveUnevaluated(void);
+	bool					IsUnevaluated(void) const;
 
 
 	bool					BeginQuiet(void);
@@ -115,6 +138,10 @@ public:
 	void					BeginLoud(void);
 	void					EndLoud(void);
 	bool					IsQuiet(void) const;
+
+	bool					EnterWorking(ECPPWorking eWhat, void* pvOn);
+	void					LeaveWorking(void);
+	bool					IsWorking(ECPPWorking eWhat, void* pvOn) const;
 	void					SetFailed(void) { mbQuietFailed = true; }
 
 	bool					IsBroken(void) const;

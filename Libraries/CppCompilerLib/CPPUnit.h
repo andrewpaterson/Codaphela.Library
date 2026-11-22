@@ -220,13 +220,16 @@ struct SCPPLiteralCall
 typedef CMapLongTemplate<SCPPLiteralCall>	CMapCPPLiteralCalls;
 
 
-//The function being written, put aside while another's parameters and locals are made (CCPPUnit::EnterFunctionScope).
+//What a function has while it is entered (CCPPUnit::EnterFunction): its parameters and locals, and the function
+//parameter packs it can expand.  The unit's first is no function's: what is asked of when none is entered.
 struct SCPPFunctionScope
 {
-	CCPPFunction*		pcFunction;
 	CArrayCPPVariables	apcLocals;
 	CCPPFunctionPacks	cFunctionPacks;
 };
+
+
+typedef CArrayTemplatePtr<SCPPFunctionScope>	CArrayCPPFunctionScopes;
 
 
 
@@ -292,14 +295,10 @@ protected:
 	CArraySyntax			mapcMemberVariableTemplates;	//template<class C> template<class T> T W<C>::value = ...;, each instance's member variable template's definition (DefineMemberVariableTemplate).
 	CArraySyntax			mapcMemberVariableSpecialisations;	//template<class C> template<class T> T W<C>::value<T*> = ...;, each instance's member variable template's partial specialisation (SpecialiseMemberVariableTemplate).
 	CArraySyntax			mapcStaticMemberTemplates;	//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
-	CCPPVariable*			mpcDefining;		//The variable of a template's instance GlobalDeclaration is defining, or NULL.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
 	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
 	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
-	int						miUnevaluated;		//How deep in operands that aren't evaluated (sizeof, decltype) the unit is.
 	int						miSaysDeprecated;	//Whether the source says deprecated anywhere (SaysDeprecated): 1, 0, or -1 until it is asked.
-	CCPPFunctionPacks		mcFunctionPacks;	//The function parameter packs the function being written can expand.
-	CArraySyntax			mapcObjectConstants;	//The expressions ObjectConstantType is asked of now: a name's type may ask for its constant.
 	CArrayCPPBracedLists	masBracedLists;			//The lists BracedFor has made, each for the list and the type it was made of.
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
@@ -307,8 +306,6 @@ protected:
 	CArraySyntax			mapcFailed;			//Declarators of functions whose declarations were not supported.
 	CMapCPPTypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
-	int						miWarningChecks;	//Above 0 while a warning check works out a type (TypeOf can fold the same constant again).
-	CArraySyntax			mapcConstantTypes;	//The expressions whose types Constant is finding (ConstantTypeOf).
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
 	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
@@ -327,7 +324,7 @@ protected:
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
 	CCPPMangler				mcMangler;			//Makes the labels.
-	CArrayCPPVariables	mapcLocals;
+	CArrayCPPFunctionScopes	mapsFunctionScopes;	//The functions entered, the last the one being written (GetLocals, GetFunctionPacks).
 	CArrayCPPVariables		mapcStaticLocals;	//Each static local as last defined, which a local class's member functions name (EnclosingStatic).
 	int						miStatics;			//Static locals in the unit.
 	int						miLabels;
@@ -369,6 +366,7 @@ public:
 	CChars*					GetCode(void);
 	CArrayCPPTemplates*		GetTemplates(void);
 	CArrayCPPVariables*		GetLocals(void);
+	CCPPFunctionPacks*		GetFunctionPacks(void);
 	CArrayLargeTemplate<uint16>*	GetCodePieces(void);
 	int*					GetLabelCounter(void);
 	CCPPTarget*				GetTarget(void) const;
@@ -458,8 +456,10 @@ public:
 	SCPP65Type*				ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn);
 	void					FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns);
 	SCPP65Type*				ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDeclarator* pcDeclarator);
-	void					EnterFunctionScope(SCPPFunctionScope* psScope, CCPPFunction* pcFunction);
-	void					LeaveFunctionScope(SCPPFunctionScope* psScope);
+	void					EnterFunction(CCPPFunction* pcFunction);
+	void					LeaveFunction(void);
+	void					PushFunctionScope(void);
+	void					PopFunctionScope(void);
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
@@ -473,7 +473,7 @@ public:
 	bool					Declarations(CArraySyntax* papcDeclarations);
 	bool					IsScopeDeclaration(CCPPSyntax* pcDeclaration);
 	bool					IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration);
-	bool					GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration);
+	bool					GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable* pcDefining = NULL);
 	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise);
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
@@ -487,8 +487,6 @@ public:
 	bool					GenerateDefinition(CCPPFunction* pcFunction);
 	bool					WriteBody(CCPPFunction* pcFunction);
 	void					AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator = NULL);
-	void					BeginFunction(CCPPFunction* pcFunction);
-	void					EndFunction(void);
 	void					AppendUnsupported(CChars* psz);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
 	SCPPRangeFor*			GetRangeFor(CCPPSyntaxRangeForStatement* pcFor);
@@ -673,9 +671,6 @@ public:
 	SCPPFunctionPack*		FindFunctionPack(CCPPSymbol* pcSymbol);
 	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
 	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
-	void					BeginUnevaluated(void) { miUnevaluated++; }
-	void					EndUnevaluated(void) { miUnevaluated--; }
-	bool					IsUnevaluated(void) const;
 	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
 	CCPPSyntaxParameter*	DefaultArgumentOf(CCPPSyntax* pcNode);
 	bool					IsDecltypeOperand(CCPPSyntax* pcNode);

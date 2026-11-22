@@ -70,7 +70,6 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	msVTT = IRNone();
 	msVTTArgument = IRNone();
 	mbBaseVersion = false;
-	mbVersionFollows = false;
 	mpcBaseObject = NULL;
 	mpcValue = NULL;
 	mpcProfiledCaller = NULL;
@@ -200,18 +199,15 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 	}
 
 	//A constructor or destructor of a class with virtual bases has a base version too, for a base subobject, which
-	//leaves the virtual bases alone.  The unit's context stays the function's until the last is written.
+	//leaves the virtual bases alone.
 	mbBaseVersion = false;
-	mbVersionFollows = pcFunction->mpcClass && ((pcFunction->meKind == CPPFK_Constructor) || (pcFunction->meKind == CPPFK_Destructor)) && pcFunction->mpcClass->HasVirtualBases();
 	bResult = WriteBody(pcFunction);
-	if (bResult && mbVersionFollows)
+	if (bResult && pcFunction->mpcClass && ((pcFunction->meKind == CPPFK_Constructor) || (pcFunction->meKind == CPPFK_Destructor)) && pcFunction->mpcClass->HasVirtualBases())
 	{
 		mbBaseVersion = true;
-		mbVersionFollows = false;
 		bResult = WriteBody(pcFunction);
 		mbBaseVersion = false;
 	}
-	mbVersionFollows = false;
 	return bResult;
 }
 
@@ -604,11 +600,6 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		szCode.Kill();
 	}
 
-	if (bResult && !mbVersionFollows)
-	{
-		//As the generator's EndFunction leaves it.
-		mpcUnit->GetContext()->EndFunction();
-	}
 	mbUnsupported = !bResult;
 	EndWriting();
 	if (bResult)

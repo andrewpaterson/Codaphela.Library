@@ -434,9 +434,9 @@ void CCPP65TypeChecker::VisitNoexceptExpression(CCPPSyntaxNoexceptExpression* pc
 {
 	SCPP65Type*	psOperand;
 
-	mpcUnit->BeginUnevaluated();
+	mpcUnit->GetContext()->EnterUnevaluated();
 	psOperand = Value(pcNode->mpcOperand);
-	mpcUnit->EndUnevaluated();
+	mpcUnit->GetContext()->LeaveUnevaluated();
 	mpsResult = psOperand ? &mpcTypes->msBool : NULL;
 }
 
@@ -1819,7 +1819,7 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 		//[[deprecated]]: it can still be called, and the program is told.  [dcl.attr.deprecated] 4
 		mpcUnit->WarnDeprecated(pcNode, "function", pcFunction->miDeprecated);
 	}
-	if (pcFunction->mpcTemplate && !pcFunction->mpcDefinition && pcFunction->mpcTemplate->mbMemberTemplate && !mpcUnit->IsUnevaluated())
+	if (pcFunction->mpcTemplate && !pcFunction->mpcDefinition && pcFunction->mpcTemplate->mbMemberTemplate && !mpcUnit->GetContext()->IsUnevaluated())
 	{
 		//A template only declared can be named in sizeof and decltype, not called.  [basic.def.odr] 4
 		Error(pcNode, "The member template has not been defined");
@@ -2472,7 +2472,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		mpcUnit->GetBinder()->BindName(pcId, &cBound);
 		if (cBound.meWhat == CPPBN_Variable)
 		{
-			if ((cBound.mpcVariable->meStorage != CPPVS_Global) && !mpcUnit->IsUnevaluated() && mpcUnit->DefaultArgumentOf(pcId))
+			if ((cBound.mpcVariable->meStorage != CPPVS_Global) && !mpcUnit->GetContext()->IsUnevaluated() && mpcUnit->DefaultArgumentOf(pcId))
 			{
 				//A default argument is worked out where the function is called.  [dcl.fct.default] 7, 9
 				mpcUnit->ReportOnce(pcId, "A default argument can't use a variable or a parameter of a function");
@@ -2508,7 +2508,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			}
 			if (cBound.meWhat == CPPBN_EnclosingConstant)
 			{
-				if (mpcUnit->IsUnevaluated())
+				if (mpcUnit->GetContext()->IsUnevaluated())
 				{
 					//decltype((c)) names the variable, which nothing reads.
 					return mpcUnit->EnclosingConstantObjectType(cBound.mpcSymbol);
@@ -2518,14 +2518,14 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 				return NULL;
 			}
 			//S::m with no object, in an operand that isn't evaluated: nothing is read.  [expr.prim.general] 13
-			psType = mpcUnit->IsUnevaluated() ? mpcUnit->QualifiedFieldType(pcExpression) : NULL;
+			psType = mpcUnit->GetContext()->IsUnevaluated() ? mpcUnit->QualifiedFieldType(pcExpression) : NULL;
 			if (!psType)
 			{
 				Error(pcExpression, NotAPlace(((CCPPSyntaxIdExpression*)pcExpression)->mpcName));
 			}
 			return psType;
 		}
-		if (!mpcUnit->GetContext()->HasThis() && !mpcUnit->IsUnevaluated())
+		if (!mpcUnit->GetContext()->HasThis() && !mpcUnit->GetContext()->IsUnevaluated())
 		{
 			Error(pcExpression, "A field needs an object");
 			return NULL;

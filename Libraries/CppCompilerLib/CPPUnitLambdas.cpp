@@ -62,7 +62,7 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	psLambda->asCaptures.Init();
 	psLambda->bThis = false;
 	psLambda->cFunctionPacks.Init();
-	psLambda->cFunctionPacks.AddAll(&mcFunctionPacks);
+	psLambda->cFunctionPacks.AddAll(GetFunctionPacks());
 	psLambda->bMutable = pcSyntax->IsMutable();
 	psLambda->bFailed = false;
 	psLambda->pcErrorNode = pcSyntax;

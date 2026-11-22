@@ -73,7 +73,6 @@ protected:
 	size						muiWriting;			//How many of the front ends are writing a function now.
 	CArrayCPPConstantFunctions	masFunctions;
 	CArrayCPPConstantVariables	masVariables;
-	CArraySyntax				mapcWorking;		//The expressions being worked out: one asked for again inside itself is not a constant.
 	size						muiNames;			//Names made (NewName).
 	CChars						mszReason;			//Why the last expression asked for had no value.
 
