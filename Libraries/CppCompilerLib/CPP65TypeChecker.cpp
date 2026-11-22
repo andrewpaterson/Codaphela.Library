@@ -4126,12 +4126,14 @@ bool CCPP65TypeChecker::ConversionError(CCPPSyntax* pcNode, SCPP65Type* psFrom, 
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::TypesError(CCPPSyntax* pcNode, const char* szBefore, SCPP65Type* psFirst, const char* szBetween, SCPP65Type* psSecond, const char* szAfter)
 {
-	CChars	szError;
+	CChars			szError;
+	CCPPTypeWriter	cWriter;
 
+	cWriter.Init(mpcUnit, CPPTW_Shown);
 	szError.Init(szBefore);
-	mpcUnit->AppendTypeName(&szError, psFirst);
+	cWriter.AppendType(psFirst, &szError);
 	szError.Append(szBetween);
-	mpcUnit->AppendTypeName(&szError, psSecond);
+	cWriter.AppendType(psSecond, &szError);
 	szError.Append(szAfter);
 	Error(pcNode, szError.Text());
 	szError.Kill();

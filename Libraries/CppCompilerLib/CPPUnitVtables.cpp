@@ -522,18 +522,20 @@ void CCPPUnit::AppendTypeInfoHeader(CChars* pszName, uint32 uiKind)
 //
 // The name a type info points to (pszInfo's, with __Name: *pszName), a
 // string of its own written before it: the type as the program writes it
-// (AppendTypeName).  COMDAT and global with a type info that is (bShared).
+// (CCPPTypeWriter, shown).  COMDAT and global with a type info that is (bShared).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName)
 {
-	CChars	szText;
-	size	i;
+	CChars			szText;
+	CCPPTypeWriter	cWriter;
+	size			i;
 
 	pszName->Append(pszInfo);
 	pszName->Append("__Name");
 	szText.Init();
-	AppendTypeName(&szText, psType);
+	cWriter.Init(this, CPPTW_Shown);
+	cWriter.AppendType(psType, &szText);
 	CCPPUnitData::AppendSection(mcData.GetText(), "rodata", pszName, bShared ? ", comdat" : NULL);
 	if (bShared)
 	{

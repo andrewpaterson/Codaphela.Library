@@ -63,6 +63,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPCompileStatistics.h"
 #include "CPPCompileOptions.h"
 #include "CPPLambda.h"
+#include "CPPTypeWriter.h"
 
 
 class CCTString;
@@ -778,11 +779,6 @@ public:
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
 	void					AppendTypeInfoHeader(CChars* pszName, uint32 uiKind);
 	void					AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName);
-	void					AppendTypeName(CChars* psz, SCPP65Type* psType);
-	void					AppendTypeNameAround(CChars* psz, SCPP65Type* psType, CChars* pszInner);
-	void					AppendClassName(CChars* psz, CCPPClass* pcClass);
-	void					AppendScopeName(CChars* psz, CCPPScope* pcScope);
-	void					AppendIdentifier(CChars* psz, int64 lliName);
 	void					AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer);
 	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
 	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);

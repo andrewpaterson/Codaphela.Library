@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 9 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 10 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -849,3 +849,33 @@ Stage 9 (2026-11-22): definitions outside their class template.
 
 	Proved: TestCppCompilerLib passes (272,049); the 5,840 diagnostics entries and the 4,205 listings are as they
 	were; time is as it was (declarations 6,408 and 6,401 ms, types 6,408 and 6,453).
+
+Stage 10 (2026-11-22): one printer of types.
+
+	CCPPTypeWriter is the compiler's one writer of a type, and the unit's five printers (AppendTypeName,
+	AppendTypeNameAround, AppendClassName, AppendScopeName, AppendIdentifier: 270 lines of CPPUnitObjects.cpp)
+	are gone.  It is made for the source (CPPTW_Source: the IDE's refactorings, a constant's errors) or to be
+	shown (CPPTW_Shown: type_info::name, an error that names two types, a class's layout), and that decides five
+	things, listed on the class: what has no name (false, or <lambda>, <unnamed>, (unnamed enum), ?), a namespace
+	without a name, "(void)", an array of unknown bound, and a pointer or reference template argument (as
+	written, or its value).  Everything else is one walk.
+
+	Proved by a harness kept for the proof and then taken out: at every typed expression of TestCppCompilerLib,
+	the conformance cases and the three *65 projects, both writings were made by the old printers and the new
+	one and every difference logged.  What differs, all of it meant:
+	  - A member pointer in parentheses: the source wrote "bool ( Bool::*)(CFileReader*)", now
+	    "bool (Bool::*)(CFileReader*)" (135 types).
+	  - A member class of an instance is named after the instance, "Outer<char>::Pair<long>", where the source
+	    wrote "Outer::Pair<long>", which names no class; and a class in a function by its own name, "L", where the
+	    source wrote "A::L" (6).
+	  - The source wrote an array without a name with a space, "char [3]"; now "char[3]", as shown (2).
+	  - Shown, a pointer's member pointer had no space, "int*S::*"; now "int* S::*", and a function returning a
+	    pointer is "char* (*)(const char*, int)" as in the source, where shown it was "char*(*)(...)" (26).
+	  - Shown, a template checked as itself writes a value parameter as its name, "CHolder<M, N>*", where it
+	    wrote a value it hasn't, "CHolder<M, 1>*" (1).
+	  - Shown, an explicit specialisation with no bindings was "SFactorial<>"; now "SFactorial", as in the
+	    source (4).  Both are wrong, its arguments being its pattern's (template<> struct SFactorial<0>): left.
+	None of it reaches a listing or a diagnostic of the corpus: the 4,205 listings and the 5,840 diagnostics
+	entries are as they were.  TestCppCompilerLib passes (272,049).  The IDE's 77 checks of the
+	refactorings that write types (introduce, inline, extract, move members, macros, enums): 76 pass, and
+	enum-to-class fails as it did before, with the same output.

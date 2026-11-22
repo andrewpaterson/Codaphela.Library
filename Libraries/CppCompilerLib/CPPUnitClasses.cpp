@@ -1669,10 +1669,12 @@ void CCPPUnit::AddLayout(CCPPClass* pcClass)
 	CChars					sz;
 	SPreprocessedToken*		psSource;
 	SCPPField*				psField;
+	CCPPTypeWriter			cWriter;
 	size					i;
 
+	cWriter.Init(this, CPPTW_Shown);
 	sz.Init();
-	AppendClassName(&sz, pcClass);
+	cWriter.AppendClass(pcClass, &sz);
 	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(pcClass->mpcSpecifier->miFirstToken));
 	if (psSource && psSource->pcFile)
 	{
@@ -1682,7 +1684,7 @@ void CCPPUnit::AddLayout(CCPPClass* pcClass)
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		sz.Append(pcClass->macBases.Get(i)->bVirtual ? " virtual " : " base ");
-		AppendClassName(&sz, pcClass->macBases.Get(i)->pcClass);
+		cWriter.AppendClass(pcClass->macBases.Get(i)->pcClass, &sz);
 		if (!pcClass->macBases.Get(i)->bVirtual)
 		{
 			sz.Append('@')->Append(pcClass->macBases.Get(i)->iOffset);
@@ -1691,7 +1693,7 @@ void CCPPUnit::AddLayout(CCPPClass* pcClass)
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
 		sz.Append(" virtual-base ");
-		AppendClassName(&sz, pcClass->macVirtualBases.Get(i)->pcClass);
+		cWriter.AppendClass(pcClass->macVirtualBases.Get(i)->pcClass, &sz);
 		sz.Append('@')->Append(pcClass->macVirtualBases.Get(i)->iOffset);
 	}
 	if (pcClass->mcVtable.HasPointer())
@@ -1702,7 +1704,7 @@ void CCPPUnit::AddLayout(CCPPClass* pcClass)
 	{
 		psField = pcClass->macFields.Get(i);
 		sz.Append(' ');
-		AppendIdentifier(&sz, psField->lliName);
+		cWriter.AppendIdentifier(psField->lliName, &sz);
 		sz.Append('@')->Append(psField->iOffset);
 		if (psField->IsBitField())
 		{
