@@ -608,6 +608,7 @@ public:
 	CCPPClass*			FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate);
 	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	int						AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass = false);
+	int						ObjectAlignment(SCPP65Type* psType);
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
@@ -700,6 +701,7 @@ public:
 	bool					AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier, CCPPSyntaxName* pcName);
 	bool					AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	void					DumpLayout(CCPPClass* pcClass, const char* szFileName);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);

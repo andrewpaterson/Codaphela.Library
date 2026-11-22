@@ -62,6 +62,24 @@ int CCPPClassLayout::PackAlignment(int iAlign, int iPack)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A type's alignment where something limits it (#pragma pack in a class,
+// the target: iLimit, 0 for nothing): at most the limit, but what alignas
+// asks of the type is kept whatever the limit, as MSVC keeps it.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPClassLayout::LimitedAlignment(SCPP65Type* psType, int iLimit)
+{
+	int		iAlign;
+	int		iAlignas;
+
+	iAlign = PackAlignment(TypeAlignment(psType), iLimit);
+	iAlignas = TypeAlignas(psType);
+	return (iAlignas > iAlign) ? iAlignas : iAlign;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A type's alignment in a class, as MSVC lays classes out: a scalar is
 // aligned to its size (8 for long long and double), a pointer or reference
 // to 4, an array as its element and a class to its largest member's
@@ -217,7 +235,7 @@ void CCPPClassLayout::PlaceBases(void)
 			psBase->iOffset = 0;
 			continue;
 		}
-		Align(PackAlignment(psBase->pcClass->miAlign, miPack));
+		Align(LimitedAlignment(psBase->pcClass->mpsType, miPack));
 		psBase->iOffset = miBytes;
 		miBytes += psBase->pcClass->miOwnBytes;
 	}
@@ -290,7 +308,7 @@ void CCPPClassLayout::PlaceVirtualBases(void)
 			psVirtual->iOffset = 0;
 			continue;
 		}
-		Align(PackAlignment(psVirtual->pcClass->miAlign, miPack));
+		Align(LimitedAlignment(psVirtual->pcClass->mpsType, miPack));
 		miAlign = (psVirtual->pcClass->miAlign > miAlign) ? psVirtual->pcClass->miAlign : miAlign;
 		psVirtual->iOffset = miBytes;
 		miBytes += psVirtual->pcClass->miOwnBytes;
@@ -340,7 +358,7 @@ void CCPPClassLayout::PlaceField(SCPPField* psField)
 	}
 
 	miUnitBytes = 0;
-	iFieldAlign = PackAlignment(TypeAlignment(psField->psType), miPack);
+	iFieldAlign = LimitedAlignment(psField->psType, miPack);
 	iFieldAlign = (psField->iAlign > iFieldAlign) ? psField->iAlign : iFieldAlign;
 	if (mpcClass->mbUnion)
 	{
@@ -381,7 +399,7 @@ void CCPPClassLayout::PlaceBitField(SCPPField* psField)
 		miUnitBytes = 0;
 		return;
 	}
-	iFieldAlign = PackAlignment(TypeAlignment(psField->psType), miPack);
+	iFieldAlign = LimitedAlignment(psField->psType, miPack);
 	miAlign = (iFieldAlign > miAlign) ? iFieldAlign : miAlign;
 	if (mpcClass->mbUnion)
 	{

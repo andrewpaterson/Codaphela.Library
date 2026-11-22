@@ -1180,20 +1180,16 @@ bool CCPPUnit::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 4 for objects and data of 4 bytes or more, 2 for 2 bytes, otherwise 1.
+// 4 for objects and data of 4 bytes or more, 2 for 2 bytes, otherwise 1;
+// less where the target aligns objects to less.
 //
 //////////////////////////////////////////////////////////////////////////
 int CCPPUnit::DataAlignment(SCPP65Type* psType, bool bClass)
 {
-	if ((psType->iBytes >= 4) || bClass)
-	{
-		return 4;
-	}
-	if (psType->iBytes == 2)
-	{
-		return 2;
-	}
-	return 1;
+	int		iAlign;
+
+	iAlign = ((psType->iBytes >= 4) || bClass) ? 4 : ((psType->iBytes == 2) ? 2 : 1);
+	return CCPPClassLayout::PackAlignment(iAlign, mpcTarget->GetObjectAlignmentLimit());
 }
 
 

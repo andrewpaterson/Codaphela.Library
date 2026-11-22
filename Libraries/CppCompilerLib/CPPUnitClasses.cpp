@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "SourceFile.h"
 #include "CTIdentifier.h"
 #include "CPPUnit.h"
 #include "CPPConstants.h"
@@ -208,6 +209,19 @@ CCPPScope* CCPPUnit::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What an object of a type is aligned to, which is what alignof says: the
+// type's alignment, unless the target aligns objects to less
+// (CCPPTarget::GetObjectAlignmentLimit).  [basic.align] 2, [expr.alignof]
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPUnit::ObjectAlignment(SCPP65Type* psType)
+{
+	return CCPPClassLayout::LimitedAlignment(psType, mpcTarget->GetObjectAlignmentLimit());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A variable's alignment: its type's, or more where alignas asks it on the
 // declaration or of the type's class.  *piAlignas is what alignas asks (0
 // for nothing), which a place in a frame may not give.  [basic.align]
@@ -221,7 +235,7 @@ int CCPPUnit::VariableAlignment(CCPPVariable* pcVariable, int* piAlignas)
 	int								iAlignas;
 	int								iDeclared;
 
-	iAlign = CCPPClassLayout::TypeAlignment(pcVariable->mpsType);
+	iAlign = ObjectAlignment(pcVariable->mpsType);
 	iAlignas = CCPPClassLayout::TypeAlignas(pcVariable->mpsType);
 	pcInit = VariableDeclarator(pcVariable);
 	if (pcInit)
@@ -273,7 +287,7 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
 			{
 				return -1;
 			}
-			lliAlign = CCPPClassLayout::TypeAlignment(psType);
+			lliAlign = ObjectAlignment(psType);
 		}
 		else if (!Constant(pcAlignment, &lliAlign))
 		{
@@ -918,6 +932,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	size							i;
 	size							j;
 	int								iClassAlign;
+	int								iPack;
 	bool							bResult;
 
 	mpcStatistics->Count(CPPCC_ClassLayouts);
@@ -1005,10 +1020,17 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	{
 		bResult = false;
 	}
-	cLayout.Init(pcClass, pcSpecifier->miPack, mpcTarget->GetPointerBytes());
+	//(A member is aligned to at most the lesser of #pragma pack's bytes and the target's limit.)
+	iPack = mpcTarget->GetMemberAlignmentLimit();
+	iPack = (iPack > 0) ? CCPPClassLayout::PackAlignment(iPack, pcSpecifier->miPack) : pcSpecifier->miPack;
+	cLayout.Init(pcClass, iPack, mpcTarget->GetPointerBytes());
 	cLayout.Layout(iClassAlign);
 	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
 	cLayout.Kill();
+	if (getenv("CPP65_DUMP_LAYOUTS"))
+	{
+		DumpLayout(pcClass, getenv("CPP65_DUMP_LAYOUTS"));
+	}
 	pcClass->meState = CPPCS_Complete;
 	bResult &= CheckOverrides(pcClass);
 	if (pcClass->mcVtable.mpcAmbiguous)
@@ -1648,6 +1670,71 @@ bool CCPPUnit::ClassError(int iToken, const char* szMessage)
 	psError->iToken = iToken;
 	psError->szMessage = szMessage;
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// W65C816AlignmentPlan.txt's count: a line for a class as it was laid out,
+// added to the file CPP65_DUMP_LAYOUTS names.  The target, the class and
+// where it is defined, its size and alignments, then where each base, the
+// vtable pointer and each field is.  The line is written at once, so the
+// units compiled at the same time each add whole lines.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::DumpLayout(CCPPClass* pcClass, const char* szFileName)
+{
+	CChars					sz;
+	SPreprocessedToken*		psSource;
+	SCPPField*				psField;
+	FILE*					pvFile;
+	size					i;
+
+	sz.Init(mpcTarget->GetConfigurationName());
+	sz.Append(' ');
+	AppendClassName(&sz, pcClass);
+	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(pcClass->mpcSpecifier->miFirstToken));
+	if (psSource && psSource->pcFile)
+	{
+		sz.Append(' ')->Append(psSource->pcFile->ShortName())->Append(':')->Append(psSource->iLine + 1);
+	}
+	sz.Append(" size ")->Append(pcClass->mpsType->iBytes)->Append(" align ")->Append(pcClass->miAlign)->Append(" alignas ")->Append(pcClass->miAlignas);
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		sz.Append(pcClass->macBases.Get(i)->bVirtual ? " vbase " : " base ");
+		AppendClassName(&sz, pcClass->macBases.Get(i)->pcClass);
+		sz.Append('@')->Append(pcClass->macBases.Get(i)->iOffset);
+	}
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		sz.Append(" virtual ");
+		AppendClassName(&sz, pcClass->macVirtualBases.Get(i)->pcClass);
+		sz.Append('@')->Append(pcClass->macVirtualBases.Get(i)->iOffset);
+	}
+	if (pcClass->mcVtable.HasPointer())
+	{
+		sz.Append(" vptr@")->Append(pcClass->mcVtable.miPointerOffset);
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		sz.Append(' ');
+		AppendIdentifier(&sz, psField->lliName);
+		sz.Append('@')->Append(psField->iOffset);
+		if (psField->IsBitField())
+		{
+			sz.Append('.')->Append(psField->iBitOffset);
+		}
+	}
+	sz.AppendNewLine();
+	pvFile = fopen(szFileName, "ab");
+	if (pvFile)
+	{
+		setvbuf(pvFile, NULL, _IOFBF, sz.Length() + 1);
+		fwrite(sz.Text(), 1, sz.Length(), pvFile);
+		fclose(pvFile);
+	}
+	sz.Kill();
 }
 
 

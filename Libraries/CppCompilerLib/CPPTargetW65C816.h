@@ -35,6 +35,8 @@ public:
 	uint32		GetBankSize(void) override;
 	uint32		GetStackTop(void) override;
 	int			GetFrameAlignment(void) override;
+	int			GetObjectAlignmentLimit(void) override;
+	int			GetMemberAlignmentLimit(void) override;
 	void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions) override;
 	void		AppendCallTerminate(CChars* pszDest, const char* szAfter) override;
 	void		AppendStartUp(CChars* pszDest, bool bExceptions = false) override;

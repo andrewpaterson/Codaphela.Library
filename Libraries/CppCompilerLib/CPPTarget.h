@@ -74,6 +74,8 @@ public:
 	virtual uint32		GetBankSize(void);				//The linker keeps sections inside banks of this size (0 for none).
 	virtual uint32		GetStackTop(void);				//S as the start up sets it.
 	virtual int			GetFrameAlignment(void);		//What a local's place in a frame is a multiple of, whatever its type.
+	virtual int			GetObjectAlignmentLimit(void);	//The most an object is aligned to unless alignas asks more, and so the most alignof says: 0 for no limit.
+	virtual int			GetMemberAlignmentLimit(void);	//The most a class's member is aligned to unless alignas asks more, as #pragma pack of it would: 0 for no limit.
 
 	//The preprocessor's configuration.
 	virtual void		AddDefines(CConfig* pcConfig, const CCPPCompileOptions* pcOptions);

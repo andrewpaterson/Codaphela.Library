@@ -118,8 +118,8 @@ static void TestCPPClassLayoutFields(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// #pragma pack limits each member's alignment; alignas on a field or on the
-// class is kept whatever the pack is.
+// #pragma pack limits each member's alignment; alignas on a field, on the
+// class or on a member's or a base's class is kept whatever the pack is.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestCPPClassLayoutPackAndAlignas(void)
@@ -129,6 +129,9 @@ static void TestCPPClassLayoutPackAndAlignas(void)
 	CCPPClass	cPacked2;
 	CCPPClass	cAligned;
 	CCPPClass	cClassAligned;
+	CCPPClass	cHolder;
+	CCPPClass	cDerived;
+	SCPPBase*	psBase;
 
 	cTypes.Init(2, 4);
 
@@ -161,7 +164,38 @@ static void TestCPPClassLayoutPackAndAlignas(void)
 	TestCPPClassLayoutField(&cClassAligned, &cTypes.msChar);
 	AssertInt(16, TestCPPClassLayoutPlace(&cClassAligned, &cTypes, 0, 16));
 	AssertInt(16, cClassAligned.miAlign);
+	AssertInt(16, cClassAligned.miAlignas);
 
+	//A class's alignas is kept where the class is a member, an element or a base in a packed class.
+	TestCPPClassLayoutClass(&cHolder, &cTypes, false);
+	TestCPPClassLayoutField(&cHolder, &cTypes.msChar);
+	TestCPPClassLayoutField(&cHolder, cClassAligned.mpsType);
+	TestCPPClassLayoutField(&cHolder, &cTypes.msLong);
+	TestCPPClassLayoutField(&cHolder, cTypes.Array(cClassAligned.mpsType, 2));
+	AssertInt(80, TestCPPClassLayoutPlace(&cHolder, &cTypes, 1));
+	AssertInt(16, cHolder.macFields.Get(1)->iOffset);
+	AssertInt(32, cHolder.macFields.Get(2)->iOffset);
+	AssertInt(48, cHolder.macFields.Get(3)->iOffset);
+	AssertInt(16, cHolder.miAlign);
+	AssertInt(16, cHolder.miAlignas);
+
+	TestCPPClassLayoutClass(&cDerived, &cTypes, false);
+	psBase = cDerived.macBases.Add();
+	psBase->pcClass = &cPacked2;
+	psBase->bVirtual = false;
+	psBase = cDerived.macBases.Add();
+	psBase->pcClass = &cClassAligned;
+	psBase->bVirtual = false;
+	cDerived.mpcBase = &cPacked2;
+	TestCPPClassLayoutField(&cDerived, &cTypes.msLong);
+	AssertInt(48, TestCPPClassLayoutPlace(&cDerived, &cTypes, 1));
+	AssertInt(0, cDerived.macBases.Get(0)->iOffset);
+	AssertInt(16, cDerived.macBases.Get(1)->iOffset);
+	AssertInt(32, cDerived.macFields.Get(0)->iOffset);
+	AssertInt(16, cDerived.miAlign);
+
+	cDerived.Kill();
+	cHolder.Kill();
 	cClassAligned.Kill();
 	cAligned.Kill();
 	cPacked2.Kill();

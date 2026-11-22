@@ -2925,7 +2925,7 @@ bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
 		{
 			return false;
 		}
-		*plliValue = (pcSizeof->meKeyword == CT_alignof) ? CCPPClassLayout::TypeAlignment(psType) : psType->iBytes;
+		*plliValue = (pcSizeof->meKeyword == CT_alignof) ? ObjectAlignment(psType) : psType->iBytes;
 		return true;
 
 	default:
