@@ -41,9 +41,8 @@ struct SIRValueRange
 
 
 //How big an integer value can be, and whether a pointer is null: what the passes ask.  The largest it can be as
-//unsigned is UpperBound (the rules are CIRMostRules', which the 65C64's back end asks too); its range as signed
-//is SignedRange, and RangeAt narrows that by the branches to a block.  The context's definitions must be found
-//(and its dominators worked out, for IR_RANGE_DOMINATORS).
+//unsigned is UpperBound; its range as signed is SignedRange, and RangeAt narrows that by the branches to a
+//block.  The context's definitions must be found (and its dominators worked out, for IR_RANGE_DOMINATORS).
 class CIRRanges : public CIRPassAnalysis
 {
 public:
@@ -56,6 +55,7 @@ public:
 	SIRInstruction*	EdgeComparison(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, uint16* puiOpcode, SIRReference* psOther);
 
 protected:
+	uint64			EdgeBound(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue);
 	void			DominatingRange(CIRBlock* pcBlock, SIRReference sValue, SIRValueRange* psRange, uint8 uiNarrowBy);
 	void			BranchRange(CIRBlock* pcFrom, CIRBlock* pcTo, SIRReference sValue, SIRValueRange* psRange);
 	bool			DominatingNotLess(CIRBlock* pcBlock, SIRReference sLeft, SIRReference sRight, uint8 uiNarrowBy);

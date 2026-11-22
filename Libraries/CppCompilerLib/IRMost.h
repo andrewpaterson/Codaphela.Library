@@ -30,8 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //The rules for the largest an integer value can be, read as unsigned (so how many of its low bits may be set): what
 //each opcode gives from the largest its operands can be, and what a branch says of a value on one of its edges.
-//What asks says how large an operand is: CIRMost from the table it is filling, the optimiser's UpperBound by asking
-//of the definition one further back.
+//What asks says how large an operand is: CIRMost, from the table it is filling.
 class CIRMostRules
 {
 public:

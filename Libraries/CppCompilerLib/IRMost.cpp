@@ -277,16 +277,7 @@ uint64 CIRMostRules::InstructionMost(CIRFunction* pcFunction, SIRInstruction* ps
 		}
 		break;
 	case IRO_UDiv:
-		//By a constant: that many times smaller.
 		ulliMost = OperandMost(sLeft, pcBlock);
-		if (sRight.IsConstant())
-		{
-			ulliAmount = IRTruncate(psInstruction->sType, pcFunction->GetConstant(sRight)->ulliBits);
-			if (ulliAmount != 0)
-			{
-				ulliMost /= ulliAmount;
-			}
-		}
 		break;
 	case IRO_URem:
 		ulliLeft = OperandMost(sLeft, pcBlock);
