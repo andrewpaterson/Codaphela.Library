@@ -389,8 +389,8 @@ Nothing below blocks anything: each has what was done meanwhile.
      CPP65Builder; Build, BuildCommandLine, HCP65Build, SolutionBuild).  No file was added to a project.
 
 What was rebuilt (8):
-  Nothing with W65C816 code in it is kept in a repository (the emulator's Input/SDCard.img is blank, its Input/
-  Kernal.rom is from 2026-11-03 and nothing reads it), so what could be stale was built things on dev7:
+  Nothing with W65C816 code in it that is read is kept in a repository (the emulator's Input/SDCard.img is blank),
+  so what could be stale was built things on dev7:
   - The shared build folders whose programs have the compiler in them, which were from 2026-11-19 to 2026-11-21 and
     would have built programs with the old layouts for a kernal with the new: build/HCP65IDERelease (HCP65IDE,
     HCP65IDERef, hcp65build), TestHCP65Lib64Release, TestCppCompilerLib64Release, TestBaseLib65_64Release,
@@ -403,6 +403,7 @@ What was rebuilt (8):
     2026-11-06 and no Boot.rom.  TestHCP65Lib was run in place (2614 passed): it builds the boot ROM, the kernal, the
     drivers and the programs, writes the cards, and boots each of them in the emulated machine, the shell on the
     Video Board's screen among them.
-  Left where they are, from before, read by nothing: Kernal.rom in that Output and in Kernal/Output's Debug and
-  Release (the kernal project makes OS.SYS now).
+  The old kernal ROMs, read by nothing (the kernal project makes OS.SYS now), were removed at the user's word: the
+  one in that Output, Kernal/Output's Debug and Release ones with their .lines, and the emulator's Input/Kernal.rom of
+  2026-11-03, which was in the repository (HCP65 b2c2534).
   Not done: the emulator and the IDE themselves weren't run, as either needs a window on the user's screen.
