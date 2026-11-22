@@ -1,0 +1,100 @@
+W65C816 alignment plan
+======================
+
+Written 2026-11-22.  The user: "Make every type's alignment 1 on the W65C816", then "We're aiming for speed so I'm
+happy to keep padding structs to two bytes but alignment can stay at 1 byte", then "Plan capping the padding at 2
+bytes and making the alignof 1".  This is the plan only: nothing is built until the user says so.
+
+It closes Cpp14CompliancePlan.txt B 7 (a local's int at an odd address on the W65C816, where alignof(int) is 2).
+The 65C64 is not changed.
+
+
+What is decided
+---------------
+
+1. On the W65C816, alignof of every type is 1: a char, an int, a long, a pointer, a double, a class, an array.
+   alignas still asks for more and gets it (a class's alignas, a variable's alignas, alignas(n)); alignof(T) of a
+   type with an alignas is what alignas asked.  alignas(type) gives alignof(type), so alignas(long) is 1 there.
+2. A class's members are placed as now, but at most at a multiple of 2: a member of 2 or more bytes (int, long,
+   pointer, float, double, a class with such a member) at an even offset, a char anywhere; a class with such a member
+   is a whole number of 2 bytes (trailing padding to 2).  Today they go to multiples of 4 and 8.  This is a default
+   #pragma pack(2) for the target: an explicit #pragma pack(1) still packs to 1, and alignas still asks for more.
+3. Globals and statics are placed as alignof says (1) but for alignas.  Locals already are (the frame's alignment is
+   1, CCPPTargetW65C816::GetFrameAlignment).
+4. Why padding is kept: a char followed by padding can later be stored with a 16 bit sta, without sep/rep (6 cycles).
+   That optimisation is not part of this plan (step 9 is only a measurement); the 816 has no cost for an odd
+   address, so alignof 1 costs nothing.
+
+
+What it changes, and what may depend on it
+------------------------------------------
+
+Structs whose 816 layout changes are those with a member of 4 or 8 bytes after members that don't fill a multiple
+of 4 (or 8), and those whose size was padded to 4 or 8: their offsets and sizes shrink.  Looked at so far (2026-11-22):
+   - BaseLib's FAT classes: the FAT assembly (Fat*W65C816.asm) takes their offsets from FatW65C816.inc, which
+     TestBaseLib65 generates (TestFatW65C816Layout.cpp): regenerate it.  The frame constants (F_*) are the
+     assembly's own, not a class's.
+   - SKernalInterrupt (KernalInterrupts.asm reads it by offset, 16 bytes a slot): 4, 4, 4, 2, 2 bytes: unchanged.
+   - HCP65SFT.h's records (SSFTHeader, SSFTImage, SSFTContainer, SSFTPalette), written by host tools and read on the
+     816: unchanged (their uint32 is at 8 either way).
+   - BaseLib's SChunkFileHeader: unchanged.
+Not looked at yet: everything else.  Step 2 finds them all rather than guessing.
+
+
+Steps
+-----
+
+1. A count, not a change: a switch (TEST_CPP_LAYOUT_CHANGES, or a statistic) makes the W65C816 compiler lay each
+   class out both ways and list those whose offsets or size differ (class, file).  Run over every W65C816 compile:
+   TestBaseLib65, TestStandardLib65, TestSupportLib65, TestLibc65 and the 20 HCP65 projects.
+
+2. The survey, from that list: for each class that changes, whether anything outside the compiler assumes its
+   layout:
+   - hand-written assembly (the 29 .asm files: Kernal, Boot, Drivers, Libc65, UserLib, BaseLib's FAT) and any
+     .inc of offsets;
+   - data that leaves the 816 or comes in as bytes: files written with a struct's bytes and read by a host tool or
+     the emulator (or the other way), SD card structures, the executable format, debugger and IDE views that read
+     target memory by fixed offsets (HCP65-Emulator, HCP65Lib, HCP65-IDE);
+   - static_asserts and tests of sizes or offsets on the W65C816 (TestCPP816*, TestCPPW65C816*, the *65 tests).
+   The list goes to the user before step 3.
+
+3. The target says it: CCPPTarget gains what the layout and alignof ask (a member alignment limit, 0 for none and 2
+   on the W65C816; and whether alignof is 1).  CCPPClassLayout takes the limit as it takes #pragma pack
+   (PackAlignment), so a class's miAlign (used to place it as a member) is at most 2.  CCPPClassLayout::TypeAlignment
+   splits in two: the layout's (the type's own, capped) and the object's (1 on the W65C816 but for alignas, the
+   type's own on the 65C64).  Its users move to the right one:
+   - CCPPClassLayout (fields, bases, virtual bases, the class's own alignment and size): the layout's;
+   - alignof (CPPUnitExpressions), alignas(type) (AlignasAlignment), VariableAlignment (globals, statics, locals
+     with alignas): the object's.
+   The semantic pass checks with the W65C816 target too, so the IDE says the same.
+
+4. Libc65: max_align_t is long long, so alignof(max_align_t) is 1 on the 816: nothing to change, but checked.
+   __STDCPP_DEFAULT_NEW_ALIGNMENT__ (C++17's) is left.  The allocator's own alignment is not changed.
+
+5. What the survey found that depends on a layout: fixed (regenerated .inc files; constants; host mirrors),
+   each with a test that fails if the two drift apart, as TestFatW65C816Layout does for the FAT classes.
+
+6. Tests:
+   - TestCPPW65C816: sizes, offsets and alignof on the 816 (struct { char c; long l; } is 6 bytes with l at 2,
+     struct { char c; } 1, struct { char a; short b; char c; } 6, alignof(long) 1, alignas(8) still 8, #pragma pack(1)
+     still 1), and the same source on the 65C64 unchanged.
+   - Conformance: the cases are the same on both targets and the host, so they compare sizes with sizeof rather
+     than numbers; any that compare an alignment with a number are looked at (BasicAlignment, AlignofRules,
+     BasicAlignasObjects).  A case that a local int's address is a multiple of alignof(int) on both targets.
+
+7. Docs: HCP65's language.md says what the W65C816's alignment and layout are.
+
+8. Verify as always: TestCppCompilerLib, the three *65 library tests on both targets, TestLibc65, the 20 HCP65
+   projects; HCP65Emulator and the IDE if the survey touched them.
+
+9. Afterwards, a measurement only: how many byte stores in the libraries and HCP65 have padding after them, and the
+   cycles a 16 bit store there would save, for the user to decide on that optimisation.
+
+
+Questions for the user (asked one by one when reached)
+-------------------------------------------------------
+
+- After step 2: the list of what depends on the old layouts, and how each is to be fixed if it isn't obvious.
+
+(#pragma pack(n) only ever lowers a member's alignment, so a member is placed at a multiple of the least of its type's
+alignment, 2 and n: pack(1) packs to 1, pack(4) and pack(8) change nothing on the 816.)
