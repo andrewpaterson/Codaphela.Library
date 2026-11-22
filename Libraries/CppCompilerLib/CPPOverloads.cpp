@@ -148,7 +148,6 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 	CCPPFunction*	pcOwn;
 	SCPPUsing*	psUsing;
 	size			i;
-	size			j;
 	bool			bUsed;
 
 	if (pcFunction->mpcClass == pcClass)
@@ -184,14 +183,7 @@ bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, i
 			//f() doesn't hide the base's f() const: the same parameters, const, volatile and & or && hide.  [namespace.udecl] 15
 			continue;
 		}
-		for (j = 0; j < pcOwn->mapsParameters.NumElements(); j++)
-		{
-			if (!pcOwn->mapsParameters.GetPtr(j)->Same(pcFunction->mapsParameters.GetPtr(j)))
-			{
-				break;
-			}
-		}
-		if (j == pcOwn->mapsParameters.NumElements())
+		if (pcOwn->TakesParameters(&pcFunction->mapsParameters))
 		{
 			return false;
 		}
@@ -988,8 +980,6 @@ bool CCPPOverloads::IsCandidate(CCPPCandidates* pcCandidates, CCPPFunction* pcFu
 {
 	CCPPFunction*	pcOther;
 	size			i;
-	size			j;
-	bool			bSame;
 
 	for (i = 0; i < pcCandidates->NumElements(); i++)
 	{
@@ -998,12 +988,7 @@ bool CCPPOverloads::IsCandidate(CCPPCandidates* pcCandidates, CCPPFunction* pcFu
 		{
 			continue;
 		}
-		bSame = true;
-		for (j = 0; bSame && (j < pcFunction->mapsParameters.NumElements()); j++)
-		{
-			bSame = pcOther->mapsParameters.GetPtr(j)->Same(pcFunction->mapsParameters.GetPtr(j));
-		}
-		if (bSame)
+		if (pcOther->TakesParameters(&pcFunction->mapsParameters))
 		{
 			return true;
 		}

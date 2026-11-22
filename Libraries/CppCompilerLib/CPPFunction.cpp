@@ -127,22 +127,36 @@ bool CCPPFunction::TakesArgumentCount(size uiArguments)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPFunction::SameParameters(CCPPFunction* pcOther)
+//
+// Whether the function's parameters are papsParameters' types, as many and
+// the same, const and volatile below the top too (Same): what makes two
+// declarations one function, one hide another, or an inherited constructor
+// one the class has.  Not whether it is variadic.  [over.load] 1, [dcl.fct] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunction::TakesParameters(CArrayCPP65Types* papsParameters)
 {
 	size	i;
 
-	if ((mapsParameters.NumElements() != pcOther->mapsParameters.NumElements()) || (mbVariadic != pcOther->mbVariadic))
+	if (mapsParameters.NumElements() != papsParameters->NumElements())
 	{
 		return false;
 	}
 	for (i = 0; i < mapsParameters.NumElements(); i++)
 	{
-		if (!mapsParameters.GetPtr(i)->Same(pcOther->mapsParameters.GetPtr(i)))
+		if (!mapsParameters.GetPtr(i)->Same(papsParameters->GetPtr(i)))
 		{
 			return false;
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunction::SameParameters(CCPPFunction* pcOther)
+{
+	return (mbVariadic == pcOther->mbVariadic) && TakesParameters(&pcOther->mapsParameters);
 }
 
 

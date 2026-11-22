@@ -45,6 +45,7 @@ struct SCPPField
 	int				iBitWidth;			//A bit-field's width, -1 for a field that isn't one.  An unnamed bit-field (int : 3;) has no symbol.
 	int				iBitOffset;			//A bit-field's first bit in the unit of its type at iOffset, 0 the lowest.
 
+	void			Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, int iBitWidth = -1);
 	bool			IsBitField(void) const;
 	bool			IsUnnamedBitField(void) const;
 };

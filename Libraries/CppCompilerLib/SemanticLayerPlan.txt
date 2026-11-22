@@ -6,7 +6,8 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 6 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
+Where it is: stages 0 to 8 are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -779,3 +780,40 @@ Stage 6 (2026-11-22): a class's bases.
 	time: 8,114,416 and 7,817,617 for the 65C64 and the W65C816 (stage 5: 12,001,964 and 11,666,255), a third fewer,
 	as a complete class's list is kept.  Time: declarations 6,440 and 6,432 ms, types 6,395 and 6,434, front end
 	3,305 and 3,373 (stage 5: 6,470 and 6,448, 6,450 and 6,481, 3,360 and 3,384).
+
+Stage 7 (2026-11-22): which class a name means.  Looked at, tried, and not done.
+
+	The class a name's qualifier names is chosen three ways: NameQualifierClass (the class the parser found, unless
+	the name is a member class reached through a template's instance, then the qualifiers walked), QualifiedMember
+	(the class the parser found only for a name of two components, else the walk) and GetNameClass (for the last
+	component).  Making QualifiedMember ask NameQualifierClass was tried: three conformance cases stopped compiling
+	(Works.MemberClassTemplate, PackTemplateArguments, TypedefOfInstanceQualifier).  The two rules are not one rule
+	written twice: for three or more components QualifiedMember must walk where NameQualifierClass may not, and the
+	difference is what makes W<int>::Type::N right.  The change was taken back.
+	What the finding asks, one resolver from a CCPPSyntaxName to a class, a type or a member with its class's
+	bindings, owned by the binder, takes those rules as they are and makes the fifteen ways in calls of it, with
+	CCPPDeclarators' ladder on the symbol's kind (GetType's named types) and GetComponentClass's as one.  It is
+	the binder's shape (finding 32's), not a step of this plan's size, and is left with stage 15e.
+
+Stage 8 (2026-11-22): declaring a function, its small steps.
+
+	SCPPField::Init makes a field record, where four places filled its fields one by one (one with a memset).
+	CCPPUnit::AddImplicitFunction declares a function of a class the compiler makes (an implicit destructor or
+	constructor, the deleting destructor, a closure's destructor and conversion), where seven places added it and
+	set mbImplicit and mbDefined after.  CCPPFunction::TakesParameters says whether a function takes these
+	parameter types, as many and the same with their const and volatile below the top (Same), for six loops that
+	compared them by hand (a redeclaration, two extern "C" functions, & and && overloads, a generic lambda's
+	instance, a used function a class's own hides, an inherited constructor the class has), and SameParameters
+	asks it.  Stage 0 had already put right the two that compared with Equals.
+	DeclareQuietly (stage 4) is the "declare quietly; if it fails, keep the declarator" helper.
+
+	Not done, as the stage was written: the signature object (kind, name, parameters, defaults, qualifiers and
+	flags made once from a declarator, which CCPPFunction matches and adopts), and DeclareFunction's seven
+	parameters.  DeclareSignature works the signature out in one pass that each of its callers' flags steer;
+	a signature object is that pass returned as a value, and the redeclaration it then matches is the same
+	function as now.  It is the largest part of finding 23 and is left for when DeclareSignature is next opened.
+	The "(void)" rule in the lambdas' own suffix walks stays: their parameters are a closure's call's, made by
+	the lambda code, not by DeclareSignature.
+
+	Proved: TestCppCompilerLib passes (272,049); the 5,840 diagnostics entries and the 4,205 listings are stage
+	6's; time a unit at a time is stage 6's (declarations 6,423 and 6,457 ms, types 6,393 and 6,465).

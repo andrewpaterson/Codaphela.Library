@@ -777,6 +777,28 @@ CCPPFunction* CCPPClass::FindOverridden(CCPPFunction* pcFunction)
 // the first secondary one's.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// A field of psType declared by pcSymbol (NULL for one with no name: an
+// unnamed bit-field, a closure's capture), a bit-field iBitWidth wide (-1
+// for one that isn't), not yet placed, with no alignas, no initialiser and
+// not mutable.
+//
+//////////////////////////////////////////////////////////////////////////
+void SCPPField::Init(CCPPSymbol* pcSymbol, SCPP65Type* psFieldType, int iFieldBitWidth)
+{
+	this->pcSymbol = pcSymbol;
+	lliName = pcSymbol ? pcSymbol->mlliName : -1;
+	psType = psFieldType;
+	iOffset = 0;
+	iAlign = 0;
+	pcInitialiser = NULL;
+	bMutable = false;
+	iBitWidth = iFieldBitWidth;
+	iBitOffset = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 int CCPPClass::GetVtablePointerOffset(void)
 {
 	return mcVtable.GetPointerOffset();

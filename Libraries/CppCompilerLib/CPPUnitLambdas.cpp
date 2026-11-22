@@ -710,13 +710,8 @@ bool CCPPUnit::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 size CCPPUnit::AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType)
 {
-	SCPPField*	psField;
 
-	psField = psLambda->pcClass->macFields.Add();
-	memset(psField, 0, sizeof(SCPPField));
-	psField->lliName = -1;
-	psField->psType = psType;
-	psField->iBitWidth = -1;
+	psLambda->pcClass->macFields.Add()->Init(NULL, psType);
 	return psLambda->pcClass->macFields.NumElements() - 1;
 }
 
@@ -737,8 +732,7 @@ bool CCPPUnit::LayoutClosure(SCPPLambda* psLambda)
 	pcClass->meState = CPPCS_LayingOut;
 	if (pcClass->NeedsDestructor())
 	{
-		pcFunction = AddFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid);
-		pcFunction->mbImplicit = true;
+		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
 		pcClass->mpcDestructor = pcFunction;
 	}
 	pcClass->mcVtable.LayoutOwn(pcClass);
@@ -812,9 +806,7 @@ void CCPPUnit::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall)
 	}
 	pcInvoker = AddLambdaFunction(psLambda, mpcTokeniser->GetIdentifierID((char*)"__invoke"), &pcCall->mapsParameters, pcCall->mpsReturn);
 	pcInvoker->mbStatic = true;
-	pcConversion = AddFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mcTypes.Pointer(mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)));
-	pcConversion->mbImplicit = true;
-	pcConversion->mbDefined = true;
+	pcConversion = AddImplicitFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mcTypes.Pointer(mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)), true);
 	pcConversion->mbConstThis = true;
 	pcConversion->mpcAddressOf = pcInvoker;
 }
@@ -937,8 +929,6 @@ CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65T
 {
 	CCPPFunction*	pcFunction;
 	size			i;
-	size			j;
-	bool			bSame;
 
 	for (i = 0; i < psLambda->pcClass->mapcMembers.NumElements(); i++)
 	{
@@ -947,12 +937,7 @@ CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65T
 		{
 			continue;
 		}
-		bSame = true;
-		for (j = 0; bSame && (j < papsParameters->NumElements()); j++)
-		{
-			bSame = pcFunction->mapsParameters.GetPtr(j)->Same(papsParameters->GetPtr(j));
-		}
-		if (bSame)
+		if (pcFunction->TakesParameters(papsParameters))
 		{
 			return pcFunction;
 		}

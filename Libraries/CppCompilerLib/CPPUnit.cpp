@@ -2783,19 +2783,11 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			continue;
 		}
-		pcFunction = pcOther;
-		for (j = 0; j < apsParameters.NumElements(); j++)
-		{
-			if (!pcOther->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j)))
-			{
-				pcFunction = NULL;
-				break;
-			}
-		}
-		if (!pcFunction)
+		if (!pcOther->TakesParameters(&apsParameters))
 		{
 			continue;
 		}
+		pcFunction = pcOther;
 		if (!pcTemplate && !pcFunction->IsConversion() && !pcFunction->mpsReturn->Same(psReturn) && (pcFunction->mpsReturn != &mcTypes.msUndeduced) && (psReturn != &mcTypes.msUndeduced))
 		{
 			//What a function returns doesn't tell it from another: one declared twice returns one type.  [dcl.fct] 5, [over.load] 2
@@ -2836,11 +2828,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			{
 				continue;
 			}
-			bSameParameters = (pcOther->mapsParameters.NumElements() == apsParameters.NumElements()) && (pcOther->mbVariadic == pcSuffix->mbVariadic);
-			for (j = 0; bSameParameters && (j < apsParameters.NumElements()); j++)
-			{
-				bSameParameters = pcOther->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j));
-			}
+			bSameParameters = (pcOther->mbVariadic == pcSuffix->mbVariadic) && pcOther->TakesParameters(&apsParameters);
 			if (!bSameParameters)
 			{
 				//Two extern "C" functions of a name are one function, whatever namespace each is in.  [dcl.link] 6
@@ -2856,11 +2844,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			continue;
 		}
-		bSameParameters = (pcOther->mapsParameters.NumElements() == apsParameters.NumElements()) && (pcOther->mbVariadic == pcSuffix->mbVariadic);
-		for (j = 0; bSameParameters && (j < apsParameters.NumElements()); j++)
-		{
-			bSameParameters = pcOther->mapsParameters.GetPtr(j)->Same(apsParameters.GetPtr(j));
-		}
+		bSameParameters = (pcOther->mbVariadic == pcSuffix->mbVariadic) && pcOther->TakesParameters(&apsParameters);
 		if (bSameParameters)
 		{
 			//Overloads that take the same parameters are all declared & or && or none is.  [over.load] 2
@@ -3451,6 +3435,24 @@ void CCPPUnit::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPP
 // called (ReportFailedDeclaration), and that is given to *ppcErrors too;
 // what it said loudly is said now.
 //
+//////////////////////////////////////////////////////////////////////////
+//
+// A function of pcClass the compiler declares, not the program (an
+// implicit destructor or constructor, a closure's conversion), defined by
+// the compiler too where bDefined.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPUnit::AddImplicitFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn, bool bDefined)
+{
+	CCPPFunction*	pcFunction;
+
+	pcFunction = AddFunction(pcClass, lliName, eKind, psReturn);
+	pcFunction->mbImplicit = true;
+	pcFunction->mbDefined = bDefined;
+	return pcFunction;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 CCPPFunction* CCPPUnit::DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors)
 {

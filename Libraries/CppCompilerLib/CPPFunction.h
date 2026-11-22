@@ -209,6 +209,7 @@ public:
 	size	RequiredParameters(void);
 	bool	TakesArgumentCount(size uiArguments);
 	bool	SameParameters(CCPPFunction* pcOther);
+	bool	TakesParameters(CArrayCPP65Types* papsParameters);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(ECPPCalledObject eObject);
 	bool	IsCopy(void);

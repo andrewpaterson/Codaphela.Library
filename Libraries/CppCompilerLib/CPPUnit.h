@@ -453,6 +453,7 @@ public:
 	void					PushFunctionScope(void);
 	void					PopFunctionScope(void);
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
+	CCPPFunction*			AddImplicitFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn, bool bDefined);
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool					CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser);

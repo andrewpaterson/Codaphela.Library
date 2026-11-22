@@ -995,16 +995,14 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	//A destructor is needed to destroy the bases or the fields.
 	if (!pcClass->mpcDestructor && pcClass->NeedsDestructor())
 	{
-		pcFunction = AddFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid);
-		pcFunction->mbImplicit = true;
+		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
 		pcClass->mpcDestructor = pcFunction;
 	}
 	if (pcClass->HasVirtualDestructor())
 	{
 		//delete of a pointer to a base frees the object as its own class does, which only the object knows: by a
 		//virtual function of its class, written for it, that destroys it and frees it.  [expr.delete] 3, 9, 10
-		pcFunction = AddFunction(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid);
-		pcFunction->mbImplicit = true;
+		pcFunction = AddImplicitFunction(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid, false);
 		pcFunction->mbDeleting = true;
 		pcFunction->mbVirtual = true;
 		pcFunction->mbDefined = true;
@@ -1045,9 +1043,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	//A class that needs one but declares none gets a constructor written for it when it is called.
 	if (!pcClass->mbConstructors && pcClass->NeedsConstructor())
 	{
-		pcFunction = AddFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid);
-		pcFunction->mbImplicit = true;
-		pcFunction->mbDefined = true;
+		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid, true);
 	}
 	mcContext.LeaveBindings();
 	return bResult;
@@ -1286,12 +1282,8 @@ void CCPPUnit::InheritConstructors(CCPPClass* pcClass)
 			{
 				continue;
 			}
-			bSame = true;
-			for (k = 0; bSame && (k < pcOwn->mapsParameters.NumElements()); k++)
-			{
-				//The same signature: const below the top makes another (D(const int*) doesn't stand for B(int*)).
-				bSame = pcOwn->mapsParameters.GetPtr(k)->Same(pcInherited->mapsParameters.GetPtr(k));
-			}
+			//The same signature: const below the top makes another (D(const int*) doesn't stand for B(int*)).
+			bSame = pcOwn->TakesParameters(&pcInherited->mapsParameters);
 		}
 		if (bSame)
 		{
@@ -1314,9 +1306,7 @@ void CCPPUnit::InheritConstructors(CCPPClass* pcClass)
 
 	if (bAdded && !pcClass->mbConstructors)
 	{
-		pcFunction = AddFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid);
-		pcFunction->mbImplicit = true;
-		pcFunction->mbDefined = true;
+		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid, true);
 		pcClass->mbConstructors = true;
 	}
 }
@@ -1438,16 +1428,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				{
 					return false;
 				}
-				psField = pcClass->macFields.Add();
-				psField->pcSymbol = NULL;
-				psField->lliName = -1;
-				psField->psType = psType;
-				psField->iOffset = 0;
-				psField->iAlign = 0;
-				psField->pcInitialiser = NULL;
-				psField->bMutable = false;
-				psField->iBitWidth = -1;
-				psField->iBitOffset = 0;
+				pcClass->macFields.Add()->Init(NULL, psType);
 				return true;
 			}
 		}
@@ -1543,15 +1524,10 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				psType = mcTypes.Array(psElement, psType->iCount);
 			}
 			psField = pcClass->macFields.Add();
-			psField->pcSymbol = pcInit->mpcSymbol;
-			psField->lliName = pcInit->mpcSymbol->mlliName;
-			psField->psType = psType;
-			psField->iOffset = 0;
+			psField->Init(pcInit->mpcSymbol, psType);
 			psField->iAlign = iAlign;
 			psField->pcInitialiser = pcInit->mpcInitializer;
 			psField->bMutable = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_MUTABLE);
-			psField->iBitWidth = -1;
-			psField->iBitOffset = 0;
 		}
 		return bResult;
 
@@ -1744,15 +1720,9 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 		lliWidth = 1;
 	}
 	psField = pcClass->macFields.Add();
-	psField->pcSymbol = pcInit->mpcSymbol;
-	psField->lliName = pcInit->mpcSymbol ? pcInit->mpcSymbol->mlliName : -1;
-	psField->psType = psType;
-	psField->iOffset = 0;
-	psField->iAlign = 0;
+	psField->Init(pcInit->mpcSymbol, psType, (int)lliWidth);
 	psField->pcInitialiser = pcInit->mpcInitializer;
 	psField->bMutable = pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_MUTABLE);
-	psField->iBitWidth = (int)lliWidth;
-	psField->iBitOffset = 0;
 	return bResult;
 }
 
