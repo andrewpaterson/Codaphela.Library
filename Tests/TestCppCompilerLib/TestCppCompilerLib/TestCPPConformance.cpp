@@ -454,7 +454,7 @@ static bool ConformanceUnsupported(const char* szErrors)
 // compiler's target, nothing generated.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool ConformanceChecks(const char* szSource, bool bExceptions)
+static bool ConformanceChecks(const char* szSource, bool bExceptions, bool bPrint = false)
 {
 	CTranslationUnit	cFile;
 	CCPPPreprocessor	cPreprocessor;
@@ -482,6 +482,11 @@ static bool ConformanceChecks(const char* szSource, bool bExceptions)
 	cOptions.mbExceptions = bExceptions;
 	cPass.SetOptions(&cOptions);
 	bResult &= cPass.Check(&cTree, CPPT_W65C816);
+	if (bPrint)
+	{
+		//TEST_CPP_CONFORMANCE_TRY: what the semantic pass (the IDE's checker) says of the program.
+		fprintf(stderr, "Checked Try(%s): %s\n", bResult ? "-" : "E", (cPass.GetErrors()->NumErrors() > 0) ? cPass.GetErrors()->Get(0) : (bResult ? "no errors" : "the parser's or preprocessor's errors"));
+	}
 	cPass.Kill();
 	cTree.Kill();
 	cTokeniser.Kill();
@@ -640,6 +645,7 @@ static void TestCPPConformanceTry(const char* szFileName)
 	bExceptions = getenv("TEST_CPP_CONFORMANCE_EXCEPTIONS") != NULL;
 	ConformanceCase(&sCase, CPPT_65C64, bExceptions);
 	ConformanceCase(&sCase, CPPT_W65C816, bExceptions);
+	ConformanceChecks(szSource.Text(), bExceptions, true);
 	szSource.Kill();
 }
 

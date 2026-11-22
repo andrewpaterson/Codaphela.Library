@@ -465,10 +465,21 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		//A case or default label is in a switch's statement.  [stmt.label] 2
 		CheckCaseInSwitch(pcNode);
 		break;
-	case CPPS_Namespace:
-	case CPPS_FunctionDefinition:
-		CheckBlockDeclaration(pcNode);
+	case CPPS_LambdaExpression:
+		//A lambda alone (return's value, say): typed, then its body checked in its own scope (CheckLambda), not walked
+		//as the function's statements.
+		if (mcTypeChecker.Value(pcNode))
+		{
+			CheckLambdas(pcNode);
+		}
 		return;
+	case CPPS_DeclarationStatement:
+		//A namespace or a function defined in a block (a lambda's definition is no declaration statement).
+		if (!CheckBlockDeclaration(((CCPPSyntaxDeclarationStatement*)pcNode)->mpcDeclaration))
+		{
+			return;
+		}
+		break;
 	case CPPS_ClassSpecifier:
 	case CPPS_LazyDeclaration:
 	case CPPS_SkippedStatement:
