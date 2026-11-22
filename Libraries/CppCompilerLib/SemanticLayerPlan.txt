@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 3 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
+Where it is: stages 0 to 4 are done (2026-11-22; "The record" has what each found).  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -649,3 +649,64 @@ Stage 3 (2026-11-22): where the compiler is.
 	looked for on it.
 	(One of the six listings runs was stopped by a debugger attached to it in error, and was taken again; its
 	half-written folder had each unit's first compile, which a second compile replaces.)
+
+Stage 4 (2026-11-22): errors.  Six parts, each committed when TestCppCompilerLib passed and what is said of every
+conformance case had been compared with the part before; the listings at the end.
+
+	1. CCPPDiagnostics (CPPDiagnostics.h, .cpp): the errors, the warnings, and the calls that begin and end quiet
+	   code, a trial and a loud part, taken from the unit as they were written.  The unit owns one and the classes
+	   beside it are handed it: the binder, the overloads, the type checker, the declarators, the deduction, the
+	   constants, the access and the IR front end no longer ask the unit to say something for them (230 calls).
+	2. A silent part (BeginSilent, BeginSilentTrial) is quiet code, or a trial, whose errors go when it ends: the
+	   23 places that counted the errors, went quiet and cut the list back after, each with a local for the count.
+	3. A remembered type keeps the errors made working it out (BeginKeeping, EndKeeping; CCPPContext::EnterKeeping
+	   says an error made there is recorded though it is quiet), and ReportTypeOf says them where it worked the type
+	   out a second time, loudly.  A lambda's closure keeps what was said making it the same way, for its szError and
+	   pcErrorNode, and LambdaError is gone.
+	4. A function that couldn't be declared keeps its declarator with what declaring it said quietly
+	   (DeclareQuietly, masFailed for the untyped mapcFailed); ReportFailedDeclaration says those errors where the
+	   function is called, where it declared the function a second time (as a function of no class, though it may
+	   have been a member).  A wrong operator new or delete says its kept errors where it is declared, for a
+	   second declaration.  A keeping part may keep only what is said quietly (BeginKeeping(false)).
+	5. A class's errors, said when the unit ends, are the diagnostics' deferred errors (Defer, ReportDeferred,
+	   HasDeferred) for the unit's own list and its four functions.  CCPPAccess::Refuse, ReportOnce written again
+	   and used by the binder for six errors that are not about access, is gone; ReportOnce asks the error list
+	   (CCPPErrors::HasAt).  Three errors that had no place say where: a global's construction (its initialiser), a
+	   covariant thunk (its overrider), an implicit member function (its class).
+	6. ErrorOnce: what both walkers say of one call is said once ("No function matches the arguments", "The call
+	   is ambiguous", "The function chosen is deleted"), and BindConstruction no longer adds "No constructor
+	   matches the arguments" where choosing a constructor said why.  Finding 36 had this by reading; running it
+	   showed a constructor no argument fits said three times.
+
+	What is said of the conformance cases, against stage 3 (5,789 entries):
+	- Said once where it was said twice or three times: Stage1.DeletedCopy, Stage2.MoveOnlyCopied,
+	  Clause8.DclAggregateWithConstructorRefused, DclListNoConstructorRefused, DclListEmptyNoDefaultRefused,
+	  Clause12.SpecialNoImplicitDefaultRefused, SpecialDeletedConstructorRefused, SpecialMoveDeletesCopyRefused,
+	  SpecialDeletedCopyRefused, SpecialInheritingExplicitRefused (each on both targets and in the check).
+	- Given a place: Clause12.SpecialDefaultConstructorMemberRefused (the implicit constructor's error).
+	- Changed, and outside question 3's bar, so said here for the user: two cases now give the reason in place of
+	  a consequence of it.  Clause5.LambdaReturnDeductionMismatchRefused says "Each return of a function declared
+	  auto must give the same type" where it said "The lambda's closure can't be made", and
+	  Clause13.OverOperatorAmbiguousRefused says "The operator is ambiguous: ..." where it said "The object
+	  doesn't convert to a number".  The old re-run happened not to make the first error; keeping what the first
+	  run said does.
+	- Nothing else.  Every case passes as it did.
+
+	What the stage as written asked and this did not do:
+	- "Stage 0's counts of errors taken away and of work run again are zero at the end."  Both are zero compiling
+	  TestSupportLib65's project (14 and 0 before).  In a program with errors a silent part still takes away what
+	  was said in it, by design: it asks whether something can be done, by trying.
+	- The quiet sites were not sorted again into trials and questions; a silent part is the question, and
+	  quiet code that keeps nothing stays quiet code.
+	- "Did the callee say something" is still asked by counting the error list in the binder, the overloads and
+	  the type checker (finding 36's first point, 38 uses), and BindConstruction's and BindOperator's bReport
+	  parameters remain: a finder that returns "none, and why" is the binder's shape, which is finding 32's.
+	- mbValueArgumentRefused stays: it carries one error's having been said up through FoldConstant's five calls.
+	  A trial would see it only if the error were quiet, and it is said loudly on purpose (it may only be a try).
+	- ConstantError and CCPPConstants::mszReason (a constant's reason) are stage 11's, with the evaluator.
+
+	Proved: TestCppCompilerLib passes (271,778); the diagnostics as above; listings 4,201, none different; counts stage 0's
+	but errors taken away (14 to 0).  Time, a unit at a time, for the 65C64 and the W65C816: declarations 6,622 and
+	6,624 ms (stage 3: 6,460 and 6,458), types 6,420 and 6,469 (6,176 and 6,233), front end 3,345 and 3,408 (3,282 and
+	3,336).  The types phase is about 4% slower: every TypeOf worked out (1.1 million) begins and ends a keeping
+	part, an entry on the context's stack.
