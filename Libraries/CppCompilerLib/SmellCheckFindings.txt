@@ -1363,9 +1363,9 @@ repeats the shape test and the rewiring (finding 64).
    high.
    Since: OptimiserPlan.txt stage 11.  A range is a record (SIRValueRange, dc5a2b87f).  The two unsigned lists' rules
    are written once (CIRMostRules in IRMost.h, a5f0531b2); CIRKnownBits is CIRMost, and Bits() is gone.
-   UpperBound does not ask them yet: the switch changes the code written, and measured it costs one suite 419
-   bytes for 2.25 million cycles, so it waits on the branch ir-optimiser for the user (0bce72589 and the
-   plan's record).  The signed rules (SignedRange, ArithmeticRange, DivisionRange) are still a list of their
+   UpperBound asks them since d32ee977e: the switch changes the code written (measured, it costs one suite 419
+   bytes for 2.25 million cycles), and the user took it with a cost rule for ConstantDivisions first (the
+   plan's record "Stage 11's switch").  The signed rules (SignedRange, ArithmeticRange, DivisionRange) are still a list of their
    own, and the back end's table and the passes' question are still two drivers.
 
 64. The four library idioms each repeat the shape test and the rewiring
@@ -1528,6 +1528,8 @@ repeats the shape test and the rewiring (finding 64).
    Since: OptimiserPlan.txt stage 10 (fa05f0d48).  SIRConstantDivision::Init reads the division in eight places;
    ConstantDivisions has its own record with a kind and keeps the reciprocal it found (SIRReciprocal);
    InsertDivisorMask builds the mask.  The quotient is still an add of 0: a copy is the back end's.
+   A reciprocal is written only where the target says it costs less than the divide (CIRDivisionCosts,
+   03c8aa3d5; the W65C816's cycles are in IRW65C816Costs.h).
 
 72. Instructions built field by field where a builder exists
    Kind: reuse missed; inconsistent initialisation.

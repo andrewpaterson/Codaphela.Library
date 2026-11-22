@@ -6,9 +6,10 @@ out for itself what the others also work out.  Written 2026-11-21.  Consolidatio
 sessions working in them"; the user gave it to this plan that day.  The findings say where each thing is and what
 the clean form would be, and are not repeated here.
 
-Where it is: every stage is done (2026-11-22).  One thing waits for the user: stage 11's switch of UpperBound to
-the shared rules, which changes the code written and is the last commit of the branch ir-optimiser.  "The
-record", at the end, has what each stage found, and closes with a table of them all.
+Where it is: every stage is done (2026-11-22), and stage 11's switch of UpperBound to the shared rules, which
+changes the code written, is on master with a cost rule for ConstantDivisions: the user took it.  One thing is
+not done: the suites' cycles and bytes with that rule are not measured ("Stage 11's switch", after stage 14,
+says why).  "The record", at the end, has what each stage found, and closes with a table of them all.
 
 
 The rules (the user, 2026-11-21)
@@ -466,8 +467,8 @@ listings are the baseline's.  TestCppCompilerLib passes.
 	(The other half of finding 68, OnlyUsedInLoop's uses taken away and put back, is stage 12's.)
 
 Stage 11, second part (2026-11-22): the rules for the largest a value can be are written once, and the switch
-to them waits for the user.  As it stands on master: the same code, the 4,201 listings the baseline's.
-TestCppCompilerLib passes.
+to them waited for the user (who has since taken it: "Stage 11's switch", after stage 14).  As it stood on
+master then: the same code, the 4,201 listings the baseline's.  TestCppCompilerLib passes.
 
 	The two unsigned analyses had a list of opcodes each: the optimiser's UpperBound (zext, and, lshr, urem,
 	udiv, add) and the 65C64 back end's CIRKnownBits::InstructionMost (those and or, xor, mul, shl, copy,
@@ -617,13 +618,75 @@ and column of what it says of wrong IR) passed as they stood.
 	in IRRanges.h, and the comment says so.
 
 
+Stage 11's switch, taken with a cost rule (2026-11-22).  The user's words: "Take it and give ConstantDivisions
+a cost rule for 32-bit reciprocals on the W65C816 first", then "Bring it to master please".  It changes the code
+written.  TestCppCompilerLib passes (271,522 run).  The suites' cycles and bytes with the rule are NOT measured:
+the end of this record says why.
+
+	The switch (d32ee977e) is as stage 11's record has it, with its measures.
+
+	The rule (03c8aa3d5).  ConstantDivisions wrote every reciprocal it found.  A target now tells the
+	optimiser what a divide by a constant costs it two ways (CIRDivisionCosts in IRDivisionCosts.h,
+	CIROptimiser::SetDivisionCosts): as its divide, and as the multiply and shift.  The pass writes the
+	reciprocal only where it costs less (IsReciprocalCheaper); a target that says nothing gets them all,
+	as before.  x / c and x % c of one x in a block are priced together, so that one is not a multiply
+	while the other still calls: as a reciprocal they cost what the remainder does, as a divide one call
+	where the routine leaves the remainder.
+
+	The W65C816's costs are cycles (IRW65C816Costs.h/.cpp, which CCPPTargetW65C816::ConfigureOptimiser
+	gives).  The divide's are counted from R816_UDiv16 and R816_UDiv32: 110 or 140 for the stores, the
+	call and the tests, then a step for each bit of quotient the routine works out (8 or 16 a word of x;
+	18 cycles, 14 under a divisor of 128, 46 for a divisor of 65536 or more), and 80 or 100 for a signed
+	one's signs.  The reciprocal's are the multiply as the back end will write it (the cheaper of its
+	shifts and adds and its call: the numbers ExpandMultiplies already used, moved from
+	IRW65C816Backend.cpp so that both read them), the shifts, x made two words, the 1 for a negative x,
+	and for a remainder the multiply back and the subtract; each in the words its values need, not the
+	words of its type.  They are rough: the shifts and adds of x * 32897 in two words are priced at 200
+	cycles and, counted by hand from the listing, take about 95.
+
+	What the rule decides, from a trace of every divide by a constant in the three suites' projects (99
+	kinds of reciprocal, each priced alone):
+	- x / 255 of (a * b + 127), the switch's new one, stays a multiply: 228 cycles against 284.  Counted
+	  by hand it is about 140 against 118 (an x under 255, which the routine answers at once) to 300 (8
+	  steps).  So the 46 bytes a site stay, and TestFontFamily's loss, where a glyph's opacity is mostly
+	  0: the rule is of cycles, and a range says nothing of how often x is small.
+	- 16 kinds are dropped, all worked in 32 bits with a multiplier of many digits, whose "multiply" was a
+	  call of R816_Mul32: an i16 x % 10 in stdio was about 75 lines round that call and is jsl
+	  R816_SRem16.
+
+	The listings with the rule (made before master's three commits of that morning were under it): the
+	65C64's are the switch's, all of them.  The W65C816's differ from the switch's in 21: 19 are shorter
+	(stdio by 81 lines, MeshBake by 316, QuickHull by 790), and TestBinaryHeap (1,035 lines) and
+	MeshUVRigid (535) are longer.  TestBinaryHeap's is the inliner: TestBinaryHeapOrder, with its
+	remainder one instruction and not five, is under the limit and is inlined into its one caller.
+	MeshUVRigid's was not read.
+
+	Found on the way: TestImageDraw's 4 bytes and 88 cycles under the switch are the order of the passes
+	and not a rule.  (c * a + 127) / 255 with c read from an array was left a divide at first (the old
+	UpperBound knew no multiply) and written when c had become the constant 50, with the range of 50 * a;
+	now it is written at once, with the range of two bytes' product, which needs one more shift.
+
+	NOT MEASURED: the suites' cycles and bytes with the rule.  The run (o_measure.sh's "suites") was
+	stopped by the machine for want of memory when it had the listings, and was not started again
+	unasked.  What is known of the totals is the switch's table in stage 11's record; the rule takes
+	lines off nineteen units and puts them on two, and what it does to the cycles is not known.  A measure
+	now needs a baseline of its own: master has three commits of another session's under these two
+	(c3c9c19c0, 8c2c660d3, 0eddbb1f7), which change the front end.
+
+	Not built, and the user's to ask for: x / 255 of an x under 65536 is (x + (x >> 8) + 1) >> 8 in 16
+	bits, about 20 cycles and 11 bytes by its instructions, where the multiply is about 140 and 63 and
+	the call 118 to 300 and 17.  It is another way to divide and not a cost; it would take back the 419
+	bytes and TestFontFamily's cycles.
+
+
+
 What was done, stage by stage (2026-11-21 and 22)
 
-	Every stage on master writes the same code as the baseline (4,201 listings of the three suites' projects
-	on both processors) and passes TestCppCompilerLib.  Compiling TestSupportLib65's project a unit at a
-	time (milliseconds, 65C64 and W65C816): "optimise" 3,356 and 3,738 at the baseline, 3,316 and 3,667 at
-	stage 14; "inline" 7,090 and 12,614, then 6,879 and 12,117.  Two runs of one compiler differ by about
-	as much.
+	Every stage but the table's last two rows writes the same code as the baseline (4,201 listings of the
+	three suites' projects on both processors), and all pass TestCppCompilerLib.  Compiling
+	TestSupportLib65's project a unit at a time (milliseconds, 65C64 and W65C816): "optimise" 3,356 and
+	3,738 at the baseline, 3,316 and 3,667 at stage 14; "inline" 7,090 and 12,614, then 6,879 and 12,117.
+	Two runs of one compiler differ by about as much.
 
 	  stage  finding   commit      what
 	  0      97        49a3a046b   the baseline; tests for 30 of the parser's and verifier's 32 untested diagnostics
@@ -643,11 +706,13 @@ What was done, stage by stage (2026-11-21 and 22)
 	  12     69, 68    91889ea9e   the pass groups: the block's and the loop's edits, CIRRanges, CIRAddresses, one use count
 	  13     73        6fb64ecd5   the summaries between functions; IRMayThrow; the walk of uses
 	  14     74        55b9844fe   the IR's parser on CTextParser
+	  11     63        d32ee977e   UpperBound asks the shared rules: the switch, taken by the user (the code changes)
+	         71        03c8aa3d5   a reciprocal only where the target says it costs less than the divide
 
 	Not done, and why (each is in its stage's record):
-	- UpperBound asking the shared rules (stage 11).  It is written and measured: cycles fall or stay in all
-	  six totals, bytes in five, and TestSupportLib65 on the W65C816 grows by 419 bytes.  It is the last
-	  commit of the branch ir-optimiser, for the user to take or leave.
+	- The suites' cycles and bytes with ConstantDivisions' cost rule (stage 11's switch): the run was
+	  stopped for want of memory.  The switch without the rule is measured: cycles fall or stay in all six
+	  totals, bytes in five, and TestSupportLib65 on the W65C816 grows by 419 bytes.
 	- The signed range rules in the same table as the unsigned ones (stage 11): finding 63's third list.
 	- The quotient of a division by a constant as a copy (stage 10): a copy is the back end's, and no
 	  pass takes one away.
