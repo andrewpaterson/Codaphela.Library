@@ -75,6 +75,7 @@ public:
 	void		SetStatistics(CCPPCompileStatistics* pcStatistics);
 
 	bool		Error(CCPPSyntax* pcNode, const char* szMessage);
+	bool		ErrorOnce(CCPPSyntax* pcNode, const char* szMessage);
 	bool		ErrorAt(int iToken, const char* szMessage);
 	bool		ReportError(CCPPSyntax* pcNode, const char* szMessage);
 	bool		ReportErrorAt(int iToken, const char* szMessage);

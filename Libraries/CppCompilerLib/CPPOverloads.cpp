@@ -764,7 +764,7 @@ void CCPPOverloads::NoFunctionMatches(CCPPClass* pcClass, int64 lliName, ECPPFun
 		}
 		szMessage.Append(pcOnly->mbVariadic ? ", ...)" : ")");
 	}
-	mpcDiagnostics->Error(pcNode, szMessage.Text());
+	mpcDiagnostics->ErrorOnce(pcNode, szMessage.Text());
 	szMessage.Kill();
 }
 
@@ -941,14 +941,14 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		if (pcBest->mbDeleted)
 		{
 			//It was the best match, and so the call is wrong: that is what deleting it is for.  [dcl.fct.def.delete]
-			mpcDiagnostics->Error(pcNode, "The function chosen is deleted");
+			mpcDiagnostics->ErrorOnce(pcNode, "The function chosen is deleted");
 			return NULL;
 		}
 		return pcBest;
 	}
 	if (bAmbiguous)
 	{
-		mpcDiagnostics->Error(pcNode, "The call is ambiguous");
+		mpcDiagnostics->ErrorOnce(pcNode, "The call is ambiguous");
 		return NULL;
 	}
 	if (bFound && bQualifiedObject)

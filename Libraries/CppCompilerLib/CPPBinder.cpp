@@ -127,7 +127,7 @@ bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, 
 		{
 			//A deleted function template's instance was the best match (one that is no template's is refused where it
 			//is chosen, CCPPOverloads::FindFunction).  [dcl.fct.def.delete] 2
-			mpcDiagnostics->Error(pcCall, "The function chosen is deleted");
+			mpcDiagnostics->ErrorOnce(pcCall, "The function chosen is deleted");
 			pcBound->meHow = CPPBC_Failed;
 		}
 		CheckAccess(pcBound, pcCall);
@@ -2489,8 +2489,9 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 		}
 		if (pcClass->mbConstructors)
 		{
-			if (bReport)
+			if (bReport && !mpcDiagnostics->HasErrorAt(pcNode))
 			{
+				//(Where choosing among the constructors said why, that is the reason.)
 				mpcDiagnostics->Error(pcNode, "No constructor matches the arguments");
 			}
 			return false;

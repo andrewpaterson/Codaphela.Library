@@ -109,6 +109,22 @@ bool CCPPDiagnostics::Error(CCPPSyntax* pcNode, const char* szMessage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Error, unless the same error is said at the place already: what each of
+// the two walkers asks of the same call is said once.  Always false.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDiagnostics::ErrorOnce(CCPPSyntax* pcNode, const char* szMessage)
+{
+	if (!mpcContext->IsQuiet() && pcNode && mcErrors.HasAt(pcNode->miFirstToken, szMessage))
+	{
+		return false;
+	}
+	return Error(pcNode, szMessage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A warning at pcNode's first token, unless that token already has one (the
 // same expression is often looked at more than once).
 //
