@@ -100,6 +100,19 @@ void CCPPUnit::SetListing(bool bListing)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each class the unit lays out is written down as a line (AddLayout), for
+// GetLayouts: what a target's layout rules made of the program's classes,
+// to read or to compare with another build's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SetLayouts(bool bLayouts)
+{
+	mbLayouts = bLayouts;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The arena the W65C816 back end's working arrays and strings are in while
 // it writes a function (CCPP65IRFrontEnd::GenerateCode, CIRW65C816Backend::
 // SetScratch).
@@ -271,6 +284,23 @@ void CCPPUnit::GetTestedCallees(CArrayChars* paszNames)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Adds the lines of the classes the unit laid out (SetLayouts) to
+// paszLines, which is sorted and has each line once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::GetLayouts(CArrayChars* paszLines)
+{
+	size	i;
+
+	for (i = 0; i < maszLayouts.NumElements(); i++)
+	{
+		paszLines->InsertIntoSorted(maszLayouts.Get(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
@@ -283,12 +313,14 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mszCode.Init();
 	mszThunks.Init();
 	maszRuntime.Init();
+	maszLayouts.Init();
 	mcBackendScratch.Init((size)CPP65_BACKEND_SCRATCH_CHUNK);
 	mpcImports = NULL;
 	muiImportsTurn = 0;
 	mbMissedImports = false;
 	mpcFrameProfile = NULL;
 	mbListing = false;
+	mbLayouts = false;
 	mbLineTable = false;
 	mbNoFloats = false;
 	mbCompiledBefore = false;
@@ -504,6 +536,7 @@ void CCPPUnit::Kill(void)
 	mapsExitFinalisers.Kill();
 	maszExitFinalisers.Kill();
 	maszRuntime.Kill();
+	maszLayouts.Kill();
 	mszThunks.Kill();
 	mszCode.Kill();
 	mauiCodePieces.Kill();

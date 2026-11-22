@@ -957,6 +957,8 @@ void TestProject65RunTests(STestProject65* psProject)
 		//TEST_PROJECT65_LISTINGS=directory: each unit's assembly with its C++ source lines as comments (Unit.lst).
 		cBuilder.SetListingDirectory(getenv("TEST_PROJECT65_LISTINGS"));
 	}
+	//TEST_PROJECT65_LAYOUTS=file: each class the library and its tests lay out, a line each (CCPP65Builder::SetLayoutsFile).
+	cBuilder.SetLayoutsFile(getenv("TEST_PROJECT65_LAYOUTS"));
 	//TEST_PROJECT65_FRAME_PROFILE builds with a profile (the W65C816's aligned frames measured, not estimated);
 	//TEST_PROJECT65_PROFILE (or TEST_PROJECT65_MEASURE_FRAMES) builds with a line table, profiles the programs and
 	//writes their profile to the file it names, and TEST_PROJECT65_PROFILE_REPORT writes where their cycles went.

@@ -130,6 +130,15 @@ struct SAlignmentTestInt32Vec2
 	SInt32Vec2	v;
 };
 
+//What alignof says of a 64 bit type: 8, but 4 on the 65C64, which places one at a multiple of 8 in a class and promises
+//an object no more than a frame's places are multiples of.
+#ifdef __65C64__
+#define TEST_ALIGNOF_64		4
+#else
+#define TEST_ALIGNOF_64		8
+#endif // __65C64__
+
+
 void TestPrimitiveTypesAlignment(void)
 {
 #ifdef __W65C816__
@@ -151,11 +160,11 @@ void TestPrimitiveTypesAlignment(void)
 	AssertSize(8, offsetof(SAlignmentTestInt64, l));
 	AssertSize(16, sizeof(SAlignmentTestInt64));
 
-	AssertSize(8, alignof(SInt64Vec2));
+	AssertSize(TEST_ALIGNOF_64, alignof(SInt64Vec2));
 	AssertSize(8, offsetof(SAlignmentTestInt64Vec2, v));
 	AssertSize(24, sizeof(SAlignmentTestInt64Vec2));
 
-	AssertSize(8, alignof(SFloat64Vec3));
+	AssertSize(TEST_ALIGNOF_64, alignof(SFloat64Vec3));
 	AssertSize(8, offsetof(SAlignmentTestFloat64Vec3, v));
 	AssertSize(32, sizeof(SAlignmentTestFloat64Vec3));
 

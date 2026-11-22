@@ -54,7 +54,7 @@ int32		TestCPP65MainFloat(const char* szSource);
 
 //A program whose main measures how its classes and objects are laid out, and what it returns on each target: the
 //W65C816 aligns nothing past a byte unless alignas asks it and pads a class's members to 2 bytes at most
-//(W65C816AlignmentPlan.txt); the 65C64 lays classes out as MSVC does.
+//(W65C816AlignmentPlan.txt); the 65C64 lays classes out as MSVC does, and aligns an object to 4 bytes at most.
 struct STestCPP65Layout
 {
 	const char*	szSource;

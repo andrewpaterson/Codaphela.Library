@@ -3904,6 +3904,75 @@ void TestCPP65GeneratorListing(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The layouts file: a line for each class the build's sources lay out, in
+// order and each once, with its size, its alignment and where its bases,
+// vtable pointer and fields are.  The two targets lay the same classes out
+// their own ways.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorLayoutsFile(void)
+{
+	static const char*	szSource =
+		"struct SPair { char c; long l; };\n"
+		"class CBase { public: virtual int Get(void) { return mi; } short mi; };\n"
+		"class CDerived : public CBase { public: SPair msPair; unsigned mb1 : 3; unsigned mb2 : 5; };\n"
+		"struct alignas(8) SAligned { char c; };\n"
+		"int Use(void) { CDerived c; SAligned s; SPair p; return sizeof(c) + sizeof(s) + sizeof(p); }\n";
+	static const char*	szOther =
+		"struct SPair { char c; long l; };\n"
+		"struct SOther { SPair s; double d; };\n"
+		"int Other(void) { SOther o; return sizeof(o); }\n";
+	static ECPPTarget	aeTargets[] = { CPPT_65C64, CPPT_W65C816 };
+	static const char*	aszExpected[] =
+	{
+		"CBase First.cpp(2) size 8 align 4 alignas 0 vptr@0 mi@4\n"
+		"CDerived First.cpp(3) size 20 align 4 alignas 0 base CBase@0 vptr@0 msPair@8 mb1@16.0 mb2@16.3\n"
+		"SAligned First.cpp(4) size 8 align 8 alignas 8 c@0\n"
+		"SOther Second.cpp(2) size 16 align 8 alignas 0 s@0 d@8\n"
+		"SPair First.cpp(1) size 8 align 4 alignas 0 c@0 l@4\n"
+		"SPair Second.cpp(1) size 8 align 4 alignas 0 c@0 l@4\n",
+
+		"CBase First.cpp(2) size 6 align 2 alignas 0 vptr@0 mi@4\n"
+		"CDerived First.cpp(3) size 14 align 2 alignas 0 base CBase@0 vptr@0 msPair@6 mb1@12.0 mb2@12.3\n"
+		"SAligned First.cpp(4) size 8 align 8 alignas 8 c@0\n"
+		"SOther Second.cpp(2) size 14 align 2 alignas 0 s@0 d@6\n"
+		"SPair First.cpp(1) size 6 align 2 alignas 0 c@0 l@2\n"
+		"SPair Second.cpp(1) size 6 align 2 alignas 0 c@0 l@2\n",
+	};
+	CCPP65Builder		cBuilder;
+	CTextFile			cFile;
+	CFileUtil			cFileUtil;
+	size				ui;
+
+	for (ui = 0; ui < 2; ui++)
+	{
+		cFileUtil.RemoveDir("Output" _FS_ "CPP65Layouts");
+		cFileUtil.TouchDir("Output" _FS_ "CPP65Layouts");
+		cBuilder.Init();
+		cBuilder.SetTarget(aeTargets[ui]);
+		TestCPP65AddIncludeDirectories(&cBuilder);
+		cBuilder.SetLayoutsFile("Output" _FS_ "CPP65Layouts" _FS_ "Layouts.txt");
+		AssertTrue(cBuilder.AddSource("First.cpp", szSource));
+		AssertTrue(cBuilder.AddSource("Second.cpp", szOther));
+		cFile.Init();
+		AssertTrue(cFile.Read("Output" _FS_ "CPP65Layouts" _FS_ "Layouts.txt"));
+		AssertString(aszExpected[ui], cFile.Text());
+		cFile.Kill();
+		cBuilder.Kill();
+	}
+
+	//Without a layouts file nothing is written.
+	cFileUtil.RemoveDir("Output" _FS_ "CPP65Layouts");
+	cBuilder.Init();
+	TestCPP65AddIncludeDirectories(&cBuilder);
+	AssertTrue(cBuilder.AddSource("First.cpp", szSource));
+	AssertFalse(cFileUtil.Exists("Output" _FS_ "CPP65Layouts"));
+	cBuilder.Kill();
+}
+
+
 extern const char*	gaszTestCPPEnumClassSources[];
 extern int			gaiTestCPPEnumClassResults[];
 extern size			guiTestCPPEnumClassSources;
@@ -3952,9 +4021,9 @@ void TestCPP65GeneratorEnumClass(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The 65C64 lays classes out as MSVC does and aligns objects as their
-// types are: the programs the W65C816 lays out its own way
-// (TestCPP816Alignment) give what they always have here.
+// The 65C64 lays classes out as MSVC does, and aligns an object to 4
+// bytes at most (a frame's places are multiples of 4): what the programs
+// the W65C816 lays out its own way (TestCPP816Alignment) give here.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorLayouts(void)
@@ -4059,6 +4128,7 @@ void TestCPP65Generator(void)
 	TEST_PART(TestCPP65GeneratorLockstep());
 	TEST_PART(TestCPP65GeneratorErrors());
 	TEST_PART(TestCPP65GeneratorListing());
+	TEST_PART(TestCPP65GeneratorLayoutsFile());
 	TEST_PART(TestCPP65GeneratorEnumClass());
 	TEST_PART(TestCPP65GeneratorVirtualBaseLayouts());
 	TEST_PART(TestCPP65GeneratorLayouts());

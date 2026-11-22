@@ -65,6 +65,8 @@ void CCPP65Builder::Init(void)
 	mszErrors.Init();
 	mszWarnings.Init();
 	maszTested.Init();
+	mszLayouts.Init();
+	maszLayouts.Init();
 	mapcCompiled.Init();
 	mcImports.Init(IR_IMPORT_INSTRUCTIONS);
 	mcImports.SetResume(ResumeUnit, this);
@@ -127,6 +129,8 @@ void CCPP65Builder::Kill(void)
 	mcImports.Kill();
 	mapcCompiled.Kill();
 	maszTested.Kill();
+	maszLayouts.Kill();
+	mszLayouts.Kill();
 	mszWarnings.Kill();
 	mszErrors.Kill();
 	mcLinker.Kill();
@@ -641,6 +645,23 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The classes that what is compiled lays out are written to szFile (once
+// the units are compiled, and again with each source's): a line for each
+// class (CCPPUnit::AddLayout), each once and in order, so that two builds'
+// files can be compared (another target's, or the same sources after a
+// change to the layout rules or to a class).  NULL for none.  Set it
+// before compiling.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetLayoutsFile(const char* szFile)
+{
+	mszLayouts.Kill();
+	mszLayouts.Init(szFile ? szFile : "");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A header declaration (a class, enum, typedef, template or function) a
 // unit parsed is not parsed by the units after until they use one of its
 // names.  The code is the same.  On by default; false parses every header
@@ -1103,20 +1124,20 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 //////////////////////////////////////////////////////////////////////////
 //
 // Compiles szSource (AddSource's and LinkWith's) with the builder's
-// settings: its line table, and its listing (UnitName.lst) when it keeps
-// listings.
+// settings: its line table, its listing (UnitName.lst) when it keeps
+// listings, and its classes added to the layouts file when there is one.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource)
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mcOptions.mbMathTables, &mcOptions, NULL, &maszTested);
+	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mcOptions.mbMathTables, &mcOptions, NULL, &maszTested, mszLayouts.Empty() ? NULL : &maszLayouts);
 	if (!mszListings.Empty())
 	{
 		bResult &= WriteListing(szName, pszAssembly);
 	}
-	return bResult;
+	return bResult & WriteLayouts();
 }
 
 
@@ -1466,10 +1487,11 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 // pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
 // pcFrameProfile's measured functions get aligned frames (NULL for none).  bListing gives the code comments with the
 // C++ source lines it is for (CCPPUnit::SetListing), bLineTable .line and .fingerprint directives
-// (CCPPUnit::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.
+// (CCPPUnit::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.  The classes it lays out are
+// added to paszLayouts if it isn't NULL (CCPPUnit::GetLayouts).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics, CArrayChars* paszTested)
+bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics, CArrayChars* paszTested, CArrayChars* paszLayouts)
 {
 	CTranslationUnit				cFile;
 	CCPPPreprocessor					cPreprocessor;
@@ -1536,6 +1558,7 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	cGenerator.SetStatistics(pcStatistics);
 	cGenerator.SetFrameProfile(pcFrameProfile);
 	cGenerator.SetListing(bListing);
+	cGenerator.SetLayouts(paszLayouts != NULL);
 	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
 	cGenerator.SetNoFloats(bNoFloats);
 	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
@@ -1546,6 +1569,10 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 	if (paszTested)
 	{
 		cGenerator.GetTestedCallees(paszTested);
+	}
+	if (paszLayouts)
+	{
+		cGenerator.GetLayouts(paszLayouts);
 	}
 	pszErrors->Append(cGenerator.GetErrors()->Text());
 	if (pszWarnings)
@@ -1661,6 +1688,38 @@ CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Writes the classes laid out so far to the layouts file (SetLayoutsFile),
+// if there is one and there are any.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Builder::WriteLayouts(void)
+{
+	CTextFile	cFile;
+	size		i;
+	bool		bResult;
+
+	if (mszLayouts.Empty() || (maszLayouts.NumElements() == 0))
+	{
+		return true;
+	}
+	cFile.Init();
+	for (i = 0; i < maszLayouts.NumElements(); i++)
+	{
+		cFile.mcText.Append(maszLayouts.GetText(i));
+		cFile.mcText.AppendNewLine();
+	}
+	bResult = cFile.Write(mszLayouts.Text());
+	cFile.Kill();
+	if (!bResult)
+	{
+		mszErrors.Append("Can't write the classes' layouts to ")->Append(mszLayouts)->AppendNewLine();
+	}
+	return bResult;
 }
 
 
@@ -1866,6 +1925,11 @@ bool CCPP65Builder::CompileUnits(void)
 		{
 			mapcCompiled.Add(&psUnit->pcObject);
 		}
+		for (uj = 0; uj < psUnit->aszLayouts.NumElements(); uj++)
+		{
+			maszLayouts.InsertIntoSorted(psUnit->aszLayouts.Get(uj));
+		}
+		psUnit->aszLayouts.Kill();
 		psUnit->aszTested.Kill();
 		psUnit->aszMissing.Kill();
 		psUnit->szWarnings.Kill();
@@ -1874,6 +1938,7 @@ bool CCPP65Builder::CompileUnits(void)
 	}
 	KillWorkspaces();
 	mpcUnitJobs = NULL;
+	bResult &= WriteLayouts();
 
 	if (apsUnits.NumElements() != muiUnits)
 	{
@@ -1922,6 +1987,7 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->pcObject = NULL;
 	psUnit->aszMissing.Init();
 	psUnit->aszTested.Init();
+	psUnit->aszLayouts.Init();
 	psUnit->eAgain = CPP65CA_No;
 	psUnit->uiTurn = uiTurn;
 	psUnit->bResult = true;
@@ -2288,6 +2354,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 		psCompile->cGenerator.SetFrameProfile(mpcFrameProfile);
 	}
 	psCompile->cGenerator.SetListing(!mszListings.Empty());
+	psCompile->cGenerator.SetLayouts(!mszLayouts.Empty());
 	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
 	psCompile->cGenerator.SetNoFloats(mbNoFloats && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
 	psCompile->cGenerator.SetCompiledBefore(!psCompile->bFirst);
@@ -2394,6 +2461,7 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	bResult = psCompile->bResult && bGenerated;
 	psCompile->cGenerator.GetMissingCallees(&psUnit->aszMissing);
 	psCompile->cGenerator.GetTestedCallees(&psUnit->aszTested);
+	psCompile->cGenerator.GetLayouts(&psUnit->aszLayouts);
 	psUnit->szErrors.Append(psCompile->cGenerator.GetErrors()->Text());
 	psUnit->szWarnings.Append(psCompile->cGenerator.GetWarnings()->Text());
 	psCompile->cGenerator.Kill();

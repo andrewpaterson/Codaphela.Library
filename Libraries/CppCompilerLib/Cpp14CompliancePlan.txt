@@ -493,11 +493,10 @@ B. Gaps that are known.  Each was probed against g++; none is common.
       aligned, so a local at any byte is where its type allows, at no cost to a call.  BasicAlignmentLocals.
    8. Done: switch (C c = ...) with C a class converted to an integer works (it had been fixed before 2026-11-22
       without this list knowing; StmtSwitchDeclaredObjectCondition).
-   9. Found doing 7: on the 65C64 a frame's places are multiples of 4 (CCPPTarget::GetFrameAlignment), so a double
-      or long long local is at a multiple of 4 while alignof says 8 (a probe of BasicAlignmentLocals with a double
-      returns 19 of 31 there; the case as kept has no 8 byte local).  CCPPTarget's GetObjectAlignmentLimit returning 4
-      for the 65C64 would make alignof say 4 and leave its class layouts as they are; the user ruled that the 65C64
-      doesn't change with 7, and hasn't been asked about this.
+   9. Done 2026-11-22 (found doing 7; the user: "make the 65C64's locals alignof at most 4"): a 65C64 frame's places
+      are multiples of 4, and a double or long long local was at one while alignof said 8.  CCPPTarget65C64::
+      GetObjectAlignmentLimit answers the frame's alignment, so alignof says 4 of them (and of a class that holds
+      one); no class layout changed.  BasicAlignmentLocals has 8 byte locals now.
 
 C. Checks that are owed.
    1. A Microsoft build of CppCompilerLib and TestCppCompilerLib.  Everything since 2026-11-19 was built with g++

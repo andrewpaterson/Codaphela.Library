@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "SourceFile.h"
 #include "CTIdentifier.h"
 #include "CPPUnit.h"
 #include "CPPConstants.h"
@@ -1026,6 +1027,10 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	cLayout.Layout(iClassAlign);
 	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
 	cLayout.Kill();
+	if (mbLayouts)
+	{
+		AddLayout(pcClass);
+	}
 	pcClass->meState = CPPCS_Complete;
 	bResult &= CheckOverrides(pcClass);
 	if (pcClass->mcVtable.mpcAmbiguous)
@@ -1665,6 +1670,64 @@ bool CCPPUnit::ClassError(int iToken, const char* szMessage)
 	psError->iToken = iToken;
 	psError->szMessage = szMessage;
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class as it was laid out, as a line of maszLayouts (SetLayouts): its
+// name, where it is defined, its size, its alignment and the most alignas
+// asks of it, then where each base, the vtable pointer and each field is
+// ("name@offset", a bit-field's first bit after a '.').
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AddLayout(CCPPClass* pcClass)
+{
+	CChars					sz;
+	SPreprocessedToken*		psSource;
+	SCPPField*				psField;
+	size					i;
+
+	sz.Init();
+	AppendClassName(&sz, pcClass);
+	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(pcClass->mpcSpecifier->miFirstToken));
+	if (psSource && psSource->pcFile)
+	{
+		sz.Append(' ')->Append(psSource->pcFile->ShortName())->Append('(')->Append(psSource->iLine + 1)->Append(')');
+	}
+	sz.Append(" size ")->Append(pcClass->mpsType->iBytes)->Append(" align ")->Append(pcClass->miAlign)->Append(" alignas ")->Append(pcClass->miAlignas);
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		sz.Append(pcClass->macBases.Get(i)->bVirtual ? " virtual " : " base ");
+		AppendClassName(&sz, pcClass->macBases.Get(i)->pcClass);
+		if (!pcClass->macBases.Get(i)->bVirtual)
+		{
+			sz.Append('@')->Append(pcClass->macBases.Get(i)->iOffset);
+		}
+	}
+	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
+	{
+		sz.Append(" virtual-base ");
+		AppendClassName(&sz, pcClass->macVirtualBases.Get(i)->pcClass);
+		sz.Append('@')->Append(pcClass->macVirtualBases.Get(i)->iOffset);
+	}
+	if (pcClass->mcVtable.HasPointer())
+	{
+		sz.Append(" vptr@")->Append(pcClass->mcVtable.miPointerOffset);
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		psField = pcClass->macFields.Get(i);
+		sz.Append(' ');
+		AppendIdentifier(&sz, psField->lliName);
+		sz.Append('@')->Append(psField->iOffset);
+		if (psField->IsBitField())
+		{
+			sz.Append('.')->Append(psField->iBitOffset);
+		}
+	}
+	maszLayouts.Add(&sz);
+	sz.Kill();
 }
 
 

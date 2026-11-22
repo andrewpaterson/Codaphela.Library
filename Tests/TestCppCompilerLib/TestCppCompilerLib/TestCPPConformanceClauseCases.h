@@ -2320,21 +2320,25 @@ static const SConformanceCase gasConformanceClause3[] =
 		"	return r + gc;\n"
 		"}\n"
 	},
-	//3.11 [basic.align] p1: an object's address is a multiple of its type's alignment wherever its function's frame is: locals, at several depths of call and after an odd number of bytes of locals
+	//3.11 [basic.align] p1: an object's address is a multiple of its type's alignment wherever its function's frame is: locals of 2, 4 and 8 bytes and a class, at several depths of call and after an odd number of bytes of locals
 	{
-		"BasicAlignmentLocals", 7,
+		"BasicAlignmentLocals", 31,
 		"struct S { char c; long l; };\n"
 		"int Aligned(int n)\n"
 		"{\n"
 		"	char c = (char)n;\n"
 		"	int i = n;\n"
 		"	long l = n;\n"
+		"	double d = n;\n"
+		"	long long ll = n;\n"
 		"	S s;\n"
 		"	s.l = n;\n"
 		"	int r = 0;\n"
 		"	if ((unsigned long long)&i % alignof(int) == 0) r += 1;\n"
 		"	if ((unsigned long long)&l % alignof(long) == 0) r += 2;\n"
-		"	if ((unsigned long long)&s % alignof(S) == 0 && (unsigned long long)&s.l % alignof(long) == 0) r += 4;\n"
+		"	if ((unsigned long long)&d % alignof(double) == 0) r += 4;\n"
+		"	if ((unsigned long long)&ll % alignof(long long) == 0) r += 8;\n"
+		"	if ((unsigned long long)&s % alignof(S) == 0 && (unsigned long long)&s.l % alignof(long) == 0) r += 16;\n"
 		"	return (n > 0) ? (r & Aligned(n - 1)) : r + c * 0;\n"
 		"}\n"
 		"int Odd(char a, int n) { char b[3]; b[0] = a; return Aligned(n) + b[0] - a; }\n"

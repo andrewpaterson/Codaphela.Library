@@ -323,6 +323,22 @@ const STestCPP65Layout gasTestCPP65Layouts[] =
 		20 * 1000 + 12 * 10 + 2, 32 * 1000 + 24 * 10 + 8
 	},
 
+	//On the 65C64 a class still places an 8 byte member at a multiple of 8, as MSVC does, though alignof says 4 of it and a
+	//local or a global is at a multiple of 4.
+	{
+		"struct D { char c; double d; };\n"
+		"double gd;\n"
+		"int main(void)\n"
+		"{\n"
+		"	D d;\n"
+		"	double l;\n"
+		"	int r = sizeof(D) * 100 + (int)((char*)&d.d - (char*)&d) * 10 + alignof(D) + alignof(double);\n"
+		"	if (((unsigned long)&l % alignof(double) != 0) || ((unsigned long)&gd % alignof(double) != 0) || ((unsigned long)&d % alignof(D) != 0)) r += 10000;\n"
+		"	return r;\n"
+		"}\n",
+		10 * 100 + 2 * 10 + 1 + 1, 16 * 100 + 8 * 10 + 4 + 4
+	},
+
 	//A char sized member is anywhere, and a class of them is as big as they are.
 	{
 		"struct B { char c; };\n"
@@ -340,10 +356,10 @@ const STestCPP65Layout gasTestCPP65Layouts[] =
 		22 * 100 + 2 * 10 + 10, 32 * 100 + 4 * 10 + 16
 	},
 
-	//alignof is 1 on the W65C816 for every type alignas hasn't aligned.
+	//alignof is 1 on the W65C816 for every type alignas hasn't aligned, and 4 at most on the 65C64 (what a frame gives).
 	{
 		"int main(void) { return alignof(short) + alignof(long) * 10 + alignof(double) * 100 + alignof(void*) * 1000 + alignof(long long[3]) * 10000; }\n",
-		1 + 1 * 10 + 1 * 100 + 1 * 1000 + 1 * 10000, 2 + 4 * 10 + 8 * 100 + 4 * 1000 + 8 * 10000
+		1 + 1 * 10 + 1 * 100 + 1 * 1000 + 1 * 10000, 2 + 4 * 10 + 4 * 100 + 4 * 1000 + 4 * 10000
 	},
 	{
 		"enum E { X };\n"

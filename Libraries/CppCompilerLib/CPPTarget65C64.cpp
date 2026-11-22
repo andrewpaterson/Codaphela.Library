@@ -103,6 +103,19 @@ uint32 CCPPTarget65C64::GetStackTop(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A frame's places are multiples of 4, so no object can be promised more
+// without alignas: alignof says 4 of a double and a long long, which a
+// class still places at a multiple of 8, as MSVC lays it out.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPTarget65C64::GetObjectAlignmentLimit(void)
+{
+	return GetFrameAlignment();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // __65C64__ is the processor (Libc65 uses it for what its 65C64 assembly does)
 // and __LIBC65__ the Libc65 headers and devices, which BaseLib's Define.h and
 // its _65C64.cpp files are written for.  The host's macros (_MSC_VER, _WIN32)

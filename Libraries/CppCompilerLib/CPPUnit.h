@@ -338,6 +338,8 @@ protected:
 	bool					mbMissedImports;	//The unit must be generated again (MissedImports).
 	CAsm65Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
+	bool					mbLayouts;			//Each class laid out is written down (SetLayouts)...
+	CArrayChars				maszLayouts;		//...here, a line each (GetLayouts).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
 	bool					mbCompiledBefore;	//The same text was compiled before with no error (SetCompiledBefore): nothing is done only to report.
@@ -402,6 +404,7 @@ public:
 	CArrayChars*			GetNotImported(void) const;
 	void					SetFrameProfile(CAsm65Profile* pcProfile);
 	void					SetListing(bool bListing);
+	void					SetLayouts(bool bLayouts);
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
 	void					SetCompiledBefore(bool bCompiledBefore);
@@ -414,6 +417,7 @@ public:
 	CScratchPadAllocator*	GetBackendScratch(void);
 	void					GetMissingCallees(CArrayChars* paszNames);
 	void					GetTestedCallees(CArrayChars* paszNames);
+	void					GetLayouts(CArrayChars* paszLines);
 	bool					Check(CCPPSemanticPass* pcPass, bool bRemember = false);
 
 	//Declarations, functions and statements.  CPPUnit.cpp
@@ -701,6 +705,7 @@ public:
 	bool					AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier, CCPPSyntaxName* pcName);
 	bool					AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	void					AddLayout(CCPPClass* pcClass);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);

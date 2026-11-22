@@ -126,6 +126,7 @@ struct SCPP65CompiledUnit
 	CAsm65Object*		pcObject;
 	CArrayChars			aszMissing;
 	CArrayChars			aszTested;		//The functions it calls by name and tests for an exception (CCPPUnit::GetTestedCallees).
+	CArrayChars			aszLayouts;		//The classes it laid out (CCPPUnit::GetLayouts), with SetLayoutsFile.
 	ECPP65CompileAgain	eAgain;
 	size				uiTurn;			//Its turn with the imports (CIRImports::BeginTurn).
 	bool				bResult;
@@ -197,6 +198,8 @@ protected:
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
 	CAsm65Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
 	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
+	CChars							mszLayouts;			//The file the classes' layouts are written to (SetLayoutsFile), empty for none...
+	CArrayChars						maszLayouts;		//...and the units' classes: a line each, sorted, each once.
 	CArrayChars						maszOutsideProjects;	//A project with a source outside its directory, and that
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
 	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
@@ -233,6 +236,7 @@ public:
 	void					SetTarget(ECPPTarget eTarget);
 	void					SetFrameProfile(CAsm65Profile* pcProfile);
 	void					SetListingDirectory(const char* szDirectory);
+	void					SetLayoutsFile(const char* szFile);
 	bool					SetSpillDirectory(const char* szDirectory, lsize uiCacheSize);
 	void					SetLazyHeaders(bool bLazyHeaders);
 	void					SetJobs(CJobs* pcJobs);
@@ -293,7 +297,7 @@ public:
 	bool					GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*			GetLazyImage(void);
 
-	static bool				Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL, CArrayChars* paszTested = NULL);
+	static bool				Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL, CArrayChars* paszTested = NULL, CArrayChars* paszLayouts = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 
 protected:
@@ -330,6 +334,7 @@ protected:
 	static void				CompileUnitJob(void* pvUnit);
 	static void				CompileUnitAgainJob(void* pvUnit);
 	bool					GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
+	bool					WriteLayouts(void);
 	bool					WriteListing(const char* szUnit, CChars* pszAssembly);
 	bool					WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly, CChars* pszErrors);
 	bool					ListingName(const char* szUnit, CChars* pszPath);
