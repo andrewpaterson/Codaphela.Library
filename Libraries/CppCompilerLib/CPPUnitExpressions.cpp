@@ -1481,38 +1481,6 @@ CCPPSymbol* CCPPUnit::QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pc
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The constant a cast of a constant to an integer or a pointer type is:
-// (int)(3 > 2), static_cast<char>(300), and (int)1.5, a floating point
-// constant with the part after its point taken away ([conv.fpint] 1).
-// False if it isn't one the folder works out.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand, int64* plliValue)
-{
-	SCPP65Type*	psType;
-	int64		lliValue;
-	double		dOperand;
-
-	psType = mcDeclarators.GetTypeIdType(pcType);
-	if (!psType || !(psType->IsInteger() || psType->IsPointer()))
-	{
-		return false;
-	}
-	if (!Constant(pcOperand, &lliValue))
-	{
-		if (!psType->IsInteger() || !FloatConstant(pcOperand, &dOperand))
-		{
-			return false;
-		}
-		lliValue = (int64)dOperand;
-	}
-	*plliValue = ConstantOfType(psType, lliValue);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // decltype(e)::name where e is of an enumeration: the enumeration's
 // enumerator of the name, or NULL.  [dcl.type.simple] 4, [dcl.enum] 11
 //
@@ -2375,26 +2343,592 @@ bool CCPPUnit::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDecla
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value of a constant expression of an integer type: what the syntax
-// tree folds to (FoldConstant), or else what running it gives
-// (RunConstant).  False if it isn't a constant.
+// The value of a constant expression, of an integer or a floating point
+// type: what the syntax tree folds to (Fold), or else what running it
+// gives (RunConstant), which is an integer's.  False if it isn't a
+// constant.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
+bool CCPPUnit::Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 {
 	mpcConstants->ClearReason();
 	mpcStatistics->Count(CPPCC_Constants);
-	if (FoldConstant(pcExpression, plliValue))
+	if (Fold(pcExpression, psValue))
 	{
 		mpcStatistics->Count(CPPCC_ConstantsFolded);
 		return true;
 	}
-	if (RunConstant(pcExpression, plliValue))
+	psValue->psFloat = NULL;
+	if (RunConstant(pcExpression, &psValue->lliValue))
 	{
 		mpcStatistics->Count(CPPCC_ConstantsRun);
 		return true;
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of a constant expression of an integer type (Evaluate).
+// False if it isn't a constant, or is a floating point one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::Constant(CCPPSyntax* pcExpression, int64* plliValue)
+{
+	SCPPConstant	sValue;
+
+	if (!Evaluate(pcExpression, &sValue) || sValue.psFloat)
+	{
+		return false;
+	}
+	*plliValue = sValue.lliValue;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of a constant expression of a floating point type, worked out
+// as the target would: each float result is rounded to float.  Rounding
+// a double result of float operands to float rounds correctly, as a
+// double has more than twice a float's precision.  False if it isn't a
+// constant, or is an integer one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::FloatConstant(CCPPSyntax* pcExpression, double* pdValue)
+{
+	SCPPConstant	sValue;
+
+	mpcStatistics->Count(CPPCC_FloatConstants);
+	if (!Fold(pcExpression, &sValue) || !sValue.psFloat)
+	{
+		return false;
+	}
+	mpcStatistics->Count(CPPCC_FloatConstantsFolded);
+	*pdValue = sValue.dValue;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A constant's value as a floating point number.
+//
+//////////////////////////////////////////////////////////////////////////
+double SCPPConstant::AsDouble(void) const
+{
+	return psFloat ? dValue : (double)lliValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes the constant a floating point one of psType (float, double or
+// long double), dValue rounded as the type keeps it.
+//
+//////////////////////////////////////////////////////////////////////////
+void SCPPConstant::SetFloat(SCPP65Type* psType, double d)
+{
+	psFloat = psType;
+	dValue = (psType->iBytes == 4) ? (double)(float)d : d;
+	lliValue = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes the constant an integer one.
+//
+//////////////////////////////////////////////////////////////////////////
+void SCPPConstant::SetInteger(int64 lli)
+{
+	psFloat = NULL;
+	dValue = 0;
+	lliValue = lli;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Works out a constant expression from its syntax tree, an integer or a
+// floating point one (SCPPConstant), the one walk for both.  An integer
+// is kept as its type keeps it (ConstantOfType): unsigned and narrow
+// arithmetic wraps.  What it is made of is worked out by Evaluate: what
+// the tree can't give may be run.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
+{
+	CCPPSyntaxUnaryExpression*		pcUnary;
+	CCPPSyntaxBinaryExpression*		pcBinary;
+	CCPPSyntaxConditionalExpression*	pcConditional;
+	CCPPSyntaxSizeofExpression*		pcSizeof;
+	CCPPSyntaxCastExpression*		pcCast;
+	CCPPSyntaxNamedCastExpression*	pcNamedCast;
+	CCPPSyntaxConstructExpression*	pcConstruct;
+	CCPPSyntaxImplicitArgument*		pcImplicit;
+	CArraySyntax*					papcElements;
+	SCPP65Type*						psType;
+	SCPPLiteralCall*				psCall;
+	SCPPConstant					sLeft;
+	SCPPConstant					sRight;
+	CCPPToken*						pcToken;
+	double							dValue;
+
+	pcExpression = SkipParentheses(pcExpression);
+	if (!pcExpression)
+	{
+		return false;
+	}
+	psValue->SetInteger(0);
+
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_ImplicitArgument:
+		pcImplicit = (CCPPSyntaxImplicitArgument*)pcExpression;
+		if (!pcImplicit->mbConstant)
+		{
+			return false;
+		}
+		if (pcImplicit->mpsType->IsFloat())
+		{
+			psValue->psFloat = pcImplicit->mpsType;
+			psValue->dValue = pcImplicit->mdValue;
+			return true;
+		}
+		psValue->lliValue = pcImplicit->mlliValue;
+		return true;
+
+	case CPPS_LiteralExpression:
+	case CPPS_StringExpression:
+		if (UserLiteralToken(pcExpression))
+		{
+			//12_km and "abc"_len are their literal operators' calls.  [lex.ext] 2
+			psCall = GetLiteralCall(pcExpression);
+			return psCall && ConstexprResult(psCall->pcFunction, pcExpression, &psValue->lliValue);
+		}
+		if (pcExpression->GetKind() == CPPS_StringExpression)
+		{
+			return false;
+		}
+		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
+		if (TokenFloat(pcToken, &dValue, &psType))
+		{
+			psValue->psFloat = psType;
+			psValue->dValue = dValue;
+			return true;
+		}
+		return TokenConstant(pcToken, &psValue->lliValue);
+
+	case CPPS_IdExpression:
+		if (NameConstant((CCPPSyntaxIdExpression*)pcExpression, &psValue->lliValue))
+		{
+			return true;
+		}
+		return ConstexprFloat((CCPPSyntaxIdExpression*)pcExpression, psValue);
+
+	case CPPS_UnaryExpression:
+		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if (!Evaluate(pcUnary->mpcOperand, &sLeft))
+		{
+			return false;
+		}
+		if (sLeft.psFloat)
+		{
+			if ((pcUnary->meOperator != CT_Subtract) && (pcUnary->meOperator != CT_Add))
+			{
+				return false;
+			}
+			psValue->SetFloat(sLeft.psFloat, (pcUnary->meOperator == CT_Subtract) ? -sLeft.dValue : sLeft.dValue);
+			return true;
+		}
+		return UnaryConstant(pcUnary, sLeft.lliValue, &psValue->lliValue);
+
+	case CPPS_BinaryExpression:
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		if (!Evaluate(pcBinary->mpcLeft, &sLeft))
+		{
+			return false;
+		}
+		if (!sLeft.psFloat && (((pcBinary->meOperator == CT_LogicalAnd) && (sLeft.lliValue == 0)) || ((pcBinary->meOperator == CT_LogicalOr) && (sLeft.lliValue != 0))))
+		{
+			//The right isn't worked out, so needn't be a constant.  [expr.const] 2
+			psValue->lliValue = (sLeft.lliValue != 0);
+			return true;
+		}
+		if (!Evaluate(pcBinary->mpcRight, &sRight))
+		{
+			return false;
+		}
+		if (sLeft.psFloat || sRight.psFloat)
+		{
+			return BinaryFloat(pcBinary->meOperator, &sLeft, &sRight, psValue);
+		}
+		return BinaryConstant(pcBinary, sLeft.lliValue, sRight.lliValue, &psValue->lliValue);
+
+	case CPPS_ConditionalExpression:
+		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
+		if (!Evaluate(pcConditional->mpcCondition, &sLeft) || sLeft.psFloat)
+		{
+			return false;
+		}
+		return Evaluate(sLeft.lliValue ? pcConditional->mpcTrue : pcConditional->mpcFalse, psValue);
+
+	case CPPS_CastExpression:
+		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
+		return CastConstant(pcCast->mpcType, pcCast->mpcOperand, psValue);
+
+	case CPPS_NamedCastExpression:
+		//static_cast<int>(3 > 2), as (int)(3 > 2) is.  No other named cast of a number is a constant ([expr.const] 2).
+		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
+		return (pcNamedCast->meCast == CT_static_cast) && CastConstant(pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
+
+	case CPPS_ConstructExpression:
+		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
+		psType = mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
+		papcElements = ConstructElements(pcConstruct);
+		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !papcElements || (papcElements->NumElements() > 1))
+		{
+			return false;
+		}
+		if ((papcElements->NumElements() == 1) && (!Evaluate(papcElements->GetPtr(0), &sLeft) || sLeft.psFloat))
+		{
+			return false;
+		}
+		psValue->lliValue = ConstantOfType(psType, (papcElements->NumElements() == 1) ? sLeft.lliValue : 0);
+		return true;
+
+	case CPPS_TypeTraitExpression:
+		return TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, &psValue->lliValue);
+
+	case CPPS_NoexceptExpression:
+		psValue->lliValue = !MayThrow(((CCPPSyntaxNoexceptExpression*)pcExpression)->mpcOperand);
+		return true;
+
+	case CPPS_CallExpression:
+		if (FloatBuiltin(pcExpression, &dValue, &psType))
+		{
+			psValue->psFloat = psType;
+			psValue->dValue = dValue;
+			return true;
+		}
+		return ConstexprCall((CCPPSyntaxCallExpression*)pcExpression, &psValue->lliValue);
+
+	case CPPS_SizeofExpression:
+		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
+		if (pcSizeof->mbPack)
+		{
+			return PackSize(pcSizeof->mpcPackSymbol, &psValue->lliValue);
+		}
+		if ((pcSizeof->meKeyword != CT_sizeof) && (pcSizeof->meKeyword != CT_alignof))
+		{
+			return false;
+		}
+		psType = OperandType(pcSizeof->mpcType, pcSizeof->mpcOperand);
+		if (!psType || psType->IsVoid() || psType->IsFunction() || (psType->IsArray() && (psType->iCount == 0)))
+		{
+			//Nothing that has no size: void, a function, an array of unknown bound.  [expr.sizeof] 1
+			return false;
+		}
+		psType = psType->WithoutReference();
+		if (psType->ElementType()->IsClass() && !CompleteClass(psType->ElementType()->pcClass, pcExpression))
+		{
+			return false;
+		}
+		psValue->lliValue = (pcSizeof->meKeyword == CT_alignof) ? ObjectAlignment(psType) : psType->iBytes;
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// left op right where either is a floating point constant: + - * / in
+// their common floating point type, rounded as it keeps it.  Any other
+// operator isn't one the folder works out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::BinaryFloat(ECppTokens eOperator, SCPPConstant* psLeft, SCPPConstant* psRight, SCPPConstant* psValue)
+{
+	double	dLeft;
+	double	dRight;
+
+	dLeft = psLeft->AsDouble();
+	dRight = psRight->AsDouble();
+	switch (eOperator)
+	{
+	case CT_Add:		psValue->SetFloat(mcTypes.FloatArithmetic(psLeft->psFloat, psRight->psFloat), dLeft + dRight);	return true;
+	case CT_Subtract:	psValue->SetFloat(mcTypes.FloatArithmetic(psLeft->psFloat, psRight->psFloat), dLeft - dRight);	return true;
+	case CT_Multiply:	psValue->SetFloat(mcTypes.FloatArithmetic(psLeft->psFloat, psRight->psFloat), dLeft * dRight);	return true;
+	case CT_Divide:		psValue->SetFloat(mcTypes.FloatArithmetic(psLeft->psFloat, psRight->psFloat), dLeft / dRight);	return true;
+	default:			return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The constant a cast of a constant is: to an integer or a pointer type,
+// (int)(3 > 2), static_cast<char>(300), and (int)1.5, a floating point
+// constant with the part after its point taken away ([conv.fpint] 1); to
+// a floating point type, (float)1.1 rounded to a float.  False if it
+// isn't one the folder works out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand, SCPPConstant* psValue)
+{
+	SCPP65Type*		psType;
+	SCPPConstant	sOperand;
+
+	psType = mcDeclarators.GetTypeIdType(pcType);
+	if (!psType || !Evaluate(pcOperand, &sOperand))
+	{
+		return false;
+	}
+	if (psType->IsFloat())
+	{
+		psValue->SetFloat(psType, sOperand.AsDouble());
+		return true;
+	}
+	if (!(psType->IsInteger() || psType->IsPointer()) || (sOperand.psFloat && !psType->IsInteger()))
+	{
+		return false;
+	}
+	psValue->SetInteger(ConstantOfType(psType, sOperand.psFloat ? (int64)sOperand.dValue : sOperand.lliValue));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of a name that is a floating point variable declared constexpr
+// (a const one isn't a constant: [expr.const] 2), which is its
+// initialiser's as its type.  False for any other name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConstant* psValue)
+{
+	CCPPSymbol*		pcSymbol;
+	CCPPVariable*	pcVariable;
+	CCPPSyntax*		pcInitialiser;
+	SCPPConstant	sInitialiser;
+	CCPPBoundName	cBound;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+
+	//S::d, a static member of a class (a field's name in it), is the variable its name is bound to.
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_Variable))
+	{
+		pcVariable = GetVariable(pcSymbol);
+	}
+	else
+	{
+		mcBinder.BindName(pcId, &cBound);
+		pcVariable = (cBound.meWhat == CPPBN_Variable) ? cBound.mpcVariable : NULL;
+	}
+	if (!pcVariable || !pcVariable->mpsType->IsFloat())
+	{
+		return false;
+	}
+	//Its declaration says constexpr; the initialiser is there or, for a static member, in its class.
+	pcInit = VariableDeclarator(pcVariable);
+	pcDeclaration = pcInit ? pcInit->GetDeclaration() : NULL;
+	if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
+	{
+		return false;
+	}
+	pcInitialiser = pcInit->mpcInitializer ? pcInit->mpcInitializer : pcVariable->mpcInClassInitialiser;
+	if (!pcInitialiser)
+	{
+		return false;
+	}
+	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && (ListElements(pcInitialiser)->NumElements() == 1))
+	{
+		pcInitialiser = ListElements(pcInitialiser)->GetPtr(0);
+	}
+	if (!Evaluate(pcInitialiser, &sInitialiser))
+	{
+		return false;
+	}
+	psValue->SetFloat(pcVariable->mpsType->Unqualified(), sInitialiser.AsDouble());
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The integer a name is the constant of: an enumerator, a static const
+// member, a variable template's instance, a template's value parameter,
+// or a const integer variable initialised with a constant.  False for any
+// other name.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliValue)
+{
+	CCPPSymbol*						pcSymbol;
+	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntax*						pcInitialiser;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	CCPPVariable*					pcVariable;
+	SCPPBinding*					psBinding;
+	CCPPTemplateArguments*			pcBindings;
+	CCPPClass*						pcClass;
+	CCPPSymbol*						pcEnumerator;
+	CCPPSymbol*						pcMember;
+	bool							bResult;
+
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	if (!pcSymbol || (pcSymbol->meKind == CPPSK_Enumerator))
+	{
+		mbValueArgumentRefused = false;
+		pcEnumerator = QualifiedEnumerator(pcId->mpcName, pcId, &pcClass);
+		if (pcEnumerator)
+		{
+			mcContext.EnterBindings(pcClass ? pcClass->mpcBindings : mcContext.GetBindings());
+			bResult = EnumeratorValue(pcEnumerator, plliValue);
+			mcContext.LeaveBindings();
+			return bResult;
+		}
+		if (mbValueArgumentRefused)
+		{
+			//Count<-1>::V: there is no such class for V to be the enumerator of.
+			return false;
+		}
+	}
+
+	//A static const member: SNarrow::Max, SIZE::Max with SIZE bound to a class, or Max in its class.  Its
+	//initialiser is worked out with the bindings of the class that declares it.
+	pcClass = NULL;
+	if (!pcSymbol || (pcSymbol->meKind == CPPSK_Field))
+	{
+		pcMember = QualifiedMember(pcId->mpcName, CPPSK_Field, pcId, &pcClass);
+		if (pcMember)
+		{
+			pcSymbol = pcMember;
+		}
+		else
+		{
+			pcClass = NULL;
+		}
+	}
+	if (!pcSymbol)
+	{
+		return false;
+	}
+	if (pcSymbol->meKind == CPPSK_Enumerator)
+	{
+		return EnumeratorValue(pcSymbol, plliValue);
+	}
+	if (pcSymbol->meKind == CPPSK_VariableTemplate)
+	{
+		return VariableTemplateValue(pcId, plliValue);
+	}
+	if (pcSymbol->meKind == CPPSK_ValueParameter)
+	{
+		psBinding = FindBinding(pcSymbol);
+		if (!psBinding || psBinding->pcArgument)
+		{
+			return false;
+		}
+		*plliValue = psBinding->lliValue;
+		return true;
+	}
+
+	//A const integer initialised with a constant, or a static const member initialised in its class, or after it
+	//by its definition (const int S::k = 8;) once that is read.
+	pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
+	if (((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Field)) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator))
+	{
+		return false;
+	}
+	pcInitialiser = pcInit->mpcInitializer;
+	pcBindings = pcClass ? pcClass->mpcBindings : NULL;
+	if (!pcInitialiser && (pcSymbol->meKind == CPPSK_Field))
+	{
+		pcVariable = pcClass ? FindStatic(pcClass, pcSymbol->mlliName) : GetVariable(pcSymbol);
+		pcInitialiser = pcVariable ? pcVariable->mpcOutsideInitialiser : NULL;
+		if (!pcInitialiser && pcClass && pcClass->mpcTemplate)
+		{
+			//template<class T> const int W<T>::k = 3; is each instance's, defined with the unit's data.
+			pcInitialiser = InstanceStaticInitialiser(pcClass, pcSymbol, &pcBindings);
+		}
+	}
+	if (!pcInitialiser)
+	{
+		return false;
+	}
+	pcDeclaration = pcInit->GetDeclaration();
+	if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
+	{
+		return false;
+	}
+	if ((pcSymbol->meKind == CPPSK_Field) && !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_STATIC))
+	{
+		return false;
+	}
+	pcVariable = (pcSymbol->meKind == CPPSK_Variable) ? GetVariable(pcSymbol) : NULL;
+	if (pcVariable && (!pcVariable->mpsType->IsInteger() || pcVariable->mpsType->bVolatile))
+	{
+		//(A volatile const's value is read when the program runs.  [expr.const] 2)
+		return false;
+	}
+	//The variable's value is its initialiser's, which can't be the variable's again (constexpr int a = a + 1).
+	mcContext.EnterBindings(pcClass ? pcBindings : mcContext.GetBindings());
+	bResult = mcContext.EnterWorking(CPPWK_Initialiser, pcInitialiser);
+	if (bResult)
+	{
+		bResult = Constant(pcInitialiser, plliValue);
+		mcContext.LeaveWorking();
+	}
+	else
+	{
+		mpcConstants->SetReason("It needs its own value");
+	}
+	mcContext.LeaveBindings();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// op operand, of an integer constant: ! gives 0 or 1, and + - ~ work in
+// the expression's type, the operand promoted to it.  A signed negation
+// that overflows is no constant.  [expr] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::UnaryConstant(CCPPSyntaxUnaryExpression* pcUnary, int64 lliOperand, int64* plliValue)
+{
+	SCPP65Type*	psType;
+
+	if (pcUnary->meOperator == CT_LogicalNot)
+	{
+		*plliValue = !lliOperand;
+		return true;
+	}
+	//Otherwise the operand is promoted to the expression's type, and the result kept in it.
+	psType = ConstantTypeOf(pcUnary);
+	lliOperand = ConstantOfType(psType, lliOperand);
+	switch (pcUnary->meOperator)
+	{
+	case CT_Add:			*plliValue = lliOperand;																	break;
+	case CT_Subtract:		*plliValue = (int64)(0 - (uint64)lliOperand);	ConstantOverflow(pcUnary, *plliValue, true);
+		//A signed one that overflows is no constant.  [expr] 4
+		if (psType && psType->IsInteger() && psType->bSigned && IRSignedOverflows(IRO_Neg, psType->iBytes * 8, (uint64)lliOperand, 0, (uint64)*plliValue))
+		{
+			mpcConstants->SetReason("Its signed arithmetic overflows");
+			return false;
+		}
+		break;
+	case CT_BitwiseNot:		*plliValue = ~lliOperand;																	break;
+	default:				return false;
+	}
+	*plliValue = ConstantOfType(psType, *plliValue);
+	return true;
 }
 
 
@@ -2571,299 +3105,6 @@ bool CCPPUnit::NamesConstexpr(CCPPSyntax* pcNode)
 		}
 	}
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Works out an integer constant expression.  Each value is kept as its
-// type keeps it (ConstantOfType): unsigned and narrow arithmetic wraps.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::FoldConstant(CCPPSyntax* pcExpression, int64* plliValue)
-{
-	CCPPSyntaxUnaryExpression*		pcUnary;
-	CCPPSyntaxBinaryExpression*		pcBinary;
-	CCPPSyntaxConditionalExpression*	pcConditional;
-	CCPPSyntaxSizeofExpression*		pcSizeof;
-	CCPPSyntaxCastExpression*		pcCast;
-	CCPPSyntaxNamedCastExpression*	pcNamedCast;
-	CCPPSyntaxConstructExpression*	pcConstruct;
-	CArraySyntax*					papcElements;
-	CCPPSyntaxIdExpression*			pcId;
-	CCPPSymbol*						pcSymbol;
-	CCPPSyntaxInitDeclarator*		pcInit;
-	CCPPSyntax*						pcInitialiser;
-	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
-	CCPPVariable*					pcVariable;
-	SCPP65Type*						psType;
-	SCPPBinding*					psBinding;
-	SCPPLiteralCall*				psCall;
-	CCPPTemplateArguments*			pcBindings;
-	CCPPClass*					pcClass;
-	CCPPSymbol*						pcEnumerator;
-	CCPPSymbol*						pcMember;
-	bool							bResult;
-	int64							lliLeft;
-	int64							lliRight;
-
-	pcExpression = SkipParentheses(pcExpression);
-	if (!pcExpression)
-	{
-		return false;
-	}
-
-	switch (pcExpression->GetKind())
-	{
-	case CPPS_ImplicitArgument:
-		*plliValue = ((CCPPSyntaxImplicitArgument*)pcExpression)->mlliValue;
-		return ((CCPPSyntaxImplicitArgument*)pcExpression)->mbConstant && !((CCPPSyntaxImplicitArgument*)pcExpression)->mpsType->IsFloat();
-
-	case CPPS_LiteralExpression:
-	case CPPS_StringExpression:
-		if (UserLiteralToken(pcExpression))
-		{
-			//12_km and "abc"_len are their literal operators' calls.  [lex.ext] 2
-			psCall = GetLiteralCall(pcExpression);
-			return psCall && ConstexprResult(psCall->pcFunction, pcExpression, plliValue);
-		}
-		if (pcExpression->GetKind() == CPPS_StringExpression)
-		{
-			return false;
-		}
-		return TokenConstant(mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral), plliValue);
-
-	case CPPS_IdExpression:
-		pcId = (CCPPSyntaxIdExpression*)pcExpression;
-		pcSymbol = pcId->mpcName->mpcSymbol;
-		if (!pcSymbol || (pcSymbol->meKind == CPPSK_Enumerator))
-		{
-			mbValueArgumentRefused = false;
-			pcEnumerator = QualifiedEnumerator(pcId->mpcName, pcExpression, &pcClass);
-			if (pcEnumerator)
-			{
-				mcContext.EnterBindings(pcClass ? pcClass->mpcBindings : mcContext.GetBindings());
-				bResult = EnumeratorValue(pcEnumerator, plliValue);
-				mcContext.LeaveBindings();
-				return bResult;
-			}
-			if (mbValueArgumentRefused)
-			{
-				//Count<-1>::V: there is no such class for V to be the enumerator of.
-				return false;
-			}
-		}
-
-		//A static const member: SNarrow::Max, SIZE::Max with SIZE bound to a class, or Max in its class.  Its
-		//initialiser is worked out with the bindings of the class that declares it.
-		pcClass = NULL;
-		if (!pcSymbol || (pcSymbol->meKind == CPPSK_Field))
-		{
-			pcMember = QualifiedMember(pcId->mpcName, CPPSK_Field, pcExpression, &pcClass);
-			if (pcMember)
-			{
-				pcSymbol = pcMember;
-			}
-			else
-			{
-				pcClass = NULL;
-			}
-		}
-		if (!pcSymbol)
-		{
-			return false;
-		}
-		if (pcSymbol->meKind == CPPSK_Enumerator)
-		{
-			return EnumeratorValue(pcSymbol, plliValue);
-		}
-		if (pcSymbol->meKind == CPPSK_VariableTemplate)
-		{
-			return VariableTemplateValue(pcId, plliValue);
-		}
-		if (pcSymbol->meKind == CPPSK_ValueParameter)
-		{
-			psBinding = FindBinding(pcSymbol);
-			if (!psBinding || psBinding->pcArgument)
-			{
-				return false;
-			}
-			*plliValue = psBinding->lliValue;
-			return true;
-		}
-
-		//A const integer initialised with a constant, or a static const member initialised in its class, or after it
-		//by its definition (const int S::k = 8;) once that is read.
-		pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
-		if (((pcSymbol->meKind != CPPSK_Variable) && (pcSymbol->meKind != CPPSK_Field)) || !pcInit || (pcInit->GetKind() != CPPS_InitDeclarator))
-		{
-			return false;
-		}
-		pcInitialiser = pcInit->mpcInitializer;
-		pcBindings = pcClass ? pcClass->mpcBindings : NULL;
-		if (!pcInitialiser && (pcSymbol->meKind == CPPSK_Field))
-		{
-			pcVariable = pcClass ? FindStatic(pcClass, pcSymbol->mlliName) : GetVariable(pcSymbol);
-			pcInitialiser = pcVariable ? pcVariable->mpcOutsideInitialiser : NULL;
-			if (!pcInitialiser && pcClass && pcClass->mpcTemplate)
-			{
-				//template<class T> const int W<T>::k = 3; is each instance's, defined with the unit's data.
-				pcInitialiser = InstanceStaticInitialiser(pcClass, pcSymbol, &pcBindings);
-			}
-		}
-		if (!pcInitialiser)
-		{
-			return false;
-		}
-		pcDeclaration = pcInit->GetDeclaration();
-		if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)))
-		{
-			return false;
-		}
-		if ((pcSymbol->meKind == CPPSK_Field) && !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_STATIC))
-		{
-			return false;
-		}
-		pcVariable = (pcSymbol->meKind == CPPSK_Variable) ? GetVariable(pcSymbol) : NULL;
-		if (pcVariable && (!pcVariable->mpsType->IsInteger() || pcVariable->mpsType->bVolatile))
-		{
-			//(A volatile const's value is read when the program runs.  [expr.const] 2)
-			return false;
-		}
-		//The variable's value is its initialiser's, which can't be the variable's again (constexpr int a = a + 1).
-		mcContext.EnterBindings(pcClass ? pcBindings : mcContext.GetBindings());
-		bResult = mcContext.EnterWorking(CPPWK_Initialiser, pcInitialiser);
-		if (bResult)
-		{
-			bResult = Constant(pcInitialiser, plliValue);
-			mcContext.LeaveWorking();
-		}
-		else
-		{
-			mpcConstants->SetReason("It needs its own value");
-		}
-		mcContext.LeaveBindings();
-		return bResult;
-
-	case CPPS_UnaryExpression:
-		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		if (!Constant(pcUnary->mpcOperand, &lliLeft))
-		{
-			return false;
-		}
-		if (pcUnary->meOperator == CT_LogicalNot)
-		{
-			*plliValue = !lliLeft;
-			return true;
-		}
-		//Otherwise the operand is promoted to the expression's type, and the result kept in it.
-		psType = ConstantTypeOf(pcExpression);
-		lliLeft = ConstantOfType(psType, lliLeft);
-		switch (pcUnary->meOperator)
-		{
-		case CT_Add:			*plliValue = lliLeft;																	break;
-		case CT_Subtract:		*plliValue = (int64)(0 - (uint64)lliLeft);	ConstantOverflow(pcExpression, *plliValue, true);
-			//A signed one that overflows is no constant.  [expr] 4
-			if (psType && psType->IsInteger() && psType->bSigned && IRSignedOverflows(IRO_Neg, psType->iBytes * 8, (uint64)lliLeft, 0, (uint64)*plliValue))
-			{
-				mpcConstants->SetReason("Its signed arithmetic overflows");
-				return false;
-			}
-			break;
-		case CT_BitwiseNot:		*plliValue = ~lliLeft;																	break;
-		default:				return false;
-		}
-		*plliValue = ConstantOfType(psType, *plliValue);
-		return true;
-
-	case CPPS_BinaryExpression:
-		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		if (!Constant(pcBinary->mpcLeft, &lliLeft))
-		{
-			return false;
-		}
-		if (((pcBinary->meOperator == CT_LogicalAnd) && (lliLeft == 0)) || ((pcBinary->meOperator == CT_LogicalOr) && (lliLeft != 0)))
-		{
-			//The right isn't worked out, so needn't be a constant.  [expr.const] 2
-			*plliValue = (lliLeft != 0);
-			return true;
-		}
-		if (!Constant(pcBinary->mpcRight, &lliRight))
-		{
-			return false;
-		}
-		return BinaryConstant(pcBinary, lliLeft, lliRight, plliValue);
-
-	case CPPS_ConditionalExpression:
-		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
-		if (!Constant(pcConditional->mpcCondition, &lliLeft))
-		{
-			return false;
-		}
-		return Constant(lliLeft ? pcConditional->mpcTrue : pcConditional->mpcFalse, plliValue);
-
-	case CPPS_CastExpression:
-		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
-		return CastConstant(pcCast->mpcType, pcCast->mpcOperand, plliValue);
-
-	case CPPS_NamedCastExpression:
-		//static_cast<int>(3 > 2), as (int)(3 > 2) is.  No other named cast of a number is a constant ([expr.const] 2).
-		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
-		return (pcNamedCast->meCast == CT_static_cast) && CastConstant(pcNamedCast->mpcType, pcNamedCast->mpcOperand, plliValue);
-
-	case CPPS_ConstructExpression:
-		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
-		psType = mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
-		papcElements = ConstructElements(pcConstruct);
-		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !papcElements || (papcElements->NumElements() > 1))
-		{
-			return false;
-		}
-		lliLeft = 0;
-		if ((papcElements->NumElements() == 1) && !Constant(papcElements->GetPtr(0), &lliLeft))
-		{
-			return false;
-		}
-		*plliValue = ConstantOfType(psType, lliLeft);
-		return true;
-
-	case CPPS_TypeTraitExpression:
-		return TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, plliValue);
-
-	case CPPS_NoexceptExpression:
-		*plliValue = !MayThrow(((CCPPSyntaxNoexceptExpression*)pcExpression)->mpcOperand);
-		return true;
-
-	case CPPS_CallExpression:
-		return ConstexprCall((CCPPSyntaxCallExpression*)pcExpression, plliValue);
-
-	case CPPS_SizeofExpression:
-		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
-		if (pcSizeof->mbPack)
-		{
-			return PackSize(pcSizeof->mpcPackSymbol, plliValue);
-		}
-		if ((pcSizeof->meKeyword != CT_sizeof) && (pcSizeof->meKeyword != CT_alignof))
-		{
-			return false;
-		}
-		psType = OperandType(pcSizeof->mpcType, pcSizeof->mpcOperand);
-		if (!psType || psType->IsVoid() || psType->IsFunction() || (psType->IsArray() && (psType->iCount == 0)))
-		{
-			//Nothing that has no size: void, a function, an array of unknown bound.  [expr.sizeof] 1
-			return false;
-		}
-		psType = psType->WithoutReference();
-		if (psType->ElementType()->IsClass() && !CompleteClass(psType->ElementType()->pcClass, pcExpression))
-		{
-			return false;
-		}
-		*plliValue = (pcSizeof->meKeyword == CT_alignof) ? ObjectAlignment(psType) : psType->iBytes;
-		return true;
-
-	default:
-		return false;
-	}
 }
 
 

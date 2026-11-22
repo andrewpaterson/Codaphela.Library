@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 10 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 10, 11's first part and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -879,3 +879,21 @@ Stage 10 (2026-11-22): one printer of types.
 	entries are as they were.  TestCppCompilerLib passes (272,049).  The IDE's 77 checks of the
 	refactorings that write types (introduce, inline, extract, move members, macros, enums): 76 pass, and
 	enum-to-class fails as it did before, with the same output.
+
+Stage 11 (2026-11-23): one evaluator of constants, its first part.
+
+	A constant's value is one record, SCPPConstant (an integer, or a floating point number with its type), and
+	the syntax tree is folded by one walk, CCPPUnit::Fold, for both: the integer folder (FoldConstant) and the
+	floating point one (FloatValue, ConstexprFloat) were two walks over the same kinds of node.  Evaluate is what
+	Constant was (fold, else run), and Constant and FloatConstant ask it for an integer or a floating point
+	number.  The integer walk's two longest arms are functions of their own (NameConstant, UnaryConstant), and
+	the floating point arithmetic is BinaryFloat; CastConstant casts to either.  Floating point now folds where
+	the integer walk did and the other didn't: a named cast (static_cast<float>(2)) and ?: (b ? 1.5 : 2.5).
+	Proved by a harness kept for the proof and then taken out: at each Constant and FloatConstant asked from
+	outside the folder, the old folders' answer was worked out silently first and any difference logged.  Seven
+	differed, sizeof(S) of a class the old walk, run silently, could not complete and the new one then did: the
+	harness's own doing.  Then without it: TestCppCompilerLib passes (272,061); the 5,840 diagnostics entries and
+	the 4,205 listings are as they were; time is as it was (declarations 6,462 and 6,474 ms, types 6,382 and
+	6,432); base walks are 1% more (8,206,461), the floating point names' binding now being in the one walk.
+	Not yet: the folder as a class out of the unit (job b), the RunConstant ladder, "is this name a constant" in
+	one place, and floating point constants run by the interpreter.
