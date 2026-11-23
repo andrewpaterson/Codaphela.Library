@@ -14,7 +14,13 @@ Collections
   Arrays: block, template, primitive, embedded, bit, sorted, dense/sparse, red-black tree
   Lists and linked lists (including free-list linked lists)
   Indexes: memory index trees, accessors, data orderers
-  Maps: block, primitive and string maps
+  Maps: block, primitive and string maps (sorted)
+  Hash maps and sets: CHashBlockBase (HashBlock.h, compiled once) under CHashMapTemplate, CHashMapPrimitiveTemplate
+    (keys by value; CHashMapLongTemplate), CHashSetTemplate and CHashMapString (its own copy of each key's text);
+    hashes and keys in HashOf.h (SHashOf, HashMix32/64, HashBytes) and HashText.h (SHashText).  The order added;
+    see HashMapPlan.txt
+  Queues: CQueueTemplate (QueueTemplate.h), a CArrayTemplate with a front index: pushed at the back, taken at the
+    front, cut from the back
   Sets
   Trees
   Searching (binary) and sorting (bubble, quick, Tim)
