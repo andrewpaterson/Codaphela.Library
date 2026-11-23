@@ -1047,3 +1047,60 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	which the walk of the declarations and the layout of classes read too.  Proved against a new baseline taken
 	on the user's BaseLib commits and gameengine-8a's hash map (4,213 listings, 8 of them new): TestCppCompilerLib
 	passes (272,063); the diagnostics entries and the listings are as they were; the IDE builds.
+
+	e. What an expression is (question 4's second way, planned above).
+
+	Step 0 (2026-11-23): measured before, nothing changed.  Compiling each *65 project (--compile --serial, at
+	79886eed9), the questions asked, and the types phase in ms:
+
+	                    BaseLib 65   BaseLib 816   StandardLib 65  StandardLib 816   SupportLib 65  SupportLib 816
+	  types phase            2,273         2,251            4,196            4,200           6,477           6,465
+	  TypeOf             3,236,675     3,109,407        3,206,971        3,082,645       4,983,194       4,861,810
+	  TypeOf worked out    834,631       800,509          807,378          771,902       1,113,261       1,076,679
+	  PlaceOf              102,801       100,746          111,314          109,133         140,820         138,573
+	  IsRvalue             106,040       103,677          113,403          110,914         139,826         137,255
+	  IsObject             830,875       791,396          733,123          692,417       1,277,356       1,235,662
+	  MakesObject            2,477         2,326           36,191           36,022          61,049          60,953
+	  IsObjectLvalue         1,108         1,013              514              419           1,198           1,103
+
+	Each PlaceOf runs the type checker's Place inside a trial: about 140,000 runs in SupportLib for what is far
+	fewer places.  IsObject is a read of the type (ValueTypeOf), no switch of its own; MakesObject, IsRvalue and
+	IsObjectLvalue are switches.
+
+	The five set side by side, for each kind of node: what each says.  "place" is the type checker's PlaceType or
+	the front end's Place giving one (an lvalue's, an xvalue's, or a class prvalue's temporary); "lv" is
+	IsObjectLvalue's true; IsRvalue's answer is "rv" or "lv"; MakesObject's "obj".
+
+	  kind                IsRvalue                              IsObjectLvalue        MakesObject  PlaceType / Place
+	  name (Id)           rv if it has no place, or a returned  lv                    -            variable, field, capture,
+	                      local (moved)                                                            function; else an error
+	  a.m, p->m           a.m rv if a is rv and m a field that  lv, always            -            the member's
+	                      is no reference; else lv
+	  *p                  lv (no reference, not a class, a      lv                    if *object   the pointee, or the
+	                      place)                                                     (operator)   operator's result
+	  ++x, --x            lv (a place)                          only if declared a    if ++object  x's, once stepped
+	                                                            reference: not for x
+	                                                            a scalar
+	  x = y, x op= y      lv (a place, or operator='s &)        only if declared a    no (=); if   x's, once assigned
+	                                                            reference: not for a  an object's
+	                                                            scalar x              operator
+	  a, b                b's (CommaResult)                     no                    if overloaded b's
+	  c ? x : y           lv if both lvalues                    only if declared a    if either    one of two lvalues,
+	                      (ConditionalLvalueType)               reference: not for    is an object or the object made
+	                                                            two lvalues
+	  "text"              lv                                    no                    -            the array
+	  f(...)              by its declared reference; a class    if it returns a       yes, always  the reference's, or the
+	                      is rv; a scalar has no place: rv      reference                          temporary
+	  casts               by the reference cast to; a class is  if cast to a          if a class   the reference's; else
+	                      what CastClassType makes               reference                         the object made
+	  a[i], others        by the declared type and the place   a[i] lv; others by    -            the element's; ...
+	                                                            the declared type
+
+	So IsObjectLvalue says "no lvalue" where the others say there is one: for ++x and x = y of a scalar, for
+	(a, b) with b an lvalue, for c ? x : y of two lvalues, and for a string literal.  Its four callers ask it of
+	a class-typed initialiser (BoundTemporary's "const S& r = make()", and the like), where ++x and x = y are an
+	operator's reference and agree; but (a, s) and c ? s1 : s2 of class lvalues would be taken for objects to
+	copy: const S& r = c ? s1 : s2; at namespace scope might bind r to a copy.  Step 3 shows whether any program
+	does; if one does, it is a conformance case.  IsRvalue and the two place switches agree by construction
+	(IsRvalue asks PlaceOf) except where IsRvalue answers first by the kind: a.m of an rvalue, and the returned
+	local, which is moved though it has a place.
