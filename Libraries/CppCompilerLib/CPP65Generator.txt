@@ -48,16 +48,22 @@ start up's object is linked first so it is at the start of the text, 0001:0000; 
 reset vector is left to the loader.
 
 Files: CPPUnit.cpp (declarations, globals, functions), CPPUnitClasses.cpp
-(classes), CPPUnitTemplates.cpp, CPPUnitVtables.cpp (virtual functions, type
-info and thunks), CPPUnitOverloads.cpp, CPPUnitLabels.cpp (mangled names),
-CPPUnitExpressions.cpp (constants, warnings and
-TypeOf), CPPUnitObjects.cpp and CPPUnitFloat.cpp, CPP65Type.cpp (types and
-the rules for the types of operators), CPP65TypeChecker.cpp (expressions' types and
+(classes), CPPUnitOverloads.cpp, CPPUnitLabels.cpp (mangled names),
+CPPUnitExpressions.cpp (names and enums), CPPUnitPacks.cpp, and the classes the
+unit holds: CPPInstantiator.cpp (templates), CPPClassData.cpp (vtables, type
+info and thunks), CPPConstantFolder.cpp (constants), CPPWarnings.cpp,
+CPPBuiltins.cpp, CPPExceptions.cpp, CPPDesugarings.cpp (range-for, user
+literals, braced lists, implicit arguments), CPPClosures.cpp (lambdas),
+CPPStrings.cpp (string literals), CPPTypeWriter.cpp (a type written as C++),
+CPPCheck.cpp (the IDE's check); CPP65Type.cpp (types and the rules for the
+types of operators), CPP65TypeChecker.cpp (what an expression is, and its
 errors) and CPP65IRFrontEnd.cpp (every function body, as IR).
+SemanticLayerPlan.txt says how they came out of the unit.
 
-An expression's type is worked out by CCPP65TypeChecker, without its code: TypeOf (and
-PlaceTypeOf) for the IR front end and overload resolution, and ReportTypeOf for the
-errors in an expression the IR front end couldn't write.  The checker walks an
+What an expression is, is worked out by CCPP65TypeChecker, without its code, and
+remembered (SCPPExpressionFacts: its type, its place, its category): TypeOf (and
+PlaceTypeOf, IsRvalue and the rest) for the IR front end and overload resolution,
+and ReportTypeOf for the errors in an expression the IR front end couldn't write.  The checker walks an
 expression as the IR front end writes it, with the same names (Value, Place,
 CallExpression, Construct ...), and both take the type of an operator from
 CCPP65Types (Operation, Conditional, FloatArithmetic, PointerDifference), so the type

@@ -109,6 +109,11 @@ see; the 65C64's and the W65C816's own classes make their back ends and pipeline
 	Meaning    CCPPUnit, CCPPTypes, CCPPClass, CCPPFunction, CCPPVariable, CCPPTemplate
 	           CCPPBinder, which makes CCPPBound nodes: an expression typed and resolved
 	           CCPPOverloads, CCPPDeduction, CCPPDeclarators, CCPPMangler, CCPPWarnings
+	           (SemanticLayerPlan.txt, 2026-11-23: the unit holds the classes its jobs became, each the unit's
+	           friend: CCPPDiagnostics and CCPPContext; CCPP65TypeChecker, whose record of what an expression is
+	           (SCPPExpressionFacts: its type, its place, its category) everything else reads; CCPPConstantFolder;
+	           CCPPTypeWriter; CCPPClosures; CCPPClassData; CCPPStrings; CCPPCheck and CCPPUnitObserver, the IDE's;
+	           CCPPWarnings; CCPPBuiltins; CCPPExceptions; CCPPDesugarings; CCPPInstantiator)
 	Lowering   CCPPLowering (bound nodes to IR), CCPPUnitData (globals, strings, vtables, start up tables)
 	IR         CIRModule, CIRFunction; CIRPass and the passes, CIRPipeline; CIRInliner, CIRInterprocedural
 	Machine    CIRBackend: CIR65Backend and CIRW65C816Backend, each a frame, places, a selector, calls, its code as

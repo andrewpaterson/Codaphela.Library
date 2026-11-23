@@ -6,9 +6,9 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 13 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
-and taken back.  The user that day: "Finish and
-commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
+Where it is (2026-11-23): every stage is done, but for what each stage's record says it left; stage 7 was tried
+and taken back; the last table is at the end.  The user on 2026-11-22: "Finish and commit, continue with all fixes
+in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
 What was checked before writing (2026-11-22, master 9a11fabbd)
@@ -1187,3 +1187,67 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	functions.  Same code: TestCppCompilerLib passes (272,132); every conformance case says what it said; the
 	4,213 listings are as they were; the IDE's CppCompilerLib builds (the IDE itself failed in IDECodeModel.cpp,
 	gameengine-8a's edits under way there, not this step's).
+
+	Measured after (2026-11-23, at step 7's commit, against step 0):
+
+	                    BaseLib 65   BaseLib 816   StandardLib 65  StandardLib 816   SupportLib 65  SupportLib 816
+	  types phase            2,381         2,360            4,276            4,304           6,512           6,550
+	    (step 0)             2,273         2,251            4,196            4,200           6,477           6,465
+	  Place run             74,504        73,474           72,729           71,599          90,056          88,903
+	    (step 0)           102,801       100,746          111,314          109,133         140,820         138,573
+	  IsRvalue             104,584       102,369          112,589          110,248         137,532         135,109
+
+	Place is run 28 to 36% fewer times: once a place where it is evaluated, where it was run for every question,
+	IsRvalue's of a name among them.  The types phase is 0.5 to 5% slower: the record's upkeep (its entries made for
+	places and categories), which the runs saved don't pay for.  Ends when: no switch on a node's kind outside the
+	type checker says what category an expression has (IsRvalue, IsObjectLvalue and MakesObject read it), and
+	CPPUnitObjects.cpp is gone: both hold.  Left: PlaceType's and the front end's Place's switches don't yet ask
+	the record whether there is a place.
+
+	Stage 15's end.  It ends "when CCPPUnit is the walk of the declarations, the queue of functions and the unit's
+	options, and owns the classes that do the rest", at a number set at its start, which finding 15 put at about 60
+	functions.  The unit is 307 functions in six files and 9,900 lines, not 60: what it still does is declaring
+	functions and their signatures (finding 23's signature object), the globals' and static locals' data, laying
+	classes out (CPPUnitClasses.cpp), which class a name means (finding 22, stage 7 taken back), the packs
+	(CPPUnitPacks.cpp) and the bases (CPPUnitOverloads.cpp).  Each is a job of its own, for a plan of its own.
+
+
+Stage 16 (2026-11-23): the end.
+
+	Each of findings 15 to 29 has its "Since:", and 36 and the parts taken of 39, 46 and 52 theirs
+	(SmellCheckFindings.txt), by stage, not commit: the commits' hashes changed each time the user's work came in
+	under them.  ConsolidationPlan's layer list names the classes the Meaning layer now has, and CPP65Generator.txt
+	where its jobs are.
+
+	The last table.  The unit before and after; the three *65 projects' listings and what is said of every
+	conformance case were as they were at each stage but where its record says (13b's line numbers in a message,
+	the user's own commits, and 15e step 4's two right answers, which changed no listing):
+
+	                                     functions   files   lines
+	  CCPPUnit at stage 0                      605      13   22,117
+	  CCPPUnit after stage 15c                 446      11
+	  CCPPUnit at the end                      307       6    9,900
+
+	  stage   what it did
+	  0       the baseline, the kit (TestCPP65GeneratorSemanticErrors, the diagnostics switch, the counters)
+	  1       what was dead is gone
+	  2       the small questions each asked of one helper (operators, integer limits, names)
+	  3       where the compiler is, entered and left (CCPPContext's entries)
+	  4       errors: CCPPDiagnostics (silent, keeping, Defer, ErrorOnce), six parts
+	  5       one way through a parameter pack
+	  6       a class's base paths, listed once
+	  7       tried and taken back: which class a name means
+	  8       a field, a function the compiler declares, "takes these parameters"
+	  9       the definitions outside a class template, one typed list
+	  10      one printer of types (CCPPTypeWriter)
+	  11      one evaluator of constants (Fold, SCPPConstant, CCPPConstantFolder)
+	  12      the lambdas (CCPPClosures), a closure laid out as a class is
+	  13      class data (CCPPClassData), labels in the mangler, the routines at exit, CCPPStrings
+	  14      the IDE's hook: EnumMade, CCPPCheck, CCPPUnitObserver
+	  15a-d   CCPPWarnings, CCPPBuiltins, CCPPExceptions, CCPPDesugarings
+	  15e     what an expression is: one record in the type checker, one category, two wrong answers right
+	  15f     the templates (CCPPInstantiator)
+
+	Compile time (TestSupportLib65's project, the 65C64, ms): declarations 6,407 at stage 0 and 6,598 at the end;
+	types 6,189 and 6,512; the front end 3,299 and 3,455, the user's commits since in all of them.  The plan's
+	rule was that the compiler's time is only watched (ConsolidationPlan): it is within 5%.

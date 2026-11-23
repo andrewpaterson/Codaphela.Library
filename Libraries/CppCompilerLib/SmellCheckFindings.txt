@@ -369,6 +369,12 @@ words in most of the files. All findings below were read in the code; nothing wa
    [functions] and 5592 [lines]" at the checkpoint, which does not match today's size; I did not find out why
    (unconfirmed).
    Confidence: high.
+   Since: SemanticLayerPlan (2026-11-22 and 23): the unit's jobs are classes it holds: CCPPDiagnostics (stage 4),
+   CCPPConstantFolder (11), CCPPClosures (12), CCPPClassData and CCPPStrings (13), CCPPCheck and CCPPUnitObserver
+   (14), CCPPWarnings, CCPPBuiltins, CCPPExceptions, CCPPDesugarings and CCPPInstantiator (15a to 15f), and what an
+   expression is the type checker's (15e).  The unit went from 605 functions in 13 files and 22,117 lines to 307 in
+   six and 9,900.  Not the about 60 this finding put the walk and the queue at: declaring functions (finding 23's
+   signature), the globals' data, class layout, which class a name means (22), packs and bases remain the unit's.
 
 16. "Where the compiler is" still lives in unit members handled by hand
    Kind: state saved and put back by hand; hidden arguments and results.
@@ -406,6 +412,9 @@ words in most of the files. All findings below were read in the code; nothing wa
    become a parameter and a return value; one guard object replaces the counters and stacks.
    Plan: stage 4 step 8, recorded as done; these are what it left or what was added since.
    Confidence: high.
+   Since: SemanticLayerPlan stage 3: the function with its locals and packs, this, the linkage, the unevaluated and
+   the working guards are CCPPContext's entries, entered and left; who enters a function leaves it (the unit's half of
+   finding 46).
 
 17. Errors are suppressed three ways and recovered by doing the work twice
    Kind: inconsistent error handling; same mechanism in several forms.
@@ -433,6 +442,9 @@ words in most of the files. All findings below were read in the code; nothing wa
    Plan: stage 4 step 9 fell short, and the stage 5 checkpoint notes that TypeOf re-runs to report; no remaining
    stage covers it. The truncate doubling and the five side stores are new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 4: CCPPDiagnostics: silent parts and trials, keeping, Defer, Report and Repeat,
+   ErrorOnce; a remembered type and a closure keep what was said making them; what both walkers say is said once.
+   Left: "did the callee say something" asked by counting the error list (finding 36's first point).
 
 18. A constant's value is worked out by three evaluators with different coverage
    Kind: one fact derived in several places; kind ladders.
@@ -456,6 +468,9 @@ words in most of the files. All findings below were read in the code; nothing wa
    Confidence: high.
    Since: a program with a named cast and a ?: in float constants gives the right answer (finding 92); no wrong
    result was found.
+   Since: SemanticLayerPlan stage 11: one walk folds integer and floating point constants with one value
+   (SCPPConstant), a named cast and ?: of floats with them; one opcode table (CPPArithmeticOpcode); the folder is
+   CCPPConstantFolder.  Left: RunConstant's ladder, and floating point constants aren't run.
 
 19. A type is printed as C++ source by two separate printers
    Kind: same idea written twice in different words.
@@ -472,6 +487,8 @@ words in most of the files. All findings below were read in the code; nothing wa
    Clean form: one writer with two or three policy switches.
    Plan: new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 10: CCPPTypeWriter is the one printer, for the source or to be shown (CPPTW_Source,
+   CPPTW_Shown), each difference of the two old ones found and named.
 
 20. A parameter pack is expanded by three mechanisms
    Kind: same job done several ways; temporary state kept in a data structure.
@@ -491,6 +508,8 @@ words in most of the files. All findings below were read in the code; nothing wa
    three.
    Plan: stage 5 step 7 did this for call arguments only; this is new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 5: one way through a parameter pack: CCPPPackElements, and CCPPPackFinder skips the
+   expansions nested in it.
 
 21. Nine recursive walks of the base list, in four classes
    Kind: two functions answering the same question; long output-parameter lists.
@@ -511,6 +530,8 @@ words in most of the files. All findings below were read in the code; nothing wa
    read from that; only ResolveBases needs the unit.
    Plan: stage 3 step 2 said IsDerived moves "with stage 4's context"; it did not. The duplication is new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 6: a class lists its base paths once (CCPPClass::BasePaths) and the questions about
+   its bases read the list: a third fewer walks.
 
 22. "Which class does this name mean" has about fifteen entry points, and callers pick by the name's shape
    Kind: family of near-identical functions; symbol-kind ladders.
@@ -528,6 +549,8 @@ words in most of the files. All findings below were read in the code; nothing wa
    owned by the binder.
    Plan: stage 5 step 8 bound names in expressions only; type names and qualifiers are new.
    Confidence: high for the family, medium for the overlap with CCPPDeclarators.
+   Since: SemanticLayerPlan stage 7 tried one rule for the qualifier's class and took it back: three conformance cases
+   showed the two rules differ for a reason.  One resolver, the binder's, is finding 32's shape and isn't done.
 
 23. Declaring a function: seven parameters, and its small steps re-written at each caller
    Kind: long parameter list with flags; special cases piled up; one rule in several places.
@@ -557,6 +580,8 @@ words in most of the files. All findings below were read in the code; nothing wa
    SCPPField::Init.
    Plan: new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 8: SCPPField::Init, AddImplicitFunction, CCPPFunction::TakesParameters (the six
+   loops), DeclareQuietly (stage 4).  Left: the signature object and DeclareFunction's seven parameters.
 
 24. Out-of-class template definitions are classified by a 200-line ladder and kept as four untyped lists
    Kind: special cases piled up; GetKind and cast; the same derivation repeated.
@@ -574,6 +599,9 @@ words in most of the files. All findings below were read in the code; nothing wa
    of those.
    Plan: the plan's item 5 (kinds told apart with GetKind and a cast) in general; the lists are new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 9: one typed list (SCPPOutsideDefinition) for the six untyped ones, each record's
+   pieces worked out once; the templates are CCPPInstantiator (stage 15f).  Left: TemplateDeclaration's classifying
+   arms.
 
 25. Class data, labels and exit bookkeeping are still written by the unit
    Kind: job in the wrong class; label conventions repeated as strings; parallel arrays; loop used as a branch.
@@ -598,6 +626,10 @@ words in most of the files. All findings below were read in the code; nothing wa
    Plan: stage 3 step 5 ("CCPPMangler makes every label") and stage 4 step 13 (the layer list puts vtables in
    CCPPUnitData) are both recorded as done and are both partial. The rest is new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 13: a class's data is CCPPClassData's; the mangler makes every label; a routine to
+   write at the end is one record (SCPPUnitRoutine); GlobalStartUpRoutines is two calls of StartUpRoutine; the exit
+   node's size and alignment are named once; the string decoders are CCPPStrings; writing a label doesn't mark a
+   global used (CCPPVariable::Refer).  Left: BoundTemporary's two answers.
 
 26. More operator, range and name ladders like the assignment-operator list
    Kind: one list in several places; magic numbers.
@@ -623,6 +655,9 @@ words in most of the files. All findings below were read in the code; nothing wa
    Plan: the plan's item 5 and stage 5's "small questions onto the nodes" cover the last two in spirit; the rest is
    new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 2: the assignment and comparison lists are CPPPunctuatorList's columns
+   (IsCPPAssignment, IsCPPComparison, CPPCompoundOperation), and stage 11 the arithmetic opcode table.  Left: the
+   mangler's names and the parser's precedence, each of which says something of every operator.
 
 27. Lambdas repeat the pattern stage 3 removed
    Kind: struct whose behaviour is all in the unit; duplicate of class layout.
@@ -634,6 +669,9 @@ words in most of the files. All findings below were read in the code; nothing wa
    Clean form: CCPPLambda with its own methods, and one "finish laying out a class" used by both.
    Plan: stage 3's rule, applied to code written since; new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 12: the lambdas are CCPPClosures; a closure is laid out as a class is
+   (CompleteMembers, PlaceMembers); a generic lambda's instance is found by TakesParameters.  SCPPLambda stays a
+   record.
 
 28. An IDE refactoring is wired into EnumType
    Kind: special case in a core function; feature envy.
@@ -647,6 +685,8 @@ words in most of the files. All findings below were read in the code; nothing wa
    nothing of it.
    Plan: new.
    Confidence: high.
+   Since: SemanticLayerPlan stage 14: EnumType tells the semantic pass it made an enum (EnumMade); the check is
+   CCPPCheck; what the unit tells whoever checks it goes to a CCPPUnitObserver, which hears nothing when code is made.
 
 29. Dead code, stale names and comments that contradict the code
    Kind: dead code; stale comments.
@@ -698,6 +738,7 @@ places. The type checker and the front end still each write out the cascades for
 places and assignment. Inside the binder and overloads, "function or template instance" is decided four times, a
 call site travels as five to nine loose parameters, and errors are managed by counting and truncating the error
 list. Comments are mostly accurate; a handful are stale after the distinct-integer-types work.
+   Since: SemanticLayerPlan stage 1: the dead code is gone and the comments say what is so.
 
 30. What converts implicitly is stated twice, and the two statements disagree
    Kind: one rule written in two classes; inconsistent twins.
@@ -845,6 +886,9 @@ list. Comments are mostly accurate; a handful are stale after the distinct-integ
    value instead of leaving the caller to count.
    Plan: Progress records the trials as short of stage 4 step 9 ("they have names now"); Refuse, the missing guard
    and the comment are new. Confidence: high; medium on the double error.
+   Since: SemanticLayerPlan stage 4: what both walkers say of one call is said once (ErrorOnce), and a constructor no
+   argument fits is no longer said three times.  Counting the error list in the binder, the overloads and the type
+   checker (38 uses) stays: a finder that returns "none, and why" is finding 32's shape.
 
 37. Two matchers of a declarator against a type
    Kind: same algorithm twice ([temp.deduct.type]).
@@ -888,6 +932,8 @@ list. Comments are mostly accurate; a handful are stale after the distinct-integ
    Clean form: CPPPunctuatorList.h is already an X-macro of (text, token); give it columns for class (assignment,
    comparison, arithmetic), the compound's operation and the label, and derive the predicates.
    Plan: new. Confidence: high.
+   Since: SemanticLayerPlan stage 2: the assignment and comparison ladders read CPPPunctuatorList's columns.  The
+   others say something of every operator and stay.
 
 40. The visitor exists, but the checker still switches on GetKind beside it
    Kind: GetKind plus cast; the plan's item 5.
@@ -1019,6 +1065,8 @@ Paths are relative to D:\gameengine\CommonLibraries\Libraries\CppCompilerLib unl
    - Plan: stage 6 shrinks the class to CCPPLowering but doesn't name the unit/function split; the begin/end
      asymmetry is new.
    - Confidence: high.
+   Since: SemanticLayerPlan stage 3: the unit's half: who begins a function ends it, the IR front end no longer ends
+   what it didn't begin, and mbVersionFollows is gone.  The front end as two objects stays.
 
 47. The builder has two compile pipelines that have drifted
    - Kind: same job written twice; long parameter list.
@@ -1123,6 +1171,8 @@ Paths are relative to D:\gameengine\CommonLibraries\Libraries\CppCompilerLib unl
      including the IDE.
    - Plan: new.
    - Confidence: high.
+   Since: SemanticLayerPlan stage 2: the assignment-operator list is IsCPPAssignment, read from CPPPunctuatorList, in
+   the eleven places.
 
 53. SCPPEnumCast records don't mean what the header says
    - Kind: comment against code; dead field.
