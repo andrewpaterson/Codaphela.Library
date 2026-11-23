@@ -1173,6 +1173,52 @@ void CLeaf::Run(int i)\n\
 	AssertSize(0, CountCppIndexOverrides(&cIndex, "CMiddle::Plain()"));
 	AssertSize(0, CountCppIndexOverrides(&cIndex, "COther::Run(int)"));
 	cIndex.Kill();
+
+	//override and final say a function overrides a virtual one; with none virtual they override nothing (an error),
+	//so nothing in the family overrides anything.  With the base's virtual the same family does.
+	cIndex.Init();
+	IndexText(&cIndex, "Claimed.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	bool	IsThing(void) const;\n\
+};\n\
+class CDerived : public CBase\n\
+{\n\
+public:\n\
+	bool	IsThing(void) const override;\n\
+};\n\
+class CFinal : public CBase\n\
+{\n\
+public:\n\
+	bool	IsThing(void) const final;\n\
+};\n");
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CBase::IsThing() const"));
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CDerived::IsThing() const"));
+	AssertSize(0, CountCppIndexOverrides(&cIndex, "CFinal::IsThing() const"));
+	cIndex.Kill();
+
+	cIndex.Init();
+	IndexText(&cIndex, "Virtual.cpp", "\
+class CBase\n\
+{\n\
+public:\n\
+	virtual bool	IsThing(void) const;\n\
+};\n\
+class CDerived : public CBase\n\
+{\n\
+public:\n\
+	bool	IsThing(void) const override;\n\
+};\n\
+class CFinal : public CBase\n\
+{\n\
+public:\n\
+	bool	IsThing(void) const final;\n\
+};\n");
+	AssertSize(3, CountCppIndexOverrides(&cIndex, "CBase::IsThing() const"));
+	AssertSize(3, CountCppIndexOverrides(&cIndex, "CDerived::IsThing() const"));
+	AssertSize(3, CountCppIndexOverrides(&cIndex, "CFinal::IsThing() const"));
+	cIndex.Kill();
 }
 
 

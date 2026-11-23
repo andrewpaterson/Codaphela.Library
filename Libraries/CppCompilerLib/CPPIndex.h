@@ -212,7 +212,7 @@ public:
 	CArrayIndexLocations	masLocations;
 	CArrayInt				maiBases;		//A class's base classes, by symbol index (from CCPPIndex::masBaseLinks).
 	CArrayInt				maiDerived;		//The classes that have it as a base, by symbol index.
-	bool					mbVirtual;		//A member function a file declares virtual, override or final (masVirtuals).
+	bool					mbVirtual;		//A member function a file declares virtual (masVirtuals); override and final don't make it one.
 
 	void	Init(const char* szKey, ECPPSymbolKind eKind);
 	void	Kill(void);

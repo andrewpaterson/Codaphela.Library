@@ -1156,27 +1156,20 @@ void CCPPIndex::FindHierarchy(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys,
 //////////////////////////////////////////////////////////////////////////
 //
 // The function pcDeclarator declares is virtual if bVirtual (it has the
-// virtual specifier) or it is declared override or final.
+// virtual specifier).  Declared override or final it isn't for that: they
+// say it overrides a virtual function, and if none is virtual it overrides
+// nothing (an error, [class.virtual] 5), so FindOverrides finds its family
+// virtual only if one of them is.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::GatherVirtual(CCPPTokeniser* pcTokeniser, CCPPSymbolKey* pcKeys, CCPPSyntaxTree* pcTree, CCPPSyntaxDeclarator* pcDeclarator, bool bVirtual, CCPPIndexUnit* pcDest)
 {
-	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntaxName*				pcName;
 	SCPPTokenSymbol*			psSymbol;
 	CChars						szKey;
 	CSourceFile*				pcFile;
 
-	if ((pcDeclarator == NULL) || !pcDeclarator->IsFunction())
-	{
-		return;
-	}
-	if (!bVirtual)
-	{
-		pcSuffix = pcDeclarator->GetFunctionSuffix();
-		bVirtual = pcSuffix && (pcSuffix->macpVirtSpecifiers.NumElements() > 0);
-	}
-	if (!bVirtual)
+	if ((pcDeclarator == NULL) || !pcDeclarator->IsFunction() || !bVirtual)
 	{
 		return;
 	}
