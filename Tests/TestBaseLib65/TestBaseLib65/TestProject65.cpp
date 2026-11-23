@@ -946,6 +946,13 @@ void TestProject65RunTests(STestProject65* psProject)
 	{
 		cBuilder.GetOptions()->mePrefer = CPPP_Size;
 	}
+	//TEST_PROJECT65_DEBUG=1: the programs are built for the debugger (CCPPCompileOptions::mbDebuggable, DebuggerPlan.txt A2),
+	//and =unoptimised without the optimiser too: they must run as they do built for speed.
+	if (getenv("TEST_PROJECT65_DEBUG"))
+	{
+		cBuilder.GetOptions()->mbDebuggable = true;
+		cBuilder.GetOptions()->mbOptimise = strcmp(getenv("TEST_PROJECT65_DEBUG"), "unoptimised") != 0;
+	}
 	//TEST_PROJECT65_EXCEPTIONS=1: the programs are built with exceptions (CCPPCompileOptions::mbExceptions,
 	//ExceptionsPlan.txt), which none of them uses: they must run as they do without.
 	if (getenv("TEST_PROJECT65_EXCEPTIONS"))

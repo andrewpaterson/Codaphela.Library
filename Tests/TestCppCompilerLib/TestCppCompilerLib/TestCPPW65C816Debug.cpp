@@ -200,7 +200,9 @@ void TestCPP816DebugFrames(void)
 //
 // Programs whose variables are what a debugger shows (parameters by
 // value, changed and not; objects by value, by address and through this;
-// an anonymous union; locals stored and never read; recursion and loops)
+// an anonymous union; locals stored and never read; a variadic function's,
+// whose arguments va_start finds from them; a pointer returned from a
+// frame past the direct page; recursion and loops)
 // give the same results built for a debugger, optimised (Debug) and not,
 // as built for speed (Release).
 //
@@ -208,6 +210,7 @@ void TestCPP816DebugFrames(void)
 void TestCPP816DebugModes(void)
 {
 	static const char*	szSource =
+		"#include <stdarg.h>\n"
 		"struct SPoint { int x; int y; };\n"
 		"struct SBig { long al[8]; int i; };\n"
 		"class CCounter\n"
@@ -242,6 +245,24 @@ void TestCPP816DebugModes(void)
 		"	iWord = i;\n"
 		"	return ac[0] + ac[1];\n"
 		"}\n"
+		"int SumAll(int iCount, ...)\n"
+		"{\n"
+		"	va_list	a;\n"
+		"	int		i;\n"
+		"	int		iTotal = 0;\n"
+		"	va_start(a, iCount);\n"
+		"	for (i = 0; i < iCount; i++) { iTotal += va_arg(a, int); }\n"
+		"	va_end(a);\n"
+		"	return iTotal;\n"
+		"}\n"
+		"char* Big(char* szFrom)\n"
+		"{\n"
+		"	char	ac[400];\n"
+		"	char*	pc;\n"
+		"	ac[0] = szFrom[0];\n"
+		"	pc = (ac[0] == 'x') ? szFrom + 1 : szFrom;\n"
+		"	return pc;\n"
+		"}\n"
 		"int main(void)\n"
 		"{\n"
 		"	SPoint s;\n"
@@ -259,6 +280,8 @@ void TestCPP816DebugModes(void)
 		"	if (Unread(7) != 8) return 4;\n"
 		"	if (Union(0x0102) != 3) return 5;\n"
 		"	if (cCounter.miCount != 10) return 6;\n"
+		"	if (SumAll(3, 4, 5, 6) != 15) return 7;\n"
+		"	if (*Big((char*)\"xyz\") != 'y') return 8;\n"
 		"	return 100;\n"
 		"}\n";
 	CCPPCompileOptions	cWas;

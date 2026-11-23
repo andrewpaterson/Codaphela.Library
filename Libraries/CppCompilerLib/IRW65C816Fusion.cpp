@@ -104,10 +104,17 @@ bool CIRW65C816Fusion::FusedInputsKept(SIRInstruction* psInstruction, SIRReferen
 {
 	SIRReference	sPointer;
 	SIRReference	sIndex;
+	int32			iOffset;
 	int				i;
 
 	if (psInstruction->uiOpcode == IRO_Load)
 	{
+		//A direct slot's bytes are no temporary's: nothing is written over them.  Past the direct page it is read
+		//through X ([D + X]), which what it is fused into may be keeping a word in (a return's high word).
+		if (mpcBackend->mcFolds.DirectSlot(psInstruction->asArguments[0], &iOffset))
+		{
+			return IR816OnDirectPage(iOffset + 2 * mpcBackend->Words(psInstruction->sType));
+		}
 		sPointer = mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]);
 		sIndex = mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[0]);
 		if (sIndex.IsTemporary() && !mpcBackend->mcPlaces.InX(sIndex) && FusedOverlaps(sResult, sIndex, true))

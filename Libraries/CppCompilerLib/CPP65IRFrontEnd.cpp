@@ -1333,7 +1333,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		}
 		sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), *aiFirst.Get(uiParameter)));
 		mcAddresses.Put((int64)(size)pcVariable, &sAddress);
-		if (!DebugParameter(pcVariable, sAddress, pcVariable->mpsType->IsClass()))
+		if (!DebugParameter(pcVariable, sAddress, pcVariable->mpsType->IsClass() || mpcCPPFunction->mbVariadic))
 		{
 			aiFirst.Kill();
 			asByAddress.Kill();
@@ -1363,8 +1363,10 @@ bool CCPP65IRFrontEnd::Parameters(void)
 // In code for a debugger (Debuggable), a parameter is a kept slot of its
 // own, its value copied in from where it was passed (sAddress, which the
 // code then forgets): the place it was passed in may be shared once it is
-// read.  An object, passed by address (bByAddress) or in the bytes its
-// caller pushed, stays where it is: the kept slot holds its address.
+// read.  An object, passed by address or in the bytes its caller pushed,
+// and a variadic function's parameters (va_start finds the arguments
+// after them from where they were passed) stay where they are
+// (bByAddress): the kept slot holds the address.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DebugParameter(CCPPVariable* pcVariable, SIRReference sAddress, bool bByAddress)

@@ -840,7 +840,8 @@ void CIRW65C816Selector::Load(SIRInstruction* psInstruction)
 	{
 		mpcBackend->Line("sep m");
 	}
-	else if ((mpcBackend->Words(psInstruction->sType) >= 2) && !mpcBackend->mcPlaces.InX(psInstruction->sResult) && mpcBackend->mcFusion.FusedOverlaps(psInstruction->sResult, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), true))
+	else if ((mpcBackend->Words(psInstruction->sType) >= 2) && !mpcBackend->mcPlaces.InX(psInstruction->sResult) && mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]).IsTemporary() &&
+			 mpcBackend->mcFusion.FusedOverlaps(psInstruction->sResult, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), true))
 	{
 		for (i = mpcBackend->Words(psInstruction->sType) - 1; i >= 2; i--)
 		{

@@ -1193,7 +1193,7 @@ void CIRW65C816Places::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, 
 	IR816AddEvent(&psEvents->asEvents, psInstruction->sResult, iPosition, IR816_EVENT_DEFINE);
 	for (iArgument = 0; iArgument < IR_INSTRUCTION_ARGUMENTS; iArgument++)
 	{
-		if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
+		if (IR816CanShareArgument(psInstruction->uiOpcode, iArgument) && mpcBackend->mcFolds.Materialised(psInstruction->asArguments[iArgument]).Equals(psInstruction->asArguments[iArgument]))
 		{
 			pcRanges->AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, iWeight);
 		}
