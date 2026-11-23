@@ -28,6 +28,7 @@ class CCPPUnit;
 class CCPPSymbol;
 class CCPPClass;
 class CCPPScope;
+class CCPPFunction;
 
 
 //What a type is written for (CCPPTypeWriter::Init).
@@ -71,6 +72,7 @@ public:
 	bool	AppendType(SCPP65Type* psType, CChars* pszDest);
 	bool	AppendDeclaration(SCPP65Type* psType, const char* szName, CChars* pszDest);
 	bool	AppendClass(CCPPClass* pcClass, CChars* pszDest);
+	bool	AppendFunction(CCPPFunction* pcFunction, CChars* pszDest);
 	bool	AppendIdentifier(int64 lliName, CChars* pszDest);
 
 protected:

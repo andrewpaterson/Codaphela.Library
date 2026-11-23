@@ -61,6 +61,9 @@
     <ClCompile Include="TestCPPW65C816Assembly.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>
+    <ClCompile Include="TestCPPW65C816Debug.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
     <ClCompile Include="TestCPPW65C816Interprocedural.cpp">
       <Filter>Source\Parser</Filter>
     </ClCompile>

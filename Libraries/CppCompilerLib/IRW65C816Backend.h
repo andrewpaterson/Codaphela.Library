@@ -219,6 +219,7 @@ public:
 	void			GetFrame(SIRW65C816Frame* psFrame);
 	CIRWrittenFunction*	TakeWritten(void) override;
 	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile) override;
+	void			DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile);
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;

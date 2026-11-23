@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IROptimiser.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPNameCharacters.h"
+#include "CPP65DebugWriter.h"
 #include "BaseLib/FNVHash.h"
 
 
@@ -205,6 +206,11 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			mpcBackend->FinishFunction(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcUnit->GetFrameProfile());
 		}
+		if (mpcBackend && mpcUnit->HasLineTable())
+		{
+			mpcBackend->DescribeFrame(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend);
+			CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text());
+		}
 		FreeWritten(psWritten);
 		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());
 		if (mpcUnit->HasLineTable())
@@ -263,9 +269,12 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	size				uiMarkerLength;
 
 	szName.Init(mcModule.GetSymbolName(pcCopy->muiSymbol));
+	szMarker.Init(masWritten.Get(uiFunction)->szName);
 	psWritten = masWritten.Add();
 	psWritten->pcFunction = pcCopy;
 	psWritten->szLabel.Init(szName.Text());
+	psWritten->szName.Init(szMarker);
+	szMarker.Kill();
 	psWritten->uiPieces = 0;
 	psWritten->pcBackend = NULL;
 	psWritten->uiFingerprint = 0;

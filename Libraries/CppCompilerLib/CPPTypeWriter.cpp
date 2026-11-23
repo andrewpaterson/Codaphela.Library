@@ -97,6 +97,50 @@ bool CCPPTypeWriter::AppendClass(CCPPClass* pcClass, CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A function's name with the classes and namespaces it is in, as C++
+// writes it: "NS::CShape::Area", "CShape::~CShape", "CShape::operator =".
+// An operator's (or a conversion's) name is its declaration's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTypeWriter::AppendFunction(CCPPFunction* pcFunction, CChars* pszDest)
+{
+	CCPPSyntaxName*	pcName;
+	bool			bResult;
+
+	if (pcFunction->mpcClass)
+	{
+		bResult = ClassName(pcFunction->mpcClass, pszDest);
+		pszDest->Append("::");
+	}
+	else
+	{
+		bResult = ScopeName(pcFunction->mpcNamespace, pszDest);
+	}
+	if ((pcFunction->meKind != CPPFK_Function) && pcFunction->mpcClass)
+	{
+		if (pcFunction->meKind == CPPFK_Destructor)
+		{
+			pszDest->Append('~');
+		}
+		return bResult && AppendIdentifier(pcFunction->mpcClass->mlliName, pszDest);
+	}
+	if (pcFunction->mlliName >= 0)
+	{
+		return bResult && AppendIdentifier(pcFunction->mlliName, pszDest);
+	}
+	pcName = pcFunction->mpcDeclarator ? pcFunction->mpcDeclarator->GetName() : NULL;
+	if (pcName && pcName->GetLast())
+	{
+		pcName->GetLast()->PrettyPrint(pszDest, 0);
+		return bResult;
+	}
+	pszDest->Append("operator");
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An identifier's text.  False for a name the tokeniser hasn't.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -30,6 +30,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IR65Backend.h"
 #include "CPP65IRFrontEnd.h"
 #include "CPPConstants.h"
+#include "CPP65DebugWriter.h"
+#include "CPPTypeWriter.h"
 
 
 //The IR front end: a function's IR from its syntax tree (Body), written for the back end (FinishWriting); IR types,
@@ -149,6 +151,7 @@ void CCPP65IRFrontEnd::Kill(void)
 	{
 		psWritten = masWritten.Get(ui);
 		psWritten->szLabel.Kill();
+		psWritten->szName.Kill();
 		FreeWritten(psWritten);
 
 		//Code not given to the unit's assembly (a unit generated again, or one that failed) leaves the store.
@@ -500,6 +503,29 @@ void CCPP65IRFrontEnd::OptimiserWarnings(CChars* pszWarnings)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The function being written's name as C++ writes it (CShape::Area), for a
+// debugger; its label for code the compiler made without a function.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::FunctionName(CChars* pszDest, const char* szLabel)
+{
+	CCPPTypeWriter	cWriter;
+
+	pszDest->Init();
+	if (mpcCPPFunction)
+	{
+		cWriter.Init(mpcUnit, CPPTW_Shown);
+		cWriter.AppendFunction(mpcCPPFunction, pszDest);
+	}
+	else
+	{
+		pszDest->Append(szLabel);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Finishes the function BeginWriting started (bResult false if writing it failed): verifies, optimises and generates
 // it, and leaves a marker where its code goes in the generator's code (FinishUnit).  False, with nothing changed,
 // if it didn't verify or generate.
@@ -575,6 +601,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten = masWritten.Add();
 			psWritten->pcFunction = mpcFunction;
 			psWritten->szLabel.Init(szLabel);
+			FunctionName(&psWritten->szName, szLabel);
 			psWritten->uiPieces = 0;
 			CCPP65Assembly::PutCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 			psWritten->pcBackend = pcWritten;
@@ -1564,16 +1591,9 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments, bool bLin
 		//\t\t.line "C:\\Path\\File.cpp", 12 (a backslash or quote in the name escaped).
 		if (bLines)
 		{
-			szOut.Append("\t\t.line \"");
-			for (szLine = pcFile->FullName(); *szLine != '\0'; szLine++)
-			{
-				if ((*szLine == '\\') || (*szLine == '"'))
-				{
-					szOut.Append('\\');
-				}
-				szOut.Append(*szLine);
-			}
-			szOut.Append("\", ");
+			szOut.Append("\t\t.line ");
+			CCPP65DebugWriter::AppendString(&szOut, pcFile->FullName());
+			szOut.Append(", ");
 			szOut.Append(iLine + 1);
 			szOut.AppendNewLine();
 		}

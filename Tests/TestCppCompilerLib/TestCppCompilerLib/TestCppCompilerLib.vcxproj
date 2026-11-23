@@ -241,6 +241,7 @@
     <ClCompile Include="TestIRW65C816Backend.cpp" />
     <ClCompile Include="TestCPPW65C816.cpp" />
     <ClCompile Include="TestCPPW65C816Assembly.cpp" />
+    <ClCompile Include="TestCPPW65C816Debug.cpp" />
     <ClCompile Include="TestCPPW65C816Interprocedural.cpp" />
     <ClCompile Include="TestCPP65ListingIndex.cpp" />
     <ClCompile Include="TestCPP65ForwardingReferences.cpp" />

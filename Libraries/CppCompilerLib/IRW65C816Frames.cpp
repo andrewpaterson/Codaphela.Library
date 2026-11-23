@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <string.h>
 #include "IRW65C816BackendInternal.h"
 #include "IRW65C816Code.h"
+#include "CPP65DebugWriter.h"
 
 
 //The W65C816 back end's frames: the text of a function's frame entry and exit, taken out when nothing uses the
@@ -781,3 +782,204 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	return true;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first instruction line at or after szLine (labels, directives and
+// comments skipped), NULL if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816Instruction(const char* szLine)
+{
+	while (szLine && (*szLine != '\0'))
+	{
+		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] >= 'a') && (szLine[2] <= 'z'))
+		{
+			return szLine;
+		}
+		szLine = strchr(szLine, '\n');
+		if (!szLine)
+		{
+			return NULL;
+		}
+		szLine++;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816NextLine(const char* szLine)
+{
+	szLine = strchr(szLine, '\n');
+	return szLine ? szLine + 1 : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the instruction line is szMnemonic's.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816IsMnemonic(const char* szLine, const char* szMnemonic)
+{
+	size	uiLength;
+
+	uiLength = strlen(szMnemonic);
+	return (strncmp(szLine + 2, szMnemonic, uiLength) == 0) && ((szLine[2 + uiLength] == ' ') || (szLine[2 + uiLength] == '\n'));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a register entry's body is in szCode (from its plain label on):
+// after its own label, szLabel and a suffix (_Add__Fii.ax:), past the
+// stub that loads the registers.  MAX_SIZE if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+static size IR816FindRegisterBody(const char* szCode, const char* szLabel)
+{
+	const char*	szAt;
+	const char*	szEnd;
+	size		uiLength;
+
+	uiLength = strlen(szLabel);
+	for (szAt = szCode; szAt; szAt = IR816NextLine(szAt))
+	{
+		if ((strncmp(szAt, szLabel, uiLength) == 0) && (szAt[uiLength] == '.'))
+		{
+			szEnd = strchr(szAt, '\n');
+			if (szEnd && (szEnd[-1] == ':'))
+			{
+				return (size)(szEnd + 1 - szCode);
+			}
+		}
+		if ((szAt[0] == '\t') && IR816IsMnemonic(szAt, "phd"))
+		{
+			return MAX_SIZE;
+		}
+	}
+	return MAX_SIZE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where in the aligned prologue from szLine S as it was is stored (st? [D +
+// iPlace]), the line after it; NULL if it isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* IR816FindSavedS(const char* szLine, int32 iPlace)
+{
+	CChars		szStore;
+	const char*	szAt;
+
+	szStore.Init(CIRW65C816Backend::GetScratch());
+	szStore.Append(" [D + ");
+	szStore.Append(iPlace);
+	szStore.Append("]\n");
+	szAt = strstr(szLine, szStore.Text());
+	if (szAt && ((strncmp(szAt - 5, "\t\tsta", 5) == 0) || (strncmp(szAt - 5, "\t\tstx", 5) == 0)))
+	{
+		szAt += szStore.Length();
+	}
+	else
+	{
+		szAt = NULL;
+	}
+	szStore.Kill();
+	return szAt;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A .dframe where the function's frame is made, read from its finished
+// code: after "tcd" for a frame of its own, S as it was after phd being D
+// plus what the prologue pushed and subtracted ("frame"); after S is kept
+// in an aligned frame (AlignFrame: "saved", where); at the body's start
+// for code with no frame ("none": DropFrame took it away, or it never had
+// one).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten)
+{
+	const char*		szCode;
+	const char*		szLine;
+	const char*		szAfter;
+	SIRW65C816Frame	sFrame;
+	CChars			szDirective;
+	size			uiBody;
+	size			uiAt;
+	int32			iBelow;
+	bool			bAligned;
+
+	szCode = pszCode->Text();
+	uiBody = CCPP65DebugWriter::FindAfterLabel(szCode, szLabel);
+	if (uiBody == MAX_SIZE)
+	{
+		return;
+	}
+	uiAt = IR816FindRegisterBody(szCode + uiBody, szLabel);
+	if (uiAt != MAX_SIZE)
+	{
+		uiBody += uiAt;
+	}
+
+	szDirective.Init(CIRW65C816Backend::GetScratch());
+	szDirective.Append("\t\t.dframe ");
+	szAfter = NULL;
+	szLine = IR816Instruction(szCode + uiBody);
+	if (szLine && IR816IsMnemonic(szLine, "phd"))
+	{
+		iBelow = 0;
+		bAligned = false;
+		for (szLine = IR816Instruction(IR816NextLine(szLine)); szLine && !IR816IsMnemonic(szLine, "tcd"); szLine = IR816Instruction(IR816NextLine(szLine)))
+		{
+			if (IR816IsMnemonic(szLine, "pha") || IR816IsMnemonic(szLine, "phx") || IR816IsMnemonic(szLine, "phy"))
+			{
+				iBelow += 2;
+			}
+			else if (IR816IsMnemonic(szLine, "sbc"))
+			{
+				iBelow += atoi(szLine + 6);
+			}
+			else if (IR816IsMnemonic(szLine, "and"))
+			{
+				bAligned = true;
+			}
+		}
+		if (szLine && bAligned && pcWritten)
+		{
+			sFrame = ((CIRW65C816Written*)pcWritten)->msFrame;
+			iBelow = (sFrame.iSavedS >= 0) ? sFrame.iSavedS : sFrame.Link();
+			szAfter = IR816FindSavedS(szLine, iBelow);
+			szDirective.Append("saved, ");
+		}
+		else if (szLine && !bAligned)
+		{
+			szAfter = IR816NextLine(szLine);
+			szDirective.Append("frame, ");
+		}
+		szDirective.Append(iBelow);
+	}
+	if (szAfter)
+	{
+		uiAt = (size)(szAfter - szCode);
+	}
+	else
+	{
+		//No frame, or one this doesn't know: its caller is found from S.
+		szDirective.Kill();
+		szDirective.Init(CIRW65C816Backend::GetScratch());
+		szDirective.Append("\t\t.dframe none, 0");
+		uiAt = uiBody;
+	}
+	szDirective.AppendNewLine();
+	pszCode->Insert(uiAt, &szDirective);
+	szDirective.Kill();
+}

@@ -136,6 +136,7 @@ struct SCPP65IRWritten
 {
 	CIRFunction*	pcFunction;		//NULL once it failed after inlining.
 	CChars			szLabel;
+	CChars			szName;			//As C++ writes it (CShape::Area), for a debugger (.dfunction).
 	uint16			uiPieces;		//How many pieces its code is in, in the generator's spill store (CCPP65Assembly::PutCode).
 	CIRWrittenFunction*	pcBackend;	//What the back end kept about it, for CIRBackend::FinishFunction, or NULL.
 	uint32			uiFingerprint;	//A hash of its IR before it was optimised (for a line table).
@@ -282,6 +283,7 @@ public:
 protected:
 	void			BeginWriting(CCPPFunction* pcFunction, const char* szLabel, SIRType sReturn, uint32 uiAttributes);
 	bool			FinishWriting(bool bResult, const char* szLabel);
+	void			FunctionName(CChars* pszDest, const char* szLabel);
 	bool			FinishConstant(bool bResult);
 	void			EndWriting(void);
 	void			OptimiserWarnings(CChars* pszWarnings);

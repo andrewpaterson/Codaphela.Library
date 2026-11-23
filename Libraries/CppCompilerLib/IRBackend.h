@@ -114,6 +114,7 @@ public:
 	virtual bool	GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) = 0;
 	virtual CIRWrittenFunction*	TakeWritten(void);
 	virtual void	FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile);
+	virtual void	DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten);
 
 	bool			GenerateModule(CChars* pszDest, CCPPErrors* pcErrors);
 	void			GenerateGlobal(CIRGlobal* pcGlobal, CChars* pszDest);
