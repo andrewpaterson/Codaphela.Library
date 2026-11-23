@@ -341,6 +341,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcIRFrontEnd->Init(this);
 	mpcConstants = NewMalloc<CCPPConstants>();
 	mpcConstants->Init(this);
+	mcFolder.Init(this);
 	mcTypeChecker.Init(this);
 	mcDiagnostics.Init(mpcTokeniser, &mcContext, mpcStatistics);
 
@@ -1862,7 +1863,7 @@ void CCPPUnit::WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecificati
 	pcDest->SetAnything();
 	if (pcSpecification->mbNoexcept)
 	{
-		if (!pcSpecification->mpcCondition || (Constant(pcSpecification->mpcCondition, &lliValue) && (lliValue != 0)))
+		if (!pcSpecification->mpcCondition || (mcFolder.Constant(pcSpecification->mpcCondition, &lliValue) && (lliValue != 0)))
 		{
 			pcDest->SetNothing();
 		}
@@ -3917,9 +3918,9 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		return mcDiagnostics.Error(pcNode, "This type of global variable is not supported by the compiler yet");
 	}
 	lliValue = 0;
-	if (pcInitialiser && psType->IsFloat() && FloatConstant(pcInitialiser, &dValue))
+	if (pcInitialiser && psType->IsFloat() && mcFolder.FloatConstant(pcInitialiser, &dValue))
 	{
-		mcData.AppendData(psType->iBytes, FloatBits(psType, dValue));
+		mcData.AppendData(psType->iBytes, mcFolder.FloatBits(psType, dValue));
 		return true;
 	}
 	if (pcInitialiser && psType->IsPointer() && IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
@@ -3935,7 +3936,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		auiBytes.Kill();
 		return bResult;
 	}
-	if (pcInitialiser && (psType->IsFloat() || !Constant(pcInitialiser, &lliValue)))
+	if (pcInitialiser && (psType->IsFloat() || !mcFolder.Constant(pcInitialiser, &lliValue)))
 	{
 		//Not a constant: R_Initialise works it out before main, or for a static local its declaration the first time it
 		//is reached.  [basic.start.init], [stmt.dcl] 4
@@ -5042,12 +5043,12 @@ bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
 			continue;
 		}
 		mcDiagnostics.BeginQuiet();
-		bConstant = Constant(pcEnumerator->mpcValue, &lliValue);
+		bConstant = mcFolder.Constant(pcEnumerator->mpcValue, &lliValue);
 		mcDiagnostics.EndQuiet();
 		szReason = mpcConstants->GetReason();
 		if (!bConstant && (szReason[0] != '\0') && (strncmp(szReason, "It uses what", 12) != 0) && (strncmp(szReason, "Its initialiser uses what", 25) != 0))
 		{
-			bResult &= ConstantError(pcEnumerator->mpcValue, "An enumerator's value must be a constant");
+			bResult &= mcFolder.ConstantError(pcEnumerator->mpcValue, "An enumerator's value must be a constant");
 		}
 	}
 	if (bResult && pcSpecifier->mpcSymbol && pcSpecifier->mpcBase)
@@ -5077,7 +5078,7 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 	uiErrors = mcDiagnostics.GetErrors()->NumErrors();
 	mpcConstants->ClearReason();
 	mcDiagnostics.BeginQuiet();
-	bConstant = Constant(pcAssert->mpcCondition, &lliValue);
+	bConstant = mcFolder.Constant(pcAssert->mpcCondition, &lliValue);
 	mcDiagnostics.EndQuiet();
 	if (bConstant && (lliValue == 0))
 	{
@@ -5096,7 +5097,7 @@ bool CCPPUnit::StaticAssert(CCPPSyntaxStaticAssert* pcAssert)
 	if (!bConstant && (mpcConstants->GetReason()[0] != '\0') && (strncmp(mpcConstants->GetReason(), "Its initialiser uses", 20) != 0))
 	{
 		//What can never be a constant (not what the compiler can't work out yet).  [dcl.dcl] 4
-		return ConstantError(pcAssert->mpcCondition, "A static_assert's expression is a constant");
+		return mcFolder.ConstantError(pcAssert->mpcCondition, "A static_assert's expression is a constant");
 	}
 	return mcDiagnostics.GetErrors()->NumErrors() == uiErrors;
 }
@@ -5226,6 +5227,7 @@ CCPPContext* CCPPUnit::GetContext(void) { return &mcContext; }
 CCPPDiagnostics* CCPPUnit::GetDiagnostics(void) { return &mcDiagnostics; }
 CCPPBinder* CCPPUnit::GetBinder(void) { return &mcBinder; }
 CCPPConstants* CCPPUnit::GetConstants(void) const { return mpcConstants; }
+CCPPConstantFolder* CCPPUnit::GetFolder(void) { return &mcFolder; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

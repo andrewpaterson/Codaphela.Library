@@ -534,15 +534,15 @@ bool CCPP65IRFrontEnd::ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* ps
 	psType = psType->WithoutReference();
 	if (psType->IsFloat())
 	{
-		if (!mpcUnit->FloatConstant(pcExpression, &dValue))
+		if (!mpcUnit->GetFolder()->FloatConstant(pcExpression, &dValue))
 		{
 			return false;
 		}
-		psValue->sValue = mpcFunction->AddConstant(IRTypeOf(psType), (uint64)mpcUnit->FloatBits(psType, dValue));
+		psValue->sValue = mpcFunction->AddConstant(IRTypeOf(psType), (uint64)mpcUnit->GetFolder()->FloatBits(psType, dValue));
 		psValue->psType = psType;
 		return true;
 	}
-	if (!psType->IsScalar() || !mpcUnit->Constant(pcExpression, &lliValue))
+	if (!psType->IsScalar() || !mpcUnit->GetFolder()->Constant(pcExpression, &lliValue))
 	{
 		return false;
 	}

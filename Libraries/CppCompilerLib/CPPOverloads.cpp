@@ -1943,7 +1943,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		}
 		return CPPCR_None;
 	}
-	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && psArgument->IsInteger() && pcArgument && mpcUnit->Constant(pcArgument, &lliValue) && (lliValue == 0))
+	if ((psParameter->IsPointer() || psParameter->IsMemberPointer()) && psArgument->IsInteger() && pcArgument && mpcUnit->GetFolder()->Constant(pcArgument, &lliValue) && (lliValue == 0))
 	{
 		return CPPCR_Conversion;
 	}

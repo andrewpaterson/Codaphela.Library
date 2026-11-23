@@ -289,9 +289,9 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
 			}
 			lliAlign = ObjectAlignment(psType);
 		}
-		else if (!Constant(pcAlignment, &lliAlign))
+		else if (!mcFolder.Constant(pcAlignment, &lliAlign))
 		{
-			ConstantError(pcAlignment, "The alignment must be a constant");
+			mcFolder.ConstantError(pcAlignment, "The alignment must be a constant");
 			return -1;
 		}
 		if ((lliAlign < 0) || (lliAlign > 0x10000) || ((lliAlign & (lliAlign - 1)) != 0))
@@ -1489,7 +1489,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 			if (pcInit->mpcDeclarator->IsFunction() || (!pcInit->mpcBitField && IsFunctionByType(pcSpecifiers, pcInit->mpcDeclarator)))
 			{
 				//virtual int f() = 0;
-				bPure = pcInit->mpcInitializer && Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
+				bPure = pcInit->mpcInitializer && mcFolder.Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
 				uiMembers = pcClass->mapcMembers.NumElements();
 				pcFunction = DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
 				if (!pcFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
@@ -1747,10 +1747,10 @@ bool CCPPUnit::ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpe
 		return mcDiagnostics.Defer(pcInit->miFirstToken, "A bit-field must be an integer, bool or enum");
 	}
 	bResult = true;
-	if (!Constant(pcInit->mpcBitField, &lliWidth) || (lliWidth < 0))
+	if (!mcFolder.Constant(pcInit->mpcBitField, &lliWidth) || (lliWidth < 0))
 	{
 		szMessage.Init();
-		ConstantMessage("A bit-field's width must be a constant of 0 or more", &szMessage);
+		mcFolder.ConstantMessage("A bit-field's width must be a constant of 0 or more", &szMessage);
 		bResult = mcDiagnostics.Defer(pcInit->mpcBitField->miFirstToken, szMessage.Text());
 		szMessage.Kill();
 		lliWidth = 1;

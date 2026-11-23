@@ -1780,12 +1780,12 @@ CCPPTemplateArguments* CCPPUnit::BindArguments(CCPPSyntaxTemplateDeclaration* pc
 				//A default can use the parameters before it: int N = sizeof(T).  [basic.scope.temp] 1
 				pcBindings->mpcOuter = mcContext.GetBindings();
 				mcContext.EnterBindings(pcBindings);
-				bResult = Constant(pcValue->mpcDefault, &psBinding->lliValue);
+				bResult = mcFolder.Constant(pcValue->mpcDefault, &psBinding->lliValue);
 				mcContext.LeaveBindings();
 				pcBindings->mpcOuter = NULL;
 				if (!bResult)
 				{
-					ConstantError(pcNode, "The template argument must be a constant");
+					mcFolder.ConstantError(pcNode, "The template argument must be a constant");
 				}
 			}
 			if (!bResult)
@@ -1846,7 +1846,7 @@ bool CCPPUnit::ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedA
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::ConstantFits(SCPP65Type* psType, int64 lliValue)
 {
-	return !psType->IsInteger() || psType->pcEnum || (psType->eKind == CPP65TK_Bool) || (ConstantOfType(psType, lliValue) == lliValue);
+	return !psType->IsInteger() || psType->pcEnum || (psType->eKind == CPP65TK_Bool) || (mcFolder.ConstantOfType(psType, lliValue) == lliValue);
 }
 
 

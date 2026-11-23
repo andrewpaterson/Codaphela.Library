@@ -153,9 +153,6 @@
     <ClCompile Include="CPPUnitExpressions.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitFloat.cpp">
-      <Filter>Source\Generator65</Filter>
-    </ClCompile>
     <ClCompile Include="CPPUnitObjects.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -187,6 +184,9 @@
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPConstants.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPConstantFolder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPUnitData.cpp">
@@ -1080,6 +1080,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPConstants.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPConstantFolder.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPLambda.h">

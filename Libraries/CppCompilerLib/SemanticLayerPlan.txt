@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 10, 11's first part and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 11 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -902,3 +902,15 @@ Stage 11 (2026-11-23): one evaluator of constants, its first part.
 	which the front end writes with and IsSignedOverflow checks a constant with, where each had its own switch;
 	the operators whose opcodes wrap (IsIRSignedWrapping) are the ones checked.  TestCppCompilerLib passes
 	(272,049); the diagnostics entries and the listings are as they were.
+
+	Third part (job b): the folder is a class of its own, CCPPConstantFolder (CPPConstantFolder.h and .cpp), which
+	the unit holds (mcFolder, GetFolder) and which is the unit's friend: its 25 functions (Evaluate, Constant,
+	FloatConstant, Fold and its arms, RunConstant and what decides it, ConstantError, the token and builtin
+	values, FloatBits) and SCPPConstant left the unit, and CPPUnitFloat.cpp, empty, is gone.  The unit's own
+	calls ask mcFolder, everyone else's GetFolder().  Moved by a script (the scratchpad's move.py, kept for the
+	lambdas' stage), which prefixed what the bodies use of the unit with mpcUnit->.  TestCppCompilerLib passes
+	(272,049); the diagnostics entries and the listings are as they were; the IDE builds.
+	Not done: RunConstant's ladder (which kinds of expression may be run) stays as a switch of its own, beside
+	the walk; "is this name a constant" is asked in NameConstant for integers and ConstexprFloat for floating
+	point, which differ on purpose (a const float is no constant); floating point constants aren't run by the
+	interpreter, so the code is as it was.

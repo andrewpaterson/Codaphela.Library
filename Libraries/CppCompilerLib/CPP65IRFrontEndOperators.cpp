@@ -227,7 +227,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 	}
 	if (psType->IsFloat())
 	{
-		sOne.sValue = mpcFunction->AddConstant(IRTypeOf(psType), (uint64)mpcUnit->FloatBits(psType, 1.0));
+		sOne.sValue = mpcFunction->AddConstant(IRTypeOf(psType), (uint64)mpcUnit->GetFolder()->FloatBits(psType, 1.0));
 		sOne.psType = psType;
 	}
 	else

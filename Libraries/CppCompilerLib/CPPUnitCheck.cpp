@@ -576,7 +576,7 @@ void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type
 	{
 		pcCase = (CCPPSyntaxCaseStatement*)apcCases.GetPtr(i);
 		mcDiagnostics.BeginQuiet();
-		bConstant = pcCase->mpcValue && Constant(pcCase->mpcValue, &lliValue);
+		bConstant = pcCase->mpcValue && mcFolder.Constant(pcCase->mpcValue, &lliValue);
 		mcDiagnostics.EndQuiet();
 		if (bConstant)
 		{
@@ -625,12 +625,12 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 		}
 		mpcConstants->ClearReason();
 		mcDiagnostics.BeginQuiet();
-		if (!Constant(pcCase->mpcValue, &lliValue))
+		if (!mcFolder.Constant(pcCase->mpcValue, &lliValue))
 		{
 			mcDiagnostics.EndQuiet();
 			//A case's value is a constant.  [stmt.switch] 2
 			mcDiagnostics.BeginLoud();
-			bResult = ConstantError(pcCase->mpcValue, "A case's value is a constant");
+			bResult = mcFolder.ConstantError(pcCase->mpcValue, "A case's value is a constant");
 			mcDiagnostics.EndLoud();
 			continue;
 		}
@@ -639,7 +639,7 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 		{
 			continue;
 		}
-		lliValue = ConstantOfType(psType, lliValue);
+		lliValue = mcFolder.ConstantOfType(psType, lliValue);
 		if (alliValues.Contains(&lliValue))
 		{
 			bResult = mcDiagnostics.ReportOnce(pcCase, "Two cases of the switch have one value");

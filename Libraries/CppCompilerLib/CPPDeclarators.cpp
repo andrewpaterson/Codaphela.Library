@@ -229,9 +229,9 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 				return NULL;
 			}
 		}
-		else if (!mpcUnit->Constant(pcArray->mpcSize, &lliCount))
+		else if (!mpcUnit->GetFolder()->Constant(pcArray->mpcSize, &lliCount))
 		{
-			mpcUnit->ConstantError(pcArray->mpcSize, "An array size must be a positive constant");
+			mpcUnit->GetFolder()->ConstantError(pcArray->mpcSize, "An array size must be a positive constant");
 			return NULL;
 		}
 		else if (lliCount <= 0)

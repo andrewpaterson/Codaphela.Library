@@ -405,7 +405,7 @@ bool CCPPUnit::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 		return false;
 	}
 	pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
-	return Constant(pcInit->mpcInitializer, &lliValue);
+	return mcFolder.Constant(pcInit->mpcInitializer, &lliValue);
 }
 
 
@@ -462,7 +462,7 @@ bool CCPPUnit::IsOuterConstant(CCPPSymbol* pcSymbol)
 	{
 		return false;
 	}
-	return Constant(((CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration)->mpcInitializer, &lliValue);
+	return mcFolder.Constant(((CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration)->mpcInitializer, &lliValue);
 }
 
 

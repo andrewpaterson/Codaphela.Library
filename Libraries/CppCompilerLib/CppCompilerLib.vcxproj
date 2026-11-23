@@ -296,7 +296,6 @@
     <ClCompile Include="CPPUnitOverloads.cpp" />
     <ClCompile Include="CPPUnitLabels.cpp" />
     <ClCompile Include="CPPUnitExpressions.cpp" />
-    <ClCompile Include="CPPUnitFloat.cpp" />
     <ClCompile Include="CPPUnitObjects.cpp" />
     <ClCompile Include="CPPUnitRangeFor.cpp" />
     <ClCompile Include="CPPUnitLambdas.cpp" />
@@ -308,6 +307,7 @@
     <ClCompile Include="CPPMangler.cpp" />
     <ClCompile Include="CPPContext.cpp" />
     <ClCompile Include="CPPConstants.cpp" />
+    <ClCompile Include="CPPConstantFolder.cpp" />
     <ClCompile Include="CPPUnitData.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
@@ -588,6 +588,7 @@
     <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPContext.h" />
     <ClInclude Include="CPPConstants.h" />
+    <ClInclude Include="CPPConstantFolder.h" />
     <ClInclude Include="CPPLambda.h" />
     <ClInclude Include="CPPUnitData.h" />
     <ClInclude Include="CPPDeclarators.h" />

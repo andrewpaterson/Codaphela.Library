@@ -1382,7 +1382,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		{
 			continue;
 		}
-		if (!mpcUnit->Constant(psCase->pcCase->mpcValue, &lliValue))
+		if (!mpcUnit->GetFolder()->Constant(psCase->pcCase->mpcValue, &lliValue))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

@@ -474,7 +474,7 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 			}
 			else
 			{
-				bResult = Constant(pcPattern, &psExpanded->lliValue) || ConstantError(pcArgument, "The template argument must be a constant");
+				bResult = mcFolder.Constant(pcPattern, &psExpanded->lliValue) || mcFolder.ConstantError(pcArgument, "The template argument must be a constant");
 			}
 		}
 		cElements.Kill();
@@ -514,7 +514,7 @@ bool CCPPUnit::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* pl
 		*plliValue = psArgument->lliValue;
 		return !psArgument->psType || mcDiagnostics.Error(psArgument->pcArgument, "The template argument must be a constant");
 	}
-	return Constant(psArgument->pcArgument, plliValue) || ConstantError(psArgument->pcArgument, "The template argument must be a constant");
+	return mcFolder.Constant(psArgument->pcArgument, plliValue) || mcFolder.ConstantError(psArgument->pcArgument, "The template argument must be a constant");
 }
 
 

@@ -322,7 +322,7 @@ bool CCPP65IRFrontEnd::InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psR
 	SCPP65IRValue	sSource;
 	int64			lliBytes;
 
-	if (!psResult || !mpcUnit->Constant(papcArguments->GetPtr(2), &lliBytes))
+	if (!psResult || !mpcUnit->GetFolder()->Constant(papcArguments->GetPtr(2), &lliBytes))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

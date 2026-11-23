@@ -1163,7 +1163,7 @@ bool CCPPPatternMatch::MatchArguments(CArraySyntax* papcPattern, CArrayCPPBindin
 			psBinding->psType = NULL;
 			continue;
 		}
-		if (!mpcUnit->Constant(pcPattern, &lliValue) || (lliValue != psArgument->lliValue))
+		if (!mpcUnit->GetFolder()->Constant(pcPattern, &lliValue) || (lliValue != psArgument->lliValue))
 		{
 			return false;
 		}
@@ -1367,7 +1367,7 @@ bool CCPPPatternMatch::MatchBound(CCPPSyntax* pcSize, int iCount)
 		psBinding->psType = NULL;
 		return true;
 	}
-	return mpcUnit->Constant(pcSize, &lliValue) && (lliValue == iCount);
+	return mpcUnit->GetFolder()->Constant(pcSize, &lliValue) && (lliValue == iCount);
 }
 
 

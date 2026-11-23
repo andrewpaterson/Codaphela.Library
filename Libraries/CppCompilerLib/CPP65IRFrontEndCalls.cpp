@@ -240,7 +240,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* p
 	bool			bPopcount;
 	bool			bClz;
 
-	if (mpcUnit->FloatBuiltin(pcCall, &dValue, &psType))
+	if (mpcUnit->GetFolder()->FloatBuiltin(pcCall, &dValue, &psType))
 	{
 		psValue->sValue = (psType->iBytes == 4) ? mpcFunction->AddFloat((float)dValue) : mpcFunction->AddDouble(dValue);
 		psValue->psType = psType;

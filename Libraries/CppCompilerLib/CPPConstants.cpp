@@ -208,7 +208,7 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 		mszReason.Append("It is an address, which is no number until the program is linked");
 		return false;
 	}
-	*plliValue = mpcUnit->ConstantOfType(psType, (int64)sResult.ulliBits);
+	*plliValue = mpcUnit->GetFolder()->ConstantOfType(psType, (int64)sResult.ulliBits);
 	return true;
 }
 

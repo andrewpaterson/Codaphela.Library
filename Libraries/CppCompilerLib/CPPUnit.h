@@ -64,6 +64,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPCompileOptions.h"
 #include "CPPLambda.h"
 #include "CPPTypeWriter.h"
+#include "CPPConstantFolder.h"
 
 
 class CCTString;
@@ -224,19 +225,6 @@ struct SCPPFailedDeclaration
 typedef CArrayTemplate<SCPPFailedDeclaration>	CArrayCPPFailedDeclarations;
 
 
-//A constant's value (CCPPUnit::Evaluate): an integer's, or a floating point number's with its type.
-struct SCPPConstant
-{
-	SCPP65Type*	psFloat;	//The floating point type, NULL for an integer.
-	int64		lliValue;	//An integer's value.
-	double		dValue;		//A floating point number's, as its type keeps it.
-
-	double		AsDouble(void) const;
-	void		SetFloat(SCPP65Type* psType, double d);
-	void		SetInteger(int64 lli);
-};
-
-
 //What a definition written outside its class template defines (SCPPOutsideDefinition).
 enum ECPPOutsideDefinition
 {
@@ -303,7 +291,9 @@ class CCPPTokenMarks;
 
 class CCPPUnit : public CCPPRuntimeWriter
 {
+friend class CCPPConstantFolder;
 protected:
+	CCPPConstantFolder		mcFolder;			//Works out constant expressions' values.
 	CCPPSyntaxTree*			mpcTree;
 	CCPPTokeniser*			mpcTokeniser;
 	CCPP65Types				mcTypes;
@@ -400,6 +390,7 @@ public:
 	CCPPDiagnostics*		GetDiagnostics(void);
 	CCPPBinder*				GetBinder(void);
 	CCPPConstants*			GetConstants(void) const;
+	CCPPConstantFolder*		GetFolder(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -842,7 +833,6 @@ public:
 	SCPP65Type*				CharacterTokenType(CCPPToken* pcToken);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
-	bool					TokenConstant(CCPPToken* pcToken, int64* plliValue);
 	bool					IsStringLiteral(CCPPSyntax* pcExpression);
 	CCTUserLiteral*			UserLiteralToken(CCPPSyntax* pcLiteral);
 	SCPPLiteralCall*		GetLiteralCall(CCPPSyntax* pcLiteral);
@@ -903,27 +893,7 @@ public:
 	bool					Supported(SCPP65Type* psType, CCPPSyntax* pcNode);
 
 
-	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
-	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
-	bool					Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValue);
-	bool					Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue);
-	bool					NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliValue);
-	bool					UnaryConstant(CCPPSyntaxUnaryExpression* pcUnary, int64 lliOperand, int64* plliValue);
-	bool					BinaryFloat(ECppTokens eOperator, SCPPConstant* psLeft, SCPPConstant* psRight, SCPPConstant* psValue);
-	bool					CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand, SCPPConstant* psValue);
-	bool					ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConstant* psValue);
 	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
-	bool					ConstantError(CCPPSyntax* pcNode, const char* szMessage);
-	void					ConstantMessage(const char* szMessage, CChars* pszDest);
-	bool					RunConstant(CCPPSyntax* pcExpression, int64* plliValue);
-	bool					NamesConstexpr(CCPPSyntax* pcNode);
-	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
-	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue);
-	bool					ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, int64* plliValue);
-	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
-	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
-	void					ConstantOverflow(CCPPSyntax* pcExpression, int64 lliValue, bool bUnsignedWraps);
-	bool					IsSignedOverflow(ECppTokens eOperator, int iBits, int64 lliLeft, int64 lliRight, int64 lliResult);
 	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
 	CCPPSyntaxBinaryExpression*	NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType);
@@ -1028,10 +998,6 @@ public:
 	CCPPFunction*			FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator);
 
 	//Floating point.  CPPUnitFloat.cpp
-	int64					FloatBits(SCPP65Type* psType, double dValue);
-	SCPP65Type*				ObjectConstantType(CCPPSyntax* pcExpression);
-	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
-	bool					TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType);
 };
 
 

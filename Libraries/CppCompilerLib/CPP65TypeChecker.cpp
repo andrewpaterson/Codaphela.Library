@@ -598,12 +598,12 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 		{
 			return NULL;
 		}
-		if (psType->IsFloat() && mpcUnit->FloatConstant(pcExpression, &dValue))
+		if (psType->IsFloat() && mpcUnit->GetFolder()->FloatConstant(pcExpression, &dValue))
 		{
 			return psType;
 		}
 	}
-	if (!mpcUnit->Constant(pcExpression, &lliValue))
+	if (!mpcUnit->GetFolder()->Constant(pcExpression, &lliValue))
 	{
 		//A class its name is qualified by that couldn't be made (Byte<300>::V) says why itself, asked for here.
 		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
@@ -613,7 +613,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 		}
 		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
-			mpcUnit->ConstantError(pcExpression, "The value is not a constant");
+			mpcUnit->GetFolder()->ConstantError(pcExpression, "The value is not a constant");
 		}
 		return NULL;
 	}
@@ -692,7 +692,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return (psType && psType->IsNullPointer()) ? mpcUnit->ValueParameterType(cBound.mpcSymbol, psType) : psType;
 	case CPPBN_Variable:
 		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
-		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->Constant(pcId, &lliValue)))
+		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->GetFolder()->Constant(pcId, &lliValue)))
 		{
 			return Load(cBound.mpcVariable->mpsType, pcId);
 		}
@@ -943,7 +943,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	}
 	else
 	{
-		if (mpcUnit->Constant(pcUnary, &lliValue))
+		if (mpcUnit->GetFolder()->Constant(pcUnary, &lliValue))
 		{
 			psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
 			if (psType && psType->IsInteger() && !psType->IsScopedEnum())
@@ -1983,7 +1983,7 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, CArrayS
 	CChars					szError;
 	double					dValue;
 
-	if (mpcUnit->FloatBuiltin(pcCall, &dValue, &psType))
+	if (mpcUnit->GetFolder()->FloatBuiltin(pcCall, &dValue, &psType))
 	{
 		return psType;
 	}
@@ -2937,7 +2937,7 @@ SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 		//Only checking: the value isn't needed, only the type (__builtin_va_arg(ap, T) is a T).
 		return CheckedSizeofType(pcSizeof);
 	}
-	if (!mpcUnit->Constant(pcSizeof, &lliBytes))
+	if (!mpcUnit->GetFolder()->Constant(pcSizeof, &lliBytes))
 	{
 		SizeofError(pcSizeof);
 		return NULL;
@@ -3206,7 +3206,7 @@ bool CCPP65TypeChecker::NewArrayBound(CCPPSyntax* pcBound)
 		Error(pcBound, "A new array's bound must be an integer");
 		return false;
 	}
-	if (psBound && psBound->bSigned && mpcUnit->Constant(pcBound, &lliBound) && (lliBound < 0))
+	if (psBound && psBound->bSigned && mpcUnit->GetFolder()->Constant(pcBound, &lliBound) && (lliBound < 0))
 	{
 		Error(pcBound, "A new array's bound can't be negative");
 		return false;
@@ -3288,11 +3288,11 @@ bool CCPP65TypeChecker::Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo)
 	mpcDiagnostics->BeginQuiet();
 	if (psFrom->IsFloat())
 	{
-		bConstant = mpcUnit->FloatConstant(pcSource, &dValue);
+		bConstant = mpcUnit->GetFolder()->FloatConstant(pcSource, &dValue);
 		mpcDiagnostics->EndQuiet();
 		return psTo->IsInteger() || ((psTo->iBytes < psFrom->iBytes) && !bConstant);
 	}
-	bConstant = mpcUnit->Constant(pcSource, &lliValue);
+	bConstant = mpcUnit->GetFolder()->Constant(pcSource, &lliValue);
 	mpcDiagnostics->EndQuiet();
 	if (psTo->IsFloat())
 	{
