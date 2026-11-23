@@ -3243,10 +3243,7 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 	{
 		psType = mcTypes.Enum(pcEnum, psBase ? psBase : mcTypes.Integer(iBytes, bSigned), pcSpecifier && pcSpecifier->mbScoped);
 		psType->bNonNegativeEnum = bNonNegative;
-		if (mpcSemanticPass)
-		{
-			mpcSemanticPass->EnumMade(this, psType);
-		}
+		mpcObserver->EnumMade(this, psType);
 		return psType;
 	}
 	return psBase ? psBase : mcTypes.Integer(iBytes, bSigned);

@@ -89,7 +89,6 @@ bool CCPPConstantFolder::Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValu
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The value of a constant expression of an integer type (Evaluate).
@@ -107,7 +106,6 @@ bool CCPPConstantFolder::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 	*plliValue = sValue.lliValue;
 	return true;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -132,7 +130,6 @@ bool CCPPConstantFolder::FloatConstant(CCPPSyntax* pcExpression, double* pdValue
 	*pdValue = sValue.dValue;
 	return true;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -331,7 +328,6 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // left op right where either is a floating point constant: + - * / in
@@ -355,7 +351,6 @@ bool CCPPConstantFolder::BinaryFloat(ECppTokens eOperator, SCPPConstant* psLeft,
 	default:			return false;
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -389,7 +384,6 @@ bool CCPPConstantFolder::CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOp
 	psValue->SetInteger(ConstantOfType(psType, sOperand.psFloat ? (int64)sOperand.dValue : sOperand.lliValue));
 	return true;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -447,7 +441,6 @@ bool CCPPConstantFolder::ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConsta
 	psValue->SetFloat(pcVariable->mpsType->Unqualified(), sInitialiser.AsDouble());
 	return true;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -584,7 +577,6 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // op operand, of an integer constant: ! gives 0 or 1, and + - ~ work in
@@ -623,7 +615,6 @@ bool CCPPConstantFolder::UnaryConstant(CCPPSyntaxUnaryExpression* pcUnary, int64
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The error that what must be a constant isn't (szMessage), with why if
@@ -644,7 +635,6 @@ bool CCPPConstantFolder::ConstantError(CCPPSyntax* pcNode, const char* szMessage
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // szMessage, and the reason the last constant asked for had no value if
@@ -660,7 +650,6 @@ void CCPPConstantFolder::ConstantMessage(const char* szMessage, CChars* pszDest)
 		pszDest->Append(mpcUnit->mpcConstants->GetReason());
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -738,7 +727,6 @@ bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The integer type an object is where an integer constant is wanted: what
@@ -763,7 +751,6 @@ SCPP65Type* CCPPConstantFolder::ObjectConstantType(CCPPSyntax* pcExpression)
 	mpcUnit->mcContext.LeaveWorking();
 	return (pcConversion && pcConversion->mbConstexpr) ? pcConversion->mpsReturn->WithoutReference()->Unqualified() : NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -804,7 +791,6 @@ bool CCPPConstantFolder::NamesConstexpr(CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type Constant works pcExpression out in, or NULL (64 bit) if that is
@@ -826,7 +812,6 @@ SCPP65Type* CCPPConstantFolder::ConstantTypeOf(CCPPSyntax* pcExpression)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The value of a call of a constexpr function that gives an integer, if
@@ -844,7 +829,6 @@ bool CCPPConstantFolder::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* 
 	mpcUnit->mcDiagnostics.EndSilent();
 	return bBound && ConstexprResult(cBound.mpcFunction, pcCall, plliValue);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -873,7 +857,6 @@ bool CCPPConstantFolder::ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* p
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // lliValue as an integer (or pointer) of psType holds it: cut to its width,
@@ -894,7 +877,6 @@ int64 CCPPConstantFolder::ConstantOfType(SCPP65Type* psType, int64 lliValue)
 	default:	return psType->bSigned ? (int64)(int32)lliValue : (int64)(uint32)lliValue;
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1004,7 +986,6 @@ bool CCPPConstantFolder::BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, in
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // True if a signed constant's left op right (iBits wide) that gave
@@ -1024,7 +1005,6 @@ bool CCPPConstantFolder::IsSignedOverflow(ECppTokens eOperator, int iBits, int64
 	uiOpcode = CPPArithmeticOpcode(eOperator, true);
 	return (uiOpcode != IRO_None) && IsIRSignedWrapping(uiOpcode) && IRSignedOverflows(uiOpcode, iBits, (uint64)lliLeft, (uint64)lliRight, (uint64)lliResult);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1070,7 +1050,6 @@ void CCPPConstantFolder::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliVal
 	mpcUnit->mcDiagnostics.Warning(pcExpression, szMessage.Text());
 	szMessage.Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1119,7 +1098,6 @@ bool CCPPConstantFolder::TokenConstant(CCPPToken* pcToken, int64* plliValue)
 	*plliValue = 0;
 	return true;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1219,7 +1197,6 @@ bool CCPPConstantFolder::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue,
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The bits of a floating point value of psType (as a 32 bit value for a float).
@@ -1242,7 +1219,6 @@ int64 CCPPConstantFolder::FloatBits(SCPP65Type* psType, double dValue)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A constant's value as a floating point number.
@@ -1252,7 +1228,6 @@ double SCPPConstant::AsDouble(void) const
 {
 	return psFloat ? dValue : (double)lliValue;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1267,7 +1242,6 @@ void SCPPConstant::SetFloat(SCPP65Type* psType, double d)
 	dValue = (psType->iBytes == 4) ? (double)(float)d : d;
 	lliValue = 0;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

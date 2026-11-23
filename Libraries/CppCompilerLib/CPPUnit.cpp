@@ -331,6 +331,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	muiSpillUnit = 0;
 	mauiCodePieces.Init();
 	mpcSemanticPass = NULL;
+	mpcObserver = &mcNoObserver;
 	mbRemember = false;
 	mcOwnStatistics.Init();
 	mpcStatistics = &mcOwnStatistics;
@@ -1588,7 +1589,7 @@ void CCPPUnit::GetExternals(CArrayChars* paszLabels)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind)
 {
-	return mpcSemanticPass && mpcSemanticPass->RecordEnumCast(pcNode, psFrom, psTo, uiKind);
+	return mpcObserver->RecordEnumCast(pcNode, psFrom, psTo, uiKind);
 }
 
 
@@ -1598,7 +1599,7 @@ bool CCPPUnit::RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsRecordedEnum(SCPP65Type* psType)
 {
-	return mpcSemanticPass && mpcSemanticPass->IsRecordedEnum(psType);
+	return mpcObserver->IsRecordedEnum(psType);
 }
 
 
@@ -5239,6 +5240,7 @@ CCPPClosures* CCPPUnit::GetClosures(void) { return &mcClosures; }
 CCPPClassData* CCPPUnit::GetClassData(void) { return &mcClassData; }
 CCPPStrings* CCPPUnit::GetStrings(void) { return &mcStrings; }
 CCPPCheck* CCPPUnit::GetCheck(void) { return &mcCheck; }
+CCPPUnitObserver* CCPPUnit::GetObserver(void) { return mpcObserver; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

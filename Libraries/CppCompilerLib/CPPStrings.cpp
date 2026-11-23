@@ -178,7 +178,6 @@ bool CCPPStrings::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The bytes of an element of a string expression: its widest token's, as
@@ -209,7 +208,6 @@ int CCPPStrings::StringElementBytes(CCPPSyntax* pcString)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type of the array a string literal is: its elements and the zero
@@ -228,7 +226,6 @@ SCPP65Type* CCPPStrings::StringArrayType(CCPPSyntax* pcString)
 	auiBytes.Kill();
 	return psArray;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -263,7 +260,6 @@ SCPP65Type* CCPPStrings::StringElementType(CCPPSyntax* pcString)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A decoded string's element uiElement.
@@ -281,7 +277,6 @@ uint32 CCPPStrings::StringElement(CArrayUint8* pauiBytes, int iElementBytes, siz
 	}
 	return uiValue;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -314,7 +309,6 @@ void CCPPStrings::DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CA
 		}
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

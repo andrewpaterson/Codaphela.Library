@@ -69,6 +69,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPClassData.h"
 #include "CPPStrings.h"
 #include "CPPCheck.h"
+#include "CPPUnitObserver.h"
 
 
 class CCTString;
@@ -313,6 +314,8 @@ friend class CCPPClassData;
 friend class CCPPStrings;
 friend class CCPPCheck;
 protected:
+	CCPPUnitObserver		mcNoObserver;		//Hears nothing: the observer when code is made.
+	CCPPUnitObserver*		mpcObserver;		//Told what the unit works out: the semantic pass when it checks.
 	CCPPCheck				mcCheck;			//The IDE's check of the unit as written.
 	CCPPStrings				mcStrings;			//Decodes string literals.
 	CCPPClassData			mcClassData;		//Writes classes' vtables, VTTs and type info.
@@ -415,6 +418,7 @@ public:
 	CCPPClassData*			GetClassData(void);
 	CCPPStrings*			GetStrings(void);
 	CCPPCheck*				GetCheck(void);
+	CCPPUnitObserver*		GetObserver(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);

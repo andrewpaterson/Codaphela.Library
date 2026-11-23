@@ -91,7 +91,6 @@ void CCPPClassData::EnsureVtable(CCPPClass* pcClass)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A vtable's words (CCPPVtable::GetEntries), with the label after the first
@@ -131,7 +130,6 @@ void CCPPClassData::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArr
 		}
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -203,7 +201,6 @@ void CCPPClassData::EnsureVTT(CCPPClass* pcClass)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The VTT entries (in pszWords) of the pcClass subobject at iOffset in a
@@ -259,7 +256,6 @@ void CCPPClassData::AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, 
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // How many words of VTT a base version of a constructor or destructor of
@@ -283,7 +279,6 @@ size CCPPClassData::VTTEntries(CCPPClass* pcClass)
 	}
 	return uiEntries;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -329,7 +324,6 @@ int CCPPClassData::VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The two words before each part of a vtable, for dynamic_cast: how far the
@@ -348,7 +342,6 @@ void CCPPClassData::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 	mpcUnit->mcMangler.AppendTypeInfoLabel(mpcUnit->mcData.GetText(), pcClass);
 	mpcUnit->mcData.GetText()->AppendNewLine();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -425,7 +418,6 @@ void CCPPClassData::EnsureTypeInfo(CCPPClass* pcClass)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type info entries for the class's subobject at iOffset and its non-
@@ -461,7 +453,6 @@ void CCPPClassData::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A type info's header, in the section being written: its name's label
@@ -478,7 +469,6 @@ void CCPPClassData::AppendTypeInfoHeader(CChars* pszName, uint32 uiKind)
 	mpcUnit->mcData.GetText()->Append((int)uiKind);
 	mpcUnit->mcData.GetText()->AppendNewLine();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -518,7 +508,6 @@ void CCPPClassData::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The routine an asm statement is: its text in a routine of the unit's own
@@ -533,7 +522,6 @@ void CCPPClassData::AsmRoutine(const char* szText, CChars* pszLabel)
 	mpcUnit->mszThunks.Append(pszLabel)->Append(":\n");
 	mpcUnit->mpcTarget->AppendAsmRoutine(&mpcUnit->mszThunks, szText);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -576,7 +564,6 @@ void CCPPClassData::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The label of the thunk a pointer to a virtual member function points to (as
@@ -602,7 +589,6 @@ void CCPPClassData::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A thunk's section and label, to be followed by its code.  One every unit
@@ -624,7 +610,6 @@ void CCPPClassData::AppendThunkLabel(CChars* pszLabel, bool bComdat)
 	mpcUnit->mszThunks.Append(':');
 	mpcUnit->mszThunks.AppendNewLine();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

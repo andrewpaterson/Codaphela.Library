@@ -123,7 +123,6 @@ SCPPLambda* CCPPClosures::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A lambda in a function every unit may write is named for it: its label,
@@ -145,7 +144,6 @@ void CCPPClosures::NameLambda(SCPPLambda* psLambda)
 	psLambda->szName.Append("__L");
 	psLambda->szName.Append((int)uiNumber);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -179,7 +177,6 @@ bool CCPPClosures::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* 
 	}
 	return false;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -248,7 +245,6 @@ bool CCPPClosures::LambdaCaptures(SCPPLambda* psLambda)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // What the body (pcNode) uses that the lambda must capture.
@@ -314,7 +310,6 @@ bool CCPPClosures::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Captures each element of psPack, the parameter pack of a function the
@@ -350,7 +345,6 @@ bool CCPPClosures::CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, C
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether the lambda has captured an enclosing function's parameter
@@ -361,7 +355,6 @@ bool CCPPClosures::IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack
 {
 	return (psPack->apcElements.NumElements() == 0) || (FindLambdaCapture(psLambda, psPack->apcElements.GetPtr(0)) != NULL);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -382,7 +375,6 @@ bool CCPPClosures::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	}
 	return AddThisCapture(psLambda, pcNode);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -417,7 +409,6 @@ bool CCPPClosures::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the symbol is a variable of a function the lambda is in whose
@@ -439,7 +430,6 @@ bool CCPPClosures::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambd
 	pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
 	return mpcUnit->mcFolder.Constant(pcInit->mpcInitializer, &lliValue);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -480,7 +470,6 @@ bool CCPPClosures::IsOuterLocal(CCPPSymbol* pcSymbol)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // True if a variable is a constant of a function a local class is in
@@ -498,7 +487,6 @@ bool CCPPClosures::IsOuterConstant(CCPPSymbol* pcSymbol)
 	}
 	return mpcUnit->mcFolder.Constant(((CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration)->mpcInitializer, &lliValue);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -521,7 +509,6 @@ CCPPVariable* CCPPClosures::EnclosingStatic(CCPPSymbol* pcSymbol)
 	}
 	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -556,7 +543,6 @@ SCPP65Type* CCPPClosures::EnclosingConstantType(CCPPSymbol* pcSymbol)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type a local constant (IsEnclosingConstant) is declared with, which
@@ -568,7 +554,6 @@ SCPP65Type* CCPPClosures::EnclosingConstantObjectType(CCPPSymbol* pcSymbol)
 {
 	return mpcUnit->mcTypes.Qualified(EnclosingConstantType(pcSymbol), true, false);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -618,7 +603,6 @@ bool CCPPClosures::IsOdrUse(CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the symbol is a member of a class that isn't static: a name of
@@ -636,7 +620,6 @@ bool CCPPClosures::IsThisMember(CCPPSymbol* pcSymbol)
 	pcSpecifiers = pcSymbol->DeclSpecifiers();
 	return !pcSpecifiers || !(pcSpecifiers->muiFlags & CPPDS_STATIC);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -659,7 +642,6 @@ SCPPLambdaCapture* CCPPClosures::FindLambdaCapture(SCPPLambda* psLambda, CCPPSym
 	}
 	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -713,7 +695,6 @@ bool CCPPClosures::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSy
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The capture of this: a field that is the enclosing object's this.
@@ -744,7 +725,6 @@ bool CCPPClosures::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A field of the closure, of the type.  It has no name: only its capture
@@ -757,7 +737,6 @@ size CCPPClosures::AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType)
 	psLambda->pcClass->macFields.Add()->Init(NULL, psType);
 	return psLambda->pcClass->macFields.NumElements() - 1;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -777,7 +756,6 @@ bool CCPPClosures::LayoutClosure(SCPPLambda* psLambda)
 	pcClass->meState = CPPCS_Complete;
 	return true;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -822,7 +800,6 @@ bool CCPPClosures::LambdaCall(SCPPLambda* psLambda)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The conversion of a closure that captures nothing to a pointer to a
@@ -848,7 +825,6 @@ void CCPPClosures::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCal
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // An operator() of the closure for parameters of these types, its return
@@ -869,7 +845,6 @@ CCPPFunction* CCPPClosures::LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Type
 	}
 	return pcFunction;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -903,7 +878,6 @@ CCPPFunction* CCPPClosures::AddLambdaFunction(SCPPLambda* psLambda, int64 lliNam
 	pcFunction->mbInline = true;
 	return pcFunction;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -958,7 +932,6 @@ void CCPPClosures::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArg
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A generic lambda's operator() for parameters of these types: the one made
@@ -984,7 +957,6 @@ CCPPFunction* CCPPClosures::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCP
 	}
 	return LambdaFunction(psLambda, papsParameters);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1038,7 +1010,6 @@ void CCPPClosures::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psF
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a generic lambda's parameter, as it is declared, is of psType
@@ -1083,7 +1054,6 @@ bool CCPPClosures::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Ty
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The closure whose operator() (or invoker) is being written, or NULL.
@@ -1093,7 +1063,6 @@ SCPPLambda* CCPPClosures::WritingLambda(void)
 {
 	return BodyLambda(mpcUnit->mcContext.GetFunction());
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1111,7 +1080,6 @@ SCPPLambda* CCPPClosures::BodyLambda(CCPPFunction* pcFunction)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // What a name in the body of the lambda being written is, if the lambda
@@ -1125,7 +1093,6 @@ SCPPLambdaCapture* CCPPClosures::FindCapture(CCPPSymbol* pcSymbol)
 	psLambda = WritingLambda();
 	return (psLambda && pcSymbol) ? FindLambdaCapture(psLambda, pcSymbol) : NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1147,7 +1114,6 @@ CCPPFunction* CCPPClosures::OuterFunction(void)
 	}
 	return pcFunction;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1179,7 +1145,6 @@ CCPPClass* CCPPClosures::ThisClass(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type of a lambda expression: its closure's class.
@@ -1192,7 +1157,6 @@ SCPP65Type* CCPPClosures::LambdaType(CCPPSyntaxLambdaExpression* pcSyntax)
 	psLambda = GetLambda(pcSyntax);
 	return psLambda ? psLambda->pcClass->mpsType : NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

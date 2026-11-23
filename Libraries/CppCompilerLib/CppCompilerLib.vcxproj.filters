@@ -195,6 +195,9 @@
     <ClCompile Include="CPPUnitData.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPUnitObserver.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPDeclarators.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1104,6 +1107,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPUnitData.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPUnitObserver.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPDeclarators.h">

@@ -970,3 +970,12 @@ Stage 13 (2026-11-23): class data, labels and what runs at exit.
 	functions, with its four visitors, and CArrayCPPNameClasses; the file is gone.  The move script takes
 	overloads now (Resolved's two).  TestCppCompilerLib passes (272,061); the diagnostics entries and the listings
 	are as they were; the IDE builds.
+
+	Third part: what the unit tells whoever checks it is said to an observer, CCPPUnitObserver
+	(CPPUnitObserver.h and .cpp: Typed, PlaceTyped, Changed, Resolved, EnumMade, IsRecordedEnum, RecordEnumCast),
+	which hears nothing when code is made (the unit's mcNoObserver) and is the semantic pass, which derives from
+	it, when it checks (mpcObserver, set by Check).  The eight null tests of mpcSemanticPass that guarded telling
+	it are gone; the three that ask whether this is a check at all (CheckUncalledFunctions, GenerateFunction,
+	the template's definition) stay.  The classes made by the move script are two blank lines between functions,
+	as the rest.  TestCppCompilerLib passes (272,061); the diagnostics entries and the listings are as they were;
+	the IDE's 24 Find Usages and Rename checks pass, and its enum checks are as before.  Stage 14 is done.

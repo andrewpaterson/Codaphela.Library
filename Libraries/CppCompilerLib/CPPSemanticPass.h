@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_P_P_SEMANTIC_PASS_H__
 #define __C_P_P_SEMANTIC_PASS_H__
+#include "CPPUnitObserver.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
@@ -99,7 +100,7 @@ typedef CArrayTemplate<SCPPEnumCast>	CArrayCPPEnumCasts;
 //the type checker would refuse its value (given to another type, in arithmetic, compared with an integer, as a
 //condition) is recorded instead (GetEnumCast), and the check goes on as if it were allowed, so what follows from
 //one cast is found too.  A refactoring that makes the enum an enum class writes the casts from them.
-class CCPPSemanticPass
+class CCPPSemanticPass : public CCPPUnitObserver
 {
 protected:
 	CMapResolvedNames	mcNames;		//By the C++ token of the name (its last component's): the first thing it resolved to.
@@ -127,16 +128,16 @@ public:
 	bool				IsTemplatesAsThemselves(void) const;
 	void				SetRecordedEnum(const char* szQualifiedName);
 	const char*			GetRecordedEnum(void) const;
-	void				EnumMade(CCPPUnit* pcUnit, SCPP65Type* psType);
+	void				EnumMade(CCPPUnit* pcUnit, SCPP65Type* psType) override;
 	SCPP65Type*			GetRecordedEnumType(void) const;
-	bool				IsRecordedEnum(SCPP65Type* psType);
-	bool				RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
+	bool				IsRecordedEnum(SCPP65Type* psType) override;
+	bool				RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind) override;
 	size				NumEnumCasts(void) const;
 	SCPPEnumCast*		GetEnumCast(size uiIndex) { return masEnumCasts.Get(uiIndex); }
 
-	void				Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
-	void				PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);
-	void				Changed(CCPPSyntax* pcExpression, uint8 uiChanges);
+	void				Typed(CCPPSyntax* pcExpression, SCPP65Type* psType) override;
+	void				PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType) override;
+	void				Changed(CCPPSyntax* pcExpression, uint8 uiChanges) override;
 	SCPP65Type*			GetType(CCPPSyntax* pcExpression);
 	uint8				GetChanges(CCPPSyntax* pcExpression);
 	uint8				FindChanges(CCPPSyntax* pcExpression);
@@ -144,7 +145,7 @@ public:
 	bool				AppendDeclaration(SCPP65Type* psType, const char* szName, CChars* pszDest);
 	bool				AppendFunctionLabel(CCPPSyntaxDeclarator* pcDeclarator, CChars* pszDest);
 
-	void				Resolved(int iToken, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator);
+	void				Resolved(int iToken, CCPPSymbol* pcSymbol, CCPPSyntaxDeclarator* pcDeclarator) override;
 	SCPPResolvedName*	GetResolved(int iToken);
 	SCPPResolvedName*	GetNextResolved(SCPPResolvedName* psResolved);
 	size				NumResolved(void);

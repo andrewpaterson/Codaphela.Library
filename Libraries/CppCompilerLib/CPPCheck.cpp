@@ -166,6 +166,7 @@ bool CCPPCheck::Check(CCPPSemanticPass* pcPass, bool bRemember)
 	CCPPSyntaxTranslationUnit*	pcRoot;
 
 	mpcUnit->mpcSemanticPass = pcPass;
+	mpcUnit->mpcObserver = pcPass;
 	mpcUnit->mbRemember = bRemember;
 	pcRoot = mpcUnit->mpcTree->GetRoot();
 	if (pcRoot)
@@ -186,10 +187,10 @@ bool CCPPCheck::Check(CCPPSemanticPass* pcPass, bool bRemember)
 	ReportNamedInstances();
 	mpcUnit->CheckContext();
 	mpcUnit->mpcSemanticPass = NULL;
+	mpcUnit->mpcObserver = &mpcUnit->mcNoObserver;
 	mpcUnit->mbRemember = false;
 	return mpcUnit->mcDiagnostics.GetErrors()->NumErrors() == 0;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,7 +212,6 @@ void CCPPCheck::ReportUndeclaredTypes(void)
 		mpcUnit->mpcTree->GetRoot()->VisitFields(&cFinder);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -251,7 +251,6 @@ void CCPPCheck::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Checks the functions waiting to be generated, then every function with
@@ -289,7 +288,6 @@ bool CCPPCheck::CheckDefinitions(void)
 	}
 	return bChecked;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -340,7 +338,6 @@ void CCPPCheck::CheckClasses(CArraySyntax* papcDeclarations)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A function's parameters and locals are given their types, then each
@@ -371,7 +368,6 @@ void CCPPCheck::CheckFunction(CCPPFunction* pcFunction)
 	CheckNode(pcDefinition->mpcBody);
 	mpcUnit->LeaveFunction();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -434,7 +430,6 @@ void CCPPCheck::CheckUncalledFunctions(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether pcNode is written in a source file (the unit's own, as a rule)
@@ -454,7 +449,6 @@ bool CCPPCheck::IsInSourceFile(CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a file's name is a source file's, not a header's.
@@ -467,7 +461,6 @@ bool CCPPCheck::IsSourceFileName(const char* szName)
 	szDot = strrchr(szName, '.');
 	return szDot && ((strcmp(szDot, ".cpp") == 0) || (strcmp(szDot, ".c") == 0) || (strcmp(szDot, ".cc") == 0) || (strcmp(szDot, ".cxx") == 0));
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -601,7 +594,6 @@ void CCPPCheck::CheckNode(CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type a switch's cases are compared as, for CheckSwitch where the IR
@@ -628,7 +620,6 @@ SCPP65Type* CCPPCheck::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 	}
 	return (psType && psType->IsInteger()) ? mpcUnit->mcTypes.Promote(psType) : NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -680,7 +671,6 @@ void CCPPCheck::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Typ
 	}
 	apcCases.Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -750,7 +740,6 @@ bool CCPPCheck::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psT
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // break or continue: an error if no loop (or, for break, switch) holds it
@@ -788,7 +777,6 @@ bool CCPPCheck::CheckJump(CCPPSyntax* pcJump, bool bContinue)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a declaration statement's local, pcInit, is one a jump may not
@@ -817,7 +805,6 @@ bool CCPPCheck::IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 	}
 	return pcInit->mpcInitializer || (psType && psType->IsClass() && (psType->pcClass->NeedsConstructor() || psType->pcClass->mpcDestructor));
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -866,7 +853,6 @@ void CCPPCheck::LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySynt
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The label statement named as iNameToken's identifier in pcNode (not in a
@@ -903,7 +889,6 @@ CCPPSyntax* CCPPCheck::FindLabel(CCPPSyntax* pcNode, int iNameToken)
 	}
 	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -953,7 +938,6 @@ bool CCPPCheck::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type of the variable a condition declares (if (T x = v)), or NULL if
@@ -979,7 +963,6 @@ SCPP65Type* CCPPCheck::ConditionVariableType(CCPPSyntax* pcCondition)
 	pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 	return pcVariable ? pcVariable->mpsType : NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1012,7 +995,6 @@ bool CCPPCheck::CheckCaseInSwitch(CCPPSyntax* pcCase)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A class defined in a block: what final and override say of it is
@@ -1035,7 +1017,6 @@ bool CCPPCheck::CheckLocalClass(CCPPSyntax* pcDeclaration)
 	mpcUnit->mcDiagnostics.EndLoud();
 	return bResult;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1063,7 +1044,6 @@ bool CCPPCheck::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Why a string literal doesn't initialise an array of psElement: the
@@ -1078,7 +1058,6 @@ const char* CCPPCheck::StringArrayError(CCPPSyntax* pcString, SCPP65Type* psElem
 	}
 	return (mpcUnit->mcStrings.StringElementBytes(pcString) == 1) ? "A string without a prefix (or u8) initialises an array of char only" : "A wide string initialises an array of its own kind of character only: wchar_t for L, char16_t for u, char32_t for U";
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1104,7 +1083,6 @@ void CCPPCheck::SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases)
 		SwitchCases(pcNode->GetChild(i), papcCases);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1179,7 +1157,6 @@ bool CCPPCheck::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 		return bResult;
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1261,7 +1238,6 @@ bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement*
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1273,7 +1249,6 @@ void CCPPCheck::CheckChildren(CCPPSyntax* pcNode)
 	cChildren.mpcUnit = mpcUnit;
 	pcNode->VisitFields(&cChildren);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1294,7 +1269,6 @@ void CCPPCheck::CheckExpression(CCPPSyntax* pcExpression)
 	CheckChildren(pcExpression);
 	mpcUnit->mcDiagnostics.EndQuiet();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1319,7 +1293,6 @@ void CCPPCheck::CheckLambdas(CCPPSyntax* pcNode)
 	cChildren.mpcUnit = mpcUnit;
 	pcNode->VisitFields(&cChildren);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1350,7 +1323,6 @@ void CCPPCheck::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 	CheckNode(pcLambda->mpcDefinition->mpcBody);
 	mpcUnit->LeaveFunction();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1391,7 +1363,6 @@ void CCPPCheck::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The expressions the type checker types (not initialiser lists, which
@@ -1411,7 +1382,6 @@ bool CCPPCheck::IsCheckedExpression(CCPPSyntax* pcNode)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type checker found which function pcName calls (or names): the
@@ -1423,7 +1393,7 @@ void CCPPCheck::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 	CCPPSyntaxName*	pcDeclared;
 	CCPPSymbol*		pcSymbol;
 
-	if (!mpcUnit->mpcSemanticPass || !pcName || !pcName->GetLast() || !pcFunction)
+	if (!pcName || !pcName->GetLast() || !pcFunction)
 	{
 		return;
 	}
@@ -1437,9 +1407,8 @@ void CCPPCheck::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 	{
 		pcSymbol = pcName->mpcSymbol;
 	}
-	mpcUnit->mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, pcFunction->mpcDeclarator);
+	mpcUnit->mpcObserver->Resolved(pcName->GetLast()->miName, pcSymbol, pcFunction->mpcDeclarator);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1450,13 +1419,12 @@ void CCPPCheck::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 //////////////////////////////////////////////////////////////////////////
 void CCPPCheck::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
 {
-	if (!mpcUnit->mpcSemanticPass || !pcName || !pcName->GetLast())
+	if (!pcName || !pcName->GetLast())
 	{
 		return;
 	}
-	mpcUnit->mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, NULL);
+	mpcUnit->mpcObserver->Resolved(pcName->GetLast()->miName, pcSymbol, NULL);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1519,7 +1487,6 @@ void CCPPCheck::CheckTemplatesAsThemselves(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether what is being checked is written as it is checked: it is not
@@ -1535,7 +1502,6 @@ bool CCPPCheck::IsCheckedAsWritten(void) const
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // The type checker typed pcExpression: a kept check's pass is told, if
@@ -1546,10 +1512,9 @@ void CCPPCheck::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
 	if (mpcUnit->mbRemember && IsCheckedAsWritten())
 	{
-		mpcUnit->mpcSemanticPass->Typed(pcExpression, psType);
+		mpcUnit->mpcObserver->Typed(pcExpression, psType);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1561,10 +1526,9 @@ void CCPPCheck::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
 	if (mpcUnit->mbRemember && IsCheckedAsWritten())
 	{
-		mpcUnit->mpcSemanticPass->PlaceTyped(pcExpression, psType);
+		mpcUnit->mpcObserver->PlaceTyped(pcExpression, psType);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1578,10 +1542,9 @@ void CCPPCheck::Changed(CCPPSyntax* pcExpression, uint8 uiChanges)
 {
 	if (mpcUnit->mbRemember)
 	{
-		mpcUnit->mpcSemanticPass->Changed(pcExpression, uiChanges);
+		mpcUnit->mpcObserver->Changed(pcExpression, uiChanges);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1610,7 +1573,6 @@ CCPPFunction* CCPPCheck::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator
 	}
 	return NULL;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1671,7 +1633,6 @@ void CCPPCheck::ReportNamedInstances(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Marks the unit's class keys (class, struct, union): a class's definition
@@ -1694,7 +1655,6 @@ void CCPPCheck::MarkClassKeys(CCPPTokenMarks* pcMarks)
 		pcMarks->Next(pcWord && ((pcWord->GetToken() == CT_class) || (pcWord->GetToken() == CT_struct) || (pcWord->GetToken() == CT_union)));
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1764,7 +1724,6 @@ void CCPPCheck::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a class is the name of a template's instance: it has a name,
@@ -1827,7 +1786,6 @@ bool CCPPCheck::IsNameClass(CCPPSyntaxClassSpecifier* pcClass)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 // A name's component written with template arguments: a warning if it is
@@ -1884,7 +1842,6 @@ void CCPPCheck::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPNam
 	}
 	szInstance.Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
