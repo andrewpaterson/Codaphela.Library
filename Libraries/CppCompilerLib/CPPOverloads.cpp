@@ -2485,7 +2485,7 @@ void CCPPOverloads::AddCallTemplates(CCPPSymbol* pcSymbol, CCPPSyntaxCallExpress
 				continue;
 			}
 			pcSuffix = pcTemplate->FunctionDeclarator()->GetFunctionSuffix();
-			if (pcSuffix && pcSuffix->TakesArgumentCount(papcArguments->NumElements()))
+			if (pcSuffix && pcSuffix->TakesArgumentCount(papcArguments->NumElements()) && (papcCandidates->Find(pcTemplate) == ARRAY_ELEMENT_NOT_FOUND))
 			{
 				papcCandidates->Add(pcTemplate);
 			}

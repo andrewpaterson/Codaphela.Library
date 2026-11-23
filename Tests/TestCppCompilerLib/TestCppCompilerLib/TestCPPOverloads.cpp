@@ -136,6 +136,15 @@ void TestCPPOverloadsTemplates(void)
 	AssertInt(2, TestCPP65Main("template <class T> int F(T t) { return 1; }\nint F(int a) { return 2; }\nint main() { return F(1); }"));
 	AssertInt(21, TestCPP65Main("int F(int a) { return 2; }\ntemplate <class T> int F(T t) { return 1; }\nint main() { char c = 1; return F(1) * 10 + F(c); }"));
 	AssertInt(1, TestCPP65Main("template <class T> int F(T t) { return 1; }\nint F(int a) { return 2; }\nint main() { return F<int>(1); }"));
+
+	//A template found more than once (through a using-declaration as well as in its namespace, or by a using-directive
+	//and its argument's namespace too) is one candidate, not two that are ambiguous.  [namespace.udecl] 1
+	AssertInt(3, TestCPP65Main("struct S { char a[3]; };\nnamespace N { template <class T> int Size(T* p) { return sizeof(T); } }\nusing N::Size;\nint main() { S s; s.a[0] = 0; return Size(&s); }"));
+	AssertInt(3, TestCPP65Main("struct S { char a[3]; };\nnamespace N { template <class T> int Size(T* p); }\ntemplate <class T> int N::Size(T* p) { return sizeof(T); }\nusing N::Size;\nint main() { S s; s.a[0] = 0; return Size(&s); }"));
+	AssertInt(3, TestCPP65Main("namespace N { struct S { char a[3]; };\ntemplate <class T> int Size(T* p) { return sizeof(T); } }\nusing namespace N;\nint main() { S s; s.a[0] = 0; return Size(&s); }"));
+
+	//Two templates of the name that are different, as good as each other, still are.
+	AssertOverloadError("The call is ambiguous", "namespace A { template <class T> int F(T t) { return 1; } }\nnamespace B { template <class T> int F(T t) { return 2; } }\nusing A::F;\nusing B::F;\nint main() { return F(1); }");
 }
 
 
