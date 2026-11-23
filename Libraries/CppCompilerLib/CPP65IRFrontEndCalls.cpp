@@ -43,9 +43,9 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psOperandType;
 
-	if (mpcUnit->ImplicitAssignment(pcCall))
+	if (mpcUnit->GetDesugarings()->ImplicitAssignment(pcCall))
 	{
-		return Assignment(mpcUnit->ImplicitAssignment(pcCall), psValue, NULL);
+		return Assignment(mpcUnit->GetDesugarings()->ImplicitAssignment(pcCall), psValue, NULL);
 	}
 	if (!mpcUnit->GetBinder()->Bind(pcCall, &cBound, false))
 	{

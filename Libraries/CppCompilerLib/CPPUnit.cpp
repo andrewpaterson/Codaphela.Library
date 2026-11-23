@@ -359,16 +359,11 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcAllBindings.Init();
 	mapapsPacks.Init();
 	mapalliPacks.Init();
-	masBracedLists.Init();
 	mbValueArgumentRefused = false;
 	masPackElements.Init();
 	masExpandedArguments.Init();
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
-	mcRangeFors.Init(true);
-	mcLiteralCalls.Init(true);
-	mcDecltypeMembers.Init(true);
-	mcImplicitAssignments.Init(true);
 	mcExplicitInstances.Init(true);
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
@@ -379,11 +374,10 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcWarnings.Init(this);
 	mcBuiltins.Init(this);
 	mcExceptions.Init(this);
+	mcDesugarings.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
-	mpcImplicitZero = NULL;
-	mcImplicitValues.Init(true);
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	masFailed.Init();
@@ -478,7 +472,6 @@ void CCPPUnit::Kill(void)
 		SafeKill(palliPack);
 	}
 	mapalliPacks.Kill();
-	masBracedLists.Kill();
 	masPackElements.Kill();
 	for (i = 0; i < masExpandedArguments.NumElements(); i++)
 	{
@@ -500,15 +493,11 @@ void CCPPUnit::Kill(void)
 		free(mapcHiddenSymbols.GetPtr(i));
 	}
 	mapcHiddenSymbols.Kill();
-	mcRangeFors.Kill();
-	mcLiteralCalls.Kill();
-	mcDecltypeMembers.Kill();
-	mcImplicitAssignments.Kill();
 	mcExplicitInstances.Kill();
 	mcClosures.Kill();
+	mcDesugarings.Kill();
 	masOutsideDefinitions.Kill();
 	mapcVariableInstances.Kill();
-	mcImplicitValues.Kill();
 	mapcQueue.Kill();
 	masFailed.Kill();
 	mcTypeOfs.Kill();
@@ -3394,7 +3383,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 	bool						bResult;
 	double						dValue;
 
-	pcInitialiser = BracedFor(psType, pcInitialiser);
+	pcInitialiser = mcDesugarings.BracedFor(psType, pcInitialiser);
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
 	{
 		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
@@ -4102,7 +4091,7 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 		}
 	}
 
-	if ((pcNode->GetKind() == CPPS_RangeForStatement) && !RangeForLocals((CCPPSyntaxRangeForStatement*)pcNode))
+	if ((pcNode->GetKind() == CPPS_RangeForStatement) && !mcDesugarings.RangeForLocals((CCPPSyntaxRangeForStatement*)pcNode))
 	{
 		return false;
 	}
@@ -4725,6 +4714,7 @@ CCPPUnitObserver* CCPPUnit::GetObserver(void) { return mpcObserver; }
 CCPPWarnings* CCPPUnit::GetWarner(void) { return &mcWarnings; }
 CCPPBuiltins* CCPPUnit::GetBuiltins(void) { return &mcBuiltins; }
 CCPPExceptions* CCPPUnit::GetExceptions(void) { return &mcExceptions; }
+CCPPDesugarings* CCPPUnit::GetDesugarings(void) { return &mcDesugarings; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

@@ -709,7 +709,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	}
 	if (!pcFunction)
 	{
-		if ((mpcDiagnostics->GetErrors()->NumErrors() == uiErrors) && !mpcUnit->ImplicitAssignment(pcCall))
+		if ((mpcDiagnostics->GetErrors()->NumErrors() == uiErrors) && !mpcUnit->GetDesugarings()->ImplicitAssignment(pcCall))
 		{
 			mpcDiagnostics->Error(pcCallee, "The class has no member function of that name");
 		}

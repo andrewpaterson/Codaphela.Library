@@ -179,13 +179,13 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	case CPPS_ImplicitArgument:
 		return ImplicitArgument((CCPPSyntaxImplicitArgument*)pcExpression, psValue);
 	case CPPS_LiteralExpression:
-		return mpcUnit->UserLiteralToken(pcExpression) ? LiteralCall(pcExpression, psValue) : (ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__));
+		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) ? LiteralCall(pcExpression, psValue) : (ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__));
 	case CPPS_SizeofExpression:
 	case CPPS_TypeTraitExpression:
 	case CPPS_NoexceptExpression:
 		return ConstantValue(pcExpression, psValue) || Unsupported(__FILE__, __LINE__);
 	case CPPS_StringExpression:
-		return mpcUnit->UserLiteralToken(pcExpression) ? LiteralCall(pcExpression, psValue) : StringLiteral(pcExpression, psValue);
+		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) ? LiteralCall(pcExpression, psValue) : StringLiteral(pcExpression, psValue);
 	case CPPS_IdExpression:
 		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
 		switch (cBound.meWhat)
@@ -580,7 +580,7 @@ bool CCPP65IRFrontEnd::ImplicitArgument(CCPPSyntaxImplicitArgument* pcArgument, 
 	if (pcArgument->miSpelling >= 0)
 	{
 		szSpelling.Init();
-		mpcUnit->UserLiteralSpelling(pcArgument->miSpelling, &szSpelling);
+		mpcUnit->GetDesugarings()->UserLiteralSpelling(pcArgument->miSpelling, &szSpelling);
 		StringData(szSpelling.Text(), szSpelling.Length(), psValue);
 		psValue->psType = pcArgument->mpsType;
 		szSpelling.Kill();
@@ -600,7 +600,7 @@ bool CCPP65IRFrontEnd::LiteralCall(CCPPSyntax* pcLiteral, SCPP65IRValue* psValue
 {
 	SCPPLiteralCall*	psCall;
 
-	psCall = mpcUnit->GetLiteralCall(pcLiteral);
+	psCall = mpcUnit->GetDesugarings()->GetLiteralCall(pcLiteral);
 	if (!psCall)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1339,7 +1339,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	case CPPS_LiteralExpression:
 		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
 		psType = mpcUnit->DeclaredTypeOf(pcExpression);
-		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->UserLiteralToken(pcExpression)))
+		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression)))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

@@ -185,10 +185,10 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 
 	case CPPS_LiteralExpression:
 	case CPPS_StringExpression:
-		if (mpcUnit->UserLiteralToken(pcExpression))
+		if (mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression))
 		{
 			//12_km and "abc"_len are their literal operators' calls.  [lex.ext] 2
-			psCall = mpcUnit->GetLiteralCall(pcExpression);
+			psCall = mpcUnit->GetDesugarings()->GetLiteralCall(pcExpression);
 			return psCall && ConstexprResult(psCall->pcFunction, pcExpression, &psValue->lliValue);
 		}
 		if (pcExpression->GetKind() == CPPS_StringExpression)

@@ -214,7 +214,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 	if (mpcUnit->IsObject(pcUnary->mpcOperand))
 	{
 		//++object, --object, and object++ and object-- with an int 0: the object's operator.  [over.inc] 1
-		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->ImplicitZero() : NULL, psValue);
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->GetDesugarings()->ImplicitZero() : NULL, psValue);
 	}
 	if (!Place(pcUnary->mpcOperand, &sPlace) || !Load(&sPlace, &sOld))
 	{

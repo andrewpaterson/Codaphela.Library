@@ -185,7 +185,7 @@ void CCPP65TypeChecker::VisitSubscriptExpression(CCPPSyntaxSubscriptExpression* 
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNode)
 {
-	mpsResult = mpcUnit->UserLiteralToken(pcNode) ? LiteralCall(pcNode) : ConstantValue(pcNode);
+	mpsResult = mpcUnit->GetDesugarings()->UserLiteralToken(pcNode) ? LiteralCall(pcNode) : ConstantValue(pcNode);
 }
 
 
@@ -195,7 +195,7 @@ void CCPP65TypeChecker::VisitLiteralExpression(CCPPSyntaxLiteralExpression* pcNo
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitStringExpression(CCPPSyntaxStringExpression* pcNode)
 {
-	mpsResult = mpcUnit->UserLiteralToken(pcNode) ? LiteralCall(pcNode) : StringLiteral(pcNode);
+	mpsResult = mpcUnit->GetDesugarings()->UserLiteralToken(pcNode) ? LiteralCall(pcNode) : StringLiteral(pcNode);
 }
 
 
@@ -210,7 +210,7 @@ SCPP65Type* CCPP65TypeChecker::LiteralCall(CCPPSyntax* pcLiteral)
 	SCPPLiteralCall*	psCall;
 	CCPPFunction*		pcFunction;
 
-	psCall = mpcUnit->GetLiteralCall(pcLiteral);
+	psCall = mpcUnit->GetDesugarings()->GetLiteralCall(pcLiteral);
 	if (!psCall)
 	{
 		Error(pcLiteral, "No literal operator takes the literal");
@@ -988,7 +988,7 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	if (mpcUnit->IsObject(pcUnary->mpcOperand))
 	{
 		//++object, --object, and object++ and object-- with an int 0: the object's operator.  [over.inc] 1
-		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->ImplicitZero() : NULL, pcUnary);
+		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->GetDesugarings()->ImplicitZero() : NULL, pcUnary);
 	}
 	psType = Place(pcUnary->mpcOperand);
 	if (!psType || !CanChange(psType, pcUnary))
@@ -1701,9 +1701,9 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 	SCPP65Type*		psType;
 	size			uiErrors;
 
-	if (mpcUnit->ImplicitAssignment(pcCall))
+	if (mpcUnit->GetDesugarings()->ImplicitAssignment(pcCall))
 	{
-		return Assignment(mpcUnit->ImplicitAssignment(pcCall));
+		return Assignment(mpcUnit->GetDesugarings()->ImplicitAssignment(pcCall));
 	}
 	if (!mpcUnit->GetBinder()->Bind(pcCall, &cBound, true))
 	{
@@ -3425,7 +3425,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	{
 		papcArguments = &apcArguments;
 	}
-	pcInitialiser = mpcUnit->BracedFor(psType, pcInitialiser);
+	pcInitialiser = mpcUnit->GetDesugarings()->BracedFor(psType, pcInitialiser);
 	bBraced = pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList);
 	pcList = bBraced ? pcInitialiser : NULL;
 	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))

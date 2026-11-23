@@ -321,14 +321,14 @@ bool CCPP65IRFrontEnd::UndoDeallocate(SCPP65IRCleanup* psPart)
 		return true;
 	}
 	apcArguments.Init();
-	pcArgument = mpcUnit->ImplicitValue(psPart->pcFor, mpcTypes->Pointer(&mpcTypes->msVoid), 1);
+	pcArgument = mpcUnit->GetDesugarings()->ImplicitValue(psPart->pcFor, mpcTypes->Pointer(&mpcTypes->msVoid), 1);
 	apcArguments.Add(pcArgument);
 	sValue.psType = pcArgument->mpsType;
 	sValue.sValue = psPart->sPlace.sAddress;
 	mcImplicitValues.Put((int64)(size)pcArgument, &sValue);
 	for (ui = 0; ui < psPart->uiValues; ui++)
 	{
-		pcArgument = mpcUnit->ImplicitValue(psPart->pcFor, psPart->apsValueTypes[ui], (int)(2 + ui));
+		pcArgument = mpcUnit->GetDesugarings()->ImplicitValue(psPart->pcFor, psPart->apsValueTypes[ui], (int)(2 + ui));
 		apcArguments.Add(pcArgument);
 		sValue.psType = psPart->apsValueTypes[ui];
 		sValue.sValue = psPart->asValues[ui];
@@ -542,7 +542,7 @@ bool CCPP65IRFrontEnd::Deallocation(CCPPSyntaxNewExpression* pcNew, CCPPFunction
 			{
 				return false;
 			}
-			pcArgument = mpcUnit->ImplicitValue(pcNew, sValue.psType, (int)(1 + ui));
+			pcArgument = mpcUnit->GetDesugarings()->ImplicitValue(pcNew, sValue.psType, (int)(1 + ui));
 			mcImplicitValues.Put((int64)(size)pcArgument, &sValue);
 			papcArguments->SetPtr(ui, pcArgument);
 			psFree->asValues[ui - 1] = sValue.sValue;

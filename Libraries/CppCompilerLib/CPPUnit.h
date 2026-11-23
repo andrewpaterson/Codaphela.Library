@@ -73,6 +73,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPWarnings.h"
 #include "CPPBuiltins.h"
 #include "CPPExceptions.h"
+#include "CPPDesugarings.h"
 
 
 class CCTString;
@@ -126,19 +127,6 @@ struct SCPPExpandedArguments
 typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
 
 
-//A list in braces whose left out braces were put back for the aggregate it fills (CCPPUnit::BracedFor).
-class CCPPSyntaxInitializerList;
-struct SCPPBracedList
-{
-	CCPPSyntax*					pcList;
-	SCPP65Type*					psType;
-	CCPPSyntaxInitializerList*	pcBraced;
-};
-
-
-typedef CArrayTemplate<SCPPBracedList>	CArrayCPPBracedLists;
-
-
 //A remembered TypeOf: the type of an expression with some template arguments.
 struct SCPPTypeOf
 {
@@ -151,36 +139,6 @@ struct SCPPTypeOf
 
 
 typedef CMapLongTemplate<SCPPTypeOf>		CMapCPPTypeOfs;
-
-
-//What a range-for statement is made of (CCPPUnit::GetRangeFor): the variables the compiler makes for it, and the
-//expressions on them.
-struct SCPPRangeFor
-{
-	CCPPSymbol*					pcRange;		//auto&& __range = range.
-	CCPPSymbol*					pcBegin;		//auto __begin = begin.
-	CCPPSymbol*					pcEnd;			//auto __end = end.
-	CCPPSyntaxIdExpression*		pcRangeOfBegin;	//__range, as what begin is of.
-	CCPPSyntaxIdExpression*		pcRangeOfEnd;	//__range, as what end is of.
-	CCPPSyntaxBinaryExpression*	pcCondition;	//__begin != __end.
-	CCPPSyntaxUnaryExpression*	pcIncrement;	//++__begin.
-	CCPPSyntaxUnaryExpression*	pcElement;		//*__begin.
-};
-
-
-typedef CMapLongTemplate<SCPPRangeFor>	CMapCPPRangeFors;
-
-
-//The call a user-defined literal is (CCPPUnit::GetLiteralCall): the literal operator of its suffix, and its arguments
-//(implicit ones, holding the literal) in an initialiser of their own.
-struct SCPPLiteralCall
-{
-	CCPPFunction*							pcFunction;		//NULL if no literal operator takes the literal.
-	CCPPSyntaxParenthesisedInitializer*		pcArguments;
-};
-
-
-typedef CMapLongTemplate<SCPPLiteralCall>	CMapCPPLiteralCalls;
 
 
 //A function declared quietly that couldn't be (DeclareQuietly): its declarator, and what was said declaring it, which
@@ -281,7 +239,9 @@ friend class CCPPCheck;
 friend class CCPPWarnings;
 friend class CCPPBuiltins;
 friend class CCPPExceptions;
+friend class CCPPDesugarings;
 protected:
+	CCPPDesugarings			mcDesugarings;		//What the compiler makes once for a node.
 	CCPPExceptions			mcExceptions;		//Exception specifications.
 	CCPPBuiltins			mcBuiltins;			//The builtins the compiler does.
 	CCPPWarnings			mcWarnings;			//Warns of what a 16 bit int makes wrong.
@@ -314,19 +274,12 @@ protected:
 	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
 	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
-	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
-	CMapCPPLiteralCalls		mcLiteralCalls;		//The call each user-defined literal is, by its node.
-	CMapLongTemplate<CCPPSyntaxIdExpression*>	mcDecltypeMembers;	//The expression each decltype(e)::name written as a type is (DecltypeMember).
-	CMapLongTemplate<CCPPSyntaxBinaryExpression*>	mcImplicitAssignments;	//object = value for each object.operator=(value) of the operator= the compiler declares (ImplicitAssignment).
 	CMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
-	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
-	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
 	int						miSaysDeprecated;	//Whether the source says deprecated anywhere (SaysDeprecated): 1, 0, or -1 until it is asked.
-	CArrayCPPBracedLists	masBracedLists;			//The lists BracedFor has made, each for the list and the type it was made of.
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -393,6 +346,7 @@ public:
 	CCPPWarnings*			GetWarner(void);
 	CCPPBuiltins*			GetBuiltins(void);
 	CCPPExceptions*			GetExceptions(void);
+	CCPPDesugarings*		GetDesugarings(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -506,10 +460,6 @@ public:
 	void					AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator = NULL);
 	void					AppendUnsupported(CChars* psz);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
-	SCPPRangeFor*			GetRangeFor(CCPPSyntaxRangeForStatement* pcFor);
-	CCPPSymbol*				NewHiddenVariable(const char* szName, CCPPSyntaxRangeForStatement* pcFor);
-	CCPPSyntaxIdExpression*	NewHiddenName(CCPPSymbol* pcSymbol, CCPPSyntax* pcParent);
-	bool					RangeForLocals(CCPPSyntaxRangeForStatement* pcFor);
 	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
 	bool					IsSharedFunction(CCPPFunction* pcFunction);
 	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
@@ -518,7 +468,6 @@ public:
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
 	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	bool					RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65Type** ppsBegin, SCPP65Type** ppsEnd, CCPPFunction** ppcBegin, CCPPFunction** ppcEnd, bool* pbMember);
 	bool					ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
@@ -745,15 +694,9 @@ public:
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					IsStringLiteral(CCPPSyntax* pcExpression);
-	CCTUserLiteral*			UserLiteralToken(CCPPSyntax* pcLiteral);
-	SCPPLiteralCall*		GetLiteralCall(CCPPSyntax* pcLiteral);
-	CCPPSyntaxImplicitArgument*	LiteralArgument(CCPPSyntax* pcLiteral, SCPP65Type* psType, CArraySyntax* papcArguments);
-	void					UserLiteralSpelling(int32 iToken, CChars* pszSpelling);
 	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsWeakFunction(CCPPFunction* pcFunction);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
-	CCPPSyntax*				ImplicitZero(void);
-	CCPPSyntaxImplicitArgument*	ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich = 0);
 	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewTypeIdArray(CCPPSyntaxNewExpression* pcNew);
@@ -766,8 +709,6 @@ public:
 	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	CCPPSymbol*				DecltypeEnumerator(CCPPSyntaxName* pcName);
 	SCPP65Type*				OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand);
-	CCPPSyntaxIdExpression*	DecltypeMember(CCPPSyntaxTypeId* pcType);
-	CCPPSyntaxBinaryExpression*	ImplicitAssignment(CCPPSyntaxCallExpression* pcCall);
 	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	bool					IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName);
 	void					FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses* papcFound);
@@ -807,12 +748,8 @@ public:
 	bool					IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
 	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
-	CCPPSyntax*				BracedFor(SCPP65Type* psType, CCPPSyntax* pcList);
 	bool					IsAggregate(SCPP65Type* psType);
 	SCPP65Type*				AggregateMember(SCPP65Type* psType, size uiIndex);
-	bool					InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue);
-	bool					ElidesBraces(SCPP65Type* psType, CArraySyntax* papcElements);
-	void					Regroup(SCPP65Type* psType, CArraySyntax* papcElements, size* puiNext, CCPPSyntaxInitializerList* pcInto);
 	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
 	SCPP65Type*				ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional);
 	SCPP65Type*				ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional);

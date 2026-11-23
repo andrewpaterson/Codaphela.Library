@@ -1005,3 +1005,14 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	the unit writes (stage 13).  Moved, not changed: TestCppCompilerLib passes (272,063, the user's new tests
 	among them); every conformance case, the Exceptions group's on both targets with them, says what it said;
 	the listings are as they were; the IDE builds.
+
+	d. What the compiler makes once for a node is a class of its own, CCPPDesugarings (CPPDesugarings.h and
+	.cpp), which the unit holds (mcDesugarings, GetDesugarings), with the five memos and their records: a
+	range-for's variables and expressions (mcRangeFors), a user-defined literal's call (mcLiteralCalls), a
+	braced list with its braces put back (masBracedLists), decltype(e)::name's expression (mcDecltypeMembers),
+	and the implicit arguments and assignments (mcImplicitValues, mpcImplicitZero, mcImplicitAssignments): 17
+	functions, CPPUnitRangeFor.cpp's five with them, and the file is gone.  One class for the five, not one each
+	as the stage was written: each memo is a map by node filled by its functions, and five classes of a map and
+	four functions each would be the unit's friends five times over.  IsAggregate and AggregateMember stay the
+	unit's: what a type is, asked elsewhere too.  TestCppCompilerLib passes (272,063); the diagnostics entries
+	and the listings are as they were; the IDE builds.

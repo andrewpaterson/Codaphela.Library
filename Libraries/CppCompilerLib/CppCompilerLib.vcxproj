@@ -296,7 +296,6 @@
     <ClCompile Include="CPPUnitLabels.cpp" />
     <ClCompile Include="CPPUnitExpressions.cpp" />
     <ClCompile Include="CPPUnitObjects.cpp" />
-    <ClCompile Include="CPPUnitRangeFor.cpp" />
     <ClCompile Include="CPPUnitPacks.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />
@@ -314,6 +313,7 @@
     <ClCompile Include="CPPWarnings.cpp" />
     <ClCompile Include="CPPBuiltins.cpp" />
     <ClCompile Include="CPPExceptions.cpp" />
+    <ClCompile Include="CPPDesugarings.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPFunctionPacks.cpp" />
@@ -604,6 +604,7 @@
     <ClInclude Include="CPPWarnings.h" />
     <ClInclude Include="CPPBuiltins.h" />
     <ClInclude Include="CPPExceptions.h" />
+    <ClInclude Include="CPPDesugarings.h" />
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPFunctionPacks.h" />

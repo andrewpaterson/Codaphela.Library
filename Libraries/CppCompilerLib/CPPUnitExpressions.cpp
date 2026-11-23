@@ -279,38 +279,7 @@ CCPPSyntaxFunctionSuffix* CCPPUnit::PointedFunctionSuffix(CCPPSyntaxDeclarator* 
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsStringLiteral(CCPPSyntax* pcExpression)
 {
-	return pcExpression && (pcExpression->GetKind() == CPPS_StringExpression) && !UserLiteralToken(pcExpression);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The user-defined literal token of a literal (10_km, 'x'_c) or a string
-// ("text"_s, or "te" "xt"_s), or NULL for one without a suffix.
-//
-//////////////////////////////////////////////////////////////////////////
-CCTUserLiteral* CCPPUnit::UserLiteralToken(CCPPSyntax* pcLiteral)
-{
-	CCPPToken*	pcToken;
-	int32		iToken;
-
-	if (pcLiteral->GetKind() == CPPS_LiteralExpression)
-	{
-		pcToken = mpcTokeniser->Get(((CCPPSyntaxLiteralExpression*)pcLiteral)->miLiteral);
-		return pcToken->IsUserLiteral() ? (CCTUserLiteral*)pcToken : NULL;
-	}
-	if (pcLiteral->GetKind() == CPPS_StringExpression)
-	{
-		for (iToken = pcLiteral->miFirstToken; iToken <= pcLiteral->miLastToken; iToken++)
-		{
-			pcToken = mpcTokeniser->Get(iToken);
-			if (pcToken->IsUserString())
-			{
-				return (CCTUserLiteral*)pcToken;
-			}
-		}
-	}
-	return NULL;
+	return pcExpression && (pcExpression->GetKind() == CPPS_StringExpression) && !mcDesugarings.UserLiteralToken(pcExpression);
 }
 
 
@@ -335,157 +304,6 @@ SCPP65Type* CCPPUnit::CharacterTokenType(CCPPToken* pcToken)
 		return &mcTypes.msChar32;
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The call a user-defined literal is, worked out once for its node: its
-// suffix's literal operator and what it is given ([lex.ext]).  "text"_s is
-// operator "" _s("text", 4) and 'c'_c operator "" _c('c').  12_k is
-// operator "" _k(12ULL) if that operator takes an unsigned long long (1.5_k
-// a long double), else operator "" _k("12") if it takes a const char*, else
-// operator "" _k<'1', '2'>().  NULL if no literal operator takes it.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPPLiteralCall* CCPPUnit::GetLiteralCall(CCPPSyntax* pcLiteral)
-{
-	SCPPLiteralCall*				psCall;
-	SCPPLiteralCall					sCall;
-	CCTUserLiteral*					pcUser;
-	CCPPSyntaxImplicitArgument*		pcArgument;
-	CArraySyntax*					papcArguments;
-	CArraySyntax					apcExplicit;
-	CArrayUint8						auiBytes;
-	CChars							szSpelling;
-	SCPP65Type*						psFloat;
-	int64							lliName;
-	int64							lliValue;
-	double							dValue;
-	size								i;
-
-	psCall = mcLiteralCalls.Get((int64)(size)pcLiteral);
-	if (psCall)
-	{
-		return psCall->pcFunction ? psCall : NULL;
-	}
-	pcUser = UserLiteralToken(pcLiteral);
-	if (!pcUser)
-	{
-		return NULL;
-	}
-
-	sCall.pcFunction = NULL;
-	sCall.pcArguments = mpcTree->GetMemory()->Create<CCPPSyntaxParenthesisedInitializer>(pcLiteral);
-	sCall.pcArguments->SetTokens(pcLiteral->miFirstToken, pcLiteral->miLastToken);
-	papcArguments = &sCall.pcArguments->macpElements;
-	lliName = CPP_LITERAL_NAME(pcUser->miSuffix);
-	if (pcLiteral->GetKind() == CPPS_StringExpression)
-	{
-		auiBytes.Init();
-		if (mcStrings.DecodeString(pcLiteral, &auiBytes))
-		{
-			LiteralArgument(pcLiteral, mcTypes.Pointer(mcTypes.Const(mcStrings.StringElementType(pcLiteral))), papcArguments)->mpcString = pcLiteral;
-			pcArgument = LiteralArgument(pcLiteral, mcTypes.Size(), papcArguments);
-			pcArgument->mbConstant = true;
-			pcArgument->mlliValue = (int64)(auiBytes.NumElements() / mcStrings.StringElementBytes(pcLiteral));
-			sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
-		}
-		auiBytes.Kill();
-	}
-	else if (CharacterTokenType(pcUser->mpcLiteral))
-	{
-		//'c'_x is given a char, L'c'_x a wchar_t, u'c'_x a char16_t and U'c'_x a char32_t.  [lex.ext] 6
-		pcArgument = LiteralArgument(pcLiteral, CharacterTokenType(pcUser->mpcLiteral), papcArguments);
-		pcArgument->mbConstant = mcFolder.TokenConstant(pcUser->mpcLiteral, &pcArgument->mlliValue);
-		sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
-	}
-	else if (pcUser->mpcLiteral->IsNumber())
-	{
-		psFloat = NULL;
-		dValue = 0;
-		if (mcFolder.TokenConstant(pcUser->mpcLiteral, &lliValue))
-		{
-			pcArgument = LiteralArgument(pcLiteral, &mcTypes.msUnsignedLongLong, papcArguments);
-			pcArgument->mlliValue = lliValue;
-		}
-		else
-		{
-			pcArgument = LiteralArgument(pcLiteral, mcTypes.LongDouble(), papcArguments);
-			pcArgument->mdValue = mcFolder.TokenFloat(pcUser->mpcLiteral, &dValue, &psFloat) ? dValue : 0;
-		}
-		pcArgument->mbConstant = true;
-		sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
-
-		//The raw operator, given the literal's spelling.
-		if (!sCall.pcFunction)
-		{
-			papcArguments->ReInit();
-			LiteralArgument(pcLiteral, mcTypes.Pointer(mcTypes.Const(&mcTypes.msChar)), papcArguments)->miSpelling = ((CCPPSyntaxLiteralExpression*)pcLiteral)->miLiteral;
-			sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
-		}
-
-		//The template operator, given its characters as its arguments.
-		if (!sCall.pcFunction)
-		{
-			papcArguments->ReInit();
-			apcExplicit.Init();
-			szSpelling.Init();
-			UserLiteralSpelling(((CCPPSyntaxLiteralExpression*)pcLiteral)->miLiteral, &szSpelling);
-			for (i = 0; i < szSpelling.Length(); i++)
-			{
-				pcArgument = LiteralArgument(pcLiteral, &mcTypes.msChar, &apcExplicit);
-				pcArgument->mbConstant = true;
-				pcArgument->mlliValue = szSpelling.GetChar(i);
-			}
-			sCall.pcFunction = mcBinder.FindLiteralOperator(lliName, &apcExplicit, papcArguments, pcLiteral);
-			szSpelling.Kill();
-			apcExplicit.Kill();
-		}
-	}
-	mcLiteralCalls.Put((int64)(size)pcLiteral, &sCall);
-	return sCall.pcFunction ? mcLiteralCalls.Get((int64)(size)pcLiteral) : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An argument of psType for a user-defined literal's call, added to
-// papcArguments: the caller says what it holds.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntaxImplicitArgument* CCPPUnit::LiteralArgument(CCPPSyntax* pcLiteral, SCPP65Type* psType, CArraySyntax* papcArguments)
-{
-	CCPPSyntaxImplicitArgument*	pcArgument;
-
-	pcArgument = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
-	pcArgument->SetTokens(pcLiteral->miFirstToken, pcLiteral->miLastToken);
-	pcArgument->mpsType = psType;
-	papcArguments->Add(pcArgument);
-	return pcArgument;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A user-defined literal token's spelling without its suffix: 0x1F of
-// 0x1F_k, what a raw literal operator is given.  [lex.ext] 3
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::UserLiteralSpelling(int32 iToken, CChars* pszSpelling)
-{
-	CCPPToken*			pcToken;
-	SPreprocessedToken*	psSource;
-	int					iSuffix;
-
-	pcToken = mpcTokeniser->Get(iToken);
-	psSource = mpcTokeniser->GetSource(pcToken);
-	iSuffix = 0;
-	if (pcToken->IsUserLiteral())
-	{
-		mpcTokeniser->GetIdentifier(((CCTUserLiteral*)pcToken)->miSuffix, &iSuffix);
-	}
-	pszSpelling->Append(psSource->szText, (int)psSource->uiLength - iSuffix);
 }
 
 
@@ -607,60 +425,13 @@ void CCPPUnit::NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcAr
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The int 0 a postfix operator function is called with, made the first
-// time it is wanted (in no tree's nodes: it has no parent).
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::ImplicitZero(void)
-{
-	if (!mpcImplicitZero)
-	{
-		mpcImplicitZero = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
-		mpcImplicitZero->mpsType = &mcTypes.msInt;
-		mpcImplicitZero->mbConstant = true;
-	}
-	return mpcImplicitZero;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An argument the IR front end gives a value, pcFor's own iWhich'th (as a
-// new expression in a new expression's placement arguments mustn't change
-// its size's), of the type psType: the size a new expression's allocation
-// function is given, or the address, and then the size, that delete gives
-// a class's operator delete.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntaxImplicitArgument* CCPPUnit::ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich)
-{
-	CCPPSyntaxImplicitArgument**	ppcValue;
-	CCPPSyntaxImplicitArgument*		pcValue;
-	int64							lliKey;
-
-	//A node's address and those of the few bytes after it are no other node's.
-	lliKey = (int64)(size)pcFor + iWhich;
-	ppcValue = mcImplicitValues.Get(lliKey);
-	if (ppcValue)
-	{
-		return *ppcValue;
-	}
-	pcValue = mpcTree->GetMemory()->Create<CCPPSyntaxImplicitArgument>(NULL);
-	pcValue->mpsType = psType;
-	mcImplicitValues.Put(lliKey, &pcValue);
-	return pcValue;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The size a new expression's allocation function is given: a size_t.
 // [expr.new] 9
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntax* CCPPUnit::NewSize(CCPPSyntaxNewExpression* pcNew)
 {
-	return ImplicitValue(pcNew, mcTypes.Size());
+	return mcDesugarings.ImplicitValue(pcNew, mcTypes.Size());
 }
 
 
@@ -859,7 +630,7 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 	{
 		return UnevaluatedTypeOf(pcOperand);
 	}
-	pcMember = DecltypeMember(pcType);
+	pcMember = mcDesugarings.DecltypeMember(pcType);
 	if (!pcMember)
 	{
 		return mcDeclarators.GetTypeIdType(pcType);
@@ -868,95 +639,6 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 	psType = mcDeclarators.GetTypeIdType(pcType);
 	mcDiagnostics.EndSilent();
 	return psType ? psType : UnevaluatedTypeOf(pcMember);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The expression a type-id is if it is just decltype(e)::name, which may
-// name a member that is no type: the name as an expression, made once.
-// NULL for any other type-id.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntaxIdExpression* CCPPUnit::DecltypeMember(CCPPSyntaxTypeId* pcType)
-{
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxIdExpression**	ppcMember;
-	CCPPSyntaxIdExpression*		pcMember;
-
-	pcSpecifiers = pcType->mpcSpecifiers;
-	if (!pcSpecifiers || !pcSpecifiers->mpcType || (pcSpecifiers->mpcType->GetKind() != CPPS_NamedTypeSpecifier) || (pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)) ||
-		(pcType->mpcDeclarator && !pcType->mpcDeclarator->IsEmpty()))
-	{
-		return NULL;
-	}
-	pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcSpecifiers->mpcType)->mpcName;
-	if (!pcName->IsQualifiedByDecltype())
-	{
-		return NULL;
-	}
-	ppcMember = mcDecltypeMembers.Get((int64)(size)pcType);
-	if (ppcMember)
-	{
-		return *ppcMember;
-	}
-	pcMember = mpcTree->GetMemory()->Create<CCPPSyntaxIdExpression>(pcType->mpcParent);
-	pcMember->SetTokens(pcType->miFirstToken, pcType->miLastToken);
-	pcMember->mpcName = pcName;
-	mcDecltypeMembers.Put((int64)(size)pcType, &pcMember);
-	return pcMember;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// object.operator=(value) where the object's class declares no operator=:
-// a call of the copy assignment operator the compiler declares, which is
-// object = value (made once, and kept).  NULL for any other call.
-// [over.oper] 4, [class.copy] 18
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntaxBinaryExpression* CCPPUnit::ImplicitAssignment(CCPPSyntaxCallExpression* pcCall)
-{
-	CCPPSyntaxMemberExpression*		pcMember;
-	CCPPSyntaxBinaryExpression**	ppcAssignment;
-	CCPPSyntaxBinaryExpression*		pcAssignment;
-	SCPP65Type*						psType;
-	int64							lliName;
-	size							i;
-
-	pcMember = (pcCall->mpcCallee && (pcCall->mpcCallee->GetKind() == CPPS_MemberExpression)) ? (CCPPSyntaxMemberExpression*)pcCall->mpcCallee : NULL;
-	lliName = GetOperatorName(CT_Assignment, false);
-	if (!pcMember || pcMember->mbArrow || (pcCall->macpArguments.NumElements() != 1) || !pcMember->mpcName || (pcMember->mpcName->macpComponents.NumElements() != 1) ||
-		(GetFunctionName(pcMember->mpcName->GetLast()) != lliName))
-	{
-		return NULL;
-	}
-	ppcAssignment = mcImplicitAssignments.Get((int64)(size)pcCall);
-	if (ppcAssignment)
-	{
-		return *ppcAssignment;
-	}
-	psType = ValueTypeOf(pcMember->mpcObject);
-	if (!psType || !psType->IsClass() || !CompleteClass(psType->pcClass, pcCall))
-	{
-		return NULL;
-	}
-	for (i = 0; i < psType->pcClass->mapcMembers.NumElements(); i++)
-	{
-		if (psType->pcClass->mapcMembers.GetPtr(i)->mlliName == lliName)
-		{
-			return NULL;
-		}
-	}
-	pcAssignment = mpcTree->GetMemory()->Create<CCPPSyntaxBinaryExpression>(pcCall);
-	pcAssignment->SetTokens(pcCall->miFirstToken, pcCall->miLastToken);
-	pcAssignment->meOperator = CT_Assignment;
-	pcAssignment->mpcLeft = pcMember->mpcObject;
-	pcAssignment->mpcRight = pcCall->macpArguments.GetPtr(0);
-	mcImplicitAssignments.Put((int64)(size)pcCall, &pcAssignment);
-	return pcAssignment;
 }
 
 

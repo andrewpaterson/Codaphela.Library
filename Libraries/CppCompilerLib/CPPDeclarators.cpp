@@ -353,7 +353,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser, SCPP65Type* 
 	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
-		return (int)mpcUnit->ListElements(mpcUnit->BracedFor(mpcUnit->GetTypes()->Array(psElement, 0), pcInitialiser))->NumElements();
+		return (int)mpcUnit->ListElements(mpcUnit->GetDesugarings()->BracedFor(mpcUnit->GetTypes()->Array(psElement, 0), pcInitialiser))->NumElements();
 	}
 	if (mpcUnit->IsStringLiteral(pcInitialiser))
 	{

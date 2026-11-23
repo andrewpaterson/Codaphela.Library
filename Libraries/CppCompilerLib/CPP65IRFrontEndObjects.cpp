@@ -156,7 +156,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 		return true;
 	case CPPS_LiteralExpression:
 	case CPPS_StringExpression:
-		return mpcUnit->UserLiteralToken(pcExpression) != NULL;
+		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) != NULL;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		return !IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary));
@@ -848,7 +848,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 
 	pcList = NULL;
 	psType = psPlace->psType;
-	pcInitialiser = mpcUnit->BracedFor(psType, pcInitialiser);
+	pcInitialiser = mpcUnit->GetDesugarings()->BracedFor(psType, pcInitialiser);
 	if (!papcArguments)
 	{
 		papcArguments = &mapcNone;
@@ -1849,11 +1849,11 @@ bool CCPP65IRFrontEnd::Deallocate(CCPPSyntax* pcFor, CCPPFunction* pcDeallocatio
 	}
 
 	apcArguments.Init();
-	apcArguments.Add(mpcUnit->ImplicitValue(pcFor, mpcTypes->Pointer(&mpcTypes->msVoid)));
+	apcArguments.Add(mpcUnit->GetDesugarings()->ImplicitValue(pcFor, mpcTypes->Pointer(&mpcTypes->msVoid)));
 	pcSize = NULL;
 	if (pcDeallocation->mapsParameters.NumElements() == 2)
 	{
-		pcSize = mpcUnit->ImplicitValue(pcFor, psBytes->psType, 1);
+		pcSize = mpcUnit->GetDesugarings()->ImplicitValue(pcFor, psBytes->psType, 1);
 		apcArguments.Add(pcSize);
 		mcImplicitValues.Put((int64)(size)pcSize, psBytes);
 	}
@@ -2089,7 +2089,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 			if (((CCPPSyntaxUnaryExpression*)pcExpression)->mbPostfix)
 			{
 				//object++ and object--: the object's operator with an int 0.  [over.inc] 1
-				return OperatorExpression(((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand, mpcUnit->ImplicitZero(), psValue);
+				return OperatorExpression(((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator, ((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand, mpcUnit->GetDesugarings()->ImplicitZero(), psValue);
 			}
 			//++object and --object are the object's operator, as -object is.
 			//Falls through.

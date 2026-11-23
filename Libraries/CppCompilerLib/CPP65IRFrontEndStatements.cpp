@@ -1108,13 +1108,13 @@ bool CCPP65IRFrontEnd::RangeForStatement(CCPPSyntaxRangeForStatement* pcFor)
 	bool			bMember;
 	bool			bResult;
 
-	psRangeFor = mpcUnit->GetRangeFor(pcFor);
+	psRangeFor = mpcUnit->GetDesugarings()->GetRangeFor(pcFor);
 	uiLiving = mcCleanups.NumLocals();
 	if (!VariablePlace(psRangeFor->pcRange, &sRange) || !LocalInitialiser(&sRange, pcFor->mpcRange, true))
 	{
 		return false;
 	}
-	if (!mpcUnit->RangeIterators(pcFor, &psBegin, &psEnd, &pcBegin, &pcEnd, &bMember))
+	if (!mpcUnit->GetDesugarings()->RangeIterators(pcFor, &psBegin, &psEnd, &pcBegin, &pcEnd, &bMember))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
