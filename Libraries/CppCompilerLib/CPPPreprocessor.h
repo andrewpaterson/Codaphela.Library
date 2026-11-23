@@ -146,6 +146,7 @@ protected:
 	bool							mbDefinedOperand;		//The next identifier is the operand of defined.
 	bool							mbError;
 	bool							mbSkipFailedDirectives;	//A directive that fails is skipped, not the end (SetSkipFailedDirectives).
+	bool							mbFullPathErrors;		//Errors name files by their full paths (SetFullPathErrors).
 	bool							mbSkippedDirective;		//One was.
 	bool							mbKeepPragmaPack;		//#pragma pack(...) is output as __pragma(pack(...)) (CConfig).
 	int								miCounter;
@@ -188,6 +189,7 @@ public:
 	bool				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 	void				SetHeaderCache(CPPHeaderCache* pcHeaderCache);
 	void				SetSkipFailedDirectives(bool bSkip);
+	void				SetFullPathErrors(bool bFullPaths);
 
 protected:
 	//Sources.
@@ -247,6 +249,8 @@ protected:
 	void				LogInclude(CSourceFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	char*				GetFileName(void) const;
+	char*				GetErrorFileName(void) const;
+	char*				ErrorFileName(CSourceFile* pcFile) const;
 	CPPToken*			DuplicatePPToken(CPPToken* pcSource);
 	CPPTokenMemory*		GetTokenMemory(void);
 	void				EmitToken(SPreprocessedToken* psToken);

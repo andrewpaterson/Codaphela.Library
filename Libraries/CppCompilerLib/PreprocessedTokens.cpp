@@ -555,10 +555,11 @@ void CPreprocessedTokens::ReportedPosition(CSourceFile* pcFile, const char** psz
 //////////////////////////////////////////////////////////////////////////
 //
 // An error at psToken, where #line says that is.  iToken is what the error
-// remembers as its token.
+// remembers as its token.  With bFullPath its file is named by its full
+// path, not its name (CCPPPreprocessor::SetFullPathErrors).
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessedTokens::AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail)
+void CPreprocessedTokens::AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail, bool bFullPath)
 {
 	const char*	szFile;
 	int			iLine;
@@ -568,7 +569,7 @@ void CPreprocessedTokens::AddError(CCPPErrors* pcErrors, SPreprocessedToken* psT
 		pcErrors->Add(NULL, psToken->iLine, psToken->iColumn, iToken, szMessage, szDetail);
 		return;
 	}
-	szFile = psToken->pcFile->ShortName();
+	szFile = bFullPath ? psToken->pcFile->FullName() : psToken->pcFile->ShortName();
 	iLine = psToken->iLine;
 	ReportedPosition(psToken->pcFile, &szFile, &iLine);
 	pcErrors->Add(szFile, iLine, psToken->iColumn, iToken, szMessage, szDetail);

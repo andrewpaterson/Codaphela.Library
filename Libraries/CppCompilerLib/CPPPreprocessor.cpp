@@ -205,6 +205,20 @@ void CCPPPreprocessor::SetSkipFailedDirectives(bool bSkip)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// With bFullPaths errors and warnings name the file they are in by its
+// full path rather than its name: the same name can be in more than one
+// include directory (stdarg.h is in MinGW's and in GCC's), and a code
+// model opens the one it means.  A #line's name is still what it says.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPPreprocessor::SetFullPathErrors(bool bFullPaths)
+{
+	mbFullPathErrors = bFullPaths;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -221,7 +235,7 @@ bool CCPPPreprocessor::TokeniseFile(CSourceFile* pcFile)
 	if (!pcFile->Load())
 	{
 		pcFile->Unlock();
-		mcErrors.Add(pcFile->ShortName(), -1, -1, -1, "Could not read the file.");
+		mcErrors.Add(ErrorFileName(pcFile), -1, -1, -1, "Could not read the file.");
 		return false;
 	}
 	pacBlockSets = pcFile->GetBlockSets();
@@ -257,7 +271,7 @@ bool CCPPPreprocessor::PushFile(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameM
 	{
 		szError.Init("#include nested too deeply including ");
 		szError.Append(pcFile->ShortName());
-		mcErrors.Add(GetFileName(), -1, -1, -1, szError.Text());
+		mcErrors.Add(GetErrorFileName(), -1, -1, -1, szError.Text());
 		szError.Kill();
 		mbError = true;
 		return false;
@@ -358,7 +372,7 @@ bool CCPPPreprocessor::PopSource(void)
 		{
 			if (!mbError)
 			{
-				mcErrors.Add(psSource->pcFile->ShortName(), -1, -1, -1, "Unterminated conditional directive.");
+				mcErrors.Add(ErrorFileName(psSource->pcFile), -1, -1, -1, "Unterminated conditional directive.");
 			}
 			while (mcConditionalStack.mcStack.NumElements() > psSource->iConditionalDepth)
 			{
@@ -859,6 +873,7 @@ void CCPPPreprocessor::Init(CConfig* pcConfig)
 	mbDefinedOperand = false;
 	mbError = false;
 	mbSkipFailedDirectives = false;
+	mbFullPathErrors = false;
 	mbSkippedDirective = false;
 	mbKeepPragmaPack = pcConfig ? pcConfig->mbKeepPragmaPack : false;
 	miCounter = 0;
@@ -1754,6 +1769,32 @@ char* CCPPPreprocessor::GetFileName(void) const
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+// The current file as its errors name it: its full path with
+// SetFullPathErrors, otherwise its name.
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCPPPreprocessor::GetErrorFileName(void) const
+{
+	if (mpcCurrentFile)
+	{
+		return ErrorFileName(mpcCurrentFile);
+	}
+	return GetFileName();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCPPPreprocessor::ErrorFileName(CSourceFile* pcFile) const
+{
+	return mbFullPathErrors ? pcFile->FullName() : pcFile->ShortName();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -2041,7 +2082,7 @@ void CCPPPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, 
 {
 	char* szShortFileName;
 
-	szShortFileName = GetFileName();
+	szShortFileName = GetErrorFileName();
 	psPos->Init(pcParser, szShortFileName);
 }
 
@@ -2070,7 +2111,7 @@ void CCPPPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreproces
 {
 	char* szShortFileName;
 
-	szShortFileName = GetFileName();
+	szShortFileName = GetErrorFileName();
 	psPos->Init(iLine, iColumn, szShortFileName);
 }
 
@@ -3100,15 +3141,15 @@ bool CCPPPreprocessor::Error(SPreprocessedToken* psToken, char* szMessage)
 	}
 	if (psToken && psToken->pcFile && mpcOutput)
 	{
-		mpcOutput->AddError(&mcErrors, psToken, -1, szMessage, szDetail.Text());
+		mpcOutput->AddError(&mcErrors, psToken, -1, szMessage, szDetail.Text(), mbFullPathErrors);
 	}
 	else if (psToken && psToken->pcFile)
 	{
-		mcErrors.Add(psToken->pcFile->ShortName(), psToken->iLine, psToken->iColumn, -1, szMessage, szDetail.Text());
+		mcErrors.Add(ErrorFileName(psToken->pcFile), psToken->iLine, psToken->iColumn, -1, szMessage, szDetail.Text());
 	}
 	else
 	{
-		mcErrors.Add(GetFileName(), -1, -1, -1, szMessage, psToken ? szDetail.Text() : NULL);
+		mcErrors.Add(GetErrorFileName(), -1, -1, -1, szMessage, psToken ? szDetail.Text() : NULL);
 	}
 	szDetail.Kill();
 

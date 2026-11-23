@@ -191,7 +191,7 @@ public:
 
 	void					AddLineDirective(CSourceFile* pcFile, int iLine, int iOffset, const char* szQuotedName);
 	void					ReportedPosition(CSourceFile* pcFile, const char** pszFile, int* piLine);
-	void					AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail);
+	void					AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail, bool bFullPath = false);
 
 	char*					AddString(const char* szText, size uiLength);
 

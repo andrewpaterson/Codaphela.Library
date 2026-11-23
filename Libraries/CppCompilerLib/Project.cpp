@@ -40,6 +40,7 @@ void CProject::Init(bool bDumpLogs, bool bWritePostFile)
 	mcHeaderNames.Init();
 	mpcHeaderCache = NULL;
 	mbSkipFailedDirectives = false;
+	mbFullPathErrors = false;
 }
 
 
@@ -53,6 +54,18 @@ void CProject::Init(bool bDumpLogs, bool bWritePostFile)
 void CProject::SetSkipFailedDirectives(bool bSkip)
 {
 	mbSkipFailedDirectives = bSkip;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The units' preprocessor errors name files by their full paths, for a
+// code model that opens them (CCPPPreprocessor::SetFullPathErrors).
+//
+//////////////////////////////////////////////////////////////////////////
+void CProject::SetFullPathErrors(bool bFullPaths)
+{
+	mbFullPathErrors = bFullPaths;
 }
 
 
@@ -271,6 +284,7 @@ bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CCha
 	cPreprocessor.LogDumping(mbDumpLogs);
 	cPreprocessor.SetHeaderCache(mpcHeaderCache);
 	cPreprocessor.SetSkipFailedDirectives(mbSkipFailedDirectives);
+	cPreprocessor.SetFullPathErrors(mbFullPathErrors);
 
 	bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
 	if (pszErrors)

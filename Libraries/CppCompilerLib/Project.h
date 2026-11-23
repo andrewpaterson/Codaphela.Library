@@ -48,6 +48,7 @@ protected:
 	CHeaderFileMap			mcIncludeFiles;
 	CPPHeaderCache*			mpcHeaderCache;		//Headers' output kept for all units (SetHeaderCache), NULL for none.
 	bool					mbSkipFailedDirectives;	//A failed directive is skipped, not the unit's end (SetSkipFailedDirectives).
+	bool					mbFullPathErrors;		//Errors name files by their full paths (SetFullPathErrors).
 
 public:
 	void				Init(bool bDumpLogs = false, bool bWritePostFile = false);
@@ -59,6 +60,7 @@ public:
 	bool				ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CChars* pszErrors = NULL, CChars* pszWarnings = NULL);
 	void				SetHeaderCache(CPPHeaderCache* pcHeaderCache);
 	void				SetSkipFailedDirectives(bool bSkip);
+	void				SetFullPathErrors(bool bFullPaths);
 	CHeaderFile*		GetIncludeFile(char* szAbsoluteFileName);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);

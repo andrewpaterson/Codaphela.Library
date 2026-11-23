@@ -2429,6 +2429,87 @@ static void KillMemoryHeaders(CHeaderFileMap* pcHeaderFiles, CHeaderFiles* pcFir
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szSource preprocessed as szFileName, searching the include directories
+// pcFirst then pcSecond, with failed directives skipped and, with
+// bFullPaths, errors naming files by their full paths (as the IDE's code
+// model does): its errors.
+//
+//////////////////////////////////////////////////////////////////////////
+static void PreprocessErrorPaths(char* szFileName, char* szSource, CHeaderFiles* pcFirst, CHeaderFiles* pcSecond, bool bFullPaths, CChars* pszErrors)
+{
+	CTranslationUnit	cFile;
+	CCPPPreprocessor	cPreprocessor;
+
+	cFile.Init(szFileName, NULL, false);
+	cFile.SetContents(szSource);
+	cPreprocessor.Init(NULL);
+	cPreprocessor.AddIncludeDirectory(pcFirst);
+	cPreprocessor.AddIncludeDirectory(pcSecond);
+	cPreprocessor.SetSkipFailedDirectives(true);
+	cPreprocessor.SetFullPathErrors(bFullPaths);
+	cPreprocessor.PreprocessTranslationUnit(&cFile);
+	pszErrors->Append(cPreprocessor.GetErrors()->Text());
+	cPreprocessor.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Errors name the file they are in: by its name, or with
+// SetFullPathErrors by its full path, which tells apart two headers of the
+// same name in different include directories (as MinGW's stdarg.h and
+// GCC's, which #include_next's it, are).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorFullPathErrors(void)
+{
+	CHeaderFileMap	cHeaderFiles;
+	CHeaderFiles	cFirst;
+	CHeaderFiles	cSecond;
+	CFileUtil		cFileUtil;
+	CChars			szErrors;
+	CChars			szExpected;
+	CChars			szFirst;
+	CChars			szUnit;
+
+	InitMemoryHeaders(&cHeaderFiles, &cFirst, &cSecond);
+	cFirst.AddFile("Same.h")->SetContents("#include_next <Same.h>\n#define V(a) a\n");
+	cSecond.AddFile("Same.h")->SetContents("#define V x\n");
+	szFirst.Init();
+	cFileUtil.CurrentDirectory(&szFirst);
+	cFileUtil.AppendToPath(&szFirst, "Input");
+	cFileUtil.AppendToPath(&szFirst, "SFT");
+	cFileUtil.AppendToPath(&szFirst, "Same.h");
+	szUnit.Init();
+	cFileUtil.CurrentDirectory(&szUnit);
+	cFileUtil.AppendToPath(&szUnit, "Paths.cpp");
+
+	szErrors.Init();
+	PreprocessErrorPaths(szUnit.Text(), "#include <Same.h>\n#include <Gone.h>\n", &cFirst, &cSecond, false, &szErrors);
+	AssertString("\
+Same.h (2, 9): The macro is defined again differently: a macro is only defined again as it was (#undef it first)\n\
+Paths.cpp (2, 10): Could not include file <Gone.h>\n", szErrors.Text());
+	szErrors.Kill();
+
+	szErrors.Init();
+	PreprocessErrorPaths(szUnit.Text(), "#include <Same.h>\n#include <Gone.h>\n", &cFirst, &cSecond, true, &szErrors);
+	szExpected.Init(szFirst);
+	szExpected.Append(" (2, 9): The macro is defined again differently: a macro is only defined again as it was (#undef it first)\n");
+	szExpected.Append(szUnit);
+	szExpected.Append(" (2, 10): Could not include file <Gone.h>\n");
+	AssertString(szExpected.Text(), szErrors.Text());
+	szExpected.Kill();
+	szErrors.Kill();
+
+	szUnit.Kill();
+	szFirst.Kill();
+	KillMemoryHeaders(&cHeaderFiles, &cFirst, &cSecond);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A header with #pragma once is only read the first time it is included;
 // a header without it every time.  Both are logged every time.
 //
@@ -2640,6 +2721,7 @@ void TestPreprocessor(void)
 	TestPreprocessorLocations();
 	TestPreprocessorErrors();
 	TestPreprocessorSkipFailedDirectives();
+	TestPreprocessorFullPathErrors();
 	TestPreprocessorUnreadableFile();
 	TestPreprocessorLine();
 	TestPreprocessorPositionErrorsFail();
