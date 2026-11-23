@@ -159,7 +159,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) != NULL;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		return !IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary));
+		return !IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->GetBinder()->IsOverloadedComma(pcBinary));
 	case CPPS_UnaryExpression:
 		eOperator = ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator;
 		return (eOperator == CT_Subtract) || (eOperator == CT_Add) || (eOperator == CT_BitwiseNot);
@@ -939,7 +939,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	{
 		//A std::initializer_list is made from the list's elements; a class with an initializer-list constructor
 		//that takes the list, by it.  [dcl.init.list] 3 and 5
-		psElement = mpcUnit->InitializerListElement(psType);
+		psElement = mpcUnit->GetDesugarings()->InitializerListElement(psType);
 		if (psElement)
 		{
 			return InitializerList(psPlace, psElement, papcArguments);
@@ -1083,7 +1083,7 @@ bool CCPP65IRFrontEnd::InitializerList(SCPP65IRPlace* psPlace, SCPP65Type* psEle
 	bool			bEnd;
 	bool			bListLocal;
 
-	if (!mpcUnit->InitializerListLayout(psPlace->psType->pcClass, &bEnd))
+	if (!mpcUnit->GetDesugarings()->InitializerListLayout(psPlace->psType->pcClass, &bEnd))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -2111,7 +2111,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	case CPPS_ConditionalExpression:
 		return ObjectConditional((CCPPSyntaxConditionalExpression*)pcExpression, NULL, psValue);
 	case CPPS_BinaryExpression:
-		if ((((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma((CCPPSyntaxBinaryExpression*)pcExpression))
+		if ((((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator == CT_Comma) && !mpcUnit->GetBinder()->IsOverloadedComma((CCPPSyntaxBinaryExpression*)pcExpression))
 		{
 			//(x, object) with no operator, of its own: x is worked out, then the object.  [expr.comma] 1
 			return Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft, &sLeft) && Value(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight, psValue);

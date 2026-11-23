@@ -229,6 +229,7 @@ friend class CCPPExceptions;
 friend class CCPPDesugarings;
 friend class CCPPInstantiator;
 friend class CCPP65TypeChecker;
+friend class CCPPBinder;
 protected:
 	CCPPInstantiator		mcInstantiator;		//The templates and their instances.
 	CCPPDesugarings			mcDesugarings;		//What the compiler makes once for a node.
@@ -621,7 +622,6 @@ public:
 	bool					HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments);
 	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	CCPPSymbol*				DecltypeEnumerator(CCPPSyntaxName* pcName);
-	SCPP65Type*				OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand);
 	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
 	bool					IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName);
 	void					FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses* papcFound);
@@ -652,32 +652,10 @@ public:
 	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 
 	//Objects and copies.  CPPUnitObjects.cpp
-	bool					IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator);
-	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
-	bool					IsAggregate(SCPP65Type* psType);
-	SCPP65Type*				AggregateMember(SCPP65Type* psType, size uiIndex);
-	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
-	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
-	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);
-	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
 	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
-	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
-	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
-	bool					IsNamed(int64 lliName, const char* szName);
-	CCPPClass*				TypeInfoClass(void);
 	SCPP65Type*				HandlerType(CCPPSyntaxCatchHandler* pcHandler);
 	CCPPSyntax*				TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop);
 	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
-	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
-	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);
-	CCPPTemplate*			InitializerListTemplate(void);
-	SCPP65Type*				InitializerListElement(SCPP65Type* psType);
-	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);
-	SCPP65Type*				BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode);
-	bool					InitializerListLayout(CCPPClass* pcClass, bool* pbEnd);
-	bool					IsUncapturedConstant(CCPPSyntax* pcExpression);
-	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
-	CCPPSyntax*				BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcInitialiser);
 
 	//Check only.  CPPUnitCheck.cpp
 	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);

@@ -1178,3 +1178,12 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	shorthands; their callers ask GetTypeChecker() (about 340 call sites, rewritten by moveinto.py).  Same code:
 	TestCppCompilerLib passes (272,132); every conformance case says what it said; the 4,213 listings are as they
 	were; the IDE builds.
+
+	Step 7 (2026-11-23): the rest of CPPUnitObjects.cpp goes where it belongs, and the file is gone.  To the
+	binder: MemberObjectClass, BindMemberOf, MemberEnumerator, BitFieldOf, BoundInitialiser, BindsToTemporary,
+	IsUncapturedConstant, IsOverloadedComma, IsOperatorOperand, IsNamed and IsStdName.  To the type checker: both
+	OperandTypes (an operand's, and sizeof's from CPPUnitExpressions.cpp), IsAggregate, AggregateMember, and
+	typeid's TypeInfoClass, IsTypeInfoMember and TypeidType.  Beside the desugarings: the five initializer_list
+	functions.  Same code: TestCppCompilerLib passes (272,132); every conformance case says what it said; the
+	4,213 listings are as they were; the IDE's CppCompilerLib builds (the IDE itself failed in IDECodeModel.cpp,
+	gameengine-8a's edits under way there, not this step's).

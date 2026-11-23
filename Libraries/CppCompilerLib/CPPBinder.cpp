@@ -1078,7 +1078,7 @@ CCPPFunction* CCPPBinder::InitializerListConstructor(CCPPClass* pcClass, CCPPSyn
 		{
 			continue;
 		}
-		if (mpcUnit->InitializerListElement(psParameter) && ListConverts(mpcUnit->InitializerListElement(psParameter), pcList))
+		if (mpcUnit->GetDesugarings()->InitializerListElement(psParameter) && ListConverts(mpcUnit->GetDesugarings()->InitializerListElement(psParameter), pcList))
 		{
 			return pcFunction;
 		}
@@ -2511,5 +2511,289 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 	}
 	pcBound->meHow = CPPBO_Aggregate;
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class of the object in object.member or pointer->member, or NULL if
+// it isn't an object of a class.  Nothing is reported.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPPBinder::MemberObjectClass(CCPPSyntaxMemberExpression* pcMember)
+{
+	SCPP65Type*	psObject;
+
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	psObject = pcMember->mbArrow ? mpcUnit->ArrowType(pcMember->mpcObject, pcMember) : mpcUnit->mcTypeChecker.ValueTypeOf(pcMember->mpcObject);
+	mpcUnit->mcDiagnostics.EndQuiet();
+	if (psObject && pcMember->mbArrow)
+	{
+		psObject = psObject->IsPointer() ? psObject->psBase : NULL;
+	}
+	return (psObject && psObject->IsClass()) ? psObject->pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the member of object.member or pointer->member is, in *pcBound
+// (CCPPBinder::BindMember, in the object's class), with nothing reported:
+// false if it is nothing, or the object isn't one.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound)
+{
+	CCPPClass*	pcClass;
+	bool		bBound;
+
+	pcClass = MemberObjectClass(pcMember);
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	bBound = pcClass && mpcUnit->mcBinder.BindMember(pcClass, pcMember->mpcName, pcMember, pcBound);
+	mpcUnit->mcDiagnostics.EndQuiet();
+	return bBound;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The enumerator that object.name or pointer->name names, a member of the
+// object's class (s.E is S::E, once s is worked out), or NULL.
+// [expr.ref] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSymbol* CCPPBinder::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember)
+{
+	CCPPClass*	pcClass;
+	CCPPClass*	pcDeclaring;
+
+	pcClass = MemberObjectClass(pcMember);
+	return (pcClass && mpcUnit->CompleteClass(pcClass, pcMember)) ? pcClass->FindMemberSymbol(mpcUnit->GetComponentName(pcMember->mpcName->GetLast()), CPPSK_Enumerator, &pcDeclaring) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bit-field an expression names, or NULL: a field of this named alone,
+// or one after . or ->, that is declared with a width, and c ? x : y that
+// picks one (its first).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPField* CCPPBinder::BitFieldOf(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxConditionalExpression*	pcConditional;
+	CCPPBoundName						cBound;
+	SCPPField*							psField;
+
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	cBound.meWhat = CPPBN_Nothing;
+	if (pcExpression->GetKind() == CPPS_ConditionalExpression)
+	{
+		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
+		psField = BitFieldOf(pcConditional->mpcTrue);
+		return psField ? psField : BitFieldOf(pcConditional->mpcFalse);
+	}
+	if (pcExpression->GetKind() == CPPS_IdExpression)
+	{
+		mpcUnit->mcDiagnostics.BeginQuiet();
+		mpcUnit->mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+		mpcUnit->mcDiagnostics.EndQuiet();
+	}
+	else if ((pcExpression->GetKind() == CPPS_MemberExpression) && !BindMemberOf((CCPPSyntaxMemberExpression*)pcExpression, &cBound))
+	{
+		cBound.meWhat = CPPBN_Nothing;
+	}
+	return ((cBound.meWhat == CPPBN_Field) && cBound.mpsField->IsBitField()) ? cBound.mpsField : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a reference is initialised from: a list in braces with one element
+// the reference binds to as it is (its type the reference's, or a class
+// derived from it) is that element, int& r{x}; any other list makes a
+// temporary the reference is bound to (BindsToTemporary).
+// [dcl.init.list] 3
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPBinder::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcInitialiser)
+{
+	CArraySyntax*	papcElements;
+	CCPPSyntax*		pcElement;
+	SCPP65Type*		psElement;
+	SCPP65Type*		psReferred;
+
+	if (!pcInitialiser || (pcInitialiser->GetKind() != CPPS_InitializerList))
+	{
+		return pcInitialiser;
+	}
+	papcElements = mpcUnit->ListElements(pcInitialiser);
+	pcElement = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+	if (!pcElement || (pcElement->GetKind() == CPPS_InitializerList))
+	{
+		return pcInitialiser;
+	}
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	psElement = mpcUnit->mcTypeChecker.PlaceOf(pcElement);
+	psElement = psElement ? psElement : mpcUnit->mcTypeChecker.ValueTypeOf(pcElement);
+	mpcUnit->mcDiagnostics.EndQuiet();
+	psElement = psElement ? psElement->WithoutReference()->Unqualified() : NULL;
+	psReferred = psReference->psBase->Unqualified();
+	if (psElement && (psElement->Equals(psReferred) || (psElement->IsClass() && psReferred->IsClass() && mpcUnit->IsDerived(psElement->pcClass, psReferred->pcClass, NULL))))
+	{
+		return pcElement;
+	}
+	return pcInitialiser;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if a reference gets a temporary holding the value, not the value's
+// address: a const reference or T&&, and a value that has no address or
+// is of another type (const long& of a char, const char* const& of an
+// array, const Class& of what a Class is made from, a list in braces).  An
+// object of the class, or of one derived from it, is referred to itself.
+// [dcl.init.ref]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
+{
+	SCPP65Type*			psPlace;
+	SCPP65Type*			psValue;
+	CCPPBoundConversion	cConversion;
+
+	if (!(psReference->psBase->bConst || psReference->bRvalue))
+	{
+		return false;
+	}
+	if (pcArgument->GetKind() == CPPS_InitializerList)
+	{
+		//const S& s = {1, 2}: what the list makes.  [dcl.init.list] 3
+		return true;
+	}
+	if (psReference->psBase->IsClass())
+	{
+		psValue = mpcUnit->mcTypeChecker.ValueTypeOf(pcArgument);
+		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || mpcUnit->IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
+	}
+	psValue = mpcUnit->mcTypeChecker.ValueTypeOf(pcArgument);
+	if (psValue && psValue->IsClass() && !psReference->bRvalue)
+	{
+		//const T& binds to what the object's operator T& returns, itself; a temporary only holds what another
+		//conversion function's result converts to.  [dcl.init.ref] 5.1.2, [over.match.ref]
+		mpcUnit->mcBinder.BindObjectConversion(psValue->pcClass, psReference, false, NULL, &cConversion);
+		return !cConversion.mpcFunction || !cConversion.mpcFunction->mpsReturn->IsLvalueReference() ||
+			   !psReference->psBase->Unqualified()->Equals(cConversion.mpcFunction->mpsReturn->psBase->Unqualified()) || !psReference->psBase->HasQualifiersOf(cConversion.mpcFunction->mpsReturn->psBase);
+	}
+	if (IsUncapturedConstant(pcArgument))
+	{
+		//A constant a lambda doesn't capture has no object in it to refer to: binding a reference to it odr-uses it.
+		//[basic.def.odr] 3
+		mpcUnit->mcDiagnostics.ReportOnce(pcArgument, "The lambda doesn't capture the variable");
+		return true;
+	}
+	psPlace = mpcUnit->mcTypeChecker.PlaceOf(pcArgument);
+	return !psPlace || !psReference->psBase->Equals(psPlace->WithoutReference());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression names a constant of the function a lambda being
+// written is in, which the lambda doesn't capture (CPPBN_EnclosingConstant):
+// only its value can be used.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsUncapturedConstant(CCPPSyntax* pcExpression)
+{
+	CCPPBoundName	cBound;
+
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	if (!pcExpression || (pcExpression->GetKind() != CPPS_IdExpression))
+	{
+		return false;
+	}
+	mpcUnit->mcBinder.BindName((CCPPSyntaxIdExpression*)pcExpression, &cBound);
+	return cBound.meWhat == CPPBN_EnclosingConstant;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether left, right is a call of an operator, because an operand is an
+// object and one matches.  Other operators with an object need one; a comma
+// without one is the built in comma.  [over.match.oper] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
+{
+	CCPPBoundCall	cBound;
+	bool			bOverloaded;
+
+	if (!mpcUnit->mcTypeChecker.IsObject(pcBinary->mpcLeft) && !mpcUnit->mcTypeChecker.IsObject(pcBinary->mpcRight))
+	{
+		return false;
+	}
+	mpcUnit->mcDiagnostics.BeginSilent();
+	bOverloaded = mpcUnit->mcBinder.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
+	mpcUnit->mcDiagnostics.EndSilent();
+	return bOverloaded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operator's operand may make it an operator function's call: an
+// object, or an enumerator or enum value where an operator function of the
+// operator's name that is no class's is declared (else it is only ever the
+// built-in operator, and isn't looked for).  [over.match.oper] 1, 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator)
+{
+	SCPP65Type*	psType;
+
+	psType = mpcUnit->mcTypeChecker.ValueTypeOf(pcExpression);
+	if (!psType)
+	{
+		return false;
+	}
+	if (psType->IsClass())
+	{
+		return true;
+	}
+	return psType->pcEnum && mpcUnit->mcBinder.HasFreeOperator(mpcUnit->GetOperatorName(eOperator, false));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an identifier (lliName) is szName.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsNamed(int64 lliName, const char* szName)
+{
+	char*	szIdentifier;
+	int		iLength;
+
+	if (lliName < 0)
+	{
+		return false;
+	}
+	szIdentifier = mpcUnit->mpcTokeniser->GetIdentifier(lliName, &iLength);
+	return ((size)iLength == strlen(szName)) && (memcmp(szIdentifier, szName, iLength) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a name declared in pcScope is std::szName: the library's, which
+// the compiler knows (std::initializer_list, std::type_info).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPBinder::IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName)
+{
+	return pcScope && pcScope->mpcOwner && IsNamed(lliName, szName) && IsNamed(pcScope->mpcOwner->mlliName, "std") && (!pcScope->mpcParent || !pcScope->mpcParent->mpcOwner);
 }
 

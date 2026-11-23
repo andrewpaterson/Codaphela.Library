@@ -294,7 +294,6 @@
     <ClCompile Include="CPPUnitOverloads.cpp" />
     <ClCompile Include="CPPUnitLabels.cpp" />
     <ClCompile Include="CPPUnitExpressions.cpp" />
-    <ClCompile Include="CPPUnitObjects.cpp" />
     <ClCompile Include="CPPUnitPacks.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />

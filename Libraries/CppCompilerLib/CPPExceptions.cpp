@@ -1018,11 +1018,11 @@ bool CCPPExceptions::MayThrow(CCPPSyntax* pcExpression)
 		break;
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		bThrows = mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->mcBinder.BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
+		bThrows = mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->mcBinder.BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
 		break;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		bThrows = (mpcUnit->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) && mpcUnit->mcBinder.BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
+		bThrows = (mpcUnit->GetBinder()->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->GetBinder()->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) && mpcUnit->mcBinder.BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false) && cBound.mpcFunction && !IsNoexcept(cBound.mpcFunction);
 		break;
 	case CPPS_NewExpression:
 		bThrows = NewMayThrow((CCPPSyntaxNewExpression*)pcExpression);

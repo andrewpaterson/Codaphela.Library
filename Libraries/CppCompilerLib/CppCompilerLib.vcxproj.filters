@@ -147,9 +147,6 @@
     <ClCompile Include="CPPUnitExpressions.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitObjects.cpp">
-      <Filter>Source\Generator65</Filter>
-    </ClCompile>
     <ClCompile Include="CPPUnitPacks.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>

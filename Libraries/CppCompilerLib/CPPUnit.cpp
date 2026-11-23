@@ -682,7 +682,7 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 		return true;
 	}
 	psType = psReference->psBase->Unqualified();
-	if (!BindsToTemporary(psReference, pcValue))
+	if (!mcBinder.BindsToTemporary(psReference, pcValue))
 	{
 		//const S& r = make() and const S& r = D(): the object made for the reference, which may be of a class derived from S.
 		psType = mcTypeChecker.TypeOf(pcValue);
@@ -3255,7 +3255,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		}
 		if (psType->IsReference())
 		{
-			pcInitialiser = BoundInitialiser(psType, pcInitialiser);
+			pcInitialiser = mcBinder.BoundInitialiser(psType, pcInitialiser);
 		}
 		psElement = psType->ElementType();
 		if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcInit))

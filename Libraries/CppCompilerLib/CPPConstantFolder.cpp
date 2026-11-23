@@ -308,7 +308,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 		{
 			return false;
 		}
-		psType = mpcUnit->OperandType(pcSizeof->mpcType, pcSizeof->mpcOperand);
+		psType = mpcUnit->GetTypeChecker()->OperandType(pcSizeof->mpcType, pcSizeof->mpcOperand);
 		if (!psType || psType->IsVoid() || psType->IsFunction() || (psType->IsArray() && (psType->iCount == 0)))
 		{
 			//Nothing that has no size: void, a function, an array of unknown bound.  [expr.sizeof] 1

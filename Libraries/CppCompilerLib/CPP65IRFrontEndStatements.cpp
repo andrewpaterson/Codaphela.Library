@@ -478,7 +478,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			//Objects are constructed (by default without an initialiser) and destroyed when their scope is left; a
 			//std::initializer_list's array lives as long as it does.
-			mbListLocal = mpcUnit->InitializerListElement(pcVariable->mpsType) != NULL;
+			mbListLocal = mpcUnit->GetDesugarings()->InitializerListElement(pcVariable->mpsType) != NULL;
 			bResult = Construct(&sPlace, NULL, pcInit->mpcInitializer);
 			mbListLocal = false;
 			if (!bResult)
@@ -677,8 +677,8 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	if (psPlace->psType->IsReference())
 	{
-		pcInitialiser = mpcUnit->BoundInitialiser(psPlace->psType, pcInitialiser);
-		if (mpcUnit->BindsToTemporary(psPlace->psType, pcInitialiser))
+		pcInitialiser = mpcUnit->GetBinder()->BoundInitialiser(psPlace->psType, pcInitialiser);
+		if (mpcUnit->GetBinder()->BindsToTemporary(psPlace->psType, pcInitialiser))
 		{
 			//const int& r = 3, int&& r = 3 and const S& r = 3: a temporary in the function's frame, which lasts as
 			//long as a local reference does.  A global's, or a field's, would outlast it.

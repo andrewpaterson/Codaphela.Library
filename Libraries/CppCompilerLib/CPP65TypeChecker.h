@@ -172,6 +172,13 @@ public:
 	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
 	bool					IsReturnedLocal(CCPPSyntaxIdExpression* pcId);
+	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
+	SCPP65Type*				OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand);
+	bool					IsAggregate(SCPP65Type* psType);
+	SCPP65Type*				AggregateMember(SCPP65Type* psType, size uiIndex);
+	CCPPClass*				TypeInfoClass(void);
+	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
+	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);

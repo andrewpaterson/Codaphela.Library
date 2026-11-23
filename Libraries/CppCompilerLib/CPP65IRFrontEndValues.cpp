@@ -248,7 +248,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		}
 		break;
 	case CPPS_MemberExpression:
-		if (mpcUnit->MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression))
+		if (mpcUnit->GetBinder()->MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression))
 		{
 			return MemberEnumerator((CCPPSyntaxMemberExpression*)pcExpression, psValue);
 		}
@@ -647,7 +647,7 @@ bool CCPP65IRFrontEnd::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SC
 	SCPP65IRValue	sObject;
 	int64			lliValue;
 
-	pcEnumerator = mpcUnit->MemberEnumerator(pcMember);
+	pcEnumerator = mpcUnit->GetBinder()->MemberEnumerator(pcMember);
 	if (!Value(pcMember->mpcObject, &sObject))
 	{
 		return false;
@@ -1126,12 +1126,12 @@ bool CCPP65IRFrontEnd::TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65I
 	CChars			szLabel;
 	bool			bDynamic;
 
-	psType = mpcUnit->TypeidType(pcTypeid, &bDynamic);
-	if (!psType || !mpcUnit->TypeInfoClass())
+	psType = mpcUnit->GetTypeChecker()->TypeidType(pcTypeid, &bDynamic);
+	if (!psType || !mpcUnit->GetTypeChecker()->TypeInfoClass())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psPlace->psType = mpcTypes->Const(mpcUnit->TypeInfoClass()->mpsType);
+	psPlace->psType = mpcTypes->Const(mpcUnit->GetTypeChecker()->TypeInfoClass()->mpsType);
 	psPlace->psBitField = NULL;
 	if (bDynamic)
 	{
@@ -1383,7 +1383,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 		//(x, y) is y, once x is worked out.  [expr.comma] 1
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{
 			return Value(pcBinary->mpcLeft, &sAddress) && Place(pcBinary->mpcRight, psPlace);
 		}

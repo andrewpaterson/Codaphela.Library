@@ -1789,7 +1789,7 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 		return CPPCR_None;
 	}
 	papcElements = mpcUnit->ListElements(pcList);
-	psElement = mpcUnit->InitializerListElement(psType);
+	psElement = mpcUnit->GetDesugarings()->InitializerListElement(psType);
 	if (psElement)
 	{
 		//To a std::initializer_list, the worst of its elements' conversions.  [over.ics.list] 4
@@ -1838,7 +1838,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 
 	bReference = psParameter->IsReference();
 	bRvalue = psParameter->IsRvalueReference();
-	bTemporary = bReference && pcArgument && mpcUnit->BindsToTemporary(psParameter, pcArgument);
+	bTemporary = bReference && pcArgument && mpcUnit->GetBinder()->BindsToTemporary(psParameter, pcArgument);
 	psParameter = bReference ? psParameter->psBase : psParameter;
 	psArgument = psArgument->WithoutReference();
 	if (bReference && psParameter->IsFunction() && pcArgument)
@@ -2274,8 +2274,8 @@ int CCPPOverloads::CompareArgument(CCPPFunction* pcFirst, CCPPFunction* pcSecond
 	psSecond = pcSecond->mapsParameters.GetPtr(uiArgument);
 	if (pcArgument->GetKind() == CPPS_InitializerList)
 	{
-		bFirstList = mpcUnit->InitializerListElement(psFirst->WithoutReference()) != NULL;
-		bSecondList = mpcUnit->InitializerListElement(psSecond->WithoutReference()) != NULL;
+		bFirstList = mpcUnit->GetDesugarings()->InitializerListElement(psFirst->WithoutReference()) != NULL;
+		bSecondList = mpcUnit->GetDesugarings()->InitializerListElement(psSecond->WithoutReference()) != NULL;
 		if (bFirstList != bSecondList)
 		{
 			return bFirstList ? 1 : -1;

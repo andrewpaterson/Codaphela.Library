@@ -244,6 +244,17 @@ public:
 	SCPP65Type*		ContextualType(CCPPSyntax* pcExpression, ECPPContextualTypes eWanted);
 	CCPPFunction*	FindIntegerConversion(CCPPClass* pcClass, CCPPSyntax* pcNode);
 
+	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
+	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
+	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);
+	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
+	CCPPSyntax*				BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcInitialiser);
+	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
+	bool					IsUncapturedConstant(CCPPSyntax* pcExpression);
+	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
+	bool					IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator);
+	bool					IsNamed(int64 lliName, const char* szName);
+	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
 protected:
 	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);
 	bool	IsNamedObject(CCPPSyntax* pcObject);

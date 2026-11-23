@@ -569,7 +569,7 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 		asPieces.Kill();
 		return false;
 	}
-	if (pcFunction && mpcUnit->IsTypeInfoMember(pcFunction))
+	if (pcFunction && mpcUnit->GetTypeChecker()->IsTypeInfoMember(pcFunction))
 	{
 		bThisCall = TypeInfoCall(pcFunction, sObject, &asPieces, psValue);
 		asPieces.Kill();
@@ -627,7 +627,7 @@ bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObje
 	{
 		uiOpcode = IRO_Ne;
 	}
-	else if (mpcUnit->IsNamed(lliName, "before"))
+	else if (mpcUnit->GetBinder()->IsNamed(lliName, "before"))
 	{
 		uiOpcode = IRO_ULt;
 	}
@@ -642,13 +642,13 @@ bool CCPP65IRFrontEnd::TypeInfoCall(CCPPFunction* pcFunction, SIRReference sObje
 		psValue->psType = &mpcTypes->msBool;
 		return true;
 	}
-	if (mpcUnit->IsNamed(lliName, "name") && (pasArguments->NumElements() == 0))
+	if (mpcUnit->GetBinder()->IsNamed(lliName, "name") && (pasArguments->NumElements() == 0))
 	{
 		psValue->sValue = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(sObject, CPP65_TYPE_INFO_NAME_OFFSET));
 		psValue->psType = pcFunction->mpsReturn;
 		return true;
 	}
-	if (mpcUnit->IsNamed(lliName, "hash_code") && (pasArguments->NumElements() == 0) && pcFunction->mpsReturn->IsInteger())
+	if (mpcUnit->GetBinder()->IsNamed(lliName, "hash_code") && (pasArguments->NumElements() == 0) && pcFunction->mpsReturn->IsInteger())
 	{
 		psValue->sValue = ConvertIR(sObject, IRType(IRTK_Pointer), IRTypeOf(pcFunction->mpsReturn), false);
 		psValue->psType = pcFunction->mpsReturn;
@@ -893,8 +893,8 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 		}
 		else if (psParameter->IsReference())
 		{
-			pcArgument = mpcUnit->BoundInitialiser(psParameter, pcArgument);
-			if (mpcUnit->BindsToTemporary(psParameter, pcArgument))
+			pcArgument = mpcUnit->GetBinder()->BoundInitialiser(psParameter, pcArgument);
+			if (mpcUnit->GetBinder()->BindsToTemporary(psParameter, pcArgument))
 			{
 				if (!ValueTemporary(pcArgument, psParameter->psBase, &sPlace))
 				{

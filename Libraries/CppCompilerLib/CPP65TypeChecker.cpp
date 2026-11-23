@@ -229,7 +229,7 @@ ECPPValueCategory CCPP65TypeChecker::WorkOutCategory(CCPPSyntax* pcExpression)
 
 	case CPPS_MemberExpression:
 		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
-		if (!mpcUnit->BindMemberOf(pcMember, &cBound) || (cBound.meWhat != CPPBN_Field))
+		if (!mpcUnit->GetBinder()->BindMemberOf(pcMember, &cBound) || (cBound.meWhat != CPPBN_Field))
 		{
 			//A static member is an lvalue, an enumerator a prvalue.
 			return PlaceFact(pcExpression) ? CPPVC_Lvalue : CPPVC_Prvalue;
@@ -266,7 +266,7 @@ ECPPValueCategory CCPP65TypeChecker::WorkOutCategory(CCPPSyntax* pcExpression)
 
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{
 			return Category(pcBinary->mpcRight);
 		}
@@ -609,7 +609,7 @@ void CCPP65TypeChecker::VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode
 	CCPPSymbol*	pcEnumerator;
 
 	//object.Enumerator is the enumerator, the object worked out first; anything else is a field or a static member.
-	pcEnumerator = mpcUnit->MemberEnumerator(pcNode);
+	pcEnumerator = mpcUnit->GetBinder()->MemberEnumerator(pcNode);
 	if (pcEnumerator)
 	{
 		mpsResult = Value(pcNode->mpcObject) ? mpcUnit->EnumeratorType(pcEnumerator) : NULL;
@@ -792,7 +792,7 @@ void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode
 	bool		bDynamic;
 
 	mpsResult = NULL;
-	pcTypeInfo = mpcUnit->TypeInfoClass();
+	pcTypeInfo = TypeInfoClass();
 	if (!pcTypeInfo)
 	{
 		Error(pcNode, "typeid needs std::type_info, from <typeinfo>");
@@ -802,7 +802,7 @@ void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode
 	{
 		return;
 	}
-	psOf = mpcUnit->TypeidType(pcNode, &bDynamic);
+	psOf = TypeidType(pcNode, &bDynamic);
 	if (!psOf)
 	{
 		Error(pcNode, "typeid of this is not supported by the compiler yet");
@@ -1176,7 +1176,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	case CT_Decrement:
 		return IncrementExpression(pcUnary);
 	case CT_LogicalNot:
-		if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
+		if (mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
 		{
 			//!object: its operator! (the object's or one that is no class's), whatever it returns.  [over.match.oper] 2
 			return OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary);
@@ -1242,7 +1242,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		Error(pcUnary, "This operator is not supported by the compiler yet");
 		return NULL;
 	}
-	if (!IsObject(pcUnary->mpcOperand) && mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
+	if (!IsObject(pcUnary->mpcOperand) && mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
 	{
 		//An enum's operand with an operator function that takes it.
 		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
@@ -1263,7 +1263,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			psType = TypeOf(pcUnary->mpcOperand);
 			if (psType && psType->IsInteger() && !psType->IsScopedEnum())
 			{
-				return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
+				return mpcTypes->Promote(OperandType(psType, pcUnary->mpcOperand));
 			}
 		}
 		psType = Operand(pcUnary->mpcOperand);
@@ -1369,7 +1369,7 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 	case CT_MemberFunctionPointerIndirection:
 		return Load(Place(pcBinary), pcBinary);
 	case CT_Comma:
-		if (mpcUnit->IsOverloadedComma(pcBinary))
+		if (mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
 		}
@@ -1513,7 +1513,7 @@ bool CCPP65TypeChecker::HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary
 {
 	CCPPBoundCall	cBound;
 
-	return (mpcUnit->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) &&
+	return (mpcUnit->GetBinder()->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->GetBinder()->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) &&
 		   mpcUnit->GetBinder()->BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 }
 
@@ -1567,7 +1567,7 @@ SCPP65Type* CCPP65TypeChecker::Operand(CCPPSyntax* pcExpression)
 	SCPP65Type*	psType;
 
 	psType = Value(pcExpression);
-	return psType ? mpcUnit->OperandType(psType, pcExpression) : NULL;
+	return psType ? OperandType(psType, pcExpression) : NULL;
 }
 
 
@@ -1942,7 +1942,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 	if (pcExpression->GetKind() == CPPS_UnaryExpression)
 	{
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		if ((pcUnary->meOperator == CT_LogicalNot) && mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cOperatorCall, false))
+		if ((pcUnary->meOperator == CT_LogicalNot) && mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cOperatorCall, false))
 		{
 			return Truth(OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary), pcUnary);
 		}
@@ -2241,7 +2241,7 @@ bool CCPP65TypeChecker::ParameterArguments(CArrayCPP65Types* papsParameters, CAr
 			return Error(pcNode, "The number of arguments does not match the function");
 		}
 		psParameter = papsParameters->GetPtr(i - 1);
-		if (psParameter->IsReference() && mpcUnit->BindsToTemporary(psParameter, pcArgument))
+		if (psParameter->IsReference() && mpcUnit->GetBinder()->BindsToTemporary(psParameter, pcArgument))
 		{
 			//It is checked as an argument to a parameter of the type referred to.
 			psParameter = psParameter->psBase->Unqualified();
@@ -2906,7 +2906,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			//(x = y) and (x op= y) are x, once it is assigned.  [expr.ass] 1
 			return Assignment(pcBinary) ? Place(pcLeft) : NULL;
 		}
-		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{
 			//(x, y) is y, once x is worked out.  [expr.comma] 1
 			return Value(pcBinary->mpcLeft) ? Place(pcBinary->mpcRight) : NULL;
@@ -3242,7 +3242,7 @@ SCPP65Type* CCPP65TypeChecker::SizeofExpression(CCPPSyntax* pcSizeof)
 	int64		lliBytes;
 
 	pcOperand = (pcSizeof->GetKind() == CPPS_SizeofExpression) ? ((CCPPSyntaxSizeofExpression*)pcSizeof)->mpcOperand : NULL;
-	if (pcOperand && mpcUnit->BitFieldOf(pcOperand))
+	if (pcOperand && mpcUnit->GetBinder()->BitFieldOf(pcOperand))
 	{
 		Error(pcSizeof, "sizeof can't be applied to a bit-field");
 		return NULL;
@@ -3287,7 +3287,7 @@ void CCPP65TypeChecker::SizeofError(CCPPSyntax* pcSizeof)
 		return;
 	}
 	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
-	psType = mpcUnit->OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
+	psType = OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
 	if (!psType && pcExpression->mpcOperand)
 	{
 		Value(pcExpression->mpcOperand);
@@ -3344,7 +3344,7 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 			return NULL;
 		}
 		mpcDiagnostics->BeginQuiet();
-		psType = mpcUnit->OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
+		psType = OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
 		bComplete = !psType || !psType->IsClass() || mpcUnit->CompleteClass(psType->pcClass, pcSizeof);
 		mpcDiagnostics->EndQuiet();
 		if (psType && psType->IsFunction())
@@ -3830,7 +3830,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	{
 		//A std::initializer_list is made from the list's elements; a class with an initializer-list constructor
 		//that takes the list, by it.  [dcl.init.list] 3 and 5
-		psElement = mpcUnit->InitializerListElement(psType);
+		psElement = mpcUnit->GetDesugarings()->InitializerListElement(psType);
 		pcConstructor = psElement ? NULL : mpcUnit->GetBinder()->InitializerListConstructor(pcClass, pcList);
 		if (psElement || pcConstructor)
 		{
@@ -3906,7 +3906,7 @@ bool CCPP65TypeChecker::InitializerListElements(SCPP65Type* psType, SCPP65Type* 
 	bool		bEnd;
 	bool		bResult;
 
-	if (!mpcUnit->InitializerListLayout(psType->pcClass, &bEnd))
+	if (!mpcUnit->GetDesugarings()->InitializerListLayout(psType->pcClass, &bEnd))
 	{
 		return Error(pcNode, "This std::initializer_list isn't laid out as the compiler fills one: a pointer to its elements, then their count or end");
 	}
@@ -4146,7 +4146,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		{
 			return false;
 		}
-		if (mpcUnit->BindsToTemporary(psType, pcInitialiser))
+		if (mpcUnit->GetBinder()->BindsToTemporary(psType, pcInitialiser))
 		{
 			//It refers to a temporary holding the value: an object made from it (const S& r = 4;), or the value converted.
 			if (psType->psBase->IsClass())
@@ -4740,10 +4740,10 @@ bool CCPP65TypeChecker::IsBitField(CCPPSyntax* pcExpression)
 	{
 	case CPPS_IdExpression:
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
-		return pcSymbol && (pcSymbol->meKind == CPPSK_Field) && (mpcUnit->BitFieldOf(pcExpression) != NULL);
+		return pcSymbol && (pcSymbol->meKind == CPPSK_Field) && (mpcUnit->GetBinder()->BitFieldOf(pcExpression) != NULL);
 	case CPPS_MemberExpression:
 	case CPPS_ConditionalExpression:
-		return mpcUnit->BitFieldOf(pcExpression) != NULL;
+		return mpcUnit->GetBinder()->BitFieldOf(pcExpression) != NULL;
 	default:
 		return false;
 	}
@@ -4771,7 +4771,7 @@ bool CCPP65TypeChecker::BitFieldError(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::BindsCategory(SCPP65Type* psReference, CCPPSyntax* pcValue, CCPPSyntax* pcNode)
 {
-	return !psReference->bRvalue || IsRvalue(pcValue) || mpcUnit->BindsToTemporary(psReference, pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
+	return !psReference->bRvalue || IsRvalue(pcValue) || mpcUnit->GetBinder()->BindsToTemporary(psReference, pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
 }
 
 
@@ -4844,7 +4844,7 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 			//T& binds to an lvalue (or what a conversion function returns as one).  [dcl.init.ref] 5
 			return Error(pcValue, "A reference that isn't const binds to an object: the value has no place to refer to");
 		}
-		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
+		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->GetBinder()->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
 	}
 	psValue = psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue;
 	if (!mpcUnit->FunctionNameFor(pcValue, psTo) && !ConvertsPointer(psValue, psTo, pcValue, pcValue))
@@ -5399,7 +5399,7 @@ CCPPSyntax* CCPP65TypeChecker::CommaResult(CCPPSyntax* pcExpression)
 	{
 		pcExpression = mpcUnit->SkipParentheses(pcExpression);
 		pcBinary = (pcExpression->GetKind() == CPPS_BinaryExpression) ? (CCPPSyntaxBinaryExpression*)pcExpression : NULL;
-		if (!pcBinary || (pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary))
+		if (!pcBinary || (pcBinary->meOperator != CT_Comma) || mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{
 			return pcExpression;
 		}
@@ -5429,5 +5429,162 @@ bool CCPP65TypeChecker::IsReturnedLocal(CCPPSyntaxIdExpression* pcId)
 	}
 	mpcUnit->mcBinder.BindName(pcId, &cBound);
 	return (cBound.meWhat == CPPBN_Variable) && ((cBound.mpcVariable->meStorage == CPPVS_Local) || (cBound.mpcVariable->meStorage == CPPVS_Parameter)) && cBound.mpcVariable->mpsType->IsClass();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type sizeof or typeid is asked of: its type-id's (pcType), or its
+// expression's, which isn't evaluated.  decltype(d)::name, which the parser
+// takes for a type where one can be written (only the type of d says which
+// it is), is the member it names when it names no type.  NULL after an
+// error.  [expr.sizeof] 1, [expr.typeid] 3, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand)
+{
+	SCPP65Type*	psType;
+	CCPPSyntax*	pcMember;
+
+	if (!pcType)
+	{
+		return mpcUnit->mcTypeChecker.UnevaluatedTypeOf(pcOperand);
+	}
+	pcMember = mpcUnit->mcDesugarings.DecltypeMember(pcType);
+	if (!pcMember)
+	{
+		return mpcUnit->mcDeclarators.GetTypeIdType(pcType);
+	}
+	mpcUnit->mcDiagnostics.BeginSilent();
+	psType = mpcUnit->mcDeclarators.GetTypeIdType(pcType);
+	mpcUnit->mcDiagnostics.EndSilent();
+	return psType ? psType : mpcUnit->mcTypeChecker.UnevaluatedTypeOf(pcMember);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the value of pcExpression, a psType, has where integral
+// promotion is applied to it (an operator's operand, an argument that has
+// no parameter, a switch's condition): its own, but for a bit-field, which
+// is promoted by its width and not by its type.  An unsigned field of
+// three bits is an int there, so that field - 4 is less than 0.
+// [conv.prom] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression)
+{
+	SCPPField*	psField;
+
+	psField = psType->IsInteger() ? mpcUnit->mcBinder.BitFieldOf(pcExpression) : NULL;
+	return psField ? mpcUnit->mcTypes.PromoteBitField(psType, psField->iBitWidth) : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a type is an aggregate: an array, or a class with no constructor
+// of its own, no base and no virtual function, whose members a list in
+// braces gives values to.  [dcl.init.aggr] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsAggregate(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+	bool		bComplete;
+
+	if (psType->IsArray())
+	{
+		return true;
+	}
+	if (!psType->IsClass())
+	{
+		return false;
+	}
+	pcClass = psType->pcClass;
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	bComplete = mpcUnit->CompleteClass(pcClass, NULL);
+	mpcUnit->mcDiagnostics.EndQuiet();
+	return bComplete && !pcClass->mbConstructors && !pcClass->mpsLambda && (pcClass->macBases.NumElements() == 0) && !pcClass->IsPolymorphic();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the member of an aggregate that its list's value number
+// uiIndex is for: an array's element, a class's field in the order they are
+// declared (a union's first only), bit-fields with no name left out.  NULL
+// past the last.  An array of unknown bound has an element for every value.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::AggregateMember(SCPP65Type* psType, size uiIndex)
+{
+	SCPPField*	psField;
+
+	if (psType->IsArray())
+	{
+		return ((psType->iCount == 0) || (uiIndex < (size)psType->iCount)) ? psType->psBase : NULL;
+	}
+	psField = psType->pcClass->AggregateField(uiIndex);
+	return psField ? psField->psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class std::type_info, if the program has declared it (<typeinfo>), or
+// NULL.  [type.info]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPP65TypeChecker::TypeInfoClass(void)
+{
+	CCPPClass*	pcClass;
+	size		i;
+
+	for (i = 0; !mpcUnit->mpcTypeInfo && (i < mpcUnit->mapcClasses.NumElements()); i++)
+	{
+		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		if (!pcClass->mpcTemplate && pcClass->mpcSymbol && mpcUnit->mcBinder.IsStdName(pcClass->mlliName, pcClass->mpcSymbol->mpcScope, "type_info"))
+		{
+			mpcUnit->mpcTypeInfo = pcClass;
+		}
+	}
+	return mpcUnit->mpcTypeInfo;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a function is a member of std::type_info that the program declares
+// and nothing defines (<typeinfo>'s), which the IR front end works out where
+// it is called (CCPP65IRFrontEnd::TypeInfoCall).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsTypeInfoMember(CCPPFunction* pcFunction)
+{
+	return pcFunction->mpcClass && (pcFunction->mpcClass == TypeInfoClass()) && !pcFunction->mpcDefinition && (pcFunction->meKind == CPPFK_Function);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type typeid gives the std::type_info of: a type's, or an expression's
+// (its type without a reference), without const and volatile.  *pbDynamic
+// when it is the object's own (an lvalue of a polymorphic class), found
+// from its vtable.  [expr.typeid]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic)
+{
+	SCPP65Type*	psType;
+
+	*pbDynamic = false;
+	psType = OperandType(pcTypeid->mpcType, pcTypeid->mpcOperand);
+	psType = psType ? psType->WithoutReference() : NULL;
+	if (!pcTypeid->mpcType)
+	{
+		*pbDynamic = psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && mpcUnit->mcTypeChecker.IsObjectLvalue(pcTypeid->mpcOperand);
+	}
+	return psType ? psType->Unqualified() : NULL;
 }
 

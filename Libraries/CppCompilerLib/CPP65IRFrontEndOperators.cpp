@@ -47,7 +47,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Decrement:
 		return IncrementExpression(pcUnary, psValue);
 	case CT_LogicalNot:
-		if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
+		if (mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
 		{
 			//!object: its operator!, whatever it returns.
 			return OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, psValue);
@@ -123,7 +123,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_Add:
 	case CT_Subtract:
 	case CT_BitwiseNot:
-		if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
+		if (mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cCall, false))
 		{
 			//+object, -object, ~object: the object's operator, whatever it returns.
 			return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, psValue);
@@ -192,7 +192,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Operand(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
-	return Value(pcExpression, psValue) && Convert(psValue, mpcUnit->OperandType(psValue->psType, pcExpression));
+	return Value(pcExpression, psValue) && Convert(psValue, mpcUnit->GetTypeChecker()->OperandType(psValue->psType, pcExpression));
 }
 
 
@@ -289,7 +289,7 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 		//object.*field (a member function can only be called).
 		return MemberPointerPlace(pcBinary, &sPlace) && Load(&sPlace, psValue);
 	case CT_Comma:
-		if (mpcUnit->IsOverloadedComma(pcBinary))
+		if (mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
 		}
@@ -400,7 +400,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	}
 
 	//x op= y is x = x op y: both are operands, a bit-field promoted as one is.  [expr.ass] 7
-	if (!Load(&sPlace, &sOld) || !Convert(&sOld, mpcUnit->OperandType(sOld.psType, pcBinary->mpcLeft)) || !Convert(&sRight, mpcUnit->OperandType(sRight.psType, pcBinary->mpcRight)))
+	if (!Load(&sPlace, &sOld) || !Convert(&sOld, mpcUnit->GetTypeChecker()->OperandType(sOld.psType, pcBinary->mpcLeft)) || !Convert(&sRight, mpcUnit->GetTypeChecker()->OperandType(sRight.psType, pcBinary->mpcRight)))
 	{
 		return false;
 	}
@@ -773,7 +773,7 @@ bool CCPP65IRFrontEnd::HasOperatorFunction(CCPPSyntaxBinaryExpression* pcBinary)
 {
 	CCPPBoundCall	cBound;
 
-	return (mpcUnit->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) &&
+	return (mpcUnit->GetBinder()->IsOperatorOperand(pcBinary->mpcLeft, pcBinary->meOperator) || mpcUnit->GetBinder()->IsOperatorOperand(pcBinary->mpcRight, pcBinary->meOperator)) &&
 		   mpcUnit->GetBinder()->BindOperator(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 }
 
@@ -956,7 +956,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
 		if (pcUnary->meOperator == CT_LogicalNot)
 		{
-			if (mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cOperatorCall, false))
+			if (mpcUnit->GetBinder()->IsOperatorOperand(pcUnary->mpcOperand, CT_LogicalNot) && mpcUnit->GetBinder()->BindOperator(CT_LogicalNot, pcUnary->mpcOperand, NULL, pcUnary, &cOperatorCall, false))
 			{
 				//!object with the object's operator!.
 				if (!OperatorExpression(CT_LogicalNot, pcUnary->mpcOperand, NULL, &sValue) || !Truth(&sValue, &sCondition))

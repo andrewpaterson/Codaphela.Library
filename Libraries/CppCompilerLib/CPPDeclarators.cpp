@@ -477,7 +477,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 			mpcDiagnostics->Error(pcNode, "auto with a pointer or reference from a list in braces is not supported by the compiler yet");
 			return NULL;
 		}
-		psType = mpcUnit->BracedListType(pcInitialiser, pcNode);
+		psType = mpcUnit->GetDesugarings()->BracedListType(pcInitialiser, pcNode);
 		return psType ? mpcUnit->GetTypes()->Qualified(psType, (pcSpecifiers->muiFlags & CPPDS_CONST) != 0, false) : NULL;
 	}
 
@@ -652,7 +652,7 @@ SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
 		}
 		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);
 	}
-	else if ((pcOperand->GetKind() != CPPS_MemberExpression) || !mpcUnit->BindMemberOf((CCPPSyntaxMemberExpression*)pcOperand, &cBound))
+	else if ((pcOperand->GetKind() != CPPS_MemberExpression) || !mpcUnit->GetBinder()->BindMemberOf((CCPPSyntaxMemberExpression*)pcOperand, &cBound))
 	{
 		return NULL;
 	}

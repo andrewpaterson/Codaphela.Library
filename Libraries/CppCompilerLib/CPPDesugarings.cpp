@@ -206,7 +206,7 @@ bool CCPPDesugarings::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	{
 		//for (x : {1, 2, 3}) is over a std::initializer_list<int>.  [stmt.ranged] 1
 		bRvalue = true;
-		psRanged = mpcUnit->BracedListType(pcFor->mpcRange, pcFor->mpcRange);
+		psRanged = BracedListType(pcFor->mpcRange, pcFor->mpcRange);
 		if (!psRanged)
 		{
 			return false;
@@ -515,7 +515,7 @@ CCPPSyntax* CCPPDesugarings::BracedFor(SCPP65Type* psType, CCPPSyntax* pcList)
 	size						uiNext;
 	size						i;
 
-	if (!pcList || (pcList->GetKind() != CPPS_InitializerList) || !mpcUnit->IsAggregate(psType))
+	if (!pcList || (pcList->GetKind() != CPPS_InitializerList) || !mpcUnit->GetTypeChecker()->IsAggregate(psType))
 	{
 		return pcList;
 	}
@@ -587,13 +587,13 @@ bool CCPPDesugarings::ElidesBraces(SCPP65Type* psType, CArraySyntax* papcElement
 
 	for (i = 0; i < papcElements->NumElements(); i++)
 	{
-		psMember = mpcUnit->AggregateMember(psType, i);
+		psMember = mpcUnit->GetTypeChecker()->AggregateMember(psType, i);
 		pcValue = papcElements->GetPtr(i);
 		if (!psMember)
 		{
 			return false;
 		}
-		if (mpcUnit->IsAggregate(psMember) && (pcValue->GetKind() != CPPS_InitializerList) && !InitialisesWhole(psMember, pcValue))
+		if (mpcUnit->GetTypeChecker()->IsAggregate(psMember) && (pcValue->GetKind() != CPPS_InitializerList) && !InitialisesWhole(psMember, pcValue))
 		{
 			return true;
 		}
@@ -619,13 +619,13 @@ void CCPPDesugarings::Regroup(SCPP65Type* psType, CArraySyntax* papcElements, si
 
 	for (uiMember = 0; *puiNext < papcElements->NumElements(); uiMember++)
 	{
-		psMember = mpcUnit->AggregateMember(psType, uiMember);
+		psMember = mpcUnit->GetTypeChecker()->AggregateMember(psType, uiMember);
 		if (!psMember)
 		{
 			return;
 		}
 		pcValue = papcElements->GetPtr(*puiNext);
-		if (!mpcUnit->IsAggregate(psMember) || (pcValue->GetKind() == CPPS_InitializerList) || InitialisesWhole(psMember, pcValue))
+		if (!mpcUnit->GetTypeChecker()->IsAggregate(psMember) || (pcValue->GetKind() == CPPS_InitializerList) || InitialisesWhole(psMember, pcValue))
 		{
 			pcInto->macpElements.Add(pcValue);
 			(*puiNext)++;
@@ -773,5 +773,145 @@ CCPPSyntax* CCPPDesugarings::ImplicitZero(void)
 		mpcImplicitZero->mbConstant = true;
 	}
 	return mpcImplicitZero;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class template std::initializer_list, if the program has declared it
+// (<initializer_list>), or NULL.  [support.initlist]
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPTemplate* CCPPDesugarings::InitializerListTemplate(void)
+{
+	CCPPTemplate*	pcTemplate;
+	size			i;
+
+	for (i = 0; !mpcUnit->mpcInitializerList && (i < mpcUnit->mapcTemplates.NumElements()); i++)
+	{
+		pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
+		if (pcTemplate->mbMember || (pcTemplate->mpcPrimary != pcTemplate) || !pcTemplate->mpcSymbol || (pcTemplate->mpcSymbol->mlliName < 0))
+		{
+			continue;
+		}
+		if (mpcUnit->mcBinder.IsStdName(pcTemplate->mpcSymbol->mlliName, pcTemplate->mpcNamespace, "initializer_list"))
+		{
+			mpcUnit->mpcInitializerList = pcTemplate;
+		}
+	}
+	return mpcUnit->mpcInitializerList;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// E if psType (or what it refers to) is std::initializer_list<E>, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDesugarings::InitializerListElement(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+
+	psType = psType ? psType->WithoutReference() : NULL;
+	pcClass = (psType && psType->IsClass()) ? psType->pcClass : NULL;
+	if (!pcClass || !pcClass->mpcTemplate || !InitializerListTemplate() || (pcClass->mpcTemplate->mpcPrimary != mpcUnit->mpcInitializerList) || !pcClass->mpcBindings || (pcClass->mpcBindings->macBindings.NumElements() != 1))
+	{
+		return NULL;
+	}
+	return pcClass->mpcBindings->macBindings.Get(0)->psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// std::initializer_list<psElement>, or NULL after an error if the program
+// hasn't declared it.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDesugarings::InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode)
+{
+	CCPPTemplateArguments*	pcBindings;
+	CCPPClass*				pcClass;
+	CArrayCPP65Types		apsDeduced;
+	CChars					szArguments;
+
+	if (!InitializerListTemplate())
+	{
+		mpcUnit->mcDiagnostics.Error(pcNode, "A list in braces is a std::initializer_list, which needs <initializer_list>");
+		return NULL;
+	}
+	apsDeduced.Init();
+	apsDeduced.Add(psElement);
+	szArguments.Init();
+	pcBindings = mpcUnit->mcInstantiator.BindArguments(mpcUnit->mpcInitializerList->mpcDeclaration, NULL, &apsDeduced, &szArguments, pcNode);
+	pcClass = pcBindings ? mpcUnit->mcInstantiator.InstanceOfClass(mpcUnit->mpcInitializerList, pcBindings, &szArguments, pcNode) : NULL;
+	szArguments.Kill();
+	apsDeduced.Kill();
+	return pcClass ? pcClass->mpsType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What auto is for a list in braces (auto l = {1, 2}, and a range-for's
+// range): std::initializer_list of its elements' type, which they must all
+// have (an array's a pointer, without its const).  [dcl.spec.auto] 7
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPDesugarings::BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode)
+{
+	CArraySyntax*	papcElements;
+	SCPP65Type*		psElement;
+	SCPP65Type*		psType;
+	size			i;
+
+	papcElements = mpcUnit->ListElements(pcList);
+	if (papcElements->NumElements() == 0)
+	{
+		mpcUnit->mcDiagnostics.Error(pcNode, "auto can't be worked out from {}");
+		return NULL;
+	}
+	psElement = NULL;
+	for (i = 0; i < papcElements->NumElements(); i++)
+	{
+		psType = mpcUnit->mcTypeChecker.ValueTypeOf(papcElements->GetPtr(i));
+		if (!psType)
+		{
+			mpcUnit->mcTypeChecker.ReportTypeOf(papcElements->GetPtr(i));
+			return NULL;
+		}
+		psType = (psType->IsArray() || psType->IsFunction()) ? mpcUnit->mcTypes.Pointer(psType->ElementType()) : psType;
+		psType = psType->Unqualified();
+		if (psElement && !psElement->Same(psType))
+		{
+			mpcUnit->mcDiagnostics.Error(papcElements->GetPtr(i), "The values in braces aren't all of the same type, which auto needs");
+			return NULL;
+		}
+		psElement = psType;
+	}
+	return InitializerListOf(psElement, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a std::initializer_list instance is laid out as the compiler
+// fills it: a pointer to its elements, then their count (an integer) or
+// the end (a pointer, *pbEnd).  <initializer_list>'s are.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPDesugarings::InitializerListLayout(CCPPClass* pcClass, bool* pbEnd)
+{
+	SCPPField*	psFirst;
+	SCPPField*	psSecond;
+
+	if (!mpcUnit->CompleteClass(pcClass, NULL) || (pcClass->macFields.NumElements() != 2) || (pcClass->macBases.NumElements() != 0) || pcClass->IsPolymorphic())
+	{
+		return false;
+	}
+	psFirst = pcClass->macFields.Get(0);
+	psSecond = pcClass->macFields.Get(1);
+	*pbEnd = psSecond->psType->IsPointer();
+	return psFirst->psType->IsPointer() && !psFirst->IsBitField() && !psSecond->IsBitField() && (*pbEnd || psSecond->psType->IsInteger());
 }
 

@@ -114,6 +114,11 @@ public:
 	CCPPSyntaxBinaryExpression*	ImplicitAssignment(CCPPSyntaxCallExpression* pcCall);
 	CCPPSyntaxImplicitArgument*	ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich = 0);
 	CCPPSyntax*				ImplicitZero(void);
+	CCPPTemplate*			InitializerListTemplate(void);
+	SCPP65Type*				InitializerListElement(SCPP65Type* psType);
+	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);
+	SCPP65Type*				BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode);
+	bool					InitializerListLayout(CCPPClass* pcClass, bool* pbEnd);
 };
 
 

@@ -706,7 +706,7 @@ CIRBlock* CCPP65IRFrontEnd::UnexpectedBlock(void)
 	for (ui = 0; ui < pcSpec->mapsTypes.NumElements(); ui++)
 	{
 		psType = pcSpec->mapsTypes.GetPtr(ui);
-		bBadException |= psType->IsClass() && psType->pcClass->mpcSymbol && mpcUnit->IsStdName(psType->pcClass->mlliName, psType->pcClass->mpcSymbol->mpcScope, "bad_exception");
+		bBadException |= psType->IsClass() && psType->pcClass->mpcSymbol && mpcUnit->GetBinder()->IsStdName(psType->pcClass->mlliName, psType->pcClass->mpcSymbol->mpcScope, "bad_exception");
 	}
 	if (bBadException)
 	{

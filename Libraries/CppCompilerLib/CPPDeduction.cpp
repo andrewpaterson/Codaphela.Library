@@ -845,7 +845,7 @@ void CCPPDeduction::DeduceFromList(CCPPSyntaxName* pcName, CCPPSyntax* pcList)
 	SCPP65Type*		psElement;
 	size			i;
 
-	pcInitializerList = mpcUnit->InitializerListTemplate();
+	pcInitializerList = mpcUnit->GetDesugarings()->InitializerListTemplate();
 	if (!pcInitializerList || (pcName->mpcSymbol != pcInitializerList->mpcSymbol) || (pcName->GetLast()->macpTemplateArguments.NumElements() != 1))
 	{
 		return;

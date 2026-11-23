@@ -614,36 +614,6 @@ CCPPSymbol* CCPPUnit::DecltypeEnumerator(CCPPSyntaxName* pcName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The type sizeof or typeid is asked of: its type-id's (pcType), or its
-// expression's, which isn't evaluated.  decltype(d)::name, which the parser
-// takes for a type where one can be written (only the type of d says which
-// it is), is the member it names when it names no type.  NULL after an
-// error.  [expr.sizeof] 1, [expr.typeid] 3, 4
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand)
-{
-	SCPP65Type*	psType;
-	CCPPSyntax*	pcMember;
-
-	if (!pcType)
-	{
-		return mcTypeChecker.UnevaluatedTypeOf(pcOperand);
-	}
-	pcMember = mcDesugarings.DecltypeMember(pcType);
-	if (!pcMember)
-	{
-		return mcDeclarators.GetTypeIdType(pcType);
-	}
-	mcDiagnostics.BeginSilent();
-	psType = mcDeclarators.GetTypeIdType(pcType);
-	mcDiagnostics.EndSilent();
-	return psType ? psType : mcTypeChecker.UnevaluatedTypeOf(pcMember);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The value of a variable template's instance that is a const or
 // constexpr integer (size<long>): its initialiser, worked out with its
 // template's parameters its arguments.  False if it isn't one.
