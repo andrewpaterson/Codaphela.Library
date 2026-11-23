@@ -541,7 +541,7 @@ bool CHashBlockBase<SIZE>::Grow(Count uiNumElements)
 		uiNumSlots *= 2;
 	}
 
-	auiSlots = (Count*)Malloc(uiNumSlots * sizeof(Count));
+	auiSlots = (Count*)Malloc((lsize)uiNumSlots * sizeof(Count));  //In lsize: 32768 16 bit slots (from 8193 entries) are 64KB.
 	if (auiSlots == NULL)
 	{
 		return false;
