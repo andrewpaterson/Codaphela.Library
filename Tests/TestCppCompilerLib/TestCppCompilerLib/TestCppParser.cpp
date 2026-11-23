@@ -1036,6 +1036,101 @@ typename T::X g(T t)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Members defined outside their class and namespace (from BaseLib's old
+// Aardvark.cpp): a class template's member function and conversion
+// operator, a nested namespace's function, operator[] with a space in
+// its brackets; and statements of casts, a for that declares two
+// variables, and a while.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppParserOutOfLineMembers(void)
+{
+	SParsedText		sParsed;
+	CChars			sz;
+
+	AssertTrue(sParsed.Init("\
+namespace geran\n\
+{\n\
+	namespace dariel\n\
+	{\n\
+		void DoStuff(void);\n\
+	}\n\
+	template<class M>\n\
+	class CFood\n\
+	{\n\
+		operator float* ();\n\
+		M& operator[ ](int iElementPos);\n\
+		M& operator()(int iElementPos);\n\
+		void DoStuff(void);\n\
+	};\n\
+}\n\
+template<class M>\n\
+void geran::CFood<M>::DoStuff(void) {}\n\
+void geran::dariel::DoStuff(void) {}\n\
+template<class M>\n\
+geran::CFood<M>::operator float* () { return 0; }\n\
+void MoreFoo(void)\n\
+{\n\
+	((void*)-1 == (void*)+1);\n\
+	for (int i = 3, j = 0; i < 10; i++, j = j + 1) { }\n\
+	void* pcCurr = 0;\n\
+	while ((pcCurr) && (pcCurr)) { }\n\
+}"));
+	AssertInt(0, sParsed.iErrors);
+
+	sz.Init();
+	AssertString("\
+namespace geran\n\
+{\n\
+	namespace dariel\n\
+	{\n\
+		void DoStuff(void);\n\
+	}\n\
+	template<class M>\n\
+	class CFood\n\
+	{\n\
+		operator float *();\n\
+		M &operator [ ](int iElementPos);\n\
+		M &operator ()(int iElementPos);\n\
+		void DoStuff(void);\n\
+	};\n\
+}\n\
+template<class M>\n\
+void geran::CFood<M>::DoStuff(void)\n\
+{\n\
+}\n\
+void geran::dariel::DoStuff(void)\n\
+{\n\
+}\n\
+template<class M>\n\
+geran::CFood<M>::operator float *()\n\
+{\n\
+	return 0;\n\
+}\n\
+void MoreFoo(void)\n\
+{\n\
+	((void *)-1 == (void *)+1);\n\
+	for (int i = 3, j = 0; i < 10; i++, j = j + 1)\n\
+	{\n\
+	}\n\
+	void *pcCurr = 0;\n\
+	while ((pcCurr) && (pcCurr))\n\
+	{\n\
+	}\n\
+}\n", sParsed.Print(&sz));
+	sz.Kill();
+
+	//Each definition is of the function its class or namespace declares.
+	AssertPointer(sParsed.GetSymbol("DoStuff", 1), sParsed.GetSymbol("DoStuff", 2));
+	AssertPointer(sParsed.GetSymbol("DoStuff", 0), sParsed.GetSymbol("DoStuff", 3));
+	AssertFalse(sParsed.GetSymbol("DoStuff", 0) == sParsed.GetSymbol("DoStuff", 1));
+	AssertPointer(sParsed.GetSymbol("j", 0), sParsed.GetSymbol("j", 2));
+	sParsed.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The tree's syntaxes, their token ranges and children.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2036,6 +2131,7 @@ void TestCppParser(void)
 	TestCppParserModernDeclarations();
 	TestCppParserRangeForNewAndDelete();
 	TestCppParserOperators();
+	TestCppParserOutOfLineMembers();
 	TestCppParserTreeWalk();
 	TestCppParserUnsupported();
 	TestCppParserTemplateTemplateParameter();

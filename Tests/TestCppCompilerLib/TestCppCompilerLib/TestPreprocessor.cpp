@@ -1954,6 +1954,34 @@ static bool PreprocessFile(char* szFileName, char* szSource, CConfig* pcConfig, 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A #define continued over lines (from BaseLib's old Aardvark.h): one of
+// the lines only a space, and a keyword spelled a letter a line.  And a
+// string literal macro, concatenated, then #undef'd.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorContinuedDefines(void)
+{
+	CChars	szDest;
+
+	szDest.Init();
+	CCPPPreprocessor::Preprocess("#define VERTICAL_INT\\\n \\\ni\\\nn\\\nt\nVERTICAL_INT giVerticalInt;\n", &szDest);
+	AssertString("int giVerticalInt;\n", szDest.Text());
+	szDest.Kill();
+
+	szDest.Init();
+	CCPPPreprocessor::Preprocess("#define OLIGAARDVARK\\\n\tAwesomeRussian(\\\n\t\tint x,\\\n\t\tint y)\nvoid OLIGAARDVARK;\n", &szDest);
+	AssertString("void AwesomeRussian( int x, int y);\n", szDest.Text());
+	szDest.Kill();
+
+	szDest.Init();
+	CCPPPreprocessor::Preprocess("#define NEW_LINE \"\\n\\r\"\nchar gsz[] = \"Hoo\" NEW_LINE \"Yay!\" NEW_LINE;\n#undef NEW_LINE\nNEW_LINE\n", &szDest);
+	AssertString("char gsz[] = \"Hoo\" \"\\n\\r\" \"Yay!\" \"\\n\\r\";\nNEW_LINE\n", szDest.Text());
+	szDest.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // #pragma pack(...) is __pragma(pack(...)) for the parser: its numbers are
 // whole (0x10 is one), and its tokens are on the directive's line.
 //
@@ -2429,6 +2457,48 @@ static void KillMemoryHeaders(CHeaderFileMap* pcHeaderFiles, CHeaderFiles* pcFir
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An #include inside a namespace (as BaseLib's old Aardvark.cpp had): the
+// header's text is in the namespace, and a header its guard has already
+// been read (one that includes itself, as Aardvark.h did) adds nothing.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPreprocessorIncludeInNamespace(void)
+{
+	CHeaderFileMap	cHeaderFiles;
+	CHeaderFiles	cFirst;
+	CHeaderFiles	cSecond;
+	CChars			szDest;
+	CChars			szLog;
+
+	InitMemoryHeaders(&cHeaderFiles, &cFirst, &cSecond);
+	cFirst.AddFile("Guarded.h")->SetContents("#if !defined(__GUARDED_H__)\n#define __GUARDED_H__\n#include \"Guarded.h\"\nint giGuarded;\n#endif\n");
+
+	szDest.Init();
+	szLog.Init();
+	AssertTrue(PreprocessFile("Namespace.cpp", "\
+#include <Guarded.h>\n\
+namespace geran\n\
+{\n\
+#include <Guarded.h>\n\
+#include <Twice.h>\n\
+int giInGeran;\n\
+}\n", NULL, &cFirst, &cSecond, &szDest, &szLog));
+	AssertString("\
+int giGuarded;\n\
+namespace geran\n\
+{\n\
+int giTwice;\n\
+int giInGeran;\n\
+}\n", szDest.Text());
+	szLog.Kill();
+	szDest.Kill();
+
+	KillMemoryHeaders(&cHeaderFiles, &cFirst, &cSecond);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szSource preprocessed as szFileName, searching the include directories
 // pcFirst then pcSecond, with failed directives skipped and, with
 // bFullPaths, errors naming files by their full paths (as the IDE's code
@@ -2722,6 +2792,8 @@ void TestPreprocessor(void)
 	TestPreprocessorErrors();
 	TestPreprocessorSkipFailedDirectives();
 	TestPreprocessorFullPathErrors();
+	TestPreprocessorIncludeInNamespace();
+	TestPreprocessorContinuedDefines();
 	TestPreprocessorUnreadableFile();
 	TestPreprocessorLine();
 	TestPreprocessorPositionErrorsFail();
