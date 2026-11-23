@@ -19,11 +19,12 @@ struct STestCPP816Debug
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Builds szSource with its debug info, as the IDE does, without inlining
-// (so each function is a function of its own).
+// Builds szSource with its debug info, as the IDE does: for a debugger
+// (bDebug, a Debug build), else without inlining (so each function is a
+// function of its own).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource)
+static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource, bool bDebug = false)
 {
 	CChars		szProject;
 	CFileUtil	cFileUtil;
@@ -31,6 +32,7 @@ static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource
 
 	psDebug->cBuilder.Init();
 	psDebug->cBuilder.GetOptions()->mbInline = false;
+	psDebug->cBuilder.GetOptions()->mbDebuggable = bDebug;
 	psDebug->cBuilder.SetTarget(CPPT_W65C816);
 	psDebug->cBuilder.SetLineTable(true);
 	TestCPP65AddIncludeDirectories(&psDebug->cBuilder);
@@ -198,6 +200,161 @@ void TestCPP816DebugFrames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The function named szName, NULL if there is none (which fails).
+//
+//////////////////////////////////////////////////////////////////////////
+static SAsm65DebugFunction* TestCPP816DebugNamed(STestCPP816Debug* psDebug, const char* szName)
+{
+	size	ui;
+
+	for (ui = 0; ui < psDebug->pcRecords->NumFunctions(); ui++)
+	{
+		if (psDebug->pcRecords->GetFunction(ui)->szName.Equals(szName))
+		{
+			return psDebug->pcRecords->GetFunction(ui);
+		}
+	}
+	AssertString(szName, "");
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's uiIndex'th variable is szName, a parameter or not, of
+// the type named szType, where eWhere says and in scope from line iFirst
+// to iLast.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCPP816DebugVariable(STestCPP816Debug* psDebug, SAsm65DebugFunction* psFunction, size uiIndex, const char* szName, bool bParameter, const char* szType, EAsm65DebugWhere eWhere, uint32 uiFirst, uint32 uiLast)
+{
+	SAsm65DebugVariable*	psVariable;
+	SAsm65DebugType*		psType;
+
+	psVariable = psFunction ? psDebug->pcRecords->GetVariable(psFunction, uiIndex) : NULL;
+	AssertTrue(psVariable != NULL);
+	if (psVariable)
+	{
+		AssertString(szName, psVariable->szName.Text());
+		AssertBool(bParameter, psVariable->bParameter);
+		psType = psDebug->pcRecords->GetType(psVariable->uiType);
+		AssertString(szType, psType ? psType->szName.Text() : "");
+		AssertInt(eWhere, psVariable->uiWhere);
+		AssertInt(uiFirst, psVariable->uiFirstLine);
+		AssertInt(uiLast, psVariable->uiLastLine);
+		if (eWhere != ADW_None)
+		{
+			//In the frame, above the scratch bytes and below the link.
+			AssertTrue(psVariable->iOffset >= 23);
+			AssertTrue(psVariable->iOffset <= psFunction->iLink);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Debug build describes each function's parameters (this first) and
+// locals, each in its own place in the frame and in scope where C++ has
+// it; an object passed by value, through the address kept for it; static
+// locals and globals at their labels; and each type they have once, a
+// class with its bases, vtable pointer and fields (bit fields too), an
+// enum with its enumerators.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DebugVariables(void)
+{
+	STestCPP816Debug		sDebug;
+	SAsm65DebugFunction*	psFunction;
+	SAsm65DebugType*		psType;
+	SAsm65DebugMember*		psMember;
+	SAsm65DebugGlobal*		psGlobal;
+	int64					iLabel;
+
+	TestCPP816DebugBuild(&sDebug,
+		"enum EColour { EC_Red = 1, EC_Blue = 4 };\n"			//1
+		"struct SBase { int miBase; };\n"							//2
+		"class CShape : public SBase\n"							//3
+		"{\n"														//4
+		"public:\n"												//5
+		"	unsigned	muiFlag : 3;\n"							//6
+		"	EColour		meColour;\n"							//7
+		"	virtual int Area(int iScale) { return miBase * iScale; }\n"	//8
+		"};\n"														//9
+		"struct SBig { long al[8]; };\n"							//10
+		"namespace NS { int giCount = 3; }\n"						//11
+		"long Total(SBig s, int iFrom)\n"							//12
+		"{\n"														//13
+		"	static int	siCalls = 0;\n"							//14
+		"	long		l = 0;\n"								//15
+		"	for (int i = iFrom; i < 8; i++)\n"					//16
+		"	{\n"													//17
+		"		l += s.al[i];\n"									//18
+		"	}\n"													//19
+		"	siCalls++;\n"											//20
+		"	return l;\n"											//21
+		"}\n"														//22
+		"int main(void)\n"											//23
+		"{\n"														//24
+		"	CShape	cShape;\n"										//25
+		"	SBig	sBig;\n"										//26
+		"	cShape.miBase = NS::giCount;\n"						//27
+		"	cShape.meColour = EC_Blue;\n"							//28
+		"	return cShape.Area(2) + (int)Total(sBig, 0);\n"		//29
+		"}\n", true);											//30
+
+	//this first, then the parameters, in the function's lines.
+	psFunction = TestCPP816DebugNamed(&sDebug, "CShape::Area");
+	AssertInt(2, psFunction ? psFunction->uiNumVariables : 0);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 0, "this", true, "CShape*", ADW_Frame, 8, 8);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 1, "iScale", true, "int", ADW_Frame, 8, 8);
+
+	//An object passed by value is read through the address kept for it; a for's local is in scope in the for.
+	psFunction = TestCPP816DebugNamed(&sDebug, "Total");
+	AssertInt(4, psFunction ? psFunction->uiNumVariables : 0);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 0, "s", true, "SBig", ADW_Indirect, 12, 22);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 1, "iFrom", true, "int", ADW_Frame, 12, 22);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 2, "l", false, "long", ADW_Frame, 15, 22);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 3, "i", false, "int", ADW_Frame, 16, 19);
+	AssertTrue(sDebug.pcRecords->GetVariable(psFunction, 2)->iOffset != sDebug.pcRecords->GetVariable(psFunction, 3)->iOffset);
+
+	//The static local is Total's, the global is anyone's, each at its label.
+	psGlobal = sDebug.pcRecords->FindGlobal("siCalls", psFunction);
+	AssertTrue(psGlobal != NULL);
+	AssertTrue(sDebug.pcRecords->FindGlobal("siCalls", NULL) == NULL);
+	psGlobal = sDebug.pcRecords->FindGlobal("NS::giCount", NULL);
+	AssertTrue(psGlobal != NULL);
+	AssertTrue(sDebug.cBuilder.GetSymbol("_NS__giCount", &iLabel));
+	AssertInt((uint32)iLabel, psGlobal ? psGlobal->sPlace.uiOffset : 0);
+
+	psFunction = TestCPP816DebugNamed(&sDebug, "main");
+	AssertCPP816DebugVariable(&sDebug, psFunction, 0, "cShape", false, "CShape", ADW_Frame, 25, 30);
+	AssertCPP816DebugVariable(&sDebug, psFunction, 1, "sBig", false, "SBig", ADW_Frame, 26, 30);
+
+	//CShape: its base, its vtable pointer, a bit field and an enum field.
+	psType = sDebug.pcRecords->GetType(sDebug.pcRecords->GetVariable(psFunction, 0)->uiType);
+	AssertInt(ADT_Class, psType->uiKind);
+	AssertInt(4, psType->uiNumMembers);
+	psMember = sDebug.pcRecords->GetMember(psType, 0);
+	AssertInt(ADM_Base, psMember->uiKind);
+	AssertString("SBase", psMember->szName.Text());
+	AssertInt(ADM_VTable, sDebug.pcRecords->GetMember(psType, 1)->uiKind);
+	psMember = sDebug.pcRecords->GetMember(psType, 2);
+	AssertString("muiFlag", psMember->szName.Text());
+	AssertInt(3, psMember->uiBits);
+	psMember = sDebug.pcRecords->GetMember(psType, 3);
+	AssertString("meColour", psMember->szName.Text());
+	psType = sDebug.pcRecords->GetType(psMember->uiType);
+	AssertInt(ADT_Enum, psType->uiKind);
+	AssertInt(2, psType->uiNumMembers);
+	AssertString("int", sDebug.pcRecords->GetType(psType->uiTarget)->szName.Text());
+
+	TestCPP816DebugKill(&sDebug);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Programs whose variables are what a debugger shows (parameters by
 // value, changed and not; objects by value, by address and through this;
 // an anonymous union; locals stored and never read; a variadic function's,
@@ -306,6 +463,7 @@ void TestCPP816Debug(void)
 
 	TestCPP816DebugFrames();
 	TestCPP816DebugModes();
+	TestCPP816DebugVariables();
 
 	TestStatistics();
 }

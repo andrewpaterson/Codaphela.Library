@@ -351,6 +351,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcFunctionsOfNames.Init();
 	mcContext.Init();
 	mcData.Init();
+	mcDebugWriter.Init(this);
 	mcBinder.Init(this);
 	mcDeclarators.Init(this);
 	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
@@ -443,6 +444,7 @@ void CCPPUnit::Kill(void)
 	mcMangler.Kill();
 	mcDeclarators.Kill();
 	mcBinder.Kill();
+	mcDebugWriter.Kill();
 	mcData.Kill();
 	mcContext.Kill();
 	mcFunctionsOfNames.Kill();
@@ -3307,6 +3309,10 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 			continue;
 		}
 		mcData.BeginData(&szLabel, VariableDataAlignment(pcVariable, psElement->IsClass()), !pcVariable->mbInternal, szOptions, bBss);
+		if (HasLineTable())
+		{
+			mcDebugWriter.AppendGlobal(mcData.GetText(), pcVariable, szLabel.Text(), false);
+		}
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
@@ -4718,6 +4724,7 @@ CCPPInstantiator* CCPPUnit::GetInstantiator(void) { return &mcInstantiator; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }
+CCPP65DebugWriter* CCPPUnit::GetDebugWriter(void) { return &mcDebugWriter; }
 CCPP65TypeChecker* CCPPUnit::GetTypeChecker(void) { return &mcTypeChecker; }
 CChars* CCPPUnit::GetCode(void) { return &mszCode; }
 CArrayCPPTemplates* CCPPUnit::GetTemplates(void) { return &mapcTemplates; }

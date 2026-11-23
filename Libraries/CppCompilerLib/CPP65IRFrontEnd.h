@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Type.h"
 #include "CPP65IRCleanups.h"
 #include "CPPFunction.h"
+#include "CPP65DebugWriter.h"
 
 
 class CSourceFile;
@@ -131,14 +132,16 @@ struct SCPP65IRPendingGoto
 };
 
 
-//A function written as IR, waiting for FinishUnit: its label and the code Body generated.
 //A variable a debugger is told of (code for one, CCPPCompileOptions::mbDebuggable): the kept slot it is in, at iOffset
 //(a member of an anonymous union), or that holds its address (bIndirect: an object passed by address, or in the bytes
-//its caller pushed).  pcVariable NULL is this, sSlot IRNone a variable that has no place a debugger can read.
+//its caller pushed).  The slot is named for its number (KeptSlot: dbg<iSlot>), which the back end says where it put
+//(CIRWrittenFunction::FindSlot).  pcVariable NULL is this; sSlot IRNone (iSlot -1) a variable that has no place a
+//debugger can read.
 struct SCPP65IRDebugVariable
 {
 	CCPPVariable*	pcVariable;
 	SIRReference	sSlot;
+	int32			iSlot;
 	int32			iOffset;
 	bool			bIndirect;
 };
@@ -147,6 +150,7 @@ struct SCPP65IRDebugVariable
 typedef CArrayTemplate<SCPP65IRDebugVariable>	CArrayCPP65IRDebugVariables;
 
 
+//A function written as IR, waiting for FinishUnit: its label and the code Body generated.
 struct SCPP65IRWritten
 {
 	CIRFunction*	pcFunction;		//NULL once it failed after inlining.
@@ -223,6 +227,7 @@ protected:
 	CMapCPP65IRValues		mcImplicitValues;	//The values of the implicit arguments of the calls being written (CCPPUnit::ImplicitValue).
 	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
 	CArrayCPP65IRDebugVariables	masDebugVariables;	//The function's variables a debugger is told of (Debuggable), in their order.
+	int32					miKeptSlots;		//The function's kept slots so far (KeptSlot names them).
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
@@ -338,6 +343,9 @@ protected:
 	bool			Debuggable(void);
 	SIRReference	KeptSlot(uint32 uiSize, uint32 uiAlign);
 	void			AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect);
+	void			DescribeVariables(CChars* pszCode, CIRWrittenFunction* pcWritten);
+	void			VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast);
+	int				TokenLine(int iToken);
 	void			Finish(void);
 	bool			Statement(CCPPSyntax* pcStatement);
 	bool			StatementOf(CCPPSyntax* pcStatement);

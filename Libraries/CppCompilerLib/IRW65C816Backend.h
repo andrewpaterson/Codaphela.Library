@@ -219,6 +219,7 @@ public:
 	void			SetMathTables(bool bMathTables);
 	void			GetFrame(SIRW65C816Frame* psFrame);
 	CIRWrittenFunction*	TakeWritten(void) override;
+	void			AddKeptSlots(CIRWrittenFunction* pcWritten);
 	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile) override;
 	void			DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile);

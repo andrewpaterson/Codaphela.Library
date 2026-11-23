@@ -544,9 +544,56 @@ void CIRBackend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenF
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CIRWrittenFunction::Init(void)
+{
+	maszSlots.Init();
+	maiSlotOffsets.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIRWrittenFunction::Kill(void)
 {
+	maiSlotOffsets.Kill();
+	maszSlots.Kill();
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The named kept slot szName is at iOffset in the function's frame (a
+// back end's own measure: the W65C816's is from D).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRWrittenFunction::AddSlot(const char* szName, int32 iOffset)
+{
+	maszSlots.Add(szName);
+	maiSlotOffsets.Add(&iOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the named kept slot szName is; false if the function kept none of
+// the name (it was optimised away).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRWrittenFunction::FindSlot(const char* szName, int32* piOffset)
+{
+	size	ui;
+
+	for (ui = 0; ui < maszSlots.NumElements(); ui++)
+	{
+		if (maszSlots.Get(ui)->Equals(szName))
+		{
+			*piOffset = *maiSlotOffsets.Get(ui);
+			return true;
+		}
+	}
+	return false;
 }
 
 

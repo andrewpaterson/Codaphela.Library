@@ -60,12 +60,21 @@ class CScratchPadAllocator;
 class CAsm65Profile;
 
 
-//What a back end keeps about a function it wrote (TakeWritten), for FinishFunction: its own to make sense of.  The
-//W65C816's is the function's frame.
+//What a back end keeps about a function it wrote (TakeWritten), for FinishFunction: its own to make sense of (the
+//W65C816's is the function's frame), and where each named kept slot (a variable a debugger reads, CIRFunction::Slot's
+//bKept) is in the frame, for the front end to tell a debugger (FindSlot).
 class CIRWrittenFunction
 {
+protected:
+	CArrayChars				maszSlots;
+	CArrayTemplate<int32>	maiSlotOffsets;
+
 public:
+	void			Init(void);
 	virtual void	Kill(void);
+
+	void			AddSlot(const char* szName, int32 iOffset);
+	bool			FindSlot(const char* szName, int32* piOffset);
 };
 
 

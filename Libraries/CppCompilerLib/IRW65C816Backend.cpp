@@ -535,8 +535,43 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 	CIRW65C816Written*	pcWritten;
 
 	pcWritten = NewMalloc<CIRW65C816Written>();
+	pcWritten->Init();
 	pcWritten->msFrame = msFrame;
+	AddKeptSlots(pcWritten);
 	return pcWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each named kept slot's place (D + offset) in what is kept about the
+// function, for a debugger.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::AddKeptSlots(CIRWrittenFunction* pcWritten)
+{
+	size			uiBlock;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	char*			szName;
+
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile))
+			{
+				szName = mpcFunction->GetTemporaryName(psInstruction->sResult);
+				if (szName)
+				{
+					pcWritten->AddSlot(szName, masTemporaries.Get(psInstruction->sResult.Index())->iSlot);
+				}
+			}
+		}
+	}
 }
 
 

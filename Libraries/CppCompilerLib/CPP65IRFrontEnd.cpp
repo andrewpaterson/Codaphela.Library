@@ -456,6 +456,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mcImplicitValues.Init();
 	mcAnonymousAddresses.Init();
 	masDebugVariables.Init();
+	miKeptSlots = 0;
 	mpcBaseObject = NULL;
 	msVTT = IRNone();
 	msVTTArgument = IRNone();
@@ -505,7 +506,8 @@ void CCPP65IRFrontEnd::OptimiserWarnings(CChars* pszWarnings)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function being written's name as C++ writes it (CShape::Area), for a
-// debugger; its label for code the compiler made without a function.
+// debugger; its label for code the compiler made without a function (a
+// routine: a global's R_Initialise, written for a stand-in function).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::FunctionName(CChars* pszDest, const char* szLabel)
@@ -513,7 +515,7 @@ void CCPP65IRFrontEnd::FunctionName(CChars* pszDest, const char* szLabel)
 	CCPPTypeWriter	cWriter;
 
 	pszDest->Init();
-	if (mpcCPPFunction)
+	if (mpcCPPFunction && !mbRoutine)
 	{
 		cWriter.Init(mpcUnit, CPPTW_Shown);
 		cWriter.AppendFunction(mpcCPPFunction, pszDest);
@@ -597,6 +599,10 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		mcModule.Begin(CPPCP_BackEnd);
 		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &pcWritten);
 		mcModule.End(CPPCP_BackEnd);
+		if (bResult && Debuggable() && mpcUnit->HasLineTable())
+		{
+			DescribeVariables(&szCode, pcWritten);
+		}
 		if (bResult)
 		{
 			//The code waits (with a marker where it goes) for FinishUnit, which inlines across the unit.
@@ -1352,7 +1358,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	if (Debuggable() && !msThis.IsNone())
 	{
 		AddDebugVariable(NULL, KeptSlot(4, 4), 0, false);
-		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), msThis, masDebugVariables.Tail()->sSlot);
+		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), msThis, masDebugVariables.Get(0)->sSlot);
 	}
 	return true;
 }
@@ -1807,7 +1813,15 @@ bool CCPP65IRFrontEnd::Debuggable(void)
 //////////////////////////////////////////////////////////////////////////
 SIRReference CCPP65IRFrontEnd::KeptSlot(uint32 uiSize, uint32 uiAlign)
 {
-	return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign, NULL, Debuggable());
+	char	szName[32];
+
+	if (!Debuggable())
+	{
+		return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign);
+	}
+	snprintf(szName, sizeof(szName), "dbg%d", (int)miKeptSlots);
+	miKeptSlots++;
+	return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign, szName, true);
 }
 
 
@@ -1818,17 +1832,148 @@ SIRReference CCPP65IRFrontEnd::KeptSlot(uint32 uiSize, uint32 uiAlign)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect)
 {
-	SCPP65IRDebugVariable*	psVariable;
+	SCPP65IRDebugVariable	sVariable;
 
 	if (!Debuggable())
 	{
 		return;
 	}
-	psVariable = masDebugVariables.Add();
-	psVariable->pcVariable = pcVariable;
-	psVariable->sSlot = sSlot;
-	psVariable->iOffset = iOffset;
-	psVariable->bIndirect = bIndirect;
+	sVariable.pcVariable = pcVariable;
+	sVariable.sSlot = sSlot;
+	sVariable.iSlot = sSlot.IsNone() ? -1 : atoi(mpcFunction->GetTemporaryName(sSlot) + 3);
+	sVariable.iOffset = iOffset;
+	sVariable.bIndirect = bIndirect;
+
+	//this (found after the parameters) first, as a debugger shows it.
+	if (pcVariable)
+	{
+		masDebugVariables.Add(&sVariable);
+	}
+	else
+	{
+		masDebugVariables.InsertAt(&sVariable, 0);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .dvariable for each of the function's variables (this first), after its
+// code: where the back end put its kept slot (pcWritten), its type and the
+// lines it is in scope from and to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, CIRWrittenFunction* pcWritten)
+{
+	SCPP65IRDebugVariable*	psVariable;
+	CCPPVariable*			pcStatic;
+	CCPPTypeWriter			cWriter;
+	CChars					szName;
+	char					szSlot[32];
+	SCPP65Type*				psType;
+	const char*				szWhere;
+	int32					iPlace;
+	int						iFirst;
+	int						iLast;
+	size					ui;
+
+	cWriter.Init(mpcUnit, CPPTW_Shown);
+	for (ui = 0; ui < masDebugVariables.NumElements(); ui++)
+	{
+		psVariable = masDebugVariables.Get(ui);
+		szName.Init();
+		if (psVariable->pcVariable)
+		{
+			cWriter.AppendIdentifier(psVariable->pcVariable->mpcSymbol->mlliName, &szName);
+			psType = psVariable->pcVariable->mpsType;
+		}
+		else
+		{
+			szName.Append("this");
+			psType = mpcTypes->Pointer(mpcCPPFunction->mpcClass->mpsType);
+		}
+		snprintf(szSlot, sizeof(szSlot), "dbg%d", (int)psVariable->iSlot);
+		if ((psVariable->iSlot >= 0) && pcWritten && pcWritten->FindSlot(szSlot, &iPlace))
+		{
+			szWhere = psVariable->bIndirect ? "indirect" : "frame";
+			iPlace += psVariable->iOffset;
+		}
+		else
+		{
+			szWhere = "none";
+			iPlace = 0;
+		}
+		VariableLines(psVariable, &iFirst, &iLast);
+		mpcUnit->GetDebugWriter()->AppendVariable(pszCode, szName.Text(), psType, !psVariable->pcVariable || (psVariable->pcVariable->meStorage == CPPVS_Parameter), szWhere, iPlace, iFirst, iLast);
+		szName.Kill();
+	}
+
+	//Its static locals, at their labels.
+	for (ui = 0; ui < mpcUnit->GetLocals()->NumElements(); ui++)
+	{
+		pcStatic = mpcUnit->GetLocals()->GetPtr(ui);
+		if (pcStatic->meStorage == CPPVS_Static)
+		{
+			szName.Init();
+			mpcUnit->GetMangler()->AppendVariableLabel(&szName, pcStatic);
+			mpcUnit->GetDebugWriter()->AppendGlobal(pszCode, pcStatic, szName.Text(), true);
+			szName.Kill();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines a variable is in scope from and to: a parameter (and this)
+// the function's; a local from its declaration to the end of the block,
+// or the statement (a for's), that it is declared in.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast)
+{
+	CCPPSyntax*		pcNode;
+	ECPPSyntax		eKind;
+
+	pcNode = mpcCPPFunction ? (CCPPSyntax*)mpcCPPFunction->mpcDefinition : NULL;
+	if (psVariable->pcVariable && (psVariable->pcVariable->meStorage != CPPVS_Parameter) && psVariable->pcVariable->mpcSymbol->mpcDeclaration)
+	{
+		*piFirst = TokenLine(psVariable->pcVariable->mpcSymbol->mpcDeclaration->miFirstToken);
+		for (pcNode = psVariable->pcVariable->mpcSymbol->mpcDeclaration->mpcParent; pcNode; pcNode = pcNode->mpcParent)
+		{
+			eKind = pcNode->GetKind();
+			if ((eKind == CPPS_CompoundStatement) || (eKind == CPPS_ForStatement) || (eKind == CPPS_RangeForStatement) || (eKind == CPPS_IfStatement) ||
+				(eKind == CPPS_SwitchStatement) || (eKind == CPPS_WhileStatement) || (eKind == CPPS_CatchHandler) || (eKind == CPPS_FunctionDefinition))
+			{
+				break;
+			}
+		}
+		*piLast = pcNode ? TokenLine(pcNode->miLastToken) : *piFirst;
+	}
+	else
+	{
+		*piFirst = pcNode ? TokenLine(pcNode->miFirstToken) : 0;
+		*piLast = pcNode ? TokenLine(pcNode->miLastToken) : 0;
+	}
+	if (*piLast < *piFirst)
+	{
+		*piLast = *piFirst;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The source line (1 based) a token is on, where a macro was used for one
+// it made; 0 if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPP65IRFrontEnd::TokenLine(int iToken)
+{
+	CSourceFile*	pcFile;
+	int				iLine;
+
+	return SourceLine(iToken, &pcFile, &iLine) ? iLine + 1 : 0;
 }
 
 

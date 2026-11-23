@@ -51,6 +51,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPContext.h"
 #include "CPPDiagnostics.h"
 #include "CPPUnitData.h"
+#include "CPP65DebugWriter.h"
 #include "CPPBinder.h"
 #include "CPPDeclarators.h"
 #include "CPPDeduction.h"
@@ -288,6 +289,7 @@ protected:
 	CArrayCPPUnitRoutines	masExitFinalisers;	//The static locals destroyed at exit whose R_Finalise is still to write (WriteExitRoutines).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
+	CCPP65DebugWriter		mcDebugWriter;		//With a line table: its debug directives' types and its globals.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
@@ -342,6 +344,7 @@ public:
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
+	CCPP65DebugWriter*		GetDebugWriter(void);
 	CCPP65TypeChecker*		GetTypeChecker(void);
 	CChars*					GetCode(void);
 	CArrayCPPTemplates*		GetTemplates(void);

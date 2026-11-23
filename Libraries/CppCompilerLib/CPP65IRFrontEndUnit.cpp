@@ -233,6 +233,12 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	}
 	mbCodeGiven = true;
 
+	//The types the unit's variables have, described once each.
+	if (mpcUnit->HasLineTable())
+	{
+		mpcUnit->GetDebugWriter()->AppendTypes(mpcUnit->GetCode());
+	}
+
 	//A runtime routine the unit calls only if the program has it (a deleting destructor's operator delete, in a
 	//program that may never delete) is a weak name, unless something else in the unit needs it.
 	for (ui = 0; ui < maszUnitWeak.NumElements(); ui++)

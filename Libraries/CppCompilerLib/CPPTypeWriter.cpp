@@ -141,6 +141,29 @@ bool CCPPTypeWriter::AppendFunction(CCPPFunction* pcFunction, CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A variable's name with the classes and namespaces it is in: "giCount",
+// "NS::giCount", "CShape::gsCount".
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPTypeWriter::AppendVariable(CCPPVariable* pcVariable, CChars* pszDest)
+{
+	bool	bResult;
+
+	if (pcVariable->mpcClass)
+	{
+		bResult = ClassName(pcVariable->mpcClass, pszDest);
+		pszDest->Append("::");
+	}
+	else
+	{
+		bResult = ScopeName(pcVariable->mpcSymbol->mpcScope, pszDest);
+	}
+	return bResult && AppendIdentifier(pcVariable->mpcSymbol->mlliName, pszDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An identifier's text.  False for a name the tokeniser hasn't.
 //
 //////////////////////////////////////////////////////////////////////////
