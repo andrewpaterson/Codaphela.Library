@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 11 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 12 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -914,3 +914,17 @@ Stage 11 (2026-11-23): one evaluator of constants, its first part.
 	the walk; "is this name a constant" is asked in NameConstant for integers and ConstexprFloat for floating
 	point, which differ on purpose (a const float is no constant); floating point constants aren't run by the
 	interpreter, so the code is as it was.
+
+Stage 12 (2026-11-23): lambdas.
+
+	The lambdas are a class of their own, CCPPClosures (CPPClosures.h and .cpp), which the unit holds (mcClosures,
+	GetClosures) with every lambda's closure (mapsLambdas, freed by its Kill): CPPUnitLambdas.cpp's 37 functions
+	left the unit by the move script, and the file, empty, is gone.  What LayoutClass and LayoutClosure both do
+	at the end is two of the unit's functions, CompleteMembers (the destructor the bases or fields need, the
+	deleting one of a virtual destructor, the vtable) and PlaceMembers (the layout and the class's size); a
+	closure's is those two, a class's those with its bases, members, alignas and #pragma pack around them.  A
+	generic lambda's instance was found by TakesParameters since stage 8, and a closure's errors are stage 4's.
+	Not done as the stage was written: SCPPLambda stays a record, the closures' class the one with the functions
+	(a class of one lambda would m-prefix its fields everywhere they are used).
+	Proved: TestCppCompilerLib passes (272,049); the diagnostics entries and the listings are as they were; time
+	is as it was (declarations 6,517 and 6,499 ms); the IDE builds.

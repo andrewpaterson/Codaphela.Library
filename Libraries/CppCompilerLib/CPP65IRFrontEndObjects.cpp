@@ -1930,7 +1930,7 @@ bool CCPP65IRFrontEnd::LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpr
 	size				i;
 	size				uiMark;
 
-	psLambda = mpcUnit->GetLambda(pcSyntax);
+	psLambda = mpcUnit->GetClosures()->GetLambda(pcSyntax);
 	if (!psLambda)
 	{
 		return Unsupported(__FILE__, __LINE__);

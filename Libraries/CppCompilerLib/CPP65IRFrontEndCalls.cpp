@@ -433,7 +433,7 @@ bool CCPP65IRFrontEnd::MemberCall(CCPPBoundCall* pcBound, SCPP65IRValue* psValue
 	}
 
 	sObject = msThis;
-	pcClass = pcBound->mpcObject ? pcBound->mpcClass : mpcUnit->ThisClass();
+	pcClass = pcBound->mpcObject ? pcBound->mpcClass : mpcUnit->GetClosures()->ThisClass();
 	if (pcBound->mpcObject && !ObjectAddress(pcBound->mpcObject, pcBound->mbArrow, &sObject))
 	{
 		return false;
@@ -476,7 +476,7 @@ bool CCPP65IRFrontEnd::ThisObject(CCPPFunction* pcFunction, CCPPSyntax* pcObject
 			return Unsupported(__FILE__, __LINE__);
 		}
 		*psObject = msThis;
-		pcObjectClass = mpcUnit->ThisClass();
+		pcObjectClass = mpcUnit->GetClosures()->ThisClass();
 		if (!pcObjectClass)
 		{
 			return Unsupported(__FILE__, __LINE__);

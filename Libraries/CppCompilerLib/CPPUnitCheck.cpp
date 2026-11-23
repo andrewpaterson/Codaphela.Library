@@ -1243,7 +1243,7 @@ void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 	CCPPFunction*		pcCall;
 
 	mcDiagnostics.BeginQuiet();
-	psLambda = GetLambda(pcLambda);
+	psLambda = mcClosures.GetLambda(pcLambda);
 	mcDiagnostics.EndQuiet();
 	pcCall = psLambda ? psLambda->pcCall : NULL;
 	if (!pcCall || pcCall->mbGenerated)

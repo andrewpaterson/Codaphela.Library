@@ -65,6 +65,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPLambda.h"
 #include "CPPTypeWriter.h"
 #include "CPPConstantFolder.h"
+#include "CPPClosures.h"
 
 
 class CCTString;
@@ -292,7 +293,9 @@ class CCPPTokenMarks;
 class CCPPUnit : public CCPPRuntimeWriter
 {
 friend class CCPPConstantFolder;
+friend class CCPPClosures;
 protected:
+	CCPPClosures			mcClosures;			//The lambdas' closures.
 	CCPPConstantFolder		mcFolder;			//Works out constant expressions' values.
 	CCPPSyntaxTree*			mpcTree;
 	CCPPTokeniser*			mpcTokeniser;
@@ -323,7 +326,6 @@ protected:
 	CMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
-	CArrayCPPLambdas		mapsLambdas;		//Every lambda's closure, as each function it is in makes it.
 	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
 	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
@@ -391,6 +393,7 @@ public:
 	CCPPBinder*				GetBinder(void);
 	CCPPConstants*			GetConstants(void) const;
 	CCPPConstantFolder*		GetFolder(void);
+	CCPPClosures*			GetClosures(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -517,21 +520,7 @@ public:
 	CCPPSyntaxIdExpression*	NewHiddenName(CCPPSymbol* pcSymbol, CCPPSyntax* pcParent);
 	bool					RangeForLocals(CCPPSyntaxRangeForStatement* pcFor);
 	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
-	SCPPLambda*				GetLambda(CCPPSyntaxLambdaExpression* pcSyntax);
-	void					NameLambda(SCPPLambda* psLambda);
-	bool					LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLambda, size* puiNumber);
 	bool					IsSharedFunction(CCPPFunction* pcFunction);
-	SCPP65Type*				LambdaType(CCPPSyntaxLambdaExpression* pcSyntax);
-	bool					LambdaCaptures(SCPPLambda* psLambda);
-	bool					UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode);
-	bool					UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode);
-	bool					CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode);
-	bool					IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack);
-	bool					IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
-	bool					IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda);
-	bool					IsOuterLocal(CCPPSymbol* pcSymbol);
-	bool					IsOuterConstant(CCPPSymbol* pcSymbol);
-	CCPPVariable*			EnclosingStatic(CCPPSymbol* pcSymbol);
 	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
 	bool					AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
@@ -540,30 +529,7 @@ public:
 	bool					IsInSourceFile(CCPPSyntax* pcNode);
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
-	SCPP65Type*				EnclosingConstantType(CCPPSymbol* pcSymbol);
-	SCPP65Type*				EnclosingConstantObjectType(CCPPSymbol* pcSymbol);
-	bool					IsOdrUse(CCPPSyntax* pcNode);
-	bool					IsThisMember(CCPPSymbol* pcSymbol);
-	SCPPLambdaCapture*		FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol);
-	bool					AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax* pcInitialiser, bool bReference, bool bOwn, CCPPSyntax* pcNode);
-	bool					AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode);
-	size					AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType);
-	bool					LayoutClosure(SCPPLambda* psLambda);
-	bool					LambdaCall(SCPPLambda* psLambda);
-	CCPPFunction*			LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters);
-	CCPPFunction*			AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, CArrayCPP65Types* papsParameters, SCPP65Type* psReturn);
-	void					AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall);
-	void					GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArguments);
-	CCPPFunction*			GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters);
-	void					GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunction);
-	bool					ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType);
-	SCPPLambda*				WritingLambda(void);
-	SCPPLambda*				BodyLambda(CCPPFunction* pcFunction);
 	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	SCPPLambdaCapture*		FindCapture(CCPPSymbol* pcSymbol);
-	CCPPFunction*			OuterFunction(void);
-	CCPPClass*				ThisClass(void);
-	void					FreeLambdas(void);
 	bool					RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65Type** ppsBegin, SCPP65Type** ppsEnd, CCPPFunction** ppcBegin, CCPPFunction** ppcEnd, bool* pbMember);
 	bool					ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
@@ -720,6 +686,8 @@ public:
 	bool					AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
 	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					AddLayout(CCPPClass* pcClass);
+	void					CompleteMembers(CCPPClass* pcClass);
+	void					PlaceMembers(CCPPClass* pcClass, int iPack, int iAlign);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
 	void					AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined);

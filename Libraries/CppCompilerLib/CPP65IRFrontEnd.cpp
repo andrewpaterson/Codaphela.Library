@@ -1328,14 +1328,14 @@ void CCPP65IRFrontEnd::ClosureThis(void)
 	SCPPLambda*			psLambda;
 	SCPPLambdaCapture*	psCapture;
 
-	psLambda = mpcUnit->BodyLambda(mpcCPPFunction);
+	psLambda = mpcUnit->GetClosures()->BodyLambda(mpcCPPFunction);
 	if (!psLambda || msThis.IsNone())
 	{
 		return;
 	}
 	msClosure = msThis;
 	msThis = IRNone();
-	psCapture = mpcUnit->FindLambdaCapture(psLambda, NULL);
+	psCapture = mpcUnit->GetClosures()->FindLambdaCapture(psLambda, NULL);
 	if (psCapture)
 	{
 		msThis = mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), AddressAt(msClosure, psLambda->pcClass->macFields.Get(psCapture->uiField)->iOffset));

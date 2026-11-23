@@ -263,12 +263,12 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 			}
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (!mpcUnit->ThisClass())
+		if (!mpcUnit->GetClosures()->ThisClass())
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
 		psValue->sValue = msThis;
-		psValue->psType = mpcTypes->Pointer(mpcUnit->ThisClass()->mpsType);
+		psValue->psType = mpcTypes->Pointer(mpcUnit->GetClosures()->ThisClass()->mpsType);
 		return true;
 	case CPPS_NewExpression:
 		return NewExpression((CCPPSyntaxNewExpression*)pcExpression, psValue);

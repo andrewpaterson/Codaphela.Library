@@ -335,7 +335,7 @@ void CCPP65TypeChecker::VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode
 		mpsResult = NULL;
 		return;
 	}
-	mpsResult = mpcUnit->LambdaType(pcNode);
+	mpsResult = mpcUnit->GetClosures()->LambdaType(pcNode);
 }
 
 
@@ -668,7 +668,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return mpcTypes->Pointer(&mpcTypes->msChar);
 	case CPPBN_EnclosingConstant:
 		//A constant of the function the lambda is in, which it doesn't capture: its value.  [basic.def.odr] 3
-		return mpcUnit->EnclosingConstantType(cBound.mpcSymbol);
+		return mpcUnit->GetClosures()->EnclosingConstantType(cBound.mpcSymbol);
 	case CPPBN_Constant:
 		if (cBound.mpcSymbol->meKind == CPPSK_Enumerator)
 		{
@@ -830,10 +830,10 @@ SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 {
 	CCPPClass*	pcClass;
 
-	pcClass = mpcUnit->GetContext()->HasThis() ? mpcUnit->ThisClass() : NULL;
+	pcClass = mpcUnit->GetContext()->HasThis() ? mpcUnit->GetClosures()->ThisClass() : NULL;
 	if (!pcClass)
 	{
-		Error(pcThis, mpcUnit->WritingLambda() ? "The lambda doesn't capture this" : "this is only in member functions");
+		Error(pcThis, mpcUnit->GetClosures()->WritingLambda() ? "The lambda doesn't capture this" : "this is only in member functions");
 		return NULL;
 	}
 	return mpcUnit->ThisType(pcClass);
@@ -889,7 +889,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			{
 				return psType;
 			}
-			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->ThisClass() && mpcUnit->QualifiedFieldType(pcId))
+			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->GetClosures()->ThisClass() && mpcUnit->QualifiedFieldType(pcId))
 			{
 				//&(Class::field), which is no pointer to a member, where there is no object for the field to be in.
 				Error(pcUnary, "A pointer to a member is &Class::member, with no brackets about the name");
@@ -2512,10 +2512,10 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 				if (mpcUnit->GetContext()->IsUnevaluated())
 				{
 					//decltype((c)) names the variable, which nothing reads.
-					return mpcUnit->EnclosingConstantObjectType(cBound.mpcSymbol);
+					return mpcUnit->GetClosures()->EnclosingConstantObjectType(cBound.mpcSymbol);
 				}
 				//Its object is wanted (its address, or a reference to it): that odr-uses it.  [basic.def.odr] 3
-				Error(pcExpression, mpcUnit->WritingLambda() ? "The lambda doesn't capture the variable" : "A local class can't use an automatic variable of the function it is in, other than a constant's value");
+				Error(pcExpression, mpcUnit->GetClosures()->WritingLambda() ? "The lambda doesn't capture the variable" : "A local class can't use an automatic variable of the function it is in, other than a constant's value");
 				return NULL;
 			}
 			//S::m with no object, in an operand that isn't evaluated: nothing is read.  [expr.prim.general] 13
@@ -3370,7 +3370,7 @@ const char* CCPP65TypeChecker::NotAPlace(CCPPSyntaxName* pcName)
 		//A member of a class this function's class is nested in, which has no object here.  [class.nest] 1
 		return "A member that isn't static is used without an object of its class";
 	}
-	if (mpcUnit->IsOuterLocal(pcName->mpcSymbol))
+	if (mpcUnit->GetClosures()->IsOuterLocal(pcName->mpcSymbol))
 	{
 		//[class.local] 1
 		return "A local class can't use an automatic variable of the function it is in, other than a constant's value";

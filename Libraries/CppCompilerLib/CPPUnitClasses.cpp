@@ -414,9 +414,9 @@ CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCP
 				return pcBindings->mpcClass;
 			}
 		}
-		if (!pcContext && OuterFunction())
+		if (!pcContext && mcClosures.OuterFunction())
 		{
-			pcContext = OuterFunction()->mpcClass;
+			pcContext = mcClosures.OuterFunction()->mpcClass;
 		}
 		pcClass = pcContext ? FindBaseInstance(pcContext, pcTemplate) : NULL;
 		if (pcClass)
@@ -970,7 +970,6 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	CCPPSyntaxNameComponent*		pcComponent;
 	CCPPTemplate*					pcMember;
 	CCPPFunction*					pcFunction;
-	CCPPClassLayout					cLayout;
 	size							i;
 	size							j;
 	int								iClassAlign;
@@ -1036,23 +1035,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		SpecialiseMembers(pcClass);
 	}
 
-	//A destructor is needed to destroy the bases or the fields.
-	if (!pcClass->mpcDestructor && pcClass->NeedsDestructor())
-	{
-		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
-		pcClass->mpcDestructor = pcFunction;
-	}
-	if (pcClass->HasVirtualDestructor())
-	{
-		//delete of a pointer to a base frees the object as its own class does, which only the object knows: by a
-		//virtual function of its class, written for it, that destroys it and frees it.  [expr.delete] 3, 9, 10
-		pcFunction = AddImplicitFunction(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid, false);
-		pcFunction->mbDeleting = true;
-		pcFunction->mbVirtual = true;
-		pcFunction->mbDefined = true;
-		pcClass->mpcDeleting = pcFunction;
-	}
-	pcClass->mcVtable.LayoutOwn(pcClass);
+	CompleteMembers(pcClass);
 
 	//The bases, the vtable pointer, then the fields.
 	iClassAlign = AlignasAlignment(&pcSpecifier->macpAttributes, true);
@@ -1063,10 +1046,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	//(A member is aligned to at most the lesser of #pragma pack's bytes and the target's limit.)
 	iPack = mpcTarget->GetMemberAlignmentLimit();
 	iPack = (iPack > 0) ? CCPPClassLayout::PackAlignment(iPack, pcSpecifier->miPack) : pcSpecifier->miPack;
-	cLayout.Init(pcClass, iPack, mpcTarget->GetPointerBytes());
-	cLayout.Layout(iClassAlign);
-	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
-	cLayout.Kill();
+	PlaceMembers(pcClass, iPack, iClassAlign);
 	if (mbLayouts)
 	{
 		AddLayout(pcClass);
@@ -1091,6 +1071,55 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	}
 	mcContext.LeaveBindings();
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the compiler adds to a class once its members are read, a
+// closure's too: the destructor its bases or fields need to be destroyed,
+// for a virtual destructor the deleting one, and its vtable.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::CompleteMembers(CCPPClass* pcClass)
+{
+	CCPPFunction*	pcFunction;
+
+	//A destructor is needed to destroy the bases or the fields.
+	if (!pcClass->mpcDestructor && pcClass->NeedsDestructor())
+	{
+		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
+		pcClass->mpcDestructor = pcFunction;
+	}
+	if (pcClass->HasVirtualDestructor())
+	{
+		//delete of a pointer to a base frees the object as its own class does, which only the object knows: by a
+		//virtual function of its class, written for it, that destroys it and frees it.  [expr.delete] 3, 9, 10
+		pcFunction = AddImplicitFunction(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid, false);
+		pcFunction->mbDeleting = true;
+		pcFunction->mbVirtual = true;
+		pcFunction->mbDefined = true;
+		pcClass->mpcDeleting = pcFunction;
+	}
+	pcClass->mcVtable.LayoutOwn(pcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Places a class's bases, vtable pointer and fields (CCPPClassLayout), a
+// closure's too, and gives its type their size.  iPack is #pragma pack's
+// bytes and iAlign alignas's, 0 for none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::PlaceMembers(CCPPClass* pcClass, int iPack, int iAlign)
+{
+	CCPPClassLayout	cLayout;
+
+	cLayout.Init(pcClass, iPack, mpcTarget->GetPointerBytes());
+	cLayout.Layout(iAlign);
+	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
+	cLayout.Kill();
 }
 
 

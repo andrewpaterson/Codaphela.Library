@@ -281,7 +281,7 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 	if (pcClass->mpsLambda && pcClass->mpsLambda->bGeneric && psTo->IsPointer() && psTo->psBase->IsFunction())
 	{
 		//A generic lambda's conversion to this pointer to a function is made when it is first wanted.
-		mpcUnit->GenericLambdaConversion(pcClass->mpsLambda, psTo->psBase);
+		mpcUnit->GetClosures()->GenericLambdaConversion(pcClass->mpsLambda, psTo->psBase);
 	}
 	pcBest = NULL;
 	iBest = CPPCR_None;
@@ -573,7 +573,7 @@ CCPPScope* CCPPOverloads::CurrentLookupScope(void)
 	CCPPSyntaxName*	pcName;
 	CCPPFunction*	pcFunction;
 
-	pcFunction = mpcUnit->OuterFunction();
+	pcFunction = mpcUnit->GetClosures()->OuterFunction();
 	if (!pcFunction)
 	{
 		return mpcUnit->GetContext()->GetNamespace();
@@ -1345,9 +1345,9 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 		pcClass = mpcUnit->NameQualifierClass(pcName, pcNode);
 		mpcDiagnostics->EndQuiet();
 	}
-	else if (mpcUnit->OuterFunction() && mpcUnit->OuterFunction()->mpcClass)
+	else if (mpcUnit->GetClosures()->OuterFunction() && mpcUnit->GetClosures()->OuterFunction()->mpcClass)
 	{
-		pcClass = mpcUnit->OuterFunction()->mpcClass;
+		pcClass = mpcUnit->GetClosures()->OuterFunction()->mpcClass;
 	}
 	if (pcClass && mpcUnit->CompleteClass(pcClass, pcNode))
 	{

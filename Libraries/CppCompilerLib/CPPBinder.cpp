@@ -189,7 +189,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			return;
 		}
 	}
-	pcMember = mpcUnit->OuterFunction();
+	pcMember = mpcUnit->GetClosures()->OuterFunction();
 
 	//In a class but not in its member functions (sizeof(test<T>(0)) in an enumerator), a member's name is its member.
 	if (pcName && !pcName->mbGlobal && !(pcMember && pcMember->mpcClass) && mpcUnit->MemberScopeClass(pcSymbol))
@@ -429,7 +429,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	if (psType->pcClass->mpsLambda && psType->pcClass->mpsLambda->bGeneric)
 	{
 		//A generic lambda's operator() for these arguments.
-		mpcUnit->GenericLambdaCall(psType->pcClass->mpsLambda, pcBound->mpapcArguments);
+		mpcUnit->GetClosures()->GenericLambdaCall(psType->pcClass->mpsLambda, pcBound->mpapcArguments);
 	}
 
 	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
@@ -544,7 +544,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	bool						bVirtual;
 
 	pcCallee = pcBound->mpcCallee;
-	pcIn = mpcUnit->OuterFunction();
+	pcIn = mpcUnit->GetClosures()->OuterFunction();
 	pcClass = NULL;
 	pcObject = NULL;
 	bArrow = false;
@@ -720,13 +720,13 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		mpcDiagnostics->Error(pcCallee, "A member function needs an object");
 		return;
 	}
-	if (!pcObject && !pcFunction->mbStatic && pcIn && pcIn->mbStatic && !mpcUnit->WritingLambda())
+	if (!pcObject && !pcFunction->mbStatic && pcIn && pcIn->mbStatic && !mpcUnit->GetClosures()->WritingLambda())
 	{
 		//A static member function has no this to call it on.  [over.call.func] 3, [class.static.mfct] 2
 		mpcDiagnostics->Error(pcCallee, "A member function that isn't static is called with no object: a static member function has none");
 		return;
 	}
-	pcThis = pcObject ? pcClass : mpcUnit->ThisClass();
+	pcThis = pcObject ? pcClass : mpcUnit->GetClosures()->ThisClass();
 	if (pcThis && !pcFunction->mbStatic && !HasOneMember(pcThis, pcLookup, pcFunction->mpcClass, pcCallee))
 	{
 		return;
@@ -1761,24 +1761,24 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	pcBound->mpcSymbol = pcSymbol;
 
 	//In a lambda's body, what it captures is its closure's.
-	pcBound->mpsCapture = (pcId->mpcName->macpComponents.NumElements() == 1) ? mpcUnit->FindCapture(pcSymbol) : NULL;
+	pcBound->mpsCapture = (pcId->mpcName->macpComponents.NumElements() == 1) ? mpcUnit->GetClosures()->FindCapture(pcSymbol) : NULL;
 	if (pcBound->mpsCapture)
 	{
 		pcBound->meWhat = CPPBN_Capture;
-		pcBound->mpcClass = mpcUnit->WritingLambda()->pcClass;
+		pcBound->mpcClass = mpcUnit->GetClosures()->WritingLambda()->pcClass;
 		pcBound->mpsField = pcBound->mpcClass->macFields.Get(pcBound->mpsCapture->uiField);
 		pcBound->miOffset = pcBound->mpsField->iOffset;
 		return;
 	}
 
 	//A constant of the function it is in that it doesn't capture is its value (its object is the type checker's error).
-	psLambda = (pcSymbol && (pcId->mpcName->macpComponents.NumElements() == 1)) ? mpcUnit->WritingLambda() : NULL;
-	if (psLambda && mpcUnit->IsEnclosingConstant(pcSymbol, psLambda))
+	psLambda = (pcSymbol && (pcId->mpcName->macpComponents.NumElements() == 1)) ? mpcUnit->GetClosures()->WritingLambda() : NULL;
+	if (psLambda && mpcUnit->GetClosures()->IsEnclosingConstant(pcSymbol, psLambda))
 	{
 		pcBound->meWhat = CPPBN_EnclosingConstant;
 		return;
 	}
-	if (!psLambda && pcSymbol && (pcId->mpcName->macpComponents.NumElements() == 1) && mpcUnit->IsOuterConstant(pcSymbol))
+	if (!psLambda && pcSymbol && (pcId->mpcName->macpComponents.NumElements() == 1) && mpcUnit->GetClosures()->IsOuterConstant(pcSymbol))
 	{
 		//A local class's member function, and a constant of the function the class is in.  [class.local] 1
 		pcBound->meWhat = CPPBN_EnclosingConstant;
@@ -1812,7 +1812,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		}
 		else if (pcSymbol)
 		{
-			pcIn = mpcUnit->OuterFunction();
+			pcIn = mpcUnit->GetClosures()->OuterFunction();
 			pcMemberClass = (pcIn && pcIn->mpcClass && pcIn->mpcClass->mpcTemplate) ? pcIn->mpcClass : NULL;
 		}
 		if (pcMemberClass)
@@ -1833,7 +1833,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	if (!pcBound->mpcVariable && pcSymbol && (pcSymbol->meKind == CPPSK_Variable))
 	{
 		//A static local of the function a local class is in, named in one of the class's member functions.
-		pcBound->mpcVariable = mpcUnit->EnclosingStatic(pcSymbol);
+		pcBound->mpcVariable = mpcUnit->GetClosures()->EnclosingStatic(pcSymbol);
 	}
 	if (pcBound->mpcVariable)
 	{
@@ -1865,8 +1865,8 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	//A field of this, of the base a qualifier names (B::a) if it does; a name in a template that the parser could not
 	//resolve may be one too.  In a static member function it is the class's field still, which has no object there:
 	//only what doesn't evaluate it (sizeof, decltype) can name it.  [expr.prim.general] 13
-	pcClass = mpcUnit->ThisClass();
-	pcIn = mpcUnit->OuterFunction();
+	pcClass = mpcUnit->GetClosures()->ThisClass();
+	pcIn = mpcUnit->GetClosures()->OuterFunction();
 	if (!pcClass && pcIn && pcIn->mbStatic)
 	{
 		pcClass = pcIn->mpcClass;

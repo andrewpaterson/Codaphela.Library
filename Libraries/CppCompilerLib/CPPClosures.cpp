@@ -22,6 +22,29 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxCopier.h"
 #include "CPPUnit.h"
 #include "CPPSyntaxes.h"
+#include "CPPClosures.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClosures::Init(CCPPUnit* pcUnit)
+{
+	mpcUnit = pcUnit;
+	mapsLambdas.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClosures::Kill(void)
+{
+	FreeLambdas();
+	mpcUnit = NULL;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,7 +57,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // [expr.prim.lambda]
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
+SCPPLambda* CCPPClosures::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 {
 	SCPPLambda*					psLambda;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
@@ -44,11 +67,11 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	for (i = 0; i < mapsLambdas.NumElements(); i++)
 	{
 		psLambda = mapsLambdas.GetPtr(i);
-		if ((psLambda->pcSyntax == pcSyntax) && (psLambda->pcEnclosing == mcContext.GetFunction()) && (psLambda->pcBindings == mcContext.GetBindings()))
+		if ((psLambda->pcSyntax == pcSyntax) && (psLambda->pcEnclosing == mpcUnit->mcContext.GetFunction()) && (psLambda->pcBindings == mpcUnit->mcContext.GetBindings()))
 		{
 			if (psLambda->bFailed)
 			{
-				mcDiagnostics.Report(psLambda->pcErrors);
+				mpcUnit->mcDiagnostics.Report(psLambda->pcErrors);
 				return NULL;
 			}
 			return psLambda;
@@ -57,18 +80,18 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 
 	psLambda = NewMalloc<SCPPLambda>();
 	psLambda->pcSyntax = pcSyntax;
-	psLambda->pcEnclosing = mcContext.GetFunction();
-	psLambda->pcBindings = mcContext.GetBindings();
+	psLambda->pcEnclosing = mpcUnit->mcContext.GetFunction();
+	psLambda->pcBindings = mpcUnit->mcContext.GetBindings();
 	psLambda->asCaptures.Init();
 	psLambda->bThis = false;
 	psLambda->cFunctionPacks.Init();
-	psLambda->cFunctionPacks.AddAll(GetFunctionPacks());
+	psLambda->cFunctionPacks.AddAll(mpcUnit->GetFunctionPacks());
 	psLambda->bMutable = pcSyntax->IsMutable();
 	psLambda->bFailed = false;
 	psLambda->pcErrors = NULL;
 	psLambda->pcCall = NULL;
 	psLambda->szName.Init();
-	psLambda->pcClass = NewClass(NULL, -1);
+	psLambda->pcClass = mpcUnit->NewClass(NULL, -1);
 	psLambda->pcClass->mpsLambda = psLambda;
 	NameLambda(psLambda);
 	psLambda->pcClass->mpcBindings = psLambda->pcBindings;
@@ -79,25 +102,26 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psLambda->bGeneric |= (pcParameter->GetKind() == CPPS_Parameter) && mcDeclarators.IsAuto(pcParameter->mpcSpecifiers);
+		psLambda->bGeneric |= (pcParameter->GetKind() == CPPS_Parameter) && mpcUnit->mcDeclarators.IsAuto(pcParameter->mpcSpecifiers);
 	}
 
 	//What is said making the closure is the closure's: it is said now, and again where the closure is asked for again.
-	mcDiagnostics.BeginKeeping();
+	mpcUnit->mcDiagnostics.BeginKeeping();
 	psLambda->bFailed = !LambdaCaptures(psLambda) || !LayoutClosure(psLambda) || (!psLambda->bGeneric && !LambdaCall(psLambda));
-	if (psLambda->bFailed && !mcDiagnostics.HasKept())
+	if (psLambda->bFailed && !mpcUnit->mcDiagnostics.HasKept())
 	{
 		//Nothing said why.
-		mcDiagnostics.ReportError(pcSyntax, "The lambda's closure can't be made");
+		mpcUnit->mcDiagnostics.ReportError(pcSyntax, "The lambda's closure can't be made");
 	}
-	psLambda->pcErrors = mcDiagnostics.EndKeeping();
+	psLambda->pcErrors = mpcUnit->mcDiagnostics.EndKeeping();
 	if (psLambda->bFailed)
 	{
-		mcDiagnostics.Report(psLambda->pcErrors);
+		mpcUnit->mcDiagnostics.Report(psLambda->pcErrors);
 		return NULL;
 	}
 	return psLambda;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -108,19 +132,20 @@ SCPPLambda* CCPPUnit::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 // unit, its functions COMDAT with the same labels.  [basic.def.odr] 6
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::NameLambda(SCPPLambda* psLambda)
+void CCPPClosures::NameLambda(SCPPLambda* psLambda)
 {
 	size	uiNumber;
 
 	uiNumber = 0;
-	if (!IsSharedFunction(psLambda->pcEnclosing) || !psLambda->pcEnclosing->mpcDefinition || !LambdaNumber(psLambda->pcEnclosing->mpcDefinition, psLambda->pcSyntax, &uiNumber))
+	if (!mpcUnit->IsSharedFunction(psLambda->pcEnclosing) || !psLambda->pcEnclosing->mpcDefinition || !LambdaNumber(psLambda->pcEnclosing->mpcDefinition, psLambda->pcSyntax, &uiNumber))
 	{
 		return;
 	}
-	mcMangler.AppendFunctionLabel(&psLambda->szName, psLambda->pcEnclosing);
+	mpcUnit->mcMangler.AppendFunctionLabel(&psLambda->szName, psLambda->pcEnclosing);
 	psLambda->szName.Append("__L");
 	psLambda->szName.Append((int)uiNumber);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -129,7 +154,7 @@ void CCPPUnit::NameLambda(SCPPLambda* psLambda)
 // (outer ones first: in the order they are written).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLambda, size* puiNumber)
+bool CCPPClosures::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLambda, size* puiNumber)
 {
 	size	i;
 
@@ -156,6 +181,7 @@ bool CCPPUnit::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLa
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // What a lambda captures: what its captures name, and with a default
@@ -166,7 +192,7 @@ bool CCPPUnit::LambdaNumber(CCPPSyntax* pcNode, CCPPSyntaxLambdaExpression* pcLa
 // [expr.prim.lambda] 11, 12, 13
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
+bool CCPPClosures::LambdaCaptures(SCPPLambda* psLambda)
 {
 	CCPPSyntaxLambdaCapture*	pcCapture;
 	CCPPSymbol*					pcSymbol;
@@ -194,7 +220,7 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 			psPack = pcSymbol ? psLambda->cFunctionPacks.Find(pcSymbol) : NULL;
 			if (!psPack)
 			{
-				bResult &= mcDiagnostics.ReportOnce(pcCapture, "Only the parameter pack of the function the lambda is in can be captured as a pack");
+				bResult &= mpcUnit->mcDiagnostics.ReportOnce(pcCapture, "Only the parameter pack of the function the lambda is in can be captured as a pack");
 				continue;
 			}
 			bResult &= CapturePack(psLambda, psPack, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, pcCapture);
@@ -202,24 +228,25 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 		}
 		if (!IsEnclosingLocal(pcSymbol, psLambda))
 		{
-			bResult &= mcDiagnostics.ReportOnce(pcCapture, "Only a variable of the function the lambda is in can be captured");
+			bResult &= mpcUnit->mcDiagnostics.ReportOnce(pcCapture, "Only a variable of the function the lambda is in can be captured");
 			continue;
 		}
 		if (FindLambdaCapture(psLambda, pcSymbol))
 		{
-			bResult &= mcDiagnostics.ReportOnce(pcCapture, "The variable is captured twice");
+			bResult &= mpcUnit->mcDiagnostics.ReportOnce(pcCapture, "The variable is captured twice");
 			continue;
 		}
 		bResult &= AddCapture(psLambda, pcSymbol, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, false, pcCapture);
 	}
 	bResult = bResult && UsedCaptures(psLambda, psLambda->pcSyntax->mpcDefinition->mpcBody);
-	if (bResult && (psLambda->asCaptures.NumElements() > 0) && DefaultArgumentOf(psLambda->pcSyntax))
+	if (bResult && (psLambda->asCaptures.NumElements() > 0) && mpcUnit->DefaultArgumentOf(psLambda->pcSyntax))
 	{
 		//[expr.prim.lambda] 13
-		return mcDiagnostics.ReportOnce(psLambda->pcSyntax, "A lambda in a default argument can't capture anything");
+		return mpcUnit->mcDiagnostics.ReportOnce(psLambda->pcSyntax, "A lambda in a default argument can't capture anything");
 	}
 	return bResult;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -227,7 +254,7 @@ bool CCPPUnit::LambdaCaptures(SCPPLambda* psLambda)
 // What the body (pcNode) uses that the lambda must capture.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
+bool CCPPClosures::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 {
 	CCPPSymbol*	pcSymbol;
 	SCPPFunctionPack*	psPack;
@@ -256,7 +283,7 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 			}
 			if (psLambda->pcSyntax->meDefault == CPPLC_None)
 			{
-				return mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture the parameter pack");
+				return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture the parameter pack");
 			}
 			return CapturePack(psLambda, psPack, (CCPPSyntaxIdExpression*)pcNode, psLambda->pcSyntax->meDefault == CPPLC_Reference, pcNode);
 		}
@@ -270,7 +297,7 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 
 			if (psLambda->pcSyntax->meDefault == CPPLC_None)
 			{
-				return mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture the variable");
+				return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture the variable");
 			}
 			return AddCapture(psLambda, pcSymbol, pcNode, psLambda->pcSyntax->meDefault == CPPLC_Reference, false, pcNode);
 		}
@@ -287,6 +314,7 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Captures each element of psPack, the parameter pack of a function the
@@ -296,7 +324,7 @@ bool CCPPUnit::UsedCaptures(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 // [expr.prim.lambda] 24
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode)
+bool CCPPClosures::CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPSyntaxIdExpression* pcName, bool bReference, CCPPSyntax* pcNode)
 {
 	CCPPSyntaxCopier	cCopier;
 	CCPPSymbol*			pcElement;
@@ -306,13 +334,13 @@ bool CCPPUnit::CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPS
 
 	if (IsPackCaptured(psLambda, psPack) && (psPack->apcElements.NumElements() > 0))
 	{
-		return mcDiagnostics.ReportOnce(pcNode, "The variable is captured twice");
+		return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "The variable is captured twice");
 	}
 	bResult = true;
 	for (k = 0; bResult && (k < psPack->apcElements.NumElements()); k++)
 	{
 		pcElement = psPack->apcElements.GetPtr(k);
-		cCopier.Init(mpcTree->GetMemory());
+		cCopier.Init(mpcUnit->mpcTree->GetMemory());
 		cCopier.Substitute(psPack->pcPack, pcElement);
 		pcElementName = cCopier.Copy(pcName, pcName->mpcParent);
 		cCopier.Kill();
@@ -322,16 +350,18 @@ bool CCPPUnit::CapturePack(SCPPLambda* psLambda, SCPPFunctionPack* psPack, CCPPS
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether the lambda has captured an enclosing function's parameter
 // pack: its elements, of which an empty pack has none to capture.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack)
+bool CCPPClosures::IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack)
 {
 	return (psPack->apcElements.NumElements() == 0) || (FindLambdaCapture(psLambda, psPack->apcElements.GetPtr(0)) != NULL);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -340,7 +370,7 @@ bool CCPPUnit::IsPackCaptured(SCPPLambda* psLambda, SCPPFunctionPack* psPack)
 // default capture it is captured, and without one it must have been.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
+bool CCPPClosures::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 {
 	if (psLambda->bThis)
 	{
@@ -348,10 +378,11 @@ bool CCPPUnit::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	}
 	if (psLambda->pcSyntax->meDefault == CPPLC_None)
 	{
-		return mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture this");
+		return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "The lambda doesn't capture this");
 	}
 	return AddThisCapture(psLambda, pcNode);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -361,7 +392,7 @@ bool CCPPUnit::UseThis(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 // captured.  [expr.prim.lambda] 10
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
+bool CCPPClosures::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 {
 	CCPPScope*		pcScope;
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
@@ -386,6 +417,7 @@ bool CCPPUnit::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // True if the symbol is a variable of a function the lambda is in whose
@@ -395,7 +427,7 @@ bool CCPPUnit::IsEnclosingLocal(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 // [basic.def.odr] 3, [expr.const] 2.7, [expr.prim.lambda] 12
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
+bool CCPPClosures::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 {
 	CCPPSyntaxInitDeclarator*	pcInit;
 	int64						lliValue;
@@ -405,8 +437,9 @@ bool CCPPUnit::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 		return false;
 	}
 	pcInit = (CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration;
-	return mcFolder.Constant(pcInit->mpcInitializer, &lliValue);
+	return mpcUnit->mcFolder.Constant(pcInit->mpcInitializer, &lliValue);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -416,7 +449,7 @@ bool CCPPUnit::IsEnclosingConstant(CCPPSymbol* pcSymbol, SCPPLambda* psLambda)
 // the class's member functions is written.  [class.local] 1
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsOuterLocal(CCPPSymbol* pcSymbol)
+bool CCPPClosures::IsOuterLocal(CCPPSymbol* pcSymbol)
 {
 	CCPPFunction*	pcFunction;
 	CCPPScope*		pcScope;
@@ -447,6 +480,7 @@ bool CCPPUnit::IsOuterLocal(CCPPSymbol* pcSymbol)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // True if a variable is a constant of a function a local class is in
@@ -454,7 +488,7 @@ bool CCPPUnit::IsOuterLocal(CCPPSymbol* pcSymbol)
 // isn't odr-used.  [basic.def.odr] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsOuterConstant(CCPPSymbol* pcSymbol)
+bool CCPPClosures::IsOuterConstant(CCPPSymbol* pcSymbol)
 {
 	int64	lliValue;
 
@@ -462,8 +496,9 @@ bool CCPPUnit::IsOuterConstant(CCPPSymbol* pcSymbol)
 	{
 		return false;
 	}
-	return mcFolder.Constant(((CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration)->mpcInitializer, &lliValue);
+	return mpcUnit->mcFolder.Constant(((CCPPSyntaxInitDeclarator*)pcSymbol->mpcDeclaration)->mpcInitializer, &lliValue);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -473,19 +508,20 @@ bool CCPPUnit::IsOuterConstant(CCPPSymbol* pcSymbol)
 // made.  NULL for a symbol that isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPVariable* CCPPUnit::EnclosingStatic(CCPPSymbol* pcSymbol)
+CCPPVariable* CCPPClosures::EnclosingStatic(CCPPSymbol* pcSymbol)
 {
 	size	i;
 
-	for (i = mapcStaticLocals.NumElements(); i > 0; i--)
+	for (i = mpcUnit->mapcStaticLocals.NumElements(); i > 0; i--)
 	{
-		if (mapcStaticLocals.GetPtr(i - 1)->mpcSymbol == pcSymbol)
+		if (mpcUnit->mapcStaticLocals.GetPtr(i - 1)->mpcSymbol == pcSymbol)
 		{
-			return mapcStaticLocals.GetPtr(i - 1);
+			return mpcUnit->mapcStaticLocals.GetPtr(i - 1);
 		}
 	}
 	return NULL;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -495,7 +531,7 @@ CCPPVariable* CCPPUnit::EnclosingStatic(CCPPSymbol* pcSymbol)
 // has no initialiser, or isn't an integer, bool or enum.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::EnclosingConstantType(CCPPSymbol* pcSymbol)
+SCPP65Type* CCPPClosures::EnclosingConstantType(CCPPSymbol* pcSymbol)
 {
 	CCPPSyntaxInitDeclarator*	pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
@@ -511,13 +547,14 @@ SCPP65Type* CCPPUnit::EnclosingConstantType(CCPPSymbol* pcSymbol)
 	{
 		return NULL;
 	}
-	psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+	psType = mpcUnit->mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 	if (!psType || psType->bVolatile || !psType->IsInteger())
 	{
 		return NULL;
 	}
 	return psType->Unqualified();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -527,10 +564,11 @@ SCPP65Type* CCPPUnit::EnclosingConstantType(CCPPSymbol* pcSymbol)
 // const, as constexpr makes it too.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::EnclosingConstantObjectType(CCPPSymbol* pcSymbol)
+SCPP65Type* CCPPClosures::EnclosingConstantObjectType(CCPPSymbol* pcSymbol)
 {
-	return mcTypes.Qualified(EnclosingConstantType(pcSymbol), true, false);
+	return mpcUnit->mcTypes.Qualified(EnclosingConstantType(pcSymbol), true, false);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -542,7 +580,7 @@ SCPP65Type* CCPPUnit::EnclosingConstantObjectType(CCPPSymbol* pcSymbol)
 // Place).  [basic.def.odr] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsOdrUse(CCPPSyntax* pcNode)
+bool CCPPClosures::IsOdrUse(CCPPSyntax* pcNode)
 {
 	CCPPSyntax*						pcParent;
 	CCPPSyntaxUnaryExpression*		pcUnary;
@@ -573,11 +611,12 @@ bool CCPPUnit::IsOdrUse(CCPPSyntax* pcNode)
 		{
 			return false;
 		}
-		psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
+		psType = mpcUnit->mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 		return psType && psType->IsReference();
 	}
 	return false;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -586,7 +625,7 @@ bool CCPPUnit::IsOdrUse(CCPPSyntax* pcNode)
 // it alone, in a member function, is this's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsThisMember(CCPPSymbol* pcSymbol)
+bool CCPPClosures::IsThisMember(CCPPSymbol* pcSymbol)
 {
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 
@@ -599,12 +638,13 @@ bool CCPPUnit::IsThisMember(CCPPSymbol* pcSymbol)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The capture of the symbol (NULL: of this) the lambda has, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPLambdaCapture* CCPPUnit::FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol)
+SCPPLambdaCapture* CCPPClosures::FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol)
 {
 	SCPPLambdaCapture*	psCapture;
 	size				i;
@@ -621,6 +661,7 @@ SCPPLambdaCapture* CCPPUnit::FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol*
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A capture of a variable or an init-capture (bOwn), and its field: of
@@ -630,7 +671,7 @@ SCPPLambdaCapture* CCPPUnit::FindLambdaCapture(SCPPLambda* psLambda, CCPPSymbol*
 // [expr.prim.lambda] 11, 15, 16
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax* pcInitialiser, bool bReference, bool bOwn, CCPPSyntax* pcNode)
+bool CCPPClosures::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax* pcInitialiser, bool bReference, bool bOwn, CCPPSyntax* pcNode)
 {
 	SCPPLambdaCapture*	psCapture;
 	SCPP65Type*			psType;
@@ -638,17 +679,17 @@ bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax
 
 	if (bReference || !bOwn)
 	{
-		psType = PlaceOf(pcInitialiser);
+		psType = mpcUnit->PlaceOf(pcInitialiser);
 		if (!psType)
 		{
-			ReportTypeOf(pcInitialiser);
-			return mcDiagnostics.ReportOnce(pcNode, "What the lambda captures can't be worked out");
+			mpcUnit->ReportTypeOf(pcInitialiser);
+			return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "What the lambda captures can't be worked out");
 		}
-		psType = bReference ? mcTypes.Reference(psType) : psType;
+		psType = bReference ? mpcUnit->mcTypes.Reference(psType) : psType;
 	}
 	else
 	{
-		psType = mcDeclarators.DeduceAuto(psLambda->pcSyntax->mpcDefinition->mpcSpecifiers, NULL, pcInitialiser, pcNode);
+		psType = mpcUnit->mcDeclarators.DeduceAuto(psLambda->pcSyntax->mpcDefinition->mpcSpecifiers, NULL, pcInitialiser, pcNode);
 		if (!psType)
 		{
 			return false;
@@ -657,7 +698,7 @@ bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax
 	for (psObject = psType; psObject->IsArray(); psObject = psObject->psBase)
 	{
 	}
-	if (psObject->IsClass() && !CompleteObjectClass(psObject->pcClass, pcNode))
+	if (psObject->IsClass() && !mpcUnit->CompleteObjectClass(psObject->pcClass, pcNode))
 	{
 		return false;
 	}
@@ -672,12 +713,13 @@ bool CCPPUnit::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSyntax
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The capture of this: a field that is the enclosing object's this.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
+bool CCPPClosures::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 {
 	SCPPLambdaCapture*	psCapture;
 	CCPPClass*			pcThisClass;
@@ -686,20 +728,21 @@ bool CCPPUnit::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 	{
 		return true;
 	}
-	pcThisClass = mcContext.HasThis() ? ThisClass() : NULL;
+	pcThisClass = mpcUnit->mcContext.HasThis() ? ThisClass() : NULL;
 	if (!pcThisClass)
 	{
-		return mcDiagnostics.ReportOnce(pcNode, "Only a lambda in a member function can capture this");
+		return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "Only a lambda in a member function can capture this");
 	}
 	psCapture = psLambda->asCaptures.Add();
 	psCapture->pcSymbol = NULL;
 	psCapture->pcInitialiser = NULL;
-	psCapture->uiField = AddClosureField(psLambda, ThisType(pcThisClass));
+	psCapture->uiField = AddClosureField(psLambda, mpcUnit->ThisType(pcThisClass));
 	psCapture->bReference = false;
 	psCapture->bThis = true;
 	psLambda->bThis = true;
 	return true;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -708,7 +751,7 @@ bool CCPPUnit::AddThisCapture(SCPPLambda* psLambda, CCPPSyntax* pcNode)
 // knows it.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPUnit::AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType)
+size CCPPClosures::AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType)
 {
 
 	psLambda->pcClass->macFields.Add()->Init(NULL, psType);
@@ -716,33 +759,25 @@ size CCPPUnit::AddClosureField(SCPPLambda* psLambda, SCPP65Type* psType)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
-// Lays the closure's fields out, in the order captured, as a class's are;
-// it gets the destructor its fields need.
+// Lays the closure's fields out, in the order captured, as a class's are
+// (CompleteMembers, PlaceMembers): it gets the destructor its fields need.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::LayoutClosure(SCPPLambda* psLambda)
+bool CCPPClosures::LayoutClosure(SCPPLambda* psLambda)
 {
-	CCPPClass*			pcClass;
-	CCPPFunction*		pcFunction;
-	CCPPClassLayout		cLayout;
+	CCPPClass*	pcClass;
 
 	pcClass = psLambda->pcClass;
 	pcClass->meState = CPPCS_LayingOut;
-	if (pcClass->NeedsDestructor())
-	{
-		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
-		pcClass->mpcDestructor = pcFunction;
-	}
-	pcClass->mcVtable.LayoutOwn(pcClass);
-	cLayout.Init(pcClass, 0, mpcTarget->GetPointerBytes());
-	cLayout.Layout(0);
-	mcTypes.SetClassBytes(pcClass->mpsType, cLayout.GetBytes());
-	cLayout.Kill();
+	mpcUnit->CompleteMembers(pcClass);
+	mpcUnit->PlaceMembers(pcClass, 0, 0);
 	pcClass->meState = CPPCS_Complete;
 	return true;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -751,7 +786,7 @@ bool CCPPUnit::LayoutClosure(SCPPLambda* psLambda)
 // nothing the conversion to a pointer to a function (AddLambdaConversion).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
+bool CCPPClosures::LambdaCall(SCPPLambda* psLambda)
 {
 	CArrayCPP65Types			apsParameters;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
@@ -766,7 +801,7 @@ bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
 	for (i = 0; bResult && (i < pcSuffix->macpParameters.NumElements()); i++)
 	{
 		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		psType = (pcParameter->GetKind() == CPPS_Parameter) ? mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
+		psType = (pcParameter->GetKind() == CPPS_Parameter) ? mpcUnit->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter) : NULL;
 		if (psType && psType->IsVoid() && (pcSuffix->macpParameters.NumElements() == 1))
 		{
 			break;
@@ -774,7 +809,7 @@ bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
 		bResult = psType != NULL;
 		if (bResult)
 		{
-			apsParameters.Add(ParameterType(psType));
+			apsParameters.Add(mpcUnit->ParameterType(psType));
 		}
 	}
 	psLambda->pcCall = bResult ? LambdaFunction(psLambda, &apsParameters) : NULL;
@@ -787,6 +822,7 @@ bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The conversion of a closure that captures nothing to a pointer to a
@@ -795,21 +831,22 @@ bool CCPPUnit::LambdaCall(SCPPLambda* psLambda)
 // [expr.prim.lambda] 6
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall)
+void CCPPClosures::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall)
 {
 	CCPPFunction*	pcInvoker;
 	CCPPFunction*	pcConversion;
 
-	if ((psLambda->asCaptures.NumElements() != 0) || (pcCall->mpsReturn == &mcTypes.msUndeduced))
+	if ((psLambda->asCaptures.NumElements() != 0) || (pcCall->mpsReturn == &mpcUnit->mcTypes.msUndeduced))
 	{
 		return;
 	}
-	pcInvoker = AddLambdaFunction(psLambda, mpcTokeniser->GetIdentifierID((char*)"__invoke"), &pcCall->mapsParameters, pcCall->mpsReturn);
+	pcInvoker = AddLambdaFunction(psLambda, mpcUnit->mpcTokeniser->GetIdentifierID((char*)"__invoke"), &pcCall->mapsParameters, pcCall->mpsReturn);
 	pcInvoker->mbStatic = true;
-	pcConversion = AddImplicitFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mcTypes.Pointer(mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)), true);
+	pcConversion = mpcUnit->AddImplicitFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mpcUnit->mcTypes.Pointer(mpcUnit->mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)), true);
 	pcConversion->mbConstThis = true;
 	pcConversion->mpcAddressOf = pcInvoker;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -818,20 +855,21 @@ void CCPPUnit::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCall)
 // type worked out from its body as auto's is.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters)
+CCPPFunction* CCPPClosures::LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters)
 {
 	CCPPFunction*					pcFunction;
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 
 	pcDefinition = psLambda->pcSyntax->mpcDefinition;
-	pcFunction = AddLambdaFunction(psLambda, GetOperatorName(CT_OpenRoundBracket, false), papsParameters, &mcTypes.msUndeduced);
+	pcFunction = AddLambdaFunction(psLambda, mpcUnit->GetOperatorName(CT_OpenRoundBracket, false), papsParameters, &mpcUnit->mcTypes.msUndeduced);
 	pcFunction->mbConstThis = !psLambda->bMutable;
-	if (!ResolveReturn(pcFunction, pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator))
+	if (!mpcUnit->ResolveReturn(pcFunction, pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator))
 	{
 		return NULL;
 	}
 	return pcFunction;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -840,7 +878,7 @@ CCPPFunction* CCPPUnit::LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Types* p
 // arguments the lambda's parameters have.  [expr.prim.lambda] 5
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, CArrayCPP65Types* papsParameters, SCPP65Type* psReturn)
+CCPPFunction* CCPPClosures::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, CArrayCPP65Types* papsParameters, SCPP65Type* psReturn)
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPSyntax*					pcParameter;
@@ -848,7 +886,7 @@ CCPPFunction* CCPPUnit::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, C
 	size						i;
 
 	pcSuffix = psLambda->pcSyntax->mpcDefinition->mpcDeclarator->GetFunctionSuffix();
-	pcFunction = AddFunction(psLambda->pcClass, lliName, CPPFK_Function, psReturn);
+	pcFunction = mpcUnit->AddFunction(psLambda->pcClass, lliName, CPPFK_Function, psReturn);
 	for (i = 0; i < papsParameters->NumElements(); i++)
 	{
 		pcParameter = (i < pcSuffix->macpParameters.NumElements()) ? pcSuffix->macpParameters.GetPtr(i) : NULL;
@@ -859,12 +897,13 @@ CCPPFunction* CCPPUnit::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, C
 	pcFunction->mpcDeclarator = psLambda->pcSyntax->mpcDefinition->mpcDeclarator;
 	pcFunction->mpcBindings = psLambda->pcBindings;
 	//[]() noexcept { }: the lambda's declarator is its operator()'s.  [expr.prim.lambda] 5
-	SetDeclaredExceptions(pcFunction, pcFunction->mpcDeclarator);
-	pcFunction->mpcNamespace = psLambda->pcEnclosing ? psLambda->pcEnclosing->mpcNamespace : mcContext.GetNamespace();
+	mpcUnit->SetDeclaredExceptions(pcFunction, pcFunction->mpcDeclarator);
+	pcFunction->mpcNamespace = psLambda->pcEnclosing ? psLambda->pcEnclosing->mpcNamespace : mpcUnit->mcContext.GetNamespace();
 	pcFunction->mbDefined = true;
 	pcFunction->mbInline = true;
 	return pcFunction;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -876,7 +915,7 @@ CCPPFunction* CCPPUnit::AddLambdaFunction(SCPPLambda* psLambda, int64 lliName, C
 // each set of types, as a template's instance is.  [expr.prim.lambda] 5
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArguments)
+void CCPPClosures::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArguments)
 {
 	CArrayCPP65Types			apsParameters;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
@@ -902,21 +941,22 @@ void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArgumen
 		pcParameter = pcSuffix->ArgumentParameter(i);
 		pcArgument = (i < papcArguments->NumElements()) ? papcArguments->GetPtr(i) : NULL;
 		psType = NULL;
-		if ((pcParameter->GetKind() == CPPS_Parameter) && (pcArgument || !mcDeclarators.IsAuto(pcParameter->mpcSpecifiers)))
+		if ((pcParameter->GetKind() == CPPS_Parameter) && (pcArgument || !mpcUnit->mcDeclarators.IsAuto(pcParameter->mpcSpecifiers)))
 		{
-			psType = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter, pcArgument);
+			psType = mpcUnit->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter, pcArgument);
 		}
 		if (!psType)
 		{
 			apsParameters.Kill();
 			return;
 		}
-		apsParameters.Add(ParameterType(psType));
+		apsParameters.Add(mpcUnit->ParameterType(psType));
 	}
 
 	GenericLambdaInstance(psLambda, &apsParameters);
 	apsParameters.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -925,7 +965,7 @@ void CCPPUnit::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArgumen
 // for them before, or a new one.  NULL if its body is wrong for them.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters)
+CCPPFunction* CCPPClosures::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65Types* papsParameters)
 {
 	CCPPFunction*	pcFunction;
 	size			i;
@@ -933,7 +973,7 @@ CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65T
 	for (i = 0; i < psLambda->pcClass->mapcMembers.NumElements(); i++)
 	{
 		pcFunction = psLambda->pcClass->mapcMembers.GetPtr(i);
-		if ((pcFunction->mlliName != GetOperatorName(CT_OpenRoundBracket, false)) || (pcFunction->mapsParameters.NumElements() != papsParameters->NumElements()))
+		if ((pcFunction->mlliName != mpcUnit->GetOperatorName(CT_OpenRoundBracket, false)) || (pcFunction->mapsParameters.NumElements() != papsParameters->NumElements()))
 		{
 			continue;
 		}
@@ -944,6 +984,7 @@ CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65T
 	}
 	return LambdaFunction(psLambda, papsParameters);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -959,7 +1000,7 @@ CCPPFunction* CCPPUnit::GenericLambdaInstance(SCPPLambda* psLambda, CArrayCPP65T
 // [expr.prim.lambda] 6
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunction)
+void CCPPClosures::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunction)
 {
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	CCPPFunction*				pcCall;
@@ -980,21 +1021,22 @@ void CCPPUnit::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunct
 			return;
 		}
 	}
-	for (pcConversion = FirstFunctionOfName(CPP_CONVERSION_NAME); pcConversion; pcConversion = pcConversion->mpcNextOfName)
+	for (pcConversion = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcConversion; pcConversion = pcConversion->mpcNextOfName)
 	{
 		if ((pcConversion->mpcClass == psLambda->pcClass) && pcConversion->mpsReturn->psBase->Same(psFunction))
 		{
 			return;
 		}
 	}
-	mcDiagnostics.BeginQuiet();
+	mpcUnit->mcDiagnostics.BeginQuiet();
 	pcCall = GenericLambdaInstance(psLambda, psFunction->papsParameters);
-	mcDiagnostics.EndQuiet();
+	mpcUnit->mcDiagnostics.EndQuiet();
 	if (pcCall && pcCall->mpsReturn->Same(psFunction->psBase))
 	{
 		AddLambdaConversion(psLambda, pcCall);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1005,7 +1047,7 @@ void CCPPUnit::GenericLambdaConversion(SCPPLambda* psLambda, SCPP65Type* psFunct
 // last operator says (const auto& one to const).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType)
+bool CCPPClosures::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* psType)
 {
 	SCPP65Type*	psDeclared;
 	size		uiPointers;
@@ -1015,10 +1057,10 @@ bool CCPPUnit::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* 
 	{
 		return false;
 	}
-	if (!mcDeclarators.IsAuto(pcParameter->mpcSpecifiers))
+	if (!mpcUnit->mcDeclarators.IsAuto(pcParameter->mpcSpecifiers))
 	{
-		psDeclared = mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-		return psDeclared && ParameterType(psDeclared)->Same(psType);
+		psDeclared = mpcUnit->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+		return psDeclared && mpcUnit->ParameterType(psDeclared)->Same(psType);
 	}
 	uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->NumPointers() : 0;
 	if (uiPointers == 0)
@@ -1041,15 +1083,17 @@ bool CCPPUnit::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Type* 
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The closure whose operator() (or invoker) is being written, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPLambda* CCPPUnit::WritingLambda(void)
+SCPPLambda* CCPPClosures::WritingLambda(void)
 {
-	return BodyLambda(mcContext.GetFunction());
+	return BodyLambda(mpcUnit->mcContext.GetFunction());
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1058,7 +1102,7 @@ SCPPLambda* CCPPUnit::WritingLambda(void)
 // invoker), or NULL: the closure's destructor and conversion are its own.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPLambda* CCPPUnit::BodyLambda(CCPPFunction* pcFunction)
+SCPPLambda* CCPPClosures::BodyLambda(CCPPFunction* pcFunction)
 {
 	SCPPLambda*	psLambda;
 
@@ -1067,19 +1111,21 @@ SCPPLambda* CCPPUnit::BodyLambda(CCPPFunction* pcFunction)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // What a name in the body of the lambda being written is, if the lambda
 // captures it: its capture (the closure's field).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPLambdaCapture* CCPPUnit::FindCapture(CCPPSymbol* pcSymbol)
+SCPPLambdaCapture* CCPPClosures::FindCapture(CCPPSymbol* pcSymbol)
 {
 	SCPPLambda*	psLambda;
 
 	psLambda = WritingLambda();
 	return (psLambda && pcSymbol) ? FindLambdaCapture(psLambda, pcSymbol) : NULL;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1090,17 +1136,18 @@ SCPPLambdaCapture* CCPPUnit::FindCapture(CCPPSymbol* pcSymbol)
 // it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::OuterFunction(void)
+CCPPFunction* CCPPClosures::OuterFunction(void)
 {
 	CCPPFunction*	pcFunction;
 
-	pcFunction = mcContext.GetFunction();
+	pcFunction = mpcUnit->mcContext.GetFunction();
 	while (BodyLambda(pcFunction))
 	{
 		pcFunction = BodyLambda(pcFunction)->pcEnclosing;
 	}
 	return pcFunction;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1110,16 +1157,16 @@ CCPPFunction* CCPPUnit::OuterFunction(void)
 // NULL where there is no this.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::ThisClass(void)
+CCPPClass* CCPPClosures::ThisClass(void)
 {
 	CCPPFunction*	pcFunction;
 
-	if (mcContext.GetObject())
+	if (mpcUnit->mcContext.GetObject())
 	{
 		//An aggregate being filled is this for its default member initialisers.
-		return mcContext.GetObject();
+		return mpcUnit->mcContext.GetObject();
 	}
-	pcFunction = mcContext.GetFunction();
+	pcFunction = mpcUnit->mcContext.GetFunction();
 	while (BodyLambda(pcFunction))
 	{
 		if (!BodyLambda(pcFunction)->bThis)
@@ -1132,12 +1179,13 @@ CCPPClass* CCPPUnit::ThisClass(void)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The type of a lambda expression: its closure's class.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::LambdaType(CCPPSyntaxLambdaExpression* pcSyntax)
+SCPP65Type* CCPPClosures::LambdaType(CCPPSyntaxLambdaExpression* pcSyntax)
 {
 	SCPPLambda*	psLambda;
 
@@ -1146,11 +1194,12 @@ SCPP65Type* CCPPUnit::LambdaType(CCPPSyntaxLambdaExpression* pcSyntax)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::FreeLambdas(void)
+void CCPPClosures::FreeLambdas(void)
 {
 	size	i;
 
@@ -1163,3 +1212,4 @@ void CCPPUnit::FreeLambdas(void)
 	}
 	mapsLambdas.Kill();
 }
+

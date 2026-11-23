@@ -50,9 +50,9 @@ CCPPFunction* CCPPUnit::ThisFunction(void)
 	CCPPFunction*	pcFunction;
 
 	pcFunction = mcContext.GetFunction();
-	while (BodyLambda(pcFunction))
+	while (mcClosures.BodyLambda(pcFunction))
 	{
-		pcFunction = BodyLambda(pcFunction)->pcEnclosing;
+		pcFunction = mcClosures.BodyLambda(pcFunction)->pcEnclosing;
 	}
 	return pcFunction;
 }

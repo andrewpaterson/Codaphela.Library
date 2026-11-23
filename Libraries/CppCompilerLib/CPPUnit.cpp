@@ -371,7 +371,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcExplicitInstances.Init(true);
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
-	mapsLambdas.Init();
+	mcClosures.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -501,7 +501,7 @@ void CCPPUnit::Kill(void)
 	mcDecltypeMembers.Kill();
 	mcImplicitAssignments.Kill();
 	mcExplicitInstances.Kill();
-	FreeLambdas();
+	mcClosures.Kill();
 	masOutsideDefinitions.Kill();
 	mapcVariableInstances.Kill();
 	mcImplicitValues.Kill();
@@ -4466,7 +4466,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 
 	//A lambda's body expands the parameter packs of the functions the lambda is in too, into the elements it captured
 	//(CapturePack).
-	psLambda = BodyLambda(pcFunction);
+	psLambda = mcClosures.BodyLambda(pcFunction);
 	if (psLambda)
 	{
 		GetFunctionPacks()->AddAll(&psLambda->cFunctionPacks);
@@ -4861,7 +4861,7 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	pcVariable->mbDefined = true;
 	pcVariable->mbThreadLocal = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
 	pcVariable->mpcSharedIn = pcShared;
-	pcKept = EnclosingStatic(pcInit->mpcSymbol);
+	pcKept = mcClosures.EnclosingStatic(pcInit->mpcSymbol);
 	if (!pcKept)
 	{
 		pcKept = AddVariable(&mapcStaticLocals, pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
@@ -5228,6 +5228,7 @@ CCPPDiagnostics* CCPPUnit::GetDiagnostics(void) { return &mcDiagnostics; }
 CCPPBinder* CCPPUnit::GetBinder(void) { return &mcBinder; }
 CCPPConstants* CCPPUnit::GetConstants(void) const { return mpcConstants; }
 CCPPConstantFolder* CCPPUnit::GetFolder(void) { return &mcFolder; }
+CCPPClosures* CCPPUnit::GetClosures(void) { return &mcClosures; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }
