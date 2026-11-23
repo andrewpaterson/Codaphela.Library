@@ -1,0 +1,315 @@
+A hash map and a hash set for BaseLib (plan, 2026-11-23)
+=======================================================
+
+The intent (the user, 2026-11-23): plan a BaseLib hash map and/or hash set.
+
+Where it is: every question answered as the plan assumed (the user, 2026-11-23: "Go for it with your suggestions
+and plan changes"), and WeakFroms and MapUnknownUnknown ruled not to need a consistent order.  Steps 1, 2, 3 and 5
+done and committed 2026-11-23, in a window the compiler's session gave: HashOf.h, HashText.h, HashBlock.h/.cpp,
+HashMapTemplate.h, HashSetTemplate.h, HashMapString.h, and TestBaseLib's TestHashMap.cpp.  TestBaseLib passes in
+Release x64, Release Win32 and Debug x64, and TestBaseLib65 on the 65C64 and the W65C816.  Next: the conversions,
+which wait on the compiler's session (below).
+
+Found on the W65C816: a map whose entries can't grow (no memory, or past MAX_SIZE bytes) must stay as it was, and
+CArrayBlock frees its contents when a realloc fails.  So the block keeps its entries in memory of its own, doubling
+by Malloc and copy, never realloc.
+
+Step 3's timing (Release x64, scratch bench.cpp, the best of two rounds):
+    1,000,000 uint64 keys put, 2,000,000 got        CHashMapTemplate 0.129 s    CMapLongTemplate 2.623 s
+    100,000 names added twice, looked up 4 times    CHashSetTemplate 0.032 s    CNameSet's code 0.034 s
+                                                    CHashMapString   0.036 s    CMapStringTemplate 1.277 s
+
+
+Working beside the compiler's session (2026-11-23)
+--------------------------------------------------
+
+Another session (C++ Compiler Smells) is running the semantic layer plan, stages 15e, 15f and 16 still to go, and
+asked:
+  - CppCompilerLib is off limits until it says its plan is finished: every stage rewrites call sites across most of
+    the library.  So step 4's a, b, d, e, f and step 6's a (but ComponentSpriteCache) and b wait for it.
+  - Build in Debug x64 while developing.  Its proofs (about 45 minutes each, back to back) build Release x64 and
+    include BaseLib's sources: ask it before any Release x64 build, and before changing BaseLib.vcxproj, which it
+    compiles mid-proof.  The machine has 7.9 GB.
+  - Its proofs re-baseline every generated listing of TestBaseLib65, TestSupportLib65 and TestStandardLib65, so the
+    new BaseLib files go into the projects just after one of its proofs, and it takes a fresh baseline.
+    StandardLib, SupportLib and LogiCim conversions wait until its plan is finished (their sources are in its
+    *65 suites and its timing).  So does HCP65's Assembler65Lib: all four of its proof solutions include it
+    (found 2026-11-23, after an edit of it sat on disk for ten minutes; the edit is kept as a patch,
+    D:\gameengine\HashMapWorksm-hashmap.patch (git apply in HCP65), and is described in step 6d).
+  - Until then the new files are compiled and tested from a scratch folder (BaseLib and TestLib built Debug x64
+    into it, HashBlock.cpp and TestHashMap.cpp with cl beside them).
+
+
+Why
+---
+
+Every map in BaseLib is ordered: CMapBlock and CSetBlock (a sorted array with holding buffers, a node malloced per
+element), CRedBlackTree, and the CIndexTree trie.  Nothing gives an O(1) lookup, and BaseLib's FNVHash.h is used by
+no table of its own.  So code needing one has written it itself, five times, all open addressed with linear probing
+over a power-of-two table, all growing by doubling at half full:
+
+    where                                    key                         value / what it keeps
+    CppCompilerLib/NameSet.cpp               text (pointer, length)      set; doesn't own the text
+    CppCompilerLib/DefineMap.cpp             text, hash kept on CDefine  CDefine*; Remove (backward shift)
+    CppCompilerLib/ASCIIIndex.cpp            text, hash kept on the name dense array of names + int32 table
+    CppCompilerLib/IRFunction.cpp:400-470    SIRType + uint64 bits       dense array of constants + uint32
+                                                                         table holding index+1; the index is
+                                                                         the constant's IRReference
+    SupportLib/SFTQuantiser.cpp:100-140      uint32 colour               dense array of counts + key/place
+                                                                         tables
+
+And three more work round it with a sorted map keyed by a hash, collisions handled by hand:
+
+    CppCompilerLib/CPPHeaderIndex.cpp:185    CMapLongTemplate keyed by FNV of (file, line, column)
+    CppCompilerLib/PPHeaderCache.cpp:283     CMapLongTemplate keyed by FNV of pointers; psNext chains the
+                                             headers that share a key ("compare them")
+    LogicimLib/ComponentSpriteCache.cpp:493  CMapBlock; a key past MAX_KEY_SIZE has its tail replaced by its
+                                             FNV hash and length
+
+Three of the five (IRFunction, SFTQuantiser, ASCIIIndex) have already arrived at the same layout, which is the one
+proposed here: the entries in a dense array in the order they were added, and the hash table holding only indexes
+into it.
+
+
+Every repository surveyed (2026-11-23)
+--------------------------------------
+
+Searched: CommonLibraries, HCP65, HCP65-IDE, LogiCim, Foxy, HCP65-Sculpt, IOX2021, IntoOblivionX, OpcodeLED, Pico,
+StarControlRedux, VisualStudioProjectConverter, WindowInputTester, and D:\Work's 658-Computer, Andre65,
+Harrier-Attack, Pico and Yatey; generated Output folders and third party code left out.  Only CommonLibraries,
+HCP65, HCP65-IDE and LogiCim have anything (IOX2021 has only the DirectX SDK's own CDXMap and its collision
+buckets, which are spatial, not hashed).  Not looked for: lookups done by searching an array, which would be a
+separate survey.
+
+A. Hand-rolled hash tables: eight, not five.  The three more:
+
+    CppCompilerLib/CPPSyntaxBlock.cpp:92     CCPPSyntaxBlockIndex: uint64 keys (addresses, or names + 1) to
+                                             uint16 values; Fibonacci hashing; "a sorted map made slow for big
+                                             declarations" (its own comment)
+    StandardLib/TextComparison.cpp:434       CTextComparison::Intern: tokens to the index of the first equal
+                                             token; the dense-array layout again
+    StandardLib/PointerLocations.h:42        CPointerLocations: a pointer to any number of locations (a
+                                             multimap), backward-shift removal, MovePointer/MoveLocations
+
+   CPointerLocations is the only one that doesn't fit: a key holds many values and is iterated by key.  It moves
+   only if the map gets a multimap mode (question 7).
+
+B. A sorted map keyed by a hash, collisions handled by hand: four, not three.  The one more is CPP65Type.cpp:986
+   (mcFunctions: HashStructure of a function type, the equal ones chained through psNextSameSignature).  Its
+   neighbours mcByBase and mcQualified are exact keys packed into an int64 (a pointer << 4 | kind), not hashes.
+
+C. Sorted maps keyed by an address and never iterated, so only looked up.  These are where a hash map is plainly
+   better: an address has no meaningful order, so the sorted map's order buys nothing, and its O(log n) search
+   and holding-buffer sorting cost on every lookup.  33 of them:
+
+    the compiler, per node or per call (the hot ones):
+        CPPSemanticPass.h  mcTypes, mcPlaces, mcChanges          (every expression)
+        CPPUnit.h          mcTypeOfs, mcRangeFors, mcLiteralCalls, mcDecltypeMembers, mcImplicitAssignments,
+                           mcExplicitInstances, mcImplicitValues
+        CPPBinder.h        mcBound, mcOperators                  (every call)
+        CPP65IRFrontEnd.h  mcAddresses, mcImplicitValues, mcAnonymousAddresses
+        CppParser.h        mcFirstClassTemplates, mcEnumFirsts
+        CPP65Type.h        mcClasses, mcEnums
+        CPPIndex.h         mcCachedKeys
+        CPPPreprocessor.h  mcPragmaOnce                          (CMapPtrPtr)
+    elsewhere:
+        HCP65-IDE IDECodeModel.cpp mcAsked
+        LogicimLib TraceAutoConnector.h mcPortIndices, mcBoxes, mcNetKeys, mcRunKeys (CMapBlock, pointer keys)
+        KicadImporterLib KicadSchemLogicimModel.h mcSubnetTerminals, mcPortTerminals, mcViewItems
+        SupportLib SpriteMap.h and TileLayerCel.h mcCelIndices, SFTWriter.cpp cMap
+        InputLib InputDeviceCopyContext.h, five CMapPtrPtr (copying a device: small, not hot)
+
+   Two address-keyed maps are iterated, so their order is the order of addresses, which differs from run to run:
+   StandardLib WeakFroms.h mcObjects (CWeakFroms::GetObjects, WeakFroms.cpp:236, gives the objects in that order)
+   and StandardLib MapUnknownUnknown.h (a CMapPtrPtr under CMapObject).  The user, 2026-11-23: neither needs a
+   consistent order.  So they are ordinary members of this group.
+
+D. Sorted maps keyed by an integer ID (an OIndex, a token's index, a name's ID) and never iterated: also hash map
+   candidates, less pressing.  CppParser mcTypeIdArguments, CPPSemanticPass mcNames, CPPUnit mcFunctionsOfNames,
+   CPPOverloads mcResolved, CPPIndex mcLocations and mcHierarchyKeys, StandardLib ExternalObjectDeserialiser (2)
+   and Orderer mcHolderIndices, SupportLib TileTextWriter mcPageIndices and MeshCornerMerge (3), BaseLib
+   LinePositionCache (2) and Positions.  The iterated ones (Codabase's mcRecords, LockManager, WriteTransaction,
+   IndexedMap, CPPScope mcSymbols, BoardPins) are left: an ID's order may be what they rely on.
+
+E. Sorted maps keyed by text and never iterated, which need the map that owns its text (rule 5's CHashMapString,
+   which this survey shows has users after all):
+        the assembler and linker: Asm65Symbols mcSymbols (every symbol token), Asm65Linker mcSymbolIndices,
+            mcReferences, mcUsedReferences, mcGroups, Asm65Object mcSymbolIndices, Asm65LineTable mcFileIndices,
+            Asm65BaseAssembler mcUndefinedNames
+        the compiler: IRModule mmSymbols, IR65Code mmLabels, IR65Peephole mmValues, CPPIndex mcKeys and mcFiles
+            (two classes each), CPP65ListingIndex mcFileIndices and mcFunctionIndices
+        HCP65-IDE: IDECodeModel mcIncluders, mcProblems, mcProjectFiles; GitLib GitRepositories mcFolders,
+            GitStatus mcFiles
+        SupportLib VRMLReader (3), ImageCombiner (2); LogiCim KicadSchemLogicimModel mcBoardPins
+   Left as they are: the registries filled once at start up (TypeNames, Mallocators, DataOrderers, Classes,
+   Constructors, DatasIO, ObjectsSource, MainProcessDirector), small and not hot; and every text-keyed map that
+   is iterated (the profiler's, PropertiesFile, CodabaseVersions, ChunkFile, BoardPins), whose sorted order may
+   be what their output relies on.
+
+
+What is there now
+-----------------
+
+Read 2026-11-23:
+
+  - FNVHash.h: FNVHash32, FNVHash64 (both FNV-1a, continuable by passing the hash so far) and FNVMix64 (a whole
+    word in one step).  Deterministic in every build.
+  - CMapBlock (MapBlock.h/.cpp): void* keys and data with sizes, a DataCompare, an optional CDataFree and CDataIO,
+    Write/Read, StartIteration/Iterate with an SMapIterator.  Put returns a pointer to the data, which stays put
+    (each element is its own malloc).  Typed by thin templates compiled into the callers: CMapTemplateTemplate<M,
+    D>, CMapPrimitiveTemplate, CMapStringTemplate; CSetBlock/CSetTemplate likewise.
+  - The arrays are templates over a block since ArrayTemplatesPlan.txt: CArrayTemplateBase<M, BLOCK>, BLOCK being
+    CArrayBlock (counted in size) or CArrayLargeBlock (lsize).  size is 16 bits on the W65C816 (SIZE_16) and
+    lsize 32; a natural array holds at most MAX_SIZE bytes there.
+  - MAX_KEY_SIZE (MapHelper.h) is 260 on the W65C816, 4 KB elsewhere.
+  - Tests: TestBaseLib's TestMapBlock.cpp, TestMap.cpp, TestSetBlock.cpp, TestSet.cpp and the rest, called from
+    TestBaseLib.cpp.
+
+
+The design proposed
+-------------------
+
+1. The layout: an entry array and an index.
+
+        entries   SHashEntry { uint32 uiHash; K key; V value; }  in a CArrayTemplateBase, in the order added
+        index     a power-of-two array of Count (size, or lsize), each 0 for empty or an entry's index + 1
+
+   Lookup: hash the key, probe the index linearly from hash & mask; for each full slot compare the entry's uiHash
+   first and the key only if the hashes match.  The index is never more than half full (all eight tables use half;
+   with 2 or 4 byte slots the room is cheap).  Growing doubles the index and puts each entry back by its kept
+   hash: no key is hashed or read again.  The entries array grows by itself as arrays do.
+
+   What this gives:
+     - Iteration is the entry array, 0 to NumElements: the order things were added in, the same on every build,
+       whatever the capacity.  The compiler's output is proved byte-identical, so an order that depends on the
+       table's size would be a trap.
+     - An element has an index, which stays its own while nothing is removed: IRFunction's constants need exactly
+       that (their index is the IRReference).
+     - Write/Read are the entry array's; the index isn't written but built again on Read.
+     - On the W65C816 the probing is 16-bit arithmetic and the slots 2 bytes.
+
+2. Removal: the entry is taken out of the index by backward shift (as CDefineMap::Remove does now: no tombstones),
+   and the last entry moves into its place in the array, its index slot rewritten.  O(1); no holes, so no
+   compaction and nothing to skip when iterating.  The cost: after a Remove the order is no longer the order
+   added, and the moved entry's index changes.  Still deterministic.  (Question 2.)
+
+3. Pointers into the map last until the next Put or Remove.  Get returns a pointer into the entry array, which
+   moves when the array grows.  CMapBlock's last for ever, as each element is its own malloc; that is what this
+   is designed not to do (a malloc per element is the slow part, and on the W65C816 the large part).  Something
+   that needs a pointer to last keeps a pointer as the value: CDefineMap already keeps CDefine* from its own
+   CMemoryStackExtended.  (Question 3.)
+
+4. The code: one block class compiled once, thin templates over it.  This is BaseLib's way (CMapBlock and
+   CMapTemplateTemplate) and keeps the W65C816's code small.
+
+        class CHashBlockBase<BLOCK>     compiled once for CArrayBlock and CArrayLargeBlock (extern template, as the
+                                        arrays are).  Entries of a fixed size given to Init (hash + key + value);
+                                        knows nothing of their types.  Find(uiHash, pvKey, fEquals),
+                                        Put(uiHash, pvKey, ...), Remove, Get(index), NumElements, iteration,
+                                        Write/Read, Kill with an optional CDataFree.
+        typedef CHashBlock and CHashLargeBlock   (derived classes, not typedefs, so they can be declared ahead:
+                                        ArrayTemplatesPlan.txt's reason)
+
+        template<class K, class V, class HASH = SHashOf<K>, class BLOCK = CArrayBlock>
+        class CHashMapTemplate          inline; hashes the key with HASH::Hash(const K*) and passes the hash in,
+                                        so the hash is inlined and the block calls HASH::Equals only when two
+                                        hashes match (rare: one indirect call on a hit).
+        template<class K, class HASH = SHashOf<K>, class BLOCK = CArrayBlock>
+        class CHashSetTemplate          the same with no value (a value size of 0).
+
+   SHashOf<K> is the default: for an integer or pointer key one FNVMix64 step folded to 32 bits; for a struct,
+   FNVHash32 over its bytes (so a struct key must have no padding, or must have its own HASH: SIRType + bits does).
+   A caller with its own (SFTQuantiser's colour mix) gives its own HASH.
+
+5. Text keys: a key that is a view, not owned.
+
+        struct SHashText { const char* sz; size uiLength; };   with SHashOfText: FNVHash32 of the text, memcmp
+
+   That is what NameSet, ASCIIIndex and CDefineMap use: the text lives somewhere else (the source file, the
+   define's own memory) as long as the map.  A map that owns copies of its text (CHashMapString<V>, the text kept
+   in a CMemoryStackExtended beside the entries, freed with the map) is wanted too: the survey's group E (about
+   25 text-keyed maps, the assembler's symbol table among them) all copy their keys today.
+
+6. Names.  CHashMapTemplate and CHashSetTemplate by BaseLib's habit (CMapTemplateTemplate, CSetTemplate); the
+   files HashOf.h (SHashOf, HashMix32/64, HashBytes, HashEquals), HashText.h (SHashText, SHashOfText),
+   HashBlock.h/.cpp, HashMapTemplate.h, HashSetTemplate.h, HashMapString.h.  The interface follows CMapBlock's
+   (Init/Kill/ReInit, Get/Put/Remove/HasKey, NumElements, Write/Read, SetDataFreeCallback); keys are given by
+   pointer, as CMapTemplateTemplate's are.  Iterating is by index (GetKey(i), GetValue(i)), the entries being one
+   array.  Find and PutIndex give an entry's index.  There is no CMapAccess (the PutIntInt family) for it unless
+   asked.
+
+
+Steps
+-----
+
+Each step builds Release x64, Release Win32 and Debug x64 and runs the sweep's suites that the step touches.  The
+*65 suites aren't run (feature work) unless a step changes what they compile: once a W65C816 program uses the
+hash map, its suite runs in that step.
+
+  1. CHashBlockBase, CHashMapTemplate, CHashSetTemplate, SHashOf, SHashText.  TestBaseLib gets TestHashMap.cpp
+     and TestHashSet.cpp: put/get/has/remove; growing past several doubles; colliding hashes (a HASH that returns
+     a constant, so every key probes); remove from the middle of a probe run, at the table's wrap, of the last
+     entry; the order of iteration (added; after a remove, as rule 2 says); Write then Read giving an equal map;
+     a natural map that fills MAX_SIZE on a SIZE_16 host build failing as an array does; Kill calling CDataFree
+     on each.
+  2. The compile-once instantiation checked: the block's code in BaseLib.lib only, not in each caller (the
+     symbols in a caller's .obj, as ArrayTemplatesPlan.txt step 4 did).
+  3. A host-side speed check against what it replaces: a micro-benchmark in TestBaseLib's timing of a million
+     put/get of uint64 keys and of 100,000 identifier names, against CMapBlock and against CNameSet as it is.  The
+     hash map has to be no slower than CNameSet (it does the same work plus one indirect call per hit).
+  4. Seven of the eight hand-rolled tables (all but CPointerLocations) moved onto it, one commit each, each proved by output byte-identical to before
+     (the compiler suites' .lst and binaries; SFT's quantised images) and timed:
+       a. CNameSet becomes a CHashSetTemplate<SHashText> (or goes, its users holding the set themselves).
+       b. CASCIIIndex's maiTable and mapsNames.
+       c. SFTQuantiser's colour table (SupportLib; no W65C816 build of it was found on 2026-11-23, HCP65's
+          UserSFT.cpp uses FNVHash but not the quantiser: checked again before the step, and if one does build
+          it, this is the step that runs TestSupportLib65).
+       d. CIRFunction's constants (CHashMapTemplate<SIRConstantKey, nothing, SHashOfIRConstant>, the entry
+          index as the IRReference).
+       e. CDefineMap (keys SHashText into each CDefine's name, values CDefine*; its Remove is the block's).
+       f. CCPPSyntaxBlockIndex (uint64 to uint16).
+       g. CTextComparison::Intern.
+  5. CHashMapString<V>, the map that owns its text, with its tests.
+  6. The survey's groups, each a commit or a few, each proved and timed as step 4's (question 5 decides how far):
+       a. B: the four that hash into a sorted map (CPPHeaderIndex, PPHeaderCache, ComponentSpriteCache,
+          CPP65Type's mcFunctions), each as a hash map with its real key and its own HASH, the hand-made
+          collision chains gone.
+       b. C, the compiler's address-keyed maps, timed on the compiler suites (the declarations-speed measure).
+          Not while the semantic layer plan is changing the same classes: after it, or between its stages.
+       c. C elsewhere (LogicimLib, KicadImporterLib, SupportLib, the IDE, InputLib).
+       d. E, the text-keyed maps, the assembler's first (Asm65Symbols is looked up for every symbol token).
+       e. D, the ID-keyed maps, where a timing shows them.
+       f. WeakFroms and MapUnknownUnknown with group c (the user: neither needs a consistent order).
+  7. The docs: a line in LibraryBreakdown.txt for the new files.
+
+
+Questions (all answered 2026-11-23 as assumed: "Go for it with your suggestions and plan changes")
+--------------------------------------------------------------------------------------------------
+
+1. A map, a set, or both?  Assumed: both, the set being the map with no value (one block, two thin templates).
+   NameSet is the only set among the eight; the rest are maps (CPointerLocations a multimap).
+
+2. Order after a Remove.  Assumed: the last entry moves into the gap (O(1), no holes).  The other way keeps the
+   order added for ever: a removed entry leaves a hole that iteration skips, compacted when holes pass half the
+   entries (Python's dict).  That costs a flag or a reserved hash per entry and an index that changes at an
+   unpredictable compaction instead of at the Remove.  Of the eight only CDefineMap and CPointerLocations remove, and its Dump sorts by
+   name.
+
+3. Pointers that move.  Assumed: Get's pointer lasts only until the next Put or Remove, said in the header, with
+   pointers as values where something must last.  The other way is the entries in chunks that never move (as
+   CListBlock or CFreeList keep them): pointers last, but Get(index) costs a divide by the chunk size, or a
+   power-of-two chunk, and it isn't one array to Write.
+
+4. The hash on the W65C816.  FNVHash32 is a 32-bit multiply per byte, which on the 816 is a library call per
+   byte.  Assumed: the kept hash is uint32 on every target (so a map Written on a PC Reads on the 816 and
+   agrees), and a 816 program that finds hashing slow gives its own HASH.  The other way is a 16-bit kept hash
+   where SIZE_16 (half the entry's hash bytes, a cheaper hash), and the files no longer the same on both.
+
+5. How far does step 6 go?  Assumed: a (the hash-keyed four) and b (the compiler's address-keyed maps, timed)
+   are done; c, d and e are done where a timing or a simpler class shows it.  (f became part of c.)
+
+6. Load factor.  Assumed: at most half full, as all eight are now.  Three quarters would halve the index's memory
+   (the index is the smaller part: 2 or 4 bytes a slot against the entry) for longer probe runs.
+
+7. A multimap mode (a key with many values, iterated by key) for CPointerLocations?  Assumed: no; it stays as it
+   is, being the one table of the eight that is a multimap, and has its own MovePointer and MoveLocations.

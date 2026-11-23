@@ -1101,6 +1101,24 @@
     <ClInclude Include="MapBlock.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
+    <ClInclude Include="HashBlock.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="HashMapString.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="HashMapTemplate.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="HashOf.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="HashSetTemplate.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="HashText.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
     <ClInclude Include="MapHelper.h">
       <Filter>Source\Data\Map</Filter>
     </ClInclude>
@@ -2403,6 +2421,9 @@
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapBlock.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="HashBlock.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapHelper.cpp">

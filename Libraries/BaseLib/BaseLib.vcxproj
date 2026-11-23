@@ -243,6 +243,12 @@
     <ClInclude Include="Float64Vec2.h" />
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="FNVHash.h" />
+    <ClInclude Include="HashBlock.h" />
+    <ClInclude Include="HashMapString.h" />
+    <ClInclude Include="HashMapTemplate.h" />
+    <ClInclude Include="HashOf.h" />
+    <ClInclude Include="HashSetTemplate.h" />
+    <ClInclude Include="HashText.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="HexString.h" />
     <ClInclude Include="IndexPtr.h" />
@@ -810,6 +816,7 @@
     <ClCompile Include="Mallocator.cpp" />
     <ClCompile Include="MapAccess.cpp" />
     <ClCompile Include="MapBlock.cpp" />
+    <ClCompile Include="HashBlock.cpp" />
     <ClCompile Include="IndexBlock.cpp" />
     <ClCompile Include="MapIndexAccess.cpp" />
     <ClCompile Include="MapHelper.cpp" />

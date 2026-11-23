@@ -25,6 +25,7 @@ void TestMapStringIntAndPointer(void);
 void TestMap(void);
 void TestSetBlock(void);
 void TestSet(void);
+void TestHashMap(void);
 void TestIndexBlock(void);
 void TestIndexAccess(void);
 void TestIndexPtr(void);
@@ -276,6 +277,7 @@ int __cdecl main(void)
 	TestMap();
 	TestSetBlock();
 	TestSet();
+	TestHashMap();
 	TestMapAccess();
 	TestListBlock();
 	TestListTemplate();

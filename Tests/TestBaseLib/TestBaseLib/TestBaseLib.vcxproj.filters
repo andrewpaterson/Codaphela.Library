@@ -552,6 +552,9 @@
     <ClCompile Include="TestMap.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
+    <ClCompile Include="TestHashMap.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
     <ClCompile Include="TestMapBlock.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
