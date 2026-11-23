@@ -42,6 +42,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxName.h"
 #include "CPPSyntaxNameComponent.h"
 #include "CPPSyntaxTranslationUnit.h"
+#include "CPPSyntaxTypeParameter.h"
 #include "SourceFile.h"
 #include "BaseLib/ArrayInt64.h"
 #include "CPPIndex.h"
@@ -715,6 +716,13 @@ void CCPPIndex::FindUsageTypes(CCPPSyntax* pcNode, CArrayIndexTokens* pasTokens,
 	case CPPS_NameComponent:
 		//What a name component has in it is its template's arguments.
 		sContext.bTemplateArgument = true;
+		break;
+	case CPPS_TypeParameter:
+		//A type parameter's default (template<class M = CFoo>) is a template argument: the one used when none is given.
+		if (((CCPPSyntaxTypeParameter*)pcNode)->mpcDefault)
+		{
+			FillUsageType((CCPPSyntax*)((CCPPSyntaxTypeParameter*)pcNode)->mpcDefault, pasTokens, CPPUT_TemplateArgument);
+		}
 		break;
 	default:
 		if ((eKind >= CPPS_LiteralExpression) && (eKind <= CPPS_NoexceptExpression) && !psContext->bExpression)

@@ -1055,6 +1055,34 @@ CFoo* CFoo::Get(CFoo* pc)\n\
 
 	AssertInt(CPPUT_Call, GetCppIndexUsage(FindCppIndexSymbolStarting(&cIndex, "CFoo::Get("), 20, 0));
 	cIndex.Kill();
+
+	//A class in a template's arguments, however deep and whatever it is in: a variable's type, a base class, a typedef,
+	//a function template's call, sizeof; and as a type parameter's default.  The class beside them is used as itself.
+	cIndex.Init();
+	IndexText(&cIndex, "T.cpp", "\
+class CFoo { public: int miX; };\n\
+template<class M> class CHolder { public: M* mp; };\n\
+template<class M> M* New(void) { return 0; }\n\
+template<class M = CFoo> class CDefault { };\n\
+CHolder<CFoo> gcHolder;\n\
+CHolder<CHolder<CFoo> > gcNested;\n\
+class CDerived : public CHolder<CFoo> { };\n\
+typedef CHolder<CFoo> HFoo;\n\
+int F(void) { CFoo* p = New<CFoo>(); CHolder<CFoo*> c; return (int)sizeof(CHolder<CFoo>); }\n", true);
+
+	pcFoo = cIndex.FindSymbol("CFoo");
+	AssertNotNull(pcFoo);
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 3, 0));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 4, 0));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 5, 0));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 6, 0));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 7, 0));
+	AssertInt(CPPUT_Local, GetCppIndexUsage(pcFoo, 8, 0));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 8, 1));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 8, 2));
+	AssertInt(CPPUT_TemplateArgument, GetCppIndexUsage(pcFoo, 8, 3));
+	AssertInt(CPPUT_Global, GetCppIndexUsage(cIndex.FindSymbol("CHolder"), 4, 0));
+	cIndex.Kill();
 }
 
 

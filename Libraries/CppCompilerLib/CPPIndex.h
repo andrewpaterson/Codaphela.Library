@@ -52,7 +52,7 @@ enum ECPPUsageType
 	CPPUT_Read,					//In an expression, read.
 	CPPUT_Write,				//Assigned to, incremented or decremented, or a member a constructor initialises.
 	CPPUT_TypeInExpression,		//A type in an expression: a cast, new, sizeof or a value constructed.
-	CPPUT_TemplateArgument,
+	CPPUT_TemplateArgument,		//In a template's arguments (CHolder<CFoo>, New<CFoo>()), or a type parameter's default.
 	CPPUT_BaseClass,
 	CPPUT_Field,				//In a data member's declaration (as its type).
 	CPPUT_Local,				//In a local variable's declaration.
