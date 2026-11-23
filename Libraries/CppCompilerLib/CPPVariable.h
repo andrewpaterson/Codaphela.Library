@@ -73,6 +73,7 @@ public:
 
 	void	Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset, bool bCLinkage);
 	void	Kill(void);
+	void	Refer(void);
 };
 
 

@@ -525,6 +525,7 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	SIRReference	sTest;
 	CChars			szLabel;
 	CChars			szFinaliser;
+	CChars			szNode;
 	CIRBlock*		pcMake;
 	CIRBlock*		pcDone;
 	CIRBlock*		pcStarted;
@@ -538,7 +539,7 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 		return false;
 	}
 	szLabel.Init();
-	mpcUnit->AppendGuardLabel(&szLabel, pcVariable);
+	mpcUnit->GetMangler()->AppendGuardLabel(&szLabel, pcVariable);
 	sGuard = mcModule.Symbol(szLabel.Text());
 	if (!pcVariable->mpcSharedIn)
 	{
@@ -588,11 +589,13 @@ bool CCPP65IRFrontEnd::GuardedStaticLocal(CCPPVariable* pcVariable, CCPPSyntax* 
 	{
 		//Made: it is destroyed from an exit list, by the R_Finalise the unit writes for it (WriteExitRoutines).
 		szLabel.Init();
-		mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
-		szFinaliser.Init("R_Finalise");
-		szFinaliser.Append(szLabel);
-		szLabel.Append("__ExitNode");
-		PushExitNode(szLabel.Text(), szFinaliser.Text(), pcVariable->mbThreadLocal);
+		mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable);
+		szFinaliser.Init();
+		mpcUnit->GetMangler()->AppendStartUpLabel(&szFinaliser, true, szLabel.Text());
+		szNode.Init();
+		mpcUnit->GetMangler()->AppendExitNodeLabel(&szNode, szLabel.Text());
+		PushExitNode(szNode.Text(), szFinaliser.Text(), pcVariable->mbThreadLocal);
+		szNode.Kill();
 		szFinaliser.Kill();
 		szLabel.Kill();
 	}

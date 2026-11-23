@@ -53,6 +53,19 @@ public:
 	void				AppendVTTLabel(CChars* psz, CCPPClass* pcClass);
 	void				AppendConstructionVtableLabel(CChars* psz, CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset);
 	void				AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust);
+	void				AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
+	void				AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
+	void				AppendStartUpLabel(CChars* psz, bool bFinalise, const char* szOf);
+	void				AppendStartUpLabel(CChars* psz, bool bFinalise, int iNumber);
+	void				AppendExitNodeLabel(CChars* psz, const char* szOf);
+	void				AppendBoundLabel(CChars* psz, const char* szOf);
+	void				AppendTypeInfoLabel(CChars* psz, SCPP65Type* psType);
+	void				AppendTypeNameLabel(CChars* psz, const char* szInfo);
+	void				AppendVirtualCallLabel(CChars* psz, int iPointerOffset, int iSlot);
+	void				AppendThrownDestroyerLabel(CChars* psz, SCPP65Type* psType);
+protected:
+	void				AppendStaticLocalLabel(CChars* psz, CCPPVariable* pcVariable, char cKind);
+public:
 	void				AppendClassName(CChars* psz, CCPPClass* pcClass);
 	void				AppendScopeNames(CChars* psz, CCPPScope* pcScope);
 	void				AppendFunctionName(CChars* psz, int64 lliName);

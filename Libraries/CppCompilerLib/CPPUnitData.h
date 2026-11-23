@@ -32,6 +32,11 @@ typedef CArrayTemplate<CChars>	CArrayCPPStrings;
 //that are constructed and destroyed, whatever else the unit puts with them (vtables and type infos, through
 //GetText), and the string literals, which are kept apart until the unit is finished (AppendStrings).  It needs
 //nothing of the unit.
+//An exit list node's alignment; its size is two pointers' (CCPPUnit::ExitNodeBytes): the next node and the routine
+//that destroys its object.
+#define CPP65_EXIT_NODE_ALIGNMENT	4
+
+
 class CCPPUnitData
 {
 protected:

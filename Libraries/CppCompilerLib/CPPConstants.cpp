@@ -700,7 +700,8 @@ bool CCPPConstants::CheckVariable(CCPPVariable* pcVariable, CCPPSyntax* pcNode)
 		return mpcDiagnostics->ReportError(pcNode, "A constexpr variable's type is a literal type: a class needs no destructor of its own and a constexpr constructor, or is an aggregate");
 	}
 	szLabel.Init();
-	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+	pcVariable->Refer();
+	mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable);
 	NoteVariable(szLabel.Text(), pcVariable);
 	bResult = CheckObject(szLabel.Text(), pcNode);
 	szLabel.Kill();
@@ -1113,7 +1114,8 @@ bool CCPPConstants::AppendData(CCPPVariable* pcVariable, CCPPUnitData* pcData)
 	CChars					szLabel;
 
 	szLabel.Init();
-	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+	pcVariable->Refer();
+	mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable);
 	psVariable = FindVariable(szLabel.Text());
 	szLabel.Kill();
 	if (!psVariable || (psVariable->uiObject == 0))
@@ -1149,7 +1151,8 @@ bool CCPPConstants::AppendConstantInitialisation(CCPPVariable* pcVariable, CCPPU
 		return false;
 	}
 	szLabel.Init();
-	mpcUnit->AppendVariableLabel(&szLabel, pcVariable);
+	pcVariable->Refer();
+	mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable);
 	szName.Init();
 	NewName("__static", &szName);
 	mpcDiagnostics->BeginQuiet();

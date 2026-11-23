@@ -390,11 +390,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbExitListsWritten = false;
 	mbDynamicCast = false;
 	mbDynamicCastWritten = false;
-	maszExitFinalisers.Init();
-	mapsExitFinalisers.Init();
-	maszThrownDestroyers.Init();
-	mapsThrownDestroyers.Init();
-	maiExitShared.Init();
+	masExitFinalisers.Init();
+	masThrownDestroyers.Init();
 
 	mapsFunctionScopes.Init();
 	PushFunctionScope();
@@ -514,11 +511,10 @@ void CCPPUnit::Kill(void)
 	mapcGlobals.Kill();
 
 	mcDiagnostics.Kill();
-	maiExitShared.Kill();
-	mapsThrownDestroyers.Kill();
-	maszThrownDestroyers.Kill();
-	mapsExitFinalisers.Kill();
-	maszExitFinalisers.Kill();
+	KillUnitRoutines(&masThrownDestroyers);
+	masThrownDestroyers.Kill();
+	KillUnitRoutines(&masExitFinalisers);
+	masExitFinalisers.Kill();
 	maszRuntime.Kill();
 	maszLayouts.Kill();
 	mszThunks.Kill();
@@ -713,8 +709,7 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 	{
 		CompleteOffset(psType->pcClass, psReference->psBase->pcClass, piOffset);
 	}
-	pszBound->Append(pszLabel);
-	pszBound->Append("__Bound");
+	mcMangler.AppendBoundLabel(pszBound, pszLabel->Text());
 	mcData.BeginData(pszBound, DataAlignment(psType, bClass), bGlobal, szOptions, false);
 	mcData.AppendZeros(psType->iBytes);
 	*pbResult &= GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL), false);
@@ -731,50 +726,70 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread)
 {
-	CChars	szLabel;
 	CChars	szFinaliser;
 	CChars	szNode;
 	bool	bResult;
 	bool	bListed;
-	int		i;
 
 	//One made when the program starts is put on an exit list once it has been (bThread: a thread_local's), so objects
 	//are destroyed in the reverse of the order they were made, with the atexit functions between them; one made in the
 	//data, before any of those, is in the fini table, run after the lists.  [basic.start.term] 1, 3
 	bListed = bConstruct && bDestroy;
-	szFinaliser.Init("R_Finalise");
-	szFinaliser.Append(mcData.GetStartUp());
-	szNode.Init(pszData);
-	szNode.Append("__ExitNode");
+	szFinaliser.Init();
+	mcMangler.AppendStartUpLabel(&szFinaliser, true, mcData.GetStartUp());
+	szNode.Init();
+	mcMangler.AppendExitNodeLabel(&szNode, pszData->Text());
 	bResult = true;
-	for (i = 0; i < 2; i++)
+	if (bConstruct)
 	{
-		if (!((i == 0) ? bConstruct : bDestroy))
-		{
-			continue;
-		}
-		szLabel.Init((i == 0) ? "R_Initialise" : "R_Finalise");
-		szLabel.Append(mcData.GetStartUp());
-		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, NULL);
-		if (mpcIRFrontEnd->GlobalRoutine(szLabel.Text(), pszData->Text(), psType, pcInitialiser, i == 1, ((i == 0) && bListed) ? szNode.Text() : NULL, szFinaliser.Text(), bThread))
-		{
-			if ((i == 0) || !bListed)
-			{
-				mcData.AppendStartUpEntry((i == 0) ? "init" : "fini", &szLabel, pszData, mpcOptions->mbKeepUnusedObjects);
-			}
-		}
-		else
-		{
-			bResult = mcDiagnostics.ErrorAt(pcInitialiser ? pcInitialiser->miFirstToken : -1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
-		}
-		szLabel.Kill();
+		//One on an exit list is put there by its R_Initialise.
+		bResult &= StartUpRoutine(false, psType, pcInitialiser, pszData, bListed ? &szNode : NULL, &szFinaliser, true, bThread);
+	}
+	if (bDestroy)
+	{
+		//One on an exit list is destroyed from it; else from the fini table.
+		bResult &= StartUpRoutine(true, psType, pcInitialiser, pszData, NULL, &szFinaliser, !bListed, bThread);
 	}
 	if (bListed)
 	{
-		mcData.AppendExitNode(&szNode, pszData, 2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes);
+		mcData.AppendExitNode(&szNode, pszData, ExitNodeBytes());
 	}
 	szNode.Kill();
 	szFinaliser.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global's R_Initialise, or with bFinalise its R_Finalise (written by
+// the IR front end, CCPP65IRFrontEnd::GlobalRoutine), and with bEntry its
+// entry in the init or fini table.  pszNode is the exit list node an
+// R_Initialise puts it on, with pszFinaliser the routine that destroys it
+// from there; NULL for none.  False after an error.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::StartUpRoutine(bool bFinalise, SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, CChars* pszNode, CChars* pszFinaliser, bool bEntry, bool bThread)
+{
+	CChars	szLabel;
+	bool	bResult;
+
+	szLabel.Init();
+	mcMangler.AppendStartUpLabel(&szLabel, bFinalise, mcData.GetStartUp());
+	CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, NULL);
+	bResult = true;
+	if (mpcIRFrontEnd->GlobalRoutine(szLabel.Text(), pszData->Text(), psType, pcInitialiser, bFinalise, pszNode ? pszNode->Text() : NULL, pszFinaliser->Text(), bThread))
+	{
+		if (bEntry)
+		{
+			mcData.AppendStartUpEntry(bFinalise ? "fini" : "init", &szLabel, pszData, mpcOptions->mbKeepUnusedObjects);
+		}
+	}
+	else
+	{
+		bResult = mcDiagnostics.ErrorAt(pcInitialiser ? pcInitialiser->miFirstToken : -1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
+	}
+	szLabel.Kill();
 	return bResult;
 }
 
@@ -1032,12 +1047,12 @@ void CCPPUnit::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
 	CChars	szLabel;
 	size	i;
 
-	szLabel.Init("R_DestroyThrown");
-	mcMangler.AppendType(&szLabel, psType);
+	szLabel.Init();
+	mcMangler.AppendThrownDestroyerLabel(&szLabel, psType);
 	pszLabel->Append(&szLabel);
-	for (i = 0; i < maszThrownDestroyers.NumElements(); i++)
+	for (i = 0; i < masThrownDestroyers.NumElements(); i++)
 	{
-		if (szLabel.Equals(maszThrownDestroyers.GetText(i)))
+		if (szLabel.Equals(masThrownDestroyers.Get(i)->szLabel.Text()))
 		{
 			szLabel.Kill();
 			return;
@@ -1045,8 +1060,7 @@ void CCPPUnit::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
 	}
 	if (Emit(&szLabel))
 	{
-		maszThrownDestroyers.Add(szLabel.Text());
-		mapsThrownDestroyers.Add(psType);
+		AddUnitRoutine(&masThrownDestroyers, szLabel.Text(), psType, true);
 	}
 	szLabel.Kill();
 }
@@ -1059,6 +1073,18 @@ void CCPPUnit::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
 // wrote any (which may queue destructors to generate).
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// The bytes of an exit list node: the next node and the routine that
+// destroys its object, two pointers (CPP65_EXIT_NODE_ALIGNMENT aligned).
+//
+//////////////////////////////////////////////////////////////////////////
+int CCPPUnit::ExitNodeBytes(void)
+{
+	return 2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::WriteThrownDestroyers(void)
 {
 	CChars	szLabel;
@@ -1066,21 +1092,53 @@ bool CCPPUnit::WriteThrownDestroyers(void)
 	bool	bWritten;
 
 	bWritten = false;
-	for (i = 0; i < maszThrownDestroyers.NumElements(); i++)
+	for (i = 0; i < masThrownDestroyers.NumElements(); i++)
 	{
-		szLabel.Init(maszThrownDestroyers.GetText(i));
+		szLabel.Init(masThrownDestroyers.Get(i)->szLabel.Text());
 		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
 		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
-		if (!mpcIRFrontEnd->ThrownDestroyerRoutine(szLabel.Text(), mapsThrownDestroyers.GetPtr(i)))
+		if (!mpcIRFrontEnd->ThrownDestroyerRoutine(szLabel.Text(), masThrownDestroyers.Get(i)->psType))
 		{
 			mcDiagnostics.ErrorAt(-1, "This thrown object's destruction uses C++ the IR front end doesn't support yet");
 		}
 		szLabel.Kill();
 		bWritten = true;
 	}
-	maszThrownDestroyers.ReInit();
-	mapsThrownDestroyers.ReInit();
+	KillUnitRoutines(&masThrownDestroyers);
 	return bWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A routine to write once the unit's functions are (SCPPUnitRoutine).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::AddUnitRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared)
+{
+	SCPPUnitRoutine*	psRoutine;
+
+	psRoutine = pasRoutines->Add();
+	psRoutine->szLabel.Init(szLabel);
+	psRoutine->psType = psType;
+	psRoutine->bShared = bShared;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Empties a list of routines to write (AddUnitRoutine).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::KillUnitRoutines(CArrayCPPUnitRoutines* pasRoutines)
+{
+	size	i;
+
+	for (i = 0; i < pasRoutines->NumElements(); i++)
+	{
+		pasRoutines->Get(i)->szLabel.Kill();
+	}
+	pasRoutines->ReInit();
 }
 
 
@@ -1095,31 +1153,31 @@ bool CCPPUnit::WriteThrownDestroyers(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::WriteExitRoutines(void)
 {
-	CChars	szFinaliser;
-	CChars	szLabel;
-	size	i;
-	bool	bWritten;
+	CChars				szFinaliser;
+	CChars				szLabel;
+	SCPPUnitRoutine*	psRoutine;
+	size				i;
+	bool				bWritten;
 
 	bWritten = false;
-	for (i = 0; i < maszExitFinalisers.NumElements(); i++)
+	for (i = 0; i < masExitFinalisers.NumElements(); i++)
 	{
-		szFinaliser.Init("R_Finalise");
-		szFinaliser.Append(maszExitFinalisers.GetText(i));
-		CCPPUnitData::AppendSection(&mszCode, "text", &szFinaliser, maiExitShared.GetValue(i) ? ", comdat" : NULL);
-		if (maiExitShared.GetValue(i))
+		psRoutine = masExitFinalisers.Get(i);
+		szFinaliser.Init();
+		mcMangler.AppendStartUpLabel(&szFinaliser, true, psRoutine->szLabel.Text());
+		CCPPUnitData::AppendSection(&mszCode, "text", &szFinaliser, psRoutine->bShared ? ", comdat" : NULL);
+		if (psRoutine->bShared)
 		{
 			CCPPUnitData::AppendGlobal(&mszCode, &szFinaliser);
 		}
-		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), maszExitFinalisers.GetText(i), mapsExitFinalisers.GetPtr(i), NULL, true, NULL, NULL, false, maiExitShared.GetValue(i) == 0))
+		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), psRoutine->szLabel.Text(), psRoutine->psType, NULL, true, NULL, NULL, false, !psRoutine->bShared))
 		{
 			mcDiagnostics.ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
 		}
 		szFinaliser.Kill();
 		bWritten = true;
 	}
-	maszExitFinalisers.ReInit();
-	mapsExitFinalisers.ReInit();
-	maiExitShared.ReInit();
+	KillUnitRoutines(&masExitFinalisers);
 
 	if (mbExitLists && !mbExitListsWritten)
 	{
@@ -3765,7 +3823,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		}
 
 		szLabel.Init();
-		AppendVariableLabel(&szLabel, pcVariable);
+		mcMangler.AppendVariableLabel(&szLabel, pcVariable);
 		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
 		bBss = !bConstantData && IsBss(pcInitialiser, psType);
 		szOptions = pcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
@@ -4724,7 +4782,7 @@ bool CCPPUnit::AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier)
 		return true;
 	}
 	szLabel.Init();
-	AppendVariableLabel(&szLabel, pcObject);
+	mcMangler.AppendVariableLabel(&szLabel, pcObject);
 	mcData.BeginData(&szLabel, DataAlignment(pcClass->mpsType, true), false, NULL, IsBss(NULL, pcClass->mpsType));
 	if (IsBss(NULL, pcClass->mpsType))
 	{
@@ -4823,6 +4881,7 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	SCPP65Type*			psType;
 	SCPP65Type*			psElement;
 	CChars				szLabel;
+	CChars				szNode;
 	bool				bResult;
 	bool				bInitialise;
 	bool				bObject;
@@ -4873,7 +4932,7 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	pcKept->mbThreadLocal = pcVariable->mbThreadLocal;
 	pcKept->mpcSharedIn = pcShared;
 	szLabel.Init();
-	AppendVariableLabel(&szLabel, pcVariable);
+	mcMangler.AppendVariableLabel(&szLabel, pcVariable);
 	//A function written again in the unit has its static locals again: a shared one's data is the unit's once.
 	bFirst = !pcShared || Emit(&szLabel);
 	uiData = mcData.GetText()->Length();
@@ -4896,7 +4955,7 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	if (pcVariable->mbGuarded)
 	{
 		szLabel.Init();
-		AppendGuardLabel(&szLabel, pcVariable);
+		mcMangler.AppendGuardLabel(&szLabel, pcVariable);
 		mcData.BeginData(&szLabel, 1, pcShared != NULL, szOptions, true);
 		mcData.AppendSpace(1);
 		szLabel.Kill();
@@ -4905,16 +4964,16 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 	{
 		pcVariable->mbExitNode = true;
 		szLabel.Init();
-		AppendVariableLabel(&szLabel, pcVariable);
+		mcMangler.AppendVariableLabel(&szLabel, pcVariable);
 		if (bFirst)
 		{
-			maszExitFinalisers.Add(szLabel.Text());
-			mapsExitFinalisers.Add(psType);
-			maiExitShared.Add(pcShared != NULL);
+			AddUnitRoutine(&masExitFinalisers, szLabel.Text(), psType, pcShared != NULL);
 		}
-		szLabel.Append("__ExitNode");
-		mcData.BeginData(&szLabel, 4, pcShared != NULL, szOptions, true);
-		mcData.AppendSpace(2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes);
+		szNode.Init();
+		mcMangler.AppendExitNodeLabel(&szNode, szLabel.Text());
+		mcData.BeginData(&szNode, CPP65_EXIT_NODE_ALIGNMENT, pcShared != NULL, szOptions, true);
+		mcData.AppendSpace(ExitNodeBytes());
+		szNode.Kill();
 		szLabel.Kill();
 		UseExitLists();
 	}
@@ -4923,61 +4982,6 @@ bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpeci
 		mcData.GetText()->SetLength(uiData);
 	}
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The label of a guarded static local's guard (G, its number, _ and its
-// name), as its own is S, its number, _ and its name.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable)
-{
-	char*	szName;
-	int		iLength;
-
-	szName = mpcTokeniser->GetIdentifier(pcVariable->mpcSymbol->mlliName, &iLength);
-	if (pcVariable->mpcSharedIn)
-	{
-		mcMangler.AppendFunctionLabel(psz, pcVariable->mpcSharedIn);
-		psz->Append("__");
-	}
-	psz->Append('G');
-	psz->Append(pcVariable->miOffset);
-	psz->Append('_');
-	psz->Append(szName, iLength);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The label of a global, a static data member or a static local (S, its
-// number, _ and its name).  A global is used once its label is written.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
-{
-	char*	szName;
-	int		iLength;
-
-	if (pcVariable->meStorage == CPPVS_Static)
-	{
-		szName = mpcTokeniser->GetIdentifier(pcVariable->mpcSymbol->mlliName, &iLength);
-		if (pcVariable->mpcSharedIn)
-		{
-			//A shared function's: its label, __S and its number in the function.
-			mcMangler.AppendFunctionLabel(psz, pcVariable->mpcSharedIn);
-			psz->Append("__");
-		}
-		psz->Append('S');
-		psz->Append(pcVariable->miOffset);
-		psz->Append('_');
-		psz->Append(szName, iLength);
-		return;
-	}
-	pcVariable->mbUsed = true;
-	mcMangler.AppendGlobalLabel(psz, pcVariable);
 }
 
 

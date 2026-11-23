@@ -65,3 +65,18 @@ void CCPPVariable::Kill(void)
 	mszArguments.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its label is written where it is referred to: a global is then used, and
+// so defined; a static local is its function's own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPVariable::Refer(void)
+{
+	if (meStorage != CPPVS_Static)
+	{
+		mbUsed = true;
+	}
+}
+

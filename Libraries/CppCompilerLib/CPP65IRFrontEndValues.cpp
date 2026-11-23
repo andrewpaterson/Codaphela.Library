@@ -1495,7 +1495,8 @@ bool CCPP65IRFrontEnd::VariablePlace(CCPPVariable* pcVariable, SCPP65IRPlace* ps
 	else
 	{
 		szLabel.Init();
-		mpcUnit->AppendVariableLabel(&szLabel, pcVariable->mpcAnonymousObject ? pcVariable->mpcAnonymousObject : pcVariable);
+		(pcVariable->mpcAnonymousObject ? pcVariable->mpcAnonymousObject : pcVariable)->Refer();
+		mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable->mpcAnonymousObject ? pcVariable->mpcAnonymousObject : pcVariable);
 		psPlace->sAddress = mcModule.Symbol(szLabel.Text());
 		if (pcVariable->mpcAnonymousObject)
 		{

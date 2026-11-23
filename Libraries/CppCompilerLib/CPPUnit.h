@@ -227,6 +227,19 @@ struct SCPPFailedDeclaration
 typedef CArrayTemplate<SCPPFailedDeclaration>	CArrayCPPFailedDeclarations;
 
 
+//A routine the unit writes once its functions are: a static local's R_Finalise (WriteExitRoutines) or the function
+//that destroys a thrown object (WriteThrownDestroyers).
+struct SCPPUnitRoutine
+{
+	CChars			szLabel;	//The static local's, for its R_Finalise; the destroyer's own.
+	SCPP65Type*		psType;		//What it destroys.
+	bool			bShared;	//A shared function's static local: its R_Finalise is a COMDAT.
+};
+
+
+typedef CArrayTemplate<SCPPUnitRoutine>	CArrayCPPUnitRoutines;
+
+
 //What a definition written outside its class template defines (SCPPOutsideDefinition).
 enum ECPPOutsideDefinition
 {
@@ -348,11 +361,8 @@ protected:
 	bool					mbExitListsWritten;
 	bool					mbDynamicCast;		//Something casts with dynamic_cast: the unit writes R_DynamicCast (UseDynamicCast).
 	bool					mbDynamicCastWritten;
-	CArrayChars				maszThrownDestroyers;	//The labels of the functions that destroy thrown objects still to write (ThrownDestroyer)...
-	CArrayCPP65Types		mapsThrownDestroyers;	//...and the classes they destroy.
-	CArrayChars				maszExitFinalisers;	//The labels of static locals destroyed at exit whose R_Finalise is still to write...
-	CArrayCPP65Types		mapsExitFinalisers;	//...their types...
-	CArrayInt				maiExitShared;		//...and whether each is a shared function's (its R_Finalise COMDAT; WriteExitRoutines).
+	CArrayCPPUnitRoutines	masThrownDestroyers;	//The functions that destroy thrown objects, still to write (ThrownDestroyer).
+	CArrayCPPUnitRoutines	masExitFinalisers;	//The static locals destroyed at exit whose R_Finalise is still to write (WriteExitRoutines).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
@@ -554,9 +564,10 @@ public:
 	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					WriteExitRoutines(void);
 	bool					WriteThrownDestroyers(void);
+	int						ExitNodeBytes(void);
+	void					AddUnitRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared);
+	void					KillUnitRoutines(CArrayCPPUnitRoutines* pasRoutines);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
-	void					AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable);
-	void					AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }
 	void					UseRecursiveInit(void) { mbRecursiveInit = true; }
@@ -567,6 +578,7 @@ public:
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;
 	void					RuntimeError(const char* szMessage) override;
+	bool					StartUpRoutine(bool bFinalise, SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, CChars* pszNode, CChars* pszFinaliser, bool bEntry, bool bThread);
 	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread);
 	bool					BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);

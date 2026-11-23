@@ -247,7 +247,8 @@ void CCPPUnitData::AppendExitNode(CChars* pszLabel, CChars* pszData, int iBytes)
 	szOptions.Init(mbDataBss ? ", associated bss." : ", associated data.");
 	szOptions.Append(pszData);
 	AppendSection(&mszData, "bss", pszLabel, szOptions.Text());
-	mszData.Append("\t\t.align 4\n");
+	mszData.Append("\t\t.align ")->Append(CPP65_EXIT_NODE_ALIGNMENT);
+	mszData.AppendNewLine();
 	mszData.Append(pszLabel);
 	mszData.Append(':');
 	mszData.AppendNewLine();

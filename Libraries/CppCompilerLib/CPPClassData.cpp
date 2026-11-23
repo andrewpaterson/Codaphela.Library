@@ -494,8 +494,7 @@ void CCPPClassData::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool
 	CCPPTypeWriter	cWriter;
 	size			i;
 
-	pszName->Append(pszInfo);
-	pszName->Append("__Name");
+	mpcUnit->mcMangler.AppendTypeNameLabel(pszName, pszInfo->Text());
 	szText.Init();
 	cWriter.Init(mpcUnit, CPPTW_Shown);
 	cWriter.AppendType(psType, &szText);
@@ -591,10 +590,8 @@ void CCPPClassData::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction
 {
 	CChars	szLabel;
 
-	szLabel.Init("__vcall_");
-	szLabel.Append(pcFunction->mpcClass->mcVtable.miPointerOffset);
-	szLabel.Append('_');
-	szLabel.Append(pcFunction->miSlot);
+	szLabel.Init();
+	mpcUnit->mcMangler.AppendVirtualCallLabel(&szLabel, pcFunction->mpcClass->mcVtable.miPointerOffset, pcFunction->miSlot);
 	if (mpcUnit->Emit(&szLabel))
 	{
 		AppendThunkLabel(&szLabel, true);
@@ -657,8 +654,8 @@ void CCPPClassData::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
 		mpcUnit->mcMangler.AppendTypeInfoLabel(psz, psType->pcClass);
 		return;
 	}
-	szLabel.Init("_3");
-	mpcUnit->mcMangler.AppendType(&szLabel, psType);
+	szLabel.Init();
+	mpcUnit->mcMangler.AppendTypeInfoLabel(&szLabel, psType);
 	if (mpcUnit->Emit(&szLabel))
 	{
 		szFirst.Init();

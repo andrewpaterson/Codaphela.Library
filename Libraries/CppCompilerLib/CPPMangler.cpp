@@ -307,6 +307,164 @@ void CCPPMangler::AppendConstructionVtableLabel(CChars* psz, CCPPClass* pcComple
 // on.  AppendVtableEntry writes the thunk.
 //
 //////////////////////////////////////////////////////////////////////////
+//
+// The label of a global, a static data member or a static local (S, its
+// number in its function, _ and its name; a shared function's has the
+// function's label and __ before it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendVariableLabel(CChars* psz, CCPPVariable* pcVariable)
+{
+	if (pcVariable->meStorage == CPPVS_Static)
+	{
+		AppendStaticLocalLabel(psz, pcVariable, 'S');
+		return;
+	}
+	AppendGlobalLabel(psz, pcVariable);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of a guarded static local's guard: G, its number, _ and its
+// name, as its own is S.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendGuardLabel(CChars* psz, CCPPVariable* pcVariable)
+{
+	AppendStaticLocalLabel(psz, pcVariable, 'G');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A static local's label of the kind cKind (S its own, G its guard's).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendStaticLocalLabel(CChars* psz, CCPPVariable* pcVariable, char cKind)
+{
+	char*	szName;
+	int		iLength;
+
+	szName = mpcTokeniser->GetIdentifier(pcVariable->mpcSymbol->mlliName, &iLength);
+	if (pcVariable->mpcSharedIn)
+	{
+		//A shared function's: its label, __S and its number in the function.
+		AppendFunctionLabel(psz, pcVariable->mpcSharedIn);
+		psz->Append("__");
+	}
+	psz->Append(cKind);
+	psz->Append(pcVariable->miOffset);
+	psz->Append('_');
+	psz->Append(szName, iLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The routine that constructs what szOf labels when the program starts
+// (R_Initialise), or with bFinalise destroys it at exit (R_Finalise).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendStartUpLabel(CChars* psz, bool bFinalise, const char* szOf)
+{
+	psz->Append(bFinalise ? "R_Finalise" : "R_Initialise");
+	psz->Append(szOf);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A global's R_Initialise or R_Finalise, by the unit's number for its
+// routines (CCPPUnitData::GetStartUp).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendStartUpLabel(CChars* psz, bool bFinalise, int iNumber)
+{
+	psz->Append(bFinalise ? "R_Finalise" : "R_Initialise");
+	psz->Append(iNumber);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The exit list node of what szOf labels, which puts it on an exit list
+// once it is made.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendExitNodeLabel(CChars* psz, const char* szOf)
+{
+	psz->Append(szOf);
+	psz->Append("__ExitNode");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The temporary a global reference (szOf) is bound to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendBoundLabel(CChars* psz, const char* szOf)
+{
+	psz->Append(szOf);
+	psz->Append("__Bound");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type info of a type that isn't a class (a class's is
+// AppendTypeInfoLabel's of it): _3 and the type mangled.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendTypeInfoLabel(CChars* psz, SCPP65Type* psType)
+{
+	psz->Append("_3");
+	AppendType(psz, psType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name string of the type info szInfo labels (type_info::name).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendTypeNameLabel(CChars* psz, const char* szInfo)
+{
+	psz->Append(szInfo);
+	psz->Append("__Name");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The thunk that calls the virtual function in a vtable's slot iSlot
+// through a pointer to a member, its vtable pointer at iPointerOffset:
+// __vcall_8_3, every class's and unit's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendVirtualCallLabel(CChars* psz, int iPointerOffset, int iSlot)
+{
+	psz->Append("__vcall_");
+	psz->Append(iPointerOffset);
+	psz->Append('_');
+	psz->Append(iSlot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function that destroys a thrown object of psType.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPMangler::AppendThrownDestroyerLabel(CChars* psz, SCPP65Type* psType)
+{
+	psz->Append("R_DestroyThrown");
+	AppendType(psz, psType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 void CCPPMangler::AppendVtableEntryLabel(CChars* psz, CCPPFunction* pcFunction, int iAdjust)
 {
 	if (pcFunction->mbPure)

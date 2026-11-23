@@ -937,3 +937,22 @@ Stage 13 (2026-11-23): class data, labels and what runs at exit.
 	the file (IsOnePublicBase, IsPublicBase) stay the unit's, beside BasePaths in CPPUnitOverloads.cpp, and the
 	file, empty, is gone.  TestCppCompilerLib passes (272,061); the diagnostics entries and the listings are as
 	they were; the IDE builds.
+
+	Second part: the mangler makes every label: a variable's and a static local's guard (AppendVariableLabel and
+	AppendGuardLabel left the unit for it, one AppendStaticLocalLabel making both S and G), R_Initialise and
+	R_Finalise (AppendStartUpLabel, of a label or of the unit's number for a global's routines), __ExitNode,
+	__Bound, a type info's _3 and its name's __Name, __vcall_ and R_DestroyThrown; the IR front end asks it for
+	the static local's R_Finalise and exit node it pushes.  AppendVariableLabel only appends: what refers to a
+	global by its label marks it used (CCPPVariable::Refer), the IR front end's address of one and the constant
+	interpreter's three (dropping the marking alone broke TemplateStaticMember and StaticMemberAddress: a static
+	member whose address is taken must be defined).  The exit node's alignment is CPP65_EXIT_NODE_ALIGNMENT and
+	its size ExitNodeBytes, each where three places wrote 4 and two pointers.  The routines written once the
+	functions are (a static local's R_Finalise, a thrown object's destroyer) are records, SCPPUnitRoutine, where
+	each list was two or three parallel arrays.  GlobalStartUpRoutines is two calls of StartUpRoutine, where it
+	was a loop of two with six tests of which.
+	Not done: BoundTemporary still answers twice (whether to go on, and *pbResult): its false is "stop" after a
+	class it couldn't complete, *pbResult also an error in the routines after; one answer would make the caller
+	tell them apart by the label it left.
+	Proved: TestCppCompilerLib passes (272,061); the listings are as they were; of the diagnostics, 48
+	cases name CPP65IRFrontEndStatements.cpp's line 1623 for its line 1620 in an "uses C++ ... doesn't support yet" message,
+	the file having three lines more, and nothing else is said differently; the IDE builds.
