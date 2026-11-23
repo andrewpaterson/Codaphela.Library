@@ -1134,27 +1134,17 @@ bool CCPPConstantFolder::TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65T
 
 //////////////////////////////////////////////////////////////////////////
 //
-// GCC's floating point constant builtins (math.h's HUGE_VAL, INFINITY and NAN):
-// __builtin_huge_val, __builtin_inf and __builtin_nan("") are double, and their f
-// forms float.  NaNs are quiet and positive; a payload string is ignored.
+// A call of one of GCC's floating point constant builtins
+// (CCPPBuiltins::FloatBuiltinValue): its value and type.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IsBuiltinNamed(const char* szName, int iLength, const char* szBuiltin)
-{
-	return ((size)iLength == strlen(szBuiltin)) && (memcmp(szName, szBuiltin, iLength) == 0);
-}
-
-
 bool CCPPConstantFolder::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType)
 {
 	CCPPSyntaxCallExpression*	pcCall;
 	CCPPSyntax*					pcCallee;
 	CCPPSyntaxName*				pcName;
-	char*						szName;
-	int							iLength;
 	int64						lliName;
 	bool						bFloat;
-	bool						bNaN;
 
 	pcCall = (CCPPSyntaxCallExpression*)pcExpression;
 	pcCallee = mpcUnit->SkipParentheses(pcCall->mpcCallee);
@@ -1168,30 +1158,10 @@ bool CCPPConstantFolder::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue,
 		return false;
 	}
 	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
-	if (!mpcUnit->IsBuiltin(lliName))
+	if (!mpcUnit->GetBuiltins()->FloatBuiltinValue(lliName, pcCall->macpArguments.NumElements(), pdValue, &bFloat))
 	{
 		return false;
 	}
-	szName = mpcUnit->BuiltinName(lliName, &iLength);
-	bFloat = (iLength > 0) && (szName[iLength - 1] == 'f');
-	iLength -= bFloat ? 1 : 0;
-	if (IsBuiltinNamed(szName, iLength, "huge_val") || IsBuiltinNamed(szName, iLength, "inf"))
-	{
-		bNaN = false;
-	}
-	else if (IsBuiltinNamed(szName, iLength, "nan"))
-	{
-		bNaN = true;
-	}
-	else
-	{
-		return false;
-	}
-	if (pcCall->macpArguments.NumElements() != (bNaN ? 1 : 0))
-	{
-		return false;
-	}
-	*pdValue = bNaN ? (double)NAN : (double)INFINITY;
 	*ppsType = bFloat ? &mpcUnit->mcTypes.msFloat : &mpcUnit->mcTypes.msDouble;
 	return true;
 }

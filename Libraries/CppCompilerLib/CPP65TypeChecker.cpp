@@ -1988,7 +1988,7 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, CArrayS
 		return psType;
 	}
 
-	psBuiltin = mpcUnit->FindBuiltin(lliName);
+	psBuiltin = mpcUnit->GetBuiltins()->FindBuiltin(lliName);
 	if (!psBuiltin)
 	{
 		if (mpcUnit->GetSemanticPass())
@@ -2038,7 +2038,7 @@ SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, CArrayS
 		return Convert(Value(papcArguments->GetPtr(0)), &mpcTypes->msUnsignedInt, pcCall) ? psVoidPointer : NULL;
 	default:
 		//ctz, clz and popcount count the bits of their operand type.
-		return Convert(Value(papcArguments->GetPtr(0)), mpcUnit->BuiltinOperandType(psBuiltin), pcCall) ? &mpcTypes->msInt : NULL;
+		return Convert(Value(papcArguments->GetPtr(0)), mpcUnit->GetBuiltins()->BuiltinOperandType(psBuiltin), pcCall) ? &mpcTypes->msInt : NULL;
 	}
 }
 

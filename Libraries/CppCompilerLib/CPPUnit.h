@@ -71,6 +71,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPCheck.h"
 #include "CPPUnitObserver.h"
 #include "CPPWarnings.h"
+#include "CPPBuiltins.h"
 
 
 class CCTString;
@@ -88,44 +89,6 @@ enum ECPPConversionRank
 	CPPCR_Qualification,	//An exact match but for const or volatile added: worse than the same type.  [over.ics.rank] 3.2.6
 	CPPCR_RvalueToConst,	//An object with no name bound to const T&: exact, but T&& takes it better.  [over.ics.rank] 3.2.3
 	CPPCR_Exact,
-};
-
-
-
-
-//GCC's builtin functions the compiler does (CCPPUnit::FindBuiltin), for the type checker and the IR front end.
-enum ECPPBuiltin
-{
-	CPPB_Unreachable,		//unreachable and trap.
-	CPPB_Pause,			//ia32_pause: nothing.
-	CPPB_Expect,
-	CPPB_Memcpy,
-	CPPB_Alloca,			//An error: frames are fixed in size.
-	CPPB_BCDAdd,			//The W65C816's decimal mode.
-	CPPB_BCDSubtract,
-	CPPB_Ctz,
-	CPPB_Clz,
-	CPPB_Popcount,
-};
-
-
-//What ctz, clz and popcount count the bits of: unsigned int, unsigned long (l) or unsigned long long (ll).
-enum ECPPBuiltinOperand
-{
-	CPPBO_None,
-	CPPBO_UnsignedInt,
-	CPPBO_UnsignedLong,
-	CPPBO_UnsignedLongLong,
-};
-
-
-struct SCPPBuiltin
-{
-	const char*				szName;			//Without __builtin_.
-	ECPPBuiltin			eBuiltin;
-	int						iArguments;
-	ECPPBuiltinOperand	eOperand;
-	const char*				szDecimalModeOnly;	//The error on a target with no decimal mode (CCPPTarget::HasDecimalMode), NULL if the builtin is every target's.
 };
 
 
@@ -315,7 +278,9 @@ friend class CCPPClassData;
 friend class CCPPStrings;
 friend class CCPPCheck;
 friend class CCPPWarnings;
+friend class CCPPBuiltins;
 protected:
+	CCPPBuiltins			mcBuiltins;			//The builtins the compiler does.
 	CCPPWarnings			mcWarnings;			//Warns of what a 16 bit int makes wrong.
 	CCPPUnitObserver		mcNoObserver;		//Hears nothing: the observer when code is made.
 	CCPPUnitObserver*		mpcObserver;		//Told what the unit works out: the semantic pass when it checks.
@@ -423,6 +388,7 @@ public:
 	CCPPCheck*				GetCheck(void);
 	CCPPUnitObserver*		GetObserver(void);
 	CCPPWarnings*			GetWarner(void);
+	CCPPBuiltins*			GetBuiltins(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -772,13 +738,7 @@ public:
 	bool					HasPackExpansion(CArraySyntax* papcArguments);
 	CCPPSyntax*				ExpansionPattern(CCPPSyntax* pcNode);
 
-	bool					IsBuiltin(int64 lliName);
-	const SCPPBuiltin*	FindBuiltin(int64 lliName);
-	SCPP65Type*				BuiltinOperandType(const SCPPBuiltin* psBuiltin);
-	bool					IsIntrinsic(int64 lliName);
-	char*					BuiltinName(int64 lliName, int* piLength);
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
-	bool					IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments);
 
 
 	bool					FunctionNameText(int64 lliName, CChars* pszText);

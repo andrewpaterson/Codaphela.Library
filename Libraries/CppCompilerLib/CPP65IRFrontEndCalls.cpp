@@ -247,7 +247,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* p
 		return true;
 	}
 
-	psBuiltin = mpcUnit->FindBuiltin(lliName);
+	psBuiltin = mpcUnit->GetBuiltins()->FindBuiltin(lliName);
 	if (!psBuiltin || ((int)papcArguments->NumElements() != psBuiltin->iArguments) ||
 		(psBuiltin->szDecimalModeOnly && !mpcUnit->GetTarget()->HasDecimalMode()))
 	{
@@ -267,7 +267,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* p
 		return Value(papcArguments->GetPtr(0), psValue) && Convert(psValue, mpcTypes->Promote(psValue->psType));
 	case CPPB_Memcpy:
 		//Copied in place for a small constant count, as memcpy is.
-		if (mpcUnit->IsInlineMemcpy(lliName, papcArguments))
+		if (mpcUnit->GetBuiltins()->IsInlineMemcpy(lliName, papcArguments))
 		{
 			return InlineMemcpy(papcArguments, mpcUnit->TypeOf(pcCall), psValue);
 		}
@@ -286,7 +286,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* p
 	//ctz, clz and popcount.
 	bPopcount = psBuiltin->eBuiltin == CPPB_Popcount;
 	bClz = psBuiltin->eBuiltin == CPPB_Clz;
-	psType = mpcUnit->BuiltinOperandType(psBuiltin);
+	psType = mpcUnit->GetBuiltins()->BuiltinOperandType(psBuiltin);
 	if (!Value(papcArguments->GetPtr(0), &sArgument) || !Convert(&sArgument, psType))
 	{
 		return Unsupported(__FILE__, __LINE__);

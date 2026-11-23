@@ -377,6 +377,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcStrings.Init(this);
 	mcCheck.Init(this);
 	mcWarnings.Init(this);
+	mcBuiltins.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -5243,6 +5244,7 @@ CCPPStrings* CCPPUnit::GetStrings(void) { return &mcStrings; }
 CCPPCheck* CCPPUnit::GetCheck(void) { return &mcCheck; }
 CCPPUnitObserver* CCPPUnit::GetObserver(void) { return mpcObserver; }
 CCPPWarnings* CCPPUnit::GetWarner(void) { return &mcWarnings; }
+CCPPBuiltins* CCPPUnit::GetBuiltins(void) { return &mcBuiltins; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

@@ -988,3 +988,11 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	ComparisonAtLimit.  ConstantOverflow, the twelfth, stays the constant folder's, which is what asks it.
 	TestCppCompilerLib passes (272,049); the diagnostics entries and the listings are as they were; the IDE
 	builds.
+
+	b. The builtins are one registry, CCPPBuiltins (CPPBuiltins.h and .cpp), which the unit holds (mcBuiltins,
+	GetBuiltins): the table (gasCPP65Builtins) with its enums and record, the six questions asked of it
+	(IsIntrinsic, IsBuiltin, FindBuiltin, BuiltinOperandType, BuiltinName, IsInlineMemcpy), and the floating
+	point builtins' names (FloatBuiltinValue), which the constant folder matched by hand; the folder keeps what a
+	call is.  The float builtins are not rows of the table: the type checker and the front end switch on what
+	FindBuiltin finds, and would then see kinds they don't do.  TestCppCompilerLib passes (272,055); the
+	diagnostics entries and the listings are as they were; the IDE builds.

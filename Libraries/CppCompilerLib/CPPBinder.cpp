@@ -279,20 +279,20 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		return;
 	}
 
-	if (!pcSymbol && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
+	if (!pcSymbol && mpcUnit->GetBuiltins()->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
 	{
 		pcBound->meHow = CPPBC_InlineMemcpy;
 		return;
 	}
 
 	//A __builtin_ function is the builtin whether or not something declares it.
-	if (pcName && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->IsBuiltin(lliName))
+	if (pcName && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->GetBuiltins()->IsBuiltin(lliName))
 	{
 		pcBound->meHow = CPPBC_Builtin;
 		return;
 	}
 
-	if (!pcSymbol && mpcUnit->GetSemanticPass() && mpcUnit->IsIntrinsic(lliName))
+	if (!pcSymbol && mpcUnit->GetSemanticPass() && mpcUnit->GetBuiltins()->IsIntrinsic(lliName))
 	{
 		//Only checking: an intrinsic of the host's compiler (__debugbreak()), declared by no header.
 		pcBound->meHow = CPPBC_Unchecked;
@@ -348,7 +348,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	{
 		mpcDiagnostics->BeginSilentTrial();
 		pcFunction = mcOverloads.FindNamedFunction(pcName, lliName, pcBound->mpapcArguments, pcCall);
-		bInlineMemcpy = pcFunction && mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments);
+		bInlineMemcpy = pcFunction && mpcUnit->GetBuiltins()->IsInlineMemcpy(lliName, pcBound->mpapcArguments);
 		if (!bInlineMemcpy && (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments)))
 		{
 			pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, lliName, pcCall, pcBound->mpapcArguments, NULL);
@@ -390,7 +390,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 
 	//memcpy of a few bytes, a constant count, is copied where it is called: any function of the name, as the
 	//code has always been written (the type checker asked for C linkage, and gave the same type either way).
-	if (mpcUnit->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
+	if (mpcUnit->GetBuiltins()->IsInlineMemcpy(lliName, pcBound->mpapcArguments))
 	{
 		pcBound->meHow = CPPBC_InlineMemcpy;
 		return;
