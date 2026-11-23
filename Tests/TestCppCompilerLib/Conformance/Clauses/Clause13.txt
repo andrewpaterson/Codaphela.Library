@@ -828,3 +828,10 @@ int main()
 	if ((s = t).v == 10) r += 2;
 	return r;
 }
+
+### OverRankLiteralByValueBindsRvalue | 2 | 13.3.3.2 [over.ics.rank] p3, 2.13.8 [lex.ext] p2: a user-defined literal of a literal operator returning a class by value is a prvalue: it binds R&&, and f(R&&) is chosen over f(R&)
+struct R { unsigned long long v; };
+R operator""_r(unsigned long long v) { R r = { v }; return r; }
+int f(R&) { return 1; }
+int f(R&&) { return 2; }
+int main() { return f(5_r); }

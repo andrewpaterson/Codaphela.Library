@@ -161,6 +161,211 @@ SCPP65Type* CCPP65TypeChecker::PlaceFact(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What an expression is, an lvalue, an xvalue or a prvalue ([basic.lval]):
+// worked out once where it is evaluated, as its place is (in an operand
+// that isn't evaluated a name may be a place that isn't one elsewhere).
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPValueCategory CCPP65TypeChecker::Category(CCPPSyntax* pcExpression)
+{
+	SCPPExpressionFacts*	psFacts;
+	ECPPValueCategory		eCategory;
+	bool					bEvaluated;
+
+	bEvaluated = !mpcUnit->GetContext()->IsUnevaluated();
+	psFacts = bEvaluated ? FactsEntry(pcExpression) : NULL;
+	if (psFacts && psFacts->bCategorised)
+	{
+		return psFacts->eCategory;
+	}
+	eCategory = WorkOutCategory(pcExpression);
+	if (bEvaluated)
+	{
+		psFacts = FactsEntry(pcExpression);
+		psFacts->bCategorised = true;
+		psFacts->eCategory = eCategory;
+	}
+	return eCategory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The category of each kind of expression, from its clause: a name that
+// has a place, a string, *p, ++x, x = y and p->m are lvalues, and a.m is
+// a's; a call, a cast and an operator function's call are what their type
+// is declared to be (T& an lvalue, T&& an xvalue, T a prvalue); x, y is
+// y's; c ? x : y is an lvalue or an xvalue if both are; anything else is a
+// prvalue.  [expr.prim.general] 8, [expr.ref] 4, [expr.call] 10,
+// [expr.cast] 1, [expr.unary.op] 1, [expr.pre.incr] 1, [expr.ass] 1,
+// [expr.comma] 1, [expr.cond] 4, [expr.sub] 1, [lex.string] 8
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPValueCategory CCPP65TypeChecker::WorkOutCategory(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxUnaryExpression*			pcUnary;
+	CCPPSyntaxBinaryExpression*			pcBinary;
+	CCPPSyntaxMemberExpression*			pcMember;
+	CCPPSyntaxConditionalExpression*	pcConditional;
+	CCPPBoundName						cBound;
+	ECPPValueCategory					eObject;
+	SCPP65Type*							psType;
+
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	if (!pcExpression)
+	{
+		return CPPVC_Prvalue;
+	}
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_IdExpression:
+		return PlaceFact(pcExpression) ? CPPVC_Lvalue : CPPVC_Prvalue;
+
+	case CPPS_StringExpression:
+		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) ? DeclaredCategory(pcExpression) : CPPVC_Lvalue;
+
+	case CPPS_LiteralExpression:
+		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) ? DeclaredCategory(pcExpression) : CPPVC_Prvalue;
+
+	case CPPS_MemberExpression:
+		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
+		if (!mpcUnit->BindMemberOf(pcMember, &cBound) || (cBound.meWhat != CPPBN_Field))
+		{
+			//A static member is an lvalue, an enumerator a prvalue.
+			return PlaceFact(pcExpression) ? CPPVC_Lvalue : CPPVC_Prvalue;
+		}
+		if (pcMember->mbArrow || cBound.mpsField->psType->IsReference())
+		{
+			return CPPVC_Lvalue;
+		}
+		eObject = Category(pcMember->mpcObject);
+		return (eObject == CPPVC_Lvalue) ? CPPVC_Lvalue : CPPVC_Xvalue;
+
+	case CPPS_SubscriptExpression:
+		return IsOperatorCall(pcExpression) ? DeclaredCategory(pcExpression) : CPPVC_Lvalue;
+
+	case CPPS_CallExpression:
+	case CPPS_CastExpression:
+	case CPPS_NamedCastExpression:
+		return DeclaredCategory(pcExpression);
+
+	case CPPS_TypeidExpression:
+		return CPPVC_Lvalue;
+
+	case CPPS_UnaryExpression:
+		if (IsOperatorCall(pcExpression))
+		{
+			return DeclaredCategory(pcExpression);
+		}
+		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		if ((pcUnary->meOperator == CT_Multiply) || (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix))
+		{
+			return CPPVC_Lvalue;
+		}
+		return CPPVC_Prvalue;
+
+	case CPPS_BinaryExpression:
+		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		if ((pcBinary->meOperator == CT_Comma) && !mpcUnit->IsOverloadedComma(pcBinary))
+		{
+			return Category(pcBinary->mpcRight);
+		}
+		if (mpcUnit->IsMemberPointerOperator(pcExpression))
+		{
+			//p->*m is an lvalue, o.*m o's (an object on the left is no operator's operand); of a member function,
+			//the call it is made for.  [expr.mptr.oper] 6
+			if (!PlaceFact(pcExpression))
+			{
+				return CPPVC_Prvalue;
+			}
+			if (pcBinary->meOperator == CT_MemberByPointerFunctionPointerIndirection)
+			{
+				return CPPVC_Lvalue;
+			}
+			return (Category(pcBinary->mpcLeft) == CPPVC_Lvalue) ? CPPVC_Lvalue : CPPVC_Xvalue;
+		}
+		if (pcBinary->meOperator == CT_Assignment)
+		{
+			//x = y is x; an object's is its operator='s, whose implicit one returns the object (T&).  One the
+			//program declares to return a value is taken for the same.  [expr.ass] 1, [class.copy] 18
+			return (DeclaredCategory(pcExpression) == CPPVC_Xvalue) ? CPPVC_Xvalue : CPPVC_Lvalue;
+		}
+		if (IsOperatorCall(pcExpression))
+		{
+			return DeclaredCategory(pcExpression);
+		}
+		if (IsCPPAssignment(pcBinary->meOperator))
+		{
+			return CPPVC_Lvalue;
+		}
+		return CPPVC_Prvalue;
+
+	case CPPS_ConditionalExpression:
+		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
+		if (mpcUnit->ConditionalLvalueType(pcConditional))
+		{
+			return CPPVC_Lvalue;
+		}
+		if (mpcUnit->ConditionalXvalueType(pcConditional))
+		{
+			return CPPVC_Xvalue;
+		}
+		break;
+
+	default:
+		break;
+	}
+	psType = Facts(pcExpression)->psType;
+	return (psType && psType->IsClass()) ? CPPVC_ClassPrvalue : CPPVC_Prvalue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The category of a call, a cast or an operator function's call: what its
+// type is declared to be.  T& is an lvalue, T&& an xvalue (of a function,
+// an lvalue), T a prvalue.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPValueCategory CCPP65TypeChecker::DeclaredCategory(CCPPSyntax* pcExpression)
+{
+	SCPPExpressionFacts*	psFacts;
+	SCPP65Type*				psDeclared;
+
+	psFacts = Facts(pcExpression);
+	psDeclared = psFacts->psDeclared;
+	if (psDeclared && psDeclared->IsReference())
+	{
+		return (psDeclared->bRvalue && !psDeclared->psBase->IsFunction()) ? CPPVC_Xvalue : CPPVC_Lvalue;
+	}
+	return (psFacts->psType && psFacts->psType->IsClass()) ? CPPVC_ClassPrvalue : CPPVC_Prvalue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an operator expression is an operator function's call: one of
+// its operands is an object.  [over.match.oper] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsOperatorCall(CCPPSyntax* pcExpression)
+{
+	switch (pcExpression->GetKind())
+	{
+	case CPPS_UnaryExpression:
+		return mpcUnit->IsObject(((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand);
+	case CPPS_BinaryExpression:
+		return mpcUnit->IsObject(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft) || mpcUnit->IsObject(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight);
+	case CPPS_SubscriptExpression:
+		return mpcUnit->IsObject(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcArray);
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The type of an expression's value: a reference's is what it refers to.  Arrays and
 // functions named are pointers to them (see Load).  ppsDeclared is given the type
 // before that: a reference where the expression is declared to give one (a call of a

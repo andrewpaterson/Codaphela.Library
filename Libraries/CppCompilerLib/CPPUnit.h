@@ -691,7 +691,6 @@ public:
 	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);
 	SCPP65Type*				BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode);
 	bool					InitializerListLayout(CCPPClass* pcClass, bool* pbEnd);
-	SCPP65Type*				CastClassType(CCPPSyntax* pcExpression);
 	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);
 	bool					IsRvalue(CCPPSyntax* pcExpression);

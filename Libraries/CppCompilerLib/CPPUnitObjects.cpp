@@ -64,48 +64,20 @@ CCPPSyntax* CCPPUnit::CommaResult(CCPPSyntax* pcExpression)
 // go (what a function returning T&& returns, a cast to T&&, a member of
 // either).  What has a name is an lvalue, a variable declared T&& too,
 // but for a local object where it is returned.  An rvalue binds to T&&
-// and not to T&; an lvalue to T& and not to T&&.  [basic.lval]
+// and not to T&; an lvalue to T& and not to T&&.  The expression's
+// category is the type checker's (CCPP65TypeChecker::Category).
+// [basic.lval], [class.copy] 32
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
 {
-	CCPPSyntaxMemberExpression*	pcMember;
-	CCPPBoundName				cBound;
-	SCPP65Type*					psType;
-
 	mpcStatistics->Count(CPPCC_IsRvalue);
 	pcExpression = CommaResult(pcExpression);
-	switch (pcExpression->GetKind())
+	if ((pcExpression->GetKind() == CPPS_IdExpression) && IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression))
 	{
-	case CPPS_StringExpression:
-		return false;
-	case CPPS_ConditionalExpression:
-		//One of two lvalues is an lvalue.  [expr.cond] 4
-		return ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) == NULL;
-	case CPPS_IdExpression:
-		return (PlaceOf(pcExpression) == NULL) || IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression);
-	case CPPS_MemberExpression:
-		//An rvalue object's field, unless the field is a reference: that, and a static member, are lvalues.  [expr.ref] 4
-		pcMember = (CCPPSyntaxMemberExpression*)pcExpression;
-		return !pcMember->mbArrow && IsRvalue(pcMember->mpcObject) && BindMemberOf(pcMember, &cBound) && (cBound.meWhat == CPPBN_Field) && !cBound.mpsField->psType->IsReference();
-	default:
-		break;
+		return true;
 	}
-
-	psType = DeclaredTypeOf(pcExpression);
-	if (!psType)
-	{
-		return false;
-	}
-	if (psType->IsReference())
-	{
-		return psType->bRvalue;
-	}
-	if (psType->IsClass())
-	{
-		return MakesObject(pcExpression) || (pcExpression->GetKind() == CPPS_ConstructExpression);
-	}
-	return PlaceOf(pcExpression) == NULL;
+	return mcTypeChecker.Category(pcExpression) != CPPVC_Lvalue;
 }
 
 
@@ -155,42 +127,15 @@ bool CCPPUnit::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if the expression is one that may make an object: a call, an operator with
-// an object operand (an operator call; *pointer and the rest are not), or c ? x : y
-// with object operands.
+// True if the expression makes an object: a class prvalue (a call, a
+// cast or an operator function's call that gives a class by value, a
+// construction, a lambda).  CCPP65TypeChecker::Category.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
 {
-	CCPPSyntaxBinaryExpression*			pcBinary;
-	CCPPSyntaxUnaryExpression*			pcUnary;
-	CCPPSyntaxConditionalExpression*	pcConditional;
-
 	mpcStatistics->Count(CPPCC_MakesObject);
-	switch (pcExpression->GetKind())
-	{
-	case CPPS_CallExpression:
-	case CPPS_LambdaExpression:
-		return true;
-	case CPPS_ConditionalExpression:
-		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
-		return IsObject(pcConditional->mpcTrue) || IsObject(pcConditional->mpcFalse);
-	case CPPS_BinaryExpression:
-		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		if (pcBinary->meOperator == CT_Comma)
-		{
-			return IsOverloadedComma(pcBinary);
-		}
-		return (pcBinary->meOperator != CT_Assignment) && (IsObject(pcBinary->mpcLeft) || IsObject(pcBinary->mpcRight));
-	case CPPS_UnaryExpression:
-		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		return IsObject(pcUnary->mpcOperand);
-	case CPPS_CastExpression:
-	case CPPS_NamedCastExpression:
-		return CastClassType(pcExpression) != NULL;
-	default:
-		return false;
-	}
+	return mcTypeChecker.Category(pcExpression) == CPPVC_ClassPrvalue;
 }
 
 
@@ -880,62 +825,18 @@ bool CCPPUnit::InitializerListLayout(CCPPClass* pcClass, bool* pbEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class a cast, (Class)x or static_cast<Class>(x), makes a temporary object of,
-// or NULL for any other expression.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::CastClassType(CCPPSyntax* pcExpression)
-{
-	CCPPSyntaxTypeId*	pcType;
-	SCPP65Type*			psType;
-
-	if (pcExpression->GetKind() == CPPS_CastExpression)
-	{
-		pcType = ((CCPPSyntaxCastExpression*)pcExpression)->mpcType;
-	}
-	else if (pcExpression->GetKind() == CPPS_NamedCastExpression)
-	{
-		pcType = ((CCPPSyntaxNamedCastExpression*)pcExpression)->mpcType;
-	}
-	else
-	{
-		return NULL;
-	}
-	mcDiagnostics.BeginQuiet();
-	psType = mcDeclarators.GetTypeIdType(pcType);
-	mcDiagnostics.EndQuiet();
-	return (psType && psType->IsClass()) ? psType : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // An expression of a class type that is an object where it is (named,
-// pointed at, indexed, or a reference to one), not one to be made.
+// pointed at, indexed, or a reference to one), not one to be made: an
+// lvalue or an xvalue (CCPP65TypeChecker::Category).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
 {
-	SCPP65Type*	psType;
+	ECPPValueCategory	eCategory;
 
 	mpcStatistics->Count(CPPCC_IsObjectLvalue);
-	pcExpression = SkipParentheses(pcExpression);
-	psType = DeclaredTypeOf(pcExpression);
-	if (psType && psType->IsReference())
-	{
-		return true;
-	}
-	switch (pcExpression->GetKind())
-	{
-	case CPPS_IdExpression:
-	case CPPS_MemberExpression:
-	case CPPS_SubscriptExpression:
-		return true;
-	case CPPS_UnaryExpression:
-		return ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator == CT_Multiply;
-	default:
-		return false;
-	}
+	eCategory = mcTypeChecker.Category(pcExpression);
+	return (eCategory == CPPVC_Lvalue) || (eCategory == CPPVC_Xvalue);
 }
 
 

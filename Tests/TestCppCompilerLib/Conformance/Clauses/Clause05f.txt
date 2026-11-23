@@ -1143,3 +1143,21 @@ int main()
 	if (O::siOwn == 1 && giSized == 3 && giPlain == 0) r += 8;
 	return r;
 }
+
+### ExprSubscriptByValueIsPrvalue | 2 | 5.2.1 [expr.sub] p1, 5.2.2 [expr.call] p11, 3.10 [basic.lval] p1: a[i] of an operator[] that returns a class by value is a prvalue, the object the call makes: it binds R&&, and f(R&&) is chosen over f(R&)
+struct R { int v; };
+struct B { R operator[](int i) { R r = { i }; return r; } };
+int f(R&) { return 1; }
+int f(R&&) { return 2; }
+int main() { B b; return f(b[3]); }
+
+### ExprConditionalOfLvaluesCopiesOnce | 0 | 5.16 [expr.cond] p4, 8.5 [dcl.init] p17: c ? a : b of two lvalues of a class is an lvalue, which initialises a variable of the class by its copy constructor, once
+int copies = 0;
+struct S { int v; S(int x) : v(x) {} S(const S& o) : v(o.v) { copies++; } };
+int main() { S a(1); S b(2); bool c = a.v == 1; S s = c ? a : b; a.v = 7; return (copies == 1 && s.v == 1) ? 0 : 10 + copies; }
+
+### ExprConditionalOfLvaluesIsLvalue | 15 | 5.16 [expr.cond] p4: c ? a : b of two lvalues of a class is an lvalue: it can be assigned to, and binds S&, so f(S&) is chosen over f(S&&)
+struct S { int v; };
+int f(S&) { return 1; }
+int f(S&&) { return 2; }
+int main() { S a = { 1 }; S b = { 2 }; bool c = a.v == 1; (c ? a : b).v = 5; return f(c ? a : b) * 10 + a.v; }

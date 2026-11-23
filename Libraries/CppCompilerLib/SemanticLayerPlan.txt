@@ -1146,3 +1146,18 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	IsObjectLvalue disagreed nowhere: the reading's (a, b) and c ? s1 : s2 never reach it.  The listings, with the
 	harness asking silently, were as they were.  Stopped here for the user, as planned: the switch (step 4) puts
 	1 and 2 right, which changes the code of such programs and none in the suites' (their listings show none).
+
+	Step 4 (2026-11-23, the user: "Yes, go ahead with step 4"): the switch.  CCPP65TypeChecker::Category is in
+	(step 3's, without the harness), and IsRvalue (an rvalue, or a local being returned), IsObjectLvalue (an
+	lvalue or an xvalue) and MakesObject (a class prvalue) read it, where each had its switch on the node's kind;
+	CastClassType, which only the old MakesObject asked, is gone.  Step 3's two wrong answers are right: f(b[3])
+	of an operator[] returning a class by value, and f(5_r) of a literal operator returning one, call f(R&&).
+	Four conformance cases say so: ExprSubscriptByValueIsPrvalue and OverRankLiteralByValueBindsRvalue (2, which
+	were 1), and ExprConditionalOfLvaluesCopiesOnce and ExprConditionalOfLvaluesIsLvalue (which held before, kept
+	for the conditional the old MakesObject took for an object).  TestCppCompilerLib passes (272,114); every
+	conformance case says what it said, and the four new ones nothing; the 4,213 listings are as they were (no
+	code of the suites' changed); the types phase is as it was; the IDE builds.
+	Not done in this step, as it was written: IsMadeObject, IsObject, ObjectClass and PlaceOf stay the unit's
+	(IsObject reads the type, PlaceOf the record's place, IsMadeObject MakesObject): they go to the type checker
+	with TypeOf's ways in (step 6), whose call sites are rewritten together; and PlaceType's and the front end's
+	Place's switches don't yet ask the record whether there is a place.

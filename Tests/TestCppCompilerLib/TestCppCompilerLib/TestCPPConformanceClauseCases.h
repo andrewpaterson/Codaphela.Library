@@ -8980,6 +8980,30 @@ static const SConformanceCase gasConformanceClause5[] =
 		"	return r;\n"
 		"}\n"
 	},
+	//5.2.1 [expr.sub] p1, 5.2.2 [expr.call] p11, 3.10 [basic.lval] p1: a[i] of an operator[] that returns a class by value is a prvalue, the object the call makes: it binds R&&, and f(R&&) is chosen over f(R&)
+	{
+		"ExprSubscriptByValueIsPrvalue", 2,
+		"struct R { int v; };\n"
+		"struct B { R operator[](int i) { R r = { i }; return r; } };\n"
+		"int f(R&) { return 1; }\n"
+		"int f(R&&) { return 2; }\n"
+		"int main() { B b; return f(b[3]); }\n"
+	},
+	//5.16 [expr.cond] p4, 8.5 [dcl.init] p17: c ? a : b of two lvalues of a class is an lvalue, which initialises a variable of the class by its copy constructor, once
+	{
+		"ExprConditionalOfLvaluesCopiesOnce", 0,
+		"int copies = 0;\n"
+		"struct S { int v; S(int x) : v(x) {} S(const S& o) : v(o.v) { copies++; } };\n"
+		"int main() { S a(1); S b(2); bool c = a.v == 1; S s = c ? a : b; a.v = 7; return (copies == 1 && s.v == 1) ? 0 : 10 + copies; }\n"
+	},
+	//5.16 [expr.cond] p4: c ? a : b of two lvalues of a class is an lvalue: it can be assigned to, and binds S&, so f(S&) is chosen over f(S&&)
+	{
+		"ExprConditionalOfLvaluesIsLvalue", 15,
+		"struct S { int v; };\n"
+		"int f(S&) { return 1; }\n"
+		"int f(S&&) { return 2; }\n"
+		"int main() { S a = { 1 }; S b = { 2 }; bool c = a.v == 1; (c ? a : b).v = 5; return f(c ? a : b) * 10 + a.v; }\n"
+	},
 };
 
 
@@ -16098,6 +16122,15 @@ static const SConformanceCase gasConformanceClause13[] =
 		"	if ((s = t).v == 10) r += 2;\n"
 		"	return r;\n"
 		"}\n"
+	},
+	//13.3.3.2 [over.ics.rank] p3, 2.13.8 [lex.ext] p2: a user-defined literal of a literal operator returning a class by value is a prvalue: it binds R&&, and f(R&&) is chosen over f(R&)
+	{
+		"OverRankLiteralByValueBindsRvalue", 2,
+		"struct R { unsigned long long v; };\n"
+		"R operator\"\"_r(unsigned long long v) { R r = { v }; return r; }\n"
+		"int f(R&) { return 1; }\n"
+		"int f(R&&) { return 2; }\n"
+		"int main() { return f(5_r); }\n"
 	},
 };
 

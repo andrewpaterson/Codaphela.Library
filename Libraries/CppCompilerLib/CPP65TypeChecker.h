@@ -35,6 +35,17 @@ class CCPPTemplateArguments;
 class CCPPErrors;
 
 
+//What an expression is ([basic.lval]): an lvalue (a place that stays), an xvalue (a place about to go), or a
+//prvalue (a value), a class's being the object it makes.
+enum ECPPValueCategory
+{
+	CPPVC_Lvalue,
+	CPPVC_Xvalue,
+	CPPVC_Prvalue,
+	CPPVC_ClassPrvalue,
+};
+
+
 //What is known of an expression (CCPP65TypeChecker::Facts), worked out once for the bindings and the function it is
 //worked out in, each part when it is first asked for: its type, the type it is declared to give, and what was said
 //working them out; and the type of its place where it is evaluated.  SemanticLayerPlan.txt stage 15e: its category
@@ -49,6 +60,8 @@ struct SCPPExpressionFacts
 	CCPPErrors*				pcErrors;		//What was said working it out (NULL for nothing), which ReportTypeOf says: the diagnostics' to free.
 	bool					bPlaced;		//psPlace is known.
 	SCPP65Type*				psPlace;		//Its place's type (Place), NULL for an expression that has none.
+	bool					bCategorised;	//eCategory is known.
+	ECPPValueCategory		eCategory;
 };
 
 
@@ -70,6 +83,9 @@ protected:
 	CMapCPPExpressionFacts	mcFacts;	//What is known of each expression, by its node (Facts).
 
 	SCPPExpressionFacts*	FactsEntry(CCPPSyntax* pcExpression);
+	ECPPValueCategory	WorkOutCategory(CCPPSyntax* pcExpression);
+	ECPPValueCategory	DeclaredCategory(CCPPSyntax* pcExpression);
+	bool				IsOperatorCall(CCPPSyntax* pcExpression);
 	SCPP65Type*			mpsResult;		//What the Visit function of the expression Result was asked for found.
 
 public:
@@ -105,6 +121,7 @@ public:
 
 	SCPPExpressionFacts*	Facts(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceFact(CCPPSyntax* pcExpression);
+	ECPPValueCategory	Category(CCPPSyntax* pcExpression);
 	SCPP65Type*		Value(CCPPSyntax* pcExpression, SCPP65Type** ppsDeclared = NULL);
 	SCPP65Type*		ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
 	SCPP65Type*		Place(CCPPSyntax* pcExpression);
