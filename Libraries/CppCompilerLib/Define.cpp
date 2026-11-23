@@ -44,7 +44,6 @@ void CDefine::Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap)
 	miLine = -1;
 	miColumn = -1;
 	muiContentHash = 0;
-	muiNameHash = 0;
 	macBody.Init();
 	mbBodyConverted = false;
 }
@@ -101,26 +100,6 @@ CSourceFile* CDefine::GetFile(void) const
 size CDefine::GetNameLength(void) const
 {
 	return mszName.Length();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 CDefine::GetNameHash(void) const
-{
-	return muiNameHash;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefine::SetNameHash(uint32 uiHash)
-{
-	muiNameHash = uiHash;
 }
 
 

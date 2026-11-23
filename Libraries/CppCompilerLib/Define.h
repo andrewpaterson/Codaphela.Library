@@ -48,7 +48,6 @@ protected:
 	int32			miLine;			//The #define's line and column in mpcFile.
 	int32			miColumn;
 	uint64			muiContentHash;	//Of the arguments and replacement (ContentHash), 0 until asked.
-	uint32			muiNameHash;	//CDefineMap's.
 	CArrayPreprocessedTokens	macBody;		//The replacement as preprocessed tokens, made when first expanded.
 	bool			mbBodyConverted;
 
@@ -60,8 +59,6 @@ public:
 	void 			AddReplacementToken(CPPToken* pcToken);
 	const char*		GetName(void) const;
 	size			GetNameLength(void) const;
-	uint32			GetNameHash(void) const;
-	void			SetNameHash(uint32 uiHash);
 	int64			GetID(void) const;
 	bool			IsBracketed(void) const;
 	bool			IsVariadic(void) const;

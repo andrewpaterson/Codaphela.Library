@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "SourceFile.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbolTable.h"
@@ -89,25 +90,12 @@ static bool CPPSyntaxBlockPosition(CCPPSyntaxTree* pcTree, CCPPSymbol* pcSymbol,
 }
 
 
-//Keys (addresses, or names + 1: never 0) and their 16 bit values, by open addressing: what the writer looks up for
-//every field, which a sorted map made slow for big declarations.
-class CCPPSyntaxBlockIndex
+//Keys (addresses, or names + 1) and their 16 bit values: what the writer looks up for every field, which a sorted map
+//made slow for big declarations.
+class CCPPSyntaxBlockIndex : public CHashMapPrimitiveTemplate<uint64, uint16>
 {
-protected:
-	uint64*		mauiKeys;
-	uint16*		mauiValues;
-	size		muiCapacity;	//A power of 2, or 0.
-	size		muiUsed;
-
 public:
-	void	Init(void);
-	void	Kill(void);
-	uint16*	Get(uint64 uiKey);
-	void	Put(uint64 uiKey, uint16 uiValue);
-
-protected:
-	size	Slot(uint64 uiKey);
-	void	Grow(void);
+	void	Put(uint64 uiKey, uint16 uiValue)	{ *CHashMapPrimitiveTemplate<uint64, uint16>::Put(uiKey) = uiValue; }
 };
 
 
@@ -219,123 +207,6 @@ public:
 	void	TokenField(int32* piToken) override				{ mpcWriting->U16(mpcWriting->Token(*piToken)); }
 	void	ValueField(void* pvValue, size uiSize) override	{ mpcWriting->Bytes(pvValue, uiSize); }
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxBlockIndex::Init(void)
-{
-	mauiKeys = NULL;
-	mauiValues = NULL;
-	muiCapacity = 0;
-	muiUsed = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxBlockIndex::Kill(void)
-{
-	free(mauiKeys);
-	free(mauiValues);
-	Init();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Where uiKey is, or the empty slot it would go in (the capacity isn't 0).
-//
-//////////////////////////////////////////////////////////////////////////
-size CCPPSyntaxBlockIndex::Slot(uint64 uiKey)
-{
-	size	uiSlot;
-
-	uiSlot = (size)((uiKey * 0x9E3779B97F4A7C15ULL) >> 32) & (muiCapacity - 1);
-	while ((mauiKeys[uiSlot] != 0) && (mauiKeys[uiSlot] != uiKey))
-	{
-		uiSlot = (uiSlot + 1) & (muiCapacity - 1);
-	}
-	return uiSlot;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// uiKey's value, or NULL if it hasn't one.
-//
-//////////////////////////////////////////////////////////////////////////
-uint16* CCPPSyntaxBlockIndex::Get(uint64 uiKey)
-{
-	size	uiSlot;
-
-	if (muiCapacity == 0)
-	{
-		return NULL;
-	}
-	uiSlot = Slot(uiKey);
-	return (mauiKeys[uiSlot] == uiKey) ? &mauiValues[uiSlot] : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// uiKey's value is uiValue.  The table is kept at most half full.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxBlockIndex::Put(uint64 uiKey, uint16 uiValue)
-{
-	size	uiSlot;
-
-	if ((muiUsed + 1) * 2 > muiCapacity)
-	{
-		Grow();
-	}
-	uiSlot = Slot(uiKey);
-	if (mauiKeys[uiSlot] == 0)
-	{
-		mauiKeys[uiSlot] = uiKey;
-		muiUsed++;
-	}
-	mauiValues[uiSlot] = uiValue;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Twice the capacity (64 at first), the keys put again.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPSyntaxBlockIndex::Grow(void)
-{
-	uint64*		auiKeys;
-	uint16*		auiValues;
-	size		uiCapacity;
-	size		uiSlot;
-	size		i;
-
-	auiKeys = mauiKeys;
-	auiValues = mauiValues;
-	uiCapacity = muiCapacity;
-	muiCapacity = (uiCapacity == 0) ? 64 : uiCapacity * 2;
-	mauiKeys = (uint64*)calloc(muiCapacity, sizeof(uint64));
-	mauiValues = (uint16*)malloc(muiCapacity * sizeof(uint16));
-	for (i = 0; i < uiCapacity; i++)
-	{
-		if (auiKeys[i] != 0)
-		{
-			uiSlot = Slot(auiKeys[i]);
-			mauiKeys[uiSlot] = auiKeys[i];
-			mauiValues[uiSlot] = auiValues[i];
-		}
-	}
-	free(auiKeys);
-	free(auiValues);
-}
 
 
 //////////////////////////////////////////////////////////////////////////

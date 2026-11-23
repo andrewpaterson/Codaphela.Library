@@ -20,21 +20,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "ASCIIIndex.h"
-#include "BaseLib/FNVHash.h"
 
 
-#define ASCII_INDEX_FIRST_TABLE		256
 #define ASCII_INDEX_CHUNK			(16 KB)
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-char* SASCIIIndexName::Text(void)
-{
-	return (char*)&this[1];
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,16 +31,7 @@ char* SASCIIIndexName::Text(void)
 //////////////////////////////////////////////////////////////////////////
 void CASCIIIndex::Init(void)
 {
-	lsize	ui;
-
-	mcNames.Init(ASCII_INDEX_CHUNK);
-	mapsNames.Init();
-	maiTable.Init();
-	maiTable.Resize(ASCII_INDEX_FIRST_TABLE);
-	for (ui = 0; ui < ASCII_INDEX_FIRST_TABLE; ui++)
-	{
-		*maiTable.Get(ui) = -1;
-	}
+	mcNames.Init(&gcSystemAllocator, ASCII_INDEX_CHUNK);
 }
 
 
@@ -62,47 +41,25 @@ void CASCIIIndex::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CASCIIIndex::Kill(void)
 {
-	maiTable.Kill();
-	mapsNames.Kill();
 	mcNames.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The new name's ID, or -1 if it is already in the index.
+// The new name's ID, or -1 if it is in already.
 //
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIIIndex::Add(const char* sz, const char* szLastCharInclusive)
 {
-	int					iLength;
-	uint32				uiHash;
-	lsize				uiSlot;
-	lsize				uiID;
-	SASCIIIndexName*	psName;
+	bool	bAdded;
 
-	iLength = Length(sz, szLastCharInclusive);
-	uiHash = Hash(sz, iLength);
-	uiSlot = Find(sz, iLength, uiHash);
-	if (*maiTable.Get(uiSlot) != -1)
+	mcNames.FindOrAdd(sz, (size)Length(sz, szLastCharInclusive), &bAdded);
+	if (!bAdded)
 	{
 		return -1;
 	}
-
-	psName = (SASCIIIndexName*)mcNames.Add(sizeof(SASCIIIndexName) + iLength + 1);
-	psName->uiHash = uiHash;
-	psName->iLength = iLength;
-	memcpy(psName->Text(), sz, iLength);
-	psName->Text()[iLength] = '\0';
-
-	uiID = mapsNames.NumElements();
-	mapsNames.Add(&psName);
-	*maiTable.Get(uiSlot) = (int32)uiID;
-	if (mapsNames.NumElements() * 2 > maiTable.NumElements())
-	{
-		Grow();
-	}
-	return (int64)uiID;
+	return (int64)mcNames.NumElements() - 1;
 }
 
 
@@ -112,7 +69,7 @@ int64 CASCIIIndex::Add(const char* sz, const char* szLastCharInclusive)
 //////////////////////////////////////////////////////////////////////////
 int CASCIIIndex::NumElements(void) const
 {
-	return (int)mapsNames.NumElements();
+	return (int)mcNames.NumElements();
 }
 
 
@@ -122,15 +79,12 @@ int CASCIIIndex::NumElements(void) const
 //////////////////////////////////////////////////////////////////////////
 char* CASCIIIndex::Get(int64 lliID, int* piLength)
 {
-	SASCIIIndexName*	psName;
-
-	if ((lliID < 0) || (lliID >= (int64)mapsNames.NumElements()))
+	if ((lliID < 0) || (lliID >= (int64)mcNames.NumElements()))
 	{
 		return NULL;
 	}
-	psName = *mapsNames.Get((lsize)lliID);
-	SafeAssign(piLength, (int)psName->iLength);
-	return psName->Text();
+	SafeAssign(piLength, (int)mcNames.GetKeyLength((lsize)lliID));
+	return (char*)mcNames.GetKey((lsize)lliID);
 }
 
 
@@ -141,81 +95,10 @@ char* CASCIIIndex::Get(int64 lliID, int* piLength)
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIIIndex::Get(const char* szText, const char* szLastCharInclusive)
 {
-	int		iLength;
-	int32	iID;
+	lsize	uiIndex;
 
-	iLength = Length(szText, szLastCharInclusive);
-	iID = *maiTable.Get(Find(szText, iLength, Hash(szText, iLength)));
-	return (int64)iID;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The slot with the name, or the empty slot it would go in.
-//
-//////////////////////////////////////////////////////////////////////////
-lsize CASCIIIndex::Find(const char* sz, int iLength, uint32 uiHash)
-{
-	lsize				uiMask;
-	lsize				uiSlot;
-	int32				iID;
-	SASCIIIndexName*	psName;
-
-	uiMask = maiTable.NumElements() - 1;
-	uiSlot = (lsize)uiHash & uiMask;
-	for (;;)
-	{
-		iID = *maiTable.Get(uiSlot);
-		if (iID == -1)
-		{
-			return uiSlot;
-		}
-		psName = *mapsNames.Get((lsize)iID);
-		if ((psName->uiHash == uiHash) && (psName->iLength == iLength) && (memcmp(psName->Text(), sz, iLength) == 0))
-		{
-			return uiSlot;
-		}
-		uiSlot = (uiSlot + 1) & uiMask;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Doubles the table and puts every name back in it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CASCIIIndex::Grow(void)
-{
-	lsize				uiLength;
-	lsize				ui;
-	lsize				uiSlot;
-	SASCIIIndexName*	psName;
-
-	uiLength = maiTable.NumElements() * 2;
-	maiTable.Resize(uiLength);
-	for (ui = 0; ui < uiLength; ui++)
-	{
-		*maiTable.Get(ui) = -1;
-	}
-	for (ui = 0; ui < mapsNames.NumElements(); ui++)
-	{
-		psName = *mapsNames.Get(ui);
-		uiSlot = Find(psName->Text(), psName->iLength, psName->uiHash);
-		*maiTable.Get(uiSlot) = (int32)ui;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// FNV-1a.
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 CASCIIIndex::Hash(const char* sz, int iLength)
-{
-	return FNVHash32(sz, (size)iLength);
+	uiIndex = mcNames.Find(szText, (size)Length(szText, szLastCharInclusive));
+	return (uiIndex == SArrayLargeSize::NotFound) ? -1 : (int64)uiIndex;
 }
 
 

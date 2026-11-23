@@ -23,19 +23,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/FNVHash.h"
 
 
-#define DEFINE_MAP_FIRST_CAPACITY	256
 #define DEFINE_MAP_CHUNK			(16 KB)
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDefineMap::Init(void)
 {
-	mapcTable = NULL;
-	muiCapacity = 0;
-	muiDefines = 0;
+	mcDefinesByName.Init();
 	mlliNextID = 0;
 	mcDefines.Init(DEFINE_MAP_CHUNK);
 }
@@ -50,60 +43,12 @@ void CDefineMap::Kill(void)
 {
 	size	i;
 
-	for (i = 0; i < muiCapacity; i++)
+	for (i = 0; i < mcDefinesByName.NumElements(); i++)
 	{
-		if (mapcTable[i])
-		{
-			mapcTable[i]->Kill();
-		}
+		(*mcDefinesByName.GetValue(i))->Kill();
 	}
-	if (mapcTable)
-	{
-		free(mapcTable);
-	}
-	mapcTable = NULL;
-	muiCapacity = 0;
-	muiDefines = 0;
+	mcDefinesByName.Kill();
 	mcDefines.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// FNV-1a.
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 CDefineMap::Hash(const char* szName, size uiLength)
-{
-	return FNVHash32(szName, uiLength);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The slot holding the define named szName, or the empty slot where it
-// would go.  The table mustn't be full.
-//
-//////////////////////////////////////////////////////////////////////////
-size CDefineMap::Find(const char* szName, size uiLength, uint32 uiHash)
-{
-	size		uiMask;
-	size		i;
-	CDefine*	pcDefine;
-
-	uiMask = muiCapacity - 1;
-	for (i = uiHash & uiMask;; i = (i + 1) & uiMask)
-	{
-		pcDefine = mapcTable[i];
-		if (!pcDefine)
-		{
-			return i;
-		}
-		if ((pcDefine->GetNameHash() == uiHash) && (pcDefine->GetNameLength() == uiLength) && (memcmp(pcDefine->GetName(), szName, uiLength) == 0))
-		{
-			return i;
-		}
-	}
 }
 
 
@@ -113,47 +58,12 @@ size CDefineMap::Find(const char* szName, size uiLength, uint32 uiHash)
 //////////////////////////////////////////////////////////////////////////
 CDefine* CDefineMap::GetExact(const char* szName, size uiLength)
 {
-	if (muiDefines == 0)
-	{
-		return NULL;
-	}
-	return mapcTable[Find(szName, uiLength, Hash(szName, uiLength))];
-}
+	SHashText	sName;
+	CDefine**	ppcDefine;
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The table twice as long (or its first), the defines put in again.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDefineMap::Grow(void)
-{
-	CDefine**	apcOld;
-	size		uiOldCapacity;
-	size		i;
-	size		uiMask;
-	size		j;
-
-	apcOld = mapcTable;
-	uiOldCapacity = muiCapacity;
-	muiCapacity = (muiCapacity == 0) ? DEFINE_MAP_FIRST_CAPACITY : muiCapacity * 2;
-	mapcTable = (CDefine**)malloc(muiCapacity * sizeof(CDefine*));
-	memset(mapcTable, 0, muiCapacity * sizeof(CDefine*));
-	uiMask = muiCapacity - 1;
-	for (i = 0; i < uiOldCapacity; i++)
-	{
-		if (apcOld[i])
-		{
-			for (j = apcOld[i]->GetNameHash() & uiMask; mapcTable[j] != NULL; j = (j + 1) & uiMask)
-			{
-			}
-			mapcTable[j] = apcOld[i];
-		}
-	}
-	if (apcOld)
-	{
-		free(apcOld);
-	}
+	sName.Init(szName, uiLength);
+	ppcDefine = mcDefinesByName.Get(&sName);
+	return ppcDefine ? *ppcDefine : NULL;
 }
 
 
@@ -166,26 +76,19 @@ void CDefineMap::Grow(void)
 CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 {
 	CDefine*	pcDefine;
-	uint32		uiHash;
-	size		uiSlot;
+	SHashText	sName;
 
-	if ((muiDefines + 1) * 2 > muiCapacity)
-	{
-		Grow();
-	}
-	uiHash = Hash(pcName->msz, pcName->miLen);
-	uiSlot = Find(pcName->msz, pcName->miLen, uiHash);
-	if (mapcTable[uiSlot])
+	if (GetExact(pcName->msz, pcName->miLen))
 	{
 		return NULL;
 	}
-
 	pcDefine = (CDefine*)mcDefines.Add(sizeof(CDefine));
 	pcDefine->Init(pcName, mlliNextID, this);
-	pcDefine->SetNameHash(uiHash);
 	mlliNextID++;
-	mapcTable[uiSlot] = pcDefine;
-	muiDefines++;
+
+	//Keyed by the define's own copy of its name, which lasts as long as it is in the map.
+	sName.Init(pcDefine->GetName(), pcDefine->GetNameLength());
+	mcDefinesByName.Put(&sName, &pcDefine);
 	return pcDefine;
 }
 
@@ -231,43 +134,24 @@ CDefine* CDefineMap::Get(const char* szName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Kills and removes the define called pcName, if there is one.  The
-// defines after it in the table move back into the gap.
+// Kills and removes the define called pcName, if there is one.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::Remove(CExternalString* pcName)
 {
-	size		uiMask;
-	size		i;
-	size		j;
-	size		uiHome;
+	SHashText	sName;
+	size		uiIndex;
 	CDefine*	pcDefine;
 
-	if (muiDefines == 0)
+	sName.Init(pcName->msz, pcName->miLen);
+	uiIndex = mcDefinesByName.Find(&sName);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return;
 	}
-	i = Find(pcName->msz, pcName->miLen, Hash(pcName->msz, pcName->miLen));
-	pcDefine = mapcTable[i];
-	if (!pcDefine)
-	{
-		return;
-	}
+	pcDefine = *mcDefinesByName.GetValue(uiIndex);
+	mcDefinesByName.RemoveAt(uiIndex);
 	pcDefine->Kill();
-	muiDefines--;
-
-	uiMask = muiCapacity - 1;
-	for (j = (i + 1) & uiMask; mapcTable[j] != NULL; j = (j + 1) & uiMask)
-	{
-		//A define stays where it is if its home slot is cyclically after the gap and at or before it.
-		uiHome = mapcTable[j]->GetNameHash() & uiMask;
-		if (((j > i) && ((uiHome <= i) || (uiHome > j))) || ((j < i) && ((uiHome <= i) && (uiHome > j))))
-		{
-			mapcTable[i] = mapcTable[j];
-			i = j;
-		}
-	}
-	mapcTable[i] = NULL;
 }
 
 
@@ -290,7 +174,7 @@ void CDefineMap::Remove(char* szName)
 //////////////////////////////////////////////////////////////////////////
 size CDefineMap::NumDefines(void) const
 {
-	return muiDefines;
+	return mcDefinesByName.NumElements();
 }
 
 
@@ -307,21 +191,18 @@ void CDefineMap::Dump(void)
 	size		j;
 	CDefine*	pcDefine;
 
-	apcDefines = (CDefine**)malloc((muiDefines + 1) * sizeof(CDefine*));
+	apcDefines = (CDefine**)malloc((mcDefinesByName.NumElements() + 1) * sizeof(CDefine*));
 	uiNum = 0;
-	for (i = 0; i < muiCapacity; i++)
+	for (i = 0; i < mcDefinesByName.NumElements(); i++)
 	{
-		if (mapcTable[i])
+		//Insertion sort: dumping is for debugging.
+		pcDefine = *mcDefinesByName.GetValue(i);
+		for (j = uiNum; (j > 0) && (strcmp(apcDefines[j - 1]->GetName(), pcDefine->GetName()) > 0); j--)
 		{
-			//Insertion sort: dumping is for debugging.
-			pcDefine = mapcTable[i];
-			for (j = uiNum; (j > 0) && (strcmp(apcDefines[j - 1]->GetName(), pcDefine->GetName()) > 0); j--)
-			{
-				apcDefines[j] = apcDefines[j - 1];
-			}
-			apcDefines[j] = pcDefine;
-			uiNum++;
+			apcDefines[j] = apcDefines[j - 1];
 		}
+		apcDefines[j] = pcDefine;
+		uiNum++;
 	}
 	for (i = 0; i < uiNum; i++)
 	{

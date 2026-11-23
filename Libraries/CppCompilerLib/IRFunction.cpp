@@ -53,8 +53,7 @@ void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes
 	maszTemporaryNames.Init();
 	mpmTemporaryNames = NULL;
 
-	masConstants.Init();
-	mauiConstantHash.Init();
+	mcConstants.Init();
 
 	mapcBlocks.Init();
 	mpmBlockNames = NULL;
@@ -78,8 +77,7 @@ void CIRFunction::Kill(void)
 	SafeKill(mpmBlockNames);
 	mapcBlocks.Kill();
 
-	mauiConstantHash.Kill();
-	masConstants.Kill();
+	mcConstants.Kill();
 
 	SafeKill(mpmTemporaryNames);
 	maszTemporaryNames.Kill();
@@ -149,9 +147,9 @@ void CIRFunction::CopyBody(CIRFunction* pcSource)
 		masParameters.Add(pcSource->masParameters.Get(ui));
 	}
 	muiRestrictParameters = pcSource->muiRestrictParameters;
-	for (ui = 0; ui < pcSource->masConstants.NumElements(); ui++)
+	for (ui = 0; ui < pcSource->mcConstants.NumElements(); ui++)
 	{
-		psConstant = pcSource->masConstants.Get(ui);
+		psConstant = pcSource->mcConstants.GetKey(ui);
 		AddConstant(psConstant->sType, psConstant->ulliBits);
 	}
 
@@ -380,95 +378,17 @@ char* CIRFunction::GetTemporaryName(SIRReference sTemporary)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-uint32 CIRFunction::HashConstant(SIRType sType, uint64 ulliBits)
-{
-	uint64	ulliHash;
-
-	ulliHash = (ulliBits ^ ((uint64)sType.uiKind << 56) ^ ((uint64)sType.uiSpace << 48)) * 0x9E3779B97F4A7C15ull;
-	return (uint32)(ulliHash >> 32);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Doubles the hash table (at least 16 entries) and puts every constant back.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRFunction::GrowConstantHash(void)
-{
-	size			uiSize;
-	size			ui;
-	uint32			uiMask;
-	uint32			uiSlot;
-	SIRConstant*	psConstant;
-	uint32			uiEntry;
-
-	uiSize = mauiConstantHash.NumElements() * 2;
-	if (uiSize < 16)
-	{
-		uiSize = 16;
-	}
-	mauiConstantHash.ReInit();
-	mauiConstantHash.GrowToAtLeastNumElements(uiSize, true, 0);
-	uiMask = (uint32)uiSize - 1;
-	for (ui = 0; ui < masConstants.NumElements(); ui++)
-	{
-		psConstant = masConstants.Get(ui);
-		uiSlot = HashConstant(psConstant->sType, psConstant->ulliBits) & uiMask;
-		while (*mauiConstantHash.Get(uiSlot) != 0)
-		{
-			uiSlot = (uiSlot + 1) & uiMask;
-		}
-		uiEntry = (uint32)ui + 1;
-		mauiConstantHash.Set(uiSlot, &uiEntry);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The function's constant of sType with these bits, added if it is new.
 // Integers are truncated to their width.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CIRFunction::AddConstant(SIRType sType, uint64 ulliBits)
 {
-	SIRConstant*	psConstant;
-	uint32			uiMask;
-	uint32			uiSlot;
-	uint32			uiEntry;
+	SIRConstant	sConstant;
 
-	ulliBits = IRTruncate(sType, ulliBits);
-	if ((masConstants.NumElements() + 1) * 2 > mauiConstantHash.NumElements())
-	{
-		GrowConstantHash();
-	}
-
-	uiMask = (uint32)mauiConstantHash.NumElements() - 1;
-	uiSlot = HashConstant(sType, ulliBits) & uiMask;
-	for (;;)
-	{
-		uiEntry = *mauiConstantHash.Get(uiSlot);
-		if (uiEntry == 0)
-		{
-			break;
-		}
-		psConstant = masConstants.Get(uiEntry - 1);
-		if (psConstant->sType.Equals(sType) && (psConstant->ulliBits == ulliBits))
-		{
-			return IRReference(IRRK_Constant, uiEntry - 1);
-		}
-		uiSlot = (uiSlot + 1) & uiMask;
-	}
-
-	uiEntry = (uint32)masConstants.NumElements() + 1;
-	mauiConstantHash.Set(uiSlot, &uiEntry);
-	psConstant = masConstants.Add();
-	psConstant->sType = sType;
-	psConstant->ulliBits = ulliBits;
-	return IRReference(IRRK_Constant, uiEntry - 1);
+	sConstant.sType = sType;
+	sConstant.ulliBits = IRTruncate(sType, ulliBits);
+	return IRReference(IRRK_Constant, (uint32)mcConstants.FindOrAddIndex(&sConstant));
 }
 
 
@@ -514,7 +434,7 @@ SIRReference CIRFunction::AddDouble(double fValue)
 //////////////////////////////////////////////////////////////////////////
 SIRConstant* CIRFunction::GetConstant(SIRReference sConstant)
 {
-	return masConstants.Get(sConstant.Index());
+	return mcConstants.GetKey(sConstant.Index());
 }
 
 

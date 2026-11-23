@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/MapStringInt.h"
 #include "BaseLib/MapStringTemplate.h"
+#include "BaseLib/HashSetTemplate.h"
 #include "IRBlock.h"
 
 
@@ -64,7 +65,35 @@ struct SIRConstant
 
 
 typedef CArrayTemplate<SIRTemporary>		CArrayIRTemporaries;
-typedef CArrayTemplate<SIRConstant>			CArrayIRConstants;
+//A constant's HASH: its type's kind and space and its bits.
+struct SHashOfIRConstant
+{
+	static uint32 Hash(const SIRConstant* psConstant)
+	{
+		uint64	ulliHash;
+
+		ulliHash = (psConstant->ulliBits ^ ((uint64)psConstant->sType.uiKind << 56) ^ ((uint64)psConstant->sType.uiSpace << 48)) * 0x9E3779B97F4A7C15ull;
+		return (uint32)(ulliHash >> 32);
+	}
+
+	static HashEquals Equals(void)
+	{
+		return &SHashOfIRConstant::ConstantsEqual;
+	}
+
+	static bool ConstantsEqual(const void* pvKey, const void* pvEntryKey)
+	{
+		const SIRConstant*	ps1;
+		const SIRConstant*	ps2;
+
+		ps1 = (const SIRConstant*)pvKey;
+		ps2 = (const SIRConstant*)pvEntryKey;
+		return (ps1->sType.uiKind == ps2->sType.uiKind) && (ps1->sType.uiSpace == ps2->sType.uiSpace) && (ps1->ulliBits == ps2->ulliBits);
+	}
+};
+
+
+typedef CHashSetTemplate<SIRConstant, SHashOfIRConstant>	CIRConstants;
 typedef CArrayTemplate<SIRReference>		CArrayIRReferences;
 typedef CMapStringTemplate<CIRBlock*>		CMapIRBlocks;
 
@@ -115,8 +144,7 @@ public:
 	CArrayChars			maszTemporaryNames;
 	CMapStringInt*		mpmTemporaryNames;
 
-	CArrayIRConstants	masConstants;
-	CArrayTemplate<uint32>	mauiConstantHash;		//1 + a constant's index, 0 for an empty entry.
+	CIRConstants		mcConstants;		//In the order added: a constant's index is its reference's.
 
 	CArrayIRBlocks		mapcBlocks;
 	CMapIRBlocks*		mpmBlockNames;
@@ -176,8 +204,6 @@ public:
 protected:
 	bool			IsName(const char* szName);
 	void			UniqueName(const char* szName, CMapStringBlock* pmNames, CChars* pszDest);
-	uint32			HashConstant(SIRType sType, uint64 ulliBits);
-	void			GrowConstantHash(void);
 };
 
 

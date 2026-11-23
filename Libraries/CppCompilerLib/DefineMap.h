@@ -22,18 +22,18 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __DEFINE_MAP_H__
 #include "BaseLib/ExternalString.h"
 #include "BaseLib/MemoryStackExtended.h"
+#include "BaseLib/HashMapTemplate.h"
+#include "BaseLib/HashText.h"
 #include "Define.h"
 
 
-//The macros defined, by name: a hash table (open addressed, linear probing) of defines kept in chunks.  A define's ID
+//The macros defined, by name: a hash map (keyed by a view of each define's own name) of defines kept in chunks.  A define's ID
 //is new each time a name is defined (an #undef'd and redefined macro is another).  An #undef'd define is killed; its
 //memory is freed with the map.
 class CDefineMap
 {
 protected:
-	CDefine**				mapcTable;		//NULL for an empty slot.  Its length is a power of two (or 0).
-	size					muiCapacity;
-	size					muiDefines;
+	CHashMapTemplate<SHashText, CDefine*, SHashOfText>	mcDefinesByName;
 	int64					mlliNextID;
 	CMemoryStackExtended	mcDefines;
 
@@ -50,12 +50,9 @@ public:
 	size		NumDefines(void) const;
 	void		Dump(void);
 
-	static uint32	Hash(const char* szName, size uiLength);
 
 protected:
-	size		Find(const char* szName, size uiLength, uint32 uiHash);
 	CDefine*	GetExact(const char* szName, size uiLength);
-	void		Grow(void);
 };
 
 

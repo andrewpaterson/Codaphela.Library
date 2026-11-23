@@ -20,23 +20,15 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __NAME_SET_H__
 #define __NAME_SET_H__
-#include "BaseLib/PrimitiveTypes.h"
+#include "BaseLib/HashSetTemplate.h"
+#include "BaseLib/HashText.h"
 
 
-struct SNameSetName
-{
-	const char*		szName;			//Not NULL terminated.
-	uint32			uiLength;
-};
-
-
-//Names, by their text: a small open addressed hash set.  It doesn't own the text.
+//Names, by their text: a hash set.  It doesn't own the text.
 class CNameSet
 {
 protected:
-	SNameSetName*	masNames;
-	size			muiCapacity;	//A power of two.
-	size			muiNames;
+	CHashSetTemplate<SHashText, SHashOfText>	mcNames;
 
 public:
 	void			Init(void);
@@ -44,11 +36,7 @@ public:
 	bool			Contains(const char* szName, size uiLength);
 	bool			Add(const char* szName, size uiLength);		//False if it was already in.
 	size			NumNames(void) const;
-
 	static uint64	Hash(const char* szName, size uiLength);
-
-protected:
-	void			Grow(void);
 };
 
 

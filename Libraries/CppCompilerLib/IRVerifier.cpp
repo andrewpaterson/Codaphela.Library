@@ -193,7 +193,7 @@ bool CIRVerifier::CheckReference(SIRReference sReference)
 	case IRRK_Temporary:
 		return sReference.Index() < mpcFunction->NumTemporaries();
 	case IRRK_Constant:
-		return sReference.Index() < mpcFunction->masConstants.NumElements();
+		return sReference.Index() < mpcFunction->mcConstants.NumElements();
 	case IRRK_Symbol:
 		return sReference.Index() < mpcModule->maszSymbols.NumElements();
 	default:

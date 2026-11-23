@@ -18,13 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <stdlib.h>
-#include <string.h>
-#include "NameSet.h"
+
 #include "BaseLib/FNVHash.h"
-
-
-#define NAME_SET_FIRST_CAPACITY	64
+#include "NameSet.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -33,9 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CNameSet::Init(void)
 {
-	masNames = NULL;
-	muiCapacity = 0;
-	muiNames = 0;
+	mcNames.Init();
 }
 
 
@@ -45,19 +39,14 @@ void CNameSet::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CNameSet::Kill(void)
 {
-	if (masNames)
-	{
-		free(masNames);
-	}
-	masNames = NULL;
-	muiCapacity = 0;
-	muiNames = 0;
+	mcNames.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// FNV-1a.
+// FNV-1a: what a name is known by in the preprocessor's header cache
+// (not the set's own hash).
 //
 //////////////////////////////////////////////////////////////////////////
 uint64 CNameSet::Hash(const char* szName, size uiLength)
@@ -72,27 +61,10 @@ uint64 CNameSet::Hash(const char* szName, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 bool CNameSet::Contains(const char* szName, size uiLength)
 {
-	size			uiMask;
-	size			i;
-	SNameSetName*	psName;
+	SHashText	sName;
 
-	if (muiCapacity == 0)
-	{
-		return false;
-	}
-	uiMask = muiCapacity - 1;
-	for (i = (size)Hash(szName, uiLength) & uiMask;; i = (i + 1) & uiMask)
-	{
-		psName = &masNames[i];
-		if (psName->szName == NULL)
-		{
-			return false;
-		}
-		if ((psName->uiLength == uiLength) && (memcmp(psName->szName, szName, uiLength) == 0))
-		{
-			return true;
-		}
-	}
+	sName.Init(szName, uiLength);
+	return mcNames.HasKey(&sName);
 }
 
 
@@ -104,65 +76,10 @@ bool CNameSet::Contains(const char* szName, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 bool CNameSet::Add(const char* szName, size uiLength)
 {
-	size			uiMask;
-	size			i;
-	SNameSetName*	psName;
+	SHashText	sName;
 
-	if ((muiNames + 1) * 2 > muiCapacity)
-	{
-		Grow();
-	}
-	uiMask = muiCapacity - 1;
-	for (i = (size)Hash(szName, uiLength) & uiMask;; i = (i + 1) & uiMask)
-	{
-		psName = &masNames[i];
-		if (psName->szName == NULL)
-		{
-			psName->szName = szName;
-			psName->uiLength = (uint32)uiLength;
-			muiNames++;
-			return true;
-		}
-		if ((psName->uiLength == uiLength) && (memcmp(psName->szName, szName, uiLength) == 0))
-		{
-			return false;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CNameSet::Grow(void)
-{
-	SNameSetName*	asOld;
-	size			uiOldCapacity;
-	size			ui;
-	size			uiMask;
-	size			i;
-
-	asOld = masNames;
-	uiOldCapacity = muiCapacity;
-	muiCapacity = (muiCapacity == 0) ? NAME_SET_FIRST_CAPACITY : muiCapacity * 2;
-	masNames = (SNameSetName*)malloc(muiCapacity * sizeof(SNameSetName));
-	memset(masNames, 0, muiCapacity * sizeof(SNameSetName));
-	uiMask = muiCapacity - 1;
-	for (ui = 0; ui < uiOldCapacity; ui++)
-	{
-		if (asOld[ui].szName)
-		{
-			for (i = (size)Hash(asOld[ui].szName, asOld[ui].uiLength) & uiMask; masNames[i].szName != NULL; i = (i + 1) & uiMask)
-			{
-			}
-			masNames[i] = asOld[ui];
-		}
-	}
-	if (asOld)
-	{
-		free(asOld);
-	}
+	sName.Init(szName, uiLength);
+	return mcNames.Add(&sName);
 }
 
 
@@ -172,5 +89,6 @@ void CNameSet::Grow(void)
 //////////////////////////////////////////////////////////////////////////
 size CNameSet::NumNames(void) const
 {
-	return muiNames;
+	return mcNames.NumElements();
 }
+
