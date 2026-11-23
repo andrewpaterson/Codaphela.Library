@@ -70,6 +70,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPStrings.h"
 #include "CPPCheck.h"
 #include "CPPUnitObserver.h"
+#include "CPPWarnings.h"
 
 
 class CCTString;
@@ -313,7 +314,9 @@ friend class CCPPClosures;
 friend class CCPPClassData;
 friend class CCPPStrings;
 friend class CCPPCheck;
+friend class CCPPWarnings;
 protected:
+	CCPPWarnings			mcWarnings;			//Warns of what a 16 bit int makes wrong.
 	CCPPUnitObserver		mcNoObserver;		//Hears nothing: the observer when code is made.
 	CCPPUnitObserver*		mpcObserver;		//Told what the unit works out: the semantic pass when it checks.
 	CCPPCheck				mcCheck;			//The IDE's check of the unit as written.
@@ -419,6 +422,7 @@ public:
 	CCPPStrings*			GetStrings(void);
 	CCPPCheck*				GetCheck(void);
 	CCPPUnitObserver*		GetObserver(void);
+	CCPPWarnings*			GetWarner(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -844,16 +848,6 @@ public:
 
 
 	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
-	void					ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo);
-	void					WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFrom, SCPP65Type* psTo);
-	CCPPSyntaxBinaryExpression*	NarrowMultiply(CCPPSyntax* pcExpression, SCPP65Type* psType);
-	void					ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits);
-	void					ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary);
-	void					ComparisonAtLimit(CCPPSyntaxBinaryExpression* pcBinary, CCPPSyntax* pcConstant, SCPP65Type* psVariable, int64 lliValue, int64 lliMin, int64 lliMax);
-	void					LoopCounterWidth(CCPPSyntaxForStatement* pcFor);
-	void					LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCounters);
-	void					LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr* papcCounters);
-	CCPPSymbol*				LoopCounterSymbol(CCPPSyntax* pcExpression);
 	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
 	bool					TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes);
 	bool					IsTriviallyCopyableType(SCPP65Type* psType);

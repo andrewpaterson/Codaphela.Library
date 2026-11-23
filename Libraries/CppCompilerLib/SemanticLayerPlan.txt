@@ -979,3 +979,12 @@ Stage 13 (2026-11-23): class data, labels and what runs at exit.
 	the template's definition) stay.  The classes made by the move script are two blank lines between functions,
 	as the rest.  TestCppCompilerLib passes (272,061); the diagnostics entries and the listings are as they were;
 	the IDE's 24 Find Usages and Rename checks pass, and its enum checks are as before.  Stage 14 is done.
+
+Stage 15 (2026-11-23): what is left of the dozen jobs.
+
+	a. The warnings of what a 16 bit int makes wrong are a class of their own, CCPPWarnings (CPPWarnings.h and
+	.cpp), which the unit holds (mcWarnings, GetWarner: GetWarnings is the diagnostics' list): ConversionOverflow,
+	WideningArithmetic, ShiftCount, NarrowMultiply, the four LoopCounter checks, ComparisonRange and
+	ComparisonAtLimit.  ConstantOverflow, the twelfth, stays the constant folder's, which is what asks it.
+	TestCppCompilerLib passes (272,049); the diagnostics entries and the listings are as they were; the IDE
+	builds.

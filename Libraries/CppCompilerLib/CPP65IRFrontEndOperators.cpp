@@ -308,7 +308,7 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 		}
 		if (((pcBinary->meOperator == CT_LeftShift) || (pcBinary->meOperator == CT_RightShift)) && sLeft.psType->IsInteger())
 		{
-			mpcUnit->ShiftCount(pcBinary, mpcTypes->Promote(sLeft.psType)->iBytes * 8);
+			mpcUnit->GetWarner()->ShiftCount(pcBinary, mpcTypes->Promote(sLeft.psType)->iBytes * 8);
 		}
 		return Operate(pcBinary->meOperator, &sLeft, &sRight, psValue);
 	}
@@ -388,7 +388,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	}
 	if (pcBinary->meOperator == CT_Assignment)
 	{
-		mpcUnit->ConversionOverflow(pcBinary->mpcRight, sPlace.psType);
+		mpcUnit->GetWarner()->ConversionOverflow(pcBinary->mpcRight, sPlace.psType);
 		if (!ConvertImplicit(&sRight, sPlace.psType, pcBinary->mpcRight))
 		{
 			return false;
@@ -997,7 +997,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 				mpcBlock->Branch(sCondition, pcTrue, pcFalse);
 				return true;
 			}
-			mpcUnit->ComparisonRange(pcBinary);
+			mpcUnit->GetWarner()->ComparisonRange(pcBinary);
 			if (!Operands(pcBinary, &sLeft, &sRight) || !Compare(pcBinary->meOperator, &sLeft, &sRight, &sCondition))
 			{
 				return false;

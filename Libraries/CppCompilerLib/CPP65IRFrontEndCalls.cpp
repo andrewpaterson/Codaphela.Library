@@ -844,7 +844,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		mpcUnit->ConversionOverflow(pcArgument, psParameter);
+		mpcUnit->GetWarner()->ConversionOverflow(pcArgument, psParameter);
 		if (psParameter->IsClass())
 		{
 			//An object passed by value is copied a piece at a time (only objects whose copy is their bytes).  One made

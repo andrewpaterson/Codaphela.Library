@@ -71,7 +71,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTy
 	//(int32)((ui + 1) * 7) still multiplies in ui's width.
 	if (psTo->IsInteger() && psValue->psType && psValue->psType->IsInteger())
 	{
-		mpcUnit->WideningArithmetic(pcOperand, psValue->psType, psTo);
+		mpcUnit->GetWarner()->WideningArithmetic(pcOperand, psValue->psType, psTo);
 	}
 
 	//A base's pointer cast to a derived class's (but by reinterpret_cast) points at the derived object.

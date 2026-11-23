@@ -376,6 +376,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcClassData.Init(this);
 	mcStrings.Init(this);
 	mcCheck.Init(this);
+	mcWarnings.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -4012,7 +4013,7 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 	}
 	if (pcInitialiser)
 	{
-		ConversionOverflow(pcInitialiser, psType);
+		mcWarnings.ConversionOverflow(pcInitialiser, psType);
 	}
 	mcData.AppendData(psType->iBytes, lliValue);
 	return true;
@@ -5241,6 +5242,7 @@ CCPPClassData* CCPPUnit::GetClassData(void) { return &mcClassData; }
 CCPPStrings* CCPPUnit::GetStrings(void) { return &mcStrings; }
 CCPPCheck* CCPPUnit::GetCheck(void) { return &mcCheck; }
 CCPPUnitObserver* CCPPUnit::GetObserver(void) { return mpcObserver; }
+CCPPWarnings* CCPPUnit::GetWarner(void) { return &mcWarnings; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

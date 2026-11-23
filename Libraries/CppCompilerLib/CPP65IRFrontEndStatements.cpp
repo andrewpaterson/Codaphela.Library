@@ -704,7 +704,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sValue.sValue, psPlace->sAddress);
 		return true;
 	}
-	mpcUnit->ConversionOverflow(pcInitialiser, psPlace->psType);
+	mpcUnit->GetWarner()->ConversionOverflow(pcInitialiser, psPlace->psType);
 	if (!ValueFor(pcInitialiser, psPlace->psType, &sValue))
 	{
 		return false;
@@ -851,7 +851,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			//A list's value isn't narrowed to its element.  [dcl.init.aggr] 12, [dcl.init.list] 7
 			return false;
 		}
-		mpcUnit->ConversionOverflow(pcElement, psElement);
+		mpcUnit->GetWarner()->ConversionOverflow(pcElement, psElement);
 		if (!ValueFor(pcElement, psElement, &sValue) || !ConvertImplicit(&sValue, psElement, pcElement))
 		{
 			return false;
@@ -1032,7 +1032,7 @@ bool CCPP65IRFrontEnd::ForStatement(CCPPSyntaxForStatement* pcFor)
 	{
 		return false;
 	}
-	mpcUnit->LoopCounterWidth(pcFor);
+	mpcUnit->GetWarner()->LoopCounterWidth(pcFor);
 	pcTest = NewBlock();
 	pcBody = NewBlock();
 	pcNext = NewBlock();
@@ -1555,7 +1555,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	}
 	else
 	{
-		mpcUnit->ConversionOverflow(pcReturn->mpcValue, psReturn);
+		mpcUnit->GetWarner()->ConversionOverflow(pcReturn->mpcValue, psReturn);
 		if (!ValueFor(pcReturn->mpcValue, psReturn, &sValue) || !ConvertImplicit(&sValue, psReturn, pcReturn->mpcValue))
 		{
 			return false;

@@ -1649,7 +1649,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 			{
 				return Truth(OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary), pcBinary);
 			}
-			mpcUnit->ComparisonRange(pcBinary);
+			mpcUnit->GetWarner()->ComparisonRange(pcBinary);
 			return Operands(pcBinary, &psLeft, &psRight) && Compare(pcBinary, psLeft, psRight);
 		}
 	}
