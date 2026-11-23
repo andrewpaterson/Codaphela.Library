@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include <stdlib.h>
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "BaseLib/Numbers.h"
 #include "StandardLib/Objects.h"
 #include "MeshCornerMerge.h"
@@ -72,7 +72,7 @@ struct SMeshCornerMergeFace
 typedef CArrayTemplate<SMeshCornerMergeCell>	CArrayMeshCornerMergeCell;
 typedef CArrayTemplate<SMeshCornerMergeNormal>	CArrayMeshCornerMergeNormal;
 typedef CArrayTemplate<SMeshCornerMergeFace>	CArrayMeshCornerMergeFace;
-typedef CMapLongTemplate<int>					CMapMeshCornerMergeKey;
+typedef CHashMapTemplate<int64, int>			CMapMeshCornerMergeKey;
 
 
 //What's known about a mesh as its corners are merged.
@@ -106,15 +106,14 @@ struct SMeshCornerMerge
 static int MeshCornerMergeFind(CMapMeshCornerMergeKey* pcMap, int64 iKey, int iNew)
 {
 	int*	piValue;
+	bool	bAdded;
 
-	piValue = pcMap->Get(iKey);
-	if (piValue != NULL)
+	piValue = pcMap->FindOrAdd(&iKey, &bAdded);
+	if (bAdded)
 	{
-		return *piValue;
+		*piValue = iNew;
 	}
-	piValue = pcMap->Put(iKey);
-	*piValue = iNew;
-	return iNew;
+	return *piValue;
 }
 
 
@@ -134,9 +133,9 @@ static void MeshCornerMergeInit(SMeshCornerMerge* ps, CMesh* pcMesh, float32 fCe
 	ps->bNormals = pcMesh->mcNormals.InUse();
 	ps->bColours = pcMesh->mcColours.InUse();
 
-	ps->cColours.Init(false);
-	ps->cCells.Init(false);
-	ps->cNormals.Init(false);
+	ps->cColours.Init();
+	ps->cCells.Init();
+	ps->cNormals.Init();
 	ps->asCells.Init();
 	ps->asNormals.Init();
 	ps->aiCornerCells.Init();

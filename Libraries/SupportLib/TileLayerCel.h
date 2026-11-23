@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_LAYER_CEL_H__
 #define __TILE_LAYER_CEL_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/MapPrimitiveTemplate.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "ImageCel.h"
 #include "ImageBlitter.h"
 #include "TileMap.h"
@@ -43,7 +43,7 @@ struct STileLayerRow
 
 typedef CArrayTemplate<STileLayerRow>				CArrayTileLayerRow;
 typedef CArrayTemplate<uint32>						CArrayTileLayerTile;
-typedef CMapPrimitiveTemplate<CImageCel*, size>		CMapTileLayerCelIndex;
+typedef CHashMapTemplate<CImageCel*, size>			CMapTileLayerCelIndex;
 
 
 //A grid of cels.  A tile is plain data, the index (plus one, 0 for none) of its cel in maCels, which holds each cel

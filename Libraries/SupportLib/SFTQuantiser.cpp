@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/HashMapTemplate.h"
 #include "BaseLib/PrimitiveTypes.h"
 #include "StandardLib/ChannelsAccessorCreator.h"
 #include "ImageChannel.h"
@@ -28,7 +29,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 #define SFT_QUANTISE_TRANSPARENT	0xFFFFFFFF		//A pixel's colour while it is read: not drawn.
-#define SFT_QUANTISE_EMPTY			0xFFFFFFFF		//A hash slot with no colour.
 #define SFT_QUANTISE_OPAQUE			128				//Opacity from which a pixel is drawn.
 
 
@@ -41,12 +41,29 @@ struct SSFTColourCount
 };
 
 
-//Each colour's place in the list of them, found by a hash of the colour (open addressing).
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 SFTHashColour(uint32 uiColour)
+{
+	uiColour ^= uiColour >> 13;
+	uiColour *= 0x5BD1E995;
+	return uiColour ^ (uiColour >> 15);
+}
+
+
+struct SHashOfSFTColour
+{
+	static uint32		Hash(const uint32* puiColour) { return SFTHashColour(*puiColour); }
+	static HashEquals	Equals(void) { return NULL; }
+};
+
+
+//The colours, and each one's place in the list of them.
 struct SSFTColourTable
 {
-	uint32*				puiKeys;
-	uint32*				puiPlaces;
-	uint32				uiMask;
+	CHashMapTemplate<uint32, uint32, SHashOfSFTColour, SArrayLargeSize>	cPlaces;
 	SSFTColourCount*	pasColours;
 	uint32				uiNumColours;
 	uint32				uiMaxColours;
@@ -95,45 +112,25 @@ static uint8 SFTChannel(uint32 uiColour, size uiChannel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-static uint32 SFTHashColour(uint32 uiColour)
-{
-	uiColour ^= uiColour >> 13;
-	uiColour *= 0x5BD1E995;
-	return uiColour ^ (uiColour >> 15);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The place of uiColour in the table's list, which it is put in (with a
 // count of 0) if it isn't.
 //
 //////////////////////////////////////////////////////////////////////////
 static uint32 SFTFindColour(SSFTColourTable* psTable, uint32 uiColour)
 {
-	uint32	uiSlot;
+	uint32*	puiPlace;
+	bool	bAdded;
 
-	uiSlot = SFTHashColour(uiColour) & psTable->uiMask;
-	for (;;)
+	puiPlace = psTable->cPlaces.FindOrAdd(&uiColour, &bAdded);
+	if (bAdded)
 	{
-		if (psTable->puiKeys[uiSlot] == SFT_QUANTISE_EMPTY)
-		{
-			psTable->puiKeys[uiSlot] = uiColour;
-			psTable->puiPlaces[uiSlot] = psTable->uiNumColours;
-			psTable->pasColours[psTable->uiNumColours].uiColour = uiColour;
-			psTable->pasColours[psTable->uiNumColours].uiCount = 0;
-			psTable->pasColours[psTable->uiNumColours].uiIndex = 0;
-			psTable->uiNumColours++;
-			return psTable->puiPlaces[uiSlot];
-		}
-		if (psTable->puiKeys[uiSlot] == uiColour)
-		{
-			return psTable->puiPlaces[uiSlot];
-		}
-		uiSlot = (uiSlot + 1) & psTable->uiMask;
+		*puiPlace = psTable->uiNumColours;
+		psTable->pasColours[psTable->uiNumColours].uiColour = uiColour;
+		psTable->pasColours[psTable->uiNumColours].uiCount = 0;
+		psTable->pasColours[psTable->uiNumColours].uiIndex = 0;
+		psTable->uiNumColours++;
 	}
+	return *puiPlace;
 }
 
 
@@ -439,7 +436,6 @@ bool QuantiseSFT(CArrayImage* pacImages, uint16 uiMaxColours, CSFTQuantised* pcR
 	uint32				uiNumImages;
 	uint32				uiPixels;
 	uint32				uiAllPixels;
-	uint32				uiSlots;
 	uint32				uiLimit;
 	uint32				uiNumBoxes;
 	uint32				uiStart;
@@ -493,20 +489,10 @@ bool QuantiseSFT(CArrayImage* pacImages, uint16 uiMaxColours, CSFTQuantised* pcR
 	}
 
 	//The colours there are and how many pixels have each.
-	sTable.puiKeys = NULL;
-	sTable.puiPlaces = NULL;
+	sTable.cPlaces.Init();
 	sTable.pasColours = NULL;
 	if (bResult)
 	{
-		uiSlots = 64;
-		while (uiSlots < uiAllPixels * 2)
-		{
-			uiSlots *= 2;
-		}
-		sTable.uiMask = uiSlots - 1;
-		sTable.puiKeys = (uint32*)malloc(sizeof(uint32) * uiSlots);
-		sTable.puiPlaces = (uint32*)malloc(sizeof(uint32) * uiSlots);
-		memset(sTable.puiKeys, 0xFF, sizeof(uint32) * uiSlots);
 		sTable.pasColours = (SSFTColourCount*)malloc(sizeof(SSFTColourCount) * (uiAllPixels + 1));
 		sTable.uiNumColours = 0;
 		sTable.uiMaxColours = uiAllPixels;
@@ -581,16 +567,11 @@ bool QuantiseSFT(CArrayImage* pacImages, uint16 uiMaxColours, CSFTQuantised* pcR
 			{
 				sTable.pasColours[i].uiIndex = SFTNearest(&pcResult->msColours, sTable.pasColours[i].uiColour);
 			}
-			memset(sTable.puiKeys, 0xFF, sizeof(uint32) * (sTable.uiMask + 1));
+			sTable.cPlaces.ReInit();
+			sTable.cPlaces.Reserve(sTable.uiNumColours);
 			for (i = 0; i < sTable.uiNumColours; i++)
 			{
-				j = SFTHashColour(sTable.pasColours[i].uiColour) & sTable.uiMask;
-				while (sTable.puiKeys[j] != SFT_QUANTISE_EMPTY)
-				{
-					j = (j + 1) & sTable.uiMask;
-				}
-				sTable.puiKeys[j] = sTable.pasColours[i].uiColour;
-				sTable.puiPlaces[j] = i;
+				sTable.cPlaces.Put(&sTable.pasColours[i].uiColour, &i);
 			}
 		}
 
@@ -607,8 +588,7 @@ bool QuantiseSFT(CArrayImage* pacImages, uint16 uiMaxColours, CSFTQuantised* pcR
 		}
 	}
 
-	free(sTable.puiKeys);
-	free(sTable.puiPlaces);
+	sTable.cPlaces.Kill();
 	free(sTable.pasColours);
 	for (i = 0; i < uiNumImages; i++)
 	{

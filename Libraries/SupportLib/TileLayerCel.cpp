@@ -67,7 +67,7 @@ void CTileLayerCel::Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVe
 	mauiTiles.Init();
 	maCels.Init();
 	maBlitters.Init();
-	mcCelIndices.Init(&ComparePtrPtr);
+	mcCelIndices.Init();
 	muiCelVersion = 0;
 
 	PostInit();
@@ -168,7 +168,7 @@ uint32 CTileLayerCel::AddCel(Ptr<CImageCel> pCel)
 	{
 		return 0;
 	}
-	puiCel = mcCelIndices.Get(pcCel);
+	puiCel = mcCelIndices.Get(&pcCel);
 	if (puiCel)
 	{
 		return (uint32)(*puiCel + 1);
@@ -177,7 +177,7 @@ uint32 CTileLayerCel::AddCel(Ptr<CImageCel> pCel)
 	uiCel = maCels.NumElements();
 	maCels.Add(pCel);
 	maBlitters.Add(pNoBlitter);
-	mcCelIndices.Put(pcCel, &uiCel);
+	mcCelIndices.Put(&pcCel, &uiCel);
 	return (uint32)(uiCel + 1);
 }
 

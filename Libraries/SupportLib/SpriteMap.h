@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/Int32Vec2.h"
 #include "BaseLib/IntVec2.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/MapPrimitiveTemplate.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "StandardLib/Array.h"
 #include "ImageCel.h"
 #include "ImageBlitter.h"
@@ -45,7 +45,7 @@ struct SSprite
 
 
 typedef CArrayTemplate<SSprite>					CArraySprite;
-typedef CMapPrimitiveTemplate<CImageCel*, size>	CMapImageCelIndex;
+typedef CHashMapTemplate<CImageCel*, size>		CMapImageCelIndex;
 
 
 //A map of cels at positions, such as the glyphs of text.  The sprites are plain data (not objects) so a map can hold

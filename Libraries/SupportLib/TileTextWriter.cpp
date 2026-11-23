@@ -175,7 +175,7 @@ void CTileTextWriter::Init(Ptr<CTileLayerCel> pLayer, Ptr<CFontColours> pColours
 	mpFont = NULL;
 	msFontColour = 0;
 	masPages.Init();
-	mcPageIndices.Init(true);
+	mcPageIndices.Init();
 	mpuiPage = NULL;
 	msPageColour = 0;
 	muiPage = 0;
@@ -237,7 +237,7 @@ bool CTileTextWriter::Load(CObjectReader* pcFile)
 {
 	//The tile values aren't saved: they are looked up again as the text is written.
 	masPages.Init();
-	mcPageIndices.Init(true);
+	mcPageIndices.Init();
 	mpuiPage = NULL;
 	muiCelVersion = 0;
 	mbClearCels = false;
@@ -553,7 +553,7 @@ void CTileTextWriter::FindPage(ARGB32 sColour, uint32 uiPage)
 	STileTextPage*	psPage;
 
 	iKey = (int64)(((uint64)sColour << 32) | uiPage);
-	puiIndex = mcPageIndices.Get(iKey);
+	puiIndex = mcPageIndices.Get(&iKey);
 	if (puiIndex)
 	{
 		uiIndex = *puiIndex;
@@ -563,7 +563,7 @@ void CTileTextWriter::FindPage(ARGB32 sColour, uint32 uiPage)
 		uiIndex = masPages.NumElements();
 		psPage = masPages.Add();
 		memset(psPage, 0, sizeof(STileTextPage));
-		mcPageIndices.Put(iKey, &uiIndex);
+		mcPageIndices.Put(&iKey, &uiIndex);
 	}
 
 	//Adding a page may move them all.

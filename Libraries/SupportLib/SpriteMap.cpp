@@ -41,7 +41,7 @@ void CSpriteMap::Init(void)
 	masSprites.Init();
 	maCels.Init();
 	maBlitters.Init();
-	mcCelIndices.Init(&ComparePtrPtr);
+	mcCelIndices.Init();
 
 	PostInit();
 }
@@ -142,7 +142,7 @@ size CSpriteMap::AddCel(Ptr<CImageCel> pCel)
 	size		uiCel;
 
 	pcCel = (CImageCel*)pCel.Object();
-	puiCel = mcCelIndices.Get(pcCel);
+	puiCel = mcCelIndices.Get(&pcCel);
 	if (puiCel)
 	{
 		return *puiCel;
@@ -151,7 +151,7 @@ size CSpriteMap::AddCel(Ptr<CImageCel> pCel)
 	uiCel = maCels.NumElements();
 	maCels.Add(pCel);
 	maBlitters.Add(NULL);
-	mcCelIndices.Put(pcCel, &uiCel);
+	mcCelIndices.Put(&pcCel, &uiCel);
 	return uiCel;
 }
 

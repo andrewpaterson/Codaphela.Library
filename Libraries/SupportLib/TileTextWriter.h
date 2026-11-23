@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_TEXT_WRITER_H__
 #define __TILE_TEXT_WRITER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "StandardLib/Object.h"
 #include "FontColours.h"
 #include "TileLayerCel.h"
@@ -58,7 +58,7 @@ struct STileTextPage
 
 
 typedef CArrayTemplate<STileTextPage>	CArrayTileTextPage;
-typedef CMapLongTemplate<size>			CMapTileTextPageIndex;
+typedef CHashMapTemplate<int64, size>	CMapTileTextPageIndex;
 
 
 //Writes UTF-8 text into a tile layer with a fixed width font: each character is a tile (the glyph's cel, which is
