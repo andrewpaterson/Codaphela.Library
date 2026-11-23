@@ -42,6 +42,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define JEWEL_SEARCH_MATCH		Set32BitColour((uint8)0x32, (uint8)0x59, (uint8)0x3D)  //Behind the text a search found, as IntelliJ IDEA's.
 #define JEWEL_GREEN				Set32BitColour((uint8)0x4E, (uint8)0xA8, (uint8)0x5C)  //Success, as a build that succeeded.
 #define JEWEL_RED				Set32BitColour((uint8)0xDB, (uint8)0x4E, (uint8)0x4E)  //Failure, as a build that failed.
+#define JEWEL_AMBER				Set32BitColour((uint8)0xD9, (uint8)0xA3, (uint8)0x43)  //Warning, as a build's warning.
 #define JEWEL_ICON				Set32BitColour((uint8)0xCE, (uint8)0xD0, (uint8)0xD6)  //Icons, chevrons and the caret.
 #define JEWEL_TEXT				Set32BitColour((uint8)0xDF, (uint8)0xE1, (uint8)0xE5)
 #define JEWEL_WHITE				Set32BitColour((uint8)0xFF, (uint8)0xFF, (uint8)0xFF)  //A tick.

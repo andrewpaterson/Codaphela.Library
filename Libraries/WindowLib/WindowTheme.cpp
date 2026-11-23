@@ -63,7 +63,7 @@ static_assert(sizeof(gaszThemeImageNames) / sizeof(gaszThemeImageNames[0]) == TI
 static const char*	gaszThemeColourNames[] =
 {
 	"Text", "DimText", "BrightText", "Icon", "Panel", "Editor", "Separator", "Border", "BorderHover", "Accent",
-	"AccentHover", "Success", "Failure",
+	"AccentHover", "Success", "Failure", "Warning",
 	"TextSelection", "TextOccurrence", "TextWriteOccurrence", "Caret", "CaretLine", "SearchMatch", "ListSelected", "ListHover", "TabBar", "TabHover", "TabUnderline", "TabSeparator",
 	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
 	"DialogDivider", "LineNumber", "LineNumberActive", "Gutter", "DiffInsertedLines", "DiffDeletedLines",

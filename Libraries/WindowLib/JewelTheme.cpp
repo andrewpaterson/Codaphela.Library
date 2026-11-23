@@ -134,6 +134,7 @@ static ARGB32	gasJewelThemeColours[] =
 	JEWEL_BLUE_HOVER,		//TC_AccentHover
 	JEWEL_GREEN,			//TC_Success
 	JEWEL_RED,				//TC_Failure
+	JEWEL_AMBER,			//TC_Warning
 	JEWEL_SELECTION,		//TC_TextSelection
 	JEWEL_OCCURRENCE,		//TC_TextOccurrence
 	JEWEL_WRITE_OCCURRENCE,	//TC_TextWriteOccurrence

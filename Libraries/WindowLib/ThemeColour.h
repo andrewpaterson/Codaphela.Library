@@ -38,7 +38,8 @@ enum EThemeColour
 	TC_Accent,					//Focus, progress and the active choice.
 	TC_AccentHover,
 	TC_Success,					//As a build that succeeded.
-	TC_Failure,					//As a build that failed.
+	TC_Failure,					//As a build that failed, and an error's message.
+	TC_Warning,					//A warning's message.
 
 	//The widgets'.
 	TC_TextSelection,			//Behind selected text.
