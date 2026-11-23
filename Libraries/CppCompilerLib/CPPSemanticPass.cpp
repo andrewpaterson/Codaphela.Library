@@ -34,6 +34,7 @@ void CCPPSemanticPass::Init(void)
 	mcNames.Init(true);
 	masOthers.Init();
 	mcErrors.Init();
+	mcWarnings.Init();
 	mpcUnit = NULL;
 	mbTemplatesAsThemselves = false;
 	mszRecordedEnum.Init();
@@ -63,6 +64,7 @@ void CCPPSemanticPass::Kill(void)
 	mcChanges.Kill();
 	mcPlaces.Kill();
 	mcTypes.Kill();
+	mcWarnings.Kill();
 	mcErrors.Kill();
 	masOthers.Kill();
 	mcNames.Kill();
@@ -73,8 +75,9 @@ void CCPPSemanticPass::Kill(void)
 //
 // Checks every function the unit defines (and the classes it defines,
 // with their member functions) for eTarget.  What the names resolved to
-// is kept (GetResolved), and what couldn't be checked is in GetErrors.
-// Returns false if anything couldn't be.
+// is kept (GetResolved), what couldn't be checked is in GetErrors, and
+// what the compiler would warn of is in GetWarnings.  Returns false if
+// anything couldn't be.
 //
 // With bKeep the unit checked lives on until the pass is killed, and the
 // expressions' types and the changes to their places are remembered
@@ -101,6 +104,7 @@ bool CCPPSemanticPass::Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget, bool bK
 	pcUnit->SetOptions(&mcOptions);
 	bResult = pcUnit->GetCheck()->Check(this, bKeep);
 	pcUnit->GetErrors()->AppendTo(&mcErrors);
+	pcUnit->GetWarnings()->AppendTo(&mcWarnings);
 	if (!bKeep)
 	{
 		pcUnit->Kill();
@@ -498,6 +502,9 @@ CCPPErrors* CCPPSemanticPass::GetErrors(void)
 {
 	return &mcErrors;
 }
+
+
+CCPPErrors* CCPPSemanticPass::GetWarnings(void) { return &mcWarnings; }  //What a build would warn of in what was checked.
 
 
 bool CCPPSemanticPass::IsKept(void) const { return mpcUnit != NULL; }

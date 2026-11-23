@@ -161,6 +161,7 @@ bool CCPPPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 	TranslationUnitLogging(pcFile);
 
 	mpcOutput = pcFile->GetTokens();
+	mpcOutput->SetFullPathErrors(mbFullPathErrors);
 	mpcOutput->Clear();
 	mbError = false;
 	mbSkippedDirective = false;
@@ -210,6 +211,8 @@ void CCPPPreprocessor::SetSkipFailedDirectives(bool bSkip)
 // full path rather than its name: the same name can be in more than one
 // include directory (stdarg.h is in MinGW's and in GCC's), and a code
 // model opens the one it means.  A #line's name is still what it says.
+// The unit's tokens are made so too, so the parser's and the check's
+// errors at them name their files as these do.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPPreprocessor::SetFullPathErrors(bool bFullPaths)

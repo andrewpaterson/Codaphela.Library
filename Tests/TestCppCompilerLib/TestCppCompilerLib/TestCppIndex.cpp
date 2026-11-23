@@ -999,6 +999,83 @@ static int GetCppIndexUsage(CCPPIndexSymbol* pcSymbol, int iLine, size uiNth)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The semantic pass keeps what a build would warn of apart from what it
+// can't compile: an override not declared override is a warning, a name
+// not declared an error.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppIndexSemanticPassWarnings(void)
+{
+	CTranslationUnit	cFile;
+	CCPPPreprocessor	cPreprocessor;
+	CCPPTokeniser		cTokeniser;
+	CCPPSyntaxTree		cTree;
+	CCPPParser			cParser;
+	CCPPSemanticPass	cPass;
+
+	cFile.Init("Dir/Warned.cpp", NULL, false);
+	cFile.SetContents("\
+class CBase\n\
+{\n\
+public:\n\
+	virtual int	Get(void) { return 1; }\n\
+};\n\
+class CDerived : public CBase\n\
+{\n\
+public:\n\
+	int	Get(void) { return 2; }\n\
+};\n\
+int Missing(void) { return giMissing; }\n");
+	cPreprocessor.Init(NULL);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+
+	cPass.Init();
+	AssertFalse(cPass.Check(&cTree));
+	AssertSize(1, cPass.GetWarnings()->NumErrors());
+	AssertTrue(strstr(cPass.GetWarnings()->Text(), "Warned.cpp (9, 6): ") != NULL);
+	AssertTrue(strstr(cPass.GetWarnings()->Text(), "isn't declared override") != NULL);
+	AssertSize(1, cPass.GetErrors()->NumErrors());
+	AssertTrue(strstr(cPass.GetErrors()->Text(), "Warned.cpp (11, ") != NULL);
+	AssertTrue(strstr(cPass.GetErrors()->Text(), "isn't declared override") == NULL);
+	cPass.Kill();
+	cTree.Kill();
+	cTokeniser.Kill();
+
+	//Preprocessed with errors naming files by their full paths, the check's do too.
+	cPreprocessor.Init(NULL);
+	cPreprocessor.SetFullPathErrors(true);
+	AssertTrue(cPreprocessor.PreprocessTranslationUnit(&cFile));
+	cPreprocessor.Kill();
+	cTokeniser.Init();
+	AssertTrue(cTokeniser.Tokenise(cFile.GetTokens()));
+	cTree.Init(&cTokeniser);
+	cParser.Init(&cTokeniser, &cTree);
+	cParser.Parse();
+	cParser.Kill();
+	cPass.Init();
+	AssertFalse(cPass.Check(&cTree));
+	AssertTrue(strstr(cPass.GetWarnings()->Text(), "Dir/Warned.cpp (9, 6): ") != NULL);
+	AssertTrue(strstr(cPass.GetErrors()->Text(), "Dir/Warned.cpp (11, ") != NULL);
+	cPass.Kill();
+	cTree.Kill();
+	cTokeniser.Kill();
+	cFile.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestCppIndexUsageTypes(void)
 {
 	CCPPIndex			cIndex;
@@ -2123,6 +2200,7 @@ void TestCppIndex(void)
 	TestCppIndexCLinkage();
 	TestCppIndexContainers();
 	TestCppIndexUsageTypes();
+	TestCppIndexSemanticPassWarnings();
 	TestCppIndexOverrides();
 	TestCppIndexRemoveFile();
 	TestCppIndexRemoveFileHierarchy();

@@ -165,12 +165,14 @@ protected:
 	CArrayLineDirectives				macLineDirectives;
 	CMemoryStackExtended				mcStrings;		//Spellings of tokens the preprocessor made.
 	SPreprocessedTokensMallocators*		mpsMallocators;	//NULL for the system allocator.
+	bool								mbFullPathErrors;	//Errors at its tokens name files by their full paths (SetFullPathErrors).
 
 public:
 	void					Init(void);
 	void					Kill(void);
 	void					Clear(void);
 	void					SetMallocators(SPreprocessedTokensMallocators* psMallocators);
+	void					SetFullPathErrors(bool bFullPaths);
 
 	SPreprocessedToken*		Add(SPreprocessedToken* psToken);
 	size					NumTokens(void) const;

@@ -106,6 +106,7 @@ protected:
 	CMapResolvedNames	mcNames;		//By the C++ token of the name (its last component's): the first thing it resolved to.
 	CArrayResolvedNames	masOthers;		//What names resolved to after their first, in other instances of a template.
 	CCPPErrors			mcErrors;
+	CCPPErrors			mcWarnings;  //What the check would warn of (GetWarnings).
 	CCPPUnit*			mpcUnit;		//A kept check's unit, NULL otherwise.
 	CMapCPPNodeTypes	mcTypes;		//A kept check: each expression's type, by its node...
 	CMapCPPNodeTypes	mcPlaces;		//...the type of the place of those only typed as places (the left of an assignment)...
@@ -150,6 +151,7 @@ public:
 	SCPPResolvedName*	GetNextResolved(SCPPResolvedName* psResolved);
 	size				NumResolved(void);
 	CCPPErrors*			GetErrors(void);
+	CCPPErrors*			GetWarnings(void);
 };
 
 

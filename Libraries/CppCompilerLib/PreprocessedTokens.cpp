@@ -121,6 +121,7 @@ void SPreprocessedToken::Append(CChars* psz)
 void CPreprocessedTokens::Init(void)
 {
 	mpsMallocators = NULL;
+	mbFullPathErrors = false;
 	InitArrays();
 }
 
@@ -526,6 +527,20 @@ void CPreprocessedTokens::AddLineDirective(CSourceFile* pcFile, int iLine, int i
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Every error at these tokens names its file by its full path, as the
+// preprocessor's do with CCPPPreprocessor::SetFullPathErrors, which sets
+// it: the parser's and the check's too, so a code model can tell apart
+// files of the same name.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessedTokens::SetFullPathErrors(bool bFullPaths)
+{
+	mbFullPathErrors = bFullPaths;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Where #line says line *piLine of pcFile is: the last #line above it in
 // the file (a file included again has its directives after the last time's)
 // changes *piLine and, if it named one, *pszFile.  Otherwise they are left.
@@ -555,8 +570,9 @@ void CPreprocessedTokens::ReportedPosition(CSourceFile* pcFile, const char** psz
 //////////////////////////////////////////////////////////////////////////
 //
 // An error at psToken, where #line says that is.  iToken is what the error
-// remembers as its token.  With bFullPath its file is named by its full
-// path, not its name (CCPPPreprocessor::SetFullPathErrors).
+// remembers as its token.  With bFullPath, or once the tokens were made
+// so (SetFullPathErrors), its file is named by its full path, not its
+// name (CCPPPreprocessor::SetFullPathErrors).
 //
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessedTokens::AddError(CCPPErrors* pcErrors, SPreprocessedToken* psToken, int iToken, const char* szMessage, const char* szDetail, bool bFullPath)
@@ -569,7 +585,7 @@ void CPreprocessedTokens::AddError(CCPPErrors* pcErrors, SPreprocessedToken* psT
 		pcErrors->Add(NULL, psToken->iLine, psToken->iColumn, iToken, szMessage, szDetail);
 		return;
 	}
-	szFile = bFullPath ? psToken->pcFile->FullName() : psToken->pcFile->ShortName();
+	szFile = (bFullPath || mbFullPathErrors) ? psToken->pcFile->FullName() : psToken->pcFile->ShortName();
 	iLine = psToken->iLine;
 	ReportedPosition(psToken->pcFile, &szFile, &iLine);
 	pcErrors->Add(szFile, iLine, psToken->iColumn, iToken, szMessage, szDetail);
