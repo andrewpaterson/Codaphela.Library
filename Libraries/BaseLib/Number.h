@@ -57,7 +57,7 @@ protected:
 //boundary and the same digit of two numbers is in the same nibble of a word.
 #define NUMBER_WORD_DIGITS(p) (((p) + 3) & ~3)
 #define NUMBER_WORDS(p, q) ((NUMBER_WORD_DIGITS(p) + NUMBER_WORD_DIGITS(q)) >> 2)
-#define NUMBER_SIZE(p, q) ((size_t)NUMBER_WORDS(p, q) * sizeof(uint16) + sizeof(CNumberDetail))
+#define NUMBER_SIZE(p, q) ((lsize)NUMBER_WORDS(p, q) * sizeof(uint16) + sizeof(CNumberDetail))  //In lsize, so a 16 bit size_t's target doesn't multiply in 16 bits.
 #define UNumber(p, q) union { CNumber c; char a[NUMBER_SIZE(p, q)];	}
 
 
