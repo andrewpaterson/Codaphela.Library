@@ -1038,7 +1038,7 @@ bool CCPP65IRFrontEnd::CallObject(CCPPFunction* pcFunction, SIRReference sObject
 		mpcBaseObject = NULL;
 		if (pcFunction->mpcClass->HasVirtualBases())
 		{
-			iIndex = (pcFunction->mpcClass == mpcCPPFunction->mpcClass) ? 0 : mpcUnit->VTTIndex(mpcCPPFunction->mpcClass, pcFunction->mpcClass);
+			iIndex = (pcFunction->mpcClass == mpcCPPFunction->mpcClass) ? 0 : mpcUnit->GetClassData()->VTTIndex(mpcCPPFunction->mpcClass, pcFunction->mpcClass);
 			if (iIndex < 0)
 			{
 				return Unsupported(__FILE__, __LINE__);

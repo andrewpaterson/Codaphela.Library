@@ -141,9 +141,6 @@
     <ClCompile Include="CPPUnitTemplates.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitVtables.cpp">
-      <Filter>Source\Generator65</Filter>
-    </ClCompile>
     <ClCompile Include="CPPUnitOverloads.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -172,6 +169,9 @@
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPClassLayout.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPClassData.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPClosures.cpp">
@@ -1071,6 +1071,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPClassLayout.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPClassData.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPClosures.h">

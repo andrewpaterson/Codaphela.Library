@@ -242,7 +242,7 @@ SIRReference CCPP65IRFrontEnd::TypeInfoSymbol(CCPPClass* pcClass)
 	SIRReference	sSymbol;
 	CChars			szLabel;
 
-	mpcUnit->EnsureTypeInfo(pcClass);
+	mpcUnit->GetClassData()->EnsureTypeInfo(pcClass);
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendTypeInfoLabel(&szLabel, pcClass);
 	sSymbol = mcModule.Symbol(szLabel.Text());

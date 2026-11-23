@@ -1651,7 +1651,7 @@ bool CCPP65IRFrontEnd::AsmStatement(CCPPSyntax* pcStatement)
 	}
 	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + 1, true, 0);
 	szLabel.Init();
-	mpcUnit->AsmRoutine((char*)auiBytes.GetData(), &szLabel);
+	mpcUnit->GetClassData()->AsmRoutine((char*)auiBytes.GetData(), &szLabel);
 	auiBytes.Kill();
 	CallNoThrow(szLabel.Text(), IRType(IRTK_None), NULL, NULL, 0);
 	szLabel.Kill();

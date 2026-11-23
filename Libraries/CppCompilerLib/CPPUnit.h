@@ -66,6 +66,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTypeWriter.h"
 #include "CPPConstantFolder.h"
 #include "CPPClosures.h"
+#include "CPPClassData.h"
 
 
 class CCTString;
@@ -294,7 +295,9 @@ class CCPPUnit : public CCPPRuntimeWriter
 {
 friend class CCPPConstantFolder;
 friend class CCPPClosures;
+friend class CCPPClassData;
 protected:
+	CCPPClassData			mcClassData;		//Writes classes' vtables, VTTs and type info.
 	CCPPClosures			mcClosures;			//The lambdas' closures.
 	CCPPConstantFolder		mcFolder;			//Works out constant expressions' values.
 	CCPPSyntaxTree*			mpcTree;
@@ -394,6 +397,7 @@ public:
 	CCPPConstants*			GetConstants(void) const;
 	CCPPConstantFolder*		GetFolder(void);
 	CCPPClosures*			GetClosures(void);
+	CCPPClassData*			GetClassData(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -739,23 +743,8 @@ public:
 	void					MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses* papcClasses);
 	void					NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPNameClasses* papcClasses);
 	void					AppendTokensText(int iFirstToken, int iLastToken, CChars* pszDest);
-	void					EnsureVtable(CCPPClass* pcClass);
-	void					EnsureTypeInfo(CCPPClass* pcClass);
-	void					AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPPVtableEntries* pasEntries);
-	void					EnsureVTT(CCPPClass* pcClass);
-	void					AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords);
-	size					VTTEntries(CCPPClass* pcClass);
-	int						VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase);
-	void					AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags, uint32 uiHigh);
 	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
-	void					AppendTypeInfoHeader(CChars* pszName, uint32 uiKind);
-	void					AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName);
-	void					AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer);
-	void					AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction);
-	void					AppendThunkLabel(CChars* pszLabel, bool bComdat);
-	void					AsmRoutine(const char* szText, CChars* pszLabel);
-	void					AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	bool					IsConstantMember(CCPPVariable* pcVariable);
 	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
@@ -927,7 +916,6 @@ public:
 	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
 	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
 	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);
-	void					AppendTypeidLabel(CChars* psz, SCPP65Type* psType);
 	CCPPTemplate*			InitializerListTemplate(void);
 	SCPP65Type*				InitializerListElement(SCPP65Type* psType);
 	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);

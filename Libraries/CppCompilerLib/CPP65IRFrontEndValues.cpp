@@ -804,7 +804,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 		if (pcFound->mbVirtual)
 		{
 			szThunk.Init();
-			mpcUnit->AppendVirtualCallThunk(&szThunk, pcFound);
+			mpcUnit->GetClassData()->AppendVirtualCallThunk(&szThunk, pcFound);
 			sSymbol = mcModule.Symbol(szThunk.Text());
 			szThunk.Kill();
 		}
@@ -1161,7 +1161,7 @@ bool CCPP65IRFrontEnd::TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65I
 	}
 	//An expression that isn't an lvalue of a polymorphic class isn't worked out.  [expr.typeid] 4
 	szLabel.Init();
-	mpcUnit->AppendTypeidLabel(&szLabel, psType);
+	mpcUnit->GetClassData()->AppendTypeidLabel(&szLabel, psType);
 	psPlace->sAddress = mcModule.Symbol(szLabel.Text());
 	if (psType->IsClass() && psType->pcClass->IsUnnamed())
 	{

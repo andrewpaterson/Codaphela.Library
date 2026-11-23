@@ -685,7 +685,7 @@ bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass, bo
 	}
 	else
 	{
-		mpcUnit->EnsureVtable(pcClass);
+		mpcUnit->GetClassData()->EnsureVtable(pcClass);
 		szLabel.Init();
 		mpcUnit->GetMangler()->AppendVtableLabel(&szLabel, pcClass);
 		sLabel = mcModule.Symbol(szLabel.Text());
@@ -753,7 +753,7 @@ SIRReference CCPP65IRFrontEnd::CompleteVTT(CCPPClass* pcClass)
 	CChars			szLabel;
 	SIRReference	sVTT;
 
-	mpcUnit->EnsureVTT(pcClass);
+	mpcUnit->GetClassData()->EnsureVTT(pcClass);
 	szLabel.Init();
 	mpcUnit->GetMangler()->AppendVTTLabel(&szLabel, pcClass);
 	sVTT = mcModule.Symbol(szLabel.Text());
@@ -2521,7 +2521,7 @@ SIRReference CCPP65IRFrontEnd::BaseVTT(CCPPClass* pcClass, SIRReference sVTT, CC
 	{
 		return IRNone();
 	}
-	return AddressAt(sVTT.IsNone() ? CompleteVTT(pcClass) : sVTT, CPP65_VTABLE_ENTRY_BYTES * mpcUnit->VTTIndex(pcClass, pcBase));
+	return AddressAt(sVTT.IsNone() ? CompleteVTT(pcClass) : sVTT, CPP65_VTABLE_ENTRY_BYTES * mpcUnit->GetClassData()->VTTIndex(pcClass, pcBase));
 }
 
 

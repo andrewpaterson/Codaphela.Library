@@ -928,3 +928,12 @@ Stage 12 (2026-11-23): lambdas.
 	(a class of one lambda would m-prefix its fields everywhere they are used).
 	Proved: TestCppCompilerLib passes (272,049); the diagnostics entries and the listings are as they were; time
 	is as it was (declarations 6,517 and 6,499 ms); the IDE builds.
+
+Stage 13 (2026-11-23): class data, labels and what runs at exit.
+
+	First part: a class's data is written by a class of its own, CCPPClassData (CPPClassData.h and .cpp), which
+	the unit holds (mcClassData, GetClassData): CPPUnitVtables.cpp's 16 functions (vtables, VTTs, type info,
+	the virtual call thunks) and AppendTypeidLabel, by the move script.  The two base questions that were in
+	the file (IsOnePublicBase, IsPublicBase) stay the unit's, beside BasePaths in CPPUnitOverloads.cpp, and the
+	file, empty, is gone.  TestCppCompilerLib passes (272,061); the diagnostics entries and the listings are as
+	they were; the IDE builds.

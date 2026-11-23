@@ -893,7 +893,7 @@ SIRReference CCPP65IRFrontEnd::TypeInfoSymbol(SCPP65Type* psType)
 	SIRReference	sSymbol;
 
 	szLabel.Init();
-	mpcUnit->AppendTypeidLabel(&szLabel, psType);
+	mpcUnit->GetClassData()->AppendTypeidLabel(&szLabel, psType);
 	sSymbol = mcModule.Symbol(szLabel.Text());
 	if (psType->IsClass() && psType->pcClass->IsUnnamed())
 	{

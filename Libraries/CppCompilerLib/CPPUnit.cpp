@@ -372,6 +372,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mcClosures.Init(this);
+	mcClassData.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -5229,6 +5230,7 @@ CCPPBinder* CCPPUnit::GetBinder(void) { return &mcBinder; }
 CCPPConstants* CCPPUnit::GetConstants(void) const { return mpcConstants; }
 CCPPConstantFolder* CCPPUnit::GetFolder(void) { return &mcFolder; }
 CCPPClosures* CCPPUnit::GetClosures(void) { return &mcClosures; }
+CCPPClassData* CCPPUnit::GetClassData(void) { return &mcClassData; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

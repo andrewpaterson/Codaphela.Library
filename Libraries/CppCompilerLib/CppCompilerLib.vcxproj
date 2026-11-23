@@ -292,7 +292,6 @@
     <ClCompile Include="CPPUnit.cpp" />
     <ClCompile Include="CPPUnitClasses.cpp" />
     <ClCompile Include="CPPUnitTemplates.cpp" />
-    <ClCompile Include="CPPUnitVtables.cpp" />
     <ClCompile Include="CPPUnitOverloads.cpp" />
     <ClCompile Include="CPPUnitLabels.cpp" />
     <ClCompile Include="CPPUnitExpressions.cpp" />
@@ -303,6 +302,7 @@
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />
     <ClCompile Include="CPPClassLayout.cpp" />
+    <ClCompile Include="CPPClassData.cpp" />
     <ClCompile Include="CPPClosures.cpp" />
     <ClCompile Include="CPPMangler.cpp" />
     <ClCompile Include="CPPContext.cpp" />
@@ -585,6 +585,7 @@
     <ClInclude Include="CPP65Type.h" />
     <ClInclude Include="CPPClass.h" />
     <ClInclude Include="CPPClassLayout.h" />
+    <ClInclude Include="CPPClassData.h" />
     <ClInclude Include="CPPClosures.h" />
     <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPContext.h" />

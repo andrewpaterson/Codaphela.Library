@@ -19,9 +19,27 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
+#include "CPPClassData.h"
 
 
-//The unit's virtual functions: laying them out, the vtables and type info, and the thunks.
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClassData::Init(CCPPUnit* pcUnit)
+{
+	mpcUnit = pcUnit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClassData::Kill(void)
+{
+	mpcUnit = NULL;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,7 +49,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // functions are R_Pure, which stops.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
+void CCPPClassData::EnsureVtable(CCPPClass* pcClass)
 {
 	CArrayCPPVtableEntries	asEntries;
 	CChars					szLabel;
@@ -45,23 +63,23 @@ void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
 	//Each unit that makes one of a class's objects writes its vtable in a COMDAT section
 	//(the linker keeps one); a class without a name has its own.
 	szLabel.Init();
-	mcMangler.AppendVtableLabel(&szLabel, pcClass);
-	if (!Emit(&szLabel))
+	mpcUnit->mcMangler.AppendVtableLabel(&szLabel, pcClass);
+	if (!mpcUnit->Emit(&szLabel))
 	{
 		szLabel.Kill();
 		return;
 	}
 	if (pcClass->IsUnnamed())
 	{
-		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, NULL);
 	}
 	else
 	{
-		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mpcUnit->mcData.GetText(), &szLabel);
 	}
-	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mpcUnit->mcData.GetText()->AppendNewLine();
 
 	asEntries.Init();
 	pcClass->mcVtable.GetEntries(&asEntries);
@@ -73,13 +91,14 @@ void CCPPUnit::EnsureVtable(CCPPClass* pcClass)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A vtable's words (CCPPVtable::GetEntries), with the label after the first
 // part's header.  The headers have pcClass's type info.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPPVtableEntries* pasEntries)
+void CCPPClassData::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPPVtableEntries* pasEntries)
 {
 	SCPPVtableEntry*	psEntry;
 	size				i;
@@ -91,8 +110,8 @@ void CCPPUnit::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPP
 		psEntry = pasEntries->Get(i);
 		if (psEntry->eKind == CPPVE_Offset)
 		{
-			mcData.GetText()->Append("\t\t.long ")->Append(psEntry->iAdjust);
-			mcData.GetText()->AppendNewLine();
+			mpcUnit->mcData.GetText()->Append("\t\t.long ")->Append(psEntry->iAdjust);
+			mpcUnit->mcData.GetText()->AppendNewLine();
 			continue;
 		}
 		if (psEntry->eKind == CPPVE_Header)
@@ -105,13 +124,14 @@ void CCPPUnit::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPP
 		}
 		if (!bLabelled)
 		{
-			mcData.GetText()->Append(*pszLabel);
-			mcData.GetText()->Append(':');
-			mcData.GetText()->AppendNewLine();
+			mpcUnit->mcData.GetText()->Append(*pszLabel);
+			mpcUnit->mcData.GetText()->Append(':');
+			mpcUnit->mcData.GetText()->AppendNewLine();
 			bLabelled = true;
 		}
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -124,7 +144,7 @@ void CCPPUnit::AppendVtableParts(CCPPClass* pcClass, CChars* pszLabel, CArrayCPP
 // what the base version is passed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EnsureVTT(CCPPClass* pcClass)
+void CCPPClassData::EnsureVTT(CCPPClass* pcClass)
 {
 	CChars				szLabel;
 	CChars				szWords;
@@ -133,8 +153,8 @@ void CCPPUnit::EnsureVTT(CCPPClass* pcClass)
 	size				i;
 
 	szLabel.Init();
-	mcMangler.AppendVTTLabel(&szLabel, pcClass);
-	if (!Emit(&szLabel))
+	mpcUnit->mcMangler.AppendVTTLabel(&szLabel, pcClass);
+	if (!mpcUnit->Emit(&szLabel))
 	{
 		szLabel.Kill();
 		return;
@@ -144,7 +164,7 @@ void CCPPUnit::EnsureVTT(CCPPClass* pcClass)
 	//The construction vtables are written first, each in its own section.
 	szWords.Init();
 	szWords.Append("\t\t.long ");
-	mcMangler.AppendVtableLabel(&szWords, pcClass);
+	mpcUnit->mcMangler.AppendVtableLabel(&szWords, pcClass);
 	szWords.AppendNewLine();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -165,22 +185,23 @@ void CCPPUnit::EnsureVTT(CCPPClass* pcClass)
 
 	if (pcClass->IsUnnamed())
 	{
-		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, NULL);
 	}
 	else
 	{
-		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mpcUnit->mcData.GetText(), &szLabel);
 	}
-	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append(szLabel);
-	mcData.GetText()->Append(':');
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append(szWords);
+	mpcUnit->mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append(szLabel);
+	mpcUnit->mcData.GetText()->Append(':');
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append(szWords);
 	szWords.Kill();
 	szLabel.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -190,7 +211,7 @@ void CCPPUnit::EnsureVTT(CCPPClass* pcClass)
 // virtual bases' entries.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords)
+void CCPPClassData::AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int iOffset, CChars* pszWords)
 {
 	CCPPVtable				cVtable;
 	CArrayCPPVtableEntries	asEntries;
@@ -199,23 +220,23 @@ void CCPPUnit::AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int i
 	size					i;
 
 	szLabel.Init();
-	mcMangler.AppendConstructionVtableLabel(&szLabel, pcComplete, pcClass, iOffset);
+	mpcUnit->mcMangler.AppendConstructionVtableLabel(&szLabel, pcComplete, pcClass, iOffset);
 	pszWords->Append("\t\t.long ");
 	pszWords->Append(szLabel);
 	pszWords->AppendNewLine();
-	if (Emit(&szLabel))
+	if (mpcUnit->Emit(&szLabel))
 	{
 		if (pcComplete->IsUnnamed())
 		{
-			CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
+			CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, NULL);
 		}
 		else
 		{
-			CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
-			CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+			CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, ", comdat");
+			CCPPUnitData::AppendGlobal(mpcUnit->mcData.GetText(), &szLabel);
 		}
-		mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
-		mcData.GetText()->AppendNewLine();
+		mpcUnit->mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+		mpcUnit->mcData.GetText()->AppendNewLine();
 		cVtable.Init();
 		cVtable.LayoutConstruction(pcClass, pcComplete, iOffset);
 		asEntries.Init();
@@ -238,13 +259,14 @@ void CCPPUnit::AppendVTTEntries(CCPPClass* pcComplete, CCPPClass* pcClass, int i
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // How many words of VTT a base version of a constructor or destructor of
 // pcClass is given: its construction vtable, then its non-virtual bases'.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPUnit::VTTEntries(CCPPClass* pcClass)
+size CCPPClassData::VTTEntries(CCPPClass* pcClass)
 {
 	SCPPBase*	psBase;
 	size		i;
@@ -263,6 +285,7 @@ size CCPPUnit::VTTEntries(CCPPClass* pcClass)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Where in pcClass's VTT (in words) the entries for its base pcBase are, a
@@ -270,7 +293,7 @@ size CCPPUnit::VTTEntries(CCPPClass* pcClass)
 // own; -1 if it isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-int CCPPUnit::VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase)
+int CCPPClassData::VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase)
 {
 	SCPPBase*			psBase;
 	SCPPVirtualBase*	psVirtual;
@@ -306,6 +329,7 @@ int CCPPUnit::VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The two words before each part of a vtable, for dynamic_cast: how far the
@@ -315,15 +339,16 @@ int CCPPUnit::VTTIndex(CCPPClass* pcClass, CCPPClass* pcBase)
 // dynamic_cast give while it is made).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
+void CCPPClassData::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 {
-	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append(-iVtablePointer);
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append("\t\t.long ");
-	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcData.GetText()->Append(-iVtablePointer);
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcMangler.AppendTypeInfoLabel(mpcUnit->mcData.GetText(), pcClass);
+	mpcUnit->mcData.GetText()->AppendNewLine();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -338,7 +363,7 @@ void CCPPUnit::AppendVtableHeader(CCPPClass* pcClass, int iVtablePointer)
 // class.  The type infos of the bases are written too.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
+void CCPPClassData::EnsureTypeInfo(CCPPClass* pcClass)
 {
 	CChars		szLabel;
 	CChars		szName;
@@ -353,8 +378,8 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	pcClass->mbTypeInfo = true;
 
 	szLabel.Init();
-	mcMangler.AppendTypeInfoLabel(&szLabel, pcClass);
-	if (!Emit(&szLabel))
+	mpcUnit->mcMangler.AppendTypeInfoLabel(&szLabel, pcClass);
+	if (!mpcUnit->Emit(&szLabel))
 	{
 		szLabel.Kill();
 		return;
@@ -363,19 +388,19 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	AppendTypeInfoName(&szLabel, pcClass->mpsType, !pcClass->IsUnnamed(), &szName);
 	if (pcClass->IsUnnamed())
 	{
-		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, NULL);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, NULL);
 	}
 	else
 	{
-		CCPPUnitData::AppendSection(mcData.GetText(), "rodata", &szLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(mcData.GetText(), &szLabel);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mpcUnit->mcData.GetText(), &szLabel);
 	}
 	szLabel.Kill();
-	mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
-	mcData.GetText()->AppendNewLine();
-	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
-	mcData.GetText()->Append(':');
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcMangler.AppendTypeInfoLabel(mpcUnit->mcData.GetText(), pcClass);
+	mpcUnit->mcData.GetText()->Append(':');
+	mpcUnit->mcData.GetText()->AppendNewLine();
 	AppendTypeInfoHeader(&szName, CPP65TIK_Class);
 	uiVtable = 0;
 	if (pcClass->IsPolymorphic() || (pcClass->macVirtualBases.NumElements() > 0))
@@ -386,11 +411,11 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
 		pcVirtual = pcClass->macVirtualBases.Get(i)->pcClass;
-		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0),
+		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (mpcUnit->IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0),
 							((uint32)pcClass->GetVirtualBaseIndex(pcVirtual) + 1) << CPP65_TYPE_INFO_IN_VIRTUAL_SHIFT);
 	}
-	mcData.GetText()->Append("\t\t.long 0");
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long 0");
+	mpcUnit->mcData.GetText()->AppendNewLine();
 	szName.Kill();
 
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
@@ -398,6 +423,7 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 		EnsureTypeInfo(pcClass->macBases.Get(i)->pcClass);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -410,20 +436,20 @@ void CCPPUnit::EnsureTypeInfo(CCPPClass* pcClass)
 // the class's own entry where its vtable pointer is, which they don't.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags, uint32 uiHigh)
+void CCPPClassData::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFlags, uint32 uiHigh)
 {
 	SCPPBase*	psBase;
 	size		i;
 
-	mcData.GetText()->Append("\t\t.long ");
-	mcMangler.AppendTypeInfoLabel(mcData.GetText(), pcClass);
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append(iOffset);
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append((int)(uiFlags | uiHigh));
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcMangler.AppendTypeInfoLabel(mpcUnit->mcData.GetText(), pcClass);
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcData.GetText()->Append(iOffset);
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcData.GetText()->Append((int)(uiFlags | uiHigh));
+	mpcUnit->mcData.GetText()->AppendNewLine();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		psBase = pcClass->macBases.Get(i);
@@ -435,70 +461,6 @@ void CCPPUnit::AppendTypeInfoBases(CCPPClass* pcClass, int iOffset, uint32 uiFla
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// True if pcBase is a base of pcClass in one way only, which passes no
-// virtual base and is public at every step: a pcBase is then the base of at
-// most one pcClass object, *piOffset bytes into it.  (pcClass itself isn't.)
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
-{
-	CArrayCPPBasePaths*	pasPaths;
-	SCPPBasePath*		psPath;
-	SCPPBasePath*		psOne;
-	size				i;
-
-	*piOffset = 0;
-	if (pcClass == pcBase)
-	{
-		return false;
-	}
-	mpcStatistics->Count(CPPCC_BaseWalks);
-	pasPaths = pcClass->BasePaths();
-	psOne = NULL;
-	for (i = 1; i < pasPaths->NumElements(); i++)
-	{
-		psPath = pasPaths->Get(i);
-		if (psPath->pcClass == pcBase)
-		{
-			if (psOne || psPath->pcVirtual)
-			{
-				return false;
-			}
-			psOne = psPath;
-		}
-	}
-	if (psOne)
-	{
-		*piOffset = psOne->iOffset;
-	}
-	return psOne && psOne->bPublic;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if pcBase is reached from pcClass through public bases only, by one
-// path at least (a virtual base has many).  [class.access.base] 4
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
-{
-	CArrayCPPBasePaths*	pasPaths;
-	size				i;
-
-	pasPaths = pcClass->BasePaths();
-	for (i = 0; i < pasPaths->NumElements(); i++)
-	{
-		if ((pasPaths->Get(i)->pcClass == pcBase) && pasPaths->Get(i)->bPublic)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -507,15 +469,16 @@ bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
 // and for a pointer CPP65_TYPE_INFO_POINTEE_CONST and _VOLATILE).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTypeInfoHeader(CChars* pszName, uint32 uiKind)
+void CCPPClassData::AppendTypeInfoHeader(CChars* pszName, uint32 uiKind)
 {
-	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append(pszName);
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append("\t\t.long ");
-	mcData.GetText()->Append((int)uiKind);
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcData.GetText()->Append(pszName);
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcData.GetText()->Append((int)uiKind);
+	mpcUnit->mcData.GetText()->AppendNewLine();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -525,7 +488,7 @@ void CCPPUnit::AppendTypeInfoHeader(CChars* pszName, uint32 uiKind)
 // (CCPPTypeWriter, shown).  COMDAT and global with a type info that is (bShared).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName)
+void CCPPClassData::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bShared, CChars* pszName)
 {
 	CChars			szText;
 	CCPPTypeWriter	cWriter;
@@ -534,26 +497,27 @@ void CCPPUnit::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bSha
 	pszName->Append(pszInfo);
 	pszName->Append("__Name");
 	szText.Init();
-	cWriter.Init(this, CPPTW_Shown);
+	cWriter.Init(mpcUnit, CPPTW_Shown);
 	cWriter.AppendType(psType, &szText);
-	CCPPUnitData::AppendSection(mcData.GetText(), "rodata", pszName, bShared ? ", comdat" : NULL);
+	CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", pszName, bShared ? ", comdat" : NULL);
 	if (bShared)
 	{
-		CCPPUnitData::AppendGlobal(mcData.GetText(), pszName);
+		CCPPUnitData::AppendGlobal(mpcUnit->mcData.GetText(), pszName);
 	}
-	mcData.GetText()->Append(pszName);
-	mcData.GetText()->Append(':');
-	mcData.GetText()->AppendNewLine();
-	mcData.GetText()->Append("\t\t.byte ");
+	mpcUnit->mcData.GetText()->Append(pszName);
+	mpcUnit->mcData.GetText()->Append(':');
+	mpcUnit->mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append("\t\t.byte ");
 	for (i = 0; i < szText.Length(); i++)
 	{
-		mcData.GetText()->Append((int)(uint8)szText.GetChar(i));
-		mcData.GetText()->Append(", ");
+		mpcUnit->mcData.GetText()->Append((int)(uint8)szText.GetChar(i));
+		mpcUnit->mcData.GetText()->Append(", ");
 	}
-	mcData.GetText()->Append('0');
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append('0');
+	mpcUnit->mcData.GetText()->AppendNewLine();
 	szText.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -563,13 +527,14 @@ void CCPPUnit::AppendTypeInfoName(CChars* pszInfo, SCPP65Type* psType, bool bSha
 // *pszLabel.  [dcl.asm]
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AsmRoutine(const char* szText, CChars* pszLabel)
+void CCPPClassData::AsmRoutine(const char* szText, CChars* pszLabel)
 {
 	pszLabel->Append("__asm");
-	pszLabel->Append(miLabels++);
-	mszThunks.Append(pszLabel)->Append(":\n");
-	mpcTarget->AppendAsmRoutine(&mszThunks, szText);
+	pszLabel->Append(mpcUnit->miLabels++);
+	mpcUnit->mszThunks.Append(pszLabel)->Append(":\n");
+	mpcUnit->mpcTarget->AppendAsmRoutine(&mpcUnit->mszThunks, szText);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -578,38 +543,39 @@ void CCPPUnit::AsmRoutine(const char* szText, CChars* pszLabel)
 // it.  Each thunk is written once.  Pure virtual functions are R_Pure.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
+void CCPPClassData::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 {
 	CChars	szLabel;
 	CChars	szFunction;
 
-	mcData.GetText()->Append("\t\t.long ");
+	mpcUnit->mcData.GetText()->Append("\t\t.long ");
 	if (pcFunction->mbPure)
 	{
-		mcMangler.AppendVtableEntryLabel(mcData.GetText(), pcFunction, iAdjust);
-		mbPureVirtual = true;
-		mcData.GetText()->AppendNewLine();
+		mpcUnit->mcMangler.AppendVtableEntryLabel(mpcUnit->mcData.GetText(), pcFunction, iAdjust);
+		mpcUnit->mbPureVirtual = true;
+		mpcUnit->mcData.GetText()->AppendNewLine();
 		return;
 	}
 
-	RequireFunction(pcFunction);
+	mpcUnit->RequireFunction(pcFunction);
 	szLabel.Init();
-	mcMangler.AppendVtableEntryLabel(&szLabel, pcFunction, iAdjust);
+	mpcUnit->mcMangler.AppendVtableEntryLabel(&szLabel, pcFunction, iAdjust);
 	if (iAdjust != 0)
 	{
-		if (Emit(&szLabel))
+		if (mpcUnit->Emit(&szLabel))
 		{
 			AppendThunkLabel(&szLabel, !pcFunction->IsUnitFunction());
 			szFunction.Init();
-			mcMangler.AppendFunctionLabel(&szFunction, pcFunction);
-			mpcTarget->AppendAdjustThunk(&mszThunks, iAdjust, szFunction.Text());
+			mpcUnit->mcMangler.AppendFunctionLabel(&szFunction, pcFunction);
+			mpcUnit->mpcTarget->AppendAdjustThunk(&mpcUnit->mszThunks, iAdjust, szFunction.Text());
 			szFunction.Kill();
 		}
 	}
-	mcData.GetText()->Append(szLabel);
-	mcData.GetText()->AppendNewLine();
+	mpcUnit->mcData.GetText()->Append(szLabel);
+	mpcUnit->mcData.GetText()->AppendNewLine();
 	szLabel.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -621,7 +587,7 @@ void CCPPUnit::AppendVtableEntry(CCPPFunction* pcFunction, int iAdjust)
 // them (comdat).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
+void CCPPClassData::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
 {
 	CChars	szLabel;
 
@@ -629,14 +595,15 @@ void CCPPUnit::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
 	szLabel.Append(pcFunction->mpcClass->mcVtable.miPointerOffset);
 	szLabel.Append('_');
 	szLabel.Append(pcFunction->miSlot);
-	if (Emit(&szLabel))
+	if (mpcUnit->Emit(&szLabel))
 	{
 		AppendThunkLabel(&szLabel, true);
-		mpcTarget->AppendVirtualCallThunk(&mszThunks, pcFunction->mpcClass->mcVtable.miPointerOffset, CPP65_VTABLE_ENTRY_BYTES * pcFunction->miSlot);
+		mpcUnit->mpcTarget->AppendVirtualCallThunk(&mpcUnit->mszThunks, pcFunction->mpcClass->mcVtable.miPointerOffset, CPP65_VTABLE_ENTRY_BYTES * pcFunction->miSlot);
 	}
 	psz->Append(szLabel);
 	szLabel.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -645,20 +612,101 @@ void CCPPUnit::AppendVirtualCallThunk(CChars* psz, CCPPFunction* pcFunction)
 // may write is global, and comdat so the linker keeps one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendThunkLabel(CChars* pszLabel, bool bComdat)
+void CCPPClassData::AppendThunkLabel(CChars* pszLabel, bool bComdat)
 {
 	if (bComdat)
 	{
-		CCPPUnitData::AppendSection(&mszThunks, "text", pszLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(&mszThunks, pszLabel);
+		CCPPUnitData::AppendSection(&mpcUnit->mszThunks, "text", pszLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(&mpcUnit->mszThunks, pszLabel);
 	}
 	else
 	{
-		CCPPUnitData::AppendSection(&mszThunks, "text", pszLabel, NULL);
+		CCPPUnitData::AppendSection(&mpcUnit->mszThunks, "text", pszLabel, NULL);
 	}
-	mszThunks.Append(*pszLabel);
-	mszThunks.Append(':');
-	mszThunks.AppendNewLine();
+	mpcUnit->mszThunks.Append(*pszLabel);
+	mpcUnit->mszThunks.Append(':');
+	mpcUnit->mszThunks.AppendNewLine();
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of a type's type info, the address typeid gives, written if it
+// isn't yet: a class's is _Class__3 (EnsureTypeInfo), any other type's _3
+// and the type mangled, in a COMDAT section, so its address is the type's in
+// the whole program (no name starts with a digit).  Its name and kind, then
+// for a pointer its pointee's type info, for a pointer to a member the
+// member's type's and the class's (CPP65_TYPE_INFO_NAME_OFFSET); the kind
+// word of both says whether what is pointed to is const or volatile.  The type
+// infos it points to are written first, each a section of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPClassData::AppendTypeidLabel(CChars* psz, SCPP65Type* psType)
+{
+	CChars				szLabel;
+	CChars				szName;
+	CChars				szFirst;
+	CChars				szSecond;
+	ECPP65TypeInfoKind	eKind;
+	uint32				uiPointee;
+
+	if (psType->IsClass())
+	{
+		EnsureTypeInfo(psType->pcClass);
+		mpcUnit->mcMangler.AppendTypeInfoLabel(psz, psType->pcClass);
+		return;
+	}
+	szLabel.Init("_3");
+	mpcUnit->mcMangler.AppendType(&szLabel, psType);
+	if (mpcUnit->Emit(&szLabel))
+	{
+		szFirst.Init();
+		szSecond.Init();
+		uiPointee = 0;
+		switch (psType->eKind)
+		{
+		case CPP65TK_Pointer:
+			eKind = CPP65TIK_Pointer;
+			uiPointee = (psType->psBase->bConst ? CPP65_TYPE_INFO_POINTEE_CONST : 0) | (psType->psBase->bVolatile ? CPP65_TYPE_INFO_POINTEE_VOLATILE : 0);
+			AppendTypeidLabel(&szFirst, psType->psBase->Unqualified());
+			break;
+		case CPP65TK_MemberPointer:
+			eKind = CPP65TIK_MemberPointer;
+			uiPointee = (psType->psBase->bConst ? CPP65_TYPE_INFO_POINTEE_CONST : 0) | (psType->psBase->bVolatile ? CPP65_TYPE_INFO_POINTEE_VOLATILE : 0);
+			AppendTypeidLabel(&szFirst, psType->psBase->Unqualified());
+			AppendTypeidLabel(&szSecond, psType->pcClass->mpsType);
+			break;
+		case CPP65TK_Array:		eKind = CPP65TIK_Array;		break;
+		case CPP65TK_Function:	eKind = CPP65TIK_Function;	break;
+		case CPP65TK_NullPointer:	eKind = CPP65TIK_NullPointer;	break;
+		default:				eKind = psType->pcEnum ? CPP65TIK_Enum : CPP65TIK_Fundamental;	break;
+		}
+		szName.Init();
+		AppendTypeInfoName(&szLabel, psType, true, &szName);
+		CCPPUnitData::AppendSection(mpcUnit->mcData.GetText(), "rodata", &szLabel, ", comdat");
+		CCPPUnitData::AppendGlobal(mpcUnit->mcData.GetText(), &szLabel);
+		mpcUnit->mcData.GetText()->Append("\t\t.align ")->Append(CPP65_VTABLE_ENTRY_BYTES);
+		mpcUnit->mcData.GetText()->AppendNewLine();
+		mpcUnit->mcData.GetText()->Append(&szLabel);
+		mpcUnit->mcData.GetText()->Append(':');
+		mpcUnit->mcData.GetText()->AppendNewLine();
+		AppendTypeInfoHeader(&szName, (uint32)eKind | uiPointee);
+		if (szFirst.Length() > 0)
+		{
+			mpcUnit->mcData.GetText()->Append("\t\t.long ")->Append(&szFirst);
+			mpcUnit->mcData.GetText()->AppendNewLine();
+		}
+		if (szSecond.Length() > 0)
+		{
+			mpcUnit->mcData.GetText()->Append("\t\t.long ")->Append(&szSecond);
+			mpcUnit->mcData.GetText()->AppendNewLine();
+		}
+		szName.Kill();
+		szSecond.Kill();
+		szFirst.Kill();
+	}
+	psz->Append(&szLabel);
+	szLabel.Kill();
+}
 

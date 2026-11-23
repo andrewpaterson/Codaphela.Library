@@ -161,6 +161,71 @@ void CCPPUnit::ResolveAllBases(CCPPClass* pcClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if pcBase is a base of pcClass in one way only, which passes no
+// virtual base and is public at every step: a pcBase is then the base of at
+// most one pcClass object, *piOffset bytes into it.  (pcClass itself isn't.)
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+{
+	CArrayCPPBasePaths*	pasPaths;
+	SCPPBasePath*		psPath;
+	SCPPBasePath*		psOne;
+	size				i;
+
+	*piOffset = 0;
+	if (pcClass == pcBase)
+	{
+		return false;
+	}
+	mpcStatistics->Count(CPPCC_BaseWalks);
+	pasPaths = pcClass->BasePaths();
+	psOne = NULL;
+	for (i = 1; i < pasPaths->NumElements(); i++)
+	{
+		psPath = pasPaths->Get(i);
+		if (psPath->pcClass == pcBase)
+		{
+			if (psOne || psPath->pcVirtual)
+			{
+				return false;
+			}
+			psOne = psPath;
+		}
+	}
+	if (psOne)
+	{
+		*piOffset = psOne->iOffset;
+	}
+	return psOne && psOne->bPublic;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcBase is reached from pcClass through public bases only, by one
+// path at least (a virtual base has many).  [class.access.base] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
+{
+	CArrayCPPBasePaths*	pasPaths;
+	size				i;
+
+	pasPaths = pcClass->BasePaths();
+	for (i = 0; i < pasPaths->NumElements(); i++)
+	{
+		if ((pasPaths->Get(i)->pcClass == pcBase) && pasPaths->Get(i)->bPublic)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How many pcBase subobjects an object of pcClass has: itself, if it is the
 // class, and one for each way to the base that passes no virtual base, from
 // the class and from each of its virtual bases (of which an object has one,
