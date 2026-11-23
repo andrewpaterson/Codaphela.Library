@@ -62,15 +62,15 @@ void CCPP65TypeChecker::Kill(void)
 SCPPExpressionFacts* CCPP65TypeChecker::Facts(CCPPSyntax* pcExpression)
 {
 	SCPPExpressionFacts*	psFacts;
-	SCPPExpressionFacts		sFacts;
-	CCPPContext*			pcContext;
 	CCPPCompileStatistics*	pcStatistics;
+	SCPP65Type*				psType;
+	SCPP65Type*				psDeclared;
+	CCPPErrors*				pcErrors;
 
-	pcContext = mpcUnit->GetContext();
 	pcStatistics = mpcUnit->GetStatistics();
 	pcStatistics->Count(CPPCC_TypeOf);
-	psFacts = mcFacts.Get((int64)(size)pcExpression);
-	if (psFacts && (psFacts->pcBindings == pcContext->GetBindings()) && (psFacts->pcFunction == pcContext->GetFunction()))
+	psFacts = FactsEntry(pcExpression);
+	if (psFacts->bTyped)
 	{
 		return psFacts;
 	}
@@ -78,14 +78,84 @@ SCPPExpressionFacts* CCPP65TypeChecker::Facts(CCPPSyntax* pcExpression)
 	pcStatistics->Count(CPPCC_TypeOfWorkedOut);
 	mpcDiagnostics->BeginKeeping();
 	pcStatistics->Begin(CPPCP_Types);
-	sFacts.psType = Value(pcExpression, &sFacts.psDeclared);
+	psType = Value(pcExpression, &psDeclared);
 	pcStatistics->End(CPPCP_Types);
-	sFacts.pcErrors = mpcDiagnostics->EndKeeping();
+	pcErrors = mpcDiagnostics->EndKeeping();
 
+	//Working it out made other records: this one is found again.
+	psFacts = FactsEntry(pcExpression);
+	psFacts->bTyped = true;
+	psFacts->psType = psType;
+	psFacts->psDeclared = psDeclared;
+	psFacts->pcErrors = pcErrors;
+	return psFacts;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The record of what is known of an expression where it is being worked
+// out (the context's bindings and function), nothing known yet if it is
+// new there: one of other bindings or another function is begun again.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPExpressionFacts* CCPP65TypeChecker::FactsEntry(CCPPSyntax* pcExpression)
+{
+	SCPPExpressionFacts*	psFacts;
+	SCPPExpressionFacts		sFacts;
+	CCPPContext*			pcContext;
+
+	pcContext = mpcUnit->GetContext();
+	psFacts = mcFacts.Get((int64)(size)pcExpression);
+	if (psFacts && (psFacts->pcBindings == pcContext->GetBindings()) && (psFacts->pcFunction == pcContext->GetFunction()))
+	{
+		return psFacts;
+	}
+	memset(&sFacts, 0, sizeof(SCPPExpressionFacts));
 	sFacts.pcBindings = pcContext->GetBindings();
 	sFacts.pcFunction = pcContext->GetFunction();
 	mcFacts.Put((int64)(size)pcExpression, &sFacts);
 	return mcFacts.Get((int64)(size)pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of an expression's place (Place), or NULL if it has none, with
+// nothing said of it (a trial): worked out once where it is evaluated.  In
+// an operand that isn't evaluated a place may be what isn't one elsewhere
+// (S::m in sizeof), so it is worked out each time there.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::PlaceFact(CCPPSyntax* pcExpression)
+{
+	SCPPExpressionFacts*	psFacts;
+	CCPPCompileStatistics*	pcStatistics;
+	SCPP65Type*				psPlace;
+	bool					bEvaluated;
+
+	bEvaluated = !mpcUnit->GetContext()->IsUnevaluated();
+	psFacts = bEvaluated ? FactsEntry(pcExpression) : NULL;
+	if (psFacts && psFacts->bPlaced)
+	{
+		return psFacts->psPlace;
+	}
+
+	pcStatistics = mpcUnit->GetStatistics();
+	pcStatistics->Count(CPPCC_PlaceWorkedOut);
+	//A failure here is not one of the quiet code around it.
+	mpcDiagnostics->BeginTrial();
+	pcStatistics->Begin(CPPCP_Types);
+	psPlace = Place(pcExpression);
+	pcStatistics->End(CPPCP_Types);
+	mpcDiagnostics->EndTrial();
+	if (bEvaluated)
+	{
+		psFacts = FactsEntry(pcExpression);
+		psFacts->bPlaced = true;
+		psFacts->psPlace = psPlace;
+	}
+	return psPlace;
 }
 
 

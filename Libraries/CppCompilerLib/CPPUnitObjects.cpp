@@ -947,16 +947,8 @@ bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
 {
-	SCPP65Type*	psPlace;
-
 	mpcStatistics->Count(CPPCC_PlaceOf);
-	//A failure here is not one of the quiet code around it.
-	mcDiagnostics.BeginTrial();
-	mpcStatistics->Begin(CPPCP_Types);
-	psPlace = mcTypeChecker.Place(pcExpression);
-	mpcStatistics->End(CPPCP_Types);
-	mcDiagnostics.EndTrial();
-	return psPlace;
+	return mcTypeChecker.PlaceFact(pcExpression);
 }
 
 

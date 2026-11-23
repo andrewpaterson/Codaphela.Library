@@ -88,7 +88,8 @@ enum ECPPCompileCount
 	CPPCC_FloatConstants,			//CCPPUnit::FloatConstant calls...
 	CPPCC_FloatConstantsFolded,		//...and those it answered.
 	CPPCC_BaseWalks,				//Calls of the unit's functions that walk a class's bases, each call of a walk that calls itself counted.
-	CPPCC_PlaceOf,					//CCPPUnit::PlaceOf calls: each runs the type checker's Place.
+	CPPCC_PlaceOf,					//CCPPUnit::PlaceOf calls...
+	CPPCC_PlaceWorkedOut,			//...that ran the type checker's Place (CCPP65TypeChecker::PlaceFact).
 	CPPCC_IsRvalue,					//CCPPUnit::IsRvalue, IsObject, MakesObject and IsObjectLvalue calls: what an expression is,
 	CPPCC_IsObject,					//asked again each time (SemanticLayerPlan.txt, question 4).
 	CPPCC_MakesObject,

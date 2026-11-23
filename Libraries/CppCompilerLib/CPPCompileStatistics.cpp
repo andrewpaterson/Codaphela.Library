@@ -84,6 +84,7 @@ static const char*	gaszCPPCompileCounts[CPPCC_NumCounts] =
 	"float constants folded",
 	"base walks",
 	"PlaceOf",
+	"PlaceOf worked out",
 	"IsRvalue",
 	"IsObject",
 	"MakesObject",

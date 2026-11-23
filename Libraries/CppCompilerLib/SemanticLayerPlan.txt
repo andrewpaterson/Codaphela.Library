@@ -1113,3 +1113,13 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	98cc04484 (the step limit's overflow check gone where size is 16 bits: 62 lines fewer on the W65C816, only
 	the source's line numbers on the 65C64), taken after 15f's listings; this step's listings are the next
 	step's baseline.
+
+	Step 2 (2026-11-23): PlaceOf reads the record.  An expression's place is worked out once where it is evaluated
+	(CCPP65TypeChecker::PlaceFact; each part of the record has its known bit, bTyped and bPlaced, so asking for
+	the place doesn't work out the type).  In an operand that isn't evaluated it is worked out each time: there a
+	name may be a place that isn't one elsewhere (S::m in sizeof), and the key (node, bindings, function) doesn't
+	say which.  Compiling TestSupportLib65's project, Place runs 86,342 times for 139,464 questions (65C64; 85,060
+	for 137,217 on the W65C816), where it ran each time; TypeOf is asked 64,000 times fewer.  The quiet trials of
+	TestCPP65DeclarationsCounts are 160, not 171: the places no longer worked out again, which the test pins.
+	Same code: TestCppCompilerLib passes (272,076); every conformance case says what it said; the 4,213 listings
+	are as they were; the types phase is as it was (6,639 and 6,629 ms); the IDE builds.

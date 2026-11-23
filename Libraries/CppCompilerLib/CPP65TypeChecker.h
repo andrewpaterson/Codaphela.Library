@@ -36,15 +36,19 @@ class CCPPErrors;
 
 
 //What is known of an expression (CCPP65TypeChecker::Facts), worked out once for the bindings and the function it is
-//worked out in: its type, the type it is declared to give, and what was said working them out.  SemanticLayerPlan.txt
-//stage 15e: its place and its category join it.
+//worked out in, each part when it is first asked for: its type, the type it is declared to give, and what was said
+//working them out; and the type of its place where it is evaluated.  SemanticLayerPlan.txt stage 15e: its category
+//joins them.
 struct SCPPExpressionFacts
 {
 	CCPPTemplateArguments*	pcBindings;
 	CCPPFunction*			pcFunction;
+	bool					bTyped;			//psType, psDeclared and pcErrors are known.
 	SCPP65Type*				psType;
 	SCPP65Type*				psDeclared;		//psType, or the reference to it the expression is declared to give (f() of T& f(), a cast to T&&).
 	CCPPErrors*				pcErrors;		//What was said working it out (NULL for nothing), which ReportTypeOf says: the diagnostics' to free.
+	bool					bPlaced;		//psPlace is known.
+	SCPP65Type*				psPlace;		//Its place's type (Place), NULL for an expression that has none.
 };
 
 
@@ -64,6 +68,8 @@ protected:
 	CCPP65Types*		mpcTypes;
 	CArraySyntax		mapcNone;		//No arguments.
 	CMapCPPExpressionFacts	mcFacts;	//What is known of each expression, by its node (Facts).
+
+	SCPPExpressionFacts*	FactsEntry(CCPPSyntax* pcExpression);
 	SCPP65Type*			mpsResult;		//What the Visit function of the expression Result was asked for found.
 
 public:
@@ -98,6 +104,7 @@ public:
 	void			Kill(void);
 
 	SCPPExpressionFacts*	Facts(CCPPSyntax* pcExpression);
+	SCPP65Type*		PlaceFact(CCPPSyntax* pcExpression);
 	SCPP65Type*		Value(CCPPSyntax* pcExpression, SCPP65Type** ppsDeclared = NULL);
 	SCPP65Type*		ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
 	SCPP65Type*		Place(CCPPSyntax* pcExpression);
