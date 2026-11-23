@@ -183,7 +183,6 @@ void CEditCommands::Free(void)
 			pWatched->GetFocus()->GetPressEvent()->Remove(this);
 		}
 	}
-	maWatched.Kill();
 }
 
 
