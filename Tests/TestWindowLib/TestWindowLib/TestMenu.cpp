@@ -1928,6 +1928,202 @@ void TestMenuPopupMaximumHeight(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A menu of iCount items named szName 0, szName 1 and so on.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CMenuContainer> CreateLongMenu(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szName, int32 iCount)
+{
+	Ptr<CMenuContainer>	pMenu;
+	CChars				szItem;
+	int32				i;
+
+	pMenu = OMalloc<CMenuContainer>(pWindow, pTheme);
+	for (i = 0; i < iCount; i++)
+	{
+		szItem.Init(szName);
+		szItem.Append(" ");
+		szItem.Append(i);
+		pMenu->AddItem(szItem.Text());
+		szItem.Kill();
+	}
+	return pMenu;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A menu taller than the window doesn't squash its rows: it keeps their
+// heights and scrolls in its popup.  A menu bar's stays below the bar,
+// cut to the space there; a menu opened elsewhere is moved up and cut to
+// the window.  A menu that fits shows no scroll bar.  A sub menu opens
+// level with its row as it shows in a scrolled menu, and the wheel over
+// the menu closes it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuScrolls(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CMenuBar>			pBar;
+		Ptr<CMenuContainer>		pLong;
+		Ptr<CMenuContainer>		pMore;
+		Ptr<CMenuContainer>		pEdit;
+		Ptr<CMenuContainer>		pContext;
+		Ptr<CMenuBarItem>		pLongItem;
+		Ptr<CMenuBarItem>		pEditItem;
+		Ptr<CMenuItem>			pMoreItem;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CPopup>				pPopup;
+		Ptr<CPopup>				pSubPopup;
+		CPointer				pNull;
+		SInsets*				psInsets;
+		int32					iBarBottom;
+		int32					iMoreRow;
+		int32					iTop;
+		int32					iHeight;
+		int32					iScroll;
+		int32					i;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTestWindow->SetPartialRedraw(true);
+		pTestWindow->SetVerifyRedraw(true);
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pTheme->SetScrollBarImages(CreateScrollBarImages());
+		psInsets = pTheme->GetMenuStyle()->GetMenuInsets();
+
+		pLong = CreateLongMenu(pTestWindow, pTheme, "Item", 15);
+		pMore = CreateLongMenu(pTestWindow, pTheme, "More", 3);
+		pMoreItem = pLong->AddItem("More", NULL, pMore);
+		iMoreRow = pLong->GetItemRow(pMoreItem);
+		for (i = 0; i < 15; i++)
+		{
+			pLong->AddItem("Later");
+		}
+		pEdit = CreateLongMenu(pTestWindow, pTheme, "Edit", 3);
+		pContext = CreateLongMenu(pTestWindow, pTheme, "Context", 30);
+		pBar = OMalloc<CMenuBar>(pTestWindow, pTheme);
+		pLongItem = pBar->AddMenu("Long", pLong);
+		pEditItem = pBar->AddMenu("Edit", pEdit);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pBar->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pGrid->AddComponent(pBar, 0, 0, 1, 1, 1, 0);
+		pGrid->AddComponent(OMalloc<CCanvas>(pTestWindow, OMalloc<CClearCanvasDraw>(Set32BitColour((uint8)0x1E, 0x1F, 0x22))), 0, 1, 1, 1, 1, 1);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		iBarBottom = pLongItem->GetPosition().y + pLongItem->GetActualSize().y;
+
+		//The bar's long menu stays below the bar, as tall as the space there, its rows as tall as ever.
+		pBar->OpenMenu(pLongItem, false);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		pPopup = pTestWindow->GetPopup(pLong);
+		AssertInt(iBarBottom, pPopup->GetPosition().y);
+		AssertInt(200, pPopup->GetPosition().y + pPopup->GetActualSize().y);
+		AssertTrue(pPopup->GetScrollPane().IsNotNull());
+		AssertTrue(pPopup->GetScrollPane()->GetScrollBar(SBO_Vertical)->IsShown());
+		AssertInt(pLong->GetDesiredSize().y, pLong->GetActualSize().y);
+		AssertTrue(pLong->GetActualSize().y > 200);
+
+		//The keys scroll the selection into view.
+		pTestWindow->InputCommand(CIC_End, true);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		AssertInt((int32)pLong->NumItems() - 1, pLong->GetSelected());
+		iScroll = pPopup->GetScrollPane()->GetScrollPosition().y;
+		AssertTrue(iScroll > 0);
+		AssertInt(pPopup->GetScrollPane()->GetMaximumScrollPosition().y, iScroll);
+		pTestWindow->InputCommand(CIC_Home, true);
+		pTestWindow->Layout();
+		AssertInt(0, pLong->GetSelected());
+		AssertInt(0, pPopup->GetScrollPane()->GetScrollPosition().y);
+
+		//Scrolled so More is the third row showing, its sub menu opens level with it where it shows.
+		AssertTrue(pLong->GetTrackBounds(false, (size)iMoreRow, &iTop, &iHeight));
+		iScroll = iTop - pPopup->GetScrollPane()->GetPosition().y - 2 * iHeight;
+		AssertTrue(iScroll > 0);
+		pPopup->GetScrollPane()->SetScrollPosition(0, iScroll);
+		pTestWindow->Layout();
+		AssertInt(iScroll, pPopup->GetScrollPane()->GetScrollPosition().y);
+		pLong->OpenSubMenu(iMoreRow, false);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		AssertTrue(pLong->GetTrackBounds(false, (size)iMoreRow, &iTop, &iHeight));
+		AssertInt(pPopup->GetScrollPane()->GetPosition().y + 2 * iHeight, iTop);
+		pSubPopup = pTestWindow->GetPopup(pMore);
+		AssertTrue(pSubPopup.IsNotNull());
+		AssertInt(iTop - psInsets->aiWidths[BEI_Top], pSubPopup->GetPosition().y);
+		AssertFalse(pSubPopup->GetScrollPane()->GetScrollBar(SBO_Vertical)->IsShown());
+
+		//The wheel over the long menu scrolls it and closes the sub menu.
+		MoveTo(pTestWindow, SInt32Vec2(pPopup->GetPosition().x + 20, iTop + iHeight / 2));
+		AssertTrue(pLong->GetOpenSubMenu() == pMore);
+		pTestWindow->InputCommand(CIC_WheelUp, true);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		AssertTrue(pLong->GetOpenSubMenu().IsNull());
+		AssertTrue(pPopup->GetScrollPane()->GetScrollPosition().y < iScroll);
+		pBar->CloseMenu();
+
+		//A menu that fits shows no scroll bar and is as tall as it needs.
+		pBar->OpenMenu(pEditItem, false);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		pPopup = pTestWindow->GetPopup(pEdit);
+		AssertTrue(pPopup->GetScrollPane().IsNotNull());
+		AssertFalse(pPopup->GetScrollPane()->GetScrollBar(SBO_Vertical)->IsShown());
+		AssertInt(iBarBottom, pPopup->GetPosition().y);
+		AssertInt(pEdit->GetDesiredSize().y + psInsets->GetTopAndBottom(), pPopup->GetActualSize().y);
+		AssertInt(pEdit->GetDesiredSize().y, pEdit->GetActualSize().y);
+		pBar->CloseMenu();
+
+		//Opened low down, a menu not on a bar is moved up and cut to the window.
+		pPopup = pContext->Open(SInt32Vec2(10, 150), NULL, true);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		AssertInt(0, pPopup->GetPosition().y);
+		AssertInt(200, pPopup->GetActualSize().y);
+		AssertTrue(pPopup->GetScrollPane()->GetScrollBar(SBO_Vertical)->IsShown());
+		AssertInt(pContext->GetDesiredSize().y, pContext->GetActualSize().y);
+		pTestWindow->InputCommand(CIC_End, true);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+		AssertInt(29, pContext->GetSelected());
+		AssertTrue(pPopup->GetScrollPane()->GetScrollPosition().y > 0);
+		pContext->Close();
+		pTestWindow->Paint();
+		AssertSize(0, pTestWindow->GetRedrawMismatches());
+
+		pPopup = NULL;
+		pSubPopup = NULL;
+		pGrid = NULL;
+		pMoreItem = NULL;
+		pLongItem = NULL;
+		pEditItem = NULL;
+		pBar = NULL;
+		pLong = NULL;
+		pMore = NULL;
+		pEdit = NULL;
+		pContext = NULL;
+		pTheme = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	pNativeFactory = NULL;
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The test menus' bar in a window iWidth wide, laid out and painted.
 // pcFile and pcEdit are given the File and Edit buttons' bounds, psBar
 // the bar's size, and pbEditFound whether the pointer finds Edit just
@@ -2036,6 +2232,7 @@ void TestMenu(void)
 	TestMenuOpener();
 	TestMenuPopupMaximumHeight();
 	TestMenuBarNarrow();
+	TestMenuScrolls();
 
 	ObjectsFlush();
 	ObjectsKill();

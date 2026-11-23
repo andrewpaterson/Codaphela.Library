@@ -36,6 +36,9 @@ class CMenuBar;
 //closes a menu opened from another and goes back to that one.  On a menu from a menu bar left and right open the
 //bar's neighbouring menus.
 //
+//A menu taller than the window keeps its rows' heights and scrolls up and down in its popup (CPopup::SetScrolls); a
+//menu bar's stays below the bar, cut to the space there.  The wheel over it closes its open sub menu.
+//
 //A disabled item can't be selected or clicked; the keys skip it.  The opening event is called as the menu opens, before it is laid out, so its
 //items can be enabled or disabled for what can be done then.
 //
@@ -93,6 +96,7 @@ public:
 	void				MovedOver(int x, int y) override;
 	void				Left(void);
 	void				Right(void);
+	void				WheelAction(SComponentInputEvent* psEvent);
 	void				PopupClosed(Ptr<CComponent> pContent) override;
 
 protected:

@@ -135,6 +135,7 @@ Ptr<CMenuBarItem> CMenuBar::AddMenu(const char* szText, Ptr<CMenuContainer> pMen
 void CMenuBar::OpenMenu(Ptr<CMenuBarItem> pItem, bool bSelectFirst)
 {
 	Ptr<CMenuContainer>	pMenu;
+	Ptr<CPopup>			pPopup;
 	SInt32Vec2			sPosition;
 
 	if (mpOpenItem != pItem)
@@ -144,7 +145,10 @@ void CMenuBar::OpenMenu(Ptr<CMenuBarItem> pItem, bool bSelectFirst)
 		sPosition = pItem->GetPosition();
 		sPosition.y += pItem->GetActualSize().y;
 		pMenu = pItem->GetMenu();
-		pMenu->Open(sPosition, pItem, true);
+		pPopup = pMenu->Open(sPosition, pItem, true);
+		//It stays below the bar: too tall for the space there it is made shorter, and scrolls.
+		pPopup->SetKeepsTop(true);
+		pPopup->Layout(mpWindow->GetPosition(), mpWindow->GetActualSize());
 		pItem->SetHighlighted(true);
 		mpOpenItem = pItem;
 	}

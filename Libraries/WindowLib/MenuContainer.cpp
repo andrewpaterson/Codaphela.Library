@@ -68,6 +68,7 @@ void CMenuContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CM
 					  OMalloc<CRoundedBoxCanvasDraw>(pStyle->GetHover(), pStyle->GetSelectionRadius(), &sInsets));
 	AddInputAction(CIC_Left, this, &CMenuContainer::Left);
 	AddInputAction(CIC_Right, this, &CMenuContainer::Right);
+	AddInputAction(IAF_Wheel, NULL, this, &CMenuContainer::WheelAction);
 
 	PostInit();
 }
@@ -291,12 +292,37 @@ Ptr<CPopup> CMenuContainer::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, b
 	mpOpener = NULL;
 	pPopup = mpWindow->OpenPopup(this, sPosition, pOwner);
 	pPopup->SetLook(mpStyle->GetMenuBackground(), mpStyle->GetMenuBorder(), mpStyle->GetMenuInsets());
+	//Taller than the window, it scrolls rather than squashing its rows, if its theme can draw a scroll bar.
+	if (mpTheme->GetScrollBarImages().IsNotNull())
+	{
+		pPopup->SetScrolls(mpTheme);
+	}
 	pPopup->Layout(mpWindow->GetPosition(), mpWindow->GetActualSize());
 	if (bFocus)
 	{
 		mpWindow->GetFocus()->SetFocus(this);
 	}
 	return pPopup;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A wheel turned over a menu that scrolls closes its open sub menu, which
+// would be left beside a row that has moved, and goes on to the scroll
+// pane.
+//
+//////////////////////////////////////////////////////////////////////////
+void CMenuContainer::WheelAction(SComponentInputEvent* psEvent)
+{
+	Ptr<CPopup>	pPopup;
+
+	pPopup = mpWindow->GetPopup(this);
+	if (pPopup.IsNotNull() && pPopup->GetScrollPane().IsNotNull() && (pPopup->GetScrollPane()->GetMaximumScrollPosition().y > 0))
+	{
+		CloseSubMenu();
+	}
+	psEvent->bPass = true;
 }
 
 
