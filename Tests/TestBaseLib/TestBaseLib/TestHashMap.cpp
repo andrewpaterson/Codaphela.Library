@@ -90,7 +90,7 @@ void TestHashMapPutGet(void)
 	for (i = 0; i < 3000; i++)
 	{
 		iKey = i * 3;
-		plli = cMap.Put(&iKey, &bAdded);
+		plli = cMap.FindOrAdd(&iKey, &bAdded);
 		AssertTrue(bAdded);
 		AssertNotNull(plli);
 		AssertLong(0, *plli);
@@ -118,7 +118,7 @@ void TestHashMapPutGet(void)
 
 	//Put of a key that's in gives its value.
 	iKey = 30;
-	plli = cMap.Put(&iKey, &bAdded);
+	plli = cMap.FindOrAdd(&iKey, &bAdded);
 	AssertFalse(bAdded);
 	AssertLong(10000, *plli);
 	AssertSize(3000, cMap.NumElements());
@@ -310,6 +310,32 @@ void TestHashMapRandom(void)
 	}
 	AssertTrue(bResult);
 
+	cMap.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Put(pKey, pValue) stores a bool value (it isn't FindOrAdd's pbAdded).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHashMapBoolValues(void)
+{
+	CHashMapTemplate<int32, bool>	cMap;
+	int32							iKey;
+	bool							bValue;
+
+	cMap.Init();
+	iKey = 1;
+	bValue = true;
+	AssertTrue(cMap.Put(&iKey, &bValue));
+	iKey = 2;
+	bValue = false;
+	AssertTrue(cMap.Put(&iKey, &bValue));
+	iKey = 1;
+	AssertTrue(*cMap.Get(&iKey));
+	iKey = 2;
+	AssertFalse(*cMap.Get(&iKey));
 	cMap.Kill();
 }
 
@@ -632,14 +658,14 @@ void TestHashMapString(void)
 	AssertNull(cMap.Get("Name2000"));
 
 	//Keys that aren't NULL terminated.
-	pi = cMap.Put(szText, 6, &bAdded);
+	pi = cMap.FindOrAdd(szText, 6, &bAdded);
 	AssertTrue(bAdded);
 	*pi = -1;
 	AssertInt(-1, *cMap.Get("Symbol"));
 	AssertInt(-1, *cMap.Get(szText, 6));
 	AssertNull(cMap.Get(szText));
 	AssertString("Symbol", cMap.GetKey(2000));
-	pi = cMap.Put("Symbol", 6, &bAdded);
+	pi = cMap.FindOrAdd("Symbol", 6, &bAdded);
 	AssertFalse(bAdded);
 	AssertInt(-1, *pi);
 
@@ -672,6 +698,7 @@ void TestHashMap(void)
 	TestHashMapRemove();
 	TestHashMapCollisions();
 	TestHashMapRandom();
+	TestHashMapBoolValues();
 	TestHashMapPointerKeys();
 	TestHashMapStructKeys();
 	TestHashMapDataFree();

@@ -50,7 +50,7 @@ public:
 	V*			Get(const char* szKey);
 	V*			Get(const char* szKey, size uiLength);
 	V*			Put(const char* szKey);
-	V*			Put(const char* szKey, size uiLength, bool* pbAdded = NULL);
+	V*			FindOrAdd(const char* szKey, size uiLength, bool* pbAdded = NULL);
 	bool		Put(const char* szKey, const V* pValue);
 	bool		HasKey(const char* szKey);
 	bool		HasKey(const char* szKey, size uiLength);
@@ -153,7 +153,7 @@ V* CHashMapString<V, SIZE>::Get(const char* szKey, size uiLength)
 template<class V, class SIZE>
 V* CHashMapString<V, SIZE>::Put(const char* szKey)
 {
-	return Put(szKey, (size)strlen(szKey), NULL);
+	return FindOrAdd(szKey, (size)strlen(szKey), NULL);
 }
 
 
@@ -164,7 +164,7 @@ V* CHashMapString<V, SIZE>::Put(const char* szKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class V, class SIZE>
-V* CHashMapString<V, SIZE>::Put(const char* szKey, size uiLength, bool* pbAdded)
+V* CHashMapString<V, SIZE>::FindOrAdd(const char* szKey, size uiLength, bool* pbAdded)
 {
 	SHashText	sKey;
 	Count		uiIndex;
@@ -173,7 +173,7 @@ V* CHashMapString<V, SIZE>::Put(const char* szKey, size uiLength, bool* pbAdded)
 	SHashText*	psKept;
 
 	sKey.Init(szKey, uiLength);
-	uiIndex = mcMap.PutIndex(&sKey, &bAdded);
+	uiIndex = mcMap.FindOrAddIndex(&sKey, &bAdded);
 	if (pbAdded)
 	{
 		*pbAdded = bAdded;
@@ -209,7 +209,7 @@ bool CHashMapString<V, SIZE>::Put(const char* szKey, const V* pValue)
 {
 	V*	pDest;
 
-	pDest = Put(szKey, (size)strlen(szKey), NULL);
+	pDest = FindOrAdd(szKey, (size)strlen(szKey), NULL);
 	if (pDest == NULL)
 	{
 		return false;

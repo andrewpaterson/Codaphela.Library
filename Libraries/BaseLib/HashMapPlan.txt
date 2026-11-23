@@ -5,19 +5,27 @@ The intent (the user, 2026-11-23): plan a BaseLib hash map and/or hash set.
 
 Where it is: every question answered as the plan assumed (the user, 2026-11-23: "Go for it with your suggestions
 and plan changes"), and WeakFroms and MapUnknownUnknown ruled not to need a consistent order.  Steps 1, 2, 3 and 5
-done and committed 2026-11-23, in a window the compiler's session gave: HashOf.h, HashText.h, HashBlock.h/.cpp,
-HashMapTemplate.h, HashSetTemplate.h, HashMapString.h, and TestBaseLib's TestHashMap.cpp.  TestBaseLib passes in
-Release x64, Release Win32 and Debug x64, and TestBaseLib65 on the 65C64 and the W65C816.  Next: the conversions,
-which wait on the compiler's session (below).
-
-Found on the W65C816: a map whose entries can't grow (no memory, or past MAX_SIZE bytes) must stay as it was, and
-CArrayBlock frees its contents when a realloc fails.  So the block keeps its entries in memory of its own, doubling
-by Malloc and copy, never realloc.
-
-Step 3's timing (Release x64, scratch bench.cpp, the best of two rounds):
-    1,000,000 uint64 keys put, 2,000,000 got        CHashMapTemplate 0.129 s    CMapLongTemplate 2.623 s
-    100,000 names added twice, looked up 4 times    CHashSetTemplate 0.032 s    CNameSet's code 0.034 s
-                                                    CHashMapString   0.036 s    CMapStringTemplate 1.277 s
+committed 2026-11-23 (a8c0961e3).  The conversions were committed the same day, at the user's word, before all their
+tests had run; what each was checked by is in its commit message:
+  - checked: all of them compile (cl /Zs of each edited file, and TestCppCompilerLib.sln built in Release x64: BaseLib,
+    StandardLib, CppCompilerLib, Assembler65Lib); TestCPPConformance's four parts pass; the listings of the three *65
+    suites were taken with the library changes and the old compiler (L1, D:\gameengine\HashMapWork\listings).
+  - not yet: the rest of TestCppCompilerLib (stopped when the machine ran low on memory), the new compiler's listings
+    compared with L1, TestBaseLib, TestStandardLib, TestSupportLib, TestAssembler65Lib and the *65 suites in their
+    configurations, and LogiCim and the IDE built and tested.
+Done: BaseLib's FindOrAdd (Put(&key, &bValue) with a bool value had been the pbAdded form) and
+HashMapPrimitiveTemplate.h (keys by value; CHashMapLongTemplate the drop in for CMapLongTemplate).  Step 4: all seven
+(CNameSet, CASCIIIndex, SFTQuantiser, CIRFunction's constants, CDefineMap, CCPPSyntaxBlockIndex,
+CTextComparison::Intern).  Step 6: CppCompilerLib's CMapLongTemplate maps but CPPScope's (iterated), FactsEntry's,
+GetRangeFor's and GetLiteralCall's values in memory of their own (their pointers are handed out); IR65Code's labels,
+IR65Peephole's values, IRModule's symbols, #pragma once; WeakFroms; SupportLib's cel, page and corner maps; LogiCim's
+auto-connector, KiCad model and sprite cache (its keys no longer folded); the IDE's code model and GitLib; the
+assembler's symbols, linker, object, line table and undefined names.
+Left, and why: MapUnknownUnknown (keys compared by content, CMapBlock's nodes used); InputLib's copy maps (several
+types behind casts, small); SFTWriter's (local, keyed through Ptr); VRMLReader, ImageCombiner (small, not hot);
+IDECodeModel's mcProjectFiles (needs a case insensitive text HASH); CPPIndex's text maps, CPP65ListingIndex,
+SpillStore; CPP65Type's mcFunctions and the header caches still key by a hash with their own chains (now in hash
+maps); a real key for each is still to do.
 
 
 Working beside the compiler's session (2026-11-23)
@@ -35,7 +43,7 @@ asked:
     StandardLib, SupportLib and LogiCim conversions wait until its plan is finished (their sources are in its
     *65 suites and its timing).  So does HCP65's Assembler65Lib: all four of its proof solutions include it
     (found 2026-11-23, after an edit of it sat on disk for ten minutes; the edit is kept as a patch,
-    D:\gameengine\HashMapWorksm-hashmap.patch (git apply in HCP65), and is described in step 6d).
+    D:\gameengine\HashMapWork\asm-hashmap.patch (git apply in HCP65), and is described in step 6d).
   - Until then the new files are compiled and tested from a scratch folder (BaseLib and TestLib built Debug x64
     into it, HashBlock.cpp and TestHashMap.cpp with cl beside them).
 

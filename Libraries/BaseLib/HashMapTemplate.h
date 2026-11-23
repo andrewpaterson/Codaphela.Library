@@ -104,13 +104,13 @@ public:
 
 	V*		Get(const K* pKey);
 	V*		Put(const K* pKey);
-	V*		Put(const K* pKey, bool* pbAdded);
+	V*		FindOrAdd(const K* pKey, bool* pbAdded);
 	bool	Put(const K* pKey, const V* pValue);
 	bool	HasKey(const K* pKey);
 	bool	Remove(const K* pKey);
 	void	RemoveAt(Count uiIndex);
 	Count	Find(const K* pKey);
-	Count	PutIndex(const K* pKey, bool* pbAdded = NULL);
+	Count	FindOrAddIndex(const K* pKey, bool* pbAdded = NULL);
 	bool	Reserve(Count uiNumElements);
 
 	Count	NumElements(void) const;
@@ -192,17 +192,18 @@ V* CHashMapTemplate<K, V, HASH, SIZE>::Get(const K* pKey)
 template<class K, class V, class HASH, class SIZE>
 V* CHashMapTemplate<K, V, HASH, SIZE>::Put(const K* pKey)
 {
-	return Put(pKey, (bool*)NULL);
+	return FindOrAdd(pKey, NULL);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As Put(pKey), *pbAdded saying whether the value is new.
+// As Put(pKey), *pbAdded saying whether the value is new.  (Not a Put:
+// with a bool value, Put(pKey, &bValue) would be this.)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class K, class V, class HASH, class SIZE>
-V* CHashMapTemplate<K, V, HASH, SIZE>::Put(const K* pKey, bool* pbAdded)
+V* CHashMapTemplate<K, V, HASH, SIZE>::FindOrAdd(const K* pKey, bool* pbAdded)
 {
 	Count	uiIndex;
 	bool	bAdded;
@@ -234,7 +235,7 @@ bool CHashMapTemplate<K, V, HASH, SIZE>::Put(const K* pKey, const V* pValue)
 {
 	V*	pDest;
 
-	pDest = Put(pKey, (bool*)NULL);
+	pDest = FindOrAdd(pKey, NULL);
 	if (pDest == NULL)
 	{
 		return false;
@@ -293,11 +294,12 @@ typename SIZE::Count CHashMapTemplate<K, V, HASH, SIZE>::Find(const K* pKey)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As Put, giving the entry's index (SIZE::NotFound if there is no memory).
+// As FindOrAdd, giving the entry's index (SIZE::NotFound if there is no
+// memory).
 //
 //////////////////////////////////////////////////////////////////////////
 template<class K, class V, class HASH, class SIZE>
-typename SIZE::Count CHashMapTemplate<K, V, HASH, SIZE>::PutIndex(const K* pKey, bool* pbAdded)
+typename SIZE::Count CHashMapTemplate<K, V, HASH, SIZE>::FindOrAddIndex(const K* pKey, bool* pbAdded)
 {
 	Count	uiIndex;
 	bool	bAdded;

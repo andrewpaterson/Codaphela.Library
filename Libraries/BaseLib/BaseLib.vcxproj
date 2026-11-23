@@ -246,6 +246,7 @@
     <ClInclude Include="HashBlock.h" />
     <ClInclude Include="HashMapString.h" />
     <ClInclude Include="HashMapTemplate.h" />
+    <ClInclude Include="HashMapPrimitiveTemplate.h" />
     <ClInclude Include="HashOf.h" />
     <ClInclude Include="HashSetTemplate.h" />
     <ClInclude Include="HashText.h" />

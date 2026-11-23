@@ -1110,6 +1110,9 @@
     <ClInclude Include="HashMapTemplate.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
+    <ClInclude Include="HashMapPrimitiveTemplate.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
     <ClInclude Include="HashOf.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>

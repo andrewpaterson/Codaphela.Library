@@ -45,7 +45,7 @@ public:
 	bool	Remove(const K* pKey);
 	void	RemoveAt(Count uiIndex);
 	Count	Find(const K* pKey);
-	Count	PutIndex(const K* pKey, bool* pbAdded = NULL);
+	Count	FindOrAddIndex(const K* pKey, bool* pbAdded = NULL);
 	bool	Reserve(Count uiNumElements);
 
 	Count	NumElements(void) const;
@@ -189,7 +189,7 @@ typename SIZE::Count CHashSetTemplate<K, HASH, SIZE>::Find(const K* pKey)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class K, class HASH, class SIZE>
-typename SIZE::Count CHashSetTemplate<K, HASH, SIZE>::PutIndex(const K* pKey, bool* pbAdded)
+typename SIZE::Count CHashSetTemplate<K, HASH, SIZE>::FindOrAddIndex(const K* pKey, bool* pbAdded)
 {
 	return mcBlock.Put(HASH::Hash(pKey), pKey, pbAdded);
 }
