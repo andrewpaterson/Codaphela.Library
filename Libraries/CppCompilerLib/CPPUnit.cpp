@@ -382,7 +382,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcQueue.Init();
 	muiQueueNext = 0;
 	masFailed.Init();
-	mcTypeOfs.Init(true);
 	maszEmitted.Init();
 	mbPureVirtual = false;
 	mbBadCast = false;
@@ -501,7 +500,6 @@ void CCPPUnit::Kill(void)
 	mapcVariableInstances.Kill();
 	mapcQueue.Kill();
 	masFailed.Kill();
-	mcTypeOfs.Kill();
 	maszEmitted.Kill();
 	FreeVariables(&mapcGlobals);
 	mapcGlobals.Kill();

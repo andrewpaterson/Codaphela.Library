@@ -1104,3 +1104,12 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	does; if one does, it is a conformance case.  IsRvalue and the two place switches agree by construction
 	(IsRvalue asks PlaceOf) except where IsRvalue answers first by the kind: a.m of an rvalue, and the returned
 	local, which is moved though it has a place.
+
+	Step 1 (2026-11-23): the record.  What is known of an expression is the type checker's, SCPPExpressionFacts
+	(mcFacts, Facts), where the unit remembered TypeOf's answers (mcTypeOfs, SCPPTypeOf, gone): its type, its
+	type as declared, what was said working them out, by node, for the bindings and the function.  TypeOf,
+	DeclaredTypeOf and ReportTypeOf read it.  Same code: TestCppCompilerLib passes (272,088); every conformance
+	case says what it said; of the 4,213 listings only Regex.lst differs, the six of it, which is the user's
+	98cc04484 (the step limit's overflow check gone where size is 16 bits: 62 lines fewer on the W65C816, only
+	the source's line numbers on the 65C64), taken after 15f's listings; this step's listings are the next
+	step's baseline.

@@ -1044,29 +1044,7 @@ SCPP65Type* CCPPUnit::ValueTypeOf(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
 {
-	SCPP65Type*		psType;
-	SCPPTypeOf*	psTypeOf;
-	SCPPTypeOf	sTypeOf;
-
-	mpcStatistics->Count(CPPCC_TypeOf);
-	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
-	if (psTypeOf && (psTypeOf->pcBindings == mcContext.GetBindings()) && (psTypeOf->pcFunction == mcContext.GetFunction()))
-	{
-		return psTypeOf->psType;
-	}
-
-	mpcStatistics->Count(CPPCC_TypeOfWorkedOut);
-	mcDiagnostics.BeginKeeping();
-	mpcStatistics->Begin(CPPCP_Types);
-	psType = mcTypeChecker.Value(pcExpression, &sTypeOf.psDeclared);
-	mpcStatistics->End(CPPCP_Types);
-	sTypeOf.pcErrors = mcDiagnostics.EndKeeping();
-
-	sTypeOf.pcBindings = mcContext.GetBindings();
-	sTypeOf.pcFunction = mcContext.GetFunction();
-	sTypeOf.psType = psType;
-	mcTypeOfs.Put((int64)(size)pcExpression, &sTypeOf);
-	return psType;
+	return mcTypeChecker.Facts(pcExpression)->psType;
 }
 
 
@@ -1221,11 +1199,7 @@ bool CCPPUnit::NamesFunction(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::DeclaredTypeOf(CCPPSyntax* pcExpression)
 {
-	SCPPTypeOf*	psTypeOf;
-
-	TypeOf(pcExpression);
-	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
-	return psTypeOf ? psTypeOf->psDeclared : NULL;
+	return mcTypeChecker.Facts(pcExpression)->psDeclared;
 }
 
 
@@ -1259,11 +1233,7 @@ SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::ReportTypeOf(CCPPSyntax* pcExpression)
 {
-	SCPPTypeOf*	psTypeOf;
-
-	TypeOf(pcExpression);
-	psTypeOf = mcTypeOfs.Get((int64)(size)pcExpression);
-	mcDiagnostics.Report(psTypeOf ? psTypeOf->pcErrors : NULL);
+	mcDiagnostics.Report(mcTypeChecker.Facts(pcExpression)->pcErrors);
 }
 
 

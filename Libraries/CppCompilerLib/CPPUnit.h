@@ -128,20 +128,6 @@ struct SCPPExpandedArguments
 typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
 
 
-//A remembered TypeOf: the type of an expression with some template arguments.
-struct SCPPTypeOf
-{
-	CCPPTemplateArguments*		pcBindings;
-	CCPPFunction*		pcFunction;
-	SCPP65Type*			psType;
-	SCPP65Type*			psDeclared;		//psType, or the reference to it the expression is declared to give (f() of T& f(), a cast to T&&).
-	CCPPErrors*			pcErrors;		//What was said working it out (NULL for nothing), which ReportTypeOf says: the diagnostics' to free.
-};
-
-
-typedef CMapLongTemplate<SCPPTypeOf>		CMapCPPTypeOfs;
-
-
 //A function declared quietly that couldn't be (DeclareQuietly): its declarator, and what was said declaring it, which
 //is said where it is called.
 struct SCPPFailedDeclaration
@@ -287,7 +273,6 @@ protected:
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
 	CArrayCPPFailedDeclarations	masFailed;	//Functions whose declarations were not supported, and why (ReportFailedDeclaration).
-	CMapCPPTypeOfs		mcTypeOfs;			//TypeOf's answers, by expression.
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).

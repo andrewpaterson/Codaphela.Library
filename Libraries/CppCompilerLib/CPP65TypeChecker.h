@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __C_P_P_65_TYPE_CHECKER_H__
 #include "CPPSyntaxVisitor.h"
 #include "CPPSyntaxes.h"
+#include "BaseLib/MapLongTemplate.h"
 #include "CPP65Type.h"
 
 
@@ -30,6 +31,24 @@ class CCPPDiagnostics;
 struct SCPPField;
 class CCPPClass;
 class CCPPFunction;
+class CCPPTemplateArguments;
+class CCPPErrors;
+
+
+//What is known of an expression (CCPP65TypeChecker::Facts), worked out once for the bindings and the function it is
+//worked out in: its type, the type it is declared to give, and what was said working them out.  SemanticLayerPlan.txt
+//stage 15e: its place and its category join it.
+struct SCPPExpressionFacts
+{
+	CCPPTemplateArguments*	pcBindings;
+	CCPPFunction*			pcFunction;
+	SCPP65Type*				psType;
+	SCPP65Type*				psDeclared;		//psType, or the reference to it the expression is declared to give (f() of T& f(), a cast to T&&).
+	CCPPErrors*				pcErrors;		//What was said working it out (NULL for nothing), which ReportTypeOf says: the diagnostics' to free.
+};
+
+
+typedef CMapLongTemplate<SCPPExpressionFacts>	CMapCPPExpressionFacts;
 
 
 //The type of a C++ expression, and what is wrong with it, worked out without writing any code: the generator's
@@ -44,6 +63,7 @@ protected:
 	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPP65Types*		mpcTypes;
 	CArraySyntax		mapcNone;		//No arguments.
+	CMapCPPExpressionFacts	mcFacts;	//What is known of each expression, by its node (Facts).
 	SCPP65Type*			mpsResult;		//What the Visit function of the expression Result was asked for found.
 
 public:
@@ -77,6 +97,7 @@ public:
 	void			Init(CCPPUnit* pcUnit);
 	void			Kill(void);
 
+	SCPPExpressionFacts*	Facts(CCPPSyntax* pcExpression);
 	SCPP65Type*		Value(CCPPSyntax* pcExpression, SCPP65Type** ppsDeclared = NULL);
 	SCPP65Type*		ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit);
 	SCPP65Type*		Place(CCPPSyntax* pcExpression);

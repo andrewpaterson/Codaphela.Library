@@ -36,6 +36,7 @@ void CCPP65TypeChecker::Init(CCPPUnit* pcUnit)
 	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcTypes = pcUnit->GetTypes();
 	mapcNone.Init();
+	mcFacts.Init(true);
 }
 
 
@@ -45,7 +46,46 @@ void CCPP65TypeChecker::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::Kill(void)
 {
+	mcFacts.Kill();
 	mapcNone.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is known of an expression where it is being worked out (the
+// context's bindings and function): its type, worked out the first time
+// it is asked for there, with what was said doing it kept (stage 4's
+// keeping).  The record is the memo's: good until the next is made.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPPExpressionFacts* CCPP65TypeChecker::Facts(CCPPSyntax* pcExpression)
+{
+	SCPPExpressionFacts*	psFacts;
+	SCPPExpressionFacts		sFacts;
+	CCPPContext*			pcContext;
+	CCPPCompileStatistics*	pcStatistics;
+
+	pcContext = mpcUnit->GetContext();
+	pcStatistics = mpcUnit->GetStatistics();
+	pcStatistics->Count(CPPCC_TypeOf);
+	psFacts = mcFacts.Get((int64)(size)pcExpression);
+	if (psFacts && (psFacts->pcBindings == pcContext->GetBindings()) && (psFacts->pcFunction == pcContext->GetFunction()))
+	{
+		return psFacts;
+	}
+
+	pcStatistics->Count(CPPCC_TypeOfWorkedOut);
+	mpcDiagnostics->BeginKeeping();
+	pcStatistics->Begin(CPPCP_Types);
+	sFacts.psType = Value(pcExpression, &sFacts.psDeclared);
+	pcStatistics->End(CPPCP_Types);
+	sFacts.pcErrors = mpcDiagnostics->EndKeeping();
+
+	sFacts.pcBindings = pcContext->GetBindings();
+	sFacts.pcFunction = pcContext->GetFunction();
+	mcFacts.Put((int64)(size)pcExpression, &sFacts);
+	return mcFacts.Get((int64)(size)pcExpression);
 }
 
 
