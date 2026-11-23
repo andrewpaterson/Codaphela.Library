@@ -321,3 +321,125 @@ Questions (all answered 2026-11-23 as assumed: "Go for it with your suggestions 
 
 7. A multimap mode (a key with many values, iterated by key) for CPointerLocations?  Assumed: no; it stays as it
    is, being the one table of the eight that is a multimap, and has its own MovePointer and MoveLocations.
+
+
+Next: CQueueTemplate (planned 2026-11-23, questions answered, not started)
+==========================================================================
+
+The intent (the user, 2026-11-23): "plan how you would add CQueueTemplate and add it to the plan", after asking
+whether a typed ring buffer or deque could be built on CArrayBlock / CArrayTemplate.
+
+
+Why
+---
+
+Code that keeps a queue or a bounded history in an array drops its oldest element with RemoveAt(0), which moves every
+other element down.  A ring (push and pop at both ends) is the general answer, but on CArrayBlock it fits badly: a
+ring's contents wrap past the end of its memory, which CArrayBlock's growth doesn't know to move, and its used count
+would have to be the ring's capacity, so none of the array's own functions (NumElements, Find, Write) would mean
+anything.  And CArrayBlock gives its contents up when a realloc fails (found on the W65C816 for the hash map,
+above).  So a ring would need memory of its own, as CHashBlockBase has.
+
+But no code found pushes at the front of a queue: every one pushes at the back and takes or drops at the front.  That
+is a queue, and a queue fits CArrayTemplate as it is: the elements from a front index to the end are the queue, taking
+the front moves the index on, and when the dead elements before it are more than the live ones after it one
+RemoveRange moves the live ones down.  Each element is moved at most a few times in all, so taking the front is
+amortised O(1), and the elements stay in order in one array, so iterating is indexing.
+
+What it isn't for: speed.  The histories are small (UNDO_LOG_MAXIMUM 1000, UNDO_STACK_MAXIMUM 100,
+IDE_NAVIGATION_MAXIMUM 100, IDE_RECENT_EDITS and LOGICIM_NAVIGATION_HISTORY_SIZE 50), so RemoveAt(0) costs little
+there; the gain is that each says what it is.  A ring with its own memory is built only if something turns up that
+pushes at the front.
+
+
+What is there now (read 2026-11-23)
+-----------------------------------
+
+Every RemoveAt(0), PopFirst, RemoveFirst, InsertAt(..., 0) and Insert...BeforeStart in CommonLibraries, HCP65,
+HCP65-IDE, LogiCim and WindowInputTester (generated test sources left out), by what it is:
+
+  Queues (push at the back, take the front):
+    HCP65Lib/HCP65DebugPort.cpp:197, 260       masEvents, masDriverEvents: events taken oldest first
+    StandardLib/ObjectsRemovalContext.cpp:93   maapcRemovedObjects: the containers being removed, the first done
+                                               first (the others are read by index while it is)
+
+  Bounded histories (push at the back, drop the oldest past a maximum; most also cut from the back):
+    BaseLib/UndoLog.cpp:236                    masSteps (RemoveRange from 0 to clear)
+    BaseLib/UndoStack.cpp:356                  masSnapshots (RemoveFirst lowers muiCurrent; RemoveRange cuts the
+                                               redo end)
+    HCP65IDE/IDENavigationHistory.cpp:460      masBack (RemoveTail going back)
+    HCP65IDE/IDERecent.cpp:323                 masEdits
+    LogiCim/LogicimNavigationHistory.cpp:116   each side's places (RemoveTail)
+  Each Kills the element it drops first (they hold CChars), and each reads its elements by index and by Tail.  The
+  indexes callers keep (UndoStack's muiCurrent) already move down by one when the oldest goes, as a queue's would.
+
+  Not queues, left as arrays:
+    BuildLib/BuildWorkspace.cpp:1200           aiLeft: taken from anywhere (RemoveAt(i)); 0 only when none is ready
+    IDERecent.cpp:215                          masFiles: a file moved to the front of a most recent list
+    IDEQuickInfo.cpp:604                       masOverloads: the only element, just added (it was emptied first)
+    LockManager.cpp:110, IROptimiserMemory.cpp:509, KicadSchemSubnetGraph.cpp:226, IDEChangeSignature.cpp:1730,
+    ImageCelMask*.cpp, ImageCelTransparent.cpp: one insertion at the front, not a queue
+    SafeArrayBlock.cpp:349, 365                PopFirst passed through (the array's own)
+
+
+The design proposed
+-------------------
+
+1. QueueTemplate.h, header only (it is a few lines over CArrayTemplate, which is compiled once already):
+
+        template<class M, class BLOCK = CArrayBlock>
+        class CQueueTemplate
+        {
+        protected:
+            CArrayTemplateBase<M, BLOCK>  maElements;   //Elements [muiFront, maElements.NumElements()) are the queue.
+            Count                         muiFront;
+        public:
+            Init, Init(pcMalloc), Kill, ReInit
+            M*    Push(void);  void Push(M* pElement);    //At the back.
+            bool  Pop(M* pDest);  bool Pop(void);         //The front, copied out (or not) and gone.
+            M*    Front(void);  M* Back(void);            //NULL when empty.
+            M*    Get(Count uiIndex);                     //0 the front.
+            Count NumElements(void) const;  bool IsEmpty(void) const;
+            void  RemoveBack(void);                       //A history going back (RemoveTail).
+            void  RemoveFrom(Count uiIndex);              //Everything from uiIndex to the back (the redo end).
+        };
+
+   BLOCK is CArrayBlock (counted in size, MAX_SIZE bytes on the W65C816) or CArrayLargeBlock (lsize), as the arrays'.
+   A new element is zeroed and given its virtual function table as CArrayTemplate's are (CPostMalloc).
+
+2. Taking the front: muiFront moves on; when muiFront is more than the live elements (and at least 8, so a small
+   queue doesn't move on every pop) the live ones are moved down with one RemoveRange(0, muiFront).  An empty queue
+   sets muiFront to 0 without moving anything.  So pointers into the queue last until the next Push or Pop, the
+   hash map's rule.
+
+3. No maximum in the class: a bounded history is "while (NumElements() >= uiMaximum) { Front()->Kill(); Pop(); }"
+   at the caller, which is also where it knows what dropping one costs (the Kill).
+
+4. No Write/Read unless a caller turns out to need it: none of the eight is written to a file as an array.
+
+
+Steps
+-----
+
+  1. QueueTemplate.h and TestBaseLib's TestQueue.cpp: the order kept; pops that cross the compaction point (the front
+     exactly half, one past it, a queue emptied and filled again); Get, Front and Back after a compaction; Pop of an
+     empty queue; the bounded history pattern; RemoveBack and RemoveFrom (with the front not at 0); a class with a
+     virtual function table; the large size; and, where size is 16 bits, a queue filled until Push fails, keeping
+     what it had.  Built and run as TestBaseLib and TestBaseLib65 are.
+  2. The queues: HCP65DebugPort's two (TestHCP65Lib), ObjectsRemovalContext's (TestStandardLib, TestStandardLib65).
+  3. The bounded histories: UndoLog and UndoStack (TestBaseLib, TestBaseLib65, and the IDE's checks of undo),
+     IDENavigationHistory and IDERecent (the IDE's checks), LogicimNavigationHistory (LogiCim built; it has no suite).
+  4. The docs: QueueTemplate.h in LibraryBreakdown.txt, with the hash map's files.
+
+With it, the other gaps found on 2026-11-23 and not yet planned: StandardLib's BinaryHeap.h moved to BaseLib (it needs
+nothing of StandardLib's), CArrayBit's population count, first set or clear bit and and/or/xor, and whether anything
+hand rolls a union-find.
+
+
+Questions (all answered 2026-11-23 as assumed: "All three recommended open answers are fine.")
+----------------------------------------------------------------------------------------------
+
+Q1. The name: CQueueTemplate (as CArrayTemplate, CHashMapTemplate)?  Assumed yes.
+Q2. The bounded histories too, though they gain no speed?  Assumed yes: each says what it is.
+Q3. Compaction when the dead front is more than the live elements and at least 8?  Assumed yes; the other way, moving
+    the live ones at every pop, is today's cost.
