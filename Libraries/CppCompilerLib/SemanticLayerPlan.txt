@@ -8,7 +8,7 @@ this plan finishes what they left and what has been added since.
 
 Where it is (2026-11-23): the first part's stages (0 to 16) are done, but for what each stage's record says it
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
-2026-11-23) is what it left, waiting on questions 6 to 10.  The user on 2026-11-22: "Finish and commit,
+2026-11-23) is what it left; its questions (6 to 10) are answered, and it hasn't begun.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -363,18 +363,21 @@ its record.
    e. PlaceType and the front end's Place ask the record whether there is a place (stage 15e's leftover), and the
       types phase's 0.5 to 5% the record cost is won back if it can be (its entries pooled, for one).  Same code.
 
-24. Finding 44, watched, then acted on.  Same code.  (M)
+24. Finding 44: the classes out of the unit stop being its friends.  Same code.  (L)
 
-   The classes made out of the unit are its friends and reach into it.  Each one's asks of mpcUnit are counted
-   before and after, and each is given what it works with (the types, the diagnostics, the context, the binder)
-   where that takes most of its asks away (question 10).
+   The classes made out of the unit are its friends and reach into it (mpcUnit->mcTypes, mpcUnit->mcContext ...).
+   Each one's asks of the unit are counted, and then each is given what it works with when it is made (the types,
+   the diagnostics, the context, the binder, the classes beside it), a narrow interface its header shows, and is
+   no longer a friend (question 10).  Counted again at the end: what each still asks the unit for is the unit's
+   own (the queue, the options).
 
 25. The end.  (S)
 
    The findings' "Since:" lines, and this part's last table, as stage 16 did.
 
 Ends when: CCPPUnit is the walk, the queue, the options and the classes it holds, about 100 functions with the
-getters (question 8).  Size: 25 to 35 proofs, 17 and 18 the long ones.
+getters (question 8).  Finding 36's rest is not in it (question 6).  Size: 25 to 35 proofs, 17, 18 and 24 the
+long ones.
 
 
 
@@ -390,18 +393,18 @@ What this plan takes from the other areas' findings, and what it leaves
 
 Questions for the user
 
-Open (part two, asked 2026-11-23):
+Open: none.
 
-  6. Finding 36's rest: "did the callee say something" is asked by counting the error list (38 uses), and
-     BindConstruction's and BindOperator's bReport remain.  Its fix is the binder giving "none, and why", which is
-     finding 32's, in the names and calls area (30 to 44).  In this plan, or in a plan for names and calls?
-  7. Stage 23b changes the code written (a float constant is data).  To the same bar as question 5: every program
-     passes, and no suite's cycles or bytes are worse on either processor?
-  8. Where it ends: about 100 functions (the walk, the queue, the options and the getters), or the getters too?
-  9. Packs: to the instantiator now, as they are (which adds asks of the unit), or left until ConsolidationPlan's
-     stage 5 changes how an expansion is made?
- 10. Stage 24: are the new classes to stop being the unit's friends and be given narrow interfaces (more work,
-     fewer couplings that don't show), or are their asks only counted and said?
+Answered 2026-11-23 (part two's, each asked alone):
+
+  6. Finding 36's rest (the error list counted, bReport): in a plan for names and calls, with finding 32, not here.
+  7. Stage 23b may change the code written, to question 5's bar: every program passes, and no suite's cycles or
+     bytes are worse on either processor.
+  8. Part two ends at about 100 functions: the walk, the queue, the options and the classes it holds, the getters
+     staying.
+  9. The packs go to the instantiator now, as they are (stage 21); the asks that adds are counted in stage 24.
+ 10. The classes out of the unit stop being its friends: each is given what it works with when it is made, a
+     narrow interface (stage 24).
 
 Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
 
