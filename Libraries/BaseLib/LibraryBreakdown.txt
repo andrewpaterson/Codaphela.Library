@@ -78,6 +78,3 @@ Function calling
   FunctionCaller (generated *_Call.inl files)
 
 Validation
-
-Aardvark
-  Preprocessor correctness test for compilers

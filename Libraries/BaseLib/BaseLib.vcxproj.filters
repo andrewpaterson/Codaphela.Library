@@ -361,9 +361,6 @@
     <Filter Include="Source\FileSystem\Underlying">
       <UniqueIdentifier>{78914b64-e340-4e2c-b12f-89b17f130b76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Aardvark">
-      <UniqueIdentifier>{5170d5df-3541-4423-8ed7-bc3cb1140127}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Search">
       <UniqueIdentifier>{e84275a1-c05d-490f-a55a-92d8e7308864}</UniqueIdentifier>
     </Filter>
@@ -1544,9 +1541,6 @@
     </ClInclude>
     <ClInclude Include="FatFilenameHelper.h">
       <Filter>Source\FileSystem\Fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Aarvark\Aardvark.h">
-      <Filter>Source\Aardvark</Filter>
     </ClInclude>
     <ClInclude Include="MemoryManager.h">
       <Filter>Source\Memory\Manager</Filter>
@@ -2797,9 +2791,6 @@
     </ClCompile>
     <ClCompile Include="FatFilenameHelper.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Aarvark\Aardvark.cpp">
-      <Filter>Source\Aardvark</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
       <Filter>Source\Memory\Manager</Filter>
