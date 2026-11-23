@@ -5,14 +5,20 @@ The intent (the user, 2026-11-23): plan a BaseLib hash map and/or hash set.
 
 Where it is: every question answered as the plan assumed (the user, 2026-11-23: "Go for it with your suggestions
 and plan changes"), and WeakFroms and MapUnknownUnknown ruled not to need a consistent order.  Steps 1, 2, 3 and 5
-committed 2026-11-23 (a8c0961e3).  The conversions were committed the same day, at the user's word, before all their
-tests had run; what each was checked by is in its commit message:
-  - checked: all of them compile (cl /Zs of each edited file, and TestCppCompilerLib.sln built in Release x64: BaseLib,
-    StandardLib, CppCompilerLib, Assembler65Lib); TestCPPConformance's four parts pass; the listings of the three *65
-    suites were taken with the library changes and the old compiler (L1, D:\gameengine\HashMapWork\listings).
-  - not yet: the rest of TestCppCompilerLib (stopped when the machine ran low on memory), the new compiler's listings
-    compared with L1, TestBaseLib, TestStandardLib, TestSupportLib, TestAssembler65Lib and the *65 suites in their
-    configurations, and LogiCim and the IDE built and tested.
+committed 2026-11-23 (a8c0961e3).  The conversions were committed the same day, at the user's word, before their
+tests had run (their messages say so), and the user's pull then rebased them: CommonLibraries 694186841, c35ab8983,
+6252c0c26, 2d5149cd8, d728e5008; HCP65 d97c8c3; LogiCim 220d7ef, 769ca74; HCP65-IDE a19c121, 9504b75.  Since proved:
+  - TestCppCompilerLib in Release x64: 272,132 run, 0 failed (RunParallel -jobs 2; four jobs ran the machine out of
+    memory).
+  - The compiler's output: the three *65 suites' listings with the library changes and the old compiler (L1) against
+    the new compiler (L2), both in D:\gameengine\HashMapWork\listings: 4,213 listings, 4,210 the same; the other 3 are
+    FontFamily's, whose source the upstream af3839632 changed between the two.
+  - The sweep of every solution the conversions touch (TEST_PROJECT65_RUNS=2 Tests/Sweep.py -only ..., 2026-11-23):
+    48 items in Release x64, Release Win32 and Debug x64, the *65 suites on both processors, 0 failed.  TestBaseLib,
+    TestStandardLib, TestSupportLib, TestWindowLib, TestSceneViewLib, TestLogicimLib, TestKicadImporterLib,
+    TestAssembler65Lib, TestLibc65, TestSculptLib and the IDE's five suites; LogiCim, HCP65Tester, WindowInputTester
+    and HCP65Sculpt built.
+  - Not run: TestHCP65Lib (40 minutes, memory), and the IDE's checks (the code model has no suite in the sweep).
 Done: BaseLib's FindOrAdd (Put(&key, &bValue) with a bool value had been the pbAdded form) and
 HashMapPrimitiveTemplate.h (keys by value; CHashMapLongTemplate the drop in for CMapLongTemplate).  Step 4: all seven
 (CNameSet, CASCIIIndex, SFTQuantiser, CIRFunction's constants, CDefineMap, CCPPSyntaxBlockIndex,
@@ -323,11 +329,17 @@ Questions (all answered 2026-11-23 as assumed: "Go for it with your suggestions 
    is, being the one table of the eight that is a multimap, and has its own MovePointer and MoveLocations.
 
 
-Next: CQueueTemplate (planned 2026-11-23, questions answered, not started)
-==========================================================================
+Next: CQueueTemplate (planned 2026-11-23, questions answered, step 1 built)
+===========================================================================
 
 The intent (the user, 2026-11-23): "plan how you would add CQueueTemplate and add it to the plan", after asking
-whether a typed ring buffer or deque could be built on CArrayBlock / CArrayTemplate.
+whether a typed ring buffer or deque could be built on CArrayBlock / CArrayTemplate; then "When it finishes [the
+sweep], start on CQueueTemplate".
+
+Where it is: step 1 built 2026-11-23: QueueTemplate.h and TestQueue.cpp; TestBaseLib passes in Release x64, Release
+Win32 and Debug x64, and TestBaseLib65 on the 65C64 and the W65C816.  Two things the design below said were wrong, and
+are put right in it: a new element isn't zeroed (CArrayTemplate's Add doesn't zero), and the "queue filled until Push
+fails" test isn't there, because CArrayBlock loses its contents when a realloc fails (Q4).  Next: step 2.
 
 
 Why
@@ -395,17 +407,18 @@ The design proposed
             Count                         muiFront;
         public:
             Init, Init(pcMalloc), Kill, ReInit
-            M*    Push(void);  void Push(M* pElement);    //At the back.
+            M*    Push(void);  M* Push(M* pElement);      //At the back.
             bool  Pop(M* pDest);  bool Pop(void);         //The front, copied out (or not) and gone.
             M*    Front(void);  M* Back(void);            //NULL when empty.
             M*    Get(Count uiIndex);                     //0 the front.
             Count NumElements(void) const;  bool IsEmpty(void) const;
-            void  RemoveBack(void);                       //A history going back (RemoveTail).
+            bool  RemoveBack(void);                       //A history going back (RemoveTail).
             void  RemoveFrom(Count uiIndex);              //Everything from uiIndex to the back (the redo end).
         };
 
    BLOCK is CArrayBlock (counted in size, MAX_SIZE bytes on the W65C816) or CArrayLargeBlock (lsize), as the arrays'.
-   A new element is zeroed and given its virtual function table as CArrayTemplate's are (CPostMalloc).
+   A new element is given its virtual function table (CPostMalloc) but isn't zeroed, as CArrayTemplate's aren't:
+   the caller initialises it (the histories all do).
 
 2. Taking the front: muiFront moves on; when muiFront is more than the live elements (and at least 8, so a small
    queue doesn't move on every pop) the live ones are moved down with one RemoveRange(0, muiFront).  An empty queue
@@ -424,8 +437,8 @@ Steps
   1. QueueTemplate.h and TestBaseLib's TestQueue.cpp: the order kept; pops that cross the compaction point (the front
      exactly half, one past it, a queue emptied and filled again); Get, Front and Back after a compaction; Pop of an
      empty queue; the bounded history pattern; RemoveBack and RemoveFrom (with the front not at 0); a class with a
-     virtual function table; the large size; and, where size is 16 bits, a queue filled until Push fails, keeping
-     what it had.  Built and run as TestBaseLib and TestBaseLib65 are.
+     virtual function table; the large size.  Built and run as TestBaseLib and TestBaseLib65 are.  (Done
+     2026-11-23.  A queue filled until Push fails isn't tested: see Q4.)
   2. The queues: HCP65DebugPort's two (TestHCP65Lib), ObjectsRemovalContext's (TestStandardLib, TestStandardLib65).
   3. The bounded histories: UndoLog and UndoStack (TestBaseLib, TestBaseLib65, and the IDE's checks of undo),
      IDENavigationHistory and IDERecent (the IDE's checks), LogicimNavigationHistory (LogiCim built; it has no suite).
@@ -443,3 +456,11 @@ Q1. The name: CQueueTemplate (as CArrayTemplate, CHashMapTemplate)?  Assumed yes
 Q2. The bounded histories too, though they gain no speed?  Assumed yes: each says what it is.
 Q3. Compaction when the dead front is more than the live elements and at least 8?  Assumed yes; the other way, moving
     the live ones at every pop, is today's cost.
+
+Q4 (open, found 2026-11-23 building step 1).  CArrayBlockBase::SetArraySize sets mpvArray to the realloc's result and,
+    when that is NULL, its counts to 0: a failed grow loses the array's contents, and leaks its old memory (realloc
+    leaves it allocated).  Every array has this, the queue among them; it matters most on the W65C816, where the hash
+    map's test found memory running out before MAX_SIZE.  Should SetArraySize keep the old memory and counts when a
+    realloc fails (Add and the others then giving NULL or false), so that a failed grow leaves the array as it was?
+    Recommended: yes, as its own change with TestBaseLib and the *65 suites, since every array goes through it; the
+    shrink and free policy (memory: CArrayBlock releases memory) is untouched.
