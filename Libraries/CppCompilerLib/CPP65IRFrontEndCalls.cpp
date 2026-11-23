@@ -388,7 +388,7 @@ bool CCPP65IRFrontEnd::CallThroughPointer(CCPPSyntaxCallExpression* pcCall, CArr
 	SCPP65IRValue	sCallee;
 	SIRReference	sElide;
 
-	psType = mpcUnit->CalleePointerType(pcCallee);
+	psType = mpcUnit->GetTypeChecker()->CalleePointerType(pcCallee);
 	sElide = msElide;
 	msElide = IRNone();
 	if (!psType)
@@ -760,7 +760,7 @@ bool CCPP65IRFrontEnd::GatherArguments(CArraySyntax* papcArguments, CArrayCPP65T
 		{
 			return false;
 		}
-		psParameter = mpcUnit->VariadicArgumentType(sArgument.psType);
+		psParameter = mpcUnit->GetTypeChecker()->VariadicArgumentType(sArgument.psType);
 		if (!psParameter)
 		{
 			return Unsupported(__FILE__, __LINE__);

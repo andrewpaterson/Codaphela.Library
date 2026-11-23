@@ -1161,3 +1161,12 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	(IsObject reads the type, PlaceOf the record's place, IsMadeObject MakesObject): they go to the type checker
 	with TypeOf's ways in (step 6), whose call sites are rewritten together; and PlaceType's and the front end's
 	Place's switches don't yet ask the record whether there is a place.
+
+	Step 5 (2026-11-23): the type rules are the type checker's: CompositePointee, CompositePointerType,
+	ConditionalType, ConditionalClass, ConditionalLvalueType, ConditionalXvalueType, ConditionalObjectType,
+	VariadicArgumentType and CalleePointerType, moved by the scratchpad's moveinto.py (move.py's way, into a class
+	that is).  The composite pointer's two go to the type checker too, not to CCPP65Types as the step was
+	written: they ask whether one class is derived from another and the conditional's class, which CCPP65Types
+	doesn't know.  Same code: TestCppCompilerLib passes (272,118); every conformance case says what it said; of
+	the 4,213 listings only HashBlock.lst differs, the user's e970f872f (Grow's slots allocated in lsize: the
+	W65C816's multiply is 32 bit, the 65C64's only the source line); the IDE builds.

@@ -302,11 +302,11 @@ ECPPValueCategory CCPP65TypeChecker::WorkOutCategory(CCPPSyntax* pcExpression)
 
 	case CPPS_ConditionalExpression:
 		pcConditional = (CCPPSyntaxConditionalExpression*)pcExpression;
-		if (mpcUnit->ConditionalLvalueType(pcConditional))
+		if (ConditionalLvalueType(pcConditional))
 		{
 			return CPPVC_Lvalue;
 		}
-		if (mpcUnit->ConditionalXvalueType(pcConditional))
+		if (ConditionalXvalueType(pcConditional))
 		{
 			return CPPVC_Xvalue;
 		}
@@ -1724,12 +1724,12 @@ bool CCPP65TypeChecker::Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type
 	{
 		return Error(pcNode, "Pointers to members are only compared for equality");
 	}
-	if ((psLeft->IsPointer() || psLeft->IsMemberPointer()) && (psRight->IsPointer() || psRight->IsMemberPointer()) && !mpcUnit->CompositePointerType(psLeft, psRight))
+	if ((psLeft->IsPointer() || psLeft->IsMemberPointer()) && (psRight->IsPointer() || psRight->IsMemberPointer()) && !CompositePointerType(psLeft, psRight))
 	{
 		//int* with long*, a pointer to a function with one to an object, pointers to members of unrelated classes.
 		return Error(pcNode, "These pointers cannot be compared: neither's type converts to the other's");
 	}
-	if (!mpcUnit->CompositePointerType(psLeft, psRight))
+	if (!CompositePointerType(psLeft, psRight))
 	{
 		return Error(pcNode, "These operands cannot be compared");
 	}
@@ -1787,7 +1787,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		}
 		return Value(bThrowTrue ? pcConditional->mpcFalse : pcConditional->mpcTrue) ? psType : NULL;
 	}
-	psType = mpcUnit->ConditionalXvalueType(pcConditional);
+	psType = ConditionalXvalueType(pcConditional);
 	if (psType)
 	{
 		return (Condition(pcConditional->mpcCondition) && Value(pcConditional->mpcTrue) && Value(pcConditional->mpcFalse)) ? psType : NULL;
@@ -1797,7 +1797,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 		return ObjectConditional(pcConditional);
 	}
 
-	psType = mpcUnit->ConditionalType(psTrue, psFalse);
+	psType = ConditionalType(psTrue, psFalse);
 	if (!psType || !ConditionalResultsFit(pcConditional, psTrue, psFalse))
 	{
 		Error(pcConditional, "The two results of ? : have no type in common");
@@ -1853,7 +1853,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionalPlace(CCPPSyntaxConditionalExpression*
 {
 	SCPP65Type*	psType;
 
-	psType = mpcUnit->ConditionalLvalueType(pcConditional);
+	psType = ConditionalLvalueType(pcConditional);
 	if (!psType)
 	{
 		Error(pcConditional, "This is not an lvalue: the two results of ? : are not lvalues of one type");
@@ -1881,11 +1881,11 @@ SCPP65Type* CCPP65TypeChecker::ObjectConditional(CCPPSyntaxConditionalExpression
 	SCPP65Type*		psType;
 	bool			bAmbiguous;
 
-	if (mpcUnit->ConditionalLvalueType(pcConditional))
+	if (ConditionalLvalueType(pcConditional))
 	{
 		return ConditionalPlace(pcConditional);
 	}
-	psType = mpcUnit->ConditionalObjectType(pcConditional, &bAmbiguous);
+	psType = ConditionalObjectType(pcConditional, &bAmbiguous);
 	if (!psType)
 	{
 		Error(pcConditional, bAmbiguous ? "Each of the two results of ? : converts to the other's type" : "The two results of ? : have no type in common");
@@ -2051,7 +2051,7 @@ SCPP65Type* CCPP65TypeChecker::CallExpression(CCPPSyntaxCallExpression* pcCall)
 		}
 		return psType->psBase;
 	case CPPBC_Pointer:
-		psType = mpcUnit->CalleePointerType(cBound.mpcCallee);
+		psType = CalleePointerType(cBound.mpcCallee);
 		if (psType)
 		{
 			return CallThroughPointer(pcCall, cBound.mpapcArguments, psType->psBase);
@@ -2189,7 +2189,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 		{
 			return false;
 		}
-		psParameter = mpcUnit->VariadicArgumentType(psType);
+		psParameter = VariadicArgumentType(psType);
 		if (!psParameter)
 		{
 			if (psType->IsClass() && !psType->pcClass->IsComplete())
@@ -2925,7 +2925,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	case CPPS_ConditionalExpression:
 		//One of two lvalues; of objects any other is the object it makes.  What is wrong with one that has no type is
 		//said as its value's error.
-		if (mpcUnit->ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) || (!mpcUnit->IsObject(pcExpression) && mpcUnit->TypeOf(pcExpression)))
+		if (ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) || (!mpcUnit->IsObject(pcExpression) && mpcUnit->TypeOf(pcExpression)))
 		{
 			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression);
 		}
@@ -4626,7 +4626,7 @@ bool CCPP65TypeChecker::StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast,
 	{
 		return Error(pcCast, "static_cast doesn't take const away: const_cast does");
 	}
-	if (psFromBase->Equals(psToBase) || psFromBase->IsVoid() || (psToBase->IsVoid() && !psFromBase->IsFunction()) || mpcUnit->ConditionalClass(psFromBase, psToBase))
+	if (psFromBase->Equals(psToBase) || psFromBase->IsVoid() || (psToBase->IsVoid() && !psFromBase->IsFunction()) || ConditionalClass(psFromBase, psToBase))
 	{
 		return true;
 	}
@@ -4864,3 +4864,297 @@ bool CCPP65TypeChecker::Error(CCPPSyntax* pcNode, const char* szMessage)
 {
 	return mpcDiagnostics->Error(pcNode, szMessage);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the types two pointers point to, or two pointers to members point
+// to as members, have in common: one type with the const and volatile of
+// both, where they are the same type but for those.  At the first level
+// (bFirstLevel: what the pointers themselves point to) void with an object
+// type is void, and a class with one it is derived from is the base.
+// Pointers that differ further in point to what those have in common, and
+// are const as const was added there.  NULL if they have nothing in
+// common.  [expr] 13, [conv.qual] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel)
+{
+	SCPP65Type*	psCommon;
+	SCPP65Type*	psInner;
+	CCPPClass*	pcBase;
+	bool		bConst;
+
+	bConst = psLeft->bConst || psRight->bConst;
+	pcBase = bFirstLevel ? ConditionalClass(psLeft, psRight) : NULL;
+	psCommon = NULL;
+	if (psLeft->Unqualified()->Same(psRight->Unqualified()))
+	{
+		psCommon = psLeft;
+	}
+	else if (bFirstLevel && (psLeft->IsVoid() || psRight->IsVoid()) && !psLeft->IsFunction() && !psRight->IsFunction())
+	{
+		psCommon = &mpcUnit->mcTypes.msVoid;
+	}
+	else if (pcBase)
+	{
+		psCommon = pcBase->mpsType;
+	}
+	else if (psLeft->IsPointer() && psRight->IsPointer())
+	{
+		psInner = CompositePointee(psLeft->psBase, psRight->psBase, false);
+		psCommon = psInner ? mpcUnit->mcTypes.Pointer(psInner) : NULL;
+		bConst = true;
+	}
+	return psCommon ? mpcUnit->mcTypes.Qualified(psCommon->Unqualified(), bConst, psLeft->bVolatile || psRight->bVolatile) : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The composite pointer type of two operands: the type both are converted
+// to before two pointers, or two pointers to members, are compared, and
+// the type of c ? x : y of them.  A null pointer constant (a std::nullptr_t,
+// or an integer, which its user has seen is one) with a pointer is the
+// pointer's type and with a std::nullptr_t that; two pointers are a
+// pointer to what they point to in common (CompositePointee); two
+// pointers to members are the derived class's, to what the members are in
+// common.  NULL if there is no such type.  [expr] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight)
+{
+	SCPP65Type*	psPointee;
+	CCPPClass*	pcDerived;
+	bool		bLeftNull;
+	bool		bRightNull;
+
+	bLeftNull = psLeft->IsNullPointer() || psLeft->IsInteger();
+	bRightNull = psRight->IsNullPointer() || psRight->IsInteger();
+	if (bRightNull && (psLeft->IsPointer() || psLeft->IsMemberPointer() || psLeft->IsNullPointer()))
+	{
+		return psLeft->Unqualified();
+	}
+	if (bLeftNull && (psRight->IsPointer() || psRight->IsMemberPointer() || psRight->IsNullPointer()))
+	{
+		return psRight->Unqualified();
+	}
+	if (psLeft->IsPointer() && psRight->IsPointer())
+	{
+		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, true);
+		return psPointee ? mpcUnit->mcTypes.Pointer(psPointee) : NULL;
+	}
+	if (psLeft->IsMemberPointer() && psRight->IsMemberPointer())
+	{
+		//A pointer to a base's member is one to the derived class's.  [conv.mem] 2
+		pcDerived = mpcUnit->IsDerived(psLeft->pcClass, psRight->pcClass, NULL) ? psLeft->pcClass : (mpcUnit->IsDerived(psRight->pcClass, psLeft->pcClass, NULL) ? psRight->pcClass : NULL);
+		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, false);
+		return (pcDerived && psPointee) ? mpcUnit->mcTypes.MemberPointer(pcDerived, psPointee) : NULL;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y for x and y that aren't objects, NULL if they have
+// none in common: void if either is; their own type where it is one type,
+// which isn't promoted (two chars are a char, two bools a bool); the usual
+// arithmetic conversions' for numbers and enums; otherwise their composite
+// pointer type.  [expr.cond] 2, 6
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	if (psTrue->IsVoid() || psFalse->IsVoid())
+	{
+		return &mpcUnit->mcTypes.msVoid;
+	}
+	if (psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	{
+		return psTrue->Unqualified();
+	}
+	if (psTrue->IsFloat() || psFalse->IsFloat())
+	{
+		return ((psTrue->IsFloat() || psTrue->IsInteger()) && (psFalse->IsFloat() || psFalse->IsInteger())) ? mpcUnit->mcTypes.FloatArithmetic(psTrue, psFalse) : NULL;
+	}
+	if (psTrue->IsInteger() && psFalse->IsInteger())
+	{
+		return mpcUnit->mcTypes.Arithmetic(psTrue, psFalse);
+	}
+	return CompositePointerType(psTrue, psFalse);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class of c ? x : y with objects: x's and y's if they are the same,
+// otherwise the one the other is derived from (the derived one is converted
+// to its base).  NULL if they aren't both objects, or neither class is the
+// other's base.  [expr.cond] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPP65TypeChecker::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse)
+{
+	psTrue = psTrue->WithoutReference();
+	psFalse = psFalse->WithoutReference();
+	if (!psTrue->IsClass() || !psFalse->IsClass())
+	{
+		return NULL;
+	}
+	if (mpcUnit->IsDerived(psTrue->pcClass, psFalse->pcClass, NULL))
+	{
+		return psFalse->pcClass;
+	}
+	return mpcUnit->IsDerived(psFalse->pcClass, psTrue->pcClass, NULL) ? psTrue->pcClass : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the lvalue c ? x : y is: x and y are lvalues of one type (it
+// has the const and volatile of both), or objects of a class and of one
+// derived from it, the base no less const (the derived object is its base
+// there).  NULL if c ? x : y is a value.  [expr.cond] 3, 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+	SCPP65Type*	psBase;
+	CCPPClass*	pcClass;
+
+	psTrue = mpcUnit->PlaceOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->PlaceOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || mpcUnit->IsRvalue(pcConditional->mpcTrue) || mpcUnit->IsRvalue(pcConditional->mpcFalse))
+	{
+		return NULL;
+	}
+	if (psTrue->Unqualified()->Same(psFalse->Unqualified()))
+	{
+		return mpcUnit->mcTypes.Qualified(psTrue->Unqualified(), psTrue->bConst || psFalse->bConst, psTrue->bVolatile || psFalse->bVolatile);
+	}
+	pcClass = ConditionalClass(psTrue, psFalse);
+	if (!pcClass)
+	{
+		return NULL;
+	}
+	psBase = (psTrue->pcClass == pcClass) ? psTrue : psFalse;
+	return psBase->HasQualifiersOf((psBase == psTrue) ? psFalse : psTrue) ? psBase : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y when x and y are both about to go and of one type,
+// static_cast<T&&>(a) and a call that returns T&&: a T&& too.  NULL if they
+// aren't.  [expr.cond] 4
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+
+	psTrue = mpcUnit->DeclaredTypeOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->DeclaredTypeOf(pcConditional->mpcFalse);
+	return (psTrue && psFalse && psTrue->IsRvalueReference() && psFalse->IsRvalueReference() && psTrue->psBase->Same(psFalse->psBase)) ? psTrue : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of c ? x : y when x or y is an object and the result is a value:
+// the class of both; the base, when one's class is derived from the
+// other's; or else the type of the one operand that the other converts to
+// (an int for an object with a conversion function to it, the class for
+// what its constructor takes).  NULL if neither converts, or each does
+// (*pbAmbiguous).  [expr.cond] 3
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ConditionalObjectType(CCPPSyntaxConditionalExpression* pcConditional, bool* pbAmbiguous)
+{
+	SCPP65Type*	psTrue;
+	SCPP65Type*	psFalse;
+	CCPPClass*	pcClass;
+	bool		bToTrue;
+	bool		bToFalse;
+
+	*pbAmbiguous = false;
+	psTrue = mpcUnit->ValueTypeOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->ValueTypeOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || psTrue->IsVoid() || psFalse->IsVoid())
+	{
+		return NULL;
+	}
+	pcClass = ConditionalClass(psTrue, psFalse);
+	if (pcClass)
+	{
+		return (psTrue->pcClass == pcClass) ? psTrue : psFalse;
+	}
+	bToTrue = mpcUnit->mcTypeChecker.CanInitialise(psTrue, pcConditional->mpcFalse);
+	bToFalse = mpcUnit->mcTypeChecker.CanInitialise(psFalse, pcConditional->mpcTrue);
+	*pbAmbiguous = bToTrue && bToFalse;
+	if (bToTrue == bToFalse)
+	{
+		return NULL;
+	}
+	return (bToTrue ? psTrue : psFalse)->Unqualified();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type an argument with no parameter (one of a function's ...) is
+// passed as, after the default argument promotions: a bool or an integer
+// smaller than an int is promoted, a float is a double, an array or a
+// function is a pointer to it and nullptr is a void*.  NULL for what isn't
+// passed so (an object).  [expr.call] 7
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::VariadicArgumentType(SCPP65Type* psType)
+{
+	if (psType->IsFloat())
+	{
+		return &mpcUnit->mcTypes.msDouble;
+	}
+	if (psType->IsInteger())
+	{
+		return mpcUnit->mcTypes.Promote(psType);
+	}
+	if (psType->IsArray())
+	{
+		return mpcUnit->mcTypes.Pointer(psType->psBase);
+	}
+	if (psType->IsFunction())
+	{
+		return mpcUnit->mcTypes.Pointer(psType);
+	}
+	if (psType->IsNullPointer())
+	{
+		return mpcUnit->mcTypes.Pointer(&mpcUnit->mcTypes.msVoid);
+	}
+	return (psType->IsPointer() || psType->IsMemberPointer()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of what a call is made through when it isn't a function by its
+// name: a pointer to a function, which a function (what a reference to one
+// refers to) is converted to.  NULL if the callee is neither.  [conv.func]
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::CalleePointerType(CCPPSyntax* pcCallee)
+{
+	SCPP65Type*	psType;
+
+	psType = mpcUnit->TypeOf(pcCallee);
+	if (psType && psType->IsFunction())
+	{
+		psType = mpcUnit->mcTypes.Pointer(psType);
+	}
+	return (psType && psType->IsPointer() && psType->psBase->IsFunction()) ? psType : NULL;
+}
+

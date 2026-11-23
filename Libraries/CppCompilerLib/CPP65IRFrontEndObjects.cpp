@@ -60,7 +60,7 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	}
 	pcClass = psType->pcClass;
 
-	bLvalue = !psInto && mpcUnit->ConditionalClass(psTrue, psFalse) && mpcUnit->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->IsObjectLvalue(pcConditional->mpcFalse);
+	bLvalue = !psInto && mpcUnit->GetTypeChecker()->ConditionalClass(psTrue, psFalse) && mpcUnit->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->IsObjectLvalue(pcConditional->mpcFalse);
 	if (!bLvalue)
 	{
 		if (psInto)

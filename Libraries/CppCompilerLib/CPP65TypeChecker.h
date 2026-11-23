@@ -148,6 +148,15 @@ public:
 	bool			ConstantNotNarrowed(CCPPSyntax* pcSource, SCPP65Type* psTo);
 	bool			Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool bBraced = false);
 
+	SCPP65Type*				CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel);
+	SCPP65Type*				CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight);
+	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
+	SCPP65Type*				ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional);
+	SCPP65Type*				ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional);
+	SCPP65Type*				ConditionalObjectType(CCPPSyntaxConditionalExpression* pcConditional, bool* pbAmbiguous);
+	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
+	SCPP65Type*				CalleePointerType(CCPPSyntax* pcCallee);
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);

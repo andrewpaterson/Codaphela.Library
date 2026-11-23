@@ -228,6 +228,7 @@ friend class CCPPBuiltins;
 friend class CCPPExceptions;
 friend class CCPPDesugarings;
 friend class CCPPInstantiator;
+friend class CCPP65TypeChecker;
 protected:
 	CCPPInstantiator		mcInstantiator;		//The templates and their instances.
 	CCPPDesugarings			mcDesugarings;		//What the compiler makes once for a node.
@@ -663,21 +664,12 @@ public:
 	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
 	bool					IsAggregate(SCPP65Type* psType);
 	SCPP65Type*				AggregateMember(SCPP65Type* psType, size uiIndex);
-	CCPPClass*				ConditionalClass(SCPP65Type* psTrue, SCPP65Type* psFalse);
-	SCPP65Type*				ConditionalLvalueType(CCPPSyntaxConditionalExpression* pcConditional);
-	SCPP65Type*				ConditionalXvalueType(CCPPSyntaxConditionalExpression* pcConditional);
-	SCPP65Type*				ConditionalObjectType(CCPPSyntaxConditionalExpression* pcConditional, bool* pbAmbiguous);
 	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
 	bool					BindMemberOf(CCPPSyntaxMemberExpression* pcMember, CCPPBoundName* pcBound);
 	CCPPSymbol*				MemberEnumerator(CCPPSyntaxMemberExpression* pcMember);
 	SCPPField*				BitFieldOf(CCPPSyntax* pcExpression);
 	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
 	SCPP65Type*				OperandType(SCPP65Type* psType, CCPPSyntax* pcExpression);
-	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
-	SCPP65Type*				CalleePointerType(CCPPSyntax* pcCallee);
-	SCPP65Type*				ConditionalType(SCPP65Type* psTrue, SCPP65Type* psFalse);
-	SCPP65Type*				CompositePointerType(SCPP65Type* psLeft, SCPP65Type* psRight);
-	SCPP65Type*				CompositePointee(SCPP65Type* psLeft, SCPP65Type* psRight, bool bFirstLevel);
 	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
 	bool					IsNamed(int64 lliName, const char* szName);
 	CCPPClass*				TypeInfoClass(void);
