@@ -75,6 +75,16 @@ public:
 };
 
 
+//What a double click on the text goes to instead of selecting the word under it, if it's set (CTextEditingInput::
+//SetDoubleClickPresser): a list of lines that each go somewhere, as IntelliJ IDEA's Build window's messages.  The caret
+//is put at x, y (relative to the text) first.
+class CTextDoubleClickPresser
+{
+public:
+	virtual void	PressDoubleClick(int x, int y) = 0;
+};
+
+
 //The input actions that edit a text (CTextArea, CTextField): the keys, given as commands, go to the text's
 //CTextEditing; the pointer puts the caret and selects; cut, copy and paste use the window's clipboard.  Paste from
 //History (Control+Shift+V, as IntelliJ IDEA's) asks the clipboard's history's chooser which of the texts copied
@@ -93,7 +103,8 @@ public:
 //line text has no up and down, pages, tabs, line feeds or line commands.  The pointer's actions can be turned off (a
 //text that can't be selected), so its presses go on to the parent.  With an enter presser (SetEnterPresser) Enter
 //goes to it, and Enter at Line End (Shift+Enter) is the line feed at the caret that Enter was.  With a link presser
-//(SetLinkPresser) a press with control held, and not shift or alt, goes to it and selects nothing.
+//(SetLinkPresser) a press with control held, and not shift or alt, goes to it and selects nothing.  With a double click
+//presser (SetDoubleClickPresser) a double click puts the caret where it is and goes to it, and selects nothing.
 class CTextEditingInput
 {
 protected:
@@ -112,6 +123,7 @@ protected:
 	CTextUndoPresser*		mpcUndoPresser;  //Not held, NULL for undo straight to the editing.
 	CTextEnterPresser*		mpcEnterPresser;  //Not held, NULL for enter as a line feed.
 	CTextLinkPresser*		mpcLinkPresser;  //Not held, NULL for a control press that extends the selection.
+	CTextDoubleClickPresser*	mpcDoubleClickPresser;  //Not held, NULL for a double click that selects a word.
 
 public:
 	void	Init(CComponent* pcComponent, CTextEditing* pcEditing, bool bMultiLine);
@@ -122,6 +134,7 @@ public:
 	void	SetUndoPresser(CTextUndoPresser* pcPresser);
 	void	SetEnterPresser(CTextEnterPresser* pcPresser);
 	void	SetLinkPresser(CTextLinkPresser* pcPresser);
+	void	SetDoubleClickPresser(CTextDoubleClickPresser* pcPresser);
 	bool	GetDropPosition(size* puiPosition, bool* pbRowEnd);
 	void	FocusLost(void);
 

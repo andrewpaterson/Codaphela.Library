@@ -1799,6 +1799,91 @@ void TestTextAreaEditLinkEvent(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A double click selects the word under it.  With the double click event
+// (SetDoubleClickEvent) it puts the caret there and calls the event with
+// the caret's position instead, selecting nothing; a single click still
+// only puts the caret, and a triple click is a double click again.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextAreaEditDoubleClickEvent(void)
+{
+	STestWindow		cWindow;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CFillContainer>		pFill;
+		Ptr<CTextArea>			pTextArea;
+		CTestLinkListener		cListener;
+		size					uiStart;
+		size					uiEnd;
+		int32					x;
+		int32					y;
+
+		cWindow.Init("Text Area Window", 300, 200);
+		pTestWindow = cWindow.pWindow;
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pTextArea = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), ReadLabelFont(), "abcd efgh");
+		pTextArea->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pFill->AddComponent(pTextArea);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pTextArea);
+		cListener.Init();
+		pTextArea->GetDoubleClickEvent()->Add(&cListener, &CTestLinkListener::LinkPressed);
+
+		//Between the 'f' and the 'g' of "efgh".
+		x = pTextArea->GetPosition().x + pTextArea->GetPositionX(7, false);
+		y = pTextArea->GetPosition().y + 4;
+
+		//Without the event a double click selects the word.
+		pTestWindow->PointerMoved(x, y);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertTextAreaSelection(5, 9, pTextArea);
+		AssertInt(0, cListener.miPressed);
+
+		//With it the caret goes there and the event is called with its position; nothing is selected.  (The pointer
+		//leaves and comes back, so the next press isn't a triple click.)
+		pTextArea->SetDoubleClickEvent(true);
+		pTestWindow->PointerMoved(pTextArea->GetPosition().x + 1, y + 100);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		pTestWindow->PointerMoved(x, y);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertInt(0, cListener.miPressed);
+		AssertSize(7, pTextArea->GetCaretPosition());
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertInt(1, cListener.miPressed);
+		AssertSize(7, cListener.muiPosition);
+		AssertSize(7, pTextArea->GetCaretPosition());
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+
+		//A third press is a single click, and a fourth a double click again.
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertInt(1, cListener.miPressed);
+		pTestWindow->InputCommand(CIC_ActivateComponent, true);
+		pTestWindow->InputCommand(CIC_ExecuteComponent, true);
+		AssertInt(2, cListener.miPressed);
+		AssertFalse(pTextArea->GetSelection(&uiStart, &uiEnd));
+
+		pTextArea->SetDoubleClickEvent(false);
+		pTextArea->GetDoubleClickEvent()->Remove(&cListener);
+		pTextArea = NULL;
+		pFill = NULL;
+		pTestWindow = NULL;
+	}
+
+	cWindow.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A rename's places in a file replaced as one edit: one undo puts them
 // all back.  Ranges out of order, or in a text area that isn't editable,
 // change nothing.
@@ -2927,6 +3012,7 @@ void TestTextAreaEdit(void)
 	TestTextAreaEditUndoEvent();
 	TestTextAreaEditEnterEvent();
 	TestTextAreaEditLinkEvent();
+	TestTextAreaEditDoubleClickEvent();
 	TestTextAreaEditReplaceRanges();
 	TestTextAreaEditDragText();
 	TestTextAreaEditPointerShape();

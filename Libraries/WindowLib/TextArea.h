@@ -83,7 +83,7 @@ typedef CComponentValueEvent<CTextArea, size>				CTextAreaLinkEvent;  //The posi
 //
 //The moves and edits themselves (Up, SelectRight, Printable, Paste ...) are the editing's: GetEditing gives it, and the
 //input actions reach it directly.  The text area has only what it adds to them: the text, its layout and what is drawn.
-class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost, public CTextEnterPresser, public CTextLinkPresser
+class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost, public CTextEnterPresser, public CTextLinkPresser, public CTextDoubleClickPresser
 {
 CONSTRUCTABLE(CTextArea);
 DESTRUCTABLE(CTextArea);
@@ -121,6 +121,7 @@ protected:
 	CComponentEvent<CTextArea>	mcChanged;  //Called after each edit, as the change count goes up.
 	CComponentEvent<CTextArea>	mcEntered;  //Called by enter, if SetEnterEvent.
 	CTextAreaLinkEvent			mcLinkPressed;  //Called by a control press on a character, if SetLinkEvent.
+	CTextAreaLinkEvent			mcDoubleClicked;  //Called by a double click, with the caret's position, if SetDoubleClickEvent.
 	CComponentEvent<CTextArea>	mcCaretMoved;  //Called when the caret or the selection changes.
 
 public:
@@ -163,6 +164,9 @@ public:
 	CTextAreaLinkEvent*			GetLinkEvent(void);
 	CComponentEvent<CTextArea>*	GetCaretEvent(void);
 	void						PressLink(int x, int y) override;
+	void						SetDoubleClickEvent(bool bDoubleClickEvent);
+	CTextAreaLinkEvent*			GetDoubleClickEvent(void);
+	void						PressDoubleClick(int x, int y) override;
 	void						SetFont(Ptr<CFont> pWhiteFont);
 	Ptr<CFont>					GetFont(void);
 	int32						GetTabPixels(void);

@@ -56,6 +56,7 @@ void CTextEditingInput::Init(CComponent* pcComponent, CTextEditing* pcEditing, b
 	mpcUndoPresser = NULL;
 	mpcEnterPresser = NULL;
 	mpcLinkPresser = NULL;
+	mpcDoubleClickPresser = NULL;
 
 	uiFirst = pcComponent->NumInputActions();
 	AddActions(pcComponent, pcEditing, bMultiLine);
@@ -247,6 +248,7 @@ void CTextEditingInput::EnterAction(void) { if (mpcEnterPresser != NULL) { mpcEn
 void CTextEditingInput::EndEnterAction(void) { if (mpcEnterPresser != NULL) { mpcEditing->Enter(); } else { mpcEditing->EndEnter(); } }
 void CTextEditingInput::SetEnterPresser(CTextEnterPresser* pcPresser) { mpcEnterPresser = pcPresser; }
 void CTextEditingInput::SetLinkPresser(CTextLinkPresser* pcPresser) { mpcLinkPresser = pcPresser; }
+void CTextEditingInput::SetDoubleClickPresser(CTextDoubleClickPresser* pcPresser) { mpcDoubleClickPresser = pcPresser; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -396,13 +398,25 @@ void CTextEditingInput::ChooseAndPaste(void)
 // word under it and a triple click its line.  Dragging selects from
 // there.  A double click past a line's end selects nothing.  A single
 // press in the selection may drag the selected text instead (DragText).
+// With a double click presser a double click goes to it instead, with
+// the caret put there, and nothing is selected or dragged.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditingInput::ActivateComponent(int x, int y)
 {
 	ETextEditingDrag	eUnit;
+	int32				iClicks;
 
-	switch (msClicks.Pressed(x, y))
+	iClicks = msClicks.Pressed(x, y);
+	if ((iClicks == 2) && (mpcDoubleClickPresser != NULL))
+	{
+		mpcEditing->MoveCaretTo(x, y, false);
+		msClicks.Forget();
+		mpcDoubleClickPresser->PressDoubleClick(x, y);
+		return;
+	}
+
+	switch (iClicks)
 	{
 	case 1:
 		if (IsInSelection(x, y))

@@ -101,6 +101,7 @@ void CTextArea::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontFa
 	mcChanged.Init();
 	mcEntered.Init();
 	mcLinkPressed.Init();
+	mcDoubleClicked.Init();
 	mcCaretMoved.Init();
 	mbSelectable = true;
 
@@ -139,6 +140,7 @@ void CTextArea::Free(void)
 	mcShapes.Kill();
 	mcBackgrounds.Kill();
 	mcCaretMoved.Kill();
+	mcDoubleClicked.Kill();
 	mcLinkPressed.Kill();
 	mcEntered.Kill();
 	mcChanged.Kill();
@@ -169,6 +171,7 @@ void CTextArea::Class(void)
 	U_Unknown(CComponentEvent<CTextArea>, mcChanged);
 	U_Unknown(CComponentEvent<CTextArea>, mcEntered);
 	U_Unknown(CTextAreaLinkEvent, mcLinkPressed);
+	U_Unknown(CTextAreaLinkEvent, mcDoubleClicked);
 	U_Unknown(CComponentEvent<CTextArea>, mcCaretMoved);
 	M_Pointer(mpLayout);
 	M_Pointer(mpMaps);
@@ -1303,6 +1306,32 @@ void CTextArea::PressLink(int x, int y)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// With bDoubleClickEvent a double click calls the double click event
+// (GetDoubleClickEvent) with the caret's position, put where it was,
+// rather than selecting the word there: lines that each go somewhere, as
+// IntelliJ IDEA's Build window's messages.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetDoubleClickEvent(bool bDoubleClickEvent)
+{
+	mcInput.SetDoubleClickPresser(bDoubleClickEvent ? this : NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A double click at x, y in a text area with a double click event; the
+// caret has been put there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::PressDoubleClick(int x, int y)
+{
+	mcDoubleClicked.Call(this, GetCaretPosition());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Enter was pressed in a text area with an enter event.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1684,6 +1713,7 @@ void CTextArea::AppendUndoWhere(bool bRedo, CChars* pszDest)
 	}
 }
 CComponentEvent<CTextArea>* CTextArea::GetCaretEvent(void) { return &mcCaretMoved; }  //Called when the caret or the selection changes, as it does: while a key or a drag is being handled, so a listener only notes it.
+CTextAreaLinkEvent* CTextArea::GetDoubleClickEvent(void) { return &mcDoubleClicked; }  //Called by a double click, with the caret's position, if SetDoubleClickEvent.
 CTextAreaLinkEvent* CTextArea::GetLinkEvent(void) { return &mcLinkPressed; }  //Called by a control press on a character, with its position, if SetLinkEvent.
 CComponentEvent<CTextArea>* CTextArea::GetEnterEvent(void) { return &mcEntered; }  //Called by enter in place of a line feed, if SetEnterEvent.
 CComponentEvent<CTextArea>* CTextArea::GetChangeEvent(void) { return &mcChanged; }  //Called after each edit (undo and redo too), with the text laid out again.
