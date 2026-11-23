@@ -231,12 +231,12 @@ bool CCPPDeduction::KnownPackSize(CCPPSyntaxParameter* pcParameter, size* puiSiz
 		}
 	}
 	//A member template's class's pack is in its class's bindings, which deduction may be made outside of.
-	pcOuter = (pcSymbol && mpcTemplate->mpcClass && mpcTemplate->mpcClass->mpcBindings) ? mpcUnit->MemberTemplateClassBindings(mpcTemplate) : NULL;
+	pcOuter = (pcSymbol && mpcTemplate->mpcClass && mpcTemplate->mpcClass->mpcBindings) ? mpcUnit->GetInstantiator()->MemberTemplateClassBindings(mpcTemplate) : NULL;
 	if (pcOuter)
 	{
 		mpcUnit->GetContext()->EnterBindings(pcOuter);
 	}
-	psBinding = pcSymbol ? mpcUnit->FindBinding(pcSymbol) : NULL;
+	psBinding = pcSymbol ? mpcUnit->GetInstantiator()->FindBinding(pcSymbol) : NULL;
 	if (pcOuter)
 	{
 		mpcUnit->GetContext()->LeaveBindings();
@@ -1002,7 +1002,7 @@ void CCPPPatternMatch::Init(CCPPUnit* pcUnit, CCPPSyntaxTemplateDeclaration* pcD
 
 	mpcUnit = pcUnit;
 	mpcDiagnostics = pcUnit->GetDiagnostics();
-	mpcDeduced = pcUnit->NewBindings();
+	mpcDeduced = pcUnit->GetInstantiator()->NewBindings();
 	masDeferred.Init();
 	for (i = 0; i < pcDeclaration->macpParameters.NumElements(); i++)
 	{
@@ -1419,7 +1419,7 @@ bool CCPPPatternMatch::MatchType(CCPPSyntax* pcPattern, SCPP65Type* psArgument)
 
 	//X<T> matches an instance of the class template X with matching arguments.
 	pcComponent = pcNamed ? pcNamed->mpcName->GetLast() : NULL;
-	pcTemplate = (pcComponent && pcComponent->mbTemplateArguments && pcComponent->mpcSymbol && (pcComponent->mpcSymbol->meKind == CPPSK_ClassTemplate)) ? mpcUnit->GetTemplate(pcComponent->mpcSymbol) : NULL;
+	pcTemplate = (pcComponent && pcComponent->mbTemplateArguments && pcComponent->mpcSymbol && (pcComponent->mpcSymbol->meKind == CPPSK_ClassTemplate)) ? mpcUnit->GetInstantiator()->GetTemplate(pcComponent->mpcSymbol) : NULL;
 	if (pcTemplate)
 	{
 		if (!psType->IsClass() || !psType->pcClass->mpcTemplate || (psType->pcClass->mpcTemplate->mpcPrimary != pcTemplate))

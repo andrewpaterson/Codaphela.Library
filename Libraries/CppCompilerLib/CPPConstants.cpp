@@ -521,7 +521,7 @@ CCPPSyntax* CCPPConstants::VariableInitialiser(CCPPVariable* pcVariable, uint32*
 	CCPPSyntax*						pcInitialiser;
 
 	*puiFlags = 0;
-	pcInit = mpcUnit->VariableDeclarator(pcVariable);
+	pcInit = mpcUnit->GetInstantiator()->VariableDeclarator(pcVariable);
 	if (!pcInit)
 	{
 		return NULL;

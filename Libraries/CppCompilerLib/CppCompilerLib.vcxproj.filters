@@ -138,9 +138,6 @@
     <ClCompile Include="CPPUnitClasses.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitTemplates.cpp">
-      <Filter>Source\Generator65</Filter>
-    </ClCompile>
     <ClCompile Include="CPPUnitOverloads.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -205,6 +202,9 @@
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPDesugarings.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPInstantiator.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPDeclarators.cpp">
@@ -1131,6 +1131,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPDesugarings.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPInstantiator.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPDeclarators.h">

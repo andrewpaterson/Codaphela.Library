@@ -696,7 +696,7 @@ SCPP65Type* CCPPDeclarators::AliasTemplateType(CCPPSyntaxName* pcName, CCPPSynta
 		return NULL;
 	}
 	szArguments.Init();
-	pcBindings = mpcUnit->BindArguments((CCPPSyntaxTemplateDeclaration*)pcAlias->mpcParent, &pcName->GetLast()->macpTemplateArguments, NULL, &szArguments, pcNode);
+	pcBindings = mpcUnit->GetInstantiator()->BindArguments((CCPPSyntaxTemplateDeclaration*)pcAlias->mpcParent, &pcName->GetLast()->macpTemplateArguments, NULL, &szArguments, pcNode);
 	szArguments.Kill();
 	if (!pcBindings)
 	{
@@ -814,7 +814,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 				case CPPSK_AliasTemplate:
 					return AliasTemplateType(pcName, pcNode);
 				case CPPSK_TypeParameter:
-					psBinding = mpcUnit->FindBinding(pcName->mpcSymbol);
+					psBinding = mpcUnit->GetInstantiator()->FindBinding(pcName->mpcSymbol);
 					if (!psBinding || !psBinding->psType)
 					{
 						mpcDiagnostics->Error(pcNode, "A template parameter used outside an instantiation");
@@ -822,7 +822,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					}
 					return psBinding->psType;
 				case CPPSK_TemplateTemplateParameter:
-					psBinding = mpcUnit->FindBinding(pcName->mpcSymbol);
+					psBinding = mpcUnit->GetInstantiator()->FindBinding(pcName->mpcSymbol);
 					if (psBinding && psBinding->pcAlias)
 					{
 						return AliasTemplateType(pcName, pcNode, psBinding->pcAlias);

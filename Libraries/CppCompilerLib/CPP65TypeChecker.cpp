@@ -674,7 +674,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		{
 			return ConstantValue(pcId);
 		}
-		if (!mpcUnit->FindBinding(cBound.mpcSymbol))
+		if (!mpcUnit->GetInstantiator()->FindBinding(cBound.mpcSymbol))
 		{
 			Error(pcId, "A template parameter used outside an instantiation");
 			return NULL;
@@ -689,7 +689,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	case CPPBN_TemplateArgument:
 		//nullptr for a pointer parameter is a null pointer of its type.
 		psType = Value(cBound.mpcArgument);
-		return (psType && psType->IsNullPointer()) ? mpcUnit->ValueParameterType(cBound.mpcSymbol, psType) : psType;
+		return (psType && psType->IsNullPointer()) ? mpcUnit->GetInstantiator()->ValueParameterType(cBound.mpcSymbol, psType) : psType;
 	case CPPBN_Variable:
 		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
 		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->GetFolder()->Constant(pcId, &lliValue)))
@@ -746,13 +746,13 @@ SCPP65Type* CCPP65TypeChecker::FunctionTemplateAddress(CCPPSyntaxIdExpression* p
 	CCPPFunction*				pcFunction;
 
 	pcComponent = pcId->mpcName->GetLast();
-	pcTemplate = mpcUnit->GetTemplate(pcId->mpcName->mpcSymbol);
+	pcTemplate = mpcUnit->GetInstantiator()->GetTemplate(pcId->mpcName->mpcSymbol);
 	if (!pcTemplate || !pcComponent->mbTemplateArguments)
 	{
 		Error(pcId, "The address of a function template needs its template arguments in the compiler yet");
 		return NULL;
 	}
-	pcFunction = mpcUnit->InstantiateFunction(pcTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
+	pcFunction = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
 	if (!pcFunction)
 	{
 		return NULL;

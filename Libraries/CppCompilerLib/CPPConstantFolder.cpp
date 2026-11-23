@@ -419,7 +419,7 @@ bool CCPPConstantFolder::ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConsta
 		return false;
 	}
 	//Its declaration says constexpr; the initialiser is there or, for a static member, in its class.
-	pcInit = mpcUnit->VariableDeclarator(pcVariable);
+	pcInit = mpcUnit->GetInstantiator()->VariableDeclarator(pcVariable);
 	pcDeclaration = pcInit ? pcInit->GetDeclaration() : NULL;
 	if (!pcDeclaration || !pcDeclaration->mpcSpecifiers || !(pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR))
 	{
@@ -513,7 +513,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 	}
 	if (pcSymbol->meKind == CPPSK_ValueParameter)
 	{
-		psBinding = mpcUnit->FindBinding(pcSymbol);
+		psBinding = mpcUnit->GetInstantiator()->FindBinding(pcSymbol);
 		if (!psBinding || psBinding->pcArgument)
 		{
 			return false;
@@ -538,7 +538,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 		if (!pcInitialiser && pcClass && pcClass->mpcTemplate)
 		{
 			//template<class T> const int W<T>::k = 3; is each instance's, defined with the unit's data.
-			pcInitialiser = mpcUnit->InstanceStaticInitialiser(pcClass, pcSymbol, &pcBindings);
+			pcInitialiser = mpcUnit->GetInstantiator()->InstanceStaticInitialiser(pcClass, pcSymbol, &pcBindings);
 		}
 	}
 	if (!pcInitialiser)

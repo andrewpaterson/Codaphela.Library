@@ -68,7 +68,7 @@ public:
 			}
 			return;
 		}
-		psBinding = *ppcSymbol ? mpcUnit->FindBinding(*ppcSymbol) : NULL;
+		psBinding = *ppcSymbol ? mpcUnit->GetInstantiator()->FindBinding(*ppcSymbol) : NULL;
 		if (psBinding && psBinding->IsPack() && (mpapsPacks->Find(psBinding) == ARRAY_ELEMENT_NOT_FOUND))
 		{
 			mpapsPacks->Add(psBinding);
@@ -113,7 +113,7 @@ SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
 	{
 		return NULL;
 	}
-	psBinding = FindBinding(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
+	psBinding = mcInstantiator.FindBinding(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
 	return (psBinding && psBinding->papsPack) ? psBinding : NULL;
 }
 
@@ -537,7 +537,7 @@ bool CCPPUnit::PackSize(CCPPSymbol* pcPack, int64* plliValue)
 		*plliValue = (int64)psFunctionPack->apcElements.NumElements();
 		return true;
 	}
-	psBinding = pcPack ? FindBinding(pcPack) : NULL;
+	psBinding = pcPack ? mcInstantiator.FindBinding(pcPack) : NULL;
 	if (!psBinding && pcPack && pcPack->mpcDeclaration && (pcPack->mpcDeclaration->GetKind() == CPPS_Parameter))
 	{
 		psBinding = PackBinding((CCPPSyntaxParameter*)pcPack->mpcDeclaration);

@@ -805,8 +805,8 @@ SCPP65Type* CCPPUnit::InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNod
 	apsDeduced.Init();
 	apsDeduced.Add(psElement);
 	szArguments.Init();
-	pcBindings = BindArguments(mpcInitializerList->mpcDeclaration, NULL, &apsDeduced, &szArguments, pcNode);
-	pcClass = pcBindings ? InstanceOfClass(mpcInitializerList, pcBindings, &szArguments, pcNode) : NULL;
+	pcBindings = mcInstantiator.BindArguments(mpcInitializerList->mpcDeclaration, NULL, &apsDeduced, &szArguments, pcNode);
+	pcClass = pcBindings ? mcInstantiator.InstanceOfClass(mpcInitializerList, pcBindings, &szArguments, pcNode) : NULL;
 	szArguments.Kill();
 	apsDeduced.Kill();
 	return pcClass ? pcClass->mpsType : NULL;

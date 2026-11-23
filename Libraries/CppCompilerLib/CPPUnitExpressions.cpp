@@ -656,12 +656,12 @@ bool CCPPUnit::VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliVa
 	CCPPSyntaxInitDeclarator*		pcInit;
 	bool							bResult;
 
-	pcVariable = VariableInstance(pcId->mpcName, pcId);
+	pcVariable = mcInstantiator.VariableInstance(pcId->mpcName, pcId);
 	if (!pcVariable || !pcVariable->mpsType->IsInteger())
 	{
 		return false;
 	}
-	pcInit = VariableDeclarator(pcVariable);
+	pcInit = mcInstantiator.VariableDeclarator(pcVariable);
 	pcSimple = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
 	if (!pcSimple->mpcSpecifiers || !(pcSimple->mpcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_CONSTEXPR)) || !pcInit->mpcInitializer)
 	{
@@ -887,10 +887,10 @@ CCPPClass* CCPPUnit::MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pc
 	lliName = GetComponentName(pcComponent);
 	pcDeclaring = NULL;
 	pcMember = pcClass->FindMemberSymbol(lliName, CPPSK_ClassTemplate, &pcDeclaring);
-	pcTemplate = (pcMember && pcComponent->mbTemplateArguments) ? MemberClassTemplate(pcMember, pcDeclaring) : NULL;
+	pcTemplate = (pcMember && pcComponent->mbTemplateArguments) ? mcInstantiator.MemberClassTemplate(pcMember, pcDeclaring) : NULL;
 	if (pcTemplate)
 	{
-		return InstantiateClass(pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
+		return mcInstantiator.InstantiateClass(pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
 	}
 	pcMember = pcMember ? NULL : pcClass->FindMemberSymbol(lliName, CPPSK_Typedef, &pcDeclaring);
 	if (!pcMember)
@@ -1861,7 +1861,7 @@ void CCPPUnit::CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEn
 	SCPP65Type*	psBase;
 
 	psBase = pcEnum->mpcBase ? mcDeclarators.GetTypeIdType(pcEnum->mpcBase) : NULL;
-	if (psBase && !ConstantFits(psBase->Unqualified(), lliValue))
+	if (psBase && !mcInstantiator.ConstantFits(psBase->Unqualified(), lliValue))
 	{
 		mcDiagnostics.ReportOnce(pcEnumerator->mpcValue, "The constant's value isn't one of the type it is converted to");
 	}

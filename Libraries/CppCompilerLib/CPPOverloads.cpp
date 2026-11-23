@@ -347,15 +347,15 @@ CCPPFunction* CCPPOverloads::ConversionInstance(CCPPTemplate* pcTemplate, SCPP65
 
 	mpcDiagnostics->BeginTrial();
 	pcFunction = NULL;
-	pcDeclarator = mpcUnit->DefineMemberTemplate(pcTemplate, pcNode) ? pcTemplate->FunctionDeclarator() : NULL;
+	pcDeclarator = mpcUnit->GetInstantiator()->DefineMemberTemplate(pcTemplate, pcNode) ? pcTemplate->FunctionDeclarator() : NULL;
 	pcType = (pcDeclarator && pcDeclarator->GetName()) ? pcDeclarator->GetName()->GetLast()->mpcType : NULL;
 	if (pcType)
 	{
 		cDeduction.Init(mpcUnit, pcTemplate);
 		cDeduction.DeduceConversion(pcType, psTo);
 		szArguments.Init();
-		pcBindings = mpcUnit->BindArguments(pcTemplate->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
-		pcFunction = pcBindings ? mpcUnit->InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
+		pcBindings = mpcUnit->GetInstantiator()->BindArguments(pcTemplate->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues());
+		pcFunction = pcBindings ? mpcUnit->GetInstantiator()->InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
 		szArguments.Kill();
 		cDeduction.Kill();
 	}
@@ -501,7 +501,7 @@ CCPPFunction* CCPPOverloads::MemberInstance(CCPPClass* pcClass, int64 lliName, C
 		return NULL;
 	}
 	mpcDiagnostics->BeginSilent();
-	pcInstance = mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
+	pcInstance = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, NULL, papcArguments, pcNode);
 	mpcDiagnostics->EndSilent();
 	return pcInstance;
 }
@@ -686,7 +686,7 @@ CCPPFunction* CCPPOverloads::FindFreeOperator(int64 lliName, CArraySyntax* papcE
 		if (pcName && (pcName->macpComponents.NumElements() == 1) && (mpcUnit->GetFunctionName(pcName->GetLast()) == lliName) && (apcNamespaces.Has(pcTemplate->mpcNamespace)))
 		{
 			//An instance made only from explicit arguments (template<char... C> operator "" _k) may not take the arguments.
-			pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, papcArguments, pcNode);
+			pcFunction = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, papcExplicit, papcArguments, pcNode);
 			if (pcFunction && !pcFunction->TakesArgumentCount(papcArguments ? papcArguments->NumElements() : 0))
 			{
 				pcFunction = NULL;
@@ -1313,7 +1313,7 @@ CCPPFunction* CCPPOverloads::FindAssociatedFunction(CCPPSyntaxName* pcName, int6
 		return pcFunction;
 	}
 	pcTemplate = GetCallTemplate(NULL, lliName, pcCall, papcArguments, NULL);
-	return pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, papcArguments, pcCall) : NULL;
+	return pcTemplate ? mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, NULL, papcArguments, pcCall) : NULL;
 }
 
 
@@ -1423,7 +1423,7 @@ CCPPFunction* CCPPOverloads::AddressedInstance(CCPPSyntaxName* pcName, int64 lli
 		{
 			continue;
 		}
-		if (mpcUnit->InstantiateFunctionFor(pcTemplate, psTarget, pcNode))
+		if (mpcUnit->GetInstantiator()->InstantiateFunctionFor(pcTemplate, psTarget, pcNode))
 		{
 			apcTemplates.Add(pcTemplate);
 		}
@@ -1435,7 +1435,7 @@ CCPPFunction* CCPPOverloads::AddressedInstance(CCPPSyntaxName* pcName, int64 lli
 	pcInstance = NULL;
 	if (apcTemplates.NumElements() == 1)
 	{
-		pcInstance = mpcUnit->InstantiateFunctionFor(apcTemplates.GetPtr(0), psTarget, pcNode);
+		pcInstance = mpcUnit->GetInstantiator()->InstantiateFunctionFor(apcTemplates.GetPtr(0), psTarget, pcNode);
 	}
 	else if (apcTemplates.NumElements() > 1)
 	{
@@ -2450,7 +2450,7 @@ CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName
 	}
 	else if (pcSymbol)
 	{
-		pcTemplate = mpcUnit->GetTemplate(pcSymbol);
+		pcTemplate = mpcUnit->GetInstantiator()->GetTemplate(pcSymbol);
 	}
 	apcNamespaces.Kill();
 	apcCandidates.Kill();
@@ -2654,7 +2654,7 @@ bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pc
 	apsFirst.Init();
 	apsSecond.Init();
 	szArguments.Init();
-	pcBindings = mpcUnit->BindAsItself(pcFirst->mpcDeclaration, &szArguments, pcNode);
+	pcBindings = mpcUnit->GetInstantiator()->BindAsItself(pcFirst->mpcDeclaration, &szArguments, pcNode);
 	bResult = pcBindings && TemplateParameterTypes(pcFirst, pcBindings, uiArguments, &apsFirst);
 	szArguments.Clear();
 	if (bResult)
@@ -2668,7 +2668,7 @@ bool CCPPOverloads::AtLeastAsSpecialised(CCPPTemplate* pcFirst, CCPPTemplate* pc
 		cDeduction.Init(mpcUnit, pcSecond);
 		cDeduction.Deduce(&apsDeduce, NULL);
 		apsDeduce.Kill();
-		pcBindings = mpcUnit->BindArguments(pcSecond->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
+		pcBindings = mpcUnit->GetInstantiator()->BindArguments(pcSecond->mpcDeclaration, NULL, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
 		cDeduction.Kill();
 		bResult = pcBindings && TemplateParameterTypes(pcSecond, pcBindings, uiArguments, &apsSecond);
 	}
@@ -2813,7 +2813,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	mpcDiagnostics->BeginTrial();
 	apsArguments.Init();
 	pcBindings = NULL;
-	bTakes = !pcTemplate->mpcClass || mpcUnit->DefineMemberTemplate(pcTemplate, pcNode);
+	bTakes = !pcTemplate->mpcClass || mpcUnit->GetInstantiator()->DefineMemberTemplate(pcTemplate, pcNode);
 	if (bTakes)
 	{
 		for (i = 0; i < papcArguments->NumElements(); i++)
@@ -2824,7 +2824,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		cDeduction.Deduce(&apsArguments, papcArguments);
 		bTakes = !cDeduction.HasConflict() || papcExplicit;
 		szArguments.Init();
-		pcBindings = mpcUnit->BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
+		pcBindings = mpcUnit->GetInstantiator()->BindArguments(pcTemplate->mpcDeclaration, papcExplicit, cDeduction.GetTypes(), &szArguments, pcNode, cDeduction.GetValues(), cDeduction.GetPacks());
 		szArguments.Kill();
 		cDeduction.Kill();
 		bTakes = bTakes && (pcBindings != NULL);
@@ -2835,7 +2835,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		//The parameters' types are worked out as InstantiateFunction declares them.
 		if (pcTemplate->mpcClass)
 		{
-			pcBindings->mpcOuter = mpcUnit->MemberTemplateClassBindings(pcTemplate);
+			pcBindings->mpcOuter = mpcUnit->GetInstantiator()->MemberTemplateClassBindings(pcTemplate);
 		}
 		else
 		{
@@ -2892,7 +2892,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 		if (bTakes && pcSuffix && pcSuffix->mpcTrailingReturn)
 		{
 			//A trailing return type names the parameters (decltype(t.m)): the instance is declared to work it out.
-			pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, papcArguments, pcNode);
+			pcInstance = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, papcExplicit, papcArguments, pcNode);
 			bTakes = pcInstance && pcInstance->mpsReturn;
 		}
 	}

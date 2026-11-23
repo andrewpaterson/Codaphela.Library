@@ -232,7 +232,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			mpcDiagnostics->Error(pcCallee, "The function template has not been defined");
 			return;
 		}
-		if (mcOverloads.mbAmbiguousTemplate && (!pcFunction || !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL) || !mcOverloads.IsBetterFunction(pcFunction, mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall), pcBound->mpapcArguments)))
+		if (mcOverloads.mbAmbiguousTemplate && (!pcFunction || !mcOverloads.TemplateTakes(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall, NULL) || !mcOverloads.IsBetterFunction(pcFunction, mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall), pcBound->mpapcArguments)))
 		{
 			mpcDiagnostics->Error(pcCallee, "The call is ambiguous: function templates that take the arguments as well as each other, neither more specialised");
 			return;
@@ -246,7 +246,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			pcBound->mpcFunction = pcFunction;
 			return;
 		}
-		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+		pcInstance = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
 		if (!pcInstance)
 		{
 			return;
@@ -352,7 +352,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		if (!bInlineMemcpy && (!pcFunction || !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments)))
 		{
 			pcTemplate = mcOverloads.GetCallTemplate(pcSymbol, lliName, pcCall, pcBound->mpapcArguments, NULL);
-			pcInstance = pcTemplate ? mpcUnit->InstantiateFunction(pcTemplate, NULL, pcBound->mpapcArguments, pcCall) : NULL;
+			pcInstance = pcTemplate ? mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, NULL, pcBound->mpapcArguments, pcCall) : NULL;
 			if (pcInstance && (!pcFunction || mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments)))
 			{
 				pcFunction = pcInstance;
@@ -693,14 +693,14 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	}
 	if (!pcFunction && pcTemplate)
 	{
-		pcFunction = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+		pcFunction = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
 	}
 	else if (pcFunction && pcTemplate && !TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
 	{
 		//The member template's instance, if it takes the arguments better than the function that converts them, as a
 		//function's is chosen (Resolve).  [over.match.best] 1
 		mpcDiagnostics->BeginSilentTrial();
-		pcInstance = mpcUnit->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
+		pcInstance = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, papcExplicit, pcBound->mpapcArguments, pcCall);
 		mpcDiagnostics->EndSilentTrial();
 		if (pcInstance && mcOverloads.IsBetterFunction(pcInstance, pcFunction, pcBound->mpapcArguments))
 		{
@@ -1791,7 +1791,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	}
 
 	//A pointer or reference parameter of the template being generated is its argument: P is &g, R is g.
-	psBinding = (pcSymbol && (pcSymbol->meKind == CPPSK_ValueParameter)) ? mpcUnit->FindBinding(pcSymbol) : NULL;
+	psBinding = (pcSymbol && (pcSymbol->meKind == CPPSK_ValueParameter)) ? mpcUnit->GetInstantiator()->FindBinding(pcSymbol) : NULL;
 	if (psBinding && psBinding->pcArgument)
 	{
 		pcBound->meWhat = CPPBN_TemplateArgument;
@@ -1824,7 +1824,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	//A local, a parameter, a global or a static member; pi<int> a variable template's instance.
 	if (!pcBound->mpcVariable && pcSymbol && (pcSymbol->meKind == CPPSK_VariableTemplate))
 	{
-		pcBound->mpcVariable = mpcUnit->VariableInstance(pcId->mpcName, pcId);
+		pcBound->mpcVariable = mpcUnit->GetInstantiator()->VariableInstance(pcId->mpcName, pcId);
 	}
 	if (!pcBound->mpcVariable && pcSymbol)
 	{
@@ -2004,7 +2004,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 		//object.size<char> is its class's member variable template's instance for the arguments (each a static member
 		//of the name).  [temp.variable] 1
 		pcSymbol = pcName->GetLast()->mbTemplateArguments ? pcLookup->FindMemberSymbol(lliName, CPPSK_VariableTemplate, &pcDeclaring) : NULL;
-		pcBound->mpcVariable = pcSymbol ? mpcUnit->ClassVariableInstance(pcSymbol, pcName->GetLast(), pcLookup, pcNode) : mpcUnit->FindStatic(pcClass, lliName);
+		pcBound->mpcVariable = pcSymbol ? mpcUnit->GetInstantiator()->ClassVariableInstance(pcSymbol, pcName->GetLast(), pcLookup, pcNode) : mpcUnit->FindStatic(pcClass, lliName);
 		if (!pcBound->mpcVariable)
 		{
 			return false;

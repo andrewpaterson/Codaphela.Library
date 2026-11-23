@@ -375,6 +375,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcBuiltins.Init(this);
 	mcExceptions.Init(this);
 	mcDesugarings.Init(this);
+	mcInstantiator.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -594,7 +595,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	//Functions generated when they are first called, which may call others, and the data of templates' instances:
 	//class templates' static members and variable templates' instances.
 	GenerateQueued();
-	DefineInstanceData();
+	mcInstantiator.DefineInstanceData();
 	while (WriteExitRoutines() || WriteThrownDestroyers() || WriteDynamicCast())
 	{
 		GenerateQueued();
@@ -1610,7 +1611,7 @@ bool CCPPUnit::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
 		return false;
 	}
 	pcClass = pcName->GetQualifier();
-	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !GetComponentTemplate(pcClass);
+	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !mcInstantiator.GetComponentTemplate(pcClass);
 }
 
 
@@ -1634,7 +1635,7 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 		pcDeclaration = papcDeclarations->GetPtr(i);
 		if (IsOutsideMemberTemplate(pcDeclaration))
 		{
-			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
+			bResult &= mcInstantiator.TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
 		}
 	}
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
@@ -1660,7 +1661,7 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 			mcContext.LeaveLinkage();
 			break;
 		case CPPS_TemplateDeclaration:
-			bResult &= TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
+			bResult &= mcInstantiator.TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
 			break;
 		case CPPS_Namespace:
 			mcContext.EnterNamespace(((CCPPSyntaxNamespace*)pcDeclaration)->mpcScope);
@@ -2207,7 +2208,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	apcDefaults.Init();
 	bConstThis = pcClass && pcSuffix->IsConst();
 	bVolatileThis = pcClass && pcSuffix->IsVolatile();
-	eRefQualifier = pcClass ? RefQualifier(pcSuffix) : CPPRQ_None;
+	eRefQualifier = pcClass ? mcInstantiator.RefQualifier(pcSuffix) : CPPRQ_None;
 	apsPacks.Init();
 	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
 	{
@@ -3085,7 +3086,7 @@ bool CCPPUnit::GenerateQueued(void)
 void CCPPUnit::RequireFunction(CCPPFunction* pcFunction)
 {
 	pcFunction->mbCalled = true;
-	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit || pcFunction->mpcCovariantOf) && !IsInstantiatedElsewhere(pcFunction))
+	if (!pcFunction->mbGenerated && !pcFunction->mbQueued && (pcFunction->mpcDefinition || pcFunction->mbImplicit || pcFunction->mpcCovariantOf) && !mcInstantiator.IsInstantiatedElsewhere(pcFunction))
 	{
 		pcFunction->mbQueued = true;
 		mapcQueue.Add(pcFunction);
@@ -3205,7 +3206,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 			if (pcClass)
 			{
 				CompleteClass(pcClass, pcInit);
-				pcVariable = (pcInit->mpcSymbol && !pcDefining) ? OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
+				pcVariable = (pcInit->mpcSymbol && !pcDefining) ? mcInstantiator.OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
 			}
 		}
 		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(pcVariable && pcVariable->mpcClass)))
@@ -4715,6 +4716,7 @@ CCPPWarnings* CCPPUnit::GetWarner(void) { return &mcWarnings; }
 CCPPBuiltins* CCPPUnit::GetBuiltins(void) { return &mcBuiltins; }
 CCPPExceptions* CCPPUnit::GetExceptions(void) { return &mcExceptions; }
 CCPPDesugarings* CCPPUnit::GetDesugarings(void) { return &mcDesugarings; }
+CCPPInstantiator* CCPPUnit::GetInstantiator(void) { return &mcInstantiator; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

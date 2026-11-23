@@ -1040,3 +1040,10 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	four functions each would be the unit's friends five times over.  IsAggregate and AggregateMember stay the
 	unit's: what a type is, asked elsewhere too.  TestCppCompilerLib passes (272,063); the diagnostics entries
 	and the listings are as they were; the IDE builds.
+
+	f. Templates are a class of their own, CCPPInstantiator (CPPInstantiator.h and .cpp), which the unit holds
+	(mcInstantiator, GetInstantiator): CPPUnitTemplates.cpp's 76 functions, and the file is gone.  The template
+	lists (mapcTemplates, masOutsideDefinitions, mapcVariableInstances, mcExplicitInstances) stay the unit's,
+	which the walk of the declarations and the layout of classes read too.  Proved against a new baseline taken
+	on the user's BaseLib commits and gameengine-8a's hash map (4,213 listings, 8 of them new): TestCppCompilerLib
+	passes (272,063); the diagnostics entries and the listings are as they were; the IDE builds.

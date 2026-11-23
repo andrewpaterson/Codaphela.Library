@@ -207,7 +207,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 			if (psValue->psType->IsNullPointer())
 			{
 				//nullptr for a pointer parameter is a null pointer of its type.
-				psValue->psType = mpcUnit->ValueParameterType(cBound.mpcSymbol, psValue->psType);
+				psValue->psType = mpcUnit->GetInstantiator()->ValueParameterType(cBound.mpcSymbol, psValue->psType);
 			}
 			return true;
 		case CPPBN_Variable:
@@ -1766,12 +1766,12 @@ bool CCPP65IRFrontEnd::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCP
 	CCPPFunction*				pcFunction;
 
 	pcComponent = pcId->mpcName->GetLast();
-	pcTemplate = mpcUnit->GetTemplate(pcId->mpcName->mpcSymbol);
+	pcTemplate = mpcUnit->GetInstantiator()->GetTemplate(pcId->mpcName->mpcSymbol);
 	if (!pcTemplate || !pcComponent->mbTemplateArguments)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	pcFunction = mpcUnit->InstantiateFunction(pcTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
+	pcFunction = mpcUnit->GetInstantiator()->InstantiateFunction(pcTemplate, &pcComponent->macpTemplateArguments, NULL, pcId);
 	if (!pcFunction)
 	{
 		return Unsupported(__FILE__, __LINE__);

@@ -542,7 +542,7 @@ bool CCPPAccess::IsFriendFunction(CCPPSyntaxDeclarator* pcDeclarator)
 	}
 	szArguments.Init();
 	mpcDiagnostics->BeginQuiet();
-	bSame = mpcUnit->BindArguments(pcFunction->mpcTemplate->mpcDeclaration, &pcComponent->macpTemplateArguments, NULL, &szArguments, pcDeclarator, NULL) && szArguments.Equals(&pcFunction->mszArguments);
+	bSame = mpcUnit->GetInstantiator()->BindArguments(pcFunction->mpcTemplate->mpcDeclaration, &pcComponent->macpTemplateArguments, NULL, &szArguments, pcDeclarator, NULL) && szArguments.Equals(&pcFunction->mszArguments);
 	mpcDiagnostics->EndQuiet();
 	szArguments.Kill();
 	return bSame;

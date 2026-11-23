@@ -74,6 +74,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPBuiltins.h"
 #include "CPPExceptions.h"
 #include "CPPDesugarings.h"
+#include "CPPInstantiator.h"
 
 
 class CCTString;
@@ -240,7 +241,9 @@ friend class CCPPWarnings;
 friend class CCPPBuiltins;
 friend class CCPPExceptions;
 friend class CCPPDesugarings;
+friend class CCPPInstantiator;
 protected:
+	CCPPInstantiator		mcInstantiator;		//The templates and their instances.
 	CCPPDesugarings			mcDesugarings;		//What the compiler makes once for a node.
 	CCPPExceptions			mcExceptions;		//Exception specifications.
 	CCPPBuiltins			mcBuiltins;			//The builtins the compiler does.
@@ -347,6 +350,7 @@ public:
 	CCPPBuiltins*			GetBuiltins(void);
 	CCPPExceptions*			GetExceptions(void);
 	CCPPDesugarings*		GetDesugarings(void);
+	CCPPInstantiator*		GetInstantiator(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -527,54 +531,8 @@ public:
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
-	bool					ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bExtern);
-	bool					ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern);
-	bool					IsInstantiatedElsewhere(CCPPFunction* pcFunction);
-	CCPPTemplate*			GetTemplate(CCPPSymbol* pcSymbol);
 	bool					IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
-	bool					ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedArgument* psArgument, int64 lliValue, CCPPTemplateArguments* pcBindings);
-	bool					ConstantFits(SCPP65Type* psType, int64 lliValue);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
-	void					DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxSimpleDeclaration* pcSimple);
-	void					DefineFunctionTemplate(CCPPTemplate* pcTemplate, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxFunctionDefinition* pcDefinition);
-	CCPPTemplate*			FindFunctionTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxDeclarator* pcDeclarator);
-	void					FunctionTemplateSignature(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxDeclarator* pcDeclarator, CChars* pszDest);
-	CCPPTemplate*			MemberClassTemplate(CCPPSymbol* pcSymbol, CCPPClass* pcClass);
-	CCPPTemplate*			GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup);
-	CCPPTemplate*			GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent);
-	CCPPTemplateArguments*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced = NULL, CArrayCPPDeducedPacks* pasPacks = NULL);
-	bool							BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedPacks* pasPacks, size uiParameter, CChars* pszArguments);
-	bool							IsPackParameter(CCPPSyntaxTemplateDeclaration* pcTemplate, size uiIndex);
-	bool							TemplateParametersMatch(CCPPSyntaxTemplateDeclaration* pcParameter, CCPPSyntaxTemplateDeclaration* pcArgument);
-	bool							SameReturnWritten(CCPPSyntaxDeclSpecifiers* pcFirst, CCPPSyntaxDeclSpecifiers* pcSecond);
-	SCPPBinding*			FindBinding(CCPPSymbol* pcParameter);
-	CCPPClass*			InstantiateClass(CCPPTemplate* pcTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	CCPPClass*			InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
-	CCPPClass*			PlaceholderClass(CCPPSymbol* pcParameter);
-	CCPPTemplateArguments*	BindAsItself(CCPPSyntaxTemplateDeclaration* pcDeclaration, CChars* pszArguments, CCPPSyntax* pcNode);
-	CCPPClass*			InstantiateClassAsItself(CCPPTemplate* pcTemplate);
-	CCPPFunction*		InstantiateFunctionAsItself(CCPPTemplate* pcTemplate);
-	CCPPFunction*		InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
-	CCPPClass*			UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	CCPPFunction*			InstantiateFunction(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	CCPPFunction*			InstantiateFunctionFor(CCPPTemplate* pcTemplate, SCPP65Type* psFunction, CCPPSyntax* pcNode);
-	SCPP65Type*				ValueParameterType(CCPPSymbol* pcParameter, SCPP65Type* psOtherwise);
-	bool					ExplicitMemberInstantiation(CCPPSyntaxInitDeclarator* pcInit, bool bExtern);
-	bool					ExplicitlyInstantiatedOnce(void* pvInstance, CCPPSyntax* pcNode);
-	bool					SameParameters(SCPP65Type* psFirst, SCPP65Type* psSecond);
-	CCPPTemplate*			NewTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, bool bMember);
-	bool					IsClassTemplateDefinition(CCPPSyntax* pcDeclaration);
-	CCPPSyntaxClassSpecifier*	MemberClassDefinition(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration** ppcDeclaration);
-	CCPPTemplateArguments*	MemberTemplateClassBindings(CCPPTemplate* pcTemplate);
-	bool					MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
-	ECPPRefQualifier		RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix);
-	bool					DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode);
-	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
-	CCPPTemplateArguments*	RenamedBindings(CCPPTemplateArguments* pcFrom, CCPPSyntaxTemplateDeclaration* pcDeclaration);
-	void					NoDefaultArguments(CCPPSyntaxDeclarator* pcDeclarator, const char* szError);
-	void					DeclaredDefaultArguments(CCPPSyntaxTemplateDeclaration* pcDeclared, CCPPSyntaxDeclarator* pcDeclaredDeclarator, CCPPSyntaxTemplateDeclaration* pcDefined, CCPPSyntaxDeclarator* pcDefinedDeclarator);
-	CCPPTemplateArguments*			NewBindings(void);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
 	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks);
@@ -591,20 +549,8 @@ public:
 	SCPP65Type*				ExpandedArgumentType(SCPPExpandedArgument* psArgument);
 	bool					ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue);
 	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
-	bool					IsEntityParameter(CCPPSyntaxParameter* pcParameter);
-	bool					BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgument, CChars* pszArguments);
-	bool					BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPTemplate* pcDeduced, CCPPSyntax* pcNode, CChars* pszArguments);
-	bool					BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments);
-	bool					BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments);
-	void					AppendMangledValue(CChars* pszArguments, int64 lliValue);
 	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
 
-	void					DeclareClassTemplate(CCPPSyntaxElaboratedTypeSpecifier* pcSpecifier, CCPPSyntaxTemplateDeclaration* pcDeclaration);
-	void					DefineClassTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxClassSpecifier* pcSpecifier);
-	CCPPTemplate*			Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntax* pcDefinition, CCPPSyntaxNameComponent* pcPattern);
-	CCPPTemplate*			OutsideMemberOwner(CCPPTemplate* pcPrimary, CCPPSyntaxNameComponent* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
-	CCPPTemplate*			FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode);
-	CCPPTemplate*			FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode);
 	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					FindSpecifier(CCPPClass* pcClass);
 	bool					CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
@@ -618,30 +564,12 @@ public:
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
 	void					AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined);
-	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);
-	bool					DefineInstanceData(void);
-	bool					DefineInstanceStatics(bool* pbResult);
-	CCPPSyntax*				InstanceStaticInitialiser(CCPPClass* pcClass, CCPPSymbol* pcSymbol, CCPPTemplateArguments** ppcBindings);
-	bool					DefineVariableInstances(bool* pbResult);
-	CCPPSyntaxName*			VariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
-	CCPPSyntaxName*			MemberVariableTemplateName(CCPPSyntaxSimpleDeclaration* pcSimple);
-	CCPPTemplate*			VariableTemplate(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcClass);
-	CCPPTemplate*			ClassVariableTemplate(CCPPSymbol* pcSymbol, CCPPClass* pcClass);
-	void					DefineMemberVariableTemplate(CCPPTemplate* pcTemplate);
-	void					SpecialiseMemberVariableTemplate(CCPPTemplate* pcPrimary, CCPPSyntaxTemplateDeclaration* pcOutside);
-	CCPPVariable*			VariableInstance(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	CCPPVariable*			ClassVariableInstance(CCPPSymbol* pcSymbol, CCPPSyntaxNameComponent* pcComponent, CCPPClass* pcClass, CCPPSyntax* pcNode);
-	CCPPSyntaxInitDeclarator*	VariableDeclarator(CCPPVariable* pcVariable);
 	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
-	bool					IsInstanceStaticDefined(CCPPClass* pcClass, CCPPSyntaxName* pcName);
-	CCPPVariable*			OwnStatic(CCPPClass* pcClass, CCPPSymbol* pcSymbol);
 	void					SpecialiseMembers(CCPPClass* pcClass);
 	void					SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int64 lliName, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage);
-	void					AddMemberTemplateSpecialisations(CCPPTemplate* pcPrimary);
-	bool					SpecialisationAtLeastAs(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, CCPPTemplate* pcPrimary, CCPPSyntax* pcNode, bool* pbKnown);
 	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);

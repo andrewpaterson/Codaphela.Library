@@ -291,7 +291,6 @@
     <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPPUnit.cpp" />
     <ClCompile Include="CPPUnitClasses.cpp" />
-    <ClCompile Include="CPPUnitTemplates.cpp" />
     <ClCompile Include="CPPUnitOverloads.cpp" />
     <ClCompile Include="CPPUnitLabels.cpp" />
     <ClCompile Include="CPPUnitExpressions.cpp" />
@@ -314,6 +313,7 @@
     <ClCompile Include="CPPBuiltins.cpp" />
     <ClCompile Include="CPPExceptions.cpp" />
     <ClCompile Include="CPPDesugarings.cpp" />
+    <ClCompile Include="CPPInstantiator.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPFunctionPacks.cpp" />
@@ -605,6 +605,7 @@
     <ClInclude Include="CPPBuiltins.h" />
     <ClInclude Include="CPPExceptions.h" />
     <ClInclude Include="CPPDesugarings.h" />
+    <ClInclude Include="CPPInstantiator.h" />
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPFunctionPacks.h" />

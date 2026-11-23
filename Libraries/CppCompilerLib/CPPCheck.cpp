@@ -1468,7 +1468,7 @@ void CCPPCheck::CheckTemplatesAsThemselves(void)
 		if (pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition->GetKind() == CPPS_ClassSpecifier))
 		{
 			mpcUnit->mcDiagnostics.BeginQuiet();
-			pcClass = mpcUnit->InstantiateClassAsItself(pcTemplate);
+			pcClass = mpcUnit->GetInstantiator()->InstantiateClassAsItself(pcTemplate);
 			if (pcClass)
 			{
 				mpcUnit->CompleteClass(pcClass, pcTemplate->mpcDefinition);
@@ -1480,7 +1480,7 @@ void CCPPCheck::CheckTemplatesAsThemselves(void)
 			//A function template, or a member template in a class that isn't another instance.  A class template's
 			//members defined outside it are declared with its instance (LayoutClass).
 			mpcUnit->mcDiagnostics.BeginQuiet();
-			mpcUnit->InstantiateFunctionAsItself(pcTemplate);
+			mpcUnit->GetInstantiator()->InstantiateFunctionAsItself(pcTemplate);
 			mpcUnit->mcDiagnostics.EndQuiet();
 		}
 	}
