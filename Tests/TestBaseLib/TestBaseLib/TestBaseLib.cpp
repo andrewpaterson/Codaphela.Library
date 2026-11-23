@@ -27,6 +27,7 @@ void TestSetBlock(void);
 void TestSet(void);
 void TestHashMap(void);
 void TestQueue(void);
+void TestBinaryHeap(void);
 void TestArrayGrowFails(void);
 void TestIndexBlock(void);
 void TestIndexAccess(void);
@@ -281,6 +282,7 @@ int __cdecl main(void)
 	TestSet();
 	TestHashMap();
 	TestQueue();
+	TestBinaryHeap();
 	TestArrayGrowFails();
 	TestMapAccess();
 	TestListBlock();

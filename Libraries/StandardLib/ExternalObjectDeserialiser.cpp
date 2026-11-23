@@ -23,7 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ErrorTypes.h"
 #include "Objects.h"
 #include "ObjectReader.h"
-#include "BinaryHeap.h"
+#include "BaseLib/BinaryHeap.h"
 #include "ExternalObjectDeserialiser.h"
 
 

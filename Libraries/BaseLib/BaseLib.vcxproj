@@ -250,6 +250,7 @@
     <ClInclude Include="HashOf.h" />
     <ClInclude Include="HashSetTemplate.h" />
     <ClInclude Include="QueueTemplate.h" />
+    <ClInclude Include="BinaryHeap.h" />
     <ClInclude Include="HashText.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="HexString.h" />

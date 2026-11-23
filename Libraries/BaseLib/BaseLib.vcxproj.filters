@@ -720,6 +720,9 @@
     <ClInclude Include="QueueTemplate.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="BinaryHeap.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
     <ClInclude Include="ArrayInt64.h">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClInclude>

@@ -11,7 +11,6 @@ void TestMapStringUnknown(void);
 void TestMapUnknownUnknown(void);
 void TestIndexUnknown(void);
 void TestSetType(void);
-void TestBinaryHeap(void);
 void TestSetUnknown(void);
 void TestChannelsAccessor(void);
 void TestExternalChannelPadder(void);
@@ -99,7 +98,6 @@ int __cdecl main(void)
 	TestSetUnknown();
 	TestArrayType();
 	TestSetType();
-	TestBinaryHeap();
 	TestMapStringUnknown();
 	TestMapUnknownUnknown();
 	TestIndexUnknown();

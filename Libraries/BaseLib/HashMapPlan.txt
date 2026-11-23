@@ -13,7 +13,7 @@ deque, CArrayBit's operations, and a union-find.  Their order from here:
   2. CArrayBlock keeps its contents when a grow fails (below): done 2026-11-24, steps 1 to 4 (TestHCP65Lib still to
      run: see its step 4).
   3. BinaryHeap.h moved from StandardLib to BaseLib: it needs nothing of StandardLib's.  A move and its test
-     (TestBinaryHeap) moved with it; its users' includes changed.  (Planned at the end.)
+     (TestBinaryHeap) moved with it; its users' includes changed.  (Done 2026-11-24.)
   4. A survey for hand rolled bit scans (population counts, first set or clear bit, and/or/xor of words over a bit
      array) and union-finds (LogiCim's and KiCad's nets, the compiler's grouping), and from what it finds a plan for
      CArrayBit's operations and for a union-find, each built only if something would use it.  (Surveyed 2026-11-23:
@@ -607,7 +607,9 @@ StandardLib/BinaryHeap.h is a min-heap in a CArrayTemplate and includes nothing 
 users (read 2026-11-23): StandardLib's DistToRootExpectedDists.cpp and ExternalObjectDeserialiser.cpp, and
 TestStandardLib's TestBinaryHeap.cpp.  It moves to BaseLib, its users include BaseLib/BinaryHeap.h, and its test moves
 to TestBaseLib (TestStandardLib no longer runs it).  Proved by TestBaseLib and TestStandardLib in three
-configurations and the *65 suites on both processors.
+configurations and the *65 suites on both processors.  Done 2026-11-24: TestBaseLib 320,560 run (Release x64),
+320,569 (Release Win32), 320,572 (Debug x64); TestStandardLib 82,505, 82,503, 82,507; TestBaseLib65 1,223 and 1,221,
+TestStandardLib65 518 and 516 (65C64 and W65C816); all 0 failed.
 
 
 The survey (the plan's item 4, read 2026-11-23)

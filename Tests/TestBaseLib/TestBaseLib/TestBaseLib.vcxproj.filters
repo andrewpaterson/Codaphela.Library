@@ -558,6 +558,9 @@
     <ClCompile Include="TestQueue.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
+    <ClCompile Include="TestBinaryHeap.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
     <ClCompile Include="TestArrayGrowFails.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
