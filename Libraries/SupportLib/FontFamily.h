@@ -54,6 +54,7 @@ protected:
 	CChars					mszName;
 	CChars					mszCharacters;		//UTF8, the characters every size has.
 	float32					mfDefaultPixelSize;
+	size					muiDefaultSizeChanges;	//How many times SetDefaultPixelSize changed it, so text laid out in it can tell.
 	EColourOrder			meColourOrder;		//CCO_Unknown leaves the rasteriser's order.
 	int32					miImageWidth;
 	CArray<CTrueTypeFace>	mapFaces;			//By EFontStyle.  NULL where the family has no face.
@@ -80,6 +81,8 @@ public:
 
 	char*				GetFamilyName(void);  //Not GetName, that is the object's name.
 	float32				GetDefaultPixelSize(void) const;
+	void				SetDefaultPixelSize(float32 fPixelSize);
+	size				GetDefaultSizeChanges(void) const;
 	size				NumSizes(void) const;
 
 protected:

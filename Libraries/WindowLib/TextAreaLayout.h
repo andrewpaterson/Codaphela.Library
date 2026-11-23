@@ -51,6 +51,7 @@ DESTRUCTABLE(CTextAreaLayout);
 protected:
 	CTextDocument*			mpcDocument;  //Not held: the text area's.
 	Ptr<CFontFamily>		mpFamily;
+	size					muiFamilySizeChanges;  //The family's GetDefaultSizeChanges when the text was last read in it.
 	STextStyle				msStyle;
 	CTextSpans				mcSpans;
 	CTextLineGaps			mcGaps;  //The empty gaps below lines (SetLineGap).
@@ -109,6 +110,7 @@ public:
 	void					SetWidth(int32 iWidth);
 	int32					GetWrapWidth(void) const;
 	bool					IsTextDirty(void) const;
+	bool					SeeFamilySize(void);
 	bool					IsWrapWidthChanged(void);
 
 	//Laying it out.

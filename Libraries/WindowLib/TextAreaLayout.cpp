@@ -36,6 +36,7 @@ void CTextAreaLayout::Init(CTextDocument* pcDocument, Ptr<CFontFamily> pFamily)
 
 	mpcDocument = pcDocument;
 	mpFamily = pFamily;
+	muiFamilySizeChanges = pFamily.IsNotNull() ? pFamily->GetDefaultSizeChanges() : 0;
 	msStyle.Init();
 	mcSpans.Init();
 	mcGaps.Init();
@@ -77,6 +78,7 @@ void CTextAreaLayout::Class(void)
 	U_Unknown(CTextLineGaps, mcGaps);
 	U_Bool(mbTextDirty);
 	U_Bool(mbSizeDirty);
+	U_Size(muiFamilySizeChanges);
 	U_Bool(mbWordWrap);
 	U_Int32(miWidth);
 	U_Size(muiTabWidth);
@@ -138,8 +140,29 @@ bool CTextAreaLayout::Load(CObjectReader* pcFile)
 void CTextAreaLayout::SetFontFamily(Ptr<CFontFamily> pFamily)
 {
 	mpFamily = pFamily;
+	muiFamilySizeChanges = pFamily.IsNotNull() ? pFamily->GetDefaultSizeChanges() : 0;
 	mbTextDirty = true;
 	mbSizeDirty = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True, once, after the family's default size changed (an editor's font
+// zoomed, CFontFamily::SetDefaultPixelSize): the text, as it can be in
+// that size, is to be read and laid out again.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextAreaLayout::SeeFamilySize(void)
+{
+	if (mpFamily.IsNull() || (mpFamily->GetDefaultSizeChanges() == muiFamilySizeChanges))
+	{
+		return false;
+	}
+	muiFamilySizeChanges = mpFamily->GetDefaultSizeChanges();
+	mbTextDirty = true;
+	mbSizeDirty = true;
+	return true;
 }
 
 

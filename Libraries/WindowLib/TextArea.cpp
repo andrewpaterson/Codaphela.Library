@@ -528,6 +528,7 @@ void CTextArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	CCanvas::Layout(sPosition, sAreaSize);
 
+	SeeFamilySize();
 	mpLayout->SetWidth(mcActualBounds.GetWidth());
 	if (mpLayout->IsTextDirty() || mpLayout->IsWrapWidthChanged())
 	{
@@ -2272,9 +2273,25 @@ void CTextArea::UpdateText(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextArea::UpdateSize(void)
 {
+	SeeFamilySize();
 	if (mpLayout->UpdateSize())
 	{
 		LaidOut();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The font family's default size changed (CFontFamily::SetDefaultPixelSize):
+// the text is laid out in the new size, and the window again round it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SeeFamilySize(void)
+{
+	if (mpLayout->SeeFamilySize())
+	{
+		InvalidateLayout();
 	}
 }
 

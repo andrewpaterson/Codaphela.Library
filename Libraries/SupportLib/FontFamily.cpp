@@ -42,6 +42,7 @@ void CFontFamily::Init(const char* szName, const char* szCharacters, float32 fDe
 	mszName.Init(szName);
 	mszCharacters.Init(szCharacters);
 	mfDefaultPixelSize = fDefaultPixelSize;
+	muiDefaultSizeChanges = 0;
 	meColourOrder = eColourOrder;
 	miImageWidth = FONT_FAMILY_IMAGE_WIDTH;
 	mapFaces.Init();
@@ -75,6 +76,7 @@ void CFontFamily::Class(void)
 	U_String(mszName);
 	U_String(mszCharacters);
 	U_Float32(mfDefaultPixelSize);
+	U_Size(muiDefaultSizeChanges);
 	U_Enum(meColourOrder);
 	U_Int32(miImageWidth);
 	M_Embedded(mapFaces);
@@ -399,5 +401,23 @@ const char* FontStyleToString(EFontStyle eStyle)
 
 char* CFontFamily::GetFamilyName(void) { return mszName.Text(); }
 float32 CFontFamily::GetDefaultPixelSize(void) const { return mfDefaultPixelSize; }
+size CFontFamily::GetDefaultSizeChanges(void) const { return muiDefaultSizeChanges; }  //Text laid out in the family's default size is laid out again when this changes (CTextAreaLayout::SeeFamilySize).
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size styles with a size of 0 are in, as an editor's font size is
+// zoomed: each size is rasterised once, as it is first asked for, and
+// kept.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFontFamily::SetDefaultPixelSize(float32 fPixelSize)
+{
+	if (fPixelSize != mfDefaultPixelSize)
+	{
+		mfDefaultPixelSize = fPixelSize;
+		muiDefaultSizeChanges++;
+	}
+}
 size CFontFamily::NumSizes(void) const { return masSizes.NumElements(); }
 

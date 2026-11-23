@@ -181,6 +181,7 @@ public:
 	bool						IsDrawnAsTiles(void);
 
 	void					SetStyle(STextStyle* psStyle);
+	void					SeeFamilySize(void);
 	void					GetStyle(STextStyle* psStyle);
 	void					SetColour(ARGB32 sColour);
 	ARGB32					GetColour(void);
