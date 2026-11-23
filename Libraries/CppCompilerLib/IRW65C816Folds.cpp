@@ -366,9 +366,9 @@ SIRReference CIRW65C816Folds::FoldedBase(SIRReference sValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The kept slots (IRF_Volatile on the slot: a variable a debugger reads)
-// whose every use is a load's or store's address, the slot's or a folded
-// ptradd's of it with no index: each is addressed in place by its loads
+// The slots whose every use is a load's or store's address, the slot's or
+// a folded ptradd's of it with no index (a struct or array kept in memory,
+// a variable a debugger reads): each is addressed in place by its loads
 // and stores (DirectSlot) and its address is never worked out, so it has
 // no place of its own.
 //
@@ -393,7 +393,7 @@ void CIRW65C816Folds::FindDirectSlots(void)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile) && psInstruction->sResult.IsTemporary())
+			if ((psInstruction->uiOpcode == IRO_Slot) && psInstruction->sResult.IsTemporary())
 			{
 				mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->bDirectSlot = true;
 			}

@@ -3080,7 +3080,7 @@ static void TestIR816BackendExceptions(void)
 	AssertTrue(sz816.Contains("\t\tadc 44\n\t\ttcs\n\t\ttya\n\t\tpld\n\t\trtl\n"));
 	//Up to 8 bytes of arguments are pulled, which keeps the carry for the brif; the call through a pointer's rtl has
 	//no clc before it.
-	AssertTrue(sz816.Contains("\t\tjsl _Throws__Fi\n\t\tply\n\t\tply\n\t\tsta [D + 40]\n\t\tstx [D + 42]\n\t\tbcs L"));
+	AssertTrue(sz816.Contains("\t\tjsl _Throws__Fi\n\t\tply\n\t\tply\n\t\tsta [D + 36]\n\t\tstx [D + 38]\n\t\tbcs L"));
 	AssertTrue(sz816.Contains("\t\tjsl _Reg__Fiii.ax\n\t\tply\n\t\tply\n\t\tply\n\t\tply\n"));
 	AssertTrue(sz816.Contains("\t\tsta [S + 1]\n\t\trtl\nL"));
 	//More than that: the thrown is made a word before S is moved.
