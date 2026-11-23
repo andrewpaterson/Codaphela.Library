@@ -27,6 +27,9 @@ public:
 	void	CommandAction(SComponentInputEvent* psEvent);
 	void	PrintableAction(SComponentInputEvent* psEvent);
 	void	WheelAction(SComponentInputEvent* psEvent);
+	void	LogKeys(void);
+	void	KeyDownAction(SComponentInputEvent* psEvent);
+	void	KeyUpAction(SComponentInputEvent* psEvent);
 
 protected:
 	void	Log(const char* szCall);

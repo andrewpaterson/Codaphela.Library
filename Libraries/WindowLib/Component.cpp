@@ -42,6 +42,7 @@ void CComponent::Init(Ptr<CWindow> pWindow)
 	meHorizontalAlignment = CSH_Center;
 	meVerticalAlignment = CSV_Center;
 	mbCanGetFocus = false;
+	mbKeyRepeat = true;
 	mbHitAsWhole = false;
 	mpParent = NULL;
 	mpWindow = pWindow;
@@ -75,6 +76,7 @@ void CComponent::Class(void)
 	U_Enum(meHorizontalAlignment);
 	U_Enum(meVerticalAlignment);
 	U_Bool(mbCanGetFocus);
+	U_Bool(mbKeyRepeat);
 	U_Bool(mbHitAsWhole);
 	M_Pointer(mpParent);
 	M_Embedded(maChildren);
@@ -781,6 +783,8 @@ void CComponent::SetPosition(SInt32Vec2 sPosition) { mcActualBounds.SetPos(sPosi
 SInt32Vec2 CComponent::GetPosition(void) const { return mcActualBounds.msTopLeft; }
 bool CComponent::CanGetFocus(void) { return mbCanGetFocus; }
 void CComponent::SetCanGetFocus(bool bCanGetFocus) { mbCanGetFocus = bCanGetFocus; }
+void CComponent::SetKeyRepeat(bool bKeyRepeat) { mbKeyRepeat = bKeyRepeat; }  //False for one that wants each command or printable once a press, as a game reading the arrows' commands would.
+bool CComponent::IsKeyRepeat(void) const { return mbKeyRepeat; }
 void CComponent::SetHitAsWhole(bool bHitAsWhole) { mbHitAsWhole = bHitAsWhole; }  //A component made of others, like a button, has the pointer over it and takes focus rather than its parts.
 bool CComponent::WantsEnter(void) { return false; }  //Enter goes to the window's default button unless the focussed component wants it.
 bool CComponent::WantsEscape(void) { return false; }  //Escape goes to the window's cancel button unless the focussed component wants it.

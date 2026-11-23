@@ -93,6 +93,7 @@ public:
 	void				Request(void);
 	void				SetFocus(Ptr<CComponent> pComponent);
 	bool				Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
+	bool				Repeat(SComponentInputEvent* psEvent, CComponentInput* pcComponentInput, CComponent* pcComponent, bool* pbLayoutKept);
 	bool				Command(EComponentInputCommand eCommand, bool bInsert);
 	bool				Keys(const char* szKeys);
 	void				Printable(char c, bool bInsert);

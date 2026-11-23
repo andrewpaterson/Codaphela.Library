@@ -132,6 +132,15 @@ void CComponentInput::Init(CWindowInputSource* pcSource, CWindow* pcWindow)
 	mbCapsLock = false;
 	mbNumLock = false;
 	mbInsert = true;
+
+	muiRepeatDelay = 0;
+	muiRepeatPeriod = COMPONENT_INPUT_REPEAT_PERIOD;
+	mbRepeating = false;
+	memset(&msRepeatEvent, 0, sizeof(SComponentInputEvent));
+	memset(&msRepeatWindowEvent, 0, sizeof(SWindowInputEvent));
+	mpcRepeatComponent = NULL;
+	miRepeatDue = 0;
+	miClock = -1;
 }
 
 
@@ -175,6 +184,7 @@ void CComponentInput::Kill(void)
 	macDevices.Kill();
 	masPressed.Kill();
 
+	StopRepeat();
 	mpcWindow = NULL;
 	mpcSource = NULL;
 }
@@ -992,6 +1002,56 @@ bool CComponentInput::IsWidgetCommand(EComponentInputCommand eCommand)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether eCommand is given again while its key is held (SetRepeat): one
+// that moves, selects or edits a step at a time, as the caret's moves,
+// Page Up and Down, Backspace, Delete, Enter, Tab and Undo do.  One done
+// once (copy, paste, select all, a window's or an application's command)
+// isn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::IsRepeatCommand(EComponentInputCommand eCommand)
+{
+	if ((eCommand >= CIC_Up) && (eCommand <= CIC_ShrinkSelection))
+	{
+		return true;
+	}
+	switch (eCommand)
+	{
+	case CIC_BlockStart:
+	case CIC_BlockEnd:
+	case CIC_SelectBlockStart:
+	case CIC_SelectBlockEnd:
+	case CIC_BoxSelectUp:
+	case CIC_BoxSelectDown:
+	case CIC_BoxSelectLeft:
+	case CIC_BoxSelectRight:
+	case CIC_BoxSelectHome:
+	case CIC_BoxSelectEnd:
+	case CIC_Space:
+	case CIC_Tab:
+	case CIC_BackTab:
+	case CIC_Enter:
+	case CIC_HomeEnter:
+	case CIC_EndEnter:
+	case CIC_Delete:
+	case CIC_Backspace:
+	case CIC_Duplicate:
+	case CIC_DeleteWordRemainingLeft:
+	case CIC_DeleteWordRemainingRight:
+	case CIC_DeleteLine:
+	case CIC_Undo:
+	case CIC_Redo:
+	case CIC_NextDifference:
+	case CIC_PreviousDifference:
+		return true;
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What szKeys give when an application hasn't bound them.  CIC_Ignored
 // if nothing.
 //
@@ -1668,6 +1728,14 @@ size CComponentInput::Translate(SWindowInputEvent* psWindowEvent, SComponentInpu
 	bool							bDown;
 
 	pcDevice = GetDevice(psWindowEvent->pcDevice);
+
+	//Another key or button going down or up (one of a keyboard or mouse added here) ends a repeat; the focus starts
+	//one again if this press's command or printable is taken (CFocus::Input).
+	if ((psWindowEvent->eType == WIET_Chord) || ((psWindowEvent->eType == WIET_State) && pcDevice))
+	{
+		StopRepeat();
+	}
+
 	if (psWindowEvent->eType == WIET_Chord)
 	{
 		InitEvent(&asDest[0], CIET_Chord, psWindowEvent);
@@ -1960,6 +2028,7 @@ bool CComponentInput::PressedKey(CComponentInputKey* psKey)
 //////////////////////////////////////////////////////////////////////////
 void CComponentInput::ReleaseAll(void)
 {
+	StopRepeat();
 	masPressed.ReInit();
 	mpcSource->ForgetDown();
 }
@@ -2108,7 +2177,146 @@ CWindowInputSource*	CComponentInput::GetSource(void) const { return mpcSource; }
 //////////////////////////////////////////////////////////////////////////
 void CComponentInput::SetWindow(CWindow* pcWindow)
 {
+	StopRepeat();
 	mpcWindow = pcWindow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A key held for uiDelay milliseconds has the command or printable it gave
+// given again every uiPeriod milliseconds until it is let go (see the
+// class's comment).  A uiDelay of 0 stops keys repeating.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::SetRepeat(uint32 uiDelay, uint32 uiPeriod)
+{
+	muiRepeatDelay = uiDelay;
+	muiRepeatPeriod = (uiPeriod > 0) ? uiPeriod : 1;
+	if (uiDelay == 0)
+	{
+		StopRepeat();
+	}
+}
+
+
+uint32 CComponentInput::GetRepeatDelay(void) const { return muiRepeatDelay; }
+uint32 CComponentInput::GetRepeatPeriod(void) const { return muiRepeatPeriod; }
+bool CComponentInput::IsRepeating(void) const { return mbRepeating; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The focus says pcComponent took psTaken, the command or printable a
+// press gave, not its key or chord event: it is given again once the key
+// has been held for the delay, if keys repeat, it is a printable or a
+// command that repeats (IsRepeatCommand), and the component lets it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::StartRepeat(SComponentInputEvent* psTaken, CComponent* pcComponent)
+{
+	StopRepeat();
+	if ((muiRepeatDelay == 0) || (pcComponent == NULL) || !pcComponent->IsKeyRepeat() || (psTaken->psWindowEvent == NULL))
+	{
+		return;
+	}
+	if (!((psTaken->eType == CIET_Printable) || ((psTaken->eType == CIET_Command) && IsRepeatCommand(psTaken->eCommand))))
+	{
+		return;
+	}
+
+	memcpy(&msRepeatWindowEvent, psTaken->psWindowEvent, sizeof(SWindowInputEvent));
+	memcpy(&msRepeatEvent, psTaken, sizeof(SComponentInputEvent));
+	msRepeatEvent.psWindowEvent = &msRepeatWindowEvent;
+	msRepeatEvent.bRepeat = true;
+	msRepeatEvent.bPass = false;
+	msRepeatEvent.bLayoutKept = false;
+	mpcRepeatComponent = pcComponent;
+	miRepeatDue = Now() + muiRepeatDelay;
+	mbRepeating = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::StopRepeat(void)
+{
+	mbRepeating = false;
+	mpcRepeatComponent = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How long until a held key is next given again, -1 if none is held.  The
+// window waits no longer than this.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CComponentInput::GetRepeatWait(void)
+{
+	int64	iWait;
+
+	if (!mbRepeating)
+	{
+		return -1;
+	}
+	iWait = miRepeatDue - Now();
+	return (iWait > 0) ? iWait : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Called after each Update: a held key that is due is given again to the
+// window (CWindow::RepeatInput), once however late it is, and is next due
+// a period from now, so a slow window isn't sent a burst.  It stops if the
+// keys have gone to another component or it isn't taken.  True if it was
+// given and taken.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CComponentInput::Repeat(void)
+{
+	SComponentInputEvent	sEvent;
+	int64					iNow;
+
+	if (!mbRepeating || (mpcWindow == NULL))
+	{
+		return false;
+	}
+	iNow = Now();
+	if (iNow < miRepeatDue)
+	{
+		return false;
+	}
+	miRepeatDue = iNow + muiRepeatPeriod;
+	memcpy(&sEvent, &msRepeatEvent, sizeof(SComponentInputEvent));
+	msRepeatWindowEvent.uiTime = msRepeatWindowEvent.uiTime + (uint32)muiRepeatPeriod;
+	if (!mpcWindow->RepeatInput(&sEvent, this, mpcRepeatComponent))
+	{
+		StopRepeat();
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For tests: iNow is what Now gives (GetDebugTickCount's milliseconds),
+// -1 for the clock again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CComponentInput::SetClock(int64 iNow)
+{
+	miClock = iNow;
+}
+
+
+int64 CComponentInput::Now(void)
+{
+	return (miClock >= 0) ? miClock : GetDebugTickCount();
 }
 
 

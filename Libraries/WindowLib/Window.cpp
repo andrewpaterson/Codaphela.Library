@@ -306,6 +306,7 @@ bool CWindow::Show(void)
 		if (mpcComponentInput)
 		{
 			mpcComponentInput->Update();
+			mpcComponentInput->Repeat();
 		}
 		if (bContinuous || (mbRedraw && IsFrameDue()))
 		{
@@ -376,6 +377,10 @@ int64 CWindow::GetWaitMilliseconds(void)
 	if (mpcComponentInput && mpcComponentInput->GetEvictionDelay(&uiDelay))
 	{
 		iWait = ShorterWait(iWait, uiDelay);
+	}
+	if (mpcComponentInput)
+	{
+		iWait = ShorterWait(iWait, mpcComponentInput->GetRepeatWait());
 	}
 	for (i = 0; i < maOwned.NumElements(); i++)
 	{
@@ -1079,6 +1084,32 @@ void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcCompone
 	{
 		InvalidateLayout();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A held key's command or printable given again (CComponentInput::
+// Repeat) to pcComponent, which took it the first time, as Input gives a
+// press's.  True if it was taken.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::RepeatInput(SComponentInputEvent* psEvent, CComponentInput* pcComponentInput, CComponent* pcComponent)
+{
+	bool	bTaken;
+	bool	bLayoutKept;
+
+	DismissToolTip();
+	bTaken = mcFocus.Repeat(psEvent, pcComponentInput, pcComponent, &bLayoutKept);
+	if (bLayoutKept)
+	{
+		RequestPaint();
+	}
+	else
+	{
+		InvalidateLayout();
+	}
+	return bTaken;
 }
 
 

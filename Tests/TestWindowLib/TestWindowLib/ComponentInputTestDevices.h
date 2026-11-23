@@ -59,6 +59,7 @@ public:
 		mpcKeyboard->AddSource("End");
 		mpcKeyboard->AddSource("Cursor Up");
 		mpcKeyboard->AddSource("Cursor Left");
+		mpcKeyboard->AddSource("Page Down");
 		mpcKeyboard->AddSource("Numpad 1");
 		mpcKeyboard->AddSource("Numpad 5");
 		mpcKeyboard->AddSource("Numpad 8");

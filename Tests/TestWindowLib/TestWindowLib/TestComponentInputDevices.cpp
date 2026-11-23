@@ -486,6 +486,238 @@ void TestComponentInputShortcutText(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A held key repeats here (CComponentInput::SetRepeat), not from the
+// platform: a press of a key already down, as the platform sends while it
+// is held, gives nothing.  Once held for the delay, the command or
+// printable the press gave is given again each period, once however late
+// the repeat is, until the key is let go or another key or button goes
+// down.  Only what moves or edits repeats, only to the component that
+// took it, and never a key's down or up: a component that takes keys as
+// they go down and up (as a game or the emulator does) sees one of each.
+// The window is 64x32 with A on the left and B on the right.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestComponentInputRepeat(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CGridContainer>			pGrid;
+		Ptr<CInputTestComponent>	pA;
+		Ptr<CInputTestComponent>	pB;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		CPointer					pNull;
+		CChars						szLog;
+		CComponentInputTestDevices	cDevices;
+		Ptr<CWindowInputSource>		pInputSource;
+		CComponentInput				cComponentInput;
+		int							i;
+
+		szLog.Init();
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Input Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pA = OMalloc<CInputTestComponent>(pTestWindow, "A", &szLog, true);
+		pB = OMalloc<CInputTestComponent>(pTestWindow, "B", &szLog, true);
+		AssertTrue(pGrid->AddComponent(pA, 0, 0, 1, 1, 1, 1));
+		AssertTrue(pGrid->AddComponent(pB, 1, 0, 1, 1, 1, 1));
+		pTestWindow->Layout();
+
+		cDevices.Init();
+		pInputSource = OMalloc<CWindowInputSource>(Ptr<CInput>(cDevices.mpcInput));
+		cComponentInput.Init(&pInputSource, &pTestWindow);
+		cDevices.mpcComponentInput = &cComponentInput;
+		AssertTrue(cComponentInput.AddKeyboard(cDevices.GetKeyboard()));
+		AssertTrue(cComponentInput.AddMouse(cDevices.GetMouse()));
+		AssertTrue(cComponentInput.BindKeys("F7", CIC_Command));
+		pTestWindow->SetComponentInput(&cComponentInput);
+		cComponentInput.SetClock(1000);
+		pTestWindow->GetFocus()->SetFocus(pB);
+		AssertLog("B:Gained;");
+
+		//Off, as it starts: a held key gives one command, however often the platform sends its press.
+		AssertInt(0, cComponentInput.GetRepeatDelay());
+		cDevices.Press("Cursor Up");
+		cDevices.Press("Cursor Up");
+		cDevices.Press("Cursor Up");
+		cComponentInput.SetClock(5000);
+		AssertFalse(cComponentInput.Repeat());
+		AssertFalse(cComponentInput.IsRepeating());
+		AssertInt(-1, (int)cComponentInput.GetRepeatWait());
+		cDevices.Release("Cursor Up");
+		AssertLog("B:Up;");
+
+		//On: nothing before the delay, then one each period.
+		cComponentInput.SetRepeat(COMPONENT_INPUT_REPEAT_DELAY, COMPONENT_INPUT_REPEAT_PERIOD);
+		cComponentInput.SetClock(1000);
+		cDevices.Press("Cursor Up");
+		AssertLog("B:Up;");
+		AssertTrue(cComponentInput.IsRepeating());
+		AssertInt(500, (int)cComponentInput.GetRepeatWait());
+		cComponentInput.SetClock(1499);
+		AssertFalse(cComponentInput.Repeat());
+		AssertInt(1, (int)cComponentInput.GetRepeatWait());
+		cComponentInput.SetClock(1500);
+		AssertTrue(cComponentInput.Repeat());
+		AssertLog("B:Up;");
+		AssertInt(33, (int)cComponentInput.GetRepeatWait());
+		cComponentInput.SetClock(1532);
+		AssertFalse(cComponentInput.Repeat());
+		cComponentInput.SetClock(1533);
+		AssertTrue(cComponentInput.Repeat());
+		AssertLog("B:Up;");
+
+		//The platform's presses of the held key give nothing more.
+		cDevices.Press("Cursor Up");
+		AssertLog("");
+		AssertTrue(cComponentInput.IsRepeating());
+
+		//A late repeat is one, not a burst, and the next is a period after it.
+		cComponentInput.SetClock(9000);
+		AssertTrue(cComponentInput.Repeat());
+		AssertFalse(cComponentInput.Repeat());
+		AssertLog("B:Up;");
+		AssertInt(33, (int)cComponentInput.GetRepeatWait());
+
+		//Letting go stops it.
+		cDevices.Release("Cursor Up");
+		AssertFalse(cComponentInput.IsRepeating());
+		cComponentInput.SetClock(20000);
+		AssertFalse(cComponentInput.Repeat());
+		AssertLog("");
+
+		//A typed character repeats.
+		cComponentInput.SetClock(30000);
+		cDevices.Press("A");
+		cComponentInput.SetClock(30500);
+		AssertTrue(cComponentInput.Repeat());
+		cComponentInput.SetClock(30533);
+		AssertTrue(cComponentInput.Repeat());
+		cDevices.Release("A");
+		AssertLog("B:Printable(a,Insert);B:Printable(a,Insert);B:Printable(a,Insert);");
+
+		//Shift alone doesn't, a chord (Shift+Up) does, and letting go of shift stops it.
+		cComponentInput.SetClock(40000);
+		cDevices.Press("Left Shift");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Press("Cursor Up");
+		cComponentInput.SetClock(40500);
+		AssertTrue(cComponentInput.Repeat());
+		cDevices.Release("Left Shift");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("Cursor Up");
+		AssertLog("B:SelectUp;B:SelectUp;");
+
+		//Another key going down takes over: the held one stops, the new one repeats.
+		cComponentInput.SetClock(50000);
+		cDevices.Press("Cursor Up");
+		cDevices.Press("A");
+		cComponentInput.SetClock(50500);
+		AssertTrue(cComponentInput.Repeat());
+		cDevices.Release("A");
+		cDevices.Release("Cursor Up");
+		AssertLog("B:Up;B:Printable(a,Insert);B:Printable(a,Insert);");
+
+		//What is done once doesn't repeat: an application's command, a copy, and a key that gives nothing.
+		cDevices.Press("F7");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("F7");
+		cDevices.Press("Left Control");
+		cDevices.Press("C");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("C");
+		cDevices.Release("Left Control");
+		cDevices.Press("F1");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("F1");
+		AssertLog("B:Command(F7);B:Copy;");
+
+		//The keys going to another component stop it; it isn't given there.
+		cComponentInput.SetClock(60000);
+		cDevices.Press("Cursor Up");
+		pTestWindow->GetFocus()->SetFocus(pA);
+		cComponentInput.SetClock(60500);
+		AssertFalse(cComponentInput.Repeat());
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("Cursor Up");
+		AssertLog("B:Up;B:Lost;A:Gained;");
+
+		//A button going down stops it, and so does ReleaseAll (the window losing focus).
+		cDevices.Press("Cursor Up");
+		cDevices.PressButton("Button 2");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.ReleaseButton("Button 2");
+		cDevices.Release("Cursor Up");
+		cDevices.Press("Cursor Up");
+		AssertTrue(cComponentInput.IsRepeating());
+		cComponentInput.ReleaseAll();
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("Cursor Up");
+		szLog.Clear();
+
+		//A component can say its keys don't repeat.
+		pA->SetKeyRepeat(false);
+		cDevices.Press("Cursor Up");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("Cursor Up");
+		AssertLog("A:Up;");
+		pA->SetKeyRepeat(true);
+
+		//A component that takes keys as they go down and up (a game's) sees one down and one up while Left is held for
+		//two seconds, the platform sending its press all the while: nothing repeats, and Left reads as held.
+		pA->LogKeys();
+		cComponentInput.SetClock(70000);
+		cDevices.Press("Cursor Left");
+		AssertFalse(cComponentInput.IsRepeating());
+		for (i = 1; i <= 60; i++)
+		{
+			cComponentInput.SetClock(70000 + i * 33);
+			cDevices.Press("Cursor Left");
+			AssertFalse(cComponentInput.Repeat());
+			AssertTrue(cComponentInput.IsSourceDown("Cursor Left"));
+		}
+		cDevices.Release("Cursor Left");
+		AssertFalse(cComponentInput.IsSourceDown("Cursor Left"));
+		AssertLog("A:Down(Cursor Left);A:Up(Cursor Left);");
+
+		//Off again: nothing repeats.
+		cComponentInput.SetRepeat(0, COMPONENT_INPUT_REPEAT_PERIOD);
+		pTestWindow->GetFocus()->SetFocus(pB);
+		szLog.Clear();
+		cDevices.Press("Cursor Up");
+		AssertFalse(cComponentInput.IsRepeating());
+		cDevices.Release("Cursor Up");
+		AssertLog("B:Up;");
+
+		pTestWindow->SetComponentInput(NULL);
+		cComponentInput.Kill();
+		cDevices.mpcComponentInput = NULL;
+		pInputSource = NULL;
+		cDevices.Kill();
+
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		pGrid = NULL;
+		pA = NULL;
+		pB = NULL;
+		szLog.Kill();
+	}
+
+	pNativeFactory = NULL;
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestComponentInputDevices(void)
@@ -496,6 +728,7 @@ void TestComponentInputDevices(void)
 	TestComponentInputKeyboard();
 	TestComponentInputMouse();
 	TestComponentInputShortcutText();
+	TestComponentInputRepeat();
 
 	ObjectsFlush();
 	ObjectsKill();

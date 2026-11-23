@@ -191,3 +191,41 @@ void CInputTestComponent::FocusGained(void) { Log("Gained"); }
 void CInputTestComponent::FocusLost(void) { Log("Lost"); }
 void CInputTestComponent::MovedInto(void) { Log("Into"); }
 void CInputTestComponent::MovedOutof(void) { Log("Outof"); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Its keys are taken as they go down and up, as a game's or an emulator's
+// are, logged as Down(<key>) and Up(<key>): their commands and printables
+// aren't given to it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInputTestComponent::LogKeys(void)
+{
+	AddInputAction(IAF_AnyKeyDown, NULL, this, &CInputTestComponent::KeyDownAction);
+	AddInputAction(IAF_AnyKeyUp, NULL, this, &CInputTestComponent::KeyUpAction);
+}
+
+
+void CInputTestComponent::KeyDownAction(SComponentInputEvent* psEvent)
+{
+	CChars	sz;
+
+	sz.Init("Down(");
+	sz.Append(psEvent->szName);
+	sz.Append(')');
+	Log(sz.Text());
+	sz.Kill();
+}
+
+
+void CInputTestComponent::KeyUpAction(SComponentInputEvent* psEvent)
+{
+	CChars	sz;
+
+	sz.Init("Up(");
+	sz.Append(psEvent->szName);
+	sz.Append(')');
+	Log(sz.Text());
+	sz.Kill();
+}

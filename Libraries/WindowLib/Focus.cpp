@@ -343,6 +343,7 @@ bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponen
 	SComponentInputEvent*	psTaken;
 	size					uiNumEvents;
 	Ptr<CComponent>			pFocussed;
+	Ptr<CComponent>			pKeyComponent;
 	const char*				szContext;
 
 	if (!mbActive)
@@ -351,12 +352,19 @@ bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponen
 	}
 	pFocussed = mpFocussedComponent;
 	mpKeyComponent = FindKeyComponent(pcComponentInput, &szContext);
+	pKeyComponent = mpKeyComponent.IsNotNull() ? mpKeyComponent : mpFocussedComponent;  //What the keys go to.
 	uiNumEvents = pcComponentInput->Translate(psWindowEvent, asEvents, szContext);
 	psTaken = DispatchEvents(asEvents, uiNumEvents);
 	mpKeyComponent = NULL;
 	if (mpFocussedComponent != pFocussed)
 	{
 		return false;
+	}
+
+	//The press's command or printable taken, not its key or chord event: it is given again while the key is held.
+	if (psTaken && (psTaken != &asEvents[0]) && pKeyComponent.IsNotNull())
+	{
+		pcComponentInput->StartRepeat(psTaken, &pKeyComponent);
 	}
 	if (pcComponentInput->IsTyping(psWindowEvent, asEvents, uiNumEvents))
 	{
@@ -367,6 +375,46 @@ bool CFocus::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponen
 		return psTaken->bLayoutKept;
 	}
 	return (uiNumEvents == 1) && (asEvents[0].eType == CIET_KeyUp);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A held key's command or printable given again (CComponentInput::
+// Repeat), as Input gives a press's, if the keys still go to pcComponent
+// (not held, only compared), which took it the first time.  True if it is
+// taken; *pbLayoutKept says whether the layout was kept.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFocus::Repeat(SComponentInputEvent* psEvent, CComponentInput* pcComponentInput, CComponent* pcComponent, bool* pbLayoutKept)
+{
+	Ptr<CComponent>	pFocussed;
+	Ptr<CComponent>	pKeyComponent;
+	const char*		szContext;
+	bool			bTaken;
+
+	*pbLayoutKept = true;
+	if (!mbActive)
+	{
+		return false;
+	}
+	pFocussed = mpFocussedComponent;
+	mpKeyComponent = FindKeyComponent(pcComponentInput, &szContext);
+	pKeyComponent = mpKeyComponent.IsNotNull() ? mpKeyComponent : mpFocussedComponent;  //What the keys go to.
+	if (pKeyComponent.IsNull() || (&pKeyComponent != pcComponent))
+	{
+		mpKeyComponent = NULL;
+		return false;
+	}
+	bTaken = DispatchEvent(psEvent);
+	mpKeyComponent = NULL;
+	if (mpFocussedComponent != pFocussed)
+	{
+		*pbLayoutKept = false;
+		return false;
+	}
+	*pbLayoutKept = !bTaken || psEvent->bLayoutKept;
+	return bTaken;
 }
 
 

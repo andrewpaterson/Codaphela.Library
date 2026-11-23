@@ -182,6 +182,7 @@ public:
 	void						PointerMoved(int x, int y);
 	void						PointerLeft(void);
 	void						Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput);
+	bool						RepeatInput(SComponentInputEvent* psEvent, CComponentInput* pcComponentInput, CComponent* pcComponent);
 	void						InputCommand(EComponentInputCommand eCommand, bool bInsert);
 	bool						InputKeys(const char* szKeys);
 	void						InputPrintable(char c, bool bInsert);

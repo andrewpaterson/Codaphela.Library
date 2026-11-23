@@ -95,6 +95,8 @@ typedef CArrayTemplate<SComponentInputContext>	CArrayComponentInputContext;
 
 #define COMPONENT_INPUT_MAX_EVENTS	2	//Translate's most events for one queued event.
 #define COMPONENT_INPUT_SEQUENCE_MILLISECONDS	500	//How long after the chord a bound sequence's second key may come.
+#define COMPONENT_INPUT_REPEAT_DELAY			500	//How long a key is held before it repeats (SetRepeat), as Windows' default.
+#define COMPONENT_INPUT_REPEAT_PERIOD			33	//Between its repeats: about thirty a second.
 
 
 //Pumps the events a CWindowInputSource queues to the window, whose focus has them translated here and dispatches
@@ -108,8 +110,18 @@ typedef CArrayTemplate<SComponentInputContext>	CArrayComponentInputContext;
 //context of the component it's for (CComponent::GetKeyContext: a text area's is Editor) in a window that isn't a
 //dialog, so what is done to a context's keys can't stop a dialog working (see CFocus::FindKeyComponent).
 //
+//A held key repeats here, not from the platform (InputLib gives a held key one press however often the platform sends
+//it): with SetRepeat, once a key has been held for the delay the command or printable its press gave is given again to
+//the component that took it, each period, until it is let go.  Only that is given again, never its key or chord event,
+//so a component that takes keys as they go down and up (a game's, an emulator's) sees one press and one release, and
+//what is held reads as held.  It repeats only if the press's command or printable was what was taken, the command is
+//one that moves or edits (IsRepeatCommand) and the component lets it (CComponent::SetKeyRepeat).  Any other key or
+//button going down or up, the keys going to another component, the window changing and ReleaseAll stop it.  Repeat
+//is off until SetRepeat.
+//
 //Kill a CComponentInput before the CWindowInputSource it was given.
 class CWindow;
+class CComponent;
 class CComponentInput
 {
 protected:
@@ -124,6 +136,15 @@ protected:
 	bool								mbCapsLock;
 	bool								mbNumLock;
 	bool								mbInsert;
+
+	uint32								muiRepeatDelay;  //0 for no repeating.
+	uint32								muiRepeatPeriod;
+	bool								mbRepeating;  //A held key's command or printable is to be given again.
+	SComponentInputEvent				msRepeatEvent;  //What is given again.
+	SWindowInputEvent					msRepeatWindowEvent;  //Its press, which msRepeatEvent points to.
+	CComponent*							mpcRepeatComponent;  //Not held, only compared: what took it.
+	int64								miRepeatDue;  //When it is next given (GetDebugTickCount).
+	int64								miClock;  //What Now gives, -1 for the clock (SetClock).
 
 public:
 	void		Init(CWindowInputSource* pcSource, CWindow* pcWindow);
@@ -142,6 +163,17 @@ public:
 	void		SetLocks(bool bCapsLock, bool bNumLock);
 	void		SetWindow(CWindow* pcWindow);
 	CWindow*	GetWindow(void) const;
+
+	void		SetRepeat(uint32 uiDelay, uint32 uiPeriod);
+	uint32		GetRepeatDelay(void) const;
+	uint32		GetRepeatPeriod(void) const;
+	void		StartRepeat(SComponentInputEvent* psTaken, CComponent* pcComponent);
+	void		StopRepeat(void);
+	bool		IsRepeating(void) const;
+	int64		GetRepeatWait(void);
+	bool		Repeat(void);
+	void		SetClock(int64 iNow);
+	int64		Now(void);
 
 	bool				IsShift(void);
 	bool				IsControl(void);
@@ -164,6 +196,7 @@ public:
 	bool				IsTypingKeys(const char* szKeys);
 	static bool			IsEditorCommand(EComponentInputCommand eCommand);
 	static bool			IsWidgetCommand(EComponentInputCommand eCommand);
+	static bool			IsRepeatCommand(EComponentInputCommand eCommand);
 	static bool			NameKeys(const char* szKeys, CChars* pszDest);
 	static void			AppendShortcutText(CChars* pszDest, const char* szKeys);
 

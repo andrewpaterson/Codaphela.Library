@@ -61,6 +61,7 @@ struct SComponentInputEvent
 	const char*					szContext;	//The context whose binding gave the command (see CComponentInput::AddContext), NULL for the global keys'.
 	bool						bPass;		//Set by an action that couldn't use the event, so it goes on to the parent.
 	bool						bLayoutKept;	//Set when it is taken: every action that took it keeps the layout (CInputAction::SetKeepsLayout).
+	bool						bRepeat;	//A held key's command or printable given again (CComponentInput::SetRepeat), not a press.
 };
 
 

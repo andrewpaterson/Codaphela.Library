@@ -51,6 +51,7 @@ protected:
 	EContainerStyleHorizontal	meHorizontalAlignment;  //Where a fixed size component sits in spare space.  Stretch makes it fill the space.
 	EContainerStyleVertical		meVerticalAlignment;
 	bool						mbCanGetFocus;
+	bool						mbKeyRepeat;  //A held key's command or printable it takes is given again (SetKeyRepeat).
 	bool						mbHitAsWhole;  //Found by FindComponentAt itself, never its children; see SetHitAsWhole.
 	Ptr<CComponent>				mpParent;
 	CArray<CComponent>			maChildren;
@@ -104,6 +105,8 @@ public:
 	virtual	void				FocusOrMouseOverChanged(void);
 			bool				CanGetFocus(void);
 			void				SetCanGetFocus(bool bCanGetFocus);
+			void				SetKeyRepeat(bool bKeyRepeat);
+			bool				IsKeyRepeat(void) const;
 			void				SetHitAsWhole(bool bHitAsWhole);
 	virtual	bool				WantsEnter(void);
 	virtual	bool				WantsEscape(void);
