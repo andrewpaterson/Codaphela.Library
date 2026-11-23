@@ -373,6 +373,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mpcTypeInfo = NULL;
 	mcClosures.Init(this);
 	mcClassData.Init(this);
+	mcStrings.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -3934,13 +3935,13 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		{
 			i = 0;
 		}
-		else if (IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
+		else if (IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mcStrings.StringElementBytes(pcInitialiser)))
 		{
 			auiBytes.Init();
-			bResult = DecodeString(pcInitialiser, &auiBytes);
+			bResult = mcStrings.DecodeString(pcInitialiser, &auiBytes);
 			for (i = 0; i < auiBytes.NumElements() / psType->psBase->iBytes; i++)
 			{
-				mcData.AppendData(psType->psBase->iBytes, StringElement(&auiBytes, psType->psBase->iBytes, i));
+				mcData.AppendData(psType->psBase->iBytes, mcStrings.StringElement(&auiBytes, psType->psBase->iBytes, i));
 			}
 			auiBytes.Kill();
 			if (i > (size)psType->iCount)
@@ -3982,10 +3983,10 @@ bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, 
 		mcData.AppendData(psType->iBytes, mcFolder.FloatBits(psType, dValue));
 		return true;
 	}
-	if (pcInitialiser && psType->IsPointer() && IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == StringElementBytes(pcInitialiser)))
+	if (pcInitialiser && psType->IsPointer() && IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mcStrings.StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
-		bResult = DecodeString(pcInitialiser, &auiBytes);
+		bResult = mcStrings.DecodeString(pcInitialiser, &auiBytes);
 		if (bResult)
 		{
 			//AddString ends it with one zero byte.
@@ -4224,7 +4225,7 @@ CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* p
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
 	{
 		papcElements = ListElements(pcInitialiser);
-		if ((papcElements->NumElements() == 1) && IsStringLiteral(papcElements->GetPtr(0)) && (StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
+		if ((papcElements->NumElements() == 1) && IsStringLiteral(papcElements->GetPtr(0)) && (mcStrings.StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
 		{
 			return papcElements->GetPtr(0);
 		}
@@ -5235,6 +5236,7 @@ CCPPConstants* CCPPUnit::GetConstants(void) const { return mpcConstants; }
 CCPPConstantFolder* CCPPUnit::GetFolder(void) { return &mcFolder; }
 CCPPClosures* CCPPUnit::GetClosures(void) { return &mcClosures; }
 CCPPClassData* CCPPUnit::GetClassData(void) { return &mcClassData; }
+CCPPStrings* CCPPUnit::GetStrings(void) { return &mcStrings; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

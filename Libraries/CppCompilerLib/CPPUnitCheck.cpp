@@ -970,7 +970,7 @@ const char* CCPPUnit::StringArrayError(CCPPSyntax* pcString, SCPP65Type* psEleme
 	{
 		return "A string initialises an array of characters only";
 	}
-	return (StringElementBytes(pcString) == 1) ? "A string without a prefix (or u8) initialises an array of char only" : "A wide string initialises an array of its own kind of character only: wchar_t for L, char16_t for u, char32_t for U";
+	return (mcStrings.StringElementBytes(pcString) == 1) ? "A string without a prefix (or u8) initialises an array of char only" : "A wide string initialises an array of its own kind of character only: wchar_t for L, char16_t for u, char32_t for U";
 }
 
 

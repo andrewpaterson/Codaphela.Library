@@ -67,6 +67,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPConstantFolder.h"
 #include "CPPClosures.h"
 #include "CPPClassData.h"
+#include "CPPStrings.h"
 
 
 class CCTString;
@@ -309,7 +310,9 @@ class CCPPUnit : public CCPPRuntimeWriter
 friend class CCPPConstantFolder;
 friend class CCPPClosures;
 friend class CCPPClassData;
+friend class CCPPStrings;
 protected:
+	CCPPStrings				mcStrings;			//Decodes string literals.
 	CCPPClassData			mcClassData;		//Writes classes' vtables, VTTs and type info.
 	CCPPClosures			mcClosures;			//The lambdas' closures.
 	CCPPConstantFolder		mcFolder;			//Works out constant expressions' values.
@@ -408,6 +411,7 @@ public:
 	CCPPConstantFolder*		GetFolder(void);
 	CCPPClosures*			GetClosures(void);
 	CCPPClassData*			GetClassData(void);
+	CCPPStrings*			GetStrings(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -883,13 +887,6 @@ public:
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 	bool					IsNullPointerConstant(CCPPSyntax* pcExpression);
 	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
-	bool					DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes);
-	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
-	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
-	int						StringElementBytes(CCPPSyntax* pcString);
-	SCPP65Type*				StringElementType(CCPPSyntax* pcString);
-	SCPP65Type*				StringArrayType(CCPPSyntax* pcString);
-	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);
 
 	//Objects and copies.  CPPUnitObjects.cpp
 	bool					IsObject(CCPPSyntax* pcExpression);

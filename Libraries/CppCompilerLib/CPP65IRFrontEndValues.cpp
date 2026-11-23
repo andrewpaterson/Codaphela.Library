@@ -620,16 +620,16 @@ bool CCPP65IRFrontEnd::StringLiteral(CCPPSyntax* pcString, SCPP65IRValue* psValu
 	CArrayUint8	auiBytes;
 
 	auiBytes.Init();
-	if (!mpcUnit->DecodeString(pcString, &auiBytes))
+	if (!mpcUnit->GetStrings()->DecodeString(pcString, &auiBytes))
 	{
 		auiBytes.Kill();
 		return Unsupported(__FILE__, __LINE__);
 	}
 
 	//StringData's data ends with one zero byte.
-	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + mpcUnit->StringElementBytes(pcString) - 1, true, 0);
+	auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + mpcUnit->GetStrings()->StringElementBytes(pcString) - 1, true, 0);
 	StringData((char*)auiBytes.GetData(), auiBytes.NumElements(), psValue);
-	psValue->psType = mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString)));
+	psValue->psType = mpcTypes->Pointer(mpcTypes->Const(mpcUnit->GetStrings()->StringElementType(pcString)));
 	auiBytes.Kill();
 	return true;
 }
@@ -1330,7 +1330,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 				return false;
 			}
 			psPlace->sAddress = sAddress.sValue;
-			psPlace->psType = mpcUnit->StringArrayType(pcExpression);
+			psPlace->psType = mpcUnit->GetStrings()->StringArrayType(pcExpression);
 			return true;
 		}
 		//A string with a suffix is its literal operator's call, as a number with one is.

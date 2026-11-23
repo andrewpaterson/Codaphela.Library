@@ -633,9 +633,9 @@ SCPP65Type* CCPP65TypeChecker::StringLiteral(CCPPSyntaxStringExpression* pcStrin
 	bool			bDecoded;
 
 	auiBytes.Init();
-	bDecoded = mpcUnit->DecodeString(pcString, &auiBytes);
+	bDecoded = mpcUnit->GetStrings()->DecodeString(pcString, &auiBytes);
 	auiBytes.Kill();
-	return bDecoded ? mpcTypes->Pointer(mpcTypes->Const(mpcUnit->StringElementType(pcString))) : NULL;
+	return bDecoded ? mpcTypes->Pointer(mpcTypes->Const(mpcUnit->GetStrings()->StringElementType(pcString))) : NULL;
 }
 
 
@@ -2571,7 +2571,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		//A string literal is the array of its characters ("text"_s is its literal operator's call, below).
 		if (mpcUnit->IsStringLiteral(pcExpression))
 		{
-			return mpcUnit->StringArrayType(pcExpression);
+			return mpcUnit->GetStrings()->StringArrayType(pcExpression);
 		}
 		break;
 
@@ -3449,7 +3449,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	{
 		//char a[4] = "abc"; and = { "abc" }: an array of characters is its string's.  [dcl.init.string]
 		pcString = pcInitialiser ? pcInitialiser : ((papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL);
-		if (pcString && mpcUnit->IsStringLiteral(pcString) && psType->psBase->IsInteger() && (psType->psBase->iBytes == mpcUnit->StringElementBytes(pcString)))
+		if (pcString && mpcUnit->IsStringLiteral(pcString) && psType->psBase->IsInteger() && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcString)))
 		{
 			apcArguments.Kill();
 			return true;
@@ -3794,7 +3794,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	{
 		if (!papcElements)
 		{
-			if (mpcUnit->IsStringLiteral(pcInitialiser) && !(psType->psBase->IsInteger() && (psType->psBase->eKind != CPP65TK_Bool) && (psType->psBase->iBytes == mpcUnit->StringElementBytes(pcInitialiser))))
+			if (mpcUnit->IsStringLiteral(pcInitialiser) && !(psType->psBase->IsInteger() && (psType->psBase->eKind != CPP65TK_Bool) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser))))
 			{
 				//[dcl.init.string] 1
 				return Error(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psType->psBase));

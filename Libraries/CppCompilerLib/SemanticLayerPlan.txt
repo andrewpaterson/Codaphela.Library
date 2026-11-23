@@ -6,7 +6,7 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is: stages 0 to 12 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
+Where it is: stages 0 to 13 and 14's first part are done but for what each stage's record says it left (2026-11-22); stage 7 was tried
 and taken back.  The user that day: "Finish and
 commit, continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -956,3 +956,11 @@ Stage 13 (2026-11-23): class data, labels and what runs at exit.
 	Proved: TestCppCompilerLib passes (272,061); the listings are as they were; of the diagnostics, 48
 	cases name CPP65IRFrontEndStatements.cpp's line 1623 for its line 1620 in an "uses C++ ... doesn't support yet" message,
 	the file having three lines more, and nothing else is said differently; the IDE builds.
+
+	Third part: the functions that decode string literals are a class of their own, CCPPStrings (CPPStrings.h
+	and .cpp), which the unit holds (mcStrings, GetStrings): DecodeString, DecodeStringToken,
+	DecodeRawStringToken, StringElementBytes, StringArrayType, StringElementType, StringElement and the three
+	static helpers.  Not "only the tokeniser and the types", as the stage was written: __FUNCTION__, __FUNCSIG__
+	and __FUNCDNAME__ are the function's being worked out (the context) and its label (the mangler), and a bad
+	escape is an error, so it holds the unit.  TestCppCompilerLib passes (272,043); the diagnostics entries and
+	the listings are 13b's; the IDE builds.

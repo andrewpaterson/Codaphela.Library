@@ -743,10 +743,10 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	psElement = psPlace->psType->psBase;
 	pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psElement);
-	if (mpcUnit->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->StringElementBytes(pcInitialiser)))
+	if (mpcUnit->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
-		if (!mpcUnit->DecodeString(pcInitialiser, &auiBytes))
+		if (!mpcUnit->GetStrings()->DecodeString(pcInitialiser, &auiBytes))
 		{
 			auiBytes.Kill();
 			return Unsupported(__FILE__, __LINE__);
@@ -761,7 +761,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		{
 			sPlace.sAddress = AddressAt(psPlace->sAddress, (int)ui * psElement->iBytes);
 			sPlace.psType = psElement;
-			sValue.sValue = Integer(psElement, mpcUnit->StringElement(&auiBytes, psElement->iBytes, ui));
+			sValue.sValue = Integer(psElement, mpcUnit->GetStrings()->StringElement(&auiBytes, psElement->iBytes, ui));
 			sValue.psType = psElement;
 			Store(&sPlace, &sValue);
 		}
@@ -1641,7 +1641,7 @@ bool CCPP65IRFrontEnd::AsmStatement(CCPPSyntax* pcStatement)
 		{
 			break;
 		}
-		if (!mpcUnit->DecodeStringToken(pcStatement, (CCTString*)pcToken, 1, &auiBytes))
+		if (!mpcUnit->GetStrings()->DecodeStringToken(pcStatement, (CCTString*)pcToken, 1, &auiBytes))
 		{
 			auiBytes.Kill();
 			return false;

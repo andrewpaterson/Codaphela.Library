@@ -358,7 +358,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser, SCPP65Type* 
 	if (mpcUnit->IsStringLiteral(pcInitialiser))
 	{
 		auiBytes.Init();
-		iCount = mpcUnit->DecodeString(pcInitialiser, &auiBytes) ? ((int)auiBytes.NumElements() / mpcUnit->StringElementBytes(pcInitialiser)) + 1 : 0;
+		iCount = mpcUnit->GetStrings()->DecodeString(pcInitialiser, &auiBytes) ? ((int)auiBytes.NumElements() / mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)) + 1 : 0;
 		auiBytes.Kill();
 		return iCount;
 	}

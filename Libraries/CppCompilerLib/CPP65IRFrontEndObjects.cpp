@@ -1569,7 +1569,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	sElement.psBitField = NULL;
 	if (mpcUnit->IsStringLiteral(pcString))
 	{
-		uiFirst = mpcUnit->StringArrayType(pcString)->iCount;
+		uiFirst = mpcUnit->GetStrings()->StringArrayType(pcString)->iCount;
 		sElement.sAddress = sMemory;
 		sElement.psType = mpcTypes->Array(psType, (int)uiFirst);
 		if (!ArrayInitialiser(&sElement, pcString))

@@ -303,6 +303,7 @@
     <ClCompile Include="CPPClass.cpp" />
     <ClCompile Include="CPPClassLayout.cpp" />
     <ClCompile Include="CPPClassData.cpp" />
+    <ClCompile Include="CPPStrings.cpp" />
     <ClCompile Include="CPPClosures.cpp" />
     <ClCompile Include="CPPMangler.cpp" />
     <ClCompile Include="CPPContext.cpp" />
@@ -586,6 +587,7 @@
     <ClInclude Include="CPPClass.h" />
     <ClInclude Include="CPPClassLayout.h" />
     <ClInclude Include="CPPClassData.h" />
+    <ClInclude Include="CPPStrings.h" />
     <ClInclude Include="CPPClosures.h" />
     <ClInclude Include="CPPMangler.h" />
     <ClInclude Include="CPPContext.h" />
