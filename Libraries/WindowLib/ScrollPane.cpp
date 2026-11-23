@@ -59,12 +59,13 @@ void CScrollPane::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 //////////////////////////////////////////////////////////////////////////
 //
 // A wheel the pane can't scroll by goes on to its parent, which may be
-// another scroll pane.
+// another scroll pane.  With Control held it goes on without scrolling:
+// that zooms, in what has a zoom.
 //
 //////////////////////////////////////////////////////////////////////////
 void CScrollPane::WheelAction(SComponentInputEvent* psEvent)
 {
-	if (!Wheel(psEvent->iRight, psEvent->iDown))
+	if (psEvent->bControl || !Wheel(psEvent->iRight, psEvent->iDown))
 	{
 		psEvent->bPass = true;
 	}

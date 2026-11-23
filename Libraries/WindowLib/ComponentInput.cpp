@@ -109,6 +109,8 @@ static SComponentInputChordRow	gasMouseChordRows[] =
 	{ false, false, true,  "Button 1",			CIC_StartDragBox,		CIC_StopDragSelect },
 	{ false, true,  false, "Wheel Forward",	CIC_WheelLeft,			CIC_Ignored },
 	{ false, true,  false, "Wheel Backward",	CIC_WheelRight,			CIC_Ignored },
+	{ true,  false, false, "Wheel Forward",	CIC_WheelUp,			CIC_Ignored },  //With Control held (SComponentInputEvent::bControl): zooms, in what has a zoom (CScrollPane::WheelAction).
+	{ true,  false, false, "Wheel Backward",	CIC_WheelDown,			CIC_Ignored },
 };
 
 
