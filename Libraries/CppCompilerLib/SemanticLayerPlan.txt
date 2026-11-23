@@ -6,9 +6,10 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is (2026-11-23): every stage is done, but for what each stage's record says it left; stage 7 was tried
-and taken back; the last table is at the end.  The user on 2026-11-22: "Finish and commit, continue with all fixes
-in the semantic layer as planned.  Commit and clean-up as you go along."
+Where it is (2026-11-23): the first part's stages (0 to 16) are done, but for what each stage's record says it
+left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
+2026-11-23) is what it left, waiting on questions 6 to 10.  The user on 2026-11-22: "Finish and commit,
+continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
 What was checked before writing (2026-11-22, master 9a11fabbd)
@@ -296,6 +297,86 @@ that makes it one thing, so stage 15 has only what no earlier stage took.
    This plan's last table: each stage's commit, the unit's functions and lines after it, the counts, the
    compile's phases.
 
+Part two (planned 2026-11-23): what the first part left
+--------------------------------------------------------
+
+What is left, counted.  CCPPUnit is 307 functions: CPPUnit.cpp 174 (about 45 of them getters and setters),
+CPPUnitExpressions.cpp 53, CPPUnitClasses.cpp 46, CPPUnitPacks.cpp 17, CPPUnitOverloads.cpp 15, CPPUnitLabels.cpp 2.
+The walk of the declarations, the queue of functions and the options (about 60) stay; what else is there is a job
+of its own, and each stage's record above says what the first part left of its finding.  The rules and the proof
+are the first part's: each stage proved alone (the suite, what is said of every conformance case, the 4,213
+listings of the three *65 projects, the compile's time), "Same code" unless it says otherwise, and committed with
+its record.
+
+17. Declaring a function (finding 23).  Same code.  (L)
+
+   A signature, SCPPSignature (kind, name, parameters, defaults, qualifiers and flags), made once from a
+   declarator by DeclareSignature; a redeclaration matches it, and the function adopts it.  DeclareFunction's seven
+   parameters become it.  Then CCPPFunctionDeclarer takes the declaring out of the unit, about 35 functions, with
+   the checks that go with it: CheckDeclared, CheckVirtSpecifiers, CheckOperatorSignature,
+   CheckAllocationFunction, CheckDefaultedOrDeleted, CheckMemberInitialisers, CheckDefaultsFollow, ResolveReturn,
+   ReturnedType and the rest.
+
+18. Which class a name means (finding 22, stage 7's).  Same code.  (L, the riskiest)
+
+   One resolver, the binder's, about 25 functions: GetClass, GetComponentClass, QualifiedMember, QualifiedClass,
+   QualifiersClass, NameQualifierClass, GetNameClass, the enumerator lookups, and the lookups in bases
+   (FindInBases, IsAmbiguousInBases, HasMember, HasOperator).  Stage 7's finding is its rule, said once: a
+   qualifier of two components is the class the parser found, one of three or more is the qualifiers walked, and a
+   member class reached through an instance is that instance's.  Proved first by a harness, as the constants and
+   the categories were: the old answer and the new at every call over the corpus, each difference read.
+
+19. Static data, start-up and exit.  Same code.  (M)
+
+   CCPPGlobals, about 30: GlobalInitialiser, StaticLocal, BoundTemporary, the start-up and exit routines,
+   WriteDynamicCast, the data alignment and bss questions, and the anonymous, extern and namespace variables.
+   BoundTemporary answers once (an enum: nothing to bind, bound, or stop after an error), where it answers a bool
+   and *pbResult (stage 13's leftover).
+
+20. Laying a class out.  Same code.  (M)
+
+   CCPPClassBuilder, about 25: NewClass, CompleteClass, LayoutClass, ResolveBases, ClassMember, ClassUsing,
+   InheritConstructors, CheckOverrides, ClassBitField, the alignments and AddLayout.  The member specialisations'
+   functions go to the instantiator.
+
+21. Bases and packs.  Same code.  (M)
+
+   CPPUnitOverloads.cpp's questions of the bases (IsDerived, BasePaths, CountBases, CollectVirtualBases,
+   CompleteOffset ...) go beside CCPPClass::BasePaths, a class of the hierarchy's.  CPPUnitPacks.cpp and the pack
+   tables go to the instantiator, which stage 15f was to take them to and didn't (question 9).
+
+22. The rest of the expressions' file.  Same code.  (S-M)
+
+   The type traits, the new-expression's types and the literals' types to the type checker; the enums (EnumType,
+   EnumeratorType, EnumeratorValue, CheckEnumeratorFits) a small CCPPEnums; the attributes and deprecation
+   (HasAttribute, FindAttribute, WarnDeprecated) a small CCPPAttributes.
+
+23. The mechanisms' leftovers, each a commit of its own.
+
+   a. RunConstant's ladder (finding 18): Fold answers folded, not a constant, or needs running, and the
+      interpreter is asked only in that last case.  Same code.
+   b. A floating point constant that needs running is run by the interpreter (finding 18).  Not same code: a
+      float initialiser is data where it was worked out at run time; measured (question 7).
+   c. mbValueArgumentRefused is a value returned.  Same code.
+   d. TemplateDeclaration's classifying arms are one function that returns a kind (finding 24), and Declarations
+      asks IsOutsideMemberTemplate once a declaration.  Same code.
+   e. PlaceType and the front end's Place ask the record whether there is a place (stage 15e's leftover), and the
+      types phase's 0.5 to 5% the record cost is won back if it can be (its entries pooled, for one).  Same code.
+
+24. Finding 44, watched, then acted on.  Same code.  (M)
+
+   The classes made out of the unit are its friends and reach into it.  Each one's asks of mpcUnit are counted
+   before and after, and each is given what it works with (the types, the diagnostics, the context, the binder)
+   where that takes most of its asks away (question 10).
+
+25. The end.  (S)
+
+   The findings' "Since:" lines, and this part's last table, as stage 16 did.
+
+Ends when: CCPPUnit is the walk, the queue, the options and the classes it holds, about 100 functions with the
+getters (question 8).  Size: 25 to 35 proofs, 17 and 18 the long ones.
+
+
 
 What this plan takes from the other areas' findings, and what it leaves
 
@@ -309,7 +390,18 @@ What this plan takes from the other areas' findings, and what it leaves
 
 Questions for the user
 
-Open: none.
+Open (part two, asked 2026-11-23):
+
+  6. Finding 36's rest: "did the callee say something" is asked by counting the error list (38 uses), and
+     BindConstruction's and BindOperator's bReport remain.  Its fix is the binder giving "none, and why", which is
+     finding 32's, in the names and calls area (30 to 44).  In this plan, or in a plan for names and calls?
+  7. Stage 23b changes the code written (a float constant is data).  To the same bar as question 5: every program
+     passes, and no suite's cycles or bytes are worse on either processor?
+  8. Where it ends: about 100 functions (the walk, the queue, the options and the getters), or the getters too?
+  9. Packs: to the instantiator now, as they are (which adds asks of the unit), or left until ConsolidationPlan's
+     stage 5 changes how an expansion is made?
+ 10. Stage 24: are the new classes to stop being the unit's friends and be given narrow interfaces (more work,
+     fewer couplings that don't show), or are their asks only counted and said?
 
 Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
 
