@@ -309,14 +309,7 @@ What this plan takes from the other areas' findings, and what it leaves
 
 Questions for the user
 
-Open:
-
-  4. How stage 15e is done.  Three ways: move the fifty functions as they are (M); remember what an expression
-     is once, and read it (L; recommended, and planned below); or reopen ConsolidationPlan's stage 6, a bound
-     node for every kind of expression (XL, larger than the rest of this plan together).  Asked 2026-11-22;
-     the user asked for the first to be explained, then for a plan to be recommended, then "Given the answers
-     to questions 1 through 5 what is the plan": read as the recommended way being taken, and said back to them
-     as that.  It stays here until they say so in their own words.  Nothing before stage 15 depends on it.
+Open: none.
 
 Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
 
@@ -329,6 +322,12 @@ Answered 2026-11-22 ("1. Not really.  2. Yes.  3. Yes  5. Yes"):
      nothing else different", each difference read and recorded.
   5. Stages 8 and 11 may change the code written, to OptimiserPlan's bar: every program passes, and no
      suite's total of cycles or of bytes is worse on either processor.
+
+Answered 2026-11-23:
+
+  4. How stage 15e is done: the second way, what an expression is worked out once and read (the user, asked for
+     it planned out, was given the plan below and said "Yes, please.  Then once the other session is done:
+     begin").  Not the fifty moved as they are, and not ConsolidationPlan's stage 6.
 
 
 What an expression is: the plan recommended for question 4
@@ -355,42 +354,67 @@ What was read (2026-11-22).  The fifty functions are not one job.  Sorted by wha
     in; TypeOf alone is asked from 79 places in the unit, the type checker, the IR front end, the binder and
     the overloads.
 
-What is recommended.  ConsolidationPlan's stage 6 says of a bound node: "A bound node has its type and whether
-it is a place, a value or an object in memory."  That sentence is taken, as the checkpoint took conversions and
-making objects from the same stage, and the rest of stage 6 stays dropped: no class for each kind of
-expression, the two walks stay two, the front end still writes code from the syntax tree.  What changes is that
-what an expression is, is worked out once, by the type checker, and read by everything else.
+What is recommended, and taken (question 4, 2026-11-23).  ConsolidationPlan's stage 6 says of a bound node: "A
+bound node has its type and whether it is a place, a value or an object in memory."  That sentence is taken, as
+the checkpoint took conversions and making objects from the same stage, and the rest of stage 6 stays dropped: no
+class for each kind of expression, the two walks stay two, the front end still writes code from the syntax tree.
+What changes is that what an expression is, is worked out once, by the type checker, and read by everything else.
 
-  1. Measured before.  Counts of each question (PlaceOf's runs of the type checker, IsRvalue, IsObject,
-     MakesObject, IsObjectLvalue) compiling TestSupportLib65's project, and the types phase's time.  And the
-     five ladders set side by side by reading: for each kind of node, what each says.
-  2. The record.  SCPPTypeOf becomes what is known of an expression: its type, its type as declared, its
-     category (a place, a value, an object that is made, something about to go: lvalue, prvalue, a class
-     prvalue, xvalue), the place's type if it is a place, and the errors made working it out (stage 4).  It is
-     the type checker's: mcTypeOfs leaves the unit.  A part not asked for is not worked out: each has a
-     "known" bit, so nothing is done that is not done today.
-  3. One function says the category, written once from [basic.lval] and the clauses for each kind, in the
-     type checker beside where the kind's type is decided.  It is first built beside the old ladders and run
-     against them: in a checking build every answer of IsRvalue, IsObjectLvalue, MakesObject and PlaceOf is
-     compared with the record's over TestCppCompilerLib and the three *65 suites' projects on both
-     processors, and each disagreement is listed.  Each is then read: where the old ladders differ from each
-     other one of them is wrong for some program, which becomes a conformance case; where the new function
-     differs from all of them it is put right.
-  4. The switch.  IsRvalue, IsObjectLvalue, MakesObject, IsMadeObject, IsObject, ObjectClass and PlaceOf
-     become reads of the record, in the type checker; their callers ask it.  The type checker's PlaceType and
-     the front end's Place keep their switches for what they do with a place (its type; its code) and ask the
-     record whether there is one.  Same code, but for what step 3 found wrong: those are measured, and named.
-  5. The type rules go to CCPP65Types (the composite pointer's) and to the type checker's conditional (the
-     five Conditional functions, whose only other caller, the front end, reads the record's type).
-  6. TypeOf's six ways in become the type checker's: one question that gives the record, and the named
-     shorthands the callers use most.  ReportTypeOf is stage 4's appending of kept errors.
-  7. BindsToTemporary, BoundInitialiser, IsUncapturedConstant, IsOverloadedComma, IsOperatorOperand,
-     BitFieldOf, BindMemberOf and MemberEnumerator are binding ([dcl.init.ref], operators, members) and go to
-     the binder as they are; BindsToTemporary reads the record where it asks PlaceOf and ValueTypeOf.
-  Measured after: step 1's counts (PlaceOf's runs of the type checker should be about the number of places,
-  not of questions), the types phase, the listings, the diagnostics.
-  Ends when: no ladder on a node's kind outside the type checker and the front end's Place says what category
-  an expression has; CPPUnitObjects.cpp is gone.
+Where it starts (2026-11-23, counted).  The type is remembered (mcTypeOfs, an SCPPTypeOf by node, bindings and
+function); nothing else is.  PlaceOf (68 callers) runs the type checker's Place inside a trial each time it is
+asked; IsRvalue (15) asks PlaceOf, DeclaredTypeOf and MakesObject; IsObject (33), IsObjectLvalue (4) and
+MakesObject (2) each switch on the node's kind; the type checker's PlaceType (187 lines) and the IR front end's
+Place switch again.  Stage 0's counters already count each question: CPPCC_PlaceOf, CPPCC_IsRvalue,
+CPPCC_IsObject, CPPCC_MakesObject, CPPCC_IsObjectLvalue, CPPCC_TypeOf and CPPCC_TypeOfWorkedOut.
+
+Each step below is proved and committed alone (the suite, what is said of every conformance case, the listings,
+the time).
+
+  0. Measured before, nothing changed.  The counters and the types phase compiling the three *65 projects.  And
+     the five switches set side by side by reading, into this plan: for each kind of node, what each says (a
+     value, a place, an object made).
+  1. The record.  Same code.  SCPPTypeOf becomes SCPPExpressionFacts: the type, the type as declared, the
+     category (lvalue, xvalue, prvalue, a class prvalue: an object made), the place's type, and the kept errors.
+     Each part has a "known" bit and is worked out only when asked, so nothing is done that is not done today.
+     The memo leaves the unit for the type checker, with one entry that gives the record; its key stays the
+     node, the bindings and the function, TypeOf's.  TypeOf and its kin read the record's type.
+  2. PlaceOf reads the record.  Same code.  The place is worked out once a key, not once a question, its errors
+     kept as a type's are (stage 4).  CPPCC_PlaceOf's runs of Place should fall from one a question to about one
+     a place.
+  3. One category function, proved against the five.  In the type checker, beside where each kind's type is
+     decided, written once from [basic.lval] and each clause.  For one run the old functions stay, and at every
+     call of IsRvalue, IsObjectLvalue, MakesObject, IsMadeObject and IsObject the old answer and the record's are
+     both worked out and compared, over TestCppCompilerLib, the conformance cases and the three *65 projects, on
+     both processors.  Each disagreement is logged with the program that shows it and read: where the old
+     switches differ from each other one of them is wrong for some program, which becomes a conformance case;
+     where only the new function differs, it is put right.  The list is shown to the user before anything is
+     switched: this is the one step that may find a fault whose fix changes code.
+  4. The switch.  IsRvalue, IsObjectLvalue, MakesObject, IsMadeObject, IsObject, ObjectClass and PlaceOf become
+     reads of the record, in the type checker, and their callers (about 125) ask it.  PlaceType and the front
+     end's Place keep their switches for what they do with a place (its type; its code) and ask the record
+     whether there is one.  Same code, but for the fixes the user agreed in step 3: those are measured on both
+     processors, and no suite may be worse in cycles or bytes (question 5's bar).
+  5. The type rules move.  Same code.  CompositePointerType and CompositePointee to CCPP65Types; the five
+     Conditional...Type functions to the type checker's ?: (the front end, their other caller, reads the
+     record's type); VariadicArgumentType and CalleePointerType to the type checker.
+  6. TypeOf's six ways in become the type checker's.  Same code.  TypeOf (159 calls), ValueTypeOf (38),
+     DeclaredTypeOf (10), PlaceTypeOf (4), UnevaluatedTypeOf (2) and ReportTypeOf become one question giving the
+     record and named shorthands for the common ones; the call sites are rewritten by script, as the class moves
+     were.
+  7. The binding questions go to the binder as they are.  Same code.  BindsToTemporary (which reads the record
+     where it asks PlaceOf and ValueTypeOf), BoundInitialiser, IsUncapturedConstant, IsOverloadedComma,
+     IsOperatorOperand, BitFieldOf, BindMemberOf and MemberEnumerator.  What is left of CPPUnitObjects.cpp goes
+     where it belongs (IsAggregate and AggregateMember to the types, the InitializerList functions beside the
+     desugarings), and the file is gone.
+  Measured after: step 0's counters (PlaceOf's runs of Place about the number of places), the types phase, the
+  listings, the diagnostics.
+  Ends when: no switch on a node's kind outside the type checker says what category an expression has, the front
+  end's Place asks the record whether there is a place, and CPPUnitObjects.cpp is gone.
+  Size: about 9 to 11 proofs, and the reading of step 3's disagreements, which can't be sized until they are
+  listed.  Risks: a remembered place or category gone stale if its context changed (the key is TypeOf's, which
+  has held); and working a place out once, not each time, making a template's instance earlier or later, which
+  the listings show.  It stops for the user after step 3's list, and if step 4 would change code beyond what was
+  agreed.
 
 Why this and not the others.  Moving alone is cheaper and leaves five ladders that can disagree, which is the
 fault this clean-up exists for.  Stage 6 whole would also end the second walk and the front end's questions,
