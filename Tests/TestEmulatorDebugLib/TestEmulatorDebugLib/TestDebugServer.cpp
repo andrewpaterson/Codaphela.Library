@@ -181,6 +181,27 @@ static bool TestDebugWait(STestDebugLink* psLink, size (CDebugClient::*fCount)(v
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Reads memory as a debugger's window does: what hasn't been read since
+// the stop is fetched (one request for all of it) and read again once it
+// has come.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestDebugRead(STestDebugLink* psLink, uint32 uiAddress, void* pvDest, size uiSize)
+{
+	CDebugClient*	pcClient;
+
+	pcClient = &psLink->cClient;
+	if (pcClient->ReadMemory(DEBUG_SPACE_ANY, uiAddress, pvDest, uiSize))
+	{
+		return true;
+	}
+	return (pcClient->FetchMemory() != 0) && TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, pcClient->NumMemoryReplies() + 1) &&
+		   pcClient->ReadMemory(DEBUG_SPACE_ANY, uiAddress, pvDest, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The next stop, which must be at uiAddress for eReason.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -260,6 +281,7 @@ static void TestDebugServerW65C816(ETestDebugTransport eTransport)
 	SDebugRange					sLine;
 	SDebugRange					sFunction;
 	SDebugRegister*				psRegister;
+	uint8						auiRead[16];
 	static uint8				auiMain[] = { 0xE8, 0xE8, 0x20, 0x00, 0x20, 0xC8, 0x80, 0xF8 };
 	static uint8				auiFunction[] = { 0xE8, 0x48, 0x68, 0x60 };
 	static uint8				auiText[] = { 'a', 'b', 'c' };
@@ -300,11 +322,20 @@ static void TestDebugServerW65C816(ETestDebugTransport eTransport)
 	AssertTrue(pcClient->SetProgramAddress(0x1000));
 	TestDebugSync(psLink);
 	AssertLongLongIntHex(0x1000, pcClient->GetRegisterValue(DW65C816R_PC));
-	AssertTrue(pcClient->ReadMemory(0x1000, sizeof(auiMain)));
-	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 1));
-	AssertIntHex(0x1000, pcClient->GetMemoryAddress());
-	AssertSize(sizeof(auiMain), pcClient->GetMemorySize());
-	AssertMemory(auiMain, pcClient->GetMemory(), sizeof(auiMain));
+	AssertTrue(TestDebugRead(psLink, 0x1000, auiRead, sizeof(auiMain)));
+	AssertSize(1, pcClient->NumMemoryReplies());
+	AssertMemory(auiMain, auiRead, sizeof(auiMain));
+
+	//Read again from what came, with nothing to fetch; the function's page and main's together in one request.
+	AssertTrue(pcClient->ReadMemory(DEBUG_SPACE_ANY, 0x1000 + 1, auiRead, 2));
+	AssertIntHex(auiMain[1], auiRead[0]);
+	AssertInt(0, pcClient->FetchMemory());
+	AssertFalse(pcClient->ReadMemory(DEBUG_SPACE_ANY, 0x0FFE, auiRead, 4));
+	AssertFalse(pcClient->ReadMemory(DEBUG_SPACE_ANY, 0x2000, auiRead, sizeof(auiFunction)));
+	AssertTrue(TestDebugRead(psLink, 0x0FFE, auiRead, 4));
+	AssertTrue(pcClient->ReadMemory(DEBUG_SPACE_ANY, 0x2000, auiRead, sizeof(auiFunction)));
+	AssertMemory(auiFunction, auiRead, sizeof(auiFunction));
+	AssertSize(2, pcClient->NumMemoryReplies());
 
 	//Continue to the breakpoint at INY, and round the loop to it again.
 	AssertTrue(pcClient->AddBreakpoint(0x1005, true));
@@ -316,9 +347,10 @@ static void TestDebugServerW65C816(ETestDebugTransport eTransport)
 	AssertLongLongIntHex(6, pcClient->GetRegisterValue(DW65C816R_X));
 	AssertLongLongIntHex(1, pcClient->GetRegisterValue(DW65C816R_Y));
 
-	//One instruction, then Continue goes on from there.
+	//One instruction, then Continue goes on from there.  Memory read before it is forgotten: it may have changed.
 	AssertTrue(pcClient->Step(1));
 	TestDebugWaitForStop(psLink, DS_Step, 0x1006);
+	AssertFalse(pcClient->ReadMemory(DEBUG_SPACE_ANY, 0x1000, auiRead, 1));
 	AssertLongLongIntHex(2, pcClient->GetRegisterValue(DW65C816R_Y));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, 0x1005);
@@ -444,15 +476,13 @@ static void TestDebugServerW65C816(ETestDebugTransport eTransport)
 	TestDebugSync(psLink);
 	AssertLongLongIntHex(0x55, pcClient->GetRegisterValue(DW65C816R_X));
 	AssertTrue(pcClient->WriteMemory(0x3000, auiText, sizeof(auiText)));
-	AssertTrue(pcClient->ReadMemory(0x2FFF, 5));
-	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 2));
-	AssertSize(5, pcClient->GetMemorySize());
-	AssertMemory(auiText, &pcClient->GetMemory()[1], sizeof(auiText));
+	AssertTrue(TestDebugRead(psLink, 0x2FFF, auiRead, 5));
+	AssertMemory(auiText, &auiRead[1], sizeof(auiText));
 
 	//Past the memory there is nothing; a missing breakpoint is an error.
-	AssertTrue(pcClient->ReadMemory(TEST_DEBUG_W65C816_MEMORY - 2, 16));
-	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumMemoryReplies, 3));
-	AssertSize(2, pcClient->GetMemorySize());
+	AssertFalse(TestDebugRead(psLink, TEST_DEBUG_W65C816_MEMORY - 2, auiRead, 16));
+	AssertTrue(pcClient->ReadMemory(DEBUG_SPACE_ANY, TEST_DEBUG_W65C816_MEMORY - 2, auiRead, 2));
+	AssertInt(0, pcClient->FetchMemory());
 	uiRequest = pcClient->RemoveBreakpoint(0x9999);
 	AssertTrue(uiRequest != 0);
 	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 1));

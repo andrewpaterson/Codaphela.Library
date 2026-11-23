@@ -42,7 +42,9 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //
 //A breakpoint is in one of the target's breakpoint spaces, which the welcome names (a computer with a kernel and
 //user mode has "Kernel" and "User": a breakpoint in one stops only in that mode), or in every one (DEBUG_SPACE_ANY).
-//A message's uiSpace is DEBUG_SPACE_ANY or a space's index plus one.
+//A message's uiSpace is DEBUG_SPACE_ANY or a space's index plus one.  Memory is read in a space too (DM_ReadMemory's
+//ranges): as that mode sees it now, user mode's the process the stop names (SDebugStopped::uiUserProcess), so a
+//debugger stopped in a kernel's call can read the calling process's stack; DEBUG_SPACE_ANY is the mode it is in.
 //
 //An emulator whose computer runs processes (DEBUG_CAN_PROCESSES) tells the debugger of those running when it says
 //hello, and of each one started (DM_ProcessStarted) and ended (DM_ProcessEnded).  A process started while running
@@ -54,14 +56,15 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //debugger of those loaded when it says hello, and of each one loaded (DM_ModuleLoaded: its file, where it is and how
 //big).  A module loaded while running stops it (DS_Module) before the module's code runs, so the debugger can put
 //breakpoints in it first.  When the computer resets they are gone (DM_ModulesCleared): it loads them again.
-#define DEBUG_PROTOCOL_VERSION		6
+#define DEBUG_PROTOCOL_VERSION		7
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
 #define DEBUG_MAX_LIST				0x1000		//The most breakpoints or step ranges in one message.
+#define DEBUG_MAX_MEMORY_RANGES		256			//The most ranges one ReadMemory asks for.
 #define DEBUG_MAX_DISASSEMBLY		64			//The most instructions in one DM_Disassembly.
 #define DEBUG_MAX_TEXT				256
-#define DEBUG_MAX_MESSAGE			(sizeof(SDebugHeader) + sizeof(SDebugMemory) + DEBUG_MAX_MEMORY)
+#define DEBUG_MAX_MESSAGE			(sizeof(SDebugHeader) + sizeof(SDebugMemoryList) + DEBUG_MAX_MEMORY_RANGES * sizeof(SDebugMemoryRange) + DEBUG_MAX_MEMORY)
 #define DEBUG_NO_ADDRESS			0xFFFFFFFF
 #define DEBUG_MAX_SPACES			4
 #define DEBUG_SPACE_NAME_SIZE		16
@@ -81,12 +84,12 @@ enum EDebugMessage
 	DM_Step,					//SDebugStep.
 	DM_StepRange,				//SDebugStepRange then SDebugRange[uiCount].
 	DM_Reset,					//SDebugReset.
-	DM_Load,					//SDebugMemory then the bytes: written to memory (stopped or not).
+	DM_Load,					//SDebugMemory then the bytes: written to memory (stopped or not), in its space.
 	DM_SetProgramAddress,		//SDebugAddress.
 	DM_ReadRegisters,			//Nothing; answered by DM_Registers.
 	DM_WriteRegister,			//SDebugRegisterValue.
-	DM_ReadMemory,				//SDebugMemory (no bytes); answered by DM_Memory.
-	DM_WriteMemory,				//SDebugMemory then the bytes.
+	DM_ReadMemory,				//SDebugMemoryList then SDebugMemoryRange[uiCount]; answered by DM_Memory.
+	DM_WriteMemory,				//SDebugMemory then the bytes, in its space.
 	DM_Detach,					//Nothing: the breakpoints are cleared and it runs on without a debugger.
 	DM_Quit,					//Nothing: the emulator exits.
 	DM_StepOver,				//Nothing: one instruction, or the whole of a call (and what it calls).
@@ -98,7 +101,8 @@ enum EDebugMessage
 	DM_Stopped,					//SDebugStopped then uint64[uiNumRegisters].
 	DM_Running,					//SDebugRunning.
 	DM_Registers,				//SDebugRegisters then uint64[uiNumRegisters].
-	DM_Memory,					//SDebugMemory then the bytes there were memory for (uiSize of them).
+	DM_Memory,					//SDebugMemoryList then SDebugMemoryRange[uiCount], each uiSize the bytes there were memory for
+								//from its start, then each one's bytes in turn (DEBUG_MAX_MEMORY in all, the last cut short).
 	DM_Error,					//SDebugError.
 	DM_Disassembly,				//SDebugDisassembly then SDebugInstruction[uiCount].
 	DM_ProcessStarted,			//SDebugProcess.
@@ -225,6 +229,23 @@ struct SDebugMemory
 {
 	uint32	uiAddress;
 	uint32	uiSize;
+	uint32	uiSpace;	//DEBUG_SPACE_ANY or a space's index plus one.
+	uint32	uiPadding;
+};
+
+struct SDebugMemoryList
+{
+	uint32	uiCount;
+	uint32	uiPadding;
+};
+
+//uiSize bytes from uiAddress in uiSpace (DEBUG_SPACE_ANY or a space's index plus one).
+struct SDebugMemoryRange
+{
+	uint32	uiAddress;
+	uint32	uiSize;
+	uint32	uiSpace;
+	uint32	uiPadding;
 };
 
 
@@ -253,7 +274,8 @@ struct SDebugStopped
 	uint32	uiNumRegisters;
 	uint32	uiSpace;		//The breakpoint space it is in (its index plus one), DEBUG_SPACE_ANY if the target has none.
 	uint32	uiProcess;		//The process it is in, DEBUG_PROCESS_ANY if none is kept apart there (a kernel's code).
-	uint32	uiPadding;
+	uint32	uiUserProcess;	//Whose memory user mode's is now: the process it is in, or the one whose call or interrupt a
+							//kernel is in; DEBUG_PROCESS_ANY if none.
 };
 
 

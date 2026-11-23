@@ -868,7 +868,7 @@ void CDebugServer::WriteMemory(uint32 uiType, void* pvData, size uiSize)
 		return;
 	}
 
-	uiWritten = mpcTarget->PokeMemory(psMemory->uiAddress, &psMemory[1], psMemory->uiSize);
+	uiWritten = mpcTarget->PokeIn(psMemory->uiSpace, psMemory->uiAddress, &psMemory[1], psMemory->uiSize);
 	if (uiWritten != psMemory->uiSize)
 	{
 		Error(uiType, "Not all of it is memory.");
@@ -878,35 +878,47 @@ void CDebugServer::WriteMemory(uint32 uiType, void* pvData, size uiSize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Answered with DM_Memory, the bytes there was memory for.
+// Answered with DM_Memory: each range with the bytes there was memory for
+// in its space, as many as fit.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::ReadMemory(void* pvData, size uiSize)
 {
-	SDebugMemory*	psRequest;
-	SDebugMemory*	psReply;
-	uint32			uiAddress;
-	uint32			uiLength;
+	SDebugMemoryList*	psList;
+	SDebugMemoryList*	psReply;
+	SDebugMemoryRange*	psRange;
+	size				uiCount;
+	size				uiBytes;
+	size				uiLength;
+	uint8*				puiBytes;
+	size				ui;
 
-	if (uiSize < sizeof(SDebugMemory))
+	psList = (SDebugMemoryList*)pvData;
+	if ((uiSize < sizeof(SDebugMemoryList)) || (psList->uiCount > DEBUG_MAX_MEMORY_RANGES) || (uiSize < sizeof(SDebugMemoryList) + psList->uiCount * sizeof(SDebugMemoryRange)))
 	{
 		Error(DM_ReadMemory, "Message too short.");
 		return;
 	}
-	psRequest = (SDebugMemory*)pvData;
-	if (psRequest->uiSize > DEBUG_MAX_MEMORY)
-	{
-		Error(DM_ReadMemory, "Too many bytes.");
-		return;
-	}
 
-	//The request is in the buffer the reply is built in.
-	uiAddress = psRequest->uiAddress;
-	uiLength = psRequest->uiSize;
-	psReply = (SDebugMemory*)GetBody();
-	psReply->uiAddress = uiAddress;
-	psReply->uiSize = (uint32)mpcTarget->PeekMemory(uiAddress, &psReply[1], uiLength);
-	Send(DM_Memory, muiRequest, sizeof(SDebugMemory) + psReply->uiSize);
+	//The request is in the buffer the reply is built in: its ranges stay where they are, their bytes follow them.
+	uiCount = psList->uiCount;
+	psReply = (SDebugMemoryList*)GetBody();
+	memmove(psReply, psList, sizeof(SDebugMemoryList) + uiCount * sizeof(SDebugMemoryRange));
+	psRange = (SDebugMemoryRange*)&psReply[1];
+	puiBytes = (uint8*)&psRange[uiCount];
+	uiBytes = 0;
+	for (ui = 0; ui < uiCount; ui++, psRange++)
+	{
+		uiLength = psRange->uiSize;
+		if (uiLength > DEBUG_MAX_MEMORY - uiBytes)
+		{
+			uiLength = DEBUG_MAX_MEMORY - uiBytes;
+		}
+		uiLength = mpcTarget->PeekIn(psRange->uiSpace, psRange->uiAddress, &puiBytes[uiBytes], uiLength);
+		psRange->uiSize = (uint32)uiLength;
+		uiBytes += uiLength;
+	}
+	Send(DM_Memory, muiRequest, sizeof(SDebugMemoryList) + uiCount * sizeof(SDebugMemoryRange) + uiBytes);
 }
 
 
@@ -1085,6 +1097,7 @@ void CDebugServer::Stop(EDebugStop eReason)
 	psStopped->uiAddress = mpcTarget->GetProgramAddress();
 	psStopped->uiSpace = mpcTarget->GetCurrentSpace();
 	psStopped->uiProcess = mpcTarget->GetCurrentProcess();
+	psStopped->uiUserProcess = mpcTarget->GetUserProcess();
 	psStopped->uiNumRegisters = (uint32)AppendRegisters((uint64*)&psStopped[1]);
 	Send(DM_Stopped, muiMotionRequest, sizeof(SDebugStopped) + psStopped->uiNumRegisters * sizeof(uint64));
 }

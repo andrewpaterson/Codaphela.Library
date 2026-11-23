@@ -87,7 +87,7 @@ static void TestCPP816DebugLoad(STestCPP816Debug* psDebug)
 	psDebug->cFast.Reset();
 	psDebug->cCheck.Init(&psDebug->cMemory, &psDebug->cFast);
 	psDebug->cWalker.Init(&psDebug->cMemory);
-	psDebug->cWalker.AddRecords(psDebug->pcRecords);
+	psDebug->cWalker.AddRecords(psDebug->pcRecords, ASS_Kernel);
 	psDebug->asFrames.Init();
 	psDebug->bLoaded = true;
 }
@@ -118,13 +118,7 @@ static size TestCPP816DebugWalk(STestCPP816Debug* psDebug)
 {
 	SAsm65StackRegisters	sRegisters;
 
-	sRegisters.uiPC = psDebug->cFast.GetProgramAddress();
-	sRegisters.uiS = psDebug->cFast.GetS();
-	sRegisters.uiD = psDebug->cFast.GetD();
-	sRegisters.uiC = psDebug->cFast.GetC();
-	sRegisters.uiX = psDebug->cFast.GetX();
-	sRegisters.uiY = psDebug->cFast.GetY();
-	sRegisters.uiP = psDebug->cFast.GetP();
+	sRegisters.Init(&psDebug->cFast, ASS_Kernel);
 	return psDebug->cWalker.Walk(&sRegisters, &psDebug->asFrames, 64);
 }
 

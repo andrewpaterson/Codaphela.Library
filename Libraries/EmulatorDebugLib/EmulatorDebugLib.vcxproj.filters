@@ -9,6 +9,9 @@
     <ClCompile Include="DebugClient.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="DebugMemoryCache.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="DebugFormat.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -36,6 +39,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebugClient.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugMemoryCache.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="DebugFormat.h">

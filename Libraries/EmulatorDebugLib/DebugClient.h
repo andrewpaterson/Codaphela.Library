@@ -24,6 +24,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 #include "BaseLib/ArrayTemplate.h"
 #include "ThreadLib/ProcessChannel.h"
 #include "DebugProtocol.h"
+#include "DebugMemoryCache.h"
 
 
 enum EDebugClientState
@@ -47,8 +48,11 @@ struct SDebugProcessEvent
 //
 //The requests only send, and return the request's ID (0 if it couldn't be sent).  Poll reads what the emulator
 //has sent and keeps the latest of each: the processor's description, the state, the last stop and its registers,
-//the last DM_Registers, DM_Memory, DM_Disassembly and DM_Error, each with the ID of the request it answered.
-//Their counts go up as they arrive, so a caller can tell a new one from the one it has seen.
+//the last DM_Registers, DM_Disassembly and DM_Error, each with the ID of the request it answered.  Their counts go
+//up as they arrive, so a caller can tell a new one from the one it has seen.
+//
+//Memory is read from what has come since the target last stopped (CDebugMemoryCache): ReadMemory is false for what
+//hasn't, FetchMemory asks for all of that in one DM_Memory, and NumMemoryReplies goes up when it has come.
 //
 //A request that moves the processor is always answered by its state (DM_Stopped or DM_Running) or an error, so
 //IsBusy says whether the last such request is still to be answered: no other should be sent until it has been.
@@ -70,14 +74,13 @@ protected:
 	uint32				muiStopAddress;
 	uint32				muiStopSpace;		//DEBUG_SPACE_ANY or the space's index plus one.
 	uint32				muiStopProcess;
+	uint32				muiStopUserProcess;
 	uint64				mauiValues[DEBUG_MAX_REGISTERS];	//At the last stop, or the last DM_Registers.
 	size				muiNumStops;
 	size				muiNumRegisterReplies;
 
-	uint8*				mpuiMemory;		//DEBUG_MAX_MEMORY bytes.
-	uint32				muiMemoryAddress;
-	size				muiMemorySize;
-	uint32				muiMemoryRequest;
+	CDebugMemoryCache	mcMemory;
+	uint32				muiMemoryFrom;		//The first request whose reply is memory as it is now.
 	size				muiNumMemoryReplies;
 
 	SDebugInstruction	masInstructions[DEBUG_MAX_DISASSEMBLY];
@@ -116,8 +119,9 @@ public:
 	uint32				SetProgramAddress(uint32 uiAddress);
 	uint32				ReadRegisters(void);
 	uint32				WriteRegister(size uiRegister, uint64 uiValue);
-	uint32				ReadMemory(uint32 uiAddress, size uiSize);
-	uint32				WriteMemory(uint32 uiAddress, void* pvData, size uiSize);
+	bool				ReadMemory(uint32 uiSpace, uint32 uiAddress, void* pvDest, size uiSize);
+	uint32				FetchMemory(void);
+	uint32				WriteMemory(uint32 uiAddress, void* pvData, size uiSize, uint32 uiSpace = DEBUG_SPACE_ANY);
 	uint32				Disassemble(uint32 uiAddress, size uiCount, uint32 uiLand = DEBUG_NO_ADDRESS);
 	uint32				Detach(void);
 	uint32				Quit(void);
@@ -157,13 +161,10 @@ public:
 	uint32				GetStopAddress(void) const;
 	uint32				GetStopSpace(void) const;
 	uint32				GetStopProcess(void) const;
+	uint32				GetStopUserProcess(void) const;
 	size				NumStops(void);
 	size				NumRegisterReplies(void);
 
-	uint8*				GetMemory(void) const;
-	uint32				GetMemoryAddress(void) const;
-	size				GetMemorySize(void) const;
-	uint32				GetMemoryRequest(void) const;
 	size				NumMemoryReplies(void);
 
 	size				NumInstructions(void) const;
@@ -189,7 +190,8 @@ protected:
 	void				Module(void* pvData, size uiSize);
 	void				ModulesCleared(void);
 	void				Answered(uint32 uiRequest);
-	uint32				SendMemory(uint32 uiType, uint32 uiAddress, void* pvData, size uiSize);
+	void				ForgetMemory(void);
+	uint32				SendMemory(uint32 uiType, uint32 uiSpace, uint32 uiAddress, void* pvData, size uiSize);
 	uint32				SendMotion(uint32 uiType, void* pvData, size uiSize);
 	uint8*				GetBody(void) const;
 	uint32				Send(uint32 uiType, void* pvData, size uiSize);

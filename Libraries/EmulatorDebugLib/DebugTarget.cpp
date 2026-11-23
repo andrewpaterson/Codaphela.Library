@@ -191,9 +191,55 @@ bool CDebugTarget::TakeModuleEvent(EDebugModuleEvent* peEvent, SDebugModule* psD
 //////////////////////////////////////////////////////////////////////////
 //
 // The breakpoint space the processor is in (DEBUG_SPACE_ANY or its index
-// plus one), and the process: a bare processor has neither.
+// plus one), the process, and the process whose memory user mode's is: a
+// bare processor has none of them.
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 CDebugTarget::GetCurrentSpace(void) const						{ return DEBUG_SPACE_ANY; }
 uint32 CDebugTarget::GetCurrentProcess(void) const					{ return DEBUG_PROCESS_ANY; }
+uint32 CDebugTarget::GetUserProcess(void) const						{ return DEBUG_PROCESS_ANY; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CDebugTarget::PeekSpaceMemory(size uiSpace, uint32 uiAddress, void* pvDest, size uiSize)
+{
+	return PeekMemory(uiAddress, pvDest, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CDebugTarget::PokeSpaceMemory(size uiSpace, uint32 uiAddress, void* pvSource, size uiSize)
+{
+	return PokeMemory(uiAddress, pvSource, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiSpace is a message's: DEBUG_SPACE_ANY, the space the processor is in,
+// or a space's index plus one.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDebugTarget::PeekIn(uint32 uiSpace, uint32 uiAddress, void* pvDest, size uiSize)
+{
+	uiSpace = (uiSpace == DEBUG_SPACE_ANY) ? GetCurrentSpace() : uiSpace;
+	return (uiSpace == DEBUG_SPACE_ANY) ? PeekMemory(uiAddress, pvDest, uiSize) : PeekSpaceMemory(uiSpace - 1, uiAddress, pvDest, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CDebugTarget::PokeIn(uint32 uiSpace, uint32 uiAddress, void* pvSource, size uiSize)
+{
+	uiSpace = (uiSpace == DEBUG_SPACE_ANY) ? GetCurrentSpace() : uiSpace;
+	return (uiSpace == DEBUG_SPACE_ANY) ? PokeMemory(uiAddress, pvSource, uiSize) : PokeSpaceMemory(uiSpace - 1, uiAddress, pvSource, uiSize);
+}
 

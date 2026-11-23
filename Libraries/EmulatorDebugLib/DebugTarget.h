@@ -185,6 +185,7 @@ public:
 	virtual bool				TakeModuleEvent(EDebugModuleEvent* peEvent, SDebugModule* psDest);
 	virtual uint32				GetCurrentSpace(void) const;
 	virtual uint32				GetCurrentProcess(void) const;
+	virtual uint32				GetUserProcess(void) const;
 	virtual bool				IsAtBreakpoint(void) const =0;
 	virtual bool				IsStopped(void) const =0;
 
@@ -197,6 +198,13 @@ public:
 	//Without side effects: devices are not read or written.  Return how many bytes there were memory for.
 	virtual size				PeekMemory(uint32 uiAddress, void* pvDest, size uiSize) =0;
 	virtual size				PokeMemory(uint32 uiAddress, void* pvSource, size uiSize) =0;
+	//As PeekMemory and PokeMemory, in a breakpoint space's memory as that mode sees it now (uiSpace its index; user
+	//mode's is the user process's, GetUserProcess).  A target with one memory has it in any.
+	virtual size				PeekSpaceMemory(size uiSpace, uint32 uiAddress, void* pvDest, size uiSize);
+	virtual size				PokeSpaceMemory(size uiSpace, uint32 uiAddress, void* pvSource, size uiSize);
+	//In a message's space: DEBUG_SPACE_ANY is the one the processor is in.
+	size						PeekIn(uint32 uiSpace, uint32 uiAddress, void* pvDest, size uiSize);
+	size						PokeIn(uint32 uiSpace, uint32 uiAddress, void* pvSource, size uiSize);
 
 	//NULL if nothing decodes this target's instructions: it can't be disassembled, and calls are stepped into.
 	virtual CDebugDecoder*		GetDecoder(void) =0;

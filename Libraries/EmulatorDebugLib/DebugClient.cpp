@@ -50,14 +50,13 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 	muiStopAddress = 0;
 	muiStopSpace = DEBUG_SPACE_ANY;
 	muiStopProcess = DEBUG_PROCESS_ANY;
+	muiStopUserProcess = DEBUG_PROCESS_ANY;
 	memset(mauiValues, 0, sizeof(mauiValues));
 	muiNumStops = 0;
 	muiNumRegisterReplies = 0;
 
-	mpuiMemory = (uint8*)malloc(DEBUG_MAX_MEMORY);
-	muiMemoryAddress = 0;
-	muiMemorySize = 0;
-	muiMemoryRequest = 0;
+	mcMemory.Init();
+	muiMemoryFrom = 0;
 	muiNumMemoryReplies = 0;
 
 	memset(masInstructions, 0, sizeof(masInstructions));
@@ -82,8 +81,7 @@ void CDebugClient::Kill(void)
 	masProcessEvents.Kill();
 	masProcesses.Kill();
 	mszError.Kill();
-	free(mpuiMemory);
-	mpuiMemory = NULL;
+	mcMemory.Kill();
 	free(mpuiMessage);
 	mpuiMessage = NULL;
 	mpcChannel = NULL;
@@ -297,7 +295,7 @@ uint32 CDebugClient::Reset(bool bRun)
 //////////////////////////////////////////////////////////////////////////
 uint32 CDebugClient::Load(uint32 uiAddress, void* pvData, size uiSize)
 {
-	return SendMemory(DM_Load, uiAddress, pvData, uiSize);
+	return SendMemory(DM_Load, DEBUG_SPACE_ANY, uiAddress, pvData, uiSize);
 }
 
 
@@ -341,20 +339,37 @@ uint32 CDebugClient::WriteRegister(size uiRegister, uint64 uiValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// At most DEBUG_MAX_MEMORY bytes, answered by DM_Memory.
+// uiSize bytes from uiAddress in uiSpace (DEBUG_SPACE_ANY or a space's
+// index plus one), from what has been read since the target stopped.
+// False if they haven't all been: FetchMemory asks for them.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::ReadMemory(uint32 uiAddress, size uiSize)
+bool CDebugClient::ReadMemory(uint32 uiSpace, uint32 uiAddress, void* pvDest, size uiSize)
 {
-	SDebugMemory	sMemory;
+	return mcMemory.Read(uiSpace, uiAddress, pvDest, uiSize);
+}
 
-	if (uiSize > DEBUG_MAX_MEMORY)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Asks for the memory ReadMemory wanted and hasn't asked for yet, in one
+// DM_ReadMemory.  0 if there is none (or it couldn't be sent).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CDebugClient::FetchMemory(void)
+{
+	SDebugMemoryList*	psList;
+	size				uiCount;
+
+	psList = (SDebugMemoryList*)GetBody();
+	uiCount = mcMemory.TakeWanted((SDebugMemoryRange*)&psList[1], DEBUG_MAX_MEMORY / DEBUG_MEMORY_PAGE);
+	if (uiCount == 0)
 	{
 		return 0;
 	}
-	sMemory.uiAddress = uiAddress;
-	sMemory.uiSize = (uint32)uiSize;
-	return Send(DM_ReadMemory, &sMemory, sizeof(sMemory));
+	psList->uiCount = (uint32)uiCount;
+	psList->uiPadding = 0;
+	return Send(DM_ReadMemory, psList, sizeof(SDebugMemoryList) + uiCount * sizeof(SDebugMemoryRange));
 }
 
 
@@ -362,9 +377,9 @@ uint32 CDebugClient::ReadMemory(uint32 uiAddress, size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::WriteMemory(uint32 uiAddress, void* pvData, size uiSize)
+uint32 CDebugClient::WriteMemory(uint32 uiAddress, void* pvData, size uiSize, uint32 uiSpace)
 {
-	return SendMemory(DM_WriteMemory, uiAddress, pvData, uiSize);
+	return SendMemory(DM_WriteMemory, uiSpace, uiAddress, pvData, uiSize);
 }
 
 
@@ -638,6 +653,8 @@ void CDebugClient::Stopped(uint32 uiRequest, void* pvData, size uiSize)
 	muiStopAddress = psStopped->uiAddress;
 	muiStopSpace = psStopped->uiSpace;
 	muiStopProcess = psStopped->uiProcess;
+	muiStopUserProcess = psStopped->uiUserProcess;
+	ForgetMemory();
 	memcpy(mauiValues, &psStopped[1], uiNumRegisters * sizeof(uint64));
 	muiNumStops++;
 	Answered(uiRequest);
@@ -656,6 +673,7 @@ void CDebugClient::Running(uint32 uiRequest, void* pvData, size uiSize)
 	}
 	meState = DCS_Running;
 	mbStepping = ((SDebugRunning*)pvData)->uiStepping != 0;
+	ForgetMemory();
 	Answered(uiRequest);
 }
 
@@ -691,22 +709,27 @@ void CDebugClient::Registers(void* pvData, size uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CDebugClient::Memory(uint32 uiRequest, void* pvData, size uiSize)
 {
-	SDebugMemory*	psMemory;
+	SDebugMemoryList*	psList;
+	SDebugMemoryRange*	psRange;
+	uint8*				puiBytes;
+	size				uiBytes;
+	size				ui;
 
-	if (uiSize < sizeof(SDebugMemory))
+	psList = (SDebugMemoryList*)pvData;
+	if ((uiRequest < muiMemoryFrom) || (uiSize < sizeof(SDebugMemoryList)) || (psList->uiCount > DEBUG_MAX_MEMORY_RANGES) || (uiSize < sizeof(SDebugMemoryList) + psList->uiCount * sizeof(SDebugMemoryRange)))
 	{
 		return;
 	}
-	psMemory = (SDebugMemory*)pvData;
-	if ((psMemory->uiSize > DEBUG_MAX_MEMORY) || (uiSize < sizeof(SDebugMemory) + psMemory->uiSize))
-	{
-		return;
-	}
 
-	muiMemoryAddress = psMemory->uiAddress;
-	muiMemorySize = psMemory->uiSize;
-	memcpy(mpuiMemory, &psMemory[1], muiMemorySize);
-	muiMemoryRequest = uiRequest;
+	psRange = (SDebugMemoryRange*)&psList[1];
+	puiBytes = (uint8*)&psRange[psList->uiCount];
+	uiBytes = uiSize - sizeof(SDebugMemoryList) - psList->uiCount * sizeof(SDebugMemoryRange);
+	for (ui = 0; (ui < psList->uiCount) && (psRange->uiSize <= uiBytes); ui++, psRange++)
+	{
+		mcMemory.Fill(psRange, puiBytes);
+		puiBytes += psRange->uiSize;
+		uiBytes -= psRange->uiSize;
+	}
 	muiNumMemoryReplies++;
 }
 
@@ -787,17 +810,18 @@ void CDebugClient::Answered(uint32 uiRequest)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// DM_Load or DM_WriteMemory, DEBUG_MAX_MEMORY bytes at a time.  The ID is
-// the last message's.
+// DM_Load or DM_WriteMemory, DEBUG_MAX_MEMORY bytes at a time: the memory
+// read before is forgotten.  The ID is the last message's.
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CDebugClient::SendMemory(uint32 uiType, uint32 uiAddress, void* pvData, size uiSize)
+uint32 CDebugClient::SendMemory(uint32 uiType, uint32 uiSpace, uint32 uiAddress, void* pvData, size uiSize)
 {
 	SDebugMemory*	psMemory;
 	size			uiChunk;
 	size			uiDone;
 	uint32			uiRequest;
 
+	ForgetMemory();
 	uiDone = 0;
 	do
 	{
@@ -809,6 +833,8 @@ uint32 CDebugClient::SendMemory(uint32 uiType, uint32 uiAddress, void* pvData, s
 		psMemory = (SDebugMemory*)GetBody();
 		psMemory->uiAddress = (uint32)(uiAddress + uiDone);
 		psMemory->uiSize = (uint32)uiChunk;
+		psMemory->uiSpace = uiSpace;
+		psMemory->uiPadding = 0;
 		memcpy(&psMemory[1], &((uint8*)pvData)[uiDone], uiChunk);
 		uiRequest = Send(uiType, psMemory, sizeof(SDebugMemory) + uiChunk);
 		if (uiRequest == 0)
@@ -819,6 +845,19 @@ uint32 CDebugClient::SendMemory(uint32 uiType, uint32 uiAddress, void* pvData, s
 	}
 	while (uiDone < uiSize);
 	return uiRequest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The memory read so far is no longer the target's (it ran, or was
+// written): what was asked for before now is dropped when it comes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugClient::ForgetMemory(void)
+{
+	mcMemory.Clear();
+	muiMemoryFrom = muiNextRequest;
 }
 
 
@@ -963,12 +1002,9 @@ EDebugStop CDebugClient::GetStopReason(void) const			{ return meStopReason; }
 uint32 CDebugClient::GetStopAddress(void) const				{ return muiStopAddress; }
 uint32 CDebugClient::GetStopSpace(void) const					{ return muiStopSpace; }
 uint32 CDebugClient::GetStopProcess(void) const				{ return muiStopProcess; }
+uint32 CDebugClient::GetStopUserProcess(void) const			{ return muiStopUserProcess; }
 size CDebugClient::NumStops(void)						{ return muiNumStops; }
 size CDebugClient::NumRegisterReplies(void)				{ return muiNumRegisterReplies; }
-uint8* CDebugClient::GetMemory(void) const					{ return mpuiMemory; }
-uint32 CDebugClient::GetMemoryAddress(void) const				{ return muiMemoryAddress; }
-size CDebugClient::GetMemorySize(void) const					{ return muiMemorySize; }
-uint32 CDebugClient::GetMemoryRequest(void) const				{ return muiMemoryRequest; }
 size CDebugClient::NumMemoryReplies(void)				{ return muiNumMemoryReplies; }
 size CDebugClient::NumInstructions(void) const				{ return muiNumInstructions; }
 uint32 CDebugClient::GetDisassemblyRequest(void) const		{ return muiDisassemblyRequest; }
