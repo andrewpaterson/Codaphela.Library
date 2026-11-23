@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FNVHash.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "TextComparison.h"
 
 
@@ -142,7 +143,6 @@ void CTextComparison::Init(ETextDiffWhitespace eWhitespace, ETextDiffHighlight e
 	macTokens2.Init();
 	mauiIds1.Init();
 	mauiIds2.Init();
-	mauiTable.Init();
 	macChanges.Init();
 	macWordFragments.Init();
 	macRefinedFragments.Init();
@@ -158,7 +158,6 @@ void CTextComparison::Kill(void)
 	macRefinedFragments.Kill();
 	macWordFragments.Kill();
 	macChanges.Kill();
-	mauiTable.Kill();
 	mauiIds2.Kill();
 	mauiIds1.Kill();
 	macTokens2.Kill();
@@ -427,65 +426,64 @@ void CTextComparison::DiffTokens(lsize uiStart1, lsize uiStart2, CArrayDiffRange
 }
 
 
+//A token's HASH: its own hash (as STextToken::Init made it, under the whitespace policy), and Equals.
+struct SHashOfTextToken
+{
+	static uint32 Hash(STextToken* const* ppsToken)
+	{
+		return HashMix32((*ppsToken)->uiHash);
+	}
+
+	static HashEquals Equals(void)
+	{
+		return &SHashOfTextToken::TokensEqual;
+	}
+
+	static bool TokensEqual(const void* pvKey, const void* pvEntryKey)
+	{
+		return (*(STextToken**)pvKey)->Equals(*(STextToken**)pvEntryKey);
+	}
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Gives each token in macTokens1 and macTokens2 an id in mauiIds1 and
 // mauiIds2: the index of the first equal token, counting through
-// macTokens1 and then macTokens2.  Uses an open addressed hash table.
+// macTokens1 and then macTokens2.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextComparison::Intern(void)
 {
+	CHashMapTemplate<STextToken*, lsize, SHashOfTextToken, SArrayLargeSize>	cIds;
 	lsize		uiNumTokens1;
 	lsize		uiNumTokens;
-	lsize		uiTableSize;
-	lsize		uiMask;
 	lsize		ui;
-	lsize		uiSlot;
-	lsize		uiEntry;
-	lsize*		pauiTable;
 	lsize*		puiId;
+	lsize*		puiFirst;
+	bool		bAdded;
 	STextToken*	psToken;
 
 	uiNumTokens1 = macTokens1.NumElements();
 	uiNumTokens = uiNumTokens1 + macTokens2.NumElements();
-	uiTableSize = 16;
-	while (uiTableSize < uiNumTokens * 2)
-	{
-		uiTableSize *= 2;
-	}
-	uiMask = uiTableSize - 1;
-
-	mauiTable.Resize(uiTableSize);
-	pauiTable = mauiTable.GetData();
-	memset(pauiTable, 0, uiTableSize * sizeof(lsize));
 	mauiIds1.Resize(uiNumTokens1);
 	mauiIds2.Resize(macTokens2.NumElements());
 
+	cIds.Init();
+	cIds.Reserve(uiNumTokens);
 	for (ui = 0; ui < uiNumTokens; ui++)
 	{
 		psToken = GetInternToken(ui);
 		puiId = (ui < uiNumTokens1) ? mauiIds1.Get(ui) : mauiIds2.Get(ui - uiNumTokens1);
 
-		//Table entries are token indices plus one; zero is empty.
-		uiSlot = psToken->uiHash & uiMask;
-		for (;;)
+		puiFirst = cIds.FindOrAdd(&psToken, &bAdded);
+		if (bAdded)
 		{
-			uiEntry = pauiTable[uiSlot];
-			if (uiEntry == 0)
-			{
-				pauiTable[uiSlot] = ui + 1;
-				*puiId = ui;
-				break;
-			}
-			if (GetInternToken(uiEntry - 1)->Equals(psToken))
-			{
-				*puiId = uiEntry - 1;
-				break;
-			}
-			uiSlot = (uiSlot + 1) & uiMask;
+			*puiFirst = ui;
 		}
+		*puiId = *puiFirst;
 	}
+	cIds.Kill();
 }
 
 

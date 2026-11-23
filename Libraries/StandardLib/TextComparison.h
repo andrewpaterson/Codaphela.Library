@@ -66,7 +66,6 @@ protected:
 	CArrayTextToken				macTokens2;
 	CArrayLargeTemplate<lsize>	mauiIds1;
 	CArrayLargeTemplate<lsize>	mauiIds2;
-	CArrayLargeTemplate<lsize>	mauiTable;
 	CArrayDiffRange				macChanges;
 	CArrayDiffRange				macWordFragments;
 	CArrayDiffRange				macRefinedFragments;

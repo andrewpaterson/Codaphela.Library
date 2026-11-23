@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __WEAK_FROMS_H__
 #define __WEAK_FROMS_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/MapPtrPtr.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "ObjectPointerArrays.h"
 
 
@@ -57,7 +57,7 @@ typedef CArrayTemplate<SWeakFrom>	CArrayWeakFrom;
 class CWeakFroms
 {
 protected:
-	CMapPtrPtr	mcObjects;  //CEmbeddedObject* -> CArrayWeakFrom*.
+	CHashMapTemplate<CEmbeddedObject*, CArrayWeakFrom*>	mcObjects;  //Each weakly held object to its weak froms.
 
 public:
 	void			Init(void);
@@ -74,6 +74,9 @@ public:
 	void			GetObjects(CArrayEmbeddedObjectPtr* papcObjects);  //Every weakly held object.
 	bool			Contains(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSlot);
 	void			ValidateConsistency(void);  //Every holder points back at its object, whose container has OBJECT_FLAGS_WEAKLY_HELD and isn't freed.
+
+protected:
+	CArrayWeakFrom*	Find(CEmbeddedObject* pcObject);
 };
 
 

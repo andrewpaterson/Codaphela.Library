@@ -37,22 +37,33 @@ void CWeakFroms::Init(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// pcObject's weak froms, NULL if it has none.
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayWeakFrom* CWeakFroms::Find(CEmbeddedObject* pcObject)
+{
+	CArrayWeakFrom**	ppacFroms;
+
+	ppacFroms = mcObjects.Get(&pcObject);
+	return (ppacFroms != NULL) ? *ppacFroms : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Nothing should be weakly held by now: every object has been freed,
 // which cleared its weak froms.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWeakFroms::Kill(void)
 {
-	SMapIterator	sIterator;
-	void*			pvObject;
+	size			i;
 	CArrayWeakFrom*	pacFroms;
-	bool			bExists;
 
-	bExists = mcObjects.StartIteration(&sIterator, &pvObject, (void**)&pacFroms);
-	while (bExists)
+	for (i = 0; i < mcObjects.NumElements(); i++)
 	{
+		pacFroms = *mcObjects.GetValue(i);
 		SafeKill(pacFroms);
-		bExists = mcObjects.Iterate(&sIterator, &pvObject, (void**)&pacFroms);
 	}
 	mcObjects.Kill();
 }
@@ -67,12 +78,12 @@ void CWeakFroms::Add(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size uiSl
 	CArrayWeakFrom*	pacFroms;
 	SWeakFrom*		psFrom;
 
-	pacFroms = (CArrayWeakFrom*)mcObjects.Get(pcObject);
+	pacFroms = Find(pcObject);
 	if (pacFroms == NULL)
 	{
 		pacFroms = NewMalloc<CArrayWeakFrom>();
 		pacFroms->Init();
-		mcObjects.Put(pcObject, pacFroms);
+		mcObjects.Put(&pcObject, &pacFroms);
 	}
 	psFrom = pacFroms->Add();
 	psFrom->pcHolder = pcHolder;
@@ -91,7 +102,7 @@ bool CWeakFroms::Remove(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size u
 	SWeakFrom*		psFrom;
 	size			i;
 
-	pacFroms = (CArrayWeakFrom*)mcObjects.Get(pcObject);
+	pacFroms = Find(pcObject);
 	if (pacFroms == NULL)
 	{
 		return false;
@@ -104,7 +115,7 @@ bool CWeakFroms::Remove(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size u
 			pacFroms->RemoveAt(i, false);
 			if (pacFroms->NumElements() == 0)
 			{
-				mcObjects.Remove(pcObject);
+				mcObjects.Remove(&pcObject);
 				SafeKill(pacFroms);
 			}
 			return true;
@@ -125,12 +136,12 @@ void CWeakFroms::Clear(CEmbeddedObject* pcObject)
 	SWeakFrom*		psFrom;
 	size			i;
 
-	pacFroms = (CArrayWeakFrom*)mcObjects.Get(pcObject);
+	pacFroms = Find(pcObject);
 	if (pacFroms == NULL)
 	{
 		return;
 	}
-	mcObjects.Remove(pcObject);
+	mcObjects.Remove(&pcObject);
 	for (i = 0; i < pacFroms->NumElements(); i++)
 	{
 		psFrom = pacFroms->Get(i);
@@ -150,12 +161,12 @@ void CWeakFroms::Move(CEmbeddedObject* pcFrom, CEmbeddedObject* pcTo)
 	SWeakFrom*		psFrom;
 	size			i;
 
-	pacFroms = (CArrayWeakFrom*)mcObjects.Get(pcFrom);
+	pacFroms = Find(pcFrom);
 	if ((pacFroms == NULL) || (pcFrom == pcTo))
 	{
 		return;
 	}
-	mcObjects.Remove(pcFrom);
+	mcObjects.Remove(&pcFrom);
 	for (i = 0; i < pacFroms->NumElements(); i++)
 	{
 		psFrom = pacFroms->Get(i);
@@ -174,7 +185,7 @@ size CWeakFroms::NumWeakFroms(CEmbeddedObject* pcObject)
 {
 	CArrayWeakFrom*	pacFroms;
 
-	pacFroms = (CArrayWeakFrom*)mcObjects.Get(pcObject);
+	pacFroms = Find(pcObject);
 	return (pacFroms != NULL) ? pacFroms->NumElements() : 0;
 }
 
@@ -187,7 +198,7 @@ SWeakFrom* CWeakFroms::GetWeakFrom(CEmbeddedObject* pcObject, size uiIndex)
 {
 	CArrayWeakFrom*	pacFroms;
 
-	pacFroms = (CArrayWeakFrom*)mcObjects.Get(pcObject);
+	pacFroms = Find(pcObject);
 	return ((pacFroms != NULL) && (uiIndex < pacFroms->NumElements())) ? pacFroms->Get(uiIndex) : NULL;
 }
 
@@ -228,16 +239,11 @@ bool CWeakFroms::Contains(CEmbeddedObject* pcObject, CWeakHolder* pcHolder, size
 //////////////////////////////////////////////////////////////////////////
 void CWeakFroms::GetObjects(CArrayEmbeddedObjectPtr* papcObjects)
 {
-	SMapIterator		sIterator;
-	CEmbeddedObject*	pcObject;
-	CArrayWeakFrom*		pacFroms;
-	bool				bExists;
+	size	i;
 
-	bExists = mcObjects.StartIteration(&sIterator, (void**)&pcObject, (void**)&pacFroms);
-	while (bExists)
+	for (i = 0; i < mcObjects.NumElements(); i++)
 	{
-		papcObjects->Add(pcObject);
-		bExists = mcObjects.Iterate(&sIterator, (void**)&pcObject, (void**)&pacFroms);
+		papcObjects->Add(*mcObjects.GetKey(i));
 	}
 }
 
@@ -248,18 +254,18 @@ void CWeakFroms::GetObjects(CArrayEmbeddedObjectPtr* papcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CWeakFroms::ValidateConsistency(void)
 {
-	SMapIterator		sIterator;
 	CEmbeddedObject*	pcObject;
 	CArrayWeakFrom*		pacFroms;
 	SWeakFrom*			psFrom;
 	CBaseObject*		pcContainer;
-	bool				bExists;
+	size				uiObject;
 	size				i;
 	CChars				szObject;
 
-	bExists = mcObjects.StartIteration(&sIterator, (void**)&pcObject, (void**)&pacFroms);
-	while (bExists)
+	for (uiObject = 0; uiObject < mcObjects.NumElements(); uiObject++)
 	{
+		pcObject = *mcObjects.GetKey(uiObject);
+		pacFroms = *mcObjects.GetValue(uiObject);
 		pcContainer = pcObject->GetEmbeddingContainer();
 		if (((pcContainer->GetFlags() & OBJECT_FLAGS_WEAKLY_HELD) == 0) || (pcContainer->GetFlags() & OBJECT_FLAGS_FREED))
 		{
@@ -279,7 +285,6 @@ void CWeakFroms::ValidateConsistency(void)
 				szObject.Kill();
 			}
 		}
-		bExists = mcObjects.Iterate(&sIterator, (void**)&pcObject, (void**)&pacFroms);
 	}
 }
 
