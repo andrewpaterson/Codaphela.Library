@@ -31,6 +31,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Button.h"
 #include "NativeSoundFactory.h"
 #include "ToolTips.h"
+#include "ContextMenu.h"
+#include "MenuContainer.h"
+#include "MenuItem.h"
+#include "WindowTheme.h"
 #include "Window.h"
 
 
@@ -159,6 +163,10 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Free(void)
 {
+	if (mpTextMenu.IsNotNull())
+	{
+		mpTextMenu->RemoveActions();
+	}
 	mcClosed.Kill();
 	GetFactory()->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
@@ -219,6 +227,8 @@ void CWindow::Class(void)
 	U_Int64(miLastPaintTime);
 	U_Int64(miTickDelay);
 	M_Pointer(mpOwner);
+	M_Pointer(mpTextMenu);
+	M_Pointer(mpTextMenuTheme);
 	M_Embedded(maOwned);
 	U_Unknown(CArrayMemberCalls, masPosted);
 	U_Unknown(CArrayWindowLaterCalls, masPostedLater);
@@ -809,6 +819,10 @@ bool CWindow::ShowModal(Ptr<CWindow> pOwner)
 	pOwner->Deactivate();
 	mbKeepsActive = pOwner->mbKeepsActive;
 	mpClipboard->ShareHistory(pOwner->GetClipboard());
+	if (pOwner->mpTextMenuTheme.IsNotNull() && mpTextMenu.IsNull())
+	{
+		SetTextMenu(pOwner->mpTextMenuTheme);
+	}
 	pcOwnerNative = pOwner->GetNativeWindow();
 	pRoot->GetNativeWindow()->SetEnabled(false);
 	pRoot->SetOwnedEnabled(false);
@@ -1110,6 +1124,72 @@ bool CWindow::RepeatInput(SComponentInputEvent* psEvent, CComponentInput* pcComp
 		InvalidateLayout();
 	}
 	return bTaken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A right click (or the Menu key or Shift+F10) on text in the window that
+// has no menu of its own, in it or round it, opens Cut, Copy, Paste and
+// Select All for that text, drawn with pTheme (see CContextMenu's text
+// menu): Cut and Paste are greyed out where it can't be edited.  The
+// tool windows and dialogs shown over this one have it too.  NULL takes
+// it away.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::SetTextMenu(Ptr<CWindowTheme> pTheme)
+{
+	Ptr<CMenuContainer>	pMenu;
+	Ptr<CMenuItem>		pItem;
+	size				i;
+	static const struct { const char* szText; EComponentInputCommand eCommand; } asItems[] =
+	{
+		{ "Cut", CIC_Cut }, { "Copy", CIC_Copy }, { "Paste", CIC_Paste }, { NULL, CIC_Ignored }, { "Select All", CIC_SelectAll },
+	};
+
+	if (mpTextMenu.IsNotNull())
+	{
+		mpTextMenu->RemoveActions();
+		mpTextMenu = NULL;
+	}
+	mpTextMenuTheme = pTheme;
+	if (pTheme.IsNull())
+	{
+		return;
+	}
+	pMenu = OMalloc<CMenuContainer>(this, pTheme);
+	for (i = 0; i < sizeof(asItems) / sizeof(asItems[0]); i++)
+	{
+		if (asItems[i].szText == NULL)
+		{
+			pMenu->AddSeparator();
+			continue;
+		}
+		pItem = pMenu->AddItem(asItems[i].szText);
+		pItem->SetShortcut(asItems[i].eCommand);
+		pItem->SetTag((int32)asItems[i].eCommand);
+	}
+	mpTextMenu = OMalloc<CContextMenu>(this, pMenu, true);
+}
+
+
+bool CWindow::HasTextMenu(void) const { return mpTextMenu.IsNotNull(); }
+Ptr<CMenuContainer> CWindow::GetTextMenu(void) { return mpTextMenu.IsNotNull() ? mpTextMenu->GetMenu() : Ptr<CMenuContainer>(); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A popup closed: its opener's context menu, or the window's text menu,
+// gives the keys back.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::PopupClosed(Ptr<CComponent> pContent)
+{
+	CComponent::PopupClosed(pContent);
+	if (mpTextMenu.IsNotNull())
+	{
+		mpTextMenu->PopupClosed(pContent);
+	}
 }
 
 
@@ -1682,6 +1762,10 @@ bool CWindow::ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle)
 	mpOwner = pOwner;
 	mbKeepsActive = pOwner->mbKeepsActive;
 	mpClipboard->ShareHistory(pOwner->GetClipboard());
+	if (pOwner->mpTextMenuTheme.IsNotNull() && mpTextMenu.IsNull())
+	{
+		SetTextMenu(pOwner->mpTextMenuTheme);
+	}
 	pOwner->maOwned.Add(this);
 	SetComponentInput(pOwner->GetComponentInput());
 	mbTicking = true;

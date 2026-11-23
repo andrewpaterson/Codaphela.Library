@@ -22,6 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Objects.h"
 #include "Window.h"
 #include "MenuContainer.h"
+#include "MenuItem.h"
+#include "MenuItem.h"
 #include "ContextMenu.h"
 
 
@@ -31,12 +33,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 // button and the menu keys are added to pComponent.
 //
 //////////////////////////////////////////////////////////////////////////
-void CContextMenu::Init(Ptr<CComponent> pComponent, Ptr<CMenuContainer> pMenu)
+void CContextMenu::Init(Ptr<CComponent> pComponent, Ptr<CMenuContainer> pMenu, bool bText)
 {
 	PreInit();
 
 	mpComponent = pComponent;
 	mpMenu = pMenu;
+	mbText = bText;
+	if (mbText)
+	{
+		mpMenu->GetItemClickEvent()->Add(this, &CContextMenu::TextItemClicked);
+	}
 	mpClickAction = pComponent->AddInputAction(CIC_ContextMenu, this, &CContextMenu::ClickAction);
 	mpKeyAction = pComponent->AddInputAction(CIC_ContextMenuKey, this, &CContextMenu::KeyAction);
 
@@ -55,6 +62,8 @@ void CContextMenu::Class(void)
 	M_Pointer(mpClickAction);
 	M_Pointer(mpKeyAction);
 	M_Pointer(mpFocusBefore);
+	U_Bool(mbText);
+	M_Pointer(mpTextTarget);
 }
 
 
@@ -99,6 +108,11 @@ void CContextMenu::RemoveActions(void)
 	{
 		mpMenu->Close();
 	}
+	if (mbText)
+	{
+		mpMenu->GetItemClickEvent()->Remove(this);
+		mbText = false;
+	}
 	if (mpClickAction.IsNotNull())
 	{
 		mpComponent->RemoveInputAction(mpClickAction);
@@ -124,6 +138,8 @@ bool CContextMenu::Open(SInt32Vec2 sPosition)
 	Ptr<CWindow>	pWindow;
 	Ptr<CComponent>	pFocus;
 	Ptr<CPopup>		pPopup;
+	Ptr<CMenuItem>	pItem;
+	size			i;
 
 	if (mpMenu->NumItems() == 0)
 	{
@@ -134,6 +150,19 @@ bool CContextMenu::Open(SInt32Vec2 sPosition)
 	//first, which gives them back and forgets them.
 	pWindow = mpComponent->GetWindow();
 	pFocus = IsOpen() ? mpFocusBefore : pWindow->GetFocus()->GetFocussedComponent();
+	if (mbText)
+	{
+		//Its items are what the text with the keys can do now: Cut and Paste are greyed out in text that can't be edited.
+		mpTextTarget = pFocus;
+		for (i = 0; i < mpMenu->NumItems(); i++)
+		{
+			pItem = mpMenu->GetItem(i);
+			if (pItem.IsNotNull())
+			{
+				pItem->SetEnabled(pFocus.IsNotNull() && pFocus->CanDoCommand((EComponentInputCommand)pItem->GetTag()));
+			}
+		}
+	}
 	pPopup = mpMenu->Open(sPosition, mpComponent, true);
 	mpFocusBefore = pFocus;
 	pPopup->SetOwnerPressKeepsOpen(false);
@@ -173,7 +202,16 @@ void CContextMenu::PopupClosed(Ptr<CComponent> pContent)
 //////////////////////////////////////////////////////////////////////////
 void CContextMenu::ClickAction(SComponentInputEvent* psEvent)
 {
-	SInt32Vec2	sPosition;
+	SInt32Vec2		sPosition;
+	Ptr<CComponent>	pUnder;
+
+	//A text menu is for the text pressed on: the right button over a label leaves the keys where they were.
+	pUnder = mpComponent->GetWindow()->GetFocus()->GetMouseOverComponent();
+	if (mbText && (!IsTextTarget(mpComponent->GetWindow()->GetFocus()->GetFocussedComponent()) || pUnder.IsNull() || !pUnder->IsWithin(mpComponent->GetWindow()->GetFocus()->GetFocussedComponent())))
+	{
+		psEvent->bPass = true;
+		return;
+	}
 
 	sPosition = mpComponent->GetPosition();
 	sPosition.x += psEvent->x;
@@ -193,6 +231,12 @@ void CContextMenu::KeyAction(SComponentInputEvent* psEvent)
 	Ptr<CComponent>	pFocus;
 	SInt32Vec2		sPosition;
 
+	if (mbText && !IsTextTarget(mpComponent->GetWindow()->GetFocus()->GetFocussedComponent()))
+	{
+		psEvent->bPass = true;
+		return;
+	}
+
 	pFocus = mpComponent->GetWindow()->GetFocus()->GetFocussedComponent();
 	if (pFocus.IsNull() || !pFocus->IsWithin(mpComponent))
 	{
@@ -200,6 +244,40 @@ void CContextMenu::KeyAction(SComponentInputEvent* psEvent)
 	}
 	sPosition = pFocus->GetContextMenuPosition();
 	Open(sPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a text menu opens for pFocus, the component with the keys: it
+// has a copy action, as a text area or field has.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CContextMenu::IsTextTarget(Ptr<CComponent> pFocus)
+{
+	return pFocus.IsNotNull() && pFocus->CComponent::CanDoCommand(CIC_Copy);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A text menu's item: its command (its tag) is run on what had the keys
+// when the menu opened, which has them again, as its keys would run it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CContextMenu::TextItemClicked(CMenuItem* pcItem)
+{
+	Ptr<CComponent>	pTarget;
+	Ptr<CWindow>	pWindow;
+
+	pTarget = mpTextTarget;
+	if (pTarget.IsNull() || pTarget->GetWindow().IsNull())
+	{
+		return;
+	}
+	pWindow = pTarget->GetWindow();
+	pWindow->GetFocus()->SetFocus(pTarget);
+	pWindow->GetFocus()->Command((EComponentInputCommand)pcItem->GetTag(), true);
 }
 
 

@@ -16,6 +16,8 @@
 #include "WindowLib/CommandSet.h"
 #include "WindowLib/JewelTheme.h"
 #include "WindowLib/TextArea.h"
+#include "WindowLib/Label.h"
+#include "WindowLib/MenuItem.h"
 #include "WindowLib/TreeContainer.h"
 #include "WinRefLib/WinRefWindowFactory.h"
 #include "TestLib/AssertGeometric.h"
@@ -1648,6 +1650,199 @@ void TestMenuOpener(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The item in pMenu called szText, NULL if none is.
+//
+//////////////////////////////////////////////////////////////////////////
+static Ptr<CMenuItem> FindMenuItem(Ptr<CMenuContainer> pMenu, const char* szText)
+{
+	size	i;
+
+	for (i = 0; i < pMenu->NumItems(); i++)
+	{
+		if (pMenu->GetItem(i).IsNotNull() && (strcmp(pMenu->GetItem(i)->GetText(), szText) == 0))
+		{
+			return pMenu->GetItem(i);
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A window's text menu (CWindow::SetTextMenu): the right button on text
+// with no menu of its own opens Cut, Copy, Paste and Select All, which
+// act on that text.  Cut and Paste are greyed out where it can't be
+// edited.  On a label (which can't take the keys) nothing opens, and a
+// component's own menu opens in place of it.  The Menu key opens it too.
+// A tool window shown over the window has it as well.  The window is
+// 300x200: the text, read only, the text that can be edited, a label and
+// text with a menu of its own, side by side.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuTextMenu(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindow>			pTool;
+		Ptr<CWindowTheme>		pTheme;
+		Ptr<CMenuStyle>			pStyle;
+		Ptr<CMenuContainer>		pMenu;
+		Ptr<CMenuContainer>		pOwnMenu;
+		Ptr<CGridContainer>		pGrid;
+		Ptr<CTextArea>			pText;
+		Ptr<CTextArea>			pEdit;
+		Ptr<CTextArea>			pOwn;
+		Ptr<CLabel>				pLabel;
+		Ptr<CFocus>				pFocus;
+		CPointer				pNull;
+		CChars					szClipboard;
+		CInt32Rect				cRect;
+		size					i;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFocus = pTestWindow->GetFocus();
+		pTheme = CreateMenuTestTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		pStyle = pTheme->GetMenuStyle();
+
+		pText = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pStyle->GetFont(), "The quick brown fox");
+		pText->SetEditable(false);
+		pText->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pEdit = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pStyle->GetFont(), "jumps over");
+		pEdit->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pLabel = OMalloc<CLabel>(pTestWindow, pStyle->GetFont(), "Label");
+		pOwn = OMalloc<CTextArea>(pTestWindow, CreateTestTheme(Ptr<CFont>()), pStyle->GetFont(), "the lazy dog");
+		pOwn->SetAlignment(CSH_Stretch, CSV_Stretch);
+		pOwnMenu = OMalloc<CMenuContainer>(pTestWindow, pTheme);
+		pOwnMenu->AddItem("Rename");
+		pOwn->SetContextMenu(pOwnMenu);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pGrid->AddComponent(pText, 0, 0, 1, 1, 1, 1);
+		pGrid->AddComponent(pEdit, 1, 0, 1, 1, 1, 1);
+		pGrid->AddComponent(pLabel, 2, 0, 1, 1, 1, 1);
+		pGrid->AddComponent(pOwn, 3, 0, 1, 1, 1, 1);
+		pTestWindow->SetContainer(pGrid);
+		pTestWindow->Layout();
+
+		//Without one the right button on text opens nothing.
+		AssertFalse(pTestWindow->HasTextMenu());
+		MoveTo(pTestWindow, SInt32Vec2(pText->GetPosition().x + 5, pText->GetPosition().y + 5));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertSize(0, pTestWindow->NumPopups());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//With one it opens on text that can't be edited: Cut and Paste greyed out, Copy and Select All not.
+		pTestWindow->SetTextMenu(pTheme);
+		AssertTrue(pTestWindow->HasTextMenu());
+		pMenu = pTestWindow->GetTextMenu();
+		AssertSize(4, pMenu->NumItems());
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		AssertFalse(FindMenuItem(pMenu, "Cut")->IsEnabled());
+		AssertTrue(FindMenuItem(pMenu, "Copy")->IsEnabled());
+		AssertFalse(FindMenuItem(pMenu, "Paste")->IsEnabled());
+		AssertTrue(FindMenuItem(pMenu, "Select All")->IsEnabled());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertFalse(pMenu->IsOpen());
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//Copy, pressed with the selection ("The quick") under the pointer, copies it, and the keys go back to the text.
+		pText->GetEditing()->DocumentHome();
+		for (i = 0; i < 9; i++)
+		{
+			pText->GetEditing()->SelectRight();
+		}
+		MoveTo(pTestWindow, SInt32Vec2(pText->GetPosition().x + 3, pText->GetPosition().y + 5));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		pTestWindow->Layout();
+		MoveTo(pTestWindow, MenuRowCentre(pMenu, 1));
+		Click(pTestWindow);
+		AssertFalse(pMenu->IsOpen());
+		szClipboard.Init();
+		AssertTrue(pTestWindow->GetClipboard()->GetText(&szClipboard));
+		AssertString("The quick", szClipboard.Text());
+		szClipboard.Kill();
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//On text that can be edited Cut and Paste can be pressed, and Paste pastes there.
+		MoveTo(pTestWindow, SInt32Vec2(pEdit->GetPosition().x + 5, pEdit->GetPosition().y + 5));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pMenu->IsOpen());
+		AssertTrue(pFocus->GetFocussedComponent() == pMenu);
+		AssertTrue(FindMenuItem(pMenu, "Cut")->IsEnabled());
+		AssertTrue(FindMenuItem(pMenu, "Paste")->IsEnabled());
+		pTestWindow->Layout();
+		MoveTo(pTestWindow, MenuRowCentre(pMenu, 2));
+		Click(pTestWindow);
+		AssertTrue(pFocus->GetFocussedComponent() == pEdit);
+		AssertTrue(strstr(pEdit->GetText(), "The quick") != NULL);
+
+		//On a label, which can't take the keys, nothing opens, though text had the keys.
+		MoveTo(pTestWindow, SInt32Vec2(pLabel->GetPosition().x + 5, pLabel->GetPosition().y + 5));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertSize(0, pTestWindow->NumPopups());
+
+		//Text with a menu of its own opens that.
+		MoveTo(pTestWindow, SInt32Vec2(pOwn->GetPosition().x + 5, pOwn->GetPosition().y + 5));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertTrue(pOwnMenu->IsOpen());
+		AssertFalse(pMenu->IsOpen());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+
+		//The Menu key opens it on the text with the keys.
+		pFocus->SetFocus(pText);
+		pTestWindow->InputCommand(CIC_ContextMenuKey, true);
+		AssertTrue(pMenu->IsOpen());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		AssertTrue(pFocus->GetFocussedComponent() == pText);
+
+		//A tool window shown over it has one too.
+		pTool = OMalloc<CWindow>("Tool Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTool);
+		AssertFalse(pTool->HasTextMenu());
+		cRect.Init(0, 0, 31, 15);
+		AssertTrue(pTool->ShowOwned(pTestWindow, &cRect));
+		AssertTrue(pTool->HasTextMenu());
+		pTool->CloseOwned();
+		ORoot()->Remove(pTool);
+		pTool = NULL;
+
+		//Taken away, nothing opens.
+		pTestWindow->SetTextMenu(NULL);
+		AssertFalse(pTestWindow->HasTextMenu());
+		MoveTo(pTestWindow, SInt32Vec2(pText->GetPosition().x + 5, pText->GetPosition().y + 5));
+		pTestWindow->InputCommand(CIC_ContextMenu, true);
+		AssertSize(0, pTestWindow->NumPopups());
+
+		pOwn->SetContextMenu(NULL);
+		pMenu = NULL;
+		pOwnMenu = NULL;
+		pFocus = NULL;
+		pText = NULL;
+		pEdit = NULL;
+		pOwn = NULL;
+		pLabel = NULL;
+		pGrid = NULL;
+		pTheme = NULL;
+		pStyle = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	pNativeFactory = NULL;
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A popup given a maximum height is no taller: its menu, taller, scrolls
 // in it, the selection moved by the keys scrolling into view.
 //
@@ -1746,6 +1941,7 @@ void TestMenu(void)
 	TestMenuBarFrames();
 	TestPopupDraw();
 	TestMenuContextMenu();
+	TestMenuTextMenu();
 	TestMenuTreeContextMenu();
 	TestMenuEnabledAndShortcuts();
 	TestMenuItemAndRowEnabledAgree();

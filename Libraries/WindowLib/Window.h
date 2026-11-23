@@ -42,6 +42,9 @@ class CNativeSoundFactory;
 class CComponentInput;
 class CButton;
 class CToolTips;
+class CContextMenu;
+class CMenuContainer;
+class CWindowTheme;
 
 
 typedef CArrayTemplate<SMemberCall>	CArrayMemberCalls;
@@ -89,6 +92,8 @@ protected:
 	int64						miLastPaintTime;  //GetDebugTickCount when last painted.
 	int64						miTickDelay;  //Milliseconds after this tick that another was asked for, -1 if none was.
 	Ptr<CWindow>				mpOwner;  //The window a tool window floats over, see ShowOwned.  NULL for the others.
+	Ptr<CContextMenu>			mpTextMenu;  //Cut, Copy, Paste and Select All for its text (SetTextMenu), NULL for none.
+	Ptr<CWindowTheme>			mpTextMenuTheme;  //What it was made with, for the windows shown over this one.
 	bool						mbModal;  //It's being shown by ShowModal, a dialog.
 	bool						mbKeepsActive;  //It stays active when the platform's focus leaves it (SetKeepsActive).
 	CArray<CWindow>				maOwned;  //Tool windows shown over this one, run by its loop.
@@ -194,6 +199,10 @@ public:
 	bool						KeepsActive(void);
 
 	void					SetComponentInput(CComponentInput* pcComponentInput);
+	void					SetTextMenu(Ptr<CWindowTheme> pTheme);
+	bool					HasTextMenu(void) const;
+	Ptr<CMenuContainer>		GetTextMenu(void);
+	void					PopupClosed(Ptr<CComponent> pContent) override;
 	CComponentInput*		GetComponentInput(void) const;
 	void					SetCommands(Ptr<CCommandSet> pCommands);
 	Ptr<CCommandSet>		GetCommands(void) const;

@@ -39,6 +39,11 @@ class CMenuContainer;
 //
 //An item clicked calls the menu's item click event (CMenuContainer::GetItemClickEvent) and the component's
 //PopupItemClicked.
+//
+//A text menu (bText, see CWindow::SetTextMenu) is a window's, for the text it holds: it opens only while the component
+//with the keys has a copy action (a text area or field), and each of its items, tagged with a standard command
+//(CIC_Copy), is enabled as that component can do it and runs it there, in whatever window it is.
+class CMenuItem;
 class CContextMenu : public CObject
 {
 CONSTRUCTABLE(CContextMenu);
@@ -49,9 +54,11 @@ protected:
 	Ptr<CInputAction>	mpClickAction;	//On the component.
 	Ptr<CInputAction>	mpKeyAction;
 	Ptr<CComponent>		mpFocusBefore;	//Had the keys when the menu opened, NULL while it is closed.
+	bool				mbText;			//A window's text menu.
+	Ptr<CComponent>		mpTextTarget;	//What a text menu's items run on: what had the keys as it opened.
 
 public:
-	void				Init(Ptr<CComponent> pComponent, Ptr<CMenuContainer> pMenu);
+	void				Init(Ptr<CComponent> pComponent, Ptr<CMenuContainer> pMenu, bool bText = false);
 	void				Class(void) override;
 	void				Free(void) override;
 
@@ -67,6 +74,10 @@ public:
 
 	Ptr<CMenuContainer>	GetMenu(void) const;
 	bool				IsOpen(void);
+	void				TextItemClicked(CMenuItem* pcItem);
+
+protected:
+	bool				IsTextTarget(Ptr<CComponent> pFocus);
 };
 
 
