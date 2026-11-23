@@ -140,17 +140,17 @@ public:
 		muiMaxSector = uiSize / FAT_IMAGE_SECTOR_SIZE;
 	}
 
-	void	Kill(void)
+	void	Kill(void) override
 	{
 		mpcImage = NULL;
 	}
 
-	bool	Read(uint64 uiSector, void* pvData)
+	bool	Read(uint64 uiSector, void* pvData) override
 	{
 		return Read(uiSector, 1, pvData);
 	}
 
-	bool	Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
+	bool	Read(uint64 uiSector, uint32 uiNumSectors, void* pvData) override
 	{
 		if (uiSector + uiNumSectors > muiMaxSector)
 		{
@@ -159,9 +159,9 @@ public:
 		return mpcImage->Seek((filePos)(uiSector * FAT_IMAGE_SECTOR_SIZE), EFSO_SET) && (mpcImage->Read(pvData, (lsize)uiNumSectors * FAT_IMAGE_SECTOR_SIZE, 1) == 1);
 	}
 
-	bool	Write(uint64 uiSector, void* pvData)								{ return false; }
-	bool	Write(uint64 uiSector, uint32 uiNumSectors, void* pvData)			{ return false; }
-	bool	Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)		{ return false; }
+	bool	Write(uint64 uiSector, void* pvData) override						{ return false; }
+	bool	Write(uint64 uiSector, uint32 uiNumSectors, void* pvData) override	{ return false; }
+	bool	Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive) override	{ return false; }
 };
 
 
