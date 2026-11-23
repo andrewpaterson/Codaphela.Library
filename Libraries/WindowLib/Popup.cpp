@@ -45,6 +45,7 @@ void CPopup::Init(Ptr<CWindow> pWindow, Ptr<CComponent> pContent, SInt32Vec2 sPo
 	mbBorder = false;
 	mbOwnerPressKeepsOpen = true;
 	mbPointerPasses = false;
+	mbKeepsTop = false;
 	mpScrollPane = NULL;
 	miMaximumHeight = -1;
 	mcClosed.Init();
@@ -71,6 +72,7 @@ void CPopup::Class(void)
 	U_Bool(mbBorder);
 	U_Bool(mbOwnerPressKeepsOpen);
 	U_Bool(mbPointerPasses);
+	U_Bool(mbKeepsTop);
 	M_Pointer(mpScrollPane);
 	U_Int32(miMaximumHeight);
 	U_Unknown(CComponentEvent<CPopup>, mcClosed);
@@ -178,10 +180,28 @@ void CPopup::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CPopup::SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme)
 {
+	miMaximumHeight = iHeight;
+	if (iHeight >= 0)
+	{
+		SetScrolls(pTheme);
+	}
+	InvalidateLayout();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The content goes in a scroll pane in pTheme's look, so when the popup
+// is cut to the window the content keeps its height and scrolls up and
+// down.  Its scroll bar is shown only then, over the content, so a popup
+// that fits looks the same.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPopup::SetScrolls(Ptr<CWindowTheme> pTheme)
+{
 	Ptr<CComponent>	pFocussed;
 
-	miMaximumHeight = iHeight;
-	if ((iHeight >= 0) && mpScrollPane.IsNull())
+	if (mpScrollPane.IsNull())
 	{
 		//The content keeps the keys if it has them (a menu opened with them), though it is taken out to go in the scroll pane.
 		pFocussed = mpWindow->GetFocus()->GetFocussedComponent();
@@ -198,9 +218,26 @@ void CPopup::SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme)
 		{
 			mpWindow->GetFocus()->SetFocus(pFocussed);
 		}
+		InvalidateLayout();
 	}
-	InvalidateLayout();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With bKeepsTop a popup too tall for the space below where it was
+// opened is cut to that space instead of being moved up, as a menu bar's
+// menu stays below the bar.
+//
+//////////////////////////////////////////////////////////////////////////
+void CPopup::SetKeepsTop(bool bKeepsTop)
+{
+	mbKeepsTop = bKeepsTop;
+	LayoutChanged();
+}
+
+
+bool CPopup::IsKeepsTop(void) const { return mbKeepsTop; }
 
 
 int32 CPopup::GetMaximumHeight(void) const { return miMaximumHeight; }
@@ -249,6 +286,10 @@ void CPopup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		sSize.y = sAreaSize.y;
 	}
 	sPopupPosition = msOpenPosition;
+	if (mbKeepsTop && (sPopupPosition.y >= sPosition.y) && (sPopupPosition.y + sSize.y > sPosition.y + sAreaSize.y))
+	{
+		sSize.y = sPosition.y + sAreaSize.y - sPopupPosition.y;
+	}
 	if (sPopupPosition.x + sSize.x > sPosition.x + sAreaSize.x)
 	{
 		sPopupPosition.x = sPosition.x + sAreaSize.x - sSize.x;

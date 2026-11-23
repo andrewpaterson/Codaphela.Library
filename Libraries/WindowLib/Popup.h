@@ -40,7 +40,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //closed event (GetClosedEvent), for one that opened it but isn't its owner.
 //
 //Given a maximum height (SetMaximumHeight) the popup is no taller: content taller than that scrolls up and down in
-//a scroll pane inside it, as a list's selection moved by the keys scrolls into view.
+//a scroll pane inside it, as a list's selection moved by the keys scrolls into view.  A popup that scrolls
+//(SetScrolls, as every menu does) has the scroll pane without a maximum: cut to the window, its content keeps its
+//height and scrolls instead of being squashed.  With its top kept (SetKeepsTop, a menu bar's menus) a popup too tall
+//for the space below where it was opened is made shorter, not moved up.
 class CPopup : public CContainer
 {
 CONSTRUCTABLE(CPopup);
@@ -55,7 +58,8 @@ protected:
 	bool				mbBorder;
 	bool				mbOwnerPressKeepsOpen;
 	bool				mbPointerPasses;  //The pointer finds what is under the popup, as for a tool tip.
-	Ptr<CScrollPane>	mpScrollPane;  //Between the popup and its content, once it has a maximum height.
+	bool				mbKeepsTop;  //Made shorter rather than moved up when too tall for the space below its open position.
+	Ptr<CScrollPane>	mpScrollPane;  //Between the popup and its content, once it scrolls or has a maximum height.
 	int32				miMaximumHeight;  //-1 for none.
 	CComponentEvent<CPopup>	mcClosed;  //Called once it has been taken out of the window, before its owner is told.
 
@@ -73,7 +77,10 @@ public:
 	bool				IsOwnerPressKeepsOpen(void) const;
 	CComponentEvent<CPopup>*	GetClosedEvent(void);
 	void				SetPointerPasses(bool bPasses);
+	void				SetScrolls(Ptr<CWindowTheme> pTheme);
 	void				SetMaximumHeight(int32 iHeight, Ptr<CWindowTheme> pTheme);
+	void				SetKeepsTop(bool bKeepsTop);
+	bool				IsKeepsTop(void) const;
 	int32				GetMaximumHeight(void) const;
 	Ptr<CScrollPane>	GetScrollPane(void) const;
 	bool				RemoveAllComponents(void) override;
