@@ -21,6 +21,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_DESUGARINGS_H__
 #define __C_P_P_DESUGARINGS_H__
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
+#include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
 #include "CPPSyntaxes.h"
@@ -61,7 +63,7 @@ struct SCPPRangeFor
 };
 
 
-typedef CMapLongTemplate<SCPPRangeFor>	CMapCPPRangeFors;
+typedef CHashMapLongTemplate<SCPPRangeFor*>	CMapCPPRangeFors;
 
 
 //The call a user-defined literal is (CCPPDesugarings::GetLiteralCall): the literal operator of its suffix, and its arguments
@@ -73,7 +75,7 @@ struct SCPPLiteralCall
 };
 
 
-typedef CMapLongTemplate<SCPPLiteralCall>	CMapCPPLiteralCalls;
+typedef CHashMapLongTemplate<SCPPLiteralCall*>	CMapCPPLiteralCalls;
 
 
 
@@ -87,10 +89,11 @@ protected:
 	CCPPUnit*				mpcUnit;
 	CMapCPPRangeFors		mcRangeFors;		//What each range-for statement is made of, by its node.
 	CMapCPPLiteralCalls		mcLiteralCalls;		//The call each user-defined literal is, by its node.
-	CMapLongTemplate<CCPPSyntaxIdExpression*>	mcDecltypeMembers;	//The expression each decltype(e)::name written as a type is (DecltypeMember).
-	CMapLongTemplate<CCPPSyntaxBinaryExpression*>	mcImplicitAssignments;	//object = value for each object.operator=(value) of the operator= the compiler declares (ImplicitAssignment).
+	CMemoryStackExtended	mcMemory;			//The range-fors and literal calls, where they don't move.
+	CHashMapLongTemplate<CCPPSyntaxIdExpression*>	mcDecltypeMembers;	//The expression each decltype(e)::name written as a type is (DecltypeMember).
+	CHashMapLongTemplate<CCPPSyntaxBinaryExpression*>	mcImplicitAssignments;	//object = value for each object.operator=(value) of the operator= the compiler declares (ImplicitAssignment).
 	CCPPSyntaxImplicitArgument*	mpcImplicitZero;	//The int 0 of s++'s operator++(0) (ImplicitZero).
-	CMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
+	CHashMapLongTemplate<CCPPSyntaxImplicitArgument*>	mcImplicitValues;	//The arguments the IR front end gives values (ImplicitValue).
 	CArrayCPPBracedLists	masBracedLists;			//The lists BracedFor has made, each for the list and the type it was made of.
 
 public:

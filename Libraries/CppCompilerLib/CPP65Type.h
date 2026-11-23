@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/Chars.h"
 #include "CppTokens.h"
 
@@ -163,11 +164,11 @@ class CCPP65Types
 {
 protected:
 	CArrayCPP65Types					mapsTypes;
-	CMapLongTemplate<SCPP65TypeChain>	mcByBase;		//The types made of a kind and base (Add, MemberPointer).
-	CMapLongTemplate<SCPP65TypeChain>	mcFunctions;	//The function types made with a signature's hash (Function).
-	CMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its CCPPClass.
-	CMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
-	CMapLongTemplate<SCPP65Type*>		mcQualified;	//A type's const and volatile copies, by the unqualified type and the qualifiers (QualifiedKey).
+	CHashMapLongTemplate<SCPP65TypeChain>	mcByBase;		//The types made of a kind and base (Add, MemberPointer).
+	CHashMapLongTemplate<SCPP65TypeChain>	mcFunctions;	//The function types made with a signature's hash (Function).
+	CHashMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its CCPPClass.
+	CHashMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
+	CHashMapLongTemplate<SCPP65Type*>		mcQualified;	//A type's const and volatile copies, by the unqualified type and the qualifiers (QualifiedKey).
 	int									miPointerBytes;	//The target's pointers, references and pointers to members.
 
 public:
@@ -232,8 +233,8 @@ protected:
 	static int64		GetPointerKey(void* pv);
 	static int64		QualifiedKey(SCPP65Type* psUnqualified, bool bConst, bool bVolatile);
 	static uint64		HashStructure(SCPP65Type* psType);
-	static void			AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext);
-	static SCPP65Type*	GetMapped(CMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey);
+	static void			AppendToChain(CHashMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext);
+	static SCPP65Type*	GetMapped(CHashMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey);
 	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount, bool bRvalue = false);
 };
 

@@ -1884,7 +1884,7 @@ bool CCPPPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 	{
 		if (mpcCurrentFile && mpcCurrentFile->IsHeader())
 		{
-			mcPragmaOnce.Put(mpcCurrentFile, mpcCurrentFile);
+			mcPragmaOnce.Put(mpcCurrentFile);
 			if (masRecorders.NumElements() > 0)
 			{
 				NoteEvent(PPHE_PragmaOnce, mpcCurrentFile, NULL);
@@ -3965,7 +3965,7 @@ bool CCPPPreprocessor::ProcessHashInclude(CPPDirective* pcDirective, bool bNext)
 	}
 	szName.Kill();
 
-	bOnce = mcPragmaOnce.Get(pcIncludeFile) != NULL;
+	bOnce = mcPragmaOnce.HasKey(pcIncludeFile);
 	if (masRecorders.NumElements() > 0)
 	{
 		NotePragmaQuery(pcIncludeFile, bOnce);

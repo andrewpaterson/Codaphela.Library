@@ -514,7 +514,7 @@ CCPPSyntax* CCPPParser::ParseTemplateArgument(CCPPSyntax* pcParent)
 	if (miTemplateArguments == 0)
 	{
 		mcTypeIdArguments.Kill();
-		mcTypeIdArguments.Init(true);
+		mcTypeIdArguments.Init();
 	}
 	return pcArgument;
 }

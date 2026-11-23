@@ -27,6 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP65_THROW_BAD_TYPEID_LABEL	"___ThrowBadTypeid"
 #define CPP65_THROW_BAD_LENGTH			"___ThrowBadArrayNewLength"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/ArrayUint8.h"
 #include "IRModule.h"
 #include "IRBackend.h"
@@ -158,8 +159,8 @@ struct SCPP65IRCountedLoop
 #define IR65_INLINE_ROUNDS				4		//Calls are inlined into a function in at most this many rounds (optimising between them).
 
 
-typedef CMapLongTemplate<SIRReference>		CMapCPP65IRAddresses;
-typedef CMapLongTemplate<SCPP65IRValue>		CMapCPP65IRValues;
+typedef CHashMapLongTemplate<SIRReference>	CMapCPP65IRAddresses;
+typedef CHashMapLongTemplate<SCPP65IRValue>	CMapCPP65IRValues;
 typedef CArrayTemplate<SCPP65IRJump>		CArrayCPP65IRJumps;
 typedef CArrayTemplate<SCPP65IRCase>		CArrayCPP65IRCases;
 typedef CArrayTemplate<SCPP65IRLabel>		CArrayCPP65IRLabels;

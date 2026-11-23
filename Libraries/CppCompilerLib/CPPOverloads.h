@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __C_P_P_OVERLOADS_H__
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
@@ -69,7 +70,7 @@ public:
 };
 
 
-typedef CMapLongTemplate<char>	CMapCPPResolved;
+typedef CHashMapLongTemplate<char>	CMapCPPResolved;
 
 
 //Chooses the function a call means.  [over.match]  The candidates are the functions of a name that a class, the

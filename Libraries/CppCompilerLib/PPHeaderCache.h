@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/Mutex.h"
 #include "PreprocessedTokens.h"
 #include "PPDirective.h"
@@ -162,7 +163,7 @@ struct SPPCachedHeader
 class CPPHeaderCache
 {
 protected:
-	CMapLongTemplate<SPPCachedHeader*>	mcHeaders;
+	CHashMapLongTemplate<SPPCachedHeader*>	mcHeaders;
 	CArrayTemplatePtr<SPPCachedHeader>	mapsHeaders;
 	CMutex								mcMutex;
 	size								muiHits;

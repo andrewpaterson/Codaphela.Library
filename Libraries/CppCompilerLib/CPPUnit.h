@@ -38,6 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayInt64.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPP65Type.h"
@@ -265,7 +266,7 @@ protected:
 	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
 	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
-	CMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
+	CHashMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.

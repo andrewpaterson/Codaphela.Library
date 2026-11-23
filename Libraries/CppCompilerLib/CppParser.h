@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_PARSER_H__
 #define __C_P_P_PARSER_H__
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayInt64.h"
 #include "CppTokeniser.h"
@@ -87,7 +88,7 @@ struct SCPPEnumFirst
 };
 
 
-typedef CMapLongTemplate<SCPPEnumFirst>	CMapEnumFirsts;
+typedef CHashMapLongTemplate<SCPPEnumFirst>	CMapEnumFirsts;
 
 
 enum ECPPDeclarationContext
@@ -140,8 +141,8 @@ protected:
 	bool					mbFailed;				//The tentative parse failed.
 	size					muiTentativeParses;		//How many tentative parses there have been (for tests).
 	int						miTemplateArguments;	//Template arguments being parsed, nested; while above 0 each one's
-	CMapLongTemplate<bool>	mcTypeIdArguments;		//decision (type-id or not) is kept by its first token.
-	CMapLongTemplate<CCPPSyntaxTemplateDeclaration*>	mcFirstClassTemplates;	//Each class template's first declaration, by its symbol (CheckDefaultsOnce).
+	CHashMapLongTemplate<bool>	mcTypeIdArguments;		//decision (type-id or not) is kept by its first token.
+	CHashMapLongTemplate<CCPPSyntaxTemplateDeclaration*>	mcFirstClassTemplates;	//Each class template's first declaration, by its symbol (CheckDefaultsOnce).
 	bool					mbNoGreater;			//In a template argument list, where '>' ends the argument.
 	bool					mbLambdaDeclarator;		//A lambda's parameters are being read: mutable is one of their qualifiers.
 	bool					mbMemberName;			//The name after . or ->, which is a member of a type the parser doesn't know.

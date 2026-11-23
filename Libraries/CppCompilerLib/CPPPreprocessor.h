@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __PREPROCESSOR_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/MapPtrPtr.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "DefineMap.h"
 #include "SpecialOperatorMap.h"
 #include "ConditionalStack.h"
@@ -128,7 +129,7 @@ protected:
 	CMemoryStackExtended			mcDefineStrings;
 	CSpecialOperatorMap				mcSpecialOperators;
 	CArrayHeaderFiles				mcHeaderNames;
-	CMapPtrPtr						mcPragmaOnce;			//The headers with #pragma once read so far.
+	CHashMapPrimitiveTemplate<CSourceFile*, bool>	mcPragmaOnce;	//The headers with #pragma once read so far (the value is unused).
 	CHeaderNameMapStack				mcHeadersStack;
 
 	CChars*							mpszIncludesLog;

@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CCPPSemanticPass::Init(void)
 {
-	mcNames.Init(true);
+	mcNames.Init();
 	masOthers.Init();
 	mcErrors.Init();
 	mcWarnings.Init();
@@ -41,9 +41,9 @@ void CCPPSemanticPass::Init(void)
 	mpsRecordedEnum = NULL;
 	masEnumCasts.Init();
 	mcOptions = *GetDefaultCPPCompileOptions();
-	mcTypes.Init(true);
-	mcPlaces.Init(true);
-	mcChanges.Init(true);
+	mcTypes.Init();
+	mcPlaces.Init();
+	mcChanges.Init();
 }
 
 

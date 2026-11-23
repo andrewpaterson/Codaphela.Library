@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_65_PEEPHOLE_H__
 #define __I_R_65_PEEPHOLE_H__
 #include "BaseLib/MapStringInt.h"
+#include "BaseLib/HashMapString.h"
 #include "IR65Code.h"
 
 
@@ -63,7 +64,7 @@ class CIR65Peephole
 protected:
 	CIR65Code				mcCode;
 	CArrayChars				maszValues;		//The operands registers hold, as written...
-	CMapStringInt			mmValues;		//...and each one's index there.
+	CHashMapString<int32>	mmValues;		//...and each one's index there.
 	CArrayIR65Value			masValues;		//What each of them is.
 	CArrayIR65Values		masStates;		//Per line: what the registers hold as it starts.
 	CArrayTemplate<int16>	maiCopied;		//Per line: the value a cpy to a register (or a store from one) copies.

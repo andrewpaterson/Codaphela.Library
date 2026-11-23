@@ -607,21 +607,16 @@ bool CIR65Code::Decode(void)
 	size			uiNum;
 	CChars*			pszLine;
 	SIR65CodeLine*	psLine;
-	CChars			szName;
 	bool			bDecoded;
 
 	uiNum = maszLines.NumElements();
-	mmLabels.Kill();
-	mmLabels.Init();
+	mmLabels.ReInit();
 	for (ui = 0; ui < uiNum; ui++)
 	{
 		pszLine = maszLines.Get(ui);
 		if (!pszLine->Empty() && !pszLine->StartsWith("\t") && pszLine->EndsWith(':'))
 		{
-			szName.Init();
-			szName.AppendSubString(pszLine->Text(), pszLine->Length() - 1);
-			mmLabels.Put(szName.Text(), (int32)ui);
-			szName.Kill();
+			*mmLabels.FindOrAdd(pszLine->Text(), (size)(pszLine->Length() - 1), NULL) = (int32)ui;
 		}
 	}
 
@@ -663,7 +658,7 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 	const SIR65CodeMnemonic*	psMnemonic;
 	int							iOperands;
 	int							i;
-	CChars						szTarget;
+	int32*						piTarget;
 
 	memset(psLine, 0, sizeof(SIR65CodeLine));
 	psLine->iFirst = -1;
@@ -829,10 +824,8 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 				return false;
 			}
 		}
-		szTarget.Init();
-		szTarget.AppendSubString(psLast->szStart, psLast->uiLength);
-		psLine->iTarget = mmLabels.Get(szTarget.Text(), -1);
-		szTarget.Kill();
+		piTarget = mmLabels.Get(psLast->szStart, (size)psLast->uiLength);
+		psLine->iTarget = piTarget ? *piTarget : -1;
 		return psLine->iTarget >= 0;
 	}
 	return false;

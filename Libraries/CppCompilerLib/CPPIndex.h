@@ -27,6 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapStringInt.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "CPPSymbolKey.h"
 #include "CPPSemanticPass.h"
 
@@ -156,7 +157,7 @@ public:
 	int32				miContainer;	//The key of the class or function the names added are in, -1 for neither.
 	CArrayInt			maiBaseLinks;	//Triples: a class's key, one of its base classes' key and the file (in maszFiles) saying so.
 	CArrayInt			maiVirtuals;	//Pairs: the key of a member function declared virtual, override or final, and the file.
-	CMapLongTemplate<int32>	mcCachedKeys;	//A symbol's (or a function declarator's) key, by its address: -1 if it has none.
+	CHashMapLongTemplate<int32>	mcCachedKeys;	//A symbol's (or a function declarator's) key, by its address: -1 if it has none.
 	CSourceFile*		mpcLastFile;	//The file the last name added was in,
 	int					miLastFile;		//and its index in maszFiles.
 
@@ -240,10 +241,10 @@ protected:
 	CMapStringInt			mcFiles;		//File name to index in maszFiles.
 	CArrayIndexSymbols		mapcSymbols;
 	CMapStringInt			mcKeys;			//Key to index in mapcSymbols.
-	CMapLongTemplate<int32>	mcLocations;	//A name's place (LocationKey) to its symbol's index.
+	CHashMapLongTemplate<int32>	mcLocations;	//A name's place (LocationKey) to its symbol's index.
 	CArrayIndexBaseLinks	masBaseLinks;	//Each class's base classes, by the files saying so; the symbols' maiBases and
 	CArrayIndexVirtuals		masVirtuals;	//maiDerived and mbVirtual are made from these.
-	CMapLongTemplate<int32>	mcHierarchyKeys;	//Each link's and virtual's key (GetHierarchyKey): each is kept once.
+	CHashMapLongTemplate<int32>	mcHierarchyKeys;	//Each link's and virtual's key (GetHierarchyKey): each is kept once.
 
 public:
 	void				Init(void);

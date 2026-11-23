@@ -496,11 +496,11 @@ void CCPP65Types::Init(int iIntBytes, int iPointerBytes)
 {
 	miPointerBytes = iPointerBytes;
 	mapsTypes.Init();
-	mcByBase.Init(true);
-	mcFunctions.Init(true);
-	mcClasses.Init(true);
-	mcEnums.Init(true);
-	mcQualified.Init(true);
+	mcByBase.Init();
+	mcFunctions.Init();
+	mcClasses.Init();
+	mcEnums.Init();
+	mcQualified.Init();
 	InitBuiltin(&msVoid, CPP65TK_Void, 0, false);
 	InitBuiltin(&msUndeduced, CPP65TK_Void, 0, false);
 	InitBuiltin(&msBool, CPP65TK_Bool, 1, false);
@@ -631,7 +631,7 @@ void CCPP65Types::AddType(SCPP65Type* psType)
 // ppsNext.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65Types::AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext)
+void CCPP65Types::AppendToChain(CHashMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext)
 {
 	SCPP65TypeChain*	psChain;
 	SCPP65TypeChain		sChain;
@@ -657,7 +657,7 @@ void CCPP65Types::AppendToChain(CMapLongTemplate<SCPP65TypeChain>* pcChains, int
 // The type pcMap holds for pvKey, NULL if none.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPP65Types::GetMapped(CMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey)
+SCPP65Type* CCPP65Types::GetMapped(CHashMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey)
 {
 	SCPP65Type**	ppsType;
 

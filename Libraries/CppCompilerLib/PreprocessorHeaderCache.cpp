@@ -200,7 +200,7 @@ bool CCPPPreprocessor::CachedHeaderMatches(SPPCachedHeader* psHeader)
 	for (i = 0; i < psHeader->asPragmaQueries.NumElements(); i++)
 	{
 		psPragma = psHeader->asPragmaQueries.Get(i);
-		if ((mcPragmaOnce.Get(psPragma->pcFile) != NULL) != psPragma->bOnce)
+		if (mcPragmaOnce.HasKey(psPragma->pcFile) != psPragma->bOnce)
 		{
 			return false;
 		}
@@ -281,7 +281,7 @@ void CCPPPreprocessor::ReplayEvent(SPPHeaderEvent* psEvent)
 
 	if (psEvent->eType == PPHE_PragmaOnce)
 	{
-		mcPragmaOnce.Put(psEvent->pcFile, psEvent->pcFile);
+		mcPragmaOnce.Put(psEvent->pcFile);
 		return;
 	}
 

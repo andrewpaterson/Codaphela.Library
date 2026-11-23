@@ -449,9 +449,9 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mauiStringBytes.ReInit();
 	mauiStringLengths.ReInit();
 	muiFirstString = mpcUnit->GetData()->NumStrings();
-	mcAddresses.Init(true);
-	mcImplicitValues.Init(true);
-	mcAnonymousAddresses.Init(true);
+	mcAddresses.Init();
+	mcImplicitValues.Init();
+	mcAnonymousAddresses.Init();
 	mpcBaseObject = NULL;
 	msVTT = IRNone();
 	msVTTArgument = IRNone();
@@ -1661,7 +1661,7 @@ bool CCPP65IRFrontEnd::Locals(void)
 	SIRReference	sPadding;
 
 	mcAnonymousAddresses.Kill();
-	mcAnonymousAddresses.Init(true);
+	mcAnonymousAddresses.Init();
 	for (ui = 0; ui < mpcUnit->GetLocals()->NumElements(); ui++)
 	{
 		pcVariable = mpcUnit->GetLocals()->GetPtr(ui);

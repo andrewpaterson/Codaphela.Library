@@ -36,7 +36,8 @@ void CCPP65TypeChecker::Init(CCPPUnit* pcUnit)
 	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcTypes = pcUnit->GetTypes();
 	mapcNone.Init();
-	mcFacts.Init(true);
+	mcFacts.Init();
+	mcFactsMemory.Init(16384);
 }
 
 
@@ -47,6 +48,7 @@ void CCPP65TypeChecker::Init(CCPPUnit* pcUnit)
 void CCPP65TypeChecker::Kill(void)
 {
 	mcFacts.Kill();
+	mcFactsMemory.Kill();
 	mapcNone.Kill();
 }
 
@@ -101,21 +103,26 @@ SCPPExpressionFacts* CCPP65TypeChecker::Facts(CCPPSyntax* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 SCPPExpressionFacts* CCPP65TypeChecker::FactsEntry(CCPPSyntax* pcExpression)
 {
+	SCPPExpressionFacts**	ppsFacts;
 	SCPPExpressionFacts*	psFacts;
-	SCPPExpressionFacts		sFacts;
 	CCPPContext*			pcContext;
+	bool					bAdded;
 
 	pcContext = mpcUnit->GetContext();
-	psFacts = mcFacts.Get((int64)(size)pcExpression);
-	if (psFacts && (psFacts->pcBindings == pcContext->GetBindings()) && (psFacts->pcFunction == pcContext->GetFunction()))
+	ppsFacts = mcFacts.FindOrAdd((int64)(size)pcExpression, &bAdded);
+	if (bAdded)
 	{
-		return psFacts;
+		*ppsFacts = (SCPPExpressionFacts*)mcFactsMemory.Add(sizeof(SCPPExpressionFacts));
 	}
-	memset(&sFacts, 0, sizeof(SCPPExpressionFacts));
-	sFacts.pcBindings = pcContext->GetBindings();
-	sFacts.pcFunction = pcContext->GetFunction();
-	mcFacts.Put((int64)(size)pcExpression, &sFacts);
-	return mcFacts.Get((int64)(size)pcExpression);
+	else if (((*ppsFacts)->pcBindings == pcContext->GetBindings()) && ((*ppsFacts)->pcFunction == pcContext->GetFunction()))
+	{
+		return *ppsFacts;
+	}
+	psFacts = *ppsFacts;
+	memset(psFacts, 0, sizeof(SCPPExpressionFacts));
+	psFacts->pcBindings = pcContext->GetBindings();
+	psFacts->pcFunction = pcContext->GetFunction();
+	return psFacts;
 }
 
 

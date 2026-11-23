@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_MODULE_H__
 #define __I_R_MODULE_H__
 #include "IRFunction.h"
+#include "BaseLib/HashMapString.h"
 #include "CPPCompileStatistics.h"
 
 
@@ -131,7 +132,7 @@ public:
 	CArrayIRSpaceSizes			maucSpaceSizes;
 
 	CArrayChars					maszSymbols;
-	CMapStringInt				mmSymbols;
+	CHashMapString<int32>		mmSymbols;
 	CArrayIRSymbolDefinitions	masDefinitions;
 	size						muiNumRestrict;
 

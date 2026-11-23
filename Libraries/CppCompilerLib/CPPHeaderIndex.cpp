@@ -31,7 +31,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CCPPHeaderIndex::Init(void)
 {
-	mcDeclarations.Init(true);
+	mcDeclarations.Init();
 	mapsDeclarations.Init();
 	mcMutex.Init();
 }

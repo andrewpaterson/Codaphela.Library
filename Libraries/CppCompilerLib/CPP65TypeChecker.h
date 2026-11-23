@@ -23,6 +23,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxVisitor.h"
 #include "CPPSyntaxes.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
+#include "BaseLib/MemoryStackExtended.h"
 #include "CPP65Type.h"
 
 
@@ -65,7 +67,7 @@ struct SCPPExpressionFacts
 };
 
 
-typedef CMapLongTemplate<SCPPExpressionFacts>	CMapCPPExpressionFacts;
+typedef CHashMapLongTemplate<SCPPExpressionFacts*>	CMapCPPExpressionFacts;
 
 
 //The type of a C++ expression, and what is wrong with it, worked out without writing any code: the generator's
@@ -80,7 +82,8 @@ protected:
 	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPP65Types*		mpcTypes;
 	CArraySyntax		mapcNone;		//No arguments.
-	CMapCPPExpressionFacts	mcFacts;	//What is known of each expression, by its node (Facts).
+	CMapCPPExpressionFacts	mcFacts;	//What is known of each expression, by its node (Facts)...
+	CMemoryStackExtended	mcFactsMemory;	//...kept here, where it doesn't move.
 
 	SCPPExpressionFacts*	FactsEntry(CCPPSyntax* pcExpression);
 	ECPPValueCategory	WorkOutCategory(CCPPSyntax* pcExpression);

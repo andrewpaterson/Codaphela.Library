@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
 #include "CPPExceptionSpec.h"
@@ -230,7 +231,7 @@ struct SCPPFunctionsOfName
 };
 
 
-typedef CMapLongTemplate<SCPPFunctionsOfName>	CMapCPPFunctionsOfNames;
+typedef CHashMapLongTemplate<SCPPFunctionsOfName>	CMapCPPFunctionsOfNames;
 
 
 #endif // __C_P_P_FUNCTION_H__

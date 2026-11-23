@@ -222,7 +222,7 @@ bool SPPCachedHeader::Refers(CArrayPPHeaderFiles* papcFiles)
 //////////////////////////////////////////////////////////////////////////
 void CPPHeaderCache::Init(void)
 {
-	mcHeaders.Init(true);
+	mcHeaders.Init();
 	mapsHeaders.Init();
 	mcMutex.Init();
 	muiHits = 0;

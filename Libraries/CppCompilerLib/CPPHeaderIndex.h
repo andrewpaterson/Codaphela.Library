@@ -26,6 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayUint8.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/Mutex.h"
 
 
@@ -56,7 +57,7 @@ struct SCPPHeaderDeclaration
 class CCPPHeaderIndex
 {
 protected:
-	CMapLongTemplate<SCPPHeaderDeclaration*>		mcDeclarations;
+	CHashMapLongTemplate<SCPPHeaderDeclaration*>	mcDeclarations;
 	CArrayTemplatePtr<SCPPHeaderDeclaration>		mapsDeclarations;
 	CMutex											mcMutex;
 

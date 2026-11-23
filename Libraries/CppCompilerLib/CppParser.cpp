@@ -47,8 +47,8 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	mbFailed = false;
 	muiTentativeParses = 0;
 	miTemplateArguments = 0;
-	mcTypeIdArguments.Init(true);
-	mcFirstClassTemplates.Init(true);
+	mcTypeIdArguments.Init();
+	mcFirstClassTemplates.Init();
 	mbNoGreater = false;
 	mbLambdaDeclarator = false;
 	mbMemberName = false;
@@ -59,7 +59,7 @@ void CCPPParser::Init(CCPPTokeniser* pcTokeniser, CCPPSyntaxTree* pcTree)
 	miTemplates = 0;
 	macDeferred.Init();
 	malliLabels.Init();
-	mcEnumFirsts.Init(true);
+	mcEnumFirsts.Init();
 	muiLabelsStart = 0;
 	muiDeferredNext = 0;
 	miErrors = 0;

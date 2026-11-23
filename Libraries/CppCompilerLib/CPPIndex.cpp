@@ -148,10 +148,10 @@ void CCPPIndex::Init(void)
 	mcFiles.Init();
 	mapcSymbols.Init();
 	mcKeys.Init();
-	mcLocations.Init(true);
+	mcLocations.Init();
 	masBaseLinks.Init();
 	masVirtuals.Init();
-	mcHierarchyKeys.Init(true);
+	mcHierarchyKeys.Init();
 }
 
 
@@ -195,7 +195,7 @@ void CCPPIndexUnit::Init(void)
 	miContainer = -1;
 	maiBaseLinks.Init();
 	maiVirtuals.Init();
-	mcCachedKeys.Init(true);
+	mcCachedKeys.Init();
 	mpcLastFile = NULL;
 	miLastFile = -1;
 }

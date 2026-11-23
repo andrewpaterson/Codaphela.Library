@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_BINDER_H__
 #define __C_P_P_BINDER_H__
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "CPPSyntaxes.h"
 #include "CPPSymbol.h"
@@ -162,7 +163,7 @@ public:
 #define CPP_MAX_ARROWS	16
 
 
-typedef CMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
+typedef CHashMapLongTemplate<CCPPBoundCall>	CMapCPPBoundCalls;
 
 
 //Says what the calls, names and members of a unit's expressions are, in one place, for the type checker and the

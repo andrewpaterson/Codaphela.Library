@@ -348,7 +348,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 
 	mapcGlobals.Init();
 	mapcFunctions.Init();
-	mcFunctionsOfNames.Init(true);
+	mcFunctionsOfNames.Init();
 	mcContext.Init();
 	mcData.Init();
 	mcBinder.Init(this);
@@ -364,7 +364,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	masExpandedArguments.Init();
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
-	mcExplicitInstances.Init(true);
+	mcExplicitInstances.Init();
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mcClosures.Init(this);

@@ -57,8 +57,8 @@ void CCPPBinder::Init(CCPPUnit* pcUnit)
 	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mcOverloads.Init(pcUnit);
 	mcAccess.Init(pcUnit);
-	mcBound.Init(true);
-	mcOperators.Init(true);
+	mcBound.Init();
+	mcOperators.Init();
 }
 
 

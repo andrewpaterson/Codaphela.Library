@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __C_P_P_SEMANTIC_PASS_H__
 #include "CPPUnitObserver.h"
 #include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
 #include "CPPErrors.h"
@@ -48,10 +49,10 @@ struct SCPPResolvedName
 };
 
 
-typedef CMapLongTemplate<SCPPResolvedName>	CMapResolvedNames;
+typedef CHashMapLongTemplate<SCPPResolvedName>	CMapResolvedNames;
 typedef CArrayTemplate<SCPPResolvedName>	CArrayResolvedNames;
-typedef CMapLongTemplate<SCPP65Type*>		CMapCPPNodeTypes;
-typedef CMapLongTemplate<uint8>				CMapCPPNodeChanges;
+typedef CHashMapLongTemplate<SCPP65Type*>		CMapCPPNodeTypes;
+typedef CHashMapLongTemplate<uint8>				CMapCPPNodeChanges;
 
 
 //Where a value would need a cast if an enum were an enum class (CCPPSemanticPass::SetRecordedEnum): what the type

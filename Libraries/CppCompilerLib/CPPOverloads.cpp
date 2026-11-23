@@ -117,7 +117,7 @@ void CCPPOverloads::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	mpcDiagnostics = pcUnit->GetDiagnostics();
-	mcResolved.Init(true);
+	mcResolved.Init();
 	mbConverting = false;
 	mpapsOnly = NULL;
 	mbAmbiguousConversion = false;

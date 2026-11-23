@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __I_R_65_CODE_H__
 #define __I_R_65_CODE_H__
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/HashMapString.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/MapStringInt.h"
 #include "IRBranchPasses.h"
@@ -120,7 +121,7 @@ protected:
 	bool					mbLoaded;		//The last Load could read the code.
 	CArrayTemplate<uint8>	mauiJumpedBack;	//Per line: 1 for a label a branch after it goes to.
 	CArrayTemplate<uint8>	mauiRemoved;	//Per line: 1 for a line a pass took out (now IR65CK_Other).
-	CMapStringInt			mmLabels;		//Label name to line.
+	CHashMapString<int32>	mmLabels;		//Label name to line.
 	bool					mbReturnReadsCarry;	//A ret reads c: the caller's thrown (a program built with exceptions).
 
 public:

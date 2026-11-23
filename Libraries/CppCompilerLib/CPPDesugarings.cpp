@@ -46,12 +46,13 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPPDesugarings::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
-	mcRangeFors.Init(true);
-	mcLiteralCalls.Init(true);
-	mcDecltypeMembers.Init(true);
-	mcImplicitAssignments.Init(true);
+	mcRangeFors.Init();
+	mcLiteralCalls.Init();
+	mcMemory.Init(4096);
+	mcDecltypeMembers.Init();
+	mcImplicitAssignments.Init();
 	mpcImplicitZero = NULL;
-	mcImplicitValues.Init(true);
+	mcImplicitValues.Init();
 	masBracedLists.Init();
 }
 
@@ -64,6 +65,7 @@ void CCPPDesugarings::Kill(void)
 {
 	mcRangeFors.Kill();
 	mcLiteralCalls.Kill();
+	mcMemory.Kill();
 	mcDecltypeMembers.Kill();
 	mcImplicitAssignments.Kill();
 	mcImplicitValues.Kill();
@@ -96,14 +98,15 @@ void CCPPDesugarings::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 SCPPRangeFor* CCPPDesugarings::GetRangeFor(CCPPSyntaxRangeForStatement* pcFor)
 {
+	SCPPRangeFor**		ppsRangeFor;
 	SCPPRangeFor*		psRangeFor;
 	SCPPRangeFor		sRangeFor;
 	CCPPSyntaxMemory*	pcMemory;
 
-	psRangeFor = mcRangeFors.Get((int64)(size)pcFor);
-	if (psRangeFor)
+	ppsRangeFor = mcRangeFors.Get((int64)(size)pcFor);
+	if (ppsRangeFor)
 	{
-		return psRangeFor;
+		return *ppsRangeFor;
 	}
 
 	pcMemory = mpcUnit->mpcTree->GetMemory();
@@ -131,8 +134,10 @@ SCPPRangeFor* CCPPDesugarings::GetRangeFor(CCPPSyntaxRangeForStatement* pcFor)
 	sRangeFor.pcElement->mbPostfix = false;
 	sRangeFor.pcElement->mpcOperand = NewHiddenName(sRangeFor.pcBegin, sRangeFor.pcElement);
 
-	mcRangeFors.Put((int64)(size)pcFor, &sRangeFor);
-	return mcRangeFors.Get((int64)(size)pcFor);
+	psRangeFor = (SCPPRangeFor*)mcMemory.Add(sizeof(SCPPRangeFor));
+	*psRangeFor = sRangeFor;
+	mcRangeFors.Put((int64)(size)pcFor, &psRangeFor);
+	return psRangeFor;
 }
 
 
@@ -357,6 +362,7 @@ CCTUserLiteral* CCPPDesugarings::UserLiteralToken(CCPPSyntax* pcLiteral)
 //////////////////////////////////////////////////////////////////////////
 SCPPLiteralCall* CCPPDesugarings::GetLiteralCall(CCPPSyntax* pcLiteral)
 {
+	SCPPLiteralCall**				ppsCall;
 	SCPPLiteralCall*				psCall;
 	SCPPLiteralCall					sCall;
 	CCTUserLiteral*					pcUser;
@@ -371,10 +377,10 @@ SCPPLiteralCall* CCPPDesugarings::GetLiteralCall(CCPPSyntax* pcLiteral)
 	double							dValue;
 	size								i;
 
-	psCall = mcLiteralCalls.Get((int64)(size)pcLiteral);
-	if (psCall)
+	ppsCall = mcLiteralCalls.Get((int64)(size)pcLiteral);
+	if (ppsCall)
 	{
-		return psCall->pcFunction ? psCall : NULL;
+		return (*ppsCall)->pcFunction ? *ppsCall : NULL;
 	}
 	pcUser = UserLiteralToken(pcLiteral);
 	if (!pcUser)
@@ -450,8 +456,10 @@ SCPPLiteralCall* CCPPDesugarings::GetLiteralCall(CCPPSyntax* pcLiteral)
 			apcExplicit.Kill();
 		}
 	}
-	mcLiteralCalls.Put((int64)(size)pcLiteral, &sCall);
-	return sCall.pcFunction ? mcLiteralCalls.Get((int64)(size)pcLiteral) : NULL;
+	psCall = (SCPPLiteralCall*)mcMemory.Add(sizeof(SCPPLiteralCall));
+	*psCall = sCall;
+	mcLiteralCalls.Put((int64)(size)pcLiteral, &psCall);
+	return sCall.pcFunction ? psCall : NULL;
 }
 
 

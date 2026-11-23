@@ -397,16 +397,18 @@ int CIRModule::GetSize(SIRType sType)
 //////////////////////////////////////////////////////////////////////////
 uint32 CIRModule::AddSymbol(const char* szName)
 {
+	int32*	piIndex;
 	int32	iIndex;
+	bool	bAdded;
 
-	iIndex = mmSymbols.Get(szName);
-	if (iIndex != -1)
+	piIndex = mmSymbols.FindOrAdd(szName, (size)strlen(szName), &bAdded);
+	if (!bAdded)
 	{
-		return (uint32)iIndex;
+		return (uint32)*piIndex;
 	}
 	iIndex = (int32)maszSymbols.NumElements();
+	*piIndex = iIndex;
 	maszSymbols.Add(szName);
-	mmSymbols.Put(szName, iIndex);
 	memset(masDefinitions.Add(), 0, sizeof(SIRSymbolDefinition));
 	return (uint32)iIndex;
 }
@@ -418,7 +420,10 @@ uint32 CIRModule::AddSymbol(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 int CIRModule::FindSymbol(const char* szName)
 {
-	return mmSymbols.Get(szName);
+	int32*	piIndex;
+
+	piIndex = mmSymbols.Get(szName);
+	return piIndex ? *piIndex : -1;
 }
 
 
