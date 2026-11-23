@@ -1249,6 +1249,10 @@ void CRegex::SetStepLimit(size uiLength)
 {
 	muiSteps = 0;
 	muiStepLimit = REGEX_STEPS;
+#if defined(SIZE_16)
+	//A 16 bit length's steps always fit (200000 + 65535 * 16).
+	muiStepLimit += (uint32)uiLength * REGEX_STEPS_PER_CHAR;
+#else
 	if (uiLength < (MAX_UINT32 - REGEX_STEPS) / REGEX_STEPS_PER_CHAR)
 	{
 		muiStepLimit += (uint32)uiLength * REGEX_STEPS_PER_CHAR;
@@ -1257,6 +1261,7 @@ void CRegex::SetStepLimit(size uiLength)
 	{
 		muiStepLimit = MAX_UINT32;
 	}
+#endif
 	mbGaveUp = false;
 }
 
