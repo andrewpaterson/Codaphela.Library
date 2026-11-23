@@ -1,38 +1,60 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/FileUtil.h"
 #include "CppCompilerLib/CPP65Builder.h"
+#include "Assembler65Lib/Asm65StackWalker.h"
+#include "Assembler65Lib/AsmW65C816Disassembler.h"
+#include "Assembler65Lib/AsmW65C816FrameCheck.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
 
-int32				TestCPP816Run(const char* szSource, bool bLockstep);	//TestCPPW65C816.cpp
-CCPPCompileOptions*	TestCPP816Options(void);
+CCPPCompileOptions*	TestCPP816Options(void);	//TestCPPW65C816.cpp
 
 
-//A program built for the W65C816 with its debug info (CCPP65Builder::SetLineTable), and how it was compiled.
+//How a program is built: for speed (Release, though without inlining so each function is a function of its own), for
+//a debugger (Debug) or for one and not optimised (an Unoptimised project).
+enum ETestCPP816Build
+{
+	TCB_Release,
+	TCB_Debug,
+	TCB_Unoptimised,
+};
+
+
+//A program built for the W65C816 with its debug info (CCPP65Builder::SetLineTable), and as a debugger runs it
+//(TestCPP816DebugLoad): a step at a time, its calls checked (CAsmW65C816FrameCheck) and its stack walked.
 struct STestCPP816Debug
 {
-	CCPP65Builder		cBuilder;
-	CAsm65DebugRecords*	pcRecords;
+	CCPP65Builder			cBuilder;
+	CAsm65DebugRecords*		pcRecords;
+	CAsm65Memory			cMemory;
+	CFastW65C816			cFast;
+	CAsmW65C816FrameCheck	cCheck;
+	CAsm65StackWalker		cWalker;
+	CArrayAsm65StackFrames	asFrames;
+	bool					bLoaded;
 };
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Builds szSource with its debug info, as the IDE does: for a debugger
-// (bDebug, a Debug build), else without inlining (so each function is a
-// function of its own).
+// Builds szSource with its debug info, as the IDE does, eBuild's way, with
+// Libc65's string routines (the optimiser makes loops calls of them).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource, bool bDebug = false)
+static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource, ETestCPP816Build eBuild = TCB_Release)
 {
-	CChars		szProject;
-	CFileUtil	cFileUtil;
-	bool		bResult;
+	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", NULL };
+	CChars				szProject;
+	CFileUtil			cFileUtil;
+	bool				bResult;
 
+	psDebug->bLoaded = false;
 	psDebug->cBuilder.Init();
+	*psDebug->cBuilder.GetOptions() = *TestCPP816Options();
 	psDebug->cBuilder.GetOptions()->mbInline = false;
-	psDebug->cBuilder.GetOptions()->mbDebuggable = bDebug;
+	psDebug->cBuilder.GetOptions()->mbDebuggable = (eBuild != TCB_Release);
+	psDebug->cBuilder.GetOptions()->mbOptimise = (eBuild != TCB_Unoptimised);
 	psDebug->cBuilder.SetTarget(CPPT_W65C816);
 	psDebug->cBuilder.SetLineTable(true);
 	TestCPP65AddIncludeDirectories(&psDebug->cBuilder);
@@ -42,6 +64,7 @@ static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource
 	psDebug->cBuilder.AddMathTables(szProject.Text());
 	szProject.Kill();
 	AssertTrue(psDebug->cBuilder.AddSource("Test.cpp", szSource));
+	TestCPP65AddUnits(&psDebug->cBuilder, aszUnits, false);
 	bResult = psDebug->cBuilder.Link();
 	AssertTrue(bResult);
 	AssertString("", psDebug->cBuilder.GetErrors());
@@ -52,10 +75,74 @@ static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Loads the built program into memory and resets the W65C816, ready to
+// step, its stack walked with the program's records.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816DebugLoad(STestCPP816Debug* psDebug)
+{
+	psDebug->cMemory.Init();
+	psDebug->cMemory.Load(psDebug->cBuilder.GetOutput());
+	psDebug->cMemory.InitFast65816(&psDebug->cFast);
+	psDebug->cFast.Reset();
+	psDebug->cCheck.Init(&psDebug->cMemory, &psDebug->cFast);
+	psDebug->cWalker.Init(&psDebug->cMemory);
+	psDebug->cWalker.AddRecords(psDebug->pcRecords);
+	psDebug->asFrames.Init();
+	psDebug->bLoaded = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs the instruction at the program address, its calls followed.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816DebugStep(STestCPP816Debug* psDebug)
+{
+	uint8	uiOpcode;
+
+	uiOpcode = psDebug->cCheck.BeforeStep();
+	psDebug->cFast.Step();
+	psDebug->cCheck.AfterStep(uiOpcode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Walks the stack from the W65C816's registers into asFrames.  Returns
+// how many frames.
+//
+//////////////////////////////////////////////////////////////////////////
+static size TestCPP816DebugWalk(STestCPP816Debug* psDebug)
+{
+	SAsm65StackRegisters	sRegisters;
+
+	sRegisters.uiPC = psDebug->cFast.GetProgramAddress();
+	sRegisters.uiS = psDebug->cFast.GetS();
+	sRegisters.uiD = psDebug->cFast.GetD();
+	sRegisters.uiC = psDebug->cFast.GetC();
+	sRegisters.uiX = psDebug->cFast.GetX();
+	sRegisters.uiY = psDebug->cFast.GetY();
+	sRegisters.uiP = psDebug->cFast.GetP();
+	return psDebug->cWalker.Walk(&sRegisters, &psDebug->asFrames, 64);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestCPP816DebugKill(STestCPP816Debug* psDebug)
 {
+	if (psDebug->bLoaded)
+	{
+		psDebug->asFrames.Kill();
+		psDebug->cWalker.Kill();
+		psDebug->cCheck.Kill();
+		psDebug->cFast.Kill();
+		psDebug->cMemory.Kill();
+	}
 	psDebug->cBuilder.Kill();
 }
 
@@ -301,7 +388,7 @@ void TestCPP816DebugVariables(void)
 		"	cShape.miBase = NS::giCount;\n"						//27
 		"	cShape.meColour = EC_Blue;\n"							//28
 		"	return cShape.Area(2) + (int)Total(sBig, 0);\n"		//29
-		"}\n", true);											//30
+		"}\n", TCB_Debug);										//30
 
 	//this first, then the parameters, in the function's lines.
 	psFunction = TestCPP816DebugNamed(&sDebug, "CShape::Area");
@@ -355,13 +442,216 @@ void TestCPP816DebugVariables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Walks the stack and appends to pszWrong where the walk isn't the calls
+// the W65C816 is in (CAsmW65C816FrameCheck::WrongFrame).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP816DebugCheckWalk(STestCPP816Debug* psDebug, CChars* pszWrong)
+{
+	SAsm65StackFrame*	psFrame;
+	SAsmW65C816Widths	sWidths;
+	size				uiWrong;
+
+	TestCPP816DebugWalk(psDebug);
+	uiWrong = psDebug->cCheck.WrongFrame(&psDebug->asFrames);
+	if (uiWrong != 0)
+	{
+		psFrame = psDebug->asFrames.Get(0);
+		pszWrong->Append("$");
+		pszWrong->AppendHexHiLo(&psFrame->uiPC, 3);
+		pszWrong->Append(" in ");
+		pszWrong->Append(psFrame->psFunction->szName);
+		pszWrong->Append(" (");
+		sWidths.bMemory8 = (psDebug->cFast.GetP() & 0x20) != 0;
+		sWidths.bIndex8 = (psDebug->cFast.GetP() & 0x10) != 0;
+		AsmW65C816Disassemble(psFrame->uiPC, psDebug->cMemory.Byte(psFrame->uiPC), 4, &sWidths, pszWrong);
+		pszWrong->Append("): frame ");
+		pszWrong->Append((int)uiWrong);
+		pszWrong->Append(" of ");
+		pszWrong->Append((int)psDebug->cCheck.NumCalls() + 1);
+		pszWrong->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs the loaded program to its end, a step at a time, its stack walked
+// at each step in a function the records describe (the first few walks
+// that are wrong in pszWrong).  Returns main's int, -1000000 if it didn't
+// stop.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 TestCPP816DebugRunWalking(STestCPP816Debug* psDebug, CChars* pszWrong)
+{
+	size	uiSteps;
+	size	uiWrong;
+	size	uiLength;
+
+	uiWrong = 0;
+	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->cFast.IsStopped(); uiSteps++)
+	{
+		if ((uiWrong < 8) && psDebug->pcRecords->FindFunction(psDebug->cFast.GetProgramAddress()))
+		{
+			uiLength = pszWrong->Length();
+			TestCPP816DebugCheckWalk(psDebug, pszWrong);
+			uiWrong += (pszWrong->Length() > uiLength) ? 1 : 0;
+		}
+		TestCPP816DebugStep(psDebug);
+	}
+	AssertString("", psDebug->cCheck.GetWrites());
+	AssertInt(0, (int)psDebug->cMemory.NumBadAccesses());
+	AssertTrue(psDebug->cFast.IsStopped());
+	return psDebug->cFast.IsStopped() ? (int16)psDebug->cFast.GetC() : -1000000;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Runs the loaded program until it is about to run line uiLine of
+// Test.cpp.  Returns whether it got there.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestCPP816DebugRunTo(STestCPP816Debug* psDebug, uint32 uiLine)
+{
+	CArrayUint32	auiAddresses;
+	size			uiSteps;
+	bool			bThere;
+
+	auiAddresses.Init();
+	AssertTrue(psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLineAddresses("Test.cpp", uiLine, &auiAddresses) > 0);
+	bThere = false;
+	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->cFast.IsStopped() && !bThere; uiSteps++)
+	{
+		TestCPP816DebugStep(psDebug);
+		bThere = auiAddresses.Find(psDebug->cFast.GetProgramAddress()) != ARRAY_ELEMENT_NOT_FOUND;
+	}
+	auiAddresses.Kill();
+	AssertTrue(bThere);
+	return bThere;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name of the uiFrame'th frame's function in the last walk: "" for
+// code the records don't describe, "?" past the walk's end.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* TestCPP816DebugFrameName(STestCPP816Debug* psDebug, size uiFrame)
+{
+	SAsm65StackFrame*	psFrame;
+
+	if (uiFrame >= psDebug->asFrames.NumElements())
+	{
+		return "?";
+	}
+	psFrame = psDebug->asFrames.Get(uiFrame);
+	return psFrame->psFunction ? psFrame->psFunction->szName.Text() : "";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The int named szName in the uiFrame'th frame of the last walk:
+// -1000000 if its function has none, or the debugger can't read it.
+//
+//////////////////////////////////////////////////////////////////////////
+static int32 TestCPP816DebugLocal(STestCPP816Debug* psDebug, size uiFrame, const char* szName)
+{
+	SAsm65StackFrame*		psFrame;
+	SAsm65DebugVariable*	psVariable;
+	uint32					uiAddress;
+	size					ui;
+
+	psFrame = (uiFrame < psDebug->asFrames.NumElements()) ? psDebug->asFrames.Get(uiFrame) : NULL;
+	for (ui = 0; psFrame && psFrame->psFunction && (ui < psFrame->psFunction->uiNumVariables); ui++)
+	{
+		psVariable = psFrame->pcRecords->GetVariable(psFrame->psFunction, ui);
+		if (psVariable->szName.Equals(szName) && psDebug->cWalker.Locate(psFrame, psVariable, &uiAddress))
+		{
+			return (int16)psDebug->cMemory.GetWord(uiAddress);
+		}
+	}
+	return -1000000;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Stopped at a line in a recursion, the stack walks back through each
+// call to main, each frame's locals and parameters read where the debug
+// records say (a global too), built for a debugger optimised and not.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DebugStack(void)
+{
+	static const ETestCPP816Build	aeBuilds[] = { TCB_Debug, TCB_Unoptimised };
+	STestCPP816Debug				sDebug;
+	SAsm65DebugGlobal*				psGlobal;
+	size							uiBuild;
+	int								i;
+
+	for (uiBuild = 0; uiBuild < 2; uiBuild++)
+	{
+		TestCPP816DebugBuild(&sDebug,
+			"int giDepth = 0;\n"						//1
+			"int Factorial(int i)\n"					//2
+			"{\n"										//3
+			"	int iBelow;\n"							//4
+			"	giDepth++;\n"							//5
+			"	if (i <= 1)\n"							//6
+			"	{\n"									//7
+			"		return 1;\n"						//8
+			"	}\n"									//9
+			"	iBelow = Factorial(i - 1);\n"			//10
+			"	return i * iBelow;\n"					//11
+			"}\n"										//12
+			"int main(void)\n"							//13
+			"{\n"										//14
+			"	int iFrom = 5;\n"						//15
+			"	return Factorial(iFrom);\n"			//16
+			"}\n", aeBuilds[uiBuild]);					//17
+		TestCPP816DebugLoad(&sDebug);
+
+		//Factorial(1) to Factorial(5), main, and the start up, which has no records.
+		AssertTrue(TestCPP816DebugRunTo(&sDebug, 8));
+		AssertInt(7, (int)TestCPP816DebugWalk(&sDebug));
+		for (i = 0; i < 5; i++)
+		{
+			AssertString("Factorial", TestCPP816DebugFrameName(&sDebug, i));
+			AssertInt(i + 1, TestCPP816DebugLocal(&sDebug, i, "i"));
+		}
+		AssertString("main", TestCPP816DebugFrameName(&sDebug, 5));
+		AssertInt(5, TestCPP816DebugLocal(&sDebug, 5, "iFrom"));
+		AssertString("", TestCPP816DebugFrameName(&sDebug, 6));
+		AssertInt(-1000000, TestCPP816DebugLocal(&sDebug, 5, "i"));
+
+		psGlobal = sDebug.pcRecords->FindGlobal("giDepth", NULL);
+		AssertTrue(psGlobal != NULL);
+		AssertInt(5, psGlobal ? sDebug.cMemory.GetWord(psGlobal->sPlace.uiOffset) : 0);
+
+		//On the way back out, each caller's local is what its callee returned.
+		AssertTrue(TestCPP816DebugRunTo(&sDebug, 11));
+		TestCPP816DebugWalk(&sDebug);
+		AssertInt(2, TestCPP816DebugLocal(&sDebug, 0, "i"));
+		AssertInt(1, TestCPP816DebugLocal(&sDebug, 0, "iBelow"));
+
+		TestCPP816DebugKill(&sDebug);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Programs whose variables are what a debugger shows (parameters by
 // value, changed and not; objects by value, by address and through this;
 // an anonymous union; locals stored and never read; a variadic function's,
 // whose arguments va_start finds from them; a pointer returned from a
 // frame past the direct page; recursion and loops)
 // give the same results built for a debugger, optimised (Debug) and not,
-// as built for speed (Release).
+// as built for speed (Release); and at every step in each, the stack
+// walks back through the calls it is in.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816DebugModes(void)
@@ -441,15 +731,21 @@ void TestCPP816DebugModes(void)
 		"	if (*Big((char*)\"xyz\") != 'y') return 8;\n"
 		"	return 100;\n"
 		"}\n";
-	CCPPCompileOptions	cWas;
+	static const ETestCPP816Build	aeBuilds[] = { TCB_Release, TCB_Debug, TCB_Unoptimised };
+	STestCPP816Debug				sDebug;
+	CChars							szWrong;
+	size							uiBuild;
 
-	cWas = *TestCPP816Options();
-	AssertInt(100, TestCPP816Run(szSource, false));
-	TestCPP816Options()->mbDebuggable = true;
-	AssertInt(100, TestCPP816Run(szSource, false));
-	TestCPP816Options()->mbOptimise = false;
-	AssertInt(100, TestCPP816Run(szSource, false));
-	*TestCPP816Options() = cWas;
+	for (uiBuild = 0; uiBuild < 3; uiBuild++)
+	{
+		TestCPP816DebugBuild(&sDebug, szSource, aeBuilds[uiBuild]);
+		TestCPP816DebugLoad(&sDebug);
+		szWrong.Init();
+		AssertInt(100, TestCPP816DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP816DebugKill(&sDebug);
+	}
 }
 
 
@@ -464,6 +760,7 @@ void TestCPP816Debug(void)
 	TestCPP816DebugFrames();
 	TestCPP816DebugModes();
 	TestCPP816DebugVariables();
+	TestCPP816DebugStack();
 
 	TestStatistics();
 }
