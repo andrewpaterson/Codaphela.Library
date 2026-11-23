@@ -1865,7 +1865,7 @@ SCPP65Type* CCPPUnit::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 	CCPPFunction*	pcFunction;
 	int				i;
 
-	psType = TypeOf(pcObject);
+	psType = mcTypeChecker.TypeOf(pcObject);
 	if (!psType || !psType->IsClass())
 	{
 		return psType;

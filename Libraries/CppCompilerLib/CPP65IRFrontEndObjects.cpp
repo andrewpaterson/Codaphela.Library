@@ -51,16 +51,16 @@ bool CCPP65IRFrontEnd::ObjectConditional(CCPPSyntaxConditionalExpression* pcCond
 	CCPPClass*		pcClass;
 	bool			bLvalue;
 
-	psTrue = mpcUnit->ValueTypeOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->ValueTypeOf(pcConditional->mpcFalse);
-	psType = mpcUnit->ValueTypeOf(pcConditional);
+	psTrue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->GetTypeChecker()->ValueTypeOf(pcConditional->mpcFalse);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcConditional);
 	if (!psTrue || !psFalse || !psType || !psType->IsClass())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
 	pcClass = psType->pcClass;
 
-	bLvalue = !psInto && mpcUnit->GetTypeChecker()->ConditionalClass(psTrue, psFalse) && mpcUnit->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->IsObjectLvalue(pcConditional->mpcFalse);
+	bLvalue = !psInto && mpcUnit->GetTypeChecker()->ConditionalClass(psTrue, psFalse) && mpcUnit->GetTypeChecker()->IsObjectLvalue(pcConditional->mpcTrue) && mpcUnit->GetTypeChecker()->IsObjectLvalue(pcConditional->mpcFalse);
 	if (!bLvalue)
 	{
 		if (psInto)
@@ -132,7 +132,7 @@ bool CCPP65IRFrontEnd::IsObjectOf(CCPPSyntax* pcExpression, CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcUnit->ValueTypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcExpression);
 	return psType && psType->IsClass() && mpcUnit->IsDerived(psType->pcClass, pcClass, NULL);
 }
 
@@ -250,7 +250,7 @@ bool CCPP65IRFrontEnd::ObjectAddress(CCPPSyntax* pcObject, bool bArrow, SIRRefer
 	if (bArrow)
 	{
 		//An object's operator-> gives the pointer.
-		psType = mpcUnit->ValueTypeOf(pcObject);
+		psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcObject);
 		if (psType && psType->IsClass())
 		{
 			if (!OperatorCall(pcObject, CT_MemberByPointer, NULL, &sPointer))
@@ -958,7 +958,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	//(object) and = object copy an object, when no copy constructor of the class's own is to be called.
 	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !mpcUnit->GetBinder()->CopiesByConstructor(pcClass, papcArguments->GetPtr(0)))
 	{
-		psSource = mpcUnit->ValueTypeOf(papcArguments->GetPtr(0));
+		psSource = mpcUnit->GetTypeChecker()->ValueTypeOf(papcArguments->GetPtr(0));
 		if (psSource && psSource->IsClass() && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
 			return CopyConstruct(psPlace, papcArguments->GetPtr(0));
@@ -975,13 +975,13 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 				return ConstructClass(psPlace, pcClass, &((CCPPSyntaxParenthesisedInitializer*)pcConstruct->mpcInitializer)->macpElements);
 			}
 		}
-		psSource = mpcUnit->TypeOf(pcInitialiser);
+		psSource = mpcUnit->GetTypeChecker()->TypeOf(pcInitialiser);
 		if (psSource && (psSource == psType) && (mpcUnit->SkipParentheses(pcInitialiser)->GetKind() == CPPS_ConditionalExpression))
 		{
 			//= c ? x : y makes the object here from whichever is worked out.
 			return ObjectConditional((CCPPSyntaxConditionalExpression*)mpcUnit->SkipParentheses(pcInitialiser), psPlace, &sMade);
 		}
-		if (psSource && psSource->IsClass() && (psSource->pcClass == pcClass) && IsObjectCall(pcInitialiser) && !(mpcUnit->DeclaredTypeOf(pcInitialiser)->IsReference() && pcClass->HasCopyConstructor()))
+		if (psSource && psSource->IsClass() && (psSource->pcClass == pcClass) && IsObjectCall(pcInitialiser) && !(mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcInitialiser)->IsReference() && pcClass->HasCopyConstructor()))
 		{
 			//A call (or an operator's) that makes an object of the class makes it here (as C++17 requires).
 			msElide = psPlace->sAddress;
@@ -2043,7 +2043,7 @@ bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psVa
 	{
 	case CPPS_LambdaExpression:
 		//Its closure, made where the object it initialises is (msElide), or as a temporary.
-		psType = mpcUnit->TypeOf(pcExpression);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 		if (!psType || !psType->IsClass())
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -2322,7 +2322,7 @@ bool CCPP65IRFrontEnd::CopyConstruct(SCPP65IRPlace* psPlace, CCPPSyntax* pcSourc
 	bool			bResult;
 
 	pcClass = psPlace->psType->pcClass;
-	pcSourceClass = mpcUnit->ObjectClass(pcSource);
+	pcSourceClass = mpcUnit->GetTypeChecker()->ObjectClass(pcSource);
 	if (pcSourceClass && !mpcUnit->GetBinder()->ReachesBase(pcSourceClass, pcClass, pcSource))
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -2424,7 +2424,7 @@ bool CCPP65IRFrontEnd::CopyMembers(SCPP65IRPlace* psPlace, CCPPSyntax* pcSource)
 	SIRReference	sAddress;
 
 	//The vtables are the object's once its parts' copy constructors (which store their own) have run.
-	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource), IRNone()) &&
+	return Place(pcSource, &sSource) && CopyPlace(psPlace, &sSource, &sAddress) && CopyParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->GetTypeChecker()->IsRvalue(pcSource), IRNone()) &&
 		   StoreVtables(psPlace->sAddress, psPlace->psType->pcClass);
 }
 
@@ -2659,7 +2659,7 @@ bool CCPP65IRFrontEnd::AssignMembers(SCPP65IRPlace* psPlace, SCPP65IRValue* psSo
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	return AssignParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->IsRvalue(pcSource), true);
+	return AssignParts(psPlace->psType->pcClass, psPlace->sAddress, sAddress, mpcUnit->GetTypeChecker()->IsRvalue(pcSource), true);
 }
 
 

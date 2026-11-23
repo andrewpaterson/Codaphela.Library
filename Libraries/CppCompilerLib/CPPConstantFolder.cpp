@@ -717,7 +717,7 @@ bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	{
 		return false;
 	}
-	psType = mpcUnit->TypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	mpcUnit->mcContext.LeaveWorking();
 	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
 	{
@@ -745,7 +745,7 @@ SCPP65Type* CCPPConstantFolder::ObjectConstantType(CCPPSyntax* pcExpression)
 		return NULL;
 	}
 	mpcUnit->mcDiagnostics.BeginQuiet();
-	psType = mpcUnit->ValueTypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcExpression);
 	pcConversion = (psType && psType->IsClass()) ? mpcUnit->mcBinder.FindIntegerConversion(psType->pcClass, pcExpression) : NULL;
 	mpcUnit->mcDiagnostics.EndQuiet();
 	mpcUnit->mcContext.LeaveWorking();
@@ -806,7 +806,7 @@ SCPP65Type* CCPPConstantFolder::ConstantTypeOf(CCPPSyntax* pcExpression)
 	{
 		return NULL;
 	}
-	psType = mpcUnit->TypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	mpcUnit->mcContext.LeaveWorking();
 	return psType;
 }
@@ -848,7 +848,7 @@ bool CCPPConstantFolder::ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* p
 	{
 		return false;
 	}
-	psType = mpcUnit->TypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
 	{
 		return false;
@@ -1028,7 +1028,7 @@ void CCPPConstantFolder::ConstantOverflow(CCPPSyntax* pcExpression, int64 lliVal
 	{
 		return;
 	}
-	psType = mpcUnit->TypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	mpcUnit->mcContext.LeaveWorking();
 	if (!psType || !psType->IsInteger() || (psType->iBytes >= 8))
 	{

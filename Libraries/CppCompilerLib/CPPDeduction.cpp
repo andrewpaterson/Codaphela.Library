@@ -290,7 +290,7 @@ bool CCPPDeduction::DeduceParameter(CCPPSyntaxParameter* pcParameter, CArrayCPP6
 	{
 		//T (&a)[N] of an array: N is its bound and T its element's type.  [temp.deduct.type] 8
 		//The argument as the array it is, not the pointer it decays to.
-		psArgument = papcArguments ? mpcUnit->PlaceTypeOf(papcArguments->GetPtr(i)) : NULL;
+		psArgument = papcArguments ? mpcUnit->GetTypeChecker()->PlaceTypeOf(papcArguments->GetPtr(i)) : NULL;
 		psArray = StripDeclarator(pcParameter->mpcDeclarator, psArgument ? psArgument : papsArguments->GetPtr(i));
 		if (!psArray)
 		{
@@ -569,13 +569,13 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 	{
 		return pcTypes->Qualified(pcTypes->Pointer(pcTypes->Qualified(psArgument->psBase, true, false)), true, false);
 	}
-	if (mpcUnit->IsRvalue(pcArgument))
+	if (mpcUnit->GetTypeChecker()->IsRvalue(pcArgument))
 	{
 		return psArgument->Unqualified();
 	}
 
 	//An array's or a function's type here is already the pointer it becomes, but its place is the array or the function.
-	psPlace = mpcUnit->PlaceOf(pcArgument);
+	psPlace = mpcUnit->GetTypeChecker()->PlaceOf(pcArgument);
 	if (psPlace && (psPlace->WithoutReference()->IsArray() || psPlace->WithoutReference()->IsFunction()))
 	{
 		return pcTypes->Qualified(psArgument, true, psArgument->bVolatile);
@@ -854,7 +854,7 @@ void CCPPDeduction::DeduceFromList(CCPPSyntaxName* pcName, CCPPSyntax* pcList)
 	papcElements = mpcUnit->ListElements(pcList);
 	for (i = 0; pcSymbol && (i < papcElements->NumElements()); i++)
 	{
-		psElement = mpcUnit->TypeOf(papcElements->GetPtr(i));
+		psElement = mpcUnit->GetTypeChecker()->TypeOf(papcElements->GetPtr(i));
 		if (psElement)
 		{
 			DeduceType(pcSymbol, psElement->WithoutReference()->Unqualified());

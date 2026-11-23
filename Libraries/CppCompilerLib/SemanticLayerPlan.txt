@@ -1170,3 +1170,11 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	doesn't know.  Same code: TestCppCompilerLib passes (272,118); every conformance case says what it said; of
 	the 4,213 listings only HashBlock.lst differs, the user's e970f872f (Grow's slots allocated in lsize: the
 	W65C816's multiply is 32 bit, the 65C64's only the source line); the IDE builds.
+
+	Step 6 (2026-11-23): what an expression is, asked of the type checker.  TypeOf's six ways in (TypeOf,
+	ValueTypeOf, DeclaredTypeOf, PlaceTypeOf, UnevaluatedTypeOf, ReportTypeOf) and the category's questions
+	(IsRvalue, IsObjectLvalue, MakesObject, IsMadeObject, IsObject, ObjectClass, PlaceOf, with CommaResult and
+	IsReturnedLocal) are the type checker's, Facts the one question that gives the record and these its
+	shorthands; their callers ask GetTypeChecker() (about 340 call sites, rewritten by moveinto.py).  Same code:
+	TestCppCompilerLib passes (272,132); every conformance case says what it said; the 4,213 listings are as they
+	were; the IDE builds.

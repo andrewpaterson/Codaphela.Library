@@ -685,8 +685,8 @@ bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser
 	if (!BindsToTemporary(psReference, pcValue))
 	{
 		//const S& r = make() and const S& r = D(): the object made for the reference, which may be of a class derived from S.
-		psType = TypeOf(pcValue);
-		if (!psReference->psBase->IsClass() || !psType || !psType->IsClass() || IsObjectLvalue(pcValue))
+		psType = mcTypeChecker.TypeOf(pcValue);
+		if (!psReference->psBase->IsClass() || !psType || !psType->IsClass() || mcTypeChecker.IsObjectLvalue(pcValue))
 		{
 			return true;
 		}

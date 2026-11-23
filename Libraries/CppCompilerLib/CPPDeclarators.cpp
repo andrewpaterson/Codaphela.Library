@@ -486,18 +486,18 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	eLast = uiPointers ? pcDeclarator->GetPointer(uiPointers - 1)->meKind : CPPP_Pointer;
 	if ((eLast == CPPP_Reference) || (eLast == CPPP_RValueReference))
 	{
-		psType = mpcUnit->IsRvalue(pcInitialiser) ? NULL : mpcUnit->PlaceOf(pcInitialiser);
+		psType = mpcUnit->GetTypeChecker()->IsRvalue(pcInitialiser) ? NULL : mpcUnit->GetTypeChecker()->PlaceOf(pcInitialiser);
 		if (psType && (eLast == CPPP_RValueReference) && (uiPointers == 1) && !(pcSpecifiers->muiFlags & (CPPDS_CONST | CPPDS_VOLATILE)))
 		{
 			//auto&& of what has a name is a reference to it.
 			return pcTypes->Reference(psType);
 		}
-		psType = psType ? psType : mpcUnit->ValueTypeOf(pcInitialiser);
+		psType = psType ? psType : mpcUnit->GetTypeChecker()->ValueTypeOf(pcInitialiser);
 		uiPointers--;
 	}
 	else
 	{
-		psType = mpcUnit->ValueTypeOf(pcInitialiser);
+		psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcInitialiser);
 		if (psType && (psType->IsArray() || psType->IsFunction()))
 		{
 			psType = pcTypes->Pointer(psType->ElementType());
@@ -511,7 +511,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	}
 	if (!psType)
 	{
-		mpcUnit->ReportTypeOf(pcInitialiser);
+		mpcUnit->GetTypeChecker()->ReportTypeOf(pcInitialiser);
 		return NULL;
 	}
 	for (; uiPointers > 0; uiPointers--)
@@ -596,10 +596,10 @@ SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
 		return psType;
 	}
 
-	psType = mpcUnit->DeclaredTypeOf(pcOperand);
+	psType = mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcOperand);
 	if (!psType)
 	{
-		mpcUnit->ReportTypeOf(pcOperand);
+		mpcUnit->GetTypeChecker()->ReportTypeOf(pcOperand);
 		return NULL;
 	}
 	if (psType->IsReference())
@@ -607,8 +607,8 @@ SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
 		//A call or a cast that gives a reference.
 		return psType;
 	}
-	psPlace = mpcUnit->PlaceOf(pcOperand);
-	if (psPlace && !mpcUnit->IsRvalue(pcOperand))
+	psPlace = mpcUnit->GetTypeChecker()->PlaceOf(pcOperand);
+	if (psPlace && !mpcUnit->GetTypeChecker()->IsRvalue(pcOperand))
 	{
 		return mpcUnit->GetTypes()->Reference(psPlace);
 	}
@@ -617,7 +617,7 @@ SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
 		//Make().m: a field of an object that is going, an xvalue.
 		return mpcUnit->GetTypes()->Reference(psPlace, true);
 	}
-	psType = mpcUnit->ValueTypeOf(pcOperand);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcOperand);
 	return (psType && !psType->IsClass()) ? psType->Unqualified() : psType;
 }
 
@@ -647,7 +647,7 @@ SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
 		}
 		if (mpcUnit->NamesFunction(pcOperand))
 		{
-			psType = mpcUnit->TypeOf(pcOperand);
+			psType = mpcUnit->GetTypeChecker()->TypeOf(pcOperand);
 			return (psType && psType->IsPointer()) ? psType->psBase : NULL;
 		}
 		mpcUnit->GetBinder()->BindName((CCPPSyntaxIdExpression*)pcOperand, &cBound);

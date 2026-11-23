@@ -214,19 +214,19 @@ bool CCPPDesugarings::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 	}
 	else
 	{
-		bRvalue = mpcUnit->IsRvalue(pcFor->mpcRange);
-		psRanged = bRvalue ? NULL : mpcUnit->PlaceOf(pcFor->mpcRange);
+		bRvalue = mpcUnit->GetTypeChecker()->IsRvalue(pcFor->mpcRange);
+		psRanged = bRvalue ? NULL : mpcUnit->GetTypeChecker()->PlaceOf(pcFor->mpcRange);
 		if (!psRanged)
 		{
 			//A temporary's member array, Make().a, is an array, not the pointer its value would be.  [stmt.ranged] 1
-			psRanged = bRvalue ? mpcUnit->PlaceOf(pcFor->mpcRange) : NULL;
+			psRanged = bRvalue ? mpcUnit->GetTypeChecker()->PlaceOf(pcFor->mpcRange) : NULL;
 			psRanged = (psRanged && psRanged->IsArray()) ? psRanged : NULL;
 		}
-		psRanged = psRanged ? psRanged : mpcUnit->ValueTypeOf(pcFor->mpcRange);
+		psRanged = psRanged ? psRanged : mpcUnit->GetTypeChecker()->ValueTypeOf(pcFor->mpcRange);
 	}
 	if (!psRanged)
 	{
-		mpcUnit->ReportTypeOf(pcFor->mpcRange);
+		mpcUnit->GetTypeChecker()->ReportTypeOf(pcFor->mpcRange);
 		return false;
 	}
 	mpcUnit->AddVariable(mpcUnit->GetLocals(), psRangeFor->pcRange, mpcUnit->mcTypes.Reference(psRanged, bRvalue), CPPVS_Local, 0);
@@ -566,7 +566,7 @@ bool CCPPDesugarings::InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue
 		return psMember->psBase->IsInteger() && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcValue));
 	}
 	mpcUnit->mcDiagnostics.BeginQuiet();
-	psValue = mpcUnit->ValueTypeOf(pcValue);
+	psValue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcValue);
 	mpcUnit->mcDiagnostics.EndQuiet();
 	return psValue && psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, psMember->pcClass, NULL);
 }
@@ -707,7 +707,7 @@ CCPPSyntaxBinaryExpression* CCPPDesugarings::ImplicitAssignment(CCPPSyntaxCallEx
 	{
 		return *ppcAssignment;
 	}
-	psType = mpcUnit->ValueTypeOf(pcMember->mpcObject);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcMember->mpcObject);
 	if (!psType || !psType->IsClass() || !mpcUnit->CompleteClass(psType->pcClass, pcCall))
 	{
 		return NULL;

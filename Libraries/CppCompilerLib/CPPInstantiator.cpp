@@ -1940,7 +1940,7 @@ bool CCPPInstantiator::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* 
 		pszArguments->Append('E');
 		return true;
 	}
-	if (!bAddress && pcEntity && mpcUnit->TypeOf(pcEntity) && mpcUnit->TypeOf(pcEntity)->IsNullPointer())
+	if (!bAddress && pcEntity && mpcUnit->GetTypeChecker()->TypeOf(pcEntity) && mpcUnit->GetTypeChecker()->TypeOf(pcEntity)->IsNullPointer())
 	{
 		//nullptr for a pointer: a null pointer of the parameter's type, mangled as _XN.  [temp.arg.nontype] 1
 		psBinding->pcArgument = psArgument->pcArgument;
@@ -2716,7 +2716,7 @@ CCPPFunction* CCPPInstantiator::InstantiateFunction(CCPPTemplate* pcTemplate, CA
 	apsArguments.Init();
 	for (i = 0; papcArguments && (i < papcArguments->NumElements()); i++)
 	{
-		apsArguments.Add(mpcUnit->TypeOf(papcArguments->GetPtr(i)));
+		apsArguments.Add(mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i)));
 	}
 	cDeduction.Init(mpcUnit, pcTemplate);
 	cDeduction.Deduce(&apsArguments, papcArguments);

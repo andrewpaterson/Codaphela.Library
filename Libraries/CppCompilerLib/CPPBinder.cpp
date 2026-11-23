@@ -416,7 +416,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	bool			bAmbiguous;
 
 	mpcDiagnostics->BeginQuiet();
-	psType = mpcUnit->ValueTypeOf(pcBound->mpcCallee);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcBound->mpcCallee);
 	mpcDiagnostics->EndQuiet();
 	if (!psType || !psType->IsClass())
 	{
@@ -552,7 +552,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	if (pcCallee->GetKind() == CPPS_MemberExpression)
 	{
 		pcMember = (CCPPSyntaxMemberExpression*)pcCallee;
-		psType = mpcUnit->TypeOf(pcMember->mpcObject);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcMember->mpcObject);
 		if (!psType)
 		{
 			//Its errors.
@@ -654,7 +654,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	//object.pf() calls through a field that points to a function.
 	if (pcObject && !mpcUnit->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
 	{
-		psType = mpcUnit->TypeOf(pcCallee);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcCallee);
 		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
 		{
 			pcBound->meHow = CPPBC_Pointer;
@@ -795,7 +795,7 @@ bool CCPPBinder::ConvertsByConstructor(CCPPClass* pcClass, CCPPSyntax* pcSource)
 {
 	SCPP65Type*	psSource;
 
-	psSource = mpcUnit->TypeOf(pcSource);
+	psSource = mpcUnit->GetTypeChecker()->TypeOf(pcSource);
 	psSource = psSource ? psSource->WithoutReference() : NULL;
 	return psSource && !psSource->IsClass() && mcOverloads.HasConvertingConstructor(pcClass, psSource, pcSource);
 }
@@ -916,7 +916,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	CArraySyntax	apcArguments;
 	int				iBetter;
 
-	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcBound->mpcLeft);
 	apcArguments.Init();
 	pcMember = NULL;
 	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mpcUnit->HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
@@ -981,7 +981,7 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	CArraySyntax	apcArguments;
 	size			uiErrors;
 
-	psType = mpcUnit->ValueTypeOf(pcBound->mpcLeft);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcBound->mpcLeft);
 	if (!psType || !psType->IsClass())
 	{
 		mpcDiagnostics->Error(pcNode, "An operator call needs an object");
@@ -1118,7 +1118,7 @@ bool CCPPBinder::ListConverts(SCPP65Type* psElement, CCPPSyntax* pcList)
 	for (i = 0; i < papcElements->NumElements(); i++)
 	{
 		pcValue = papcElements->GetPtr(i);
-		psValue = (pcValue->GetKind() == CPPS_InitializerList) ? NULL : mpcUnit->TypeOf(pcValue);
+		psValue = (pcValue->GetKind() == CPPS_InitializerList) ? NULL : mpcUnit->GetTypeChecker()->TypeOf(pcValue);
 		if (psValue ? (mcOverloads.ConversionRank(psElement, psValue, pcValue) == CPPCR_None) : !mpcUnit->GetTypeChecker()->CanInitialise(psElement, pcValue))
 		{
 			return false;
@@ -1220,7 +1220,7 @@ bool CCPPBinder::IsBuiltinPlacement(CArraySyntax* papcArguments)
 	{
 		return false;
 	}
-	psAddress = mpcUnit->TypeOf(papcArguments->GetPtr(1));
+	psAddress = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(1));
 	return psAddress && psAddress->WithoutReference()->IsPointer();
 }
 
@@ -1376,7 +1376,7 @@ CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSo
 	int				iConstructor;
 	int				iConversion;
 
-	psSource = mpcUnit->TypeOf(pcSource);
+	psSource = mpcUnit->GetTypeChecker()->TypeOf(pcSource);
 	psSource = psSource ? psSource->WithoutReference() : NULL;
 	if (!psSource || !psSource->IsClass() || mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
 	{
@@ -1485,7 +1485,7 @@ bool CCPPBinder::TakesAsTheyAre(CCPPFunction* pcFunction, CArraySyntax* papcArgu
 	}
 	for (i = 0; i < papcArguments->NumElements(); i++)
 	{
-		psArgument = mpcUnit->ValueTypeOf(papcArguments->GetPtr(i));
+		psArgument = mpcUnit->GetTypeChecker()->ValueTypeOf(papcArguments->GetPtr(i));
 		if (!psArgument || !pcFunction->mapsParameters.GetPtr(i)->WithoutReference()->Unqualified()->Equals(psArgument->Unqualified()))
 		{
 			return false;
@@ -1696,12 +1696,12 @@ ECPPCalledObject CCPPBinder::CalledObject(CCPPSyntax* pcObject, bool bArrow)
 	{
 		return CPPCalledObject(mpcUnit->IsConstThis(), mpcUnit->IsVolatileThis());
 	}
-	psType = mpcUnit->ValueTypeOf(pcObject);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcObject);
 	if (bArrow)
 	{
 		psType = (psType && psType->IsPointer()) ? psType->psBase : NULL;
 	}
-	return CPPCalledObject(psType && psType->bConst, psType && psType->bVolatile, !bArrow && mpcUnit->IsRvalue(pcObject));
+	return CPPCalledObject(psType && psType->bConst, psType && psType->bVolatile, !bArrow && mpcUnit->GetTypeChecker()->IsRvalue(pcObject));
 }
 
 
@@ -2283,7 +2283,7 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 	if ((papcArguments == &apcValue) && !CopiesByConstructor(pcClass, pcInit->mpcInitializer))
 	{
 		//= an object of the class, which no constructor of its own copies: it is copied as its parts or bytes are.
-		psValue = mpcUnit->ValueTypeOf(pcInit->mpcInitializer);
+		psValue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcInit->mpcInitializer);
 		psValue = psValue ? psValue->WithoutReference() : NULL;
 		if (psValue && psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, pcClass, NULL))
 		{
@@ -2294,7 +2294,7 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 	bResult = true;
 	if ((papcArguments->NumElements() > 0) && BindConstruction(pcClass, papcArguments, pcInit, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
 	{
-		psValue = (papcArguments == &apcValue) ? mpcUnit->ValueTypeOf(pcInit->mpcInitializer) : NULL;
+		psValue = (papcArguments == &apcValue) ? mpcUnit->GetTypeChecker()->ValueTypeOf(pcInit->mpcInitializer) : NULL;
 		psParameter = (cBound.mpcConstructor->mapsParameters.NumElements() > 0) ? cBound.mpcConstructor->mapsParameters.GetPtr(0)->WithoutReference() : NULL;
 		if (cBound.mpcConstructor->mbExplicit)
 		{
@@ -2340,9 +2340,9 @@ void CCPPBinder::BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool
 	pcBound->meHow = CPPBV_AsItIs;
 	pcBound->mpcFunction = NULL;
 	pcBound->mpcClass = NULL;
-	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcUnit->IsObject(pcExpression))
+	if (psTo && !psTo->IsClass() && !psTo->IsReference() && !psTo->IsVoid() && mpcUnit->GetTypeChecker()->IsObject(pcExpression))
 	{
-		BindObjectConversion(mpcUnit->ObjectClass(pcExpression), psTo, bExplicit, pcExpression, pcBound);
+		BindObjectConversion(mpcUnit->GetTypeChecker()->ObjectClass(pcExpression), psTo, bExplicit, pcExpression, pcBound);
 	}
 }
 
@@ -2381,11 +2381,11 @@ SCPP65Type* CCPPBinder::ContextualType(CCPPSyntax* pcExpression, ECPPContextualT
 	const char*		szNone;
 	bool			bAmbiguous;
 
-	if (!mpcUnit->IsObject(pcExpression))
+	if (!mpcUnit->GetTypeChecker()->IsObject(pcExpression))
 	{
-		return mpcUnit->ValueTypeOf(pcExpression);
+		return mpcUnit->GetTypeChecker()->ValueTypeOf(pcExpression);
 	}
-	pcConversion = mcOverloads.FindContextualConversion(mpcUnit->ObjectClass(pcExpression), eWanted, pcExpression, &bAmbiguous);
+	pcConversion = mcOverloads.FindContextualConversion(mpcUnit->GetTypeChecker()->ObjectClass(pcExpression), eWanted, pcExpression, &bAmbiguous);
 	if (!pcConversion)
 	{
 		szNone = (eWanted == CPPXT_ObjectPointer) ? "The object doesn't convert to a pointer" : ((eWanted == CPPXT_Integer) ? "The object doesn't convert to an integer" : "The object doesn't convert to a number");

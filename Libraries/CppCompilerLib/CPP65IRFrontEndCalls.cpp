@@ -70,7 +70,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		}
 		return Call(cBound.mpcFunction, FunctionSymbol(cBound.mpcFunction), NULL, cBound.mpapcArguments, psValue);
 	case CPPBC_InlineMemcpy:
-		return InlineMemcpy(cBound.mpapcArguments, mpcUnit->TypeOf(pcCall), psValue);
+		return InlineMemcpy(cBound.mpapcArguments, mpcUnit->GetTypeChecker()->TypeOf(pcCall), psValue);
 	case CPPBC_Builtin:
 		return Builtin(pcCall, cBound.mpapcArguments, cBound.mlliName, psValue);
 	case CPPBC_Surrogate:
@@ -86,7 +86,7 @@ bool CCPP65IRFrontEnd::CallExpression(CCPPSyntaxCallExpression* pcCall, SCPP65IR
 		if (!cBound.mpcName && (pcCallee->GetKind() == CPPS_UnaryExpression))
 		{
 			pcUnary = (CCPPSyntaxUnaryExpression*)pcCallee;
-			psOperandType = (pcUnary->meOperator == CT_Multiply) ? mpcUnit->TypeOf(pcUnary->mpcOperand) : NULL;
+			psOperandType = (pcUnary->meOperator == CT_Multiply) ? mpcUnit->GetTypeChecker()->TypeOf(pcUnary->mpcOperand) : NULL;
 			if (psOperandType && psOperandType->IsPointer() && psOperandType->psBase->IsFunction())
 			{
 				pcCallee = pcUnary->mpcOperand->WithoutParentheses();
@@ -269,7 +269,7 @@ bool CCPP65IRFrontEnd::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* p
 		//Copied in place for a small constant count, as memcpy is.
 		if (mpcUnit->GetBuiltins()->IsInlineMemcpy(lliName, papcArguments))
 		{
-			return InlineMemcpy(papcArguments, mpcUnit->TypeOf(pcCall), psValue);
+			return InlineMemcpy(papcArguments, mpcUnit->GetTypeChecker()->TypeOf(pcCall), psValue);
 		}
 		return BuiltinMemcpy(pcCall, papcArguments, psValue);
 	case CPPB_BCDAdd:
@@ -851,7 +851,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 			//for the call (not an object lvalue of the parameter's class: a call's, Class(...)'s, or one a converting
 			//constructor or conversion function makes) is the parameter, which the called function destroys, so it's
 			//made in a temporary the caller doesn't destroy.  So is one a constructor template's instance copies.
-			if (!mpcUnit->IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass) || mpcUnit->GetBinder()->CopiesByConstructor(psParameter->pcClass, pcArgument))
+			if (!mpcUnit->GetTypeChecker()->IsObjectLvalue(pcArgument) || !IsObjectOf(pcArgument, psParameter->pcClass) || mpcUnit->GetBinder()->CopiesByConstructor(psParameter->pcClass, pcArgument))
 			{
 				if (!Temporary(psParameter, &sCopy, NULL) || !Construct(&sCopy, NULL, pcArgument))
 				{

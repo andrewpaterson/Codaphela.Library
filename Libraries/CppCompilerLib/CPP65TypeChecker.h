@@ -157,6 +157,21 @@ public:
 	SCPP65Type*				ConditionalObjectType(CCPPSyntaxConditionalExpression* pcConditional, bool* pbAmbiguous);
 	SCPP65Type*				VariadicArgumentType(SCPP65Type* psType);
 	SCPP65Type*				CalleePointerType(CCPPSyntax* pcCallee);
+	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				DeclaredTypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
+	SCPP65Type*				UnevaluatedTypeOf(CCPPSyntax* pcExpression);
+	void					ReportTypeOf(CCPPSyntax* pcExpression);
+	bool					IsRvalue(CCPPSyntax* pcExpression);
+	bool					IsObjectLvalue(CCPPSyntax* pcExpression);
+	bool					MakesObject(CCPPSyntax* pcExpression);
+	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);
+	bool					IsObject(CCPPSyntax* pcExpression);
+	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
+	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
+	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
+	bool					IsReturnedLocal(CCPPSyntaxIdExpression* pcId);
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);

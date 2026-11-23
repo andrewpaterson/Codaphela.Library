@@ -353,11 +353,11 @@ bool CCPP65TypeChecker::IsOperatorCall(CCPPSyntax* pcExpression)
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_UnaryExpression:
-		return mpcUnit->IsObject(((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand);
+		return IsObject(((CCPPSyntaxUnaryExpression*)pcExpression)->mpcOperand);
 	case CPPS_BinaryExpression:
-		return mpcUnit->IsObject(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft) || mpcUnit->IsObject(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight);
+		return IsObject(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft) || IsObject(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcRight);
 	case CPPS_SubscriptExpression:
-		return mpcUnit->IsObject(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcArray);
+		return IsObject(((CCPPSyntaxSubscriptExpression*)pcExpression)->mpcArray);
 	default:
 		return false;
 	}
@@ -480,7 +480,7 @@ void CCPP65TypeChecker::VisitSubscriptExpression(CCPPSyntaxSubscriptExpression* 
 	CArraySyntax	apcIndex;
 	SCPP65Type*		psType;
 
-	psType = mpcUnit->TypeOf(pcNode->mpcArray);
+	psType = TypeOf(pcNode->mpcArray);
 	if (psType && psType->IsClass())
 	{
 		apcIndex.Init();
@@ -1183,7 +1183,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		}
 		return ConditionValue(pcUnary);
 	case CT_Multiply:
-		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (IsObject(pcUnary->mpcOperand))
 		{
 			//*object: the object's operator.
 			return OperatorExpression(CT_Multiply, pcUnary->mpcOperand, NULL, pcUnary);
@@ -1192,7 +1192,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
 		mpcUnit->GetCheck()->Changed(pcOperand, CPPPC_ADDRESS);
-		if (mpcUnit->IsObject(pcOperand) && mpcUnit->HasMember(mpcUnit->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
+		if (IsObject(pcOperand) && mpcUnit->HasMember(ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, pcUnary);
 		}
@@ -1220,7 +1220,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			}
 		}
 		psType = Place(pcUnary->mpcOperand);
-		if (psType && mpcUnit->IsRvalue(pcOperand))
+		if (psType && IsRvalue(pcOperand))
 		{
 			//[expr.unary.op] 3
 			Error(pcUnary, "The address of a temporary can't be taken");
@@ -1242,12 +1242,12 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		Error(pcUnary, "This operator is not supported by the compiler yet");
 		return NULL;
 	}
-	if (!mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
+	if (!IsObject(pcUnary->mpcOperand) && mpcUnit->IsOperatorOperand(pcUnary->mpcOperand, pcUnary->meOperator) && mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
 	{
 		//An enum's operand with an operator function that takes it.
 		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary);
 	}
-	if (mpcUnit->IsObject(pcUnary->mpcOperand))
+	if (IsObject(pcUnary->mpcOperand))
 	{
 		if (mpcUnit->GetBinder()->BindOperator(pcUnary->meOperator, pcUnary->mpcOperand, NULL, pcUnary, &cBound, false))
 		{
@@ -1260,7 +1260,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	{
 		if (mpcUnit->GetFolder()->Constant(pcUnary, &lliValue))
 		{
-			psType = mpcUnit->TypeOf(pcUnary->mpcOperand);
+			psType = TypeOf(pcUnary->mpcOperand);
 			if (psType && psType->IsInteger() && !psType->IsScopedEnum())
 			{
 				return mpcTypes->Promote(mpcUnit->OperandType(psType, pcUnary->mpcOperand));
@@ -1300,7 +1300,7 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 {
 	SCPP65Type*	psType;
 
-	if (mpcUnit->IsObject(pcUnary->mpcOperand))
+	if (IsObject(pcUnary->mpcOperand))
 	{
 		//++object, --object, and object++ and object-- with an int 0: the object's operator.  [over.inc] 1
 		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->GetDesugarings()->ImplicitZero() : NULL, pcUnary);
@@ -1361,7 +1361,7 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 	switch (pcBinary->meOperator)
 	{
 	case CT_MemberByPointerFunctionPointerIndirection:
-		if (mpcUnit->IsObject(pcBinary->mpcLeft))
+		if (IsObject(pcBinary->mpcLeft))
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary);
 		}
@@ -1409,7 +1409,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	ECppTokens		eOperator;
 	CArraySyntax	apcRight;
 
-	psResult = mpcUnit->TypeOf(pcBinary->mpcLeft);
+	psResult = TypeOf(pcBinary->mpcLeft);
 	if (psResult && psResult->IsClass() && !mpcUnit->CompleteClass(psResult->pcClass, pcBinary))
 	{
 		//Its operator= (or its using Base::operator=) is known once it is laid out.
@@ -1442,12 +1442,12 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 			//x = {1, 2} is x = X{1, 2}: a temporary made from the list.  [expr.ass] 9
 			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
 		}
-		if (!mpcUnit->IsObject(pcBinary->mpcRight) && mpcUnit->GetBinder()->ConvertsByConstructor(psPlace->pcClass, pcBinary->mpcRight))
+		if (!IsObject(pcBinary->mpcRight) && mpcUnit->GetBinder()->ConvertsByConstructor(psPlace->pcClass, pcBinary->mpcRight))
 		{
 			//x = 6 is x = X(6): a temporary made by a constructor that isn't explicit.  [over.match.oper] 3, [class.conv.ctor] 1
 			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
 		}
-		if (!mpcUnit->IsObject(pcBinary->mpcRight) && Value(pcBinary->mpcRight))
+		if (!IsObject(pcBinary->mpcRight) && Value(pcBinary->mpcRight))
 		{
 			Error(pcBinary->mpcRight, "No constructor of the class that isn't explicit makes an object of it from the value assigned");
 			return NULL;
@@ -1474,7 +1474,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 
 	//x op= y is x = x op y, and an object for y what it converts to for the operator.  [expr.ass] 7
 	eOperator = CPPCompoundOperation(pcBinary->meOperator);
-	psRight = mpcUnit->IsObject(pcBinary->mpcRight) ? BuiltinOperand(pcBinary->mpcRight, CPPBinaryOperandTypes(eOperator)) : Value(pcBinary->mpcRight);
+	psRight = IsObject(pcBinary->mpcRight) ? BuiltinOperand(pcBinary->mpcRight, CPPBinaryOperandTypes(eOperator)) : Value(pcBinary->mpcRight);
 	if (!psRight)
 	{
 		return NULL;
@@ -1547,7 +1547,7 @@ SCPP65Type* CCPP65TypeChecker::BuiltinOperand(CCPPSyntax* pcOperand, ECPPContext
 {
 	SCPP65Type*	psType;
 
-	if (!mpcUnit->IsObject(pcOperand))
+	if (!IsObject(pcOperand))
 	{
 		return Operand(pcOperand);
 	}
@@ -1752,8 +1752,8 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 	bool			bThrowTrue;
 	bool			bThrowFalse;
 
-	psTrue = mpcUnit->TypeOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->TypeOf(pcConditional->mpcFalse);
+	psTrue = TypeOf(pcConditional->mpcTrue);
+	psFalse = TypeOf(pcConditional->mpcFalse);
 	if (!psTrue || !psFalse)
 	{
 		//TypeOf says nothing of what is wrong: the arm that can't be typed is typed again here, for its error.
@@ -1792,7 +1792,7 @@ SCPP65Type* CCPP65TypeChecker::ConditionalExpression(CCPPSyntaxConditionalExpres
 	{
 		return (Condition(pcConditional->mpcCondition) && Value(pcConditional->mpcTrue) && Value(pcConditional->mpcFalse)) ? psType : NULL;
 	}
-	if (mpcUnit->IsObject(pcConditional->mpcTrue) || mpcUnit->IsObject(pcConditional->mpcFalse))
+	if (IsObject(pcConditional->mpcTrue) || IsObject(pcConditional->mpcFalse))
 	{
 		return ObjectConditional(pcConditional);
 	}
@@ -2501,7 +2501,7 @@ SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pc
 	CCPPFunction*	pcFunction;
 	int				i;
 
-	psType = mpcUnit->TypeOf(pcObject);
+	psType = TypeOf(pcObject);
 	if (!psType || !psType->IsClass())
 	{
 		return Value(pcObject);
@@ -2611,7 +2611,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 	SCPP65Type*		psObject;
 	CCPPClass*		pcClass;
 
-	psMember = mpcUnit->TypeOf(pcBinary->mpcRight);
+	psMember = TypeOf(pcBinary->mpcRight);
 	if (!psMember)
 	{
 		//Its errors.
@@ -2720,7 +2720,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerCall(CCPPSyntaxCallExpression* pcCal
 	SCPP65Type*	psFunctionType;
 	SCPP65Type*	psObject;
 
-	psMember = mpcUnit->TypeOf(pcBinary->mpcRight);
+	psMember = TypeOf(pcBinary->mpcRight);
 	if (!psMember || !psMember->IsMemberPointer() || !psMember->psBase->IsFunction())
 	{
 		Error(pcBinary, "Only a pointer to a member function can be called");
@@ -2853,7 +2853,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !IsObject(pcUnary->mpcOperand))
 		{
 			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
 			return IncrementExpression(pcUnary) ? Place(pcUnary->mpcOperand) : NULL;
@@ -2862,7 +2862,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		{
 			break;
 		}
-		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (IsObject(pcUnary->mpcOperand))
 		{
 			//*object: what its operator's reference refers to, or the object it returns.
 			return ResultPlace(Result(pcExpression), pcExpression);
@@ -2901,7 +2901,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		}
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
 		pcLeft = mpcUnit->SkipParentheses(pcBinary->mpcLeft);
-		if (IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsObject(pcLeft))
+		if (IsCPPAssignment(pcBinary->meOperator) && !IsObject(pcLeft))
 		{
 			//(x = y) and (x op= y) are x, once it is assigned.  [expr.ass] 1
 			return Assignment(pcBinary) ? Place(pcLeft) : NULL;
@@ -2925,11 +2925,11 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	case CPPS_ConditionalExpression:
 		//One of two lvalues; of objects any other is the object it makes.  What is wrong with one that has no type is
 		//said as its value's error.
-		if (ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) || (!mpcUnit->IsObject(pcExpression) && mpcUnit->TypeOf(pcExpression)))
+		if (ConditionalLvalueType((CCPPSyntaxConditionalExpression*)pcExpression) || (!IsObject(pcExpression) && TypeOf(pcExpression)))
 		{
 			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression);
 		}
-		if (!mpcUnit->IsObject(pcExpression))
+		if (!IsObject(pcExpression))
 		{
 			Value(pcExpression);
 			return NULL;
@@ -2939,7 +2939,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	default:
 		break;
 	}
-	if (mpcUnit->IsObject(pcExpression))
+	if (IsObject(pcExpression))
 	{
 		//An expression that makes an object: its temporary.
 		return ResultPlace(Result(pcExpression), pcExpression);
@@ -2969,7 +2969,7 @@ SCPP65Type* CCPP65TypeChecker::SubscriptPlace(CCPPSyntaxSubscriptExpression* pcS
 	SCPP65Type*		psIndex;
 	CArraySyntax	apcIndex;
 
-	psType = mpcUnit->TypeOf(pcSubscript->mpcArray);
+	psType = TypeOf(pcSubscript->mpcArray);
 	if (psType && psType->IsClass())
 	{
 		apcIndex.Init();
@@ -3594,7 +3594,7 @@ bool CCPP65TypeChecker::Narrows(CCPPSyntax* pcSource, SCPP65Type* psTo)
 	double		dValue;
 	bool		bConstant;
 
-	psFrom = mpcUnit->ValueTypeOf(pcSource);
+	psFrom = ValueTypeOf(pcSource);
 	if (!psFrom || psFrom->pcEnum || psTo->pcEnum || (psTo->eKind == CPP65TK_Bool) || !(psFrom->IsInteger() || psFrom->IsFloat()) || !(psTo->IsInteger() || psTo->IsFloat()))
 	{
 		return false;
@@ -3869,7 +3869,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		psSource = ObjectType(pcInitialiser);
 		if (psSource && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
-			bResult = mpcUnit->IsMadeObject(pcInitialiser, pcClass) ? (Value(pcInitialiser) != NULL) : CopyConstruct(pcClass, pcInitialiser, pcNode);
+			bResult = IsMadeObject(pcInitialiser, pcClass) ? (Value(pcInitialiser) != NULL) : CopyConstruct(pcClass, pcInitialiser, pcNode);
 			apcArguments.Kill();
 			return bResult;
 		}
@@ -3995,7 +3995,7 @@ bool CCPP65TypeChecker::CopyConstruct(CCPPClass* pcClass, CCPPSyntax* pcSource, 
 		apcArguments.Kill();
 		return bResult;
 	}
-	if (mpcUnit->IsRvalue(pcSource) ? mpcUnit->GetBinder()->IsMoveDeleted(pcClass) : mpcUnit->GetBinder()->IsCopyDeleted(pcClass))
+	if (IsRvalue(pcSource) ? mpcUnit->GetBinder()->IsMoveDeleted(pcClass) : mpcUnit->GetBinder()->IsCopyDeleted(pcClass))
 	{
 		return Error(pcNode, "The class's copy constructor is deleted: a member or base of it can't be copied");
 	}
@@ -4041,7 +4041,7 @@ SCPP65Type* CCPP65TypeChecker::ObjectType(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcUnit->ValueTypeOf(pcExpression);
+	psType = ValueTypeOf(pcExpression);
 	return (psType && psType->IsClass()) ? psType : NULL;
 }
 
@@ -4489,7 +4489,7 @@ bool CCPP65TypeChecker::NamedCastAllowed(CCPPSyntaxNamedCastExpression* pcCast, 
 {
 	SCPP65Type*	psFrom;
 
-	psFrom = mpcUnit->ValueTypeOf(pcCast->mpcOperand);
+	psFrom = ValueTypeOf(pcCast->mpcOperand);
 	if (!psFrom || psTo->IsReference() || psTo->IsClass() || psTo->IsVoid() || psFrom->IsClass())
 	{
 		return (pcCast->meCast != CT_const_cast) || psTo->IsReference() || Error(pcCast, "const_cast makes a pointer, a pointer to a member or a reference");
@@ -4525,7 +4525,7 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 {
 	SCPP65Type*	psFrom;
 
-	psFrom = psTo->IsReference() ? Place(pcCast->mpcOperand) : mpcUnit->ValueTypeOf(pcCast->mpcOperand);
+	psFrom = psTo->IsReference() ? Place(pcCast->mpcOperand) : ValueTypeOf(pcCast->mpcOperand);
 	if (!psFrom)
 	{
 		return false;
@@ -4771,7 +4771,7 @@ bool CCPP65TypeChecker::BitFieldError(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::BindsCategory(SCPP65Type* psReference, CCPPSyntax* pcValue, CCPPSyntax* pcNode)
 {
-	return !psReference->bRvalue || mpcUnit->IsRvalue(pcValue) || mpcUnit->BindsToTemporary(psReference, pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
+	return !psReference->bRvalue || IsRvalue(pcValue) || mpcUnit->BindsToTemporary(psReference, pcValue) || Error(pcNode, "A reference declared && cannot be bound to something with a name");
 }
 
 
@@ -4832,14 +4832,14 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 {
 	SCPP65Type*	psValue;
 
-	psValue = mpcUnit->ValueTypeOf(pcValue);
+	psValue = ValueTypeOf(pcValue);
 	if (!psValue)
 	{
 		return true;
 	}
 	if (psTo->IsReference())
 	{
-		if (!psTo->bRvalue && !psTo->psBase->bConst && !psValue->IsClass() && !psTo->psBase->IsFunction() && mpcUnit->IsRvalue(pcValue))
+		if (!psTo->bRvalue && !psTo->psBase->bConst && !psValue->IsClass() && !psTo->psBase->IsFunction() && IsRvalue(pcValue))
 		{
 			//T& binds to an lvalue (or what a conversion function returns as one).  [dcl.init.ref] 5
 			return Error(pcValue, "A reference that isn't const binds to an object: the value has no place to refer to");
@@ -5025,9 +5025,9 @@ SCPP65Type* CCPP65TypeChecker::ConditionalLvalueType(CCPPSyntaxConditionalExpres
 	SCPP65Type*	psBase;
 	CCPPClass*	pcClass;
 
-	psTrue = mpcUnit->PlaceOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->PlaceOf(pcConditional->mpcFalse);
-	if (!psTrue || !psFalse || mpcUnit->IsRvalue(pcConditional->mpcTrue) || mpcUnit->IsRvalue(pcConditional->mpcFalse))
+	psTrue = PlaceOf(pcConditional->mpcTrue);
+	psFalse = PlaceOf(pcConditional->mpcFalse);
+	if (!psTrue || !psFalse || IsRvalue(pcConditional->mpcTrue) || IsRvalue(pcConditional->mpcFalse))
 	{
 		return NULL;
 	}
@@ -5057,8 +5057,8 @@ SCPP65Type* CCPP65TypeChecker::ConditionalXvalueType(CCPPSyntaxConditionalExpres
 	SCPP65Type*	psTrue;
 	SCPP65Type*	psFalse;
 
-	psTrue = mpcUnit->DeclaredTypeOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->DeclaredTypeOf(pcConditional->mpcFalse);
+	psTrue = DeclaredTypeOf(pcConditional->mpcTrue);
+	psFalse = DeclaredTypeOf(pcConditional->mpcFalse);
 	return (psTrue && psFalse && psTrue->IsRvalueReference() && psFalse->IsRvalueReference() && psTrue->psBase->Same(psFalse->psBase)) ? psTrue : NULL;
 }
 
@@ -5082,8 +5082,8 @@ SCPP65Type* CCPP65TypeChecker::ConditionalObjectType(CCPPSyntaxConditionalExpres
 	bool		bToFalse;
 
 	*pbAmbiguous = false;
-	psTrue = mpcUnit->ValueTypeOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->ValueTypeOf(pcConditional->mpcFalse);
+	psTrue = ValueTypeOf(pcConditional->mpcTrue);
+	psFalse = ValueTypeOf(pcConditional->mpcFalse);
 	if (!psTrue || !psFalse || psTrue->IsVoid() || psFalse->IsVoid())
 	{
 		return NULL;
@@ -5093,8 +5093,8 @@ SCPP65Type* CCPP65TypeChecker::ConditionalObjectType(CCPPSyntaxConditionalExpres
 	{
 		return (psTrue->pcClass == pcClass) ? psTrue : psFalse;
 	}
-	bToTrue = mpcUnit->mcTypeChecker.CanInitialise(psTrue, pcConditional->mpcFalse);
-	bToFalse = mpcUnit->mcTypeChecker.CanInitialise(psFalse, pcConditional->mpcTrue);
+	bToTrue = CanInitialise(psTrue, pcConditional->mpcFalse);
+	bToFalse = CanInitialise(psFalse, pcConditional->mpcTrue);
 	*pbAmbiguous = bToTrue && bToFalse;
 	if (bToTrue == bToFalse)
 	{
@@ -5150,11 +5150,284 @@ SCPP65Type* CCPP65TypeChecker::CalleePointerType(CCPPSyntax* pcCallee)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcUnit->TypeOf(pcCallee);
+	psType = TypeOf(pcCallee);
 	if (psType && psType->IsFunction())
 	{
 		psType = mpcUnit->mcTypes.Pointer(psType);
 	}
 	return (psType && psType->IsPointer() && psType->psBase->IsFunction()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of an expression (NULL if it is wrong), worked out without its code by
+// CCPP65TypeChecker.  Its errors are dropped: they are reported where its code is
+// written (ReportTypeOf).  An expression's type only depends on the template
+// arguments and the function it is in, so it is remembered.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::TypeOf(CCPPSyntax* pcExpression)
+{
+	return Facts(pcExpression)->psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TypeOf, a reference as the type it refers to (NULL if it is wrong).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ValueTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = TypeOf(pcExpression);
+	return psType ? psType->WithoutReference() : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type the expression is declared to give: TypeOf's, or the reference
+// to it that a call of a function returning T& or T&&, or a cast to one,
+// gives.  A variable declared as a reference is its own type here, as its
+// name is the thing it refers to.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::DeclaredTypeOf(CCPPSyntax* pcExpression)
+{
+	return Facts(pcExpression)->psDeclared;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the place an lvalue is (an array stays an array), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::PlaceTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	mpcUnit->mpcStatistics->Begin(CPPCP_Types);
+	psType = Place(pcExpression);
+	mpcUnit->mpcStatistics->End(CPPCP_Types);
+	mpcUnit->mcDiagnostics.EndQuiet();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of an operand that isn't evaluated and isn't converted as a
+// value is (sizeof's and typeid's): an lvalue stays what it is, so an array
+// (a variable, a field, a row of another array, a string) is not the
+// pointer it would become, and a function is not a pointer to it.  A name
+// is the thing it names (CCPPDeclarators::EntityType), which needs no
+// object: S::m alone, and m in a static member function, are the member's
+// type.  NULL if it is wrong.  [expr.sizeof] 4, [expr.typeid] 3,
+// [expr.prim.general] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	mpcUnit->mcContext.EnterUnevaluated();
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	psType = mpcUnit->mcDeclarators.EntityType(pcExpression);
+	if (!psType)
+	{
+		psType = PlaceTypeOf(pcExpression);
+	}
+	if (!psType)
+	{
+		psType = TypeOf(pcExpression);
+	}
+	mpcUnit->mcContext.LeaveUnevaluated();
+	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Reports what is wrong with an expression whose type the IR front end needed
+// and TypeOf couldn't work out, in quiet mode too: a call that no function
+// matches, or that more than one does, is then an error where it is ("No
+// function matches the arguments": an unsigned short* passed for an unsigned
+// long*), not only "doesn't support yet".  The errors are the ones TypeOf
+// kept when it worked the type out: nothing is worked out again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::ReportTypeOf(CCPPSyntax* pcExpression)
+{
+	mpcUnit->mcDiagnostics.Report(Facts(pcExpression)->pcErrors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression is an rvalue: a value with no name (3, a + b, an
+// object a call or a constructor makes) or something said to be about to
+// go (what a function returning T&& returns, a cast to T&&, a member of
+// either).  What has a name is an lvalue, a variable declared T&& too,
+// but for a local object where it is returned.  An rvalue binds to T&&
+// and not to T&; an lvalue to T& and not to T&&.  The expression's
+// category is the type checker's (CCPP65TypeChecker::Category).
+// [basic.lval], [class.copy] 32
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsRvalue(CCPPSyntax* pcExpression)
+{
+	mpcUnit->mpcStatistics->Count(CPPCC_IsRvalue);
+	pcExpression = CommaResult(pcExpression);
+	if ((pcExpression->GetKind() == CPPS_IdExpression) && IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression))
+	{
+		return true;
+	}
+	return Category(pcExpression) != CPPVC_Lvalue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An expression of a class type that is an object where it is (named,
+// pointed at, indexed, or a reference to one), not one to be made: an
+// lvalue or an xvalue (CCPP65TypeChecker::Category).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsObjectLvalue(CCPPSyntax* pcExpression)
+{
+	ECPPValueCategory	eCategory;
+
+	mpcUnit->mpcStatistics->Count(CPPCC_IsObjectLvalue);
+	eCategory = Category(pcExpression);
+	return (eCategory == CPPVC_Lvalue) || (eCategory == CPPVC_Xvalue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression makes an object: a class prvalue (a call, a
+// cast or an operator function's call that gives a class by value, a
+// construction, a lambda).  CCPP65TypeChecker::Category.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::MakesObject(CCPPSyntax* pcExpression)
+{
+	mpcUnit->mpcStatistics->Count(CPPCC_MakesObject);
+	return Category(pcExpression) == CPPVC_ClassPrvalue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression makes an object of the class (a call, or an operator, that
+// returns one): it can be made where the object it initialises is.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
+{
+	SCPP65Type*	psType;
+
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	if (!pcExpression || !MakesObject(pcExpression))
+	{
+		return false;
+	}
+	psType = TypeOf(pcExpression);
+	return psType && psType->IsClass() && (psType->pcClass == pcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the expression is an object (or a reference to one).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsObject(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	mpcUnit->mpcStatistics->Count(CPPCC_IsObject);
+	psType = ValueTypeOf(pcExpression);
+	return psType && psType->IsClass();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The class of an object expression (see IsObject).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPClass* CCPP65TypeChecker::ObjectClass(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = ValueTypeOf(pcExpression);
+	return psType->pcClass;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the place a reference to the expression would refer to, or
+// NULL if it is a value with no address (a literal, a sum, a call's int).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::PlaceOf(CCPPSyntax* pcExpression)
+{
+	mpcUnit->mpcStatistics->Count(CPPCC_PlaceOf);
+	return PlaceFact(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The expression whose value, and whether it is an lvalue, an expression
+// has: itself out of its brackets, and of a, b (the built-in comma) b,
+// whatever is done first.  [expr.comma] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPP65TypeChecker::CommaResult(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxBinaryExpression*	pcBinary;
+
+	for (;;)
+	{
+		pcExpression = mpcUnit->SkipParentheses(pcExpression);
+		pcBinary = (pcExpression->GetKind() == CPPS_BinaryExpression) ? (CCPPSyntaxBinaryExpression*)pcExpression : NULL;
+		if (!pcBinary || (pcBinary->meOperator != CT_Comma) || mpcUnit->IsOverloadedComma(pcBinary))
+		{
+			return pcExpression;
+		}
+		pcExpression = pcBinary->mpcRight;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if pcId is return object; of one of the function's own objects (a
+// local or a parameter, not a reference): it is going, so it is moved to
+// the result if its class has a move.  [class.copy] 32
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsReturnedLocal(CCPPSyntaxIdExpression* pcId)
+{
+	CCPPSyntax*		pcParent;
+	CCPPBoundName	cBound;
+
+	for (pcParent = pcId->mpcParent; pcParent && (pcParent->GetKind() == CPPS_ParenthesisedExpression); pcParent = pcParent->mpcParent)
+	{
+	}
+	if (!pcParent || (pcParent->GetKind() != CPPS_ReturnStatement))
+	{
+		return false;
+	}
+	mpcUnit->mcBinder.BindName(pcId, &cBound);
+	return (cBound.meWhat == CPPBN_Variable) && ((cBound.mpcVariable->meStorage == CPPVS_Local) || (cBound.mpcVariable->meStorage == CPPVS_Parameter)) && cBound.mpcVariable->mpsType->IsClass();
 }
 

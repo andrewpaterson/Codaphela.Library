@@ -661,10 +661,10 @@ bool CCPPClosures::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSy
 
 	if (bReference || !bOwn)
 	{
-		psType = mpcUnit->PlaceOf(pcInitialiser);
+		psType = mpcUnit->GetTypeChecker()->PlaceOf(pcInitialiser);
 		if (!psType)
 		{
-			mpcUnit->ReportTypeOf(pcInitialiser);
+			mpcUnit->GetTypeChecker()->ReportTypeOf(pcInitialiser);
 			return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "What the lambda captures can't be worked out");
 		}
 		psType = bReference ? mpcUnit->mcTypes.Reference(psType) : psType;

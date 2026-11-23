@@ -78,7 +78,7 @@ void CCPPWarnings::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo
 	{
 		return;
 	}
-	psFrom = mpcUnit->TypeOf(pcExpression);
+	psFrom = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	mpcUnit->mcContext.LeaveWorking();
 	if (!psFrom || !psFrom->IsInteger())
 	{
@@ -228,7 +228,7 @@ CCPPSyntaxBinaryExpression* CCPPWarnings::NarrowMultiply(CCPPSyntax* pcExpressio
 	for (i = 0; i < 2; i++)
 	{
 		mpcUnit->mcContext.EnterWorking(CPPWK_Warning, NULL);
-		psSide = mpcUnit->TypeOf((i == 0) ? pcBinary->mpcLeft : pcBinary->mpcRight);
+		psSide = mpcUnit->GetTypeChecker()->TypeOf((i == 0) ? pcBinary->mpcLeft : pcBinary->mpcRight);
 		mpcUnit->mcContext.LeaveWorking();
 		if (!psSide || (psSide->eKind != CPP65TK_Integer) || (psSide->iBytes != psType->iBytes))
 		{
@@ -375,8 +375,8 @@ void CCPPWarnings::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr
 	}
 
 	mpcUnit->mcContext.EnterWorking(CPPWK_Warning, NULL);
-	psCounter = mpcUnit->TypeOf(pcCounter);
-	psBound = mpcUnit->TypeOf(pcBound);
+	psCounter = mpcUnit->GetTypeChecker()->TypeOf(pcCounter);
+	psBound = mpcUnit->GetTypeChecker()->TypeOf(pcBound);
 	mpcUnit->mcContext.LeaveWorking();
 	if (!psCounter || !psBound || (psCounter->eKind != CPP65TK_Integer) || (psBound->eKind != CPP65TK_Integer) || (psBound->iBytes <= psCounter->iBytes))
 	{
@@ -462,8 +462,8 @@ void CCPPWarnings::ComparisonRange(CCPPSyntaxBinaryExpression* pcBinary)
 	{
 		return;
 	}
-	psLeft = mpcUnit->TypeOf(pcBinary->mpcLeft);
-	psRight = mpcUnit->TypeOf(pcBinary->mpcRight);
+	psLeft = mpcUnit->GetTypeChecker()->TypeOf(pcBinary->mpcLeft);
+	psRight = mpcUnit->GetTypeChecker()->TypeOf(pcBinary->mpcRight);
 	mpcUnit->mcContext.LeaveWorking();
 	if (!psLeft || !psRight || (psLeft->eKind != CPP65TK_Integer) || (psRight->eKind != CPP65TK_Integer))
 	{

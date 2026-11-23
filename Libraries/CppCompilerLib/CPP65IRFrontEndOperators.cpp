@@ -54,7 +54,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		}
 		return ConditionValue(pcUnary, psValue);
 	case CT_Multiply:
-		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (mpcUnit->GetTypeChecker()->IsObject(pcUnary->mpcOperand))
 		{
 			//*object: the object's operator, and what a reference it returns refers to.
 			if (!OperatorExpression(CT_Multiply, pcUnary->mpcOperand, NULL, psValue))
@@ -85,7 +85,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			return false;
 		}
-		if (mpcUnit->IsObject(pcOperand) && mpcUnit->HasMember(mpcUnit->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
+		if (mpcUnit->GetTypeChecker()->IsObject(pcOperand) && mpcUnit->HasMember(mpcUnit->GetTypeChecker()->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			//&object with the object's operator&.
 			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, psValue);
@@ -211,7 +211,7 @@ bool CCPP65IRFrontEnd::IncrementExpression(CCPPSyntaxUnaryExpression* pcUnary, S
 	SCPP65IRValue	sNew;
 	SCPP65Type*		psType;
 
-	if (mpcUnit->IsObject(pcUnary->mpcOperand))
+	if (mpcUnit->GetTypeChecker()->IsObject(pcUnary->mpcOperand))
 	{
 		//++object, --object, and object++ and object-- with an int 0: the object's operator.  [over.inc] 1
 		return OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, pcUnary->mbPostfix ? mpcUnit->GetDesugarings()->ImplicitZero() : NULL, psValue);
@@ -280,7 +280,7 @@ bool CCPP65IRFrontEnd::BinaryExpression(CCPPSyntaxBinaryExpression* pcBinary, SC
 	switch (pcBinary->meOperator)
 	{
 	case CT_MemberByPointerFunctionPointerIndirection:
-		if (mpcUnit->IsObject(pcBinary->mpcLeft))
+		if (mpcUnit->GetTypeChecker()->IsObject(pcBinary->mpcLeft))
 		{
 			return OperatorExpression(pcBinary->meOperator, pcBinary->mpcLeft, pcBinary->mpcRight, psValue);
 		}
@@ -331,7 +331,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	bool			bBytes;
 	bool			bResult;
 
-	psLeft = mpcUnit->TypeOf(pcBinary->mpcLeft);
+	psLeft = mpcUnit->GetTypeChecker()->TypeOf(pcBinary->mpcLeft);
 	if (psLeft && psLeft->IsClass())
 	{
 		//object op= value calls the class's operator if it has one; object = object assigns each part otherwise, as
@@ -368,11 +368,11 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	eOperator = CPPCompoundOperation(pcBinary->meOperator);
 	if (pcBinary->meOperator == CT_Assignment)
 	{
-		bResult = ValueFor(pcBinary->mpcRight, mpcUnit->PlaceTypeOf(pcBinary->mpcLeft), &sRight);
+		bResult = ValueFor(pcBinary->mpcRight, mpcUnit->GetTypeChecker()->PlaceTypeOf(pcBinary->mpcLeft), &sRight);
 	}
 	else
 	{
-		bResult = mpcUnit->IsObject(pcBinary->mpcRight) ? ContextualValue(pcBinary->mpcRight, CPPBinaryOperandTypes(eOperator), &sRight) : ValueFor(pcBinary->mpcRight, NULL, &sRight);
+		bResult = mpcUnit->GetTypeChecker()->IsObject(pcBinary->mpcRight) ? ContextualValue(pcBinary->mpcRight, CPPBinaryOperandTypes(eOperator), &sRight) : ValueFor(pcBinary->mpcRight, NULL, &sRight);
 	}
 	if (!bResult || !Place(pcBinary->mpcLeft, &sPlace))
 	{
@@ -453,7 +453,7 @@ bool CCPP65IRFrontEnd::AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, 
 	SCPP65IRPlace	sTemporary;
 	SCPP65IRMade	sMade;
 
-	if ((mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList) && (mpcUnit->IsObject(pcRight) || !psClass->IsClass() || !mpcUnit->GetBinder()->ConvertsByConstructor(psClass->pcClass, pcRight)))
+	if ((mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList) && (mpcUnit->GetTypeChecker()->IsObject(pcRight) || !psClass->IsClass() || !mpcUnit->GetBinder()->ConvertsByConstructor(psClass->pcClass, pcRight)))
 	{
 		return Value(pcRight, psValue);
 	}
@@ -687,8 +687,8 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	bool			bThrowFalse;
 	bool			bObject;
 
-	psTrue = mpcUnit->TypeOf(pcConditional->mpcTrue);
-	psFalse = mpcUnit->TypeOf(pcConditional->mpcFalse);
+	psTrue = mpcUnit->GetTypeChecker()->TypeOf(pcConditional->mpcTrue);
+	psFalse = mpcUnit->GetTypeChecker()->TypeOf(pcConditional->mpcFalse);
 	if (!psTrue || !psFalse || psTrue->IsReference() || psFalse->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -701,7 +701,7 @@ bool CCPP65IRFrontEnd::ConditionalExpression(CCPPSyntaxConditionalExpression* pc
 	if (bThrowTrue || bThrowFalse || bObject)
 	{
 		//An object for one operand that converts to the other's type: the type checker says which.  [expr.cond] 3
-		psType = mpcUnit->TypeOf(pcConditional);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcConditional);
 		if (!psType || psType->IsClass())
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -811,7 +811,7 @@ bool CCPP65IRFrontEnd::ConditionalPlace(CCPPSyntaxConditionalExpression* pcCondi
 	SCPP65IRPlace	sFalse;
 	SIRType			sType;
 
-	psPlace->psType = mpcUnit->PlaceTypeOf(pcConditional);
+	psPlace->psType = mpcUnit->GetTypeChecker()->PlaceTypeOf(pcConditional);
 	psPlace->psBitField = NULL;
 	psPlace->bEither = false;
 	if (!psPlace->psType)

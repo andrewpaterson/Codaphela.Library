@@ -525,7 +525,7 @@ void CCPPCheck::CheckNode(CCPPSyntax* pcNode)
 			CheckReturn(mpcUnit->mcContext.GetFunction(), (CCPPSyntaxReturnStatement*)pcNode);
 		}
 		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
-		psValue = (pcValue && mpcUnit->mcContext.GetFunction() && mpcUnit->mcContext.GetFunction()->mpsReturn) ? mpcUnit->TypeOf(pcValue) : NULL;
+		psValue = (pcValue && mpcUnit->mcContext.GetFunction() && mpcUnit->mcContext.GetFunction()->mpsReturn) ? mpcUnit->GetTypeChecker()->TypeOf(pcValue) : NULL;
 		if (psValue && !psValue->IsClass() && !mpcUnit->mcContext.GetFunction()->mpsReturn->IsClass() && !mpcUnit->mcContext.GetFunction()->mpsReturn->IsVoid())
 		{
 			mpcUnit->mcTypeChecker.KeepsEnum(psValue, mpcUnit->mcContext.GetFunction()->mpsReturn, pcValue);
@@ -544,7 +544,7 @@ void CCPPCheck::CheckNode(CCPPSyntax* pcNode)
 		case CPPS_DoStatement:		pcValue = ((CCPPSyntaxDoStatement*)pcNode)->mpcCondition;		break;
 		default:					pcValue = ((CCPPSyntaxForStatement*)pcNode)->mpcCondition;		break;
 		}
-		psValue = (pcValue && IsCheckedExpression(pcValue)) ? mpcUnit->TypeOf(pcValue) : NULL;
+		psValue = (pcValue && IsCheckedExpression(pcValue)) ? mpcUnit->GetTypeChecker()->TypeOf(pcValue) : NULL;
 		if (psValue && psValue->IsScopedEnum())
 		{
 			mpcUnit->mcTypeChecker.Truth(psValue, pcValue);
@@ -610,7 +610,7 @@ SCPP65Type* CCPPCheck::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 		return NULL;
 	}
 	mpcUnit->mcDiagnostics.BeginQuiet();
-	psType = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : mpcUnit->TypeOf(pcSwitch->mpcCondition);
+	psType = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : mpcUnit->GetTypeChecker()->TypeOf(pcSwitch->mpcCondition);
 	mpcUnit->mcDiagnostics.EndQuiet();
 	psType = psType ? psType->WithoutReference() : NULL;
 	if (psType && psType->IsClass())
@@ -644,7 +644,7 @@ void CCPPCheck::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Typ
 		return;
 	}
 	mpcUnit->mcDiagnostics.BeginQuiet();
-	psCondition = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : mpcUnit->TypeOf(pcSwitch->mpcCondition);
+	psCondition = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : mpcUnit->GetTypeChecker()->TypeOf(pcSwitch->mpcCondition);
 	mpcUnit->mcDiagnostics.EndQuiet();
 	psCondition = psCondition ? psCondition->WithoutReference() : NULL;
 	if (psCondition && (psCondition->IsFloat() || psCondition->IsPointer()))
@@ -1192,7 +1192,7 @@ bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement*
 			return mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 		}
 		mpcUnit->mcDiagnostics.BeginQuiet();
-		psValue = mpcUnit->TypeOf(pcReturn->mpcValue);
+		psValue = mpcUnit->GetTypeChecker()->TypeOf(pcReturn->mpcValue);
 		mpcUnit->mcDiagnostics.EndQuiet();
 		return !psValue || psValue->IsVoid() || mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 	}
@@ -1210,7 +1210,7 @@ bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement*
 	else
 	{
 		mpcUnit->mcDiagnostics.BeginQuiet();
-		psValue = mpcUnit->TypeOf(pcReturn->mpcValue);
+		psValue = mpcUnit->GetTypeChecker()->TypeOf(pcReturn->mpcValue);
 		mpcUnit->mcDiagnostics.EndQuiet();
 		psValue = psValue ? psValue->WithoutReference() : NULL;
 		if (!psValue || (psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))

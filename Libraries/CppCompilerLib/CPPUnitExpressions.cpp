@@ -628,7 +628,7 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 
 	if (!pcType)
 	{
-		return UnevaluatedTypeOf(pcOperand);
+		return mcTypeChecker.UnevaluatedTypeOf(pcOperand);
 	}
 	pcMember = mcDesugarings.DecltypeMember(pcType);
 	if (!pcMember)
@@ -638,7 +638,7 @@ SCPP65Type* CCPPUnit::OperandType(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperan
 	mcDiagnostics.BeginSilent();
 	psType = mcDeclarators.GetTypeIdType(pcType);
 	mcDiagnostics.EndSilent();
-	return psType ? psType : UnevaluatedTypeOf(pcMember);
+	return psType ? psType : mcTypeChecker.UnevaluatedTypeOf(pcMember);
 }
 
 
@@ -1022,66 +1022,6 @@ void CCPPUnit::ReportFailedDeclaration(int64 lliName)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// TypeOf, a reference as the type it refers to (NULL if it is wrong).
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::ValueTypeOf(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	psType = TypeOf(pcExpression);
-	return psType ? psType->WithoutReference() : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type of an expression (NULL if it is wrong), worked out without its code by
-// CCPP65TypeChecker.  Its errors are dropped: they are reported where its code is
-// written (ReportTypeOf).  An expression's type only depends on the template
-// arguments and the function it is in, so it is remembered.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::TypeOf(CCPPSyntax* pcExpression)
-{
-	return mcTypeChecker.Facts(pcExpression)->psType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type of an operand that isn't evaluated and isn't converted as a
-// value is (sizeof's and typeid's): an lvalue stays what it is, so an array
-// (a variable, a field, a row of another array, a string) is not the
-// pointer it would become, and a function is not a pointer to it.  A name
-// is the thing it names (CCPPDeclarators::EntityType), which needs no
-// object: S::m alone, and m in a static member function, are the member's
-// type.  NULL if it is wrong.  [expr.sizeof] 4, [expr.typeid] 3,
-// [expr.prim.general] 13
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	mcContext.EnterUnevaluated();
-	pcExpression = SkipParentheses(pcExpression);
-	psType = mcDeclarators.EntityType(pcExpression);
-	if (!psType)
-	{
-		psType = PlaceTypeOf(pcExpression);
-	}
-	if (!psType)
-	{
-		psType = TypeOf(pcExpression);
-	}
-	mcContext.LeaveUnevaluated();
-	return psType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether pcNode is the operand of a decltype, or the right of a comma that
 // is (in brackets or not): what decltype asks only the type of, so a call
 // there makes no temporary.  [expr.call] 11, [dcl.type.simple] 5
@@ -1186,54 +1126,6 @@ bool CCPPUnit::NamesFunction(CCPPSyntax* pcExpression)
 	}
 	pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
 	return pcSymbol && (pcSymbol->meKind == CPPSK_Function);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type the expression is declared to give: TypeOf's, or the reference
-// to it that a call of a function returning T& or T&&, or a cast to one,
-// gives.  A variable declared as a reference is its own type here, as its
-// name is the thing it refers to.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::DeclaredTypeOf(CCPPSyntax* pcExpression)
-{
-	return mcTypeChecker.Facts(pcExpression)->psDeclared;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type of the place an lvalue is (an array stays an array), or NULL.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::PlaceTypeOf(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	mcDiagnostics.BeginQuiet();
-	mpcStatistics->Begin(CPPCP_Types);
-	psType = mcTypeChecker.Place(pcExpression);
-	mpcStatistics->End(CPPCP_Types);
-	mcDiagnostics.EndQuiet();
-	return psType;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Reports what is wrong with an expression whose type the IR front end needed
-// and TypeOf couldn't work out, in quiet mode too: a call that no function
-// matches, or that more than one does, is then an error where it is ("No
-// function matches the arguments": an unsigned short* passed for an unsigned
-// long*), not only "doesn't support yet".  The errors are the ones TypeOf
-// kept when it worked the type out: nothing is worked out again.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ReportTypeOf(CCPPSyntax* pcExpression)
-{
-	mcDiagnostics.Report(mcTypeChecker.Facts(pcExpression)->pcErrors);
 }
 
 

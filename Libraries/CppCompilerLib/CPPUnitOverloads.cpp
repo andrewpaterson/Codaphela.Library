@@ -34,7 +34,7 @@ bool CCPPUnit::IsConstObject(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*	psType;
 
-	psType = ValueTypeOf(pcExpression);
+	psType = mcTypeChecker.ValueTypeOf(pcExpression);
 	return psType && psType->bConst;
 }
 

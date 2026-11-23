@@ -153,11 +153,11 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 		//(Without exceptions it has no type, and the error below says why.)
 		return ThrowExpression((CCPPSyntaxThrowExpression*)pcExpression, psValue);
 	}
-	psType = mpcUnit->TypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	if (!psType)
 	{
 		//Usually C++ that is wrong (a call no function matches, or more than one): the generator says what.
-		mpcUnit->ReportTypeOf(pcExpression);
+		mpcUnit->GetTypeChecker()->ReportTypeOf(pcExpression);
 		return Unsupported(__FILE__, __LINE__);
 	}
 	if (!IsSupportedType(psType) && !psType->IsFunction() && !psType->IsClass())
@@ -526,7 +526,7 @@ bool CCPP65IRFrontEnd::ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* ps
 	int64		lliValue;
 	double		dValue;
 
-	psType = (pcExpression->GetKind() == CPPS_LiteralExpression) ? mpcUnit->Literal((CCPPSyntaxLiteralExpression*)pcExpression) : mpcUnit->TypeOf(pcExpression);
+	psType = (pcExpression->GetKind() == CPPS_LiteralExpression) ? mpcUnit->Literal((CCPPSyntaxLiteralExpression*)pcExpression) : mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	if (!psType)
 	{
 		return false;
@@ -675,7 +675,7 @@ bool CCPP65IRFrontEnd::ContextualValue(CCPPSyntax* pcExpression, ECPPContextualT
 {
 	SCPP65Type*	psTo;
 
-	if (!mpcUnit->IsObject(pcExpression))
+	if (!mpcUnit->GetTypeChecker()->IsObject(pcExpression))
 	{
 		return Operand(pcExpression, psValue);
 	}
@@ -842,7 +842,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 	SCPP65IRPlace	sPlace;
 	CCPPClass*	pcClass;
 
-	*ppsMember = mpcUnit->TypeOf(pcBinary->mpcRight);
+	*ppsMember = mpcUnit->GetTypeChecker()->TypeOf(pcBinary->mpcRight);
 	if (!*ppsMember || !(*ppsMember)->IsMemberPointer())
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1005,7 +1005,7 @@ bool CCPP65IRFrontEnd::IsReferenceCast(CCPPSyntax* pcExpression)
 	{
 		return false;
 	}
-	psType = mpcUnit->DeclaredTypeOf(pcExpression);
+	psType = mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcExpression);
 	return psType && psType->IsReference();
 }
 
@@ -1234,12 +1234,12 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
-		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (((pcUnary->meOperator == CT_Increment) || (pcUnary->meOperator == CT_Decrement)) && !pcUnary->mbPostfix && !mpcUnit->GetTypeChecker()->IsObject(pcUnary->mpcOperand))
 		{
 			//++x and --x are x, once it is stepped.  [expr.pre.incr] 1
 			return IncrementExpression(pcUnary, &sAddress, psPlace);
 		}
-		if ((pcUnary->meOperator != CT_Multiply) && !pcUnary->mbPostfix && mpcUnit->IsObject(pcUnary->mpcOperand) && mpcUnit->DeclaredTypeOf(pcExpression) && mpcUnit->DeclaredTypeOf(pcExpression)->IsReference())
+		if ((pcUnary->meOperator != CT_Multiply) && !pcUnary->mbPostfix && mpcUnit->GetTypeChecker()->IsObject(pcUnary->mpcOperand) && mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcExpression) && mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcExpression)->IsReference())
 		{
 			//++object, -object ... whose operator returns a reference (S& operator++()): what it refers to.
 			if (!OperatorExpression(pcUnary->meOperator, pcUnary->mpcOperand, NULL, &sAddress))
@@ -1253,7 +1253,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			//-object, +object, ~object: the temporary its operator made.
-			psType = mpcUnit->TypeOf(pcExpression);
+			psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 			if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 			{
 				return Unsupported(__FILE__, __LINE__);
@@ -1262,7 +1262,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			psPlace->psType = sAddress.psType;
 			return true;
 		}
-		if (mpcUnit->IsObject(pcUnary->mpcOperand))
+		if (mpcUnit->GetTypeChecker()->IsObject(pcUnary->mpcOperand))
 		{
 			//*object: what its operator's reference refers to, or the object it returns.
 			if (!OperatorExpression(CT_Multiply, pcUnary->mpcOperand, NULL, &sAddress))
@@ -1300,7 +1300,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			psPlace->psType = sAddress.psType->WithoutReference();
 			return sAddress.psType->IsReference() || sAddress.psType->IsClass() || Unsupported(__FILE__, __LINE__);
 		}
-		if (!mpcUnit->TypeOf(pcSubscript->mpcArray))
+		if (!mpcUnit->GetTypeChecker()->TypeOf(pcSubscript->mpcArray))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1338,7 +1338,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	case CPPS_CallExpression:
 	case CPPS_LiteralExpression:
 		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
-		psType = mpcUnit->DeclaredTypeOf(pcExpression);
+		psType = mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression)))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -1389,7 +1389,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 
 		//(x = y) and (x op= y) of a scalar are x's place after the assignment.
-		psType = mpcUnit->TypeOf(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(((CCPPSyntaxBinaryExpression*)pcExpression)->mpcLeft);
 		if (IsCPPAssignment(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && psType && !psType->IsClass() &&
 			!(psType->IsReference() && psType->psBase->IsClass()))
 		{
@@ -1397,7 +1397,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 
 		//An operator function's object (a temporary it made, or the object it refers to).
-		psType = mpcUnit->TypeOf(pcExpression);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 		if (!psType || !(psType->IsReference() || psType->IsClass()) || !Value(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -1411,10 +1411,10 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	case CPPS_ConditionalExpression:
 		if ((pcExpression->GetKind() != CPPS_ConditionalExpression) && IsReferenceCast(pcExpression))
 		{
-			return ReferenceCastPlace(pcExpression, mpcUnit->DeclaredTypeOf(pcExpression), psPlace);
+			return ReferenceCastPlace(pcExpression, mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcExpression), psPlace);
 		}
 		//Any other cast is the object it makes, as c ? x : y is.
-		psType = mpcUnit->TypeOf(pcExpression);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 		if ((pcExpression->GetKind() == CPPS_ConditionalExpression) && psType && !psType->IsClass())
 		{
 			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression, psPlace);
@@ -1422,7 +1422,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		if (!psType)
 		{
 			//C++ that is wrong (a cast from a virtual base to a class derived from it): the type checker says what.
-			mpcUnit->ReportTypeOf(pcExpression);
+			mpcUnit->GetTypeChecker()->ReportTypeOf(pcExpression);
 			return Unsupported(__FILE__, __LINE__);
 		}
 		if (!psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
@@ -1563,7 +1563,7 @@ bool CCPP65IRFrontEnd::MemberPlace(CCPPSyntaxMemberExpression* pcMember, SCPP65I
 
 	psPlace->psBitField = NULL;
 
-	psType = mpcUnit->TypeOf(pcMember->mpcObject);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcMember->mpcObject);
 	if (!psType)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1659,7 +1659,7 @@ bool CCPP65IRFrontEnd::IsObjectSubscript(CCPPSyntaxSubscriptExpression* pcSubscr
 {
 	SCPP65Type*	psType;
 
-	psType = mpcUnit->ValueTypeOf(pcSubscript->mpcArray);
+	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcSubscript->mpcArray);
 	return psType && psType->IsClass();
 }
 

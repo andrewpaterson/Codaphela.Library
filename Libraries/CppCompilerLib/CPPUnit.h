@@ -498,7 +498,6 @@ public:
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
 	int						VariableDataAlignment(CCPPVariable* pcVariable, bool bClass);
 
-	void					ReportTypeOf(CCPPSyntax* pcExpression);
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
@@ -632,15 +631,10 @@ public:
 	CCPPClass*				MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	void					ReportFailedDeclaration(int64 lliName);
 	CCPPFunction*			DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors = NULL);
-	SCPP65Type*				TypeOf(CCPPSyntax* pcExpression);
-	SCPP65Type*				DeclaredTypeOf(CCPPSyntax* pcExpression);
-	SCPP65Type*				UnevaluatedTypeOf(CCPPSyntax* pcExpression);
 	bool					NamesFunction(CCPPSyntax* pcExpression);
-	SCPP65Type*				ValueTypeOf(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
 
-	SCPP65Type*				PlaceTypeOf(CCPPSyntax* pcExpression);
 
 	bool					Supported(SCPP65Type* psType, CCPPSyntax* pcNode);
 
@@ -658,10 +652,8 @@ public:
 	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 
 	//Objects and copies.  CPPUnitObjects.cpp
-	bool					IsObject(CCPPSyntax* pcExpression);
 	bool					IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator);
 	bool					IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary);
-	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
 	bool					IsAggregate(SCPP65Type* psType);
 	SCPP65Type*				AggregateMember(SCPP65Type* psType, size uiIndex);
 	CCPPClass*				MemberObjectClass(CCPPSyntaxMemberExpression* pcMember);
@@ -683,16 +675,9 @@ public:
 	SCPP65Type*				InitializerListOf(SCPP65Type* psElement, CCPPSyntax* pcNode);
 	SCPP65Type*				BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode);
 	bool					InitializerListLayout(CCPPClass* pcClass, bool* pbEnd);
-	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
-	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);
-	bool					IsRvalue(CCPPSyntax* pcExpression);
-	bool					IsReturnedLocal(CCPPSyntaxIdExpression* pcId);
-	bool					IsObjectLvalue(CCPPSyntax* pcExpression);
 	bool					IsUncapturedConstant(CCPPSyntax* pcExpression);
-	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	bool					BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument);
 	CCPPSyntax*				BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcInitialiser);
-	bool					MakesObject(CCPPSyntax* pcExpression);
 
 	//Check only.  CPPUnitCheck.cpp
 	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);

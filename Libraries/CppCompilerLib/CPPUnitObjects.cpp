@@ -35,112 +35,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The expression whose value, and whether it is an lvalue, an expression
-// has: itself out of its brackets, and of a, b (the built-in comma) b,
-// whatever is done first.  [expr.comma] 1
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::CommaResult(CCPPSyntax* pcExpression)
-{
-	CCPPSyntaxBinaryExpression*	pcBinary;
-
-	for (;;)
-	{
-		pcExpression = SkipParentheses(pcExpression);
-		pcBinary = (pcExpression->GetKind() == CPPS_BinaryExpression) ? (CCPPSyntaxBinaryExpression*)pcExpression : NULL;
-		if (!pcBinary || (pcBinary->meOperator != CT_Comma) || IsOverloadedComma(pcBinary))
-		{
-			return pcExpression;
-		}
-		pcExpression = pcBinary->mpcRight;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if the expression is an rvalue: a value with no name (3, a + b, an
-// object a call or a constructor makes) or something said to be about to
-// go (what a function returning T&& returns, a cast to T&&, a member of
-// either).  What has a name is an lvalue, a variable declared T&& too,
-// but for a local object where it is returned.  An rvalue binds to T&&
-// and not to T&; an lvalue to T& and not to T&&.  The expression's
-// category is the type checker's (CCPP65TypeChecker::Category).
-// [basic.lval], [class.copy] 32
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsRvalue(CCPPSyntax* pcExpression)
-{
-	mpcStatistics->Count(CPPCC_IsRvalue);
-	pcExpression = CommaResult(pcExpression);
-	if ((pcExpression->GetKind() == CPPS_IdExpression) && IsReturnedLocal((CCPPSyntaxIdExpression*)pcExpression))
-	{
-		return true;
-	}
-	return mcTypeChecker.Category(pcExpression) != CPPVC_Lvalue;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if pcId is return object; of one of the function's own objects (a
-// local or a parameter, not a reference): it is going, so it is moved to
-// the result if its class has a move.  [class.copy] 32
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsReturnedLocal(CCPPSyntaxIdExpression* pcId)
-{
-	CCPPSyntax*		pcParent;
-	CCPPBoundName	cBound;
-
-	for (pcParent = pcId->mpcParent; pcParent && (pcParent->GetKind() == CPPS_ParenthesisedExpression); pcParent = pcParent->mpcParent)
-	{
-	}
-	if (!pcParent || (pcParent->GetKind() != CPPS_ReturnStatement))
-	{
-		return false;
-	}
-	mcBinder.BindName(pcId, &cBound);
-	return (cBound.meWhat == CPPBN_Variable) && ((cBound.mpcVariable->meStorage == CPPVS_Local) || (cBound.mpcVariable->meStorage == CPPVS_Parameter)) && cBound.mpcVariable->mpsType->IsClass();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if the expression makes an object of the class (a call, or an operator, that
-// returns one): it can be made where the object it initialises is.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass)
-{
-	SCPP65Type*	psType;
-
-	pcExpression = SkipParentheses(pcExpression);
-	if (!pcExpression || !MakesObject(pcExpression))
-	{
-		return false;
-	}
-	psType = TypeOf(pcExpression);
-	return psType && psType->IsClass() && (psType->pcClass == pcClass);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if the expression makes an object: a class prvalue (a call, a
-// cast or an operator function's call that gives a class by value, a
-// construction, a lambda).  CCPP65TypeChecker::Category.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::MakesObject(CCPPSyntax* pcExpression)
-{
-	mpcStatistics->Count(CPPCC_MakesObject);
-	return mcTypeChecker.Category(pcExpression) == CPPVC_ClassPrvalue;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The class of the object in object.member or pointer->member, or NULL if
 // it isn't an object of a class.  Nothing is reported.
 //
@@ -150,7 +44,7 @@ CCPPClass* CCPPUnit::MemberObjectClass(CCPPSyntaxMemberExpression* pcMember)
 	SCPP65Type*	psObject;
 
 	mcDiagnostics.BeginQuiet();
-	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : ValueTypeOf(pcMember->mpcObject);
+	psObject = pcMember->mbArrow ? ArrowType(pcMember->mpcObject, pcMember) : mcTypeChecker.ValueTypeOf(pcMember->mpcObject);
 	mcDiagnostics.EndQuiet();
 	if (psObject && pcMember->mbArrow)
 	{
@@ -384,7 +278,7 @@ SCPP65Type* CCPPUnit::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbD
 	psType = psType ? psType->WithoutReference() : NULL;
 	if (!pcTypeid->mpcType)
 	{
-		*pbDynamic = psType && psType->IsClass() && CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && IsObjectLvalue(pcTypeid->mpcOperand);
+		*pbDynamic = psType && psType->IsClass() && CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && mcTypeChecker.IsObjectLvalue(pcTypeid->mpcOperand);
 	}
 	return psType ? psType->Unqualified() : NULL;
 }
@@ -488,10 +382,10 @@ SCPP65Type* CCPPUnit::BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNode)
 	psElement = NULL;
 	for (i = 0; i < papcElements->NumElements(); i++)
 	{
-		psType = ValueTypeOf(papcElements->GetPtr(i));
+		psType = mcTypeChecker.ValueTypeOf(papcElements->GetPtr(i));
 		if (!psType)
 		{
-			ReportTypeOf(papcElements->GetPtr(i));
+			mcTypeChecker.ReportTypeOf(papcElements->GetPtr(i));
 			return NULL;
 		}
 		psType = (psType->IsArray() || psType->IsFunction()) ? mcTypes.Pointer(psType->ElementType()) : psType;
@@ -532,36 +426,6 @@ bool CCPPUnit::InitializerListLayout(CCPPClass* pcClass, bool* pbEnd)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An expression of a class type that is an object where it is (named,
-// pointed at, indexed, or a reference to one), not one to be made: an
-// lvalue or an xvalue (CCPP65TypeChecker::Category).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsObjectLvalue(CCPPSyntax* pcExpression)
-{
-	ECPPValueCategory	eCategory;
-
-	mpcStatistics->Count(CPPCC_IsObjectLvalue);
-	eCategory = mcTypeChecker.Category(pcExpression);
-	return (eCategory == CPPVC_Lvalue) || (eCategory == CPPVC_Xvalue);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type of the place a reference to the expression would refer to, or
-// NULL if it is a value with no address (a literal, a sum, a call's int).
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::PlaceOf(CCPPSyntax* pcExpression)
-{
-	mpcStatistics->Count(CPPCC_PlaceOf);
-	return mcTypeChecker.PlaceFact(pcExpression);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // What a reference is initialised from: a list in braces with one element
 // the reference binds to as it is (its type the reference's, or a class
 // derived from it) is that element, int& r{x}; any other list makes a
@@ -587,8 +451,8 @@ CCPPSyntax* CCPPUnit::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pcIn
 		return pcInitialiser;
 	}
 	mcDiagnostics.BeginQuiet();
-	psElement = PlaceOf(pcElement);
-	psElement = psElement ? psElement : ValueTypeOf(pcElement);
+	psElement = mcTypeChecker.PlaceOf(pcElement);
+	psElement = psElement ? psElement : mcTypeChecker.ValueTypeOf(pcElement);
 	mcDiagnostics.EndQuiet();
 	psElement = psElement ? psElement->WithoutReference()->Unqualified() : NULL;
 	psReferred = psReference->psBase->Unqualified();
@@ -627,10 +491,10 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 	}
 	if (psReference->psBase->IsClass())
 	{
-		psValue = ValueTypeOf(pcArgument);
+		psValue = mcTypeChecker.ValueTypeOf(pcArgument);
 		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
 	}
-	psValue = ValueTypeOf(pcArgument);
+	psValue = mcTypeChecker.ValueTypeOf(pcArgument);
 	if (psValue && psValue->IsClass() && !psReference->bRvalue)
 	{
 		//const T& binds to what the object's operator T& returns, itself; a temporary only holds what another
@@ -646,7 +510,7 @@ bool CCPPUnit::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgument)
 		mcDiagnostics.ReportOnce(pcArgument, "The lambda doesn't capture the variable");
 		return true;
 	}
-	psPlace = PlaceOf(pcArgument);
+	psPlace = mcTypeChecker.PlaceOf(pcArgument);
 	return !psPlace || !psReference->psBase->Equals(psPlace->WithoutReference());
 }
 
@@ -684,7 +548,7 @@ bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	CCPPBoundCall	cBound;
 	bool			bOverloaded;
 
-	if (!IsObject(pcBinary->mpcLeft) && !IsObject(pcBinary->mpcRight))
+	if (!mcTypeChecker.IsObject(pcBinary->mpcLeft) && !mcTypeChecker.IsObject(pcBinary->mpcRight))
 	{
 		return false;
 	}
@@ -692,21 +556,6 @@ bool CCPPUnit::IsOverloadedComma(CCPPSyntaxBinaryExpression* pcBinary)
 	bOverloaded = mcBinder.BindOperator(CT_Comma, pcBinary->mpcLeft, pcBinary->mpcRight, pcBinary, &cBound, false);
 	mcDiagnostics.EndSilent();
 	return bOverloaded;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// True if the expression is an object (or a reference to one).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsObject(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	mpcStatistics->Count(CPPCC_IsObject);
-	psType = ValueTypeOf(pcExpression);
-	return psType && psType->IsClass();
 }
 
 
@@ -722,7 +571,7 @@ bool CCPPUnit::IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator)
 {
 	SCPP65Type*	psType;
 
-	psType = ValueTypeOf(pcExpression);
+	psType = mcTypeChecker.ValueTypeOf(pcExpression);
 	if (!psType)
 	{
 		return false;
@@ -732,20 +581,6 @@ bool CCPPUnit::IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator)
 		return true;
 	}
 	return psType->pcEnum && mcBinder.HasFreeOperator(GetOperatorName(eOperator, false));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class of an object expression (see IsObject).
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::ObjectClass(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	psType = ValueTypeOf(pcExpression);
-	return psType->pcClass;
 }
 
 

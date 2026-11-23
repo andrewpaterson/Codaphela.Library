@@ -110,7 +110,7 @@ bool CCPPExceptions::CheckThrown(CCPPSyntaxThrowExpression* pcThrow)
 {
 	SCPP65Type*	psType;
 
-	psType = mpcUnit->TypeOf(pcThrow->mpcOperand);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcThrow->mpcOperand);
 	if (!psType)
 	{
 		return false;
@@ -731,7 +731,7 @@ bool CCPPExceptions::CheckAssignedExceptions(CCPPSyntaxBinaryExpression* pcAssig
 	mpcUnit->mcDiagnostics.BeginSilent();
 	if (PointerExceptions(pcAssignment->mpcLeft, &cPointer) && !cPointer.IsAnything())
 	{
-		psType = mpcUnit->TypeOf(pcAssignment->mpcLeft);
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcAssignment->mpcLeft);
 		bAllowed = !psType || ValueAllowsOnly(pcAssignment->mpcRight, psType, &cPointer);
 	}
 	mpcUnit->mcDiagnostics.EndSilent();
@@ -797,7 +797,7 @@ bool CCPPExceptions::ConstructionMayThrow(CCPPClass* pcClass, CArraySyntax* papc
 	}
 	if (papcArguments && (papcArguments->NumElements() == 1))
 	{
-		psArgument = mpcUnit->TypeOf(papcArguments->GetPtr(0));
+		psArgument = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(0));
 		psArgument = psArgument ? psArgument->WithoutReference() : NULL;
 		if (psArgument && psArgument->IsClass() && (psArgument->pcClass == pcClass))
 		{
@@ -833,7 +833,7 @@ bool CCPPExceptions::ArgumentMayThrow(CCPPSyntax* pcArgument, SCPP65Type* psPara
 	bool				bThrows;
 
 	psTo = (psParameter->IsReference() ? psParameter->psBase : psParameter)->Unqualified();
-	psFrom = mpcUnit->TypeOf(pcArgument);
+	psFrom = mpcUnit->GetTypeChecker()->TypeOf(pcArgument);
 	if (!psFrom)
 	{
 		return false;
@@ -965,7 +965,7 @@ bool CCPPExceptions::DeleteMayThrow(CCPPSyntaxDeleteExpression* pcDelete)
 	CCPPFunction*	pcDeallocation;
 	SCPP65Type*		psType;
 
-	psType = mpcUnit->TypeOf(pcDelete->mpcOperand);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcDelete->mpcOperand);
 	psType = psType ? psType->WithoutReference() : NULL;
 	psType = (psType && psType->IsPointer()) ? psType->psBase->Unqualified() : NULL;
 	if (!psType || !psType->IsClass())
@@ -1045,7 +1045,7 @@ bool CCPPExceptions::MayThrow(CCPPSyntax* pcExpression)
 	case CPPS_TypeidExpression:
 		//typeid of an object of a polymorphic class throws std::bad_typeid for *null.  [expr.typeid] 2
 		pcTypeid = (CCPPSyntaxTypeidExpression*)pcExpression;
-		psType = pcTypeid->mpcOperand ? mpcUnit->TypeOf(pcTypeid->mpcOperand) : NULL;
+		psType = pcTypeid->mpcOperand ? mpcUnit->GetTypeChecker()->TypeOf(pcTypeid->mpcOperand) : NULL;
 		psType = psType ? psType->WithoutReference() : NULL;
 		bThrows = psType && psType->IsClass() && psType->pcClass->IsPolymorphic();
 		break;

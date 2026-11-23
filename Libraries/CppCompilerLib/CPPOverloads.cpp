@@ -862,7 +862,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 	{
 		//An overloaded function's name and a list in braces have no type of their own (NULL): RankArguments
 		//matches the name to a parameter that points to one of its overloads, and the list to what it can make.
-		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+		apsArguments[i] = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i));
 		if (!apsArguments[i] && !mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)) && (papcArguments->GetPtr(i)->GetKind() != CPPS_InitializerList))
 		{
 			//Its errors.
@@ -1160,7 +1160,7 @@ void CCPPOverloads::AddArgumentNamespaces(CArraySyntax* papcArguments, CCPPOverl
 		}
 		else
 		{
-			AddAssociatedNamespaces(mpcUnit->TypeOf(papcArguments->GetPtr(i)), papcNamespaces, 0);
+			AddAssociatedNamespaces(mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i)), papcNamespaces, 0);
 		}
 	}
 }
@@ -1470,7 +1470,7 @@ bool CCPPOverloads::IsBetterFunction(CCPPFunction* pcFirst, CCPPFunction* pcSeco
 	}
 	for (i = 0; i < uiArguments; i++)
 	{
-		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+		apsArguments[i] = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i));
 	}
 	if (!RankArguments(pcSecond, apsArguments, papcArguments, aiSecond))
 	{
@@ -1527,8 +1527,8 @@ int CCPPOverloads::CompareOperators(CCPPFunction* pcMember, CCPPClass* pcClass, 
 		apcFree.Add(pcRight);
 		apcMember.Add(pcRight);
 	}
-	apsArguments[0] = mpcUnit->TypeOf(pcLeft);
-	apsArguments[1] = pcRight ? mpcUnit->TypeOf(pcRight) : NULL;
+	apsArguments[0] = mpcUnit->GetTypeChecker()->TypeOf(pcLeft);
+	apsArguments[1] = pcRight ? mpcUnit->GetTypeChecker()->TypeOf(pcRight) : NULL;
 	bRanked = RankArguments(pcFree, apsArguments, &apcFree, aiFree) && RankArguments(pcMember, &apsArguments[1], &apcMember, &aiMember[1]);
 	apcMember.Kill();
 	apcFree.Kill();
@@ -1607,7 +1607,7 @@ bool CCPPOverloads::RankFunctionType(SCPP65Type* psFunction, CArraySyntax* papcA
 			aiRanks[i] = CPPCR_Ellipsis;
 			continue;
 		}
-		psArgument = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+		psArgument = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i));
 		aiRanks[i] = psArgument ? ConversionRank(psFunction->papsParameters->GetPtr(i), psArgument, papcArguments->GetPtr(i)) : CPPCR_None;
 		if (aiRanks[i] == CPPCR_None)
 		{
@@ -1687,7 +1687,7 @@ CCPPFunction* CCPPOverloads::FindSurrogate(CCPPClass* pcClass, CCPPFunction* pcM
 	}
 	for (i = 0; i < uiArguments; i++)
 	{
-		apsArguments[i] = mpcUnit->TypeOf(papcArguments->GetPtr(i));
+		apsArguments[i] = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i));
 	}
 	if (!RankArguments(pcMember, apsArguments, papcArguments, aiMember))
 	{
@@ -1796,7 +1796,7 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 		iRank = CPPCR_Exact;
 		for (i = 0; i < papcElements->NumElements(); i++)
 		{
-			psType = mpcUnit->TypeOf(papcElements->GetPtr(i));
+			psType = mpcUnit->GetTypeChecker()->TypeOf(papcElements->GetPtr(i));
 			iElement = psType ? ConversionRank(psElement, psType, papcElements->GetPtr(i)) : CPPCR_UserDefined;
 			iRank = (iElement < iRank) ? iElement : iRank;
 		}
@@ -1810,7 +1810,7 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 	{
 		return CPPCR_Exact;
 	}
-	psElement = mpcUnit->TypeOf(papcElements->GetPtr(0));
+	psElement = mpcUnit->GetTypeChecker()->TypeOf(papcElements->GetPtr(0));
 	return psElement ? ConversionRank(psType->Unqualified(), psElement, papcElements->GetPtr(0)) : CPPCR_None;
 }
 
@@ -1845,18 +1845,18 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	{
 		//A reference to a function binds to the function, which the argument's value, a pointer to it, isn't: its place.
 		//[dcl.init.ref] 5
-		psPlace = mpcUnit->PlaceOf(pcArgument);
+		psPlace = mpcUnit->GetTypeChecker()->PlaceOf(pcArgument);
 		psArgument = psPlace ? psPlace : psArgument;
 	}
 	if (bRvalue)
 	{
-		if (pcArgument && !mpcUnit->IsRvalue(pcArgument) && !bTemporary)
+		if (pcArgument && !mpcUnit->GetTypeChecker()->IsRvalue(pcArgument) && !bTemporary)
 		{
 			//What has a name doesn't bind to T&&, but for the temporary it is converted to.  [dcl.init.ref] 5.2
 			return CPPCR_None;
 		}
 	}
-	else if (bReference && !psParameter->bConst && !psParameter->IsClass() && pcArgument && mpcUnit->IsRvalue(pcArgument))
+	else if (bReference && !psParameter->bConst && !psParameter->IsClass() && pcArgument && mpcUnit->GetTypeChecker()->IsRvalue(pcArgument))
 	{
 		//A value with no name only binds to a const reference or T&&.
 		return CPPCR_None;
@@ -2154,8 +2154,8 @@ bool CCPPOverloads::IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass)
 {
 	SCPP65Type*	psType;
 
-	pcArgument = mpcUnit->CommaResult(pcArgument);
-	if (mpcUnit->IsMadeObject(pcArgument, pcClass))
+	pcArgument = mpcUnit->GetTypeChecker()->CommaResult(pcArgument);
+	if (mpcUnit->GetTypeChecker()->IsMadeObject(pcArgument, pcClass))
 	{
 		return true;
 	}
@@ -2163,7 +2163,7 @@ bool CCPPOverloads::IsTemporary(CCPPSyntax* pcArgument, CCPPClass* pcClass)
 	{
 		return false;
 	}
-	psType = mpcUnit->TypeOf(pcArgument);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcArgument);
 	return psType && psType->IsClass() && (psType->pcClass == pcClass);
 }
 
@@ -2818,7 +2818,7 @@ bool CCPPOverloads::TemplateTakes(CCPPTemplate* pcTemplate, CArraySyntax* papcEx
 	{
 		for (i = 0; i < papcArguments->NumElements(); i++)
 		{
-			apsArguments.Add(mpcUnit->TypeOf(papcArguments->GetPtr(i)));
+			apsArguments.Add(mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i)));
 		}
 		cDeduction.Init(mpcUnit, pcTemplate);
 		cDeduction.Deduce(&apsArguments, papcArguments);

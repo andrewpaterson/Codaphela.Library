@@ -938,10 +938,10 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 		return Terminated();
 	}
 
-	psType = mpcUnit->TypeOf(pcThrow->mpcOperand);
+	psType = mpcUnit->GetTypeChecker()->TypeOf(pcThrow->mpcOperand);
 	if (!psType)
 	{
-		mpcUnit->ReportTypeOf(pcThrow->mpcOperand);
+		mpcUnit->GetTypeChecker()->ReportTypeOf(pcThrow->mpcOperand);
 		return Unsupported(__FILE__, __LINE__);
 	}
 
