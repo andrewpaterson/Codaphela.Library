@@ -47,9 +47,12 @@ void CMenuBar::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpBackground->SetDesiredSize(-1, -1);
 	CGridContainer::AddComponent(mpBackground, 0, 0);
 
-	mpFiller = OMalloc<CComponent>(pWindow);
-	mpFiller->SetDesiredSize(0, 0);
-	CGridContainer::AddComponent(mpFiller, 0, 0, 1, 1, 1, 0);
+	//The buttons' row takes the bar's width.  It doesn't squash them when there's too little: they go on past its
+	//right edge, where it cuts them off.
+	mpButtons = OMalloc<CFlowContainer>(pWindow);
+	mpButtons->SetFlowStyle(CSD_Right, CSW_Continue, CSV_Top);
+	mpButtons->SetAlignment(CSH_Stretch, CSV_Stretch);
+	CGridContainer::AddComponent(mpButtons, 0, 0, 1, 1, 1, 0);
 
 	PostInit();
 }
@@ -66,7 +69,7 @@ void CMenuBar::Class(void)
 	M_Pointer(mpStyle);
 	M_Pointer(mpBackgroundDraw);
 	M_Pointer(mpBackground);
-	M_Pointer(mpFiller);
+	M_Pointer(mpButtons);
 	M_Embedded(maItems);
 	M_Pointer(mpOpenItem);
 	U_Unknown(CComponentEvent<CMenuItem>, mcItemClicked);
@@ -113,16 +116,10 @@ bool CMenuBar::Load(CObjectReader* pcFile)
 Ptr<CMenuBarItem> CMenuBar::AddMenu(const char* szText, Ptr<CMenuContainer> pMenu, Ptr<CImageCel> pIcon)
 {
 	Ptr<CMenuBarItem>	pItem;
-	int					iColumn;
 
 	pItem = OMalloc<CMenuBarItem>(mpWindow, this, mpStyle, pMenu, szText, pIcon);
 	pMenu->SetMenuBar(this);
-
-	//The filler always takes the column after the last button.
-	iColumn = (int)maItems.NumElements();
-	CGridContainer::RemoveComponent(mpFiller);
-	CGridContainer::AddComponent(pItem, iColumn, 0);
-	CGridContainer::AddComponent(mpFiller, iColumn + 1, 0, 1, 1, 1, 0);
+	mpButtons->AddComponent(pItem);
 	maItems.Add(pItem);
 	return pItem;
 }

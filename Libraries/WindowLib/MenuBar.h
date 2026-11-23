@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MENU_BAR_H__
 #define __MENU_BAR_H__
 #include "GridContainer.h"
+#include "FlowContainer.h"
 #include "ClearCanvasDraw.h"
 #include "IconComponent.h"
 #include "MenuStyle.h"
@@ -31,6 +32,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //A row of buttons along the top of a window, each opening a menu below it.  The buttons sit on the left; the bar is
 //filled with the style's bar colour across whatever width it is given.  At most one of its menus is open at a time.
+//The buttons keep their sizes: on a bar too narrow for them the last ones are cut off at its right edge.
 //
 //Clicking an item in any of its menus, or their sub menus, calls the bar's item click event, with the item.
 class CMenuBar : public CGridContainer
@@ -41,7 +43,7 @@ protected:
 	Ptr<CMenuStyle>				mpStyle;
 	Ptr<CClearCanvasDraw>		mpBackgroundDraw;
 	Ptr<CCanvas>				mpBackground;
-	Ptr<CComponent>				mpFiller;  //Takes the spare width to the right of the buttons.
+	Ptr<CFlowContainer>			mpButtons;  //The buttons in a row from the left, going on past the bar's right edge.
 	CArray<CMenuBarItem>		maItems;
 	Ptr<CMenuBarItem>			mpOpenItem;
 	CComponentEvent<CMenuItem>	mcItemClicked;

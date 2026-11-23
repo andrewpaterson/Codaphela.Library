@@ -1928,6 +1928,91 @@ void TestMenuPopupMaximumHeight(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The test menus' bar in a window iWidth wide, laid out and painted.
+// pcFile and pcEdit are given the File and Edit buttons' bounds, psBar
+// the bar's size, and pbEditFound whether the pointer finds Edit just
+// inside its left edge.
+//
+//////////////////////////////////////////////////////////////////////////
+void MenuBarInWindowOfWidth(int32 iWidth, CInt32Rect* pcFile, CInt32Rect* pcEdit, SInt32Vec2* psBar, bool* pbEditFound)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		STestMenus				sMenus;
+		CPointer				pNull;
+		Ptr<CComponent>			pFound;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, iWidth, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Menu Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		CreateTestMenus(pTestWindow, &sMenus);
+		pTestWindow->Layout();
+		pTestWindow->Paint();
+
+		sMenus.pFileItem->GetActualBounds(pcFile);
+		sMenus.pEditItem->GetActualBounds(pcEdit);
+		*psBar = sMenus.pBar->GetActualSize();
+		pFound = pTestWindow->GetContainer()->FindComponentAt(pcEdit->GetLeft() + 2, pcEdit->GetTop() + pcEdit->GetHeight() / 2);
+		*pbEditFound = pFound.IsNotNull() && pFound->IsWithin(sMenus.pEditItem);
+
+		pFound = NULL;
+		sMenus.Kill();
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	pNativeFactory = NULL;
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bar too narrow for its buttons doesn't squash them: they keep their
+// sizes and places, and the last is cut off at the bar's right edge,
+// still found under the pointer where it shows.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestMenuBarNarrow(void)
+{
+	CInt32Rect			cWideFile;
+	CInt32Rect			cWideEdit;
+	CInt32Rect			cFile;
+	CInt32Rect			cEdit;
+	SInt32Vec2			sBar;
+	bool				bEditFound;
+	int32				iWidth;
+
+	MenuBarInWindowOfWidth(300, &cWideFile, &cWideEdit, &sBar, &bEditFound);
+	AssertInt(300, sBar.x);
+	AssertInt(cWideFile.GetRight(), cWideEdit.GetLeft());
+	AssertTrue(cWideEdit.GetRight() < 300);
+	AssertTrue(bEditFound);
+
+	//Half of Edit shows.
+	iWidth = cWideFile.GetWidth() + cWideEdit.GetWidth() / 2;
+	MenuBarInWindowOfWidth(iWidth, &cFile, &cEdit, &sBar, &bEditFound);
+	AssertInt(iWidth, sBar.x);
+	AssertTrue(cFile.Equals(&cWideFile));
+	AssertTrue(cEdit.Equals(&cWideEdit));
+	AssertTrue(cEdit.GetRight() > sBar.x);
+	AssertTrue(bEditFound);
+
+	//Edit doesn't show at all, and File is cut off.
+	iWidth = cWideFile.GetWidth() / 2;
+	MenuBarInWindowOfWidth(iWidth, &cFile, &cEdit, &sBar, &bEditFound);
+	AssertInt(iWidth, sBar.x);
+	AssertTrue(cFile.Equals(&cWideFile));
+	AssertTrue(cEdit.Equals(&cWideEdit));
+	AssertFalse(bEditFound);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestMenu(void)
@@ -1950,6 +2035,7 @@ void TestMenu(void)
 	TestMenuItemShortcutFromCommand();
 	TestMenuOpener();
 	TestMenuPopupMaximumHeight();
+	TestMenuBarNarrow();
 
 	ObjectsFlush();
 	ObjectsKill();
