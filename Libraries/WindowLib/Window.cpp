@@ -1085,17 +1085,28 @@ CComponentEvent<CWindow>* CWindow::GetActivationEvent(void) { return &mcActivate
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window is held while its input is given: what the input does can
+// close it, a floating tool window docked by letting go of its drag say,
+// and its owner then lets it go.  Closed, it isn't laid out or painted.
 //
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcComponentInput)
 {
-	bool	bLayoutKept;
+	Ptr<CWindow>	pHeld;
+	bool			bOwned;
+	bool			bLayoutKept;
 
+	pHeld = this;
+	bOwned = mpOwner.IsNotNull();
 	if (psWindowEvent->eType != WIET_Delta)
 	{
 		DismissToolTip();
 	}
 	bLayoutKept = mcFocus.Input(psWindowEvent, pcComponentInput);
+	if (bOwned && mpOwner.IsNull())
+	{
+		return;
+	}
 	if ((psWindowEvent->eType == WIET_Delta) || bLayoutKept)
 	{
 		RequestPaint();
@@ -1111,16 +1122,24 @@ void CWindow::Input(SWindowInputEvent* psWindowEvent, CComponentInput* pcCompone
 //
 // A held key's command or printable given again (CComponentInput::
 // Repeat) to pcComponent, which took it the first time, as Input gives a
-// press's.  True if it was taken.
+// press's.  True if it was taken.  The window is held as Input holds it.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CWindow::RepeatInput(SComponentInputEvent* psEvent, CComponentInput* pcComponentInput, CComponent* pcComponent)
 {
-	bool	bTaken;
-	bool	bLayoutKept;
+	Ptr<CWindow>	pHeld;
+	bool			bOwned;
+	bool			bTaken;
+	bool			bLayoutKept;
 
+	pHeld = this;
+	bOwned = mpOwner.IsNotNull();
 	DismissToolTip();
 	bTaken = mcFocus.Repeat(psEvent, pcComponentInput, pcComponent, &bLayoutKept);
+	if (bOwned && mpOwner.IsNull())
+	{
+		return bTaken;
+	}
 	if (bLayoutKept)
 	{
 		RequestPaint();
