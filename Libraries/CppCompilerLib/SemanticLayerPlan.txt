@@ -1123,3 +1123,26 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	TestCPP65DeclarationsCounts are 160, not 171: the places no longer worked out again, which the test pins.
 	Same code: TestCppCompilerLib passes (272,076); every conformance case says what it said; the 4,213 listings
 	are as they were; the types phase is as it was (6,639 and 6,629 ms); the IDE builds.
+
+	Step 3 (2026-11-23): one category function, proved against the old.  CCPP65TypeChecker::Category, kept in the
+	record (bCategorised, eCategory; worked out each time in an operand that isn't evaluated, as the place is),
+	from WorkOutCategory: a name with a place, a string, built-in *p, ++x and x = y, p->m and typeid are lvalues;
+	a.m is a's (an xvalue of a prvalue); o.*m o's, p->*m an lvalue; a call, a cast and an operator function's
+	call are their declared type's (T& an lvalue, T&& an xvalue, T a prvalue, a class's the object made), but =
+	whose implicit operator= returns the object; x, y is y's; c ? x : y by ConditionalLvalueType and
+	ConditionalXvalueType; anything else a prvalue.  Over TestCppCompilerLib, the conformance cases and the three
+	*65 projects on both processors, every IsRvalue, IsObjectLvalue and MakesObject was asked of it too and each
+	disagreement logged (a harness, not committed; the code waits in the scratchpad's stage15e3.patch for step 4).
+	Two of the new function's were put right (an aggregate's implicit s1 = s2, and o.*m taken for an operator
+	call); then 22 remained, all of them the old switches':
+	  1. x[i] where operator[] returns a class by value (Clause05f's Bits::operator[] and Row::operator[], 16):
+	     IsRvalue and MakesObject say an lvalue, not an object; it is a prvalue.  A wrong answer: with f(R&) and
+	     f(R&&), f(b[3]) calls f(R&) (returns 1; g++ 2).
+	  2. A user-defined literal of a class by value (21_m, 2): the same, and the same wrong answer (f(5_r)
+	     returns 1; g++ 2).
+	  3. c ? a : b of two class lvalues (4: a.v ? a : b, and TestSetObject.cpp's two Ptr conditionals):
+	     MakesObject says it makes an object; it is an lvalue.  No wrong answer found: S s = c ? a : b copies
+	     once, and f(c ? a : b) binds S&, as g++ has them.
+	IsObjectLvalue disagreed nowhere: the reading's (a, b) and c ? s1 : s2 never reach it.  The listings, with the
+	harness asking silently, were as they were.  Stopped here for the user, as planned: the switch (step 4) puts
+	1 and 2 right, which changes the code of such programs and none in the suites' (their listings show none).
