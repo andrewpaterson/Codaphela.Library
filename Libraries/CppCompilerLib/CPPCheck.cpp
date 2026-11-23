@@ -26,6 +26,113 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPTokenMarks.h"
 #include "CPPUnit.h"
 #include "CPPConstants.h"
+#include "CPPCheck.h"
+
+
+//Finds the types a unit's declarations name that nothing declares (CCPPCheck::ReportUndeclaredTypes).
+class CCPPUndeclaredTypeFinder : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*	mpcUnit;
+	int			miTemplates;	//How many template declarations the node is in.
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		bool	bTemplate;
+
+		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
+		miTemplates += bTemplate ? 1 : 0;
+		if ((pcChild->GetKind() == CPPS_NamedTypeSpecifier) && (miTemplates == 0))
+		{
+			mpcUnit->GetCheck()->UndeclaredType((CCPPSyntaxNamedTypeSpecifier*)pcChild);
+		}
+		pcChild->VisitFields(this);
+		miTemplates -= bTemplate ? 1 : 0;
+	}
+};
+
+
+//Checks each of a node's children (CCPPCheck::CheckChildren).
+class CCPP65CheckChildren : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*	mpcUnit;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ mpcUnit->GetCheck()->CheckNode(pcChild); }
+};
+
+
+//Checks the lambdas in each of a node's children (CCPPCheck::CheckLambdas).
+class CCPP65CheckLambdas : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*	mpcUnit;
+
+	void	Visit(CCPPSyntax* pcChild) override	{ mpcUnit->GetCheck()->CheckLambdas(pcChild); }
+};
+
+
+//Finds the classes that are names for a template's instance, and then each place such an instance is written out
+//(CCPPCheck::ReportNamedInstances).  Each starts with a marked token, and a node that has none of them among its
+//tokens is not entered: nothing under it can be one.
+class CCPPNamedInstanceFinder : public CCPPSyntaxChildVisitor
+{
+public:
+	CCPPUnit*				mpcUnit;
+	CArrayCPPNameClasses*	mpapcClasses;
+	CCPPTokenMarks*			mpcMarks;		//The tokens that start what is being found.
+	bool					mbClasses;		//Finding the classes, not the instances.
+	int						miTemplates;	//How many template declarations the node is in,
+	int						miInitializers;	//and how many constructors' initialisers.
+	uint64					muiVisited;		//The nodes looked at.
+
+	void	Visit(CCPPSyntax* pcChild) override
+	{
+		bool	bTemplate;
+		bool	bInitializer;
+
+		if (!mpcMarks->Any(pcChild->miFirstToken, pcChild->miLastToken))
+		{
+			return;
+		}
+		muiVisited++;
+		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
+		bInitializer = (pcChild->GetKind() == CPPS_MemberInitializer);
+		miTemplates += bTemplate ? 1 : 0;
+		miInitializers += bInitializer ? 1 : 0;
+		if (mbClasses && (pcChild->GetKind() == CPPS_ClassSpecifier) && (miTemplates == 0) && mpcUnit->GetCheck()->IsNameClass((CCPPSyntaxClassSpecifier*)pcChild))
+		{
+			mpapcClasses->Add((CCPPSyntaxClassSpecifier*)pcChild);
+		}
+		if (!mbClasses && (pcChild->GetKind() == CPPS_NameComponent) && (miTemplates == 0) && (miInitializers == 0))
+		{
+			mpcUnit->GetCheck()->NamedInstance((CCPPSyntaxNameComponent*)pcChild, mpapcClasses);
+		}
+		pcChild->VisitFields(this);
+		miInitializers -= bInitializer ? 1 : 0;
+		miTemplates -= bTemplate ? 1 : 0;
+	}
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCheck::Init(CCPPUnit* pcUnit)
+{
+	mpcUnit = pcUnit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCheck::Kill(void)
+{
+	mpcUnit = NULL;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,57 +161,35 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // check that is kept (CCPPSemanticPass::Check).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::Check(CCPPSemanticPass* pcPass, bool bRemember)
+bool CCPPCheck::Check(CCPPSemanticPass* pcPass, bool bRemember)
 {
 	CCPPSyntaxTranslationUnit*	pcRoot;
 
-	mpcSemanticPass = pcPass;
-	mbRemember = bRemember;
-	pcRoot = mpcTree->GetRoot();
+	mpcUnit->mpcSemanticPass = pcPass;
+	mpcUnit->mbRemember = bRemember;
+	pcRoot = mpcUnit->mpcTree->GetRoot();
 	if (pcRoot)
 	{
-		Declarations(&pcRoot->macpDeclarations);
+		mpcUnit->Declarations(&pcRoot->macpDeclarations);
 		CheckClasses(&pcRoot->macpDeclarations);
 	}
 	do
 	{
-		if (mbRemember || pcPass->IsTemplatesAsThemselves())
+		if (mpcUnit->mbRemember || pcPass->IsTemplatesAsThemselves())
 		{
 			CheckTemplatesAsThemselves();
 		}
 	}
 	while (CheckDefinitions());
-	mcDiagnostics.ReportDeferred();
+	mpcUnit->mcDiagnostics.ReportDeferred();
 	ReportUndeclaredTypes();
 	ReportNamedInstances();
-	CheckContext();
-	mpcSemanticPass = NULL;
-	mbRemember = false;
-	return mcDiagnostics.GetErrors()->NumErrors() == 0;
+	mpcUnit->CheckContext();
+	mpcUnit->mpcSemanticPass = NULL;
+	mpcUnit->mbRemember = false;
+	return mpcUnit->mcDiagnostics.GetErrors()->NumErrors() == 0;
 }
 
-
-//Finds the types a unit's declarations name that nothing declares (CCPPUnit::ReportUndeclaredTypes).
-class CCPPUndeclaredTypeFinder : public CCPPSyntaxChildVisitor
-{
-public:
-	CCPPUnit*	mpcUnit;
-	int			miTemplates;	//How many template declarations the node is in.
-
-	void	Visit(CCPPSyntax* pcChild) override
-	{
-		bool	bTemplate;
-
-		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
-		miTemplates += bTemplate ? 1 : 0;
-		if ((pcChild->GetKind() == CPPS_NamedTypeSpecifier) && (miTemplates == 0))
-		{
-			mpcUnit->UndeclaredType((CCPPSyntaxNamedTypeSpecifier*)pcChild);
-		}
-		pcChild->VisitFields(this);
-		miTemplates -= bTemplate ? 1 : 0;
-	}
-};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,17 +200,18 @@ public:
 // headers, which are skimmed.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ReportUndeclaredTypes(void)
+void CCPPCheck::ReportUndeclaredTypes(void)
 {
 	CCPPUndeclaredTypeFinder	cFinder;
 
-	if (mpcTree->GetRoot())
+	if (mpcUnit->mpcTree->GetRoot())
 	{
-		cFinder.mpcUnit = this;
+		cFinder.mpcUnit = mpcUnit;
 		cFinder.miTemplates = 0;
-		mpcTree->GetRoot()->VisitFields(&cFinder);
+		mpcUnit->mpcTree->GetRoot()->VisitFields(&cFinder);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,7 +222,7 @@ void CCPPUnit::ReportUndeclaredTypes(void)
 // the parser can't look in.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
+void CCPPCheck::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
 {
 	SPreprocessedToken*	psSource;
 	CCPPToken*			pcToken;
@@ -148,21 +234,22 @@ void CCPPUnit::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
 		return;
 	}
 	iToken = pcNamed->mpcName->miFirstToken;
-	pcToken = (iToken >= 0) ? mpcTokeniser->Get((size)iToken) : NULL;
-	psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
+	pcToken = (iToken >= 0) ? mpcUnit->mpcTokeniser->Get((size)iToken) : NULL;
+	psSource = pcToken ? mpcUnit->mpcTokeniser->GetSource(pcToken) : NULL;
 	if (!psSource || (psSource->pcFile && psSource->pcFile->IsSystemFile()))
 	{
 		return;
 	}
-	for (i = 0; i < mcDiagnostics.GetErrors()->NumErrors(); i++)
+	for (i = 0; i < mpcUnit->mcDiagnostics.GetErrors()->NumErrors(); i++)
 	{
-		if (mcDiagnostics.GetErrors()->GetToken(i) == iToken)
+		if (mpcUnit->mcDiagnostics.GetErrors()->GetToken(i) == iToken)
 		{
 			return;
 		}
 	}
-	mcDiagnostics.ErrorAt(iToken, "This type is not declared");
+	mpcUnit->mcDiagnostics.ErrorAt(iToken, "This type is not declared");
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -175,33 +262,34 @@ void CCPPUnit::UndeclaredType(CCPPSyntaxNamedTypeSpecifier* pcNamed)
 // checked quietly, only for its names.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckDefinitions(void)
+bool CCPPCheck::CheckDefinitions(void)
 {
 	CCPPFunction*	pcFunction;
 	size			i;
 	bool			bChecked;
 
-	bChecked = GenerateQueued();
-	for (i = 0; i < mapcFunctions.NumElements(); i++)
+	bChecked = mpcUnit->GenerateQueued();
+	for (i = 0; i < mpcUnit->mapcFunctions.NumElements(); i++)
 	{
-		pcFunction = mapcFunctions.GetPtr(i);
+		pcFunction = mpcUnit->mapcFunctions.GetPtr(i);
 		if (pcFunction->mpcDefinition && !pcFunction->mbGenerated && !pcFunction->mbImplicit)
 		{
 			if (pcFunction->mpcBindings)
 			{
-				mcDiagnostics.BeginQuiet();
-				GenerateFunction(pcFunction);
-				mcDiagnostics.EndQuiet();
+				mpcUnit->mcDiagnostics.BeginQuiet();
+				mpcUnit->GenerateFunction(pcFunction);
+				mpcUnit->mcDiagnostics.EndQuiet();
 			}
 			else
 			{
-				GenerateFunction(pcFunction);
+				mpcUnit->GenerateFunction(pcFunction);
 			}
 			bChecked = true;
 		}
 	}
 	return bChecked;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,7 +299,7 @@ bool CCPPUnit::CheckDefinitions(void)
 // defined in the class are checked, whether or not the unit uses them.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckClasses(CArraySyntax* papcDeclarations)
+void CCPPCheck::CheckClasses(CArraySyntax* papcDeclarations)
 {
 	size							i;
 	CCPPSyntax*						pcDeclaration;
@@ -235,8 +323,8 @@ void CCPPUnit::CheckClasses(CArraySyntax* papcDeclarations)
 			pcSymbol = pcClassSpecifier->mpcSymbol;
 			if (pcSymbol && (pcSymbol->meKind == CPPSK_Class))
 			{
-				pcClass = GetClass(pcSymbol, pcClassSpecifier);
-				CompleteClass(pcClass, pcClassSpecifier);
+				pcClass = mpcUnit->GetClass(pcSymbol, pcClassSpecifier);
+				mpcUnit->CompleteClass(pcClass, pcClassSpecifier);
 			}
 			break;
 		case CPPS_LinkageSpecification:
@@ -252,6 +340,7 @@ void CCPPUnit::CheckClasses(CArraySyntax* papcDeclarations)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A function's parameters and locals are given their types, then each
@@ -259,7 +348,7 @@ void CCPPUnit::CheckClasses(CArraySyntax* papcDeclarations)
 // isn't supported is an error; the rest of the function is still checked.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
+void CCPPCheck::CheckFunction(CCPPFunction* pcFunction)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	size							i;
@@ -270,18 +359,19 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 		return;
 	}
 
-	EnterFunction(pcFunction);
-	AddParameters(pcFunction);
-	CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator);
-	CheckMemberInitialisers(pcFunction);
-	AllocateLocals(pcDefinition->mpcBody);
+	mpcUnit->EnterFunction(pcFunction);
+	mpcUnit->AddParameters(pcFunction);
+	mpcUnit->CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator);
+	mpcUnit->CheckMemberInitialisers(pcFunction);
+	mpcUnit->AllocateLocals(pcDefinition->mpcBody);
 	for (i = 0; i < pcDefinition->macpMemberInitializers.NumElements(); i++)
 	{
 		CheckChildren(pcDefinition->macpMemberInitializers.GetPtr(i));
 	}
 	CheckNode(pcDefinition->mpcBody);
-	LeaveFunction();
+	mpcUnit->LeaveFunction();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -293,35 +383,35 @@ void CCPPUnit::CheckFunction(CCPPFunction* pcFunction)
 // isn't: it is checked as each instance is made.  [intro.compliance] 2
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckUncalledFunctions(void)
+void CCPPCheck::CheckUncalledFunctions(void)
 {
 	CCPPFunction*	pcFunction;
 	CCPPClass*		pcClass;
 	size			i;
 
-	if (mpcSemanticPass)
+	if (mpcUnit->mpcSemanticPass)
 	{
 		return;
 	}
 
 	//The classes defined there are laid out (their members declared and checked) though nothing uses them.
-	for (i = 0; i < mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
 	{
-		pcClass = mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->mapcClasses.GetPtr(i);
 		if (pcClass->IsComplete() || pcClass->IsBeingMade() || !pcClass->mpcSpecifier || pcClass->mpcTemplate || pcClass->mpcBindings)
 		{
 			continue;
 		}
 		if (IsInSourceFile(pcClass->mpcSpecifier))
 		{
-			CompleteClass(pcClass, pcClass->mpcSpecifier);
+			mpcUnit->CompleteClass(pcClass, pcClass->mpcSpecifier);
 		}
 	}
-	GenerateQueued();
+	mpcUnit->GenerateQueued();
 
-	for (i = 0; i < mapcFunctions.NumElements(); i++)
+	for (i = 0; i < mpcUnit->mapcFunctions.NumElements(); i++)
 	{
-		pcFunction = mapcFunctions.GetPtr(i);
+		pcFunction = mpcUnit->mapcFunctions.GetPtr(i);
 		if (!pcFunction->mpcDefinition || pcFunction->mbGenerated || pcFunction->mbImplicit || pcFunction->mbDeleted || pcFunction->mpcTemplate || pcFunction->mpcBindings ||
 			(pcFunction->mpcDefinition->meBody == CPPFB_Default) || (pcFunction->mpcDefinition->meBody == CPPFB_Delete) || !pcFunction->mpcDefinition->mpcBody)
 		{
@@ -337,11 +427,12 @@ void CCPPUnit::CheckUncalledFunctions(void)
 			continue;
 		}
 		pcFunction->mbGenerated = true;
-		mcContext.EnterBindings(pcFunction->mpcBindings);
+		mpcUnit->mcContext.EnterBindings(pcFunction->mpcBindings);
 		CheckFunction(pcFunction);
-		mcContext.LeaveBindings();
+		mpcUnit->mcContext.LeaveBindings();
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -352,15 +443,16 @@ void CCPPUnit::CheckUncalledFunctions(void)
 // units that use it, as every unit that includes it has it.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsInSourceFile(CCPPSyntax* pcNode)
+bool CCPPCheck::IsInSourceFile(CCPPSyntax* pcNode)
 {
 	CCPPToken*			pcToken;
 	SPreprocessedToken*	psSource;
 
-	pcToken = (pcNode->miFirstToken >= 0) ? mpcTokeniser->Get((size)pcNode->miFirstToken) : NULL;
-	psSource = pcToken ? mpcTokeniser->GetSource(pcToken) : NULL;
+	pcToken = (pcNode->miFirstToken >= 0) ? mpcUnit->mpcTokeniser->Get((size)pcNode->miFirstToken) : NULL;
+	psSource = pcToken ? mpcUnit->mpcTokeniser->GetSource(pcToken) : NULL;
 	return psSource && psSource->pcFile && IsSourceFileName(psSource->pcFile->FullName());
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -368,13 +460,14 @@ bool CCPPUnit::IsInSourceFile(CCPPSyntax* pcNode)
 // Whether a file's name is a source file's, not a header's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsSourceFileName(const char* szName)
+bool CCPPCheck::IsSourceFileName(const char* szName)
 {
 	const char*	szDot;
 
 	szDot = strrchr(szName, '.');
 	return szDot && ((strcmp(szDot, ".cpp") == 0) || (strcmp(szDot, ".c") == 0) || (strcmp(szDot, ".cc") == 0) || (strcmp(szDot, ".cxx") == 0));
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -384,7 +477,7 @@ bool CCPPUnit::IsSourceFileName(const char* szName)
 // declared in a function aren't looked into.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
+void CCPPCheck::CheckNode(CCPPSyntax* pcNode)
 {
 	CCPPSyntax*	pcValue;
 	SCPP65Type*	psValue;
@@ -424,25 +517,25 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		//An overloaded function's name returned as a pointer to (or a reference to) a function is the overload of
 		//that type, chosen by the function's return type.  [over.over] 1
 		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
-		psValue = (pcValue && mcContext.GetFunction() && mcContext.GetFunction()->mpsReturn) ? mcContext.GetFunction()->mpsReturn : NULL;
-		psValue = (psValue && psValue->IsReference() && psValue->psBase->IsFunction()) ? mcTypes.Pointer(psValue->psBase) : psValue;
-		if (psValue && FunctionNameFor(pcValue, psValue))
+		psValue = (pcValue && mpcUnit->mcContext.GetFunction() && mpcUnit->mcContext.GetFunction()->mpsReturn) ? mpcUnit->mcContext.GetFunction()->mpsReturn : NULL;
+		psValue = (psValue && psValue->IsReference() && psValue->psBase->IsFunction()) ? mpcUnit->mcTypes.Pointer(psValue->psBase) : psValue;
+		if (psValue && mpcUnit->FunctionNameFor(pcValue, psValue))
 		{
-			mcTypeChecker.ValueFor(pcValue, psValue, false);
+			mpcUnit->mcTypeChecker.ValueFor(pcValue, psValue, false);
 			return;
 		}
 
 		//What is returned is the function's type's: an enum class's value isn't another's without a cast.
 		CheckChildren(pcNode);
-		if (mcContext.GetFunction())
+		if (mpcUnit->mcContext.GetFunction())
 		{
-			CheckReturn(mcContext.GetFunction(), (CCPPSyntaxReturnStatement*)pcNode);
+			CheckReturn(mpcUnit->mcContext.GetFunction(), (CCPPSyntaxReturnStatement*)pcNode);
 		}
 		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
-		psValue = (pcValue && mcContext.GetFunction() && mcContext.GetFunction()->mpsReturn) ? TypeOf(pcValue) : NULL;
-		if (psValue && !psValue->IsClass() && !mcContext.GetFunction()->mpsReturn->IsClass() && !mcContext.GetFunction()->mpsReturn->IsVoid())
+		psValue = (pcValue && mpcUnit->mcContext.GetFunction() && mpcUnit->mcContext.GetFunction()->mpsReturn) ? mpcUnit->TypeOf(pcValue) : NULL;
+		if (psValue && !psValue->IsClass() && !mpcUnit->mcContext.GetFunction()->mpsReturn->IsClass() && !mpcUnit->mcContext.GetFunction()->mpsReturn->IsVoid())
 		{
-			mcTypeChecker.KeepsEnum(psValue, mcContext.GetFunction()->mpsReturn, pcValue);
+			mpcUnit->mcTypeChecker.KeepsEnum(psValue, mpcUnit->mcContext.GetFunction()->mpsReturn, pcValue);
 		}
 		return;
 	case CPPS_IfStatement:
@@ -458,23 +551,23 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 		case CPPS_DoStatement:		pcValue = ((CCPPSyntaxDoStatement*)pcNode)->mpcCondition;		break;
 		default:					pcValue = ((CCPPSyntaxForStatement*)pcNode)->mpcCondition;		break;
 		}
-		psValue = (pcValue && IsCheckedExpression(pcValue)) ? TypeOf(pcValue) : NULL;
+		psValue = (pcValue && IsCheckedExpression(pcValue)) ? mpcUnit->TypeOf(pcValue) : NULL;
 		if (psValue && psValue->IsScopedEnum())
 		{
-			mcTypeChecker.Truth(psValue, pcValue);
+			mpcUnit->mcTypeChecker.Truth(psValue, pcValue);
 		}
 		psValue = ConditionVariableType(pcValue);
 		if (psValue && psValue->IsArray())
 		{
 			//[stmt.select] 2
-			mcDiagnostics.ReportError(pcValue, "A condition's variable isn't an array");
+			mpcUnit->mcDiagnostics.ReportError(pcValue, "A condition's variable isn't an array");
 		}
 		return;
 	case CPPS_EnumSpecifier:
-		CheckEnumerators(pcNode);
+		mpcUnit->CheckEnumerators(pcNode);
 		return;
 	case CPPS_StaticAssert:
-		StaticAssert((CCPPSyntaxStaticAssert*)pcNode);
+		mpcUnit->StaticAssert((CCPPSyntaxStaticAssert*)pcNode);
 		return;
 	case CPPS_CaseStatement:
 		//A case or default label is in a switch's statement.  [stmt.label] 2
@@ -483,7 +576,7 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 	case CPPS_LambdaExpression:
 		//A lambda alone (return's value, say): typed, then its body checked in its own scope (CheckLambda), not walked
 		//as the function's statements.
-		if (mcTypeChecker.Value(pcNode))
+		if (mpcUnit->mcTypeChecker.Value(pcNode))
 		{
 			CheckLambdas(pcNode);
 		}
@@ -508,6 +601,7 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The type a switch's cases are compared as, for CheckSwitch where the IR
@@ -515,7 +609,7 @@ void CCPPUnit::CheckNode(CCPPSyntax* pcNode)
 // isn't an integer's (what is wrong with it is said where it is used).
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
+SCPP65Type* CCPPCheck::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 {
 	SCPP65Type*	psType;
 
@@ -523,17 +617,18 @@ SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 	{
 		return NULL;
 	}
-	mcDiagnostics.BeginQuiet();
-	psType = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : TypeOf(pcSwitch->mpcCondition);
-	mcDiagnostics.EndQuiet();
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	psType = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : mpcUnit->TypeOf(pcSwitch->mpcCondition);
+	mpcUnit->mcDiagnostics.EndQuiet();
 	psType = psType ? psType->WithoutReference() : NULL;
 	if (psType && psType->IsClass())
 	{
 		//An object is an integer by its class's one conversion function to one that isn't explicit.  [stmt.switch] 2, [conv] 5
-		psType = mcBinder.ContextualType(pcSwitch->mpcCondition, CPPXT_Integer);
+		psType = mpcUnit->mcBinder.ContextualType(pcSwitch->mpcCondition, CPPXT_Integer);
 	}
-	return (psType && psType->IsInteger()) ? mcTypes.Promote(psType) : NULL;
+	return (psType && psType->IsInteger()) ? mpcUnit->mcTypes.Promote(psType) : NULL;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -544,7 +639,7 @@ SCPP65Type* CCPPUnit::SwitchType(CCPPSyntaxSwitchStatement* pcSwitch)
 // (psType).  [stmt.switch] 2, [expr.const] 3
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType)
+void CCPPCheck::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType)
 {
 	CArraySyntax				apcCases;
 	CCPPSyntaxCaseStatement*	pcCase;
@@ -557,13 +652,13 @@ void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type
 	{
 		return;
 	}
-	mcDiagnostics.BeginQuiet();
-	psCondition = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : TypeOf(pcSwitch->mpcCondition);
-	mcDiagnostics.EndQuiet();
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	psCondition = (pcSwitch->mpcCondition->GetKind() == CPPS_SimpleDeclaration) ? ConditionVariableType(pcSwitch->mpcCondition) : mpcUnit->TypeOf(pcSwitch->mpcCondition);
+	mpcUnit->mcDiagnostics.EndQuiet();
 	psCondition = psCondition ? psCondition->WithoutReference() : NULL;
 	if (psCondition && (psCondition->IsFloat() || psCondition->IsPointer()))
 	{
-		mcDiagnostics.ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
+		mpcUnit->mcDiagnostics.ReportError(pcSwitch->mpcCondition, "A switch's condition is an integer or an enum");
 		return;
 	}
 	if (!psType)
@@ -575,16 +670,17 @@ void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type
 	for (i = 0; i < apcCases.NumElements(); i++)
 	{
 		pcCase = (CCPPSyntaxCaseStatement*)apcCases.GetPtr(i);
-		mcDiagnostics.BeginQuiet();
-		bConstant = pcCase->mpcValue && mcFolder.Constant(pcCase->mpcValue, &lliValue);
-		mcDiagnostics.EndQuiet();
+		mpcUnit->mcDiagnostics.BeginQuiet();
+		bConstant = pcCase->mpcValue && mpcUnit->mcFolder.Constant(pcCase->mpcValue, &lliValue);
+		mpcUnit->mcDiagnostics.EndQuiet();
 		if (bConstant)
 		{
-			mcTypeChecker.ConstantNotNarrowed(pcCase->mpcValue, psType);
+			mpcUnit->mcTypeChecker.ConstantNotNarrowed(pcCase->mpcValue, psType);
 		}
 	}
 	apcCases.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -595,7 +691,7 @@ void CCPPUnit::CheckSwitchValues(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type
 // [stmt.switch] 2, [stmt.dcl] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType)
+bool CCPPCheck::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psType)
 {
 	CArraySyntax	apcCases;
 	CArrayInt64		alliValues;
@@ -619,30 +715,30 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 			uiDefaults++;
 			if (uiDefaults == 2)
 			{
-				bResult = mcDiagnostics.ReportOnce(pcCase, "A switch has one default label");
+				bResult = mpcUnit->mcDiagnostics.ReportOnce(pcCase, "A switch has one default label");
 			}
 			continue;
 		}
-		mpcConstants->ClearReason();
-		mcDiagnostics.BeginQuiet();
-		if (!mcFolder.Constant(pcCase->mpcValue, &lliValue))
+		mpcUnit->mpcConstants->ClearReason();
+		mpcUnit->mcDiagnostics.BeginQuiet();
+		if (!mpcUnit->mcFolder.Constant(pcCase->mpcValue, &lliValue))
 		{
-			mcDiagnostics.EndQuiet();
+			mpcUnit->mcDiagnostics.EndQuiet();
 			//A case's value is a constant.  [stmt.switch] 2
-			mcDiagnostics.BeginLoud();
-			bResult = mcFolder.ConstantError(pcCase->mpcValue, "A case's value is a constant");
-			mcDiagnostics.EndLoud();
+			mpcUnit->mcDiagnostics.BeginLoud();
+			bResult = mpcUnit->mcFolder.ConstantError(pcCase->mpcValue, "A case's value is a constant");
+			mpcUnit->mcDiagnostics.EndLoud();
 			continue;
 		}
-		mcDiagnostics.EndQuiet();
+		mpcUnit->mcDiagnostics.EndQuiet();
 		if (!psType)
 		{
 			continue;
 		}
-		lliValue = mcFolder.ConstantOfType(psType, lliValue);
+		lliValue = mpcUnit->mcFolder.ConstantOfType(psType, lliValue);
 		if (alliValues.Contains(&lliValue))
 		{
-			bResult = mcDiagnostics.ReportOnce(pcCase, "Two cases of the switch have one value");
+			bResult = mpcUnit->mcDiagnostics.ReportOnce(pcCase, "Two cases of the switch have one value");
 		}
 		alliValues.Add(lliValue);
 	}
@@ -654,13 +750,14 @@ bool CCPPUnit::CheckSwitch(CCPPSyntaxSwitchStatement* pcSwitch, SCPP65Type* psTy
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // break or continue: an error if no loop (or, for break, switch) holds it
 // in the function, lambda or class it is in.  [stmt.break] 1, [stmt.cont] 1
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckJump(CCPPSyntax* pcJump, bool bContinue)
+bool CCPPCheck::CheckJump(CCPPSyntax* pcJump, bool bContinue)
 {
 	CCPPSyntax*	pcNode;
 
@@ -682,13 +779,14 @@ bool CCPPUnit::CheckJump(CCPPSyntax* pcJump, bool bContinue)
 		case CPPS_LambdaExpression:
 		case CPPS_ClassSpecifier:
 		case CPPS_FunctionDefinition:
-			return mcDiagnostics.ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+			return mpcUnit->mcDiagnostics.ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 		default:
 			break;
 		}
 	}
-	return mcDiagnostics.ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
+	return mpcUnit->mcDiagnostics.ReportError(pcJump, bContinue ? "continue outside a loop" : "break outside a loop or switch");
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -698,7 +796,7 @@ bool CCPPUnit::CheckJump(CCPPSyntax* pcJump, bool bContinue)
 // made or destroyed by code.  [stmt.dcl] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPSyntaxInitDeclarator* pcInit)
+bool CCPPCheck::IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPSyntaxInitDeclarator* pcInit)
 {
 	CCPPVariable*	pcVariable;
 	SCPP65Type*		psType;
@@ -711,7 +809,7 @@ bool CCPPUnit::IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CC
 	{
 		return false;
 	}
-	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 	psType = pcVariable ? pcVariable->mpsType : NULL;
 	while (psType && psType->IsArray())
 	{
@@ -721,13 +819,14 @@ bool CCPPUnit::IsJumpGuardedLocal(CCPPSyntaxSimpleDeclaration* pcDeclaration, CC
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The locals (IsJumpGuardedLocal) in scope at pcNode: those declared before
 // it in each block that holds it, up to pcRoot.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySyntax* papcLocals)
+void CCPPCheck::LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySyntax* papcLocals)
 {
 	CCPPSyntax*						pcChild;
 	CCPPSyntax*						pcParent;
@@ -767,13 +866,14 @@ void CCPPUnit::LocalsInScope(CCPPSyntax* pcNode, CCPPSyntax* pcRoot, CArraySynta
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The label statement named as iNameToken's identifier in pcNode (not in a
 // lambda or class in it), or NULL.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::FindLabel(CCPPSyntax* pcNode, int iNameToken)
+CCPPSyntax* CCPPCheck::FindLabel(CCPPSyntax* pcNode, int iNameToken)
 {
 	CCPPSyntax*	pcFound;
 	CCPPToken*	pcName;
@@ -786,8 +886,8 @@ CCPPSyntax* CCPPUnit::FindLabel(CCPPSyntax* pcNode, int iNameToken)
 	}
 	if (pcNode->GetKind() == CPPS_LabelStatement)
 	{
-		pcName = mpcTokeniser->Get(iNameToken);
-		pcLabel = mpcTokeniser->Get(((CCPPSyntaxLabelStatement*)pcNode)->miName);
+		pcName = mpcUnit->mpcTokeniser->Get(iNameToken);
+		pcLabel = mpcUnit->mpcTokeniser->Get(((CCPPSyntaxLabelStatement*)pcNode)->miName);
 		if (pcName && pcLabel && pcName->IsIdentifier() && pcLabel->IsIdentifier() && (((CCTIdentifier*)pcName)->miIdentifier == ((CCTIdentifier*)pcLabel)->miIdentifier))
 		{
 			return pcNode;
@@ -805,6 +905,7 @@ CCPPSyntax* CCPPUnit::FindLabel(CCPPSyntax* pcNode, int iNameToken)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A goto: an error if it jumps into the scope of a local it goes past the
@@ -812,7 +913,7 @@ CCPPSyntax* CCPPUnit::FindLabel(CCPPSyntax* pcNode, int iNameToken)
 // [stmt.dcl] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
+bool CCPPCheck::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
 {
 	CCPPSyntax*		pcRoot;
 	CCPPSyntax*		pcLabel;
@@ -842,7 +943,7 @@ bool CCPPUnit::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
 	{
 		if (apcAtGoto.Find(apcAtLabel.GetPtr(i)) == ARRAY_ELEMENT_NOT_FOUND)
 		{
-			bResult = mcDiagnostics.ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
+			bResult = mpcUnit->mcDiagnostics.ReportError(pcGoto, "The goto jumps into the scope of an object it hasn't made: past its declaration, or into its block");
 			break;
 		}
 	}
@@ -852,13 +953,14 @@ bool CCPPUnit::CheckGoto(CCPPSyntaxGotoStatement* pcGoto)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The type of the variable a condition declares (if (T x = v)), or NULL if
 // it declares none.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::ConditionVariableType(CCPPSyntax* pcCondition)
+SCPP65Type* CCPPCheck::ConditionVariableType(CCPPSyntax* pcCondition)
 {
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 	CCPPSyntaxInitDeclarator*		pcInit;
@@ -874,9 +976,10 @@ SCPP65Type* CCPPUnit::ConditionVariableType(CCPPSyntax* pcCondition)
 		return NULL;
 	}
 	pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(0);
-	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 	return pcVariable ? pcVariable->mpsType : NULL;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -885,7 +988,7 @@ SCPP65Type* CCPPUnit::ConditionVariableType(CCPPSyntax* pcCondition)
 // the function, lambda or class it is in).  [stmt.label] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckCaseInSwitch(CCPPSyntax* pcCase)
+bool CCPPCheck::CheckCaseInSwitch(CCPPSyntax* pcCase)
 {
 	CCPPSyntax*	pcNode;
 
@@ -905,8 +1008,9 @@ bool CCPPUnit::CheckCaseInSwitch(CCPPSyntax* pcCase)
 		}
 		break;
 	}
-	return mcDiagnostics.ReportError(pcCase, ((CCPPSyntaxCaseStatement*)pcCase)->mpcValue ? "A case label is only in a switch" : "A default label is only in a switch");
+	return mpcUnit->mcDiagnostics.ReportError(pcCase, ((CCPPSyntaxCaseStatement*)pcCase)->mpcValue ? "A case label is only in a switch" : "A default label is only in a switch");
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -916,7 +1020,7 @@ bool CCPPUnit::CheckCaseInSwitch(CCPPSyntax* pcCase)
 // namespace scope is.  [class.virtual] 4, 5, [class] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckLocalClass(CCPPSyntax* pcDeclaration)
+bool CCPPCheck::CheckLocalClass(CCPPSyntax* pcDeclaration)
 {
 	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
 	bool								bResult;
@@ -926,11 +1030,12 @@ bool CCPPUnit::CheckLocalClass(CCPPSyntax* pcDeclaration)
 	{
 		return true;
 	}
-	mcDiagnostics.BeginLoud();
-	bResult = CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
-	mcDiagnostics.EndLoud();
+	mpcUnit->mcDiagnostics.BeginLoud();
+	bResult = mpcUnit->CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
+	mpcUnit->mcDiagnostics.EndLoud();
 	return bResult;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -940,7 +1045,7 @@ bool CCPPUnit::CheckLocalClass(CCPPSyntax* pcDeclaration)
 // [basic.namespace] 1, [dcl.fct.def.general] 2, [class.local] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
+bool CCPPCheck::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
 {
 	if (!pcDeclaration)
 	{
@@ -949,13 +1054,14 @@ bool CCPPUnit::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
 	switch (pcDeclaration->GetKind())
 	{
 	case CPPS_Namespace:
-		return mcDiagnostics.ReportError(pcDeclaration, "A namespace is declared outside any function");
+		return mpcUnit->mcDiagnostics.ReportError(pcDeclaration, "A namespace is declared outside any function");
 	case CPPS_FunctionDefinition:
-		return mcDiagnostics.ReportError(pcDeclaration, "A function is defined outside any function: a local class's member functions are defined in the class");
+		return mpcUnit->mcDiagnostics.ReportError(pcDeclaration, "A function is defined outside any function: a local class's member functions are defined in the class");
 	default:
 		return true;
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -964,14 +1070,15 @@ bool CCPPUnit::CheckBlockDeclaration(CCPPSyntax* pcDeclaration)
 // array's elements are its kind of character.  [dcl.init.string] 1
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CCPPUnit::StringArrayError(CCPPSyntax* pcString, SCPP65Type* psElement)
+const char* CCPPCheck::StringArrayError(CCPPSyntax* pcString, SCPP65Type* psElement)
 {
 	if (!psElement->IsInteger() || (psElement->eKind == CPP65TK_Bool))
 	{
 		return "A string initialises an array of characters only";
 	}
-	return (mcStrings.StringElementBytes(pcString) == 1) ? "A string without a prefix (or u8) initialises an array of char only" : "A wide string initialises an array of its own kind of character only: wchar_t for L, char16_t for u, char32_t for U";
+	return (mpcUnit->mcStrings.StringElementBytes(pcString) == 1) ? "A string without a prefix (or u8) initialises an array of char only" : "A wide string initialises an array of its own kind of character only: wchar_t for L, char16_t for u, char32_t for U";
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -980,7 +1087,7 @@ const char* CCPPUnit::StringArrayError(CCPPSyntax* pcString, SCPP65Type* psEleme
 // switches inside it).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases)
+void CCPPCheck::SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases)
 {
 	size	i;
 
@@ -999,6 +1106,7 @@ void CCPPUnit::SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether no case label of a switch (in pcNode and what follows) jumps into
@@ -1008,7 +1116,7 @@ void CCPPUnit::SwitchCases(CCPPSyntax* pcNode, CArraySyntax* papcCases)
 // is in the scope the label is in.  [stmt.dcl] 3
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
+bool CCPPCheck::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 {
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 	CCPPSyntaxInitDeclarator*		pcInit;
@@ -1027,7 +1135,7 @@ bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 	case CPPS_CaseStatement:
 		if (*pbInScope)
 		{
-			return mcDiagnostics.ReportOnce(pcNode, "The case label jumps past an initialised local into its scope: put the local in a block of its own");
+			return mpcUnit->mcDiagnostics.ReportOnce(pcNode, "The case label jumps past an initialised local into its scope: put the local in a block of its own");
 		}
 		return SwitchJumps(((CCPPSyntaxCaseStatement*)pcNode)->mpcStatement, pbInScope);
 
@@ -1047,7 +1155,7 @@ bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 			{
 				continue;
 			}
-			pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+			pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 			psType = pcVariable ? pcVariable->mpsType : NULL;
 			while (psType && psType->IsArray())
 			{
@@ -1073,6 +1181,7 @@ bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // What a return statement gives its function: no value (but a void one)
@@ -1081,7 +1190,7 @@ bool CCPPUnit::SwitchJumps(CCPPSyntax* pcNode, bool* pbInScope)
 // [stmt.return] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* pcReturn)
+bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* pcReturn)
 {
 	SCPP65Type*				psReturn;
 	SCPP65Type*				psValue;
@@ -1091,11 +1200,11 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	bool					bResult;
 
 	psReturn = pcFunction->mpsReturn;
-	if (!pcReturn->mpcValue && psReturn && (psReturn != &mcTypes.msUndeduced) && (pcFunction->meKind == CPPFK_Function) && !psReturn->IsVoid())
+	if (!pcReturn->mpcValue && psReturn && (psReturn != &mpcUnit->mcTypes.msUndeduced) && (pcFunction->meKind == CPPFK_Function) && !psReturn->IsVoid())
 	{
-		return mcDiagnostics.ReportOnce(pcReturn, "The function returns a value: return; is for a void function");
+		return mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "The function returns a value: return; is for a void function");
 	}
-	if (!pcReturn->mpcValue || !psReturn || (psReturn == &mcTypes.msUndeduced) || (pcFunction->meKind != CPPFK_Function))
+	if (!pcReturn->mpcValue || !psReturn || (psReturn == &mpcUnit->mcTypes.msUndeduced) || (pcFunction->meKind != CPPFK_Function))
 	{
 		return true;
 	}
@@ -1103,14 +1212,14 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	{
 		if (pcReturn->mpcValue->GetKind() == CPPS_InitializerList)
 		{
-			return mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
+			return mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 		}
-		mcDiagnostics.BeginQuiet();
-		psValue = TypeOf(pcReturn->mpcValue);
-		mcDiagnostics.EndQuiet();
-		return !psValue || psValue->IsVoid() || mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
+		mpcUnit->mcDiagnostics.BeginQuiet();
+		psValue = mpcUnit->TypeOf(pcReturn->mpcValue);
+		mpcUnit->mcDiagnostics.EndQuiet();
+		return !psValue || psValue->IsVoid() || mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 	}
-	if (!psReturn->IsClass() || !CompleteClass(psReturn->pcClass, pcReturn))
+	if (!psReturn->IsClass() || !mpcUnit->CompleteClass(psReturn->pcClass, pcReturn))
 	{
 		return true;
 	}
@@ -1119,60 +1228,52 @@ bool CCPPUnit::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement* 
 	papcArguments = &apcValue;
 	if (pcReturn->mpcValue->GetKind() == CPPS_InitializerList)
 	{
-		papcArguments = ListElements(pcReturn->mpcValue);
+		papcArguments = mpcUnit->ListElements(pcReturn->mpcValue);
 	}
 	else
 	{
-		mcDiagnostics.BeginQuiet();
-		psValue = TypeOf(pcReturn->mpcValue);
-		mcDiagnostics.EndQuiet();
+		mpcUnit->mcDiagnostics.BeginQuiet();
+		psValue = mpcUnit->TypeOf(pcReturn->mpcValue);
+		mpcUnit->mcDiagnostics.EndQuiet();
 		psValue = psValue ? psValue->WithoutReference() : NULL;
-		if (!psValue || (psValue->IsClass() && IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))
+		if (!psValue || (psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))
 		{
 			apcValue.Kill();
 			return true;
 		}
 	}
 	bResult = true;
-	mcDiagnostics.BeginQuiet();
-	if ((papcArguments->NumElements() > 0) && psReturn->pcClass->mbConstructors && mcBinder.BindConstruction(psReturn->pcClass, papcArguments, pcReturn, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	if ((papcArguments->NumElements() > 0) && psReturn->pcClass->mbConstructors && mpcUnit->mcBinder.BindConstruction(psReturn->pcClass, papcArguments, pcReturn, &cBound, false) && (cBound.meHow == CPPBO_Constructor))
 	{
-		mcDiagnostics.EndQuiet();
+		mpcUnit->mcDiagnostics.EndQuiet();
 		if (cBound.mpcConstructor->mbExplicit)
 		{
-			bResult = mcDiagnostics.ReportOnce(pcReturn, "An explicit constructor isn't used by return: write the class's name before the value");
+			bResult = mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "An explicit constructor isn't used by return: write the class's name before the value");
 		}
 	}
 	else
 	{
-		mcDiagnostics.EndQuiet();
+		mpcUnit->mcDiagnostics.EndQuiet();
 	}
 	apcValue.Kill();
 	return bResult;
 }
 
 
-//Checks each of a node's children (CCPPUnit::CheckChildren).
-class CCPP65CheckChildren : public CCPPSyntaxChildVisitor
-{
-public:
-	CCPPUnit*	mpcUnit;
-
-	void	Visit(CCPPSyntax* pcChild) override	{ mpcUnit->CheckNode(pcChild); }
-};
-
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckChildren(CCPPSyntax* pcNode)
+void CCPPCheck::CheckChildren(CCPPSyntax* pcNode)
 {
 	CCPP65CheckChildren	cChildren;
 
-	cChildren.mpcUnit = this;
+	cChildren.mpcUnit = mpcUnit;
 	pcNode->VisitFields(&cChildren);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1182,27 +1283,18 @@ void CCPPUnit::CheckChildren(CCPPSyntax* pcNode)
 // still resolved: in f(a.Get(), x) with no f that fits, a.Get() still is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckExpression(CCPPSyntax* pcExpression)
+void CCPPCheck::CheckExpression(CCPPSyntax* pcExpression)
 {
-	if (mcTypeChecker.Value(pcExpression))
+	if (mpcUnit->mcTypeChecker.Value(pcExpression))
 	{
 		CheckLambdas(pcExpression);
 		return;
 	}
-	mcDiagnostics.BeginQuiet();
+	mpcUnit->mcDiagnostics.BeginQuiet();
 	CheckChildren(pcExpression);
-	mcDiagnostics.EndQuiet();
+	mpcUnit->mcDiagnostics.EndQuiet();
 }
 
-
-//Checks the lambdas in each of a node's children (CCPPUnit::CheckLambdas).
-class CCPP65CheckLambdas : public CCPPSyntaxChildVisitor
-{
-public:
-	CCPPUnit*	mpcUnit;
-
-	void	Visit(CCPPSyntax* pcChild) override	{ mpcUnit->CheckLambdas(pcChild); }
-};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1211,7 +1303,7 @@ public:
 // one makes its closure, and says nothing of what its body does.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckLambdas(CCPPSyntax* pcNode)
+void CCPPCheck::CheckLambdas(CCPPSyntax* pcNode)
 {
 	CCPP65CheckLambdas	cChildren;
 
@@ -1224,9 +1316,10 @@ void CCPPUnit::CheckLambdas(CCPPSyntax* pcNode)
 		CheckLambda((CCPPSyntaxLambdaExpression*)pcNode);
 		return;
 	}
-	cChildren.mpcUnit = this;
+	cChildren.mpcUnit = mpcUnit;
 	pcNode->VisitFields(&cChildren);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1237,26 +1330,27 @@ void CCPPUnit::CheckLambdas(CCPPSyntax* pcNode)
 // arguments, checked when it is called.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
+void CCPPCheck::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 {
 	SCPPLambda*			psLambda;
 	CCPPFunction*		pcCall;
 
-	mcDiagnostics.BeginQuiet();
-	psLambda = mcClosures.GetLambda(pcLambda);
-	mcDiagnostics.EndQuiet();
+	mpcUnit->mcDiagnostics.BeginQuiet();
+	psLambda = mpcUnit->mcClosures.GetLambda(pcLambda);
+	mpcUnit->mcDiagnostics.EndQuiet();
 	pcCall = psLambda ? psLambda->pcCall : NULL;
 	if (!pcCall || pcCall->mbGenerated)
 	{
 		return;
 	}
 	pcCall->mbGenerated = true;
-	EnterFunction(pcCall);
-	AddParameters(pcCall, pcCall->mpcDeclarator);
-	AllocateLocals(pcLambda->mpcDefinition->mpcBody);
+	mpcUnit->EnterFunction(pcCall);
+	mpcUnit->AddParameters(pcCall, pcCall->mpcDeclarator);
+	mpcUnit->AllocateLocals(pcLambda->mpcDefinition->mpcBody);
 	CheckNode(pcLambda->mpcDefinition->mpcBody);
-	LeaveFunction();
+	mpcUnit->LeaveFunction();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1265,36 +1359,37 @@ void CCPPUnit::CheckLambda(CCPPSyntaxLambdaExpression* pcLambda)
 // initialises it.  If it can't be, its expressions are typed on their own.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
+void CCPPCheck::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 {
 	CCPPVariable*					pcVariable;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 
 	if (pcInit->mpcDeclarator->IsFunction())
 	{
-		DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
+		mpcUnit->DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
 		return;
 	}
-	CheckPointerExceptions(pcInit);
-	pcVariable = pcInit->mpcSymbol ? GetVariable(pcInit->mpcSymbol) : NULL;
+	mpcUnit->CheckPointerExceptions(pcInit);
+	pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 	//alignas on it is a power of two (AlignasAlignment says so).  [dcl.align] 2
 	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
 	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers)
 	{
-		AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
+		mpcUnit->AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
 	}
-	AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
-	if (pcVariable && CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
+	mpcUnit->AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
+	if (pcVariable && mpcUnit->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
 	{
 		return;
 	}
 	if (pcInit->mpcInitializer)
 	{
-		mcDiagnostics.BeginQuiet();
+		mpcUnit->mcDiagnostics.BeginQuiet();
 		CheckNode(pcInit->mpcInitializer);
-		mcDiagnostics.EndQuiet();
+		mpcUnit->mcDiagnostics.EndQuiet();
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1303,7 +1398,7 @@ void CCPPUnit::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 // are only typed for what they initialise).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsCheckedExpression(CCPPSyntax* pcNode)
+bool CCPPCheck::IsCheckedExpression(CCPPSyntax* pcNode)
 {
 	ECPPSyntax	eKind;
 
@@ -1316,18 +1411,19 @@ bool CCPPUnit::IsCheckedExpression(CCPPSyntax* pcNode)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The type checker found which function pcName calls (or names): the
 // semantic pass is told, when checking.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
+void CCPPCheck::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 {
 	CCPPSyntaxName*	pcDeclared;
 	CCPPSymbol*		pcSymbol;
 
-	if (!mpcSemanticPass || !pcName || !pcName->GetLast() || !pcFunction)
+	if (!mpcUnit->mpcSemanticPass || !pcName || !pcName->GetLast() || !pcFunction)
 	{
 		return;
 	}
@@ -1341,8 +1437,9 @@ void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 	{
 		pcSymbol = pcName->mpcSymbol;
 	}
-	mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, pcFunction->mpcDeclarator);
+	mpcUnit->mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, pcFunction->mpcDeclarator);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1351,13 +1448,13 @@ void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction)
 // names.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
+void CCPPCheck::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
 {
-	if (!mpcSemanticPass || !pcName || !pcName->GetLast())
+	if (!mpcUnit->mpcSemanticPass || !pcName || !pcName->GetLast())
 	{
 		return;
 	}
-	mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, NULL);
+	mpcUnit->mpcSemanticPass->Resolved(pcName->GetLast()->miName, pcSymbol, NULL);
 }
 
 
@@ -1381,15 +1478,15 @@ void CCPPUnit::Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol)
 // pattern's arguments).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CheckTemplatesAsThemselves(void)
+void CCPPCheck::CheckTemplatesAsThemselves(void)
 {
 	CCPPTemplate*	pcTemplate;
 	CCPPClass*		pcClass;
 	size			i;
 
-	for (i = 0; i < mapcTemplates.NumElements(); i++)
+	for (i = 0; i < mpcUnit->mapcTemplates.NumElements(); i++)
 	{
-		pcTemplate = mapcTemplates.GetPtr(i);
+		pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
 		if (pcTemplate->mbAsItself)
 		{
 			continue;
@@ -1402,24 +1499,25 @@ void CCPPUnit::CheckTemplatesAsThemselves(void)
 
 		if (pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition->GetKind() == CPPS_ClassSpecifier))
 		{
-			mcDiagnostics.BeginQuiet();
-			pcClass = InstantiateClassAsItself(pcTemplate);
+			mpcUnit->mcDiagnostics.BeginQuiet();
+			pcClass = mpcUnit->InstantiateClassAsItself(pcTemplate);
 			if (pcClass)
 			{
-				CompleteClass(pcClass, pcTemplate->mpcDefinition);
+				mpcUnit->CompleteClass(pcClass, pcTemplate->mpcDefinition);
 			}
-			mcDiagnostics.EndQuiet();
+			mpcUnit->mcDiagnostics.EndQuiet();
 		}
 		else if (!pcTemplate->mbMember || (pcTemplate->mbMemberTemplate && pcTemplate->mpcClass && (!pcTemplate->mpcClass->mpcBindings || pcTemplate->mpcClass->mpcBindings->IsSelf())))
 		{
 			//A function template, or a member template in a class that isn't another instance.  A class template's
 			//members defined outside it are declared with its instance (LayoutClass).
-			mcDiagnostics.BeginQuiet();
-			InstantiateFunctionAsItself(pcTemplate);
-			mcDiagnostics.EndQuiet();
+			mpcUnit->mcDiagnostics.BeginQuiet();
+			mpcUnit->InstantiateFunctionAsItself(pcTemplate);
+			mpcUnit->mcDiagnostics.EndQuiet();
 		}
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1431,10 +1529,11 @@ void CCPPUnit::CheckTemplatesAsThemselves(void)
 // written.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsCheckedAsWritten(void) const
+bool CCPPCheck::IsCheckedAsWritten(void) const
 {
-	return !mcContext.GetBindings() || mcContext.GetBindings()->IsSelf();
+	return !mpcUnit->mcContext.GetBindings() || mpcUnit->mcContext.GetBindings()->IsSelf();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1443,13 +1542,14 @@ bool CCPPUnit::IsCheckedAsWritten(void) const
 // it is checked as written.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
+void CCPPCheck::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
-	if (mbRemember && IsCheckedAsWritten())
+	if (mpcUnit->mbRemember && IsCheckedAsWritten())
 	{
-		mpcSemanticPass->Typed(pcExpression, psType);
+		mpcUnit->mpcSemanticPass->Typed(pcExpression, psType);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1457,13 +1557,14 @@ void CCPPUnit::Typed(CCPPSyntax* pcExpression, SCPP65Type* psType)
 // The type checker found the type of the place pcExpression is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
+void CCPPCheck::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
 {
-	if (mbRemember && IsCheckedAsWritten())
+	if (mpcUnit->mbRemember && IsCheckedAsWritten())
 	{
-		mpcSemanticPass->PlaceTyped(pcExpression, psType);
+		mpcUnit->mpcSemanticPass->PlaceTyped(pcExpression, psType);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1473,13 +1574,14 @@ void CCPPUnit::PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType)
 // a member function that isn't const called on it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::Changed(CCPPSyntax* pcExpression, uint8 uiChanges)
+void CCPPCheck::Changed(CCPPSyntax* pcExpression, uint8 uiChanges)
 {
-	if (mbRemember)
+	if (mpcUnit->mbRemember)
 	{
-		mpcSemanticPass->Changed(pcExpression, uiChanges);
+		mpcUnit->mpcSemanticPass->Changed(pcExpression, uiChanges);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1489,14 +1591,14 @@ void CCPPUnit::Changed(CCPPSyntax* pcExpression, uint8 uiChanges)
 // is shared by.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator)
+CCPPFunction* CCPPCheck::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator)
 {
 	CCPPFunction*	pcFunction;
 	size			i;
 
-	for (i = 0; pcDeclarator && (i < mapcFunctions.NumElements()); i++)
+	for (i = 0; pcDeclarator && (i < mpcUnit->mapcFunctions.NumElements()); i++)
 	{
-		pcFunction = mapcFunctions.GetPtr(i);
+		pcFunction = mpcUnit->mapcFunctions.GetPtr(i);
 		if (pcFunction->mpcBindings || pcFunction->mpcTemplate)
 		{
 			continue;
@@ -1509,48 +1611,6 @@ CCPPFunction* CCPPUnit::FindDeclaredFunction(CCPPSyntaxDeclarator* pcDeclarator)
 	return NULL;
 }
 
-
-//Finds the classes that are names for a template's instance, and then each place such an instance is written out
-//(CCPPUnit::ReportNamedInstances).  Each starts with a marked token, and a node that has none of them among its
-//tokens is not entered: nothing under it can be one.
-class CCPPNamedInstanceFinder : public CCPPSyntaxChildVisitor
-{
-public:
-	CCPPUnit*				mpcUnit;
-	CArrayCPPNameClasses*	mpapcClasses;
-	CCPPTokenMarks*			mpcMarks;		//The tokens that start what is being found.
-	bool					mbClasses;		//Finding the classes, not the instances.
-	int						miTemplates;	//How many template declarations the node is in,
-	int						miInitializers;	//and how many constructors' initialisers.
-	uint64					muiVisited;		//The nodes looked at.
-
-	void	Visit(CCPPSyntax* pcChild) override
-	{
-		bool	bTemplate;
-		bool	bInitializer;
-
-		if (!mpcMarks->Any(pcChild->miFirstToken, pcChild->miLastToken))
-		{
-			return;
-		}
-		muiVisited++;
-		bTemplate = (pcChild->GetKind() == CPPS_TemplateDeclaration);
-		bInitializer = (pcChild->GetKind() == CPPS_MemberInitializer);
-		miTemplates += bTemplate ? 1 : 0;
-		miInitializers += bInitializer ? 1 : 0;
-		if (mbClasses && (pcChild->GetKind() == CPPS_ClassSpecifier) && (miTemplates == 0) && mpcUnit->IsNameClass((CCPPSyntaxClassSpecifier*)pcChild))
-		{
-			mpapcClasses->Add((CCPPSyntaxClassSpecifier*)pcChild);
-		}
-		if (!mbClasses && (pcChild->GetKind() == CPPS_NameComponent) && (miTemplates == 0) && (miInitializers == 0))
-		{
-			mpcUnit->NamedInstance((CCPPSyntaxNameComponent*)pcChild, mpapcClasses);
-		}
-		pcChild->VisitFields(this);
-		miInitializers -= bInitializer ? 1 : 0;
-		miTemplates -= bTemplate ? 1 : 0;
-	}
-};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1578,18 +1638,18 @@ public:
 // that have one are entered (CCPPTokenMarks).
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ReportNamedInstances(void)
+void CCPPCheck::ReportNamedInstances(void)
 {
 	CCPPNamedInstanceFinder	cFinder;
 	CArrayCPPNameClasses	apcClasses;
 	CCPPTokenMarks			cMarks;
 
-	if (!mpcTree->GetRoot())
+	if (!mpcUnit->mpcTree->GetRoot())
 	{
 		return;
 	}
 	apcClasses.Init();
-	cFinder.mpcUnit = this;
+	cFinder.mpcUnit = mpcUnit;
 	cFinder.mpapcClasses = &apcClasses;
 	cFinder.mpcMarks = &cMarks;
 	cFinder.miTemplates = 0;
@@ -1597,18 +1657,19 @@ void CCPPUnit::ReportNamedInstances(void)
 	cFinder.muiVisited = 0;
 	cFinder.mbClasses = true;
 	MarkClassKeys(&cMarks);
-	mpcTree->GetRoot()->VisitFields(&cFinder);
+	mpcUnit->mpcTree->GetRoot()->VisitFields(&cFinder);
 	cMarks.Kill();
 	if (apcClasses.NumElements() > 0)
 	{
 		cFinder.mbClasses = false;
 		MarkNameClassBases(&cMarks, &apcClasses);
-		mpcTree->GetRoot()->VisitFields(&cFinder);
+		mpcUnit->mpcTree->GetRoot()->VisitFields(&cFinder);
 		cMarks.Kill();
 	}
-	mpcStatistics->Count(CPPCC_NamedInstanceNodes, cFinder.muiVisited);
+	mpcUnit->mpcStatistics->Count(CPPCC_NamedInstanceNodes, cFinder.muiVisited);
 	apcClasses.Kill();
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1617,22 +1678,23 @@ void CCPPUnit::ReportNamedInstances(void)
 // has one among its tokens.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::MarkClassKeys(CCPPTokenMarks* pcMarks)
+void CCPPCheck::MarkClassKeys(CCPPTokenMarks* pcMarks)
 {
 	CCPPToken*			pcToken;
 	CCTReservedWord*	pcWord;
 	size				uiTokens;
 	size				i;
 
-	uiTokens = mpcTokeniser->NumTokens();
+	uiTokens = mpcUnit->mpcTokeniser->NumTokens();
 	pcMarks->Init(uiTokens);
 	for (i = 0; i < uiTokens; i++)
 	{
-		pcToken = mpcTokeniser->Get(i);
+		pcToken = mpcUnit->mpcTokeniser->Get(i);
 		pcWord = (pcToken && pcToken->IsReservedWord()) ? (CCTReservedWord*)pcToken : NULL;
 		pcMarks->Next(pcWord && ((pcWord->GetToken() == CT_class) || (pcWord->GetToken() == CT_struct) || (pcWord->GetToken() == CT_union)));
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1644,7 +1706,7 @@ void CCPPUnit::MarkClassKeys(CCPPTokenMarks* pcMarks)
 // marked if a base starts with anything but an identifier.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses* papcClasses)
+void CCPPCheck::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses* papcClasses)
 {
 	CArrayInt32		aiStarts;
 	CCPPSyntaxName*	pcBase;
@@ -1658,13 +1720,13 @@ void CCPPUnit::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses*
 	size			i;
 	bool			bAll;
 
-	uiTokens = mpcTokeniser->NumTokens();
+	uiTokens = mpcUnit->mpcTokeniser->NumTokens();
 	aiStarts.Init();
 	bAll = false;
 	for (i = 0; i < papcClasses->NumElements(); i++)
 	{
 		pcBase = ((CCPPSyntaxBaseSpecifier*)papcClasses->GetPtr(i)->macpBases.GetPtr(0))->mpcName;
-		pcToken = ((pcBase->miFirstToken >= 0) && ((size)pcBase->miFirstToken < uiTokens)) ? mpcTokeniser->Get((size)pcBase->miFirstToken) : NULL;
+		pcToken = ((pcBase->miFirstToken >= 0) && ((size)pcBase->miFirstToken < uiTokens)) ? mpcUnit->mpcTokeniser->Get((size)pcBase->miFirstToken) : NULL;
 		if (pcToken && pcToken->IsIdentifier())
 		{
 			aiStarts.AddIfUnique(((CCTIdentifier*)pcToken)->miIdentifier);
@@ -1680,7 +1742,7 @@ void CCPPUnit::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses*
 	pcMarks->Init(uiTokens);
 	for (i = 0; i < uiTokens; i++)
 	{
-		pcToken = mpcTokeniser->Get(i);
+		pcToken = mpcUnit->mpcTokeniser->Get(i);
 		uiLow = 0;
 		uiHigh = (!bAll && pcToken && pcToken->IsIdentifier()) ? aiStarts.NumElements() : 0;
 		iIdentifier = (uiHigh > 0) ? ((CCTIdentifier*)pcToken)->miIdentifier : 0;
@@ -1702,6 +1764,7 @@ void CCPPUnit::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses*
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether a class is the name of a template's instance: it has a name,
@@ -1709,7 +1772,7 @@ void CCPPUnit::MarkNameClassBases(CCPPTokenMarks* pcMarks, CArrayCPPNameClasses*
 // constructors (declared or defined), with the access they are given.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsNameClass(CCPPSyntaxClassSpecifier* pcClass)
+bool CCPPCheck::IsNameClass(CCPPSyntaxClassSpecifier* pcClass)
 {
 	CCPPSyntaxBaseSpecifier*	pcBase;
 	CCPPSyntax*					pcMember;
@@ -1764,6 +1827,7 @@ bool CCPPUnit::IsNameClass(CCPPSyntaxClassSpecifier* pcClass)
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A name's component written with template arguments: a warning if it is
@@ -1772,7 +1836,7 @@ bool CCPPUnit::IsNameClass(CCPPSyntaxClassSpecifier* pcClass)
 // start of its name to the end of its arguments.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPNameClasses* papcClasses)
+void CCPPCheck::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPNameClasses* papcClasses)
 {
 	CCPPSyntaxClassSpecifier*	pcClass;
 	CCPPSyntaxName*				pcBase;
@@ -1788,7 +1852,7 @@ void CCPPUnit::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPName
 		return;
 	}
 	pcName = (CCPPSyntaxName*)pcComponent->mpcParent;
-	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get((size)pcName->miFirstToken));
+	psSource = mpcUnit->mpcTokeniser->GetSource(mpcUnit->mpcTokeniser->Get((size)pcName->miFirstToken));
 	if (!psSource || (psSource->pcFile && psSource->pcFile->IsSystemFile()))
 	{
 		return;
@@ -1811,7 +1875,7 @@ void CCPPUnit::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPName
 			szMessage.Append(" has the name ");
 			AppendTokensText(pcClass->mpcName->GetLast()->miName, pcClass->mpcName->GetLast()->miName, &szMessage);
 			szMessage.Append(": use the name, which is a type of its own");
-			mcDiagnostics.Warning(pcName, szMessage.Text());
+			mpcUnit->mcDiagnostics.Warning(pcName, szMessage.Text());
 			szMessage.Kill();
 			szBase.Kill();
 			break;
@@ -1822,23 +1886,25 @@ void CCPPUnit::NamedInstance(CCPPSyntaxNameComponent* pcComponent, CArrayCPPName
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // A run of tokens as they are written, with nothing between them:
 // "CTankTemplate<CGauge>" however it was spaced.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AppendTokensText(int iFirstToken, int iLastToken, CChars* pszDest)
+void CCPPCheck::AppendTokensText(int iFirstToken, int iLastToken, CChars* pszDest)
 {
 	SPreprocessedToken*	psSource;
 	int					i;
 
-	for (i = iFirstToken; (i >= 0) && (i <= iLastToken) && ((size)i < mpcTokeniser->NumTokens()); i++)
+	for (i = iFirstToken; (i >= 0) && (i <= iLastToken) && ((size)i < mpcUnit->mpcTokeniser->NumTokens()); i++)
 	{
-		psSource = mpcTokeniser->GetSource(mpcTokeniser->Get((size)i));
+		psSource = mpcUnit->mpcTokeniser->GetSource(mpcUnit->mpcTokeniser->Get((size)i));
 		if (psSource && psSource->szText)
 		{
 			pszDest->Append(psSource->szText, psSource->uiLength);
 		}
 	}
 }
+

@@ -137,7 +137,7 @@ SCPP65Type* CCPP65TypeChecker::Result(CCPPSyntax* pcExpression)
 	//The node's own Visit works its type out, the types of what is in it on the way, and leaves it here last.
 	mpsResult = NULL;
 	pcExpression->Accept(this);
-	mpcUnit->Typed(pcExpression, mpsResult);
+	mpcUnit->GetCheck()->Typed(pcExpression, mpsResult);
 	return mpsResult;
 }
 
@@ -876,7 +876,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		return Load(Place(pcUnary), pcUnary);
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
-		mpcUnit->Changed(pcOperand, CPPPC_ADDRESS);
+		mpcUnit->GetCheck()->Changed(pcOperand, CPPPC_ADDRESS);
 		if (mpcUnit->IsObject(pcOperand) && mpcUnit->HasMember(mpcUnit->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, pcUnary);
@@ -1940,7 +1940,7 @@ bool CCPP65TypeChecker::ParameterArguments(CArrayCPP65Types* papsParameters, CAr
 			}
 			if (!psParameter->psBase->bConst)
 			{
-				mpcUnit->Changed(pcArgument, CPPPC_REFERENCE);
+				mpcUnit->GetCheck()->Changed(pcArgument, CPPPC_REFERENCE);
 			}
 			continue;
 		}
@@ -2102,7 +2102,7 @@ void CCPP65TypeChecker::ObjectChanged(CCPPSyntax* pcObject, CCPPFunction* pcFunc
 {
 	if (pcObject && !pcFunction->mbStatic && !pcFunction->mbConstThis)
 	{
-		mpcUnit->Changed(pcObject, CPPPC_MEMBER_CALL);
+		mpcUnit->GetCheck()->Changed(pcObject, CPPPC_MEMBER_CALL);
 	}
 }
 
@@ -2276,7 +2276,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 		}
 		return NULL;
 	}
-	mpcUnit->Resolved(pcMember->mpcName, cBound.mpcSymbol);
+	mpcUnit->GetCheck()->Resolved(pcMember->mpcName, cBound.mpcSymbol);
 	mpcUnit->WarnDeprecatedSymbol(cBound.mpcSymbol, pcMember->mpcName);
 	return (cBound.meWhat == CPPBN_Field) ? FieldType(cBound.mpsField, psType->bConst, psType->bVolatile) : cBound.mpcVariable->mpsType;
 }
@@ -2439,8 +2439,8 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 	SCPP65Type*	psType;
 
 	psType = PlaceType(pcExpression);
-	mpcUnit->PlaceTyped(pcExpression, psType);
-	mpcUnit->PlaceTyped(mpcUnit->SkipParentheses(pcExpression), psType);
+	mpcUnit->GetCheck()->PlaceTyped(pcExpression, psType);
+	mpcUnit->GetCheck()->PlaceTyped(mpcUnit->SkipParentheses(pcExpression), psType);
 	return psType;
 }
 
@@ -3465,7 +3465,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 		{
 			//[dcl.init.string] 1
 			apcArguments.Kill();
-			return Error(pcString, mpcUnit->StringArrayError(pcString, psType->psBase));
+			return Error(pcString, mpcUnit->GetCheck()->StringArrayError(pcString, psType->psBase));
 		}
 		if (pcInitialiser || (papcArguments->NumElements() > (size)psType->iCount))
 		{
@@ -3797,7 +3797,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 			if (mpcUnit->IsStringLiteral(pcInitialiser) && !(psType->psBase->IsInteger() && (psType->psBase->eKind != CPP65TK_Bool) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser))))
 			{
 				//[dcl.init.string] 1
-				return Error(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psType->psBase));
+				return Error(pcInitialiser, mpcUnit->GetCheck()->StringArrayError(pcInitialiser, psType->psBase));
 			}
 			return Value(pcInitialiser) != NULL;
 		}
@@ -3845,7 +3845,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 		mpcDiagnostics->EndQuiet();
 		if (psValue && !psType->psBase->bConst)
 		{
-			mpcUnit->Changed(pcInitialiser, CPPPC_REFERENCE);
+			mpcUnit->GetCheck()->Changed(pcInitialiser, CPPPC_REFERENCE);
 		}
 		if (psValue && (!psType->psBase->bConst || psType->psBase->bVolatile) && IsBitField(pcInitialiser))
 		{

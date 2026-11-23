@@ -298,11 +298,11 @@
     <ClCompile Include="CPPUnitObjects.cpp" />
     <ClCompile Include="CPPUnitRangeFor.cpp" />
     <ClCompile Include="CPPUnitPacks.cpp" />
-    <ClCompile Include="CPPUnitCheck.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />
     <ClCompile Include="CPPClassLayout.cpp" />
     <ClCompile Include="CPPClassData.cpp" />
+    <ClCompile Include="CPPCheck.cpp" />
     <ClCompile Include="CPPStrings.cpp" />
     <ClCompile Include="CPPClosures.cpp" />
     <ClCompile Include="CPPMangler.cpp" />
@@ -587,6 +587,7 @@
     <ClInclude Include="CPPClass.h" />
     <ClInclude Include="CPPClassLayout.h" />
     <ClInclude Include="CPPClassData.h" />
+    <ClInclude Include="CPPCheck.h" />
     <ClInclude Include="CPPStrings.h" />
     <ClInclude Include="CPPClosures.h" />
     <ClInclude Include="CPPMangler.h" />

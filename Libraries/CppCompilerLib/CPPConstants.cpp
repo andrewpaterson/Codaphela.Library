@@ -1063,7 +1063,7 @@ bool CCPPConstants::CheckConstructor(CCPPFunction* pcFunction)
 				continue;
 			}
 			szMessage.Init("A constexpr constructor must initialise every member [");
-			mpcUnit->AppendTokensText(pcName->GetLast()->miName, pcName->GetLast()->miName, &szMessage);
+			mpcUnit->GetCheck()->AppendTokensText(pcName->GetLast()->miName, pcName->GetLast()->miName, &szMessage);
 			szMessage.Append("]");
 			mpcDiagnostics->ReportError(pcDefinition, szMessage.Text());
 			szMessage.Kill();

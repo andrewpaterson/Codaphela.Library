@@ -374,6 +374,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcClosures.Init(this);
 	mcClassData.Init(this);
 	mcStrings.Init(this);
+	mcCheck.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -605,11 +606,11 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	{
 		GenerateQueued();
 	}
-	CheckUncalledFunctions();
+	mcCheck.CheckUncalledFunctions();
 	mcDiagnostics.ReportDeferred();
 	if (!mbCompiledBefore)
 	{
-		ReportNamedInstances();
+		mcCheck.ReportNamedInstances();
 	}
 	CheckContext();
 	mpcStatistics->End(CPPCP_Declarations);
@@ -3051,7 +3052,7 @@ bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 	size							i;
 	bool							bResult;
 
-	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !IsInSourceFile(pcSpecifier))
+	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !mcCheck.IsInSourceFile(pcSpecifier))
 	{
 		return true;
 	}
@@ -4342,7 +4343,7 @@ void CCPPUnit::GenerateFunction(CCPPFunction* pcFunction)
 	{
 		//Only checked.
 		mcContext.EnterBindings(pcFunction->mpcBindings);
-		CheckFunction(pcFunction);
+		mcCheck.CheckFunction(pcFunction);
 		mcContext.LeaveBindings();
 		return;
 	}
@@ -5237,6 +5238,7 @@ CCPPConstantFolder* CCPPUnit::GetFolder(void) { return &mcFolder; }
 CCPPClosures* CCPPUnit::GetClosures(void) { return &mcClosures; }
 CCPPClassData* CCPPUnit::GetClassData(void) { return &mcClassData; }
 CCPPStrings* CCPPUnit::GetStrings(void) { return &mcStrings; }
+CCPPCheck* CCPPUnit::GetCheck(void) { return &mcCheck; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

@@ -99,7 +99,7 @@ bool CCPPSemanticPass::Check(CCPPSyntaxTree* pcTree, ECPPTarget eTarget, bool bK
 	}
 	pcUnit->Init(pcTree, eTarget);
 	pcUnit->SetOptions(&mcOptions);
-	bResult = pcUnit->Check(this, bKeep);
+	bResult = pcUnit->GetCheck()->Check(this, bKeep);
 	pcUnit->GetErrors()->AppendTo(&mcErrors);
 	if (!bKeep)
 	{
@@ -400,7 +400,7 @@ bool CCPPSemanticPass::AppendFunctionLabel(CCPPSyntaxDeclarator* pcDeclarator, C
 {
 	CCPPFunction*	pcFunction;
 
-	pcFunction = mpcUnit ? mpcUnit->FindDeclaredFunction(pcDeclarator) : NULL;
+	pcFunction = mpcUnit ? mpcUnit->GetCheck()->FindDeclaredFunction(pcDeclarator) : NULL;
 	if (!pcFunction)
 	{
 		return false;

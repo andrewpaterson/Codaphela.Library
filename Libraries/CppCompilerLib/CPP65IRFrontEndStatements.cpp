@@ -399,9 +399,9 @@ bool CCPP65IRFrontEnd::DeclarationStatement(CCPPSyntaxDeclarationStatement* pcSt
 	}
 	if (!pcStatement->mpcDeclaration || (pcStatement->mpcDeclaration->GetKind() != CPPS_SimpleDeclaration))
 	{
-		return !mpcUnit->CheckBlockDeclaration(pcStatement->mpcDeclaration) && Unsupported(__FILE__, __LINE__);
+		return !mpcUnit->GetCheck()->CheckBlockDeclaration(pcStatement->mpcDeclaration) && Unsupported(__FILE__, __LINE__);
 	}
-	if (!mpcUnit->CheckLocalClass(pcStatement->mpcDeclaration))
+	if (!mpcUnit->GetCheck()->CheckLocalClass(pcStatement->mpcDeclaration))
 	{
 		return false;
 	}
@@ -774,7 +774,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		if (mpcUnit->IsStringLiteral(pcInitialiser))
 		{
 			//[dcl.init.string] 1
-			return mpcDiagnostics->ReportError(pcInitialiser, mpcUnit->StringArrayError(pcInitialiser, psElement));
+			return mpcDiagnostics->ReportError(pcInitialiser, mpcUnit->GetCheck()->StringArrayError(pcInitialiser, psElement));
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1367,7 +1367,7 @@ bool CCPP65IRFrontEnd::SwitchStatement(CCPPSyntaxSwitchStatement* pcSwitch)
 		return false;
 	}
 
-	if (!mpcUnit->CheckSwitch(pcSwitch, sValue.psType))
+	if (!mpcUnit->GetCheck()->CheckSwitch(pcSwitch, sValue.psType))
 	{
 		return false;
 	}
@@ -1470,7 +1470,7 @@ bool CCPP65IRFrontEnd::CaseStatement(CCPPSyntaxCaseStatement* pcCase)
 			return Statement(pcCase->mpcStatement);
 		}
 	}
-	return !mpcUnit->CheckCaseInSwitch(pcCase) && Unsupported(__FILE__, __LINE__);
+	return !mpcUnit->GetCheck()->CheckCaseInSwitch(pcCase) && Unsupported(__FILE__, __LINE__);
 }
 
 
@@ -1494,7 +1494,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 		mpcDiagnostics->ReportError(pcReturn, "A handler of a constructor's function-try-block can't return: it ends by rethrowing");
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!mpcUnit->CheckReturn(mpcCPPFunction, pcReturn))
+	if (!mpcUnit->GetCheck()->CheckReturn(mpcCPPFunction, pcReturn))
 	{
 		return false;
 	}

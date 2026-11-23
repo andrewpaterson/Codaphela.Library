@@ -964,3 +964,9 @@ Stage 13 (2026-11-23): class data, labels and what runs at exit.
 	and __FUNCDNAME__ are the function's being worked out (the context) and its label (the mangler), and a bad
 	escape is an error, so it holds the unit.  TestCppCompilerLib passes (272,043); the diagnostics entries and
 	the listings are 13b's; the IDE builds.
+
+	Second part of stage 14 (2026-11-23): the IDE's check is a class of its own, CCPPCheck (CPPCheck.h and .cpp),
+	which the unit holds (mcCheck, GetCheck) and the semantic pass drives (Check): CPPUnitCheck.cpp's 46
+	functions, with its four visitors, and CArrayCPPNameClasses; the file is gone.  The move script takes
+	overloads now (Resolved's two).  TestCppCompilerLib passes (272,061); the diagnostics entries and the listings
+	are as they were; the IDE builds.

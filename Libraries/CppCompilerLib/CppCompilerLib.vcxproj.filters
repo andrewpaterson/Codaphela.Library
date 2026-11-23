@@ -159,9 +159,6 @@
     <ClCompile Include="CPPUnitPacks.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitCheck.cpp">
-      <Filter>Source\Generator65</Filter>
-    </ClCompile>
     <ClCompile Include="CPP65Type.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -172,6 +169,9 @@
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPClassData.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPCheck.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPStrings.cpp">
@@ -1077,6 +1077,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPClassData.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPCheck.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPStrings.h">

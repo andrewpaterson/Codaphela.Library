@@ -219,7 +219,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			mpcDiagnostics->EndSilentTrial();
 			if (pcFunction && TakesAsTheyAre(pcFunction, pcBound->mpapcArguments))
 			{
-				mpcUnit->Resolved(pcName, pcFunction);
+				mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 				pcBound->meHow = CPPBC_Function;
 				pcBound->mpcFunction = pcFunction;
 				return;
@@ -241,7 +241,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		{
 			//The template can't be used with the arguments (SFINAE: a default template argument or the function's
 			//type fails), so the function that takes them converted is.  [temp.deduct] 8
-			mpcUnit->Resolved(pcName, pcFunction);
+			mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 			pcBound->meHow = CPPBC_Function;
 			pcBound->mpcFunction = pcFunction;
 			return;
@@ -257,7 +257,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 			//[over.match.best] 1
 			pcFunction = pcInstance;
 		}
-		mpcUnit->Resolved(pcName, pcFunction);
+		mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 		pcBound->meHow = CPPBC_Function;
 		pcBound->mpcFunction = pcFunction;
 		return;
@@ -305,7 +305,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		pcFunction = mcOverloads.FindAssociatedFunction(pcName, lliName, pcCall, pcBound->mpapcArguments);
 		if (pcFunction)
 		{
-			mpcUnit->Resolved(pcName, pcFunction);
+			mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 			pcBound->meHow = CPPBC_Function;
 			pcBound->mpcFunction = pcFunction;
 			return;
@@ -361,7 +361,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		mpcDiagnostics->EndSilentTrial();
 		if (pcFunction)
 		{
-			mpcUnit->Resolved(pcName, pcFunction);
+			mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 			if (bInlineMemcpy)
 			{
 				//A few bytes, a constant count: copied where it is called (as below), whichever memcpy a template of
@@ -386,7 +386,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		}
 		return;
 	}
-	mpcUnit->Resolved(pcName, pcFunction);
+	mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 
 	//memcpy of a few bytes, a constant count, is copied where it is called: any function of the name, as the
 	//code has always been written (the type checker asked for C linkage, and gave the same type either way).
@@ -623,7 +623,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		}
 		if (pcClass->mpcDestructor)
 		{
-			mpcUnit->Resolved(pcName, pcClass->mpcDestructor);
+			mpcUnit->GetCheck()->Resolved(pcName, pcClass->mpcDestructor);
 		}
 		pcBound->meHow = CPPBC_Destructor;
 		pcBound->mpcFunction = pcClass->mpcDestructor;
@@ -736,7 +736,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		//C::f() on this, in a member function of a class derived from C.
 		pcBound->mpcQualifier = pcLookup;
 	}
-	mpcUnit->Resolved(pcName, pcFunction);
+	mpcUnit->GetCheck()->Resolved(pcName, pcFunction);
 	pcBound->meHow = CPPBC_Member;
 	pcBound->mpcFunction = pcFunction;
 	pcBound->mbVirtual = bVirtual;
