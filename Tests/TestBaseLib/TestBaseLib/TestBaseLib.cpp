@@ -27,6 +27,7 @@ void TestSetBlock(void);
 void TestSet(void);
 void TestHashMap(void);
 void TestQueue(void);
+void TestArrayGrowFails(void);
 void TestIndexBlock(void);
 void TestIndexAccess(void);
 void TestIndexPtr(void);
@@ -280,6 +281,7 @@ int __cdecl main(void)
 	TestSet();
 	TestHashMap();
 	TestQueue();
+	TestArrayGrowFails();
 	TestMapAccess();
 	TestListBlock();
 	TestListTemplate();

@@ -86,7 +86,7 @@ public:
 template<class Class>
 Class* CPostMalloc<Class>::PostMalloc(Class* pv)
 {
-	if (!IsTriviallyDefaultConstructible<Class>())
+	if ((pv != NULL) && !IsTriviallyDefaultConstructible<Class>())
 	{
 		new(pv) Class;
 	}
@@ -102,13 +102,15 @@ template<class Class>
 Class* CPostMalloc<Class>::PostMalloc(Class* pv, lsize iNumElements, lsize iStride)
 {
 	lsize	i;
+	Class*	pvElement;
 
-	if (RequiresVirtualFunctionTable())
+	if ((pv != NULL) && RequiresVirtualFunctionTable())
 	{
+		pvElement = pv;
 		for (i = 0; i < iNumElements; i++)
 		{
-			new(pv) Class;
-			pv = (Class*)RemapSinglePointer(pv, iStride);
+			new(pvElement) Class;
+			pvElement = (Class*)RemapSinglePointer(pvElement, iStride);
 		}
 	}
 	return pv;
@@ -121,7 +123,7 @@ Class* CPostMalloc<Class>::PostMalloc(Class* pv, lsize iNumElements, lsize iStri
 template<class Class> template<class Subclass>
 Class* CPostMalloc<Class>::PostMalloc(Subclass* pv)
 {
-	if (!IsTriviallyDefaultConstructible<Subclass>())
+	if ((pv != NULL) && !IsTriviallyDefaultConstructible<Subclass>())
 	{
 		new(pv) Subclass;
 	}
@@ -136,14 +138,16 @@ Class* CPostMalloc<Class>::PostMalloc(Subclass* pv)
 template<class Class> template<class Subclass>
 Class* CPostMalloc<Class>::PostMalloc(Subclass* pv, lsize iNumElements, lsize iStride)
 {
-	lsize	i;
+	lsize		i;
+	Subclass*	pvElement;
 
-	if (RequiresVirtualFunctionTable())
+	if ((pv != NULL) && RequiresVirtualFunctionTable())
 	{
+		pvElement = pv;
 		for (i = 0; i < iNumElements; i++)
 		{
-			new(pv) Subclass;
-			pv = (Subclass*)RemapSinglePointer(pv, iStride);
+			new(pvElement) Subclass;
+			pvElement = (Subclass*)RemapSinglePointer(pvElement, iStride);
 		}
 	}
 	return pv;

@@ -220,7 +220,7 @@ protected:
 	void	PrivateRemoveAt(Count iIndex, bool bPreserveOrder, Count iDataSize);
 	void	PrivateRemoveRange(Count iStartIndex, Count iEndIndexExclusive, bool bPreserveOrder, Count iDataSize);
 	Count	RemoveAtNoDeallocate(Count iIndex, bool bPreserveOrder, Count iDataSize);
-	void	SetArraySize(Count iNumElements);
+	bool	SetArraySize(Count iNumElements);
 	void	Overflowed(void);
 };
 

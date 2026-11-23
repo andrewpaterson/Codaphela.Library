@@ -112,7 +112,10 @@ STRING* CCharsBase<STRING, TEXT>::InitLength(Count iLength)
 	{
 		mcText.Init();
 		mcText.Resize(iLength + 1);
-		mcText.SetValue(iLength, '\0');
+		if (mcText.NumElements() == iLength + 1)
+		{
+			mcText.SetValue(iLength, '\0');
+		}
 		return (STRING*)this;
 	}
 	else
@@ -134,7 +137,10 @@ STRING* CCharsBase<STRING, TEXT>::InitLength(CMallocator* pcMalloc, Count iLengt
 	{
 		mcText.Init(pcMalloc);
 		mcText.Resize(iLength + 1);
-		mcText.SetValue(iLength, '\0');
+		if (mcText.NumElements() == iLength + 1)
+		{
+			mcText.SetValue(iLength, '\0');
+		}
 		return (STRING*)this;
 	}
 	else
@@ -601,7 +607,10 @@ void CCharsBase<STRING, TEXT>::SetNonNull(const char* szString, Count uiLen)
 		Unfake();
 		mcText.Resize(uiLen);
 	}
-	TEXT::SizePolicy::Copy(mcText.GetData(), szString, uiLen);
+	if (mcText.NumElements() == uiLen)
+	{
+		TEXT::SizePolicy::Copy(mcText.GetData(), szString, uiLen);
+	}
 }
 
 
@@ -617,7 +626,10 @@ void CCharsBase<STRING, TEXT>::SetEmpty(void)
 		if (KeepsArray())
 		{
 			mcText.Resize(1);
-			mcText.SetValue(0, '\0');
+			if (mcText.NumElements() == 1)
+			{
+				mcText.SetValue(0, '\0');
+			}
 		}
 		else
 		{
@@ -656,8 +668,11 @@ STRING* CCharsBase<STRING, TEXT>::Append(const char* szString)
 	{
 		uiLen = CStringLength(szString);
 		pcPosition = PrivateGrow(uiLen);
-		TEXT::SizePolicy::Copy(pcPosition, szString, uiLen);
-		pcPosition[uiLen] = '\0';
+		if (pcPosition)
+		{
+			TEXT::SizePolicy::Copy(pcPosition, szString, uiLen);
+			pcPosition[uiLen] = '\0';
+		}
 	}
 
 	return (STRING*)this;
@@ -676,8 +691,11 @@ STRING* CCharsBase<STRING, TEXT>::Append(CExternalString* pcString)
 	if (pcString && pcString->miLen > 0)
 	{
 		pcPosition = PrivateGrow(pcString->miLen);
-		TEXT::SizePolicy::Copy(pcPosition, pcString->msz, pcString->miLen);
-		pcPosition[pcString->miLen] = '\0';
+		if (pcPosition)
+		{
+			TEXT::SizePolicy::Copy(pcPosition, pcString->msz, pcString->miLen);
+			pcPosition[pcString->miLen] = '\0';
+		}
 	}
 
 	return (STRING*)this;
@@ -697,9 +715,12 @@ STRING* CCharsBase<STRING, TEXT>::Append(const char* szString, Count uiLen)
 	if (szString && uiLen > 0)
 	{
 		pcPosition = PrivateGrow(uiLen);
-		TEXT::SizePolicy::Copy(pcPosition, szString, uiLen);
-		pcZero = mcText.Tail();
-		*pcZero = '\0';
+		if (pcPosition)
+		{
+			TEXT::SizePolicy::Copy(pcPosition, szString, uiLen);
+			pcZero = mcText.Tail();
+			*pcZero = '\0';
+		}
 	}
 
 	return (STRING*)this;
@@ -1110,7 +1131,10 @@ void CCharsBase<STRING, TEXT>::Insert(Count iPos, char c, Count uiCount)
 {
 	Count i;
 
-	mcText.InsertNumAt(uiCount, iPos);
+	if (mcText.InsertNumAt(uiCount, iPos) == NULL)
+	{
+		return;
+	}
 	for (i = 0; i < uiCount; i++)
 	{
 		mcText.Set(iPos + i, &c);
@@ -1314,6 +1338,10 @@ char* CCharsBase<STRING, TEXT>::PrivateGrow(Count iNumberOfCharacters)
 				Unfake();
 			}
 			iPosition = mcText.AddNum(iNumberOfCharacters);
+			if (iPosition == TEXT::SizePolicy::NotFound)
+			{
+				return NULL;
+			}
 			pszPosition = (char*)RemapSinglePointer(mcText.GetData(), iPosition - 1);
 			return pszPosition;
 		}
@@ -1338,9 +1366,12 @@ STRING* CCharsBase<STRING, TEXT>::Append(char cPadCharacter, Count iNumber)
 	if ((iNumber != 0) && (iNumber != TEXT::SizePolicy::NotFound))
 	{
 		pcPosition = PrivateGrow(iNumber);
-		TEXT::SizePolicy::Set(pcPosition, cPadCharacter, iNumber);
-		pcPosition = mcText.Tail();
-		*pcPosition = '\0';
+		if (pcPosition)
+		{
+			TEXT::SizePolicy::Set(pcPosition, cPadCharacter, iNumber);
+			pcPosition = mcText.Tail();
+			*pcPosition = '\0';
+		}
 	}
 
 	return (STRING*)this;
@@ -1471,11 +1502,13 @@ void CCharsBase<STRING, TEXT>::RightAlign(char cPadCharacter, Count uiWidth)
 	{
 		iLength = uiWidth - Length();
 		iOldWidth = Length();
-		PrivateGrow(iLength);
-		pcDest = (char*)RemapSinglePointer(mcText.GetData(), iLength);
-		TEXT::SizePolicy::Move(pcDest, mcText.GetData(), iOldWidth);
-		TEXT::SizePolicy::Set(mcText.GetData(), cPadCharacter, iLength);
-		(*mcText.Tail()) = '\0';
+		if (PrivateGrow(iLength))
+		{
+			pcDest = (char*)RemapSinglePointer(mcText.GetData(), iLength);
+			TEXT::SizePolicy::Move(pcDest, mcText.GetData(), iOldWidth);
+			TEXT::SizePolicy::Set(mcText.GetData(), cPadCharacter, iLength);
+			(*mcText.Tail()) = '\0';
+		}
 	}
 }
 
@@ -1492,8 +1525,11 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, Count iL
 	if ((szString) && (iLength != 0))
 	{
 		pcPosition = PrivateGrow(iLength);
-		TEXT::SizePolicy::Copy(pcPosition, szString, iLength);
-		(*mcText.Tail()) = '\0';
+		if (pcPosition)
+		{
+			TEXT::SizePolicy::Copy(pcPosition, szString, iLength);
+			(*mcText.Tail()) = '\0';
+		}
 	}
 
 	return (STRING*)this;
@@ -2419,7 +2455,10 @@ void CCharsBase<STRING, TEXT>::SetLength(Count iLength)
 
 		//This assumes you'll fill mcText with iLengths count of non-zero characters.
 		mcText.Resize(iLength + 1);
-		mcText.SetValue(iLength, '\0');
+		if (mcText.NumElements() == iLength + 1)
+		{
+			mcText.SetValue(iLength, '\0');
+		}
 	}
 	else
 	{
@@ -2733,7 +2772,10 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::ReplaceWithLonger(const char* szF
 	}
 
 	iTotalDifference = iDifference * iCount;
-	mcText.AddNum(iTotalDifference);
+	if (mcText.AddNum(iTotalDifference) == TEXT::SizePolicy::NotFound)
+	{
+		return 0;
+	}
 	(*mcText.Tail()) = '\0';
 
 	iIndex = Length() - (iFindLen + iTotalDifference);

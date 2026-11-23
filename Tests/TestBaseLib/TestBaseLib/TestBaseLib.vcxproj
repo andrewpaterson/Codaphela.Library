@@ -314,6 +314,7 @@
     <ClCompile Include="TestMap.cpp" />
     <ClCompile Include="TestHashMap.cpp" />
     <ClCompile Include="TestQueue.cpp" />
+    <ClCompile Include="TestArrayGrowFails.cpp" />
     <ClCompile Include="TestMapAccess.cpp" />
     <ClCompile Include="TestMapBlock.cpp" />
     <ClCompile Include="TestIndexAccess.cpp" />

@@ -10,13 +10,14 @@ This file began as the hash map's plan; it is now the plan for every gap in Base
 deque, CArrayBit's operations, and a union-find.  Their order from here:
 
   1. CQueueTemplate (below): done 2026-11-23, steps 1 to 4.
-  2. CArrayBlock keeps its contents when a grow fails (below): Q4, answered yes.  Every array goes through it, so it
-     is its own change, with the whole sweep.
+  2. CArrayBlock keeps its contents when a grow fails (below): done 2026-11-24, steps 1 to 4 (TestHCP65Lib still to
+     run: see its step 4).
   3. BinaryHeap.h moved from StandardLib to BaseLib: it needs nothing of StandardLib's.  A move and its test
-     (TestBinaryHeap) moved with it; its users' includes changed.
+     (TestBinaryHeap) moved with it; its users' includes changed.  (Planned at the end.)
   4. A survey for hand rolled bit scans (population counts, first set or clear bit, and/or/xor of words over a bit
      array) and union-finds (LogiCim's and KiCad's nets, the compiler's grouping), and from what it finds a plan for
-     CArrayBit's operations and for a union-find, each built only if something would use it.
+     CArrayBit's operations and for a union-find, each built only if something would use it.  (Surveyed 2026-11-23:
+     both have users; planned at the end.)
   5. Fitted in around those, the hash map's follow-ups: real keys for CPP65Type's function types, CPPHeaderIndex's
      declarations and PPHeaderCache's headers (each still keys by a hash with its own collision chain, now in a hash
      map); a case insensitive text HASH (for IDECodeModel's mcProjectFiles); CPPIndex's text maps, CPP65ListingIndex
@@ -486,7 +487,7 @@ Steps
      exactly half, one past it, a queue emptied and filled again); Get, Front and Back after a compaction; Pop of an
      empty queue; the bounded history pattern; RemoveBack and RemoveFrom (with the front not at 0); a class with a
      virtual function table; the large size.  Built and run as TestBaseLib and TestBaseLib65 are.  (Done
-     2026-11-23.  A queue filled until Push fails isn't tested: see Q4.)
+     2026-11-23.  A queue filled until Push fails is tested since the CArrayBlock fix: TestArrayGrowFailsQueue.)
   2. The queues: HCP65DebugPort's two (TestHCP65Lib).  ObjectsRemovalContext's stays as it is: it is a
      CArrayTemplateEmbedded<..., 4>, holding its few containers inside it without an allocation, on StandardLib's
      path for freeing objects; a CQueueTemplate would allocate.
@@ -520,8 +521,13 @@ Q4 (found 2026-11-23 building step 1; answered yes 2026-11-23, planned below as 
     releases memory) is untouched.  The user: yes ("update the plan to include ... the CArrayBlock fix").
 
 
-CArrayBlock keeps its contents when a grow fails (planned 2026-11-23, Q4 answered yes, not started)
-==================================================================================================
+CArrayBlock keeps its contents when a grow fails (planned 2026-11-23, Q4 answered yes; done 2026-11-24)
+=======================================================================================================
+
+Where it is: steps 1 to 4 built and committed 2026-11-24.  TestArrayGrowFails.cpp (TestBaseLib) is the failing
+mallocator (CTestFailingAllocator) and the tests of steps 1 and 3; against the old ArrayBlock.cpp it fails (Add gave a
+pointer when it couldn't grow).  TestHCP65Lib hadn't run when it was committed (stopped for low memory): it runs once
+over this and the steps after it.
 
 Why
 ---
@@ -572,8 +578,82 @@ Steps
      the array as it was (its count, its elements, nothing leaked: LeakDetection).
   2. SetArraySize and the functions that call it, as the design says; the templates (CArrayTemplateBase,
      CArrayTemplatePrimitiveBase, CChars) passing the failure on.
-  3. CQueueTemplate's test of a queue filled until Push fails, keeping what it had (left out of its step 1 for this).
+  3. CQueueTemplate's test of a queue filled until Push fails, keeping what it had (left out of its step 1 for this):
+     TestArrayGrowFailsQueue.
   4. Proved: TestBaseLib in Release x64, Release Win32 and Debug x64; the *65 suites on both processors (every one
      compiles BaseLib, so their listings change, which is expected: no compiler change rides with it); and the whole
      sweep (TEST_PROJECT65_RUNS=2 Tests/Sweep.py -skip TestHCP65Lib, then TestHCP65Lib alone), since every array in
      every repository goes through SetArraySize.
+     Done 2026-11-24: TestBaseLib 320,344 run (Release x64), 320,353 (Release Win32), 320,356 (Debug x64), 0 failed;
+     TestBaseLib65 710 (65C64) and 708 (W65C816), 0 failed; the sweep's 72 items all pass but two, neither this
+     change's: HCP65Emulator Debug x64 doesn't build (TestHCP65Kernal.cpp:2443, C4703 on puiNumbers, from 626d150 of
+     2026-11-22) and TestCppCompilerLib Debug x64 overflows its stack in TestCPP65IREnumeratorChain and
+     TestCppSemanticPassEnumeratorChain (each enumerator's value goes through the type checker since SemanticLayerPlan
+     stage 15e, 34 frames an enumerator; 1 MB lasts about 70 of the 78; Release passes).  TestHCP65Lib alone was
+     stopped by low memory before it printed anything.
+
+
+BinaryHeap moved to BaseLib, CArrayBit's scans and a union-find (planned 2026-11-23 from the survey, not started)
+==================================================================================================================
+
+The user, 2026-11-23: "Please continue with the plan up to and including step 6.  Clean up and commit as you go,
+ensure there are tests."
+
+
+BinaryHeap (the plan's item 3)
+------------------------------
+
+StandardLib/BinaryHeap.h is a min-heap in a CArrayTemplate and includes nothing but BaseLib's ArrayTemplate.h.  Its
+users (read 2026-11-23): StandardLib's DistToRootExpectedDists.cpp and ExternalObjectDeserialiser.cpp, and
+TestStandardLib's TestBinaryHeap.cpp.  It moves to BaseLib, its users include BaseLib/BinaryHeap.h, and its test moves
+to TestBaseLib (TestStandardLib no longer runs it).  Proved by TestBaseLib and TestStandardLib in three
+configurations and the *65 suites on both processors.
+
+
+The survey (the plan's item 4, read 2026-11-23)
+-----------------------------------------------
+
+Bit scans.  IntegerHelper.h has them all as functions over a raw bit array already: CountBits, FindFirstSetBit and
+FindFirstClearBit, FindNextSetBit and FindNextClearBit (from a bit), FindLast..., and the Large forms counted in lsize.
+What is missing is CArrayBit using them: its users count or walk its bits one Get at a time:
+    WindowLib/ListContainer.cpp:394    the rows selected, counted (NumSelected)
+    WindowLib/ListContainer.cpp:1464   a band for each row selected (each set bit)
+    SupportLib/MeshSelections.cpp:115, 167, 219   the faces, vertices and edges selected (or not), counted
+Nothing found ands, ors or xors two bit arrays, so those aren't built.
+
+Union-finds.  Five are written by hand, each a parent array:
+    KicadLib/KicadSchemNetlist.cpp:1048   FindKicadSchemRoot (path halving) and JoinKicadSchemRoots: the lower root
+                                          becomes the other's parent
+    SupportLib/MeshCharts.cpp:146         MeshChartsRoot (path halving), the lower root kept, in a CArrayLargeInt
+    LogicimLib/CircuitWiring.cpp:1013     FindRoot (path halving) and Join: the first's root kept
+    TestLogicimLib/TestTraceAutoConnector.cpp:30   FindAutoConnectRoot and JoinAutoConnectRoots, no halving
+    CppCompilerLib/IRW65C816Places.cpp:1411   CIRW65C816Groups: a parent array, but also each group's members in a
+                                          list and its span (start, end), and -1 for a temporary not grouped; it is
+                                          more than a union-find and stays as it is.
+
+
+CArrayBit's scans (the plan's item 4, built from the survey)
+-------------------------------------------------------------
+
+  1. CArrayBit::CountSet(void) and CountClear(void) (CountBits over its bits, a MAX_SIZE's worth at a time where size
+     is 16 bits), FindSet(lsize uiStart) and FindClear(lsize uiStart) (FindNextSetBitLarge and FindNextClearBitLarge:
+     the first at or after uiStart, ARRAY_LARGE_ELEMENT_NOT_FOUND if none).  TestArrayBit's tests of them: empty,
+     small (held in the array itself) and large arrays, the first and the last bit, none set, all set.
+  2. ListContainer's NumSelected counts with CountSet and its bands walk the set bits with FindSet; MeshSelections'
+     three counts use CountSet and CountClear.  Proved by TestWindowLib and TestSupportLib.
+
+
+A union-find (the plan's item 4, built from the survey)
+-------------------------------------------------------
+
+  1. UnionFind.h/.cpp: CUnionFindBase<SIZE> compiled once for the natural and large sizes (CUnionFind, CUnionFindLarge),
+     a parent array (CArrayBlockBase of Count): Init, Kill, ReInit; Add (a new element in a set of its own, its index
+     given back), AddNum (as many), Find (path halving), Join (the lower root becomes the other's parent, so a set's
+     root is its first element, as KiCad's and MeshCharts' are), JoinToFirst (the first element's root kept, as
+     CircuitWiring's was), SameSet, NumElements.  TestUnionFind: singletons, chains joined either way, the lower root
+     kept, JoinToFirst's root, long paths halved (Find still right after many joins), the large size.
+  2. KiCad's netlist (and TestKicadSchemLogicim, which used its two functions), MeshCharts and CircuitWiring use it,
+     and TestTraceAutoConnector's helpers.  CircuitWiring keeps its rule with JoinToFirst: which node is a root
+     decides which node gives a set its net number (JoinNodes' "iRoot != i"), so the lower root would renumber nets
+     and reorder the traces made.  Proved by TestKicadImporterLib, TestSupportLib and TestLogicimLib in three
+     configurations and LogiCim built.

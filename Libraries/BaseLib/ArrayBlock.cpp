@@ -167,7 +167,10 @@ bool CArrayBlockBase<SIZE>::SafeSet(Count iIndex, void* pvData)
 	else
 	{
 		iOldLength = NumElements();
-		SetUsedElements(iIndex+1);
+		if (!SetArraySize(iIndex + 1))
+		{
+			return false;
+		}
 		SIZE::Set(Get(iOldLength), 0, (Count)((iIndex-iOldLength) * miElementSize));
 		Set(iIndex, pvData);
 		return true;
@@ -225,11 +228,15 @@ bool CArrayBlockBase<SIZE>::SetChunkSize(Count iChunkSize)
 
 
 //////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
+//
+// Room for iNeededElements, which become the used elements.  False if it
+// needs more memory and can't have it (or, where size is 16 bits, more
+// than MAX_SIZE bytes): then nothing changes, the elements and the counts
+// as they were.  A shrink whose realloc fails keeps the memory it has.
+//
 //////////////////////////////////////////////////////////////////////////
 template<class SIZE>
-void CArrayBlockBase<SIZE>::SetArraySize(Count iNeededElements)
+bool CArrayBlockBase<SIZE>::SetArraySize(Count iNeededElements)
 {
 	void*	pv;
 	Count	iNumElements;
@@ -244,32 +251,36 @@ void CArrayBlockBase<SIZE>::SetArraySize(Count iNeededElements)
 		}
 		miNumElements = 0;
 		miUsedElements = 0;
+		return true;
 	}
-	else
+
+	iChunkSize = (Count)CalculateChunkSize(iNeededElements, miChunkSize);
+	iNumElements = (Count)CalculateArraySize(iNeededElements, iChunkSize);
+	if (SIZE::CheckSize && ((iNumElements < iNeededElements) || ((miElementSize != 0) && (iNumElements > SIZE::Max / miElementSize))))
 	{
-		iChunkSize = (Count)CalculateChunkSize(iNeededElements, miChunkSize);
-		iNumElements = (Count)CalculateArraySize(iNeededElements, iChunkSize);
-		if (SIZE::CheckSize && ((iNumElements < iNeededElements) || ((miElementSize != 0) && (iNumElements > SIZE::Max / miElementSize))))
-		{
-			Overflowed();
-			return;
-		}
-
-		if (miNumElements != iNumElements)
-		{
-			pv = (void*)Realloc(mpvArray, (Count)(miElementSize * iNumElements));
-			mpvArray = pv;
-			if (mpvArray == NULL)
-			{
-				iNeededElements = 0;
-				iNumElements = 0;
-			}
-		}
-
-		miUsedElements = iNeededElements;
-		miChunkSize = iChunkSize;
-		miNumElements = iNumElements;
+		Overflowed();
+		return false;
 	}
+
+	if (miNumElements != iNumElements)
+	{
+		pv = (void*)Realloc(mpvArray, (Count)(miElementSize * iNumElements));
+		if (pv == NULL)
+		{
+			if (iNeededElements > miNumElements)
+			{
+				return false;
+			}
+			miUsedElements = iNeededElements;
+			return true;
+		}
+		mpvArray = pv;
+	}
+
+	miUsedElements = iNeededElements;
+	miChunkSize = iChunkSize;
+	miNumElements = iNumElements;
+	return true;
 }
 
 
@@ -285,13 +296,6 @@ void CArrayBlockBase<SIZE>::Overflowed(void)
 #ifdef _DEBUG
 	gcUserError.Set("An array counted with size needs more than MAX_SIZE bytes.  Make it a large array (counted with lsize).");
 #endif // _DEBUG
-	if (mpvArray != NULL)
-	{
-		Free(mpvArray);
-		mpvArray = NULL;
-	}
-	miNumElements = 0;
-	miUsedElements = 0;
 }
 
 
@@ -307,7 +311,7 @@ typename SIZE::Count CArrayBlockBase<SIZE>::AddNum(Count iNumElements)
 	if (SIZE::CheckSize && (iNumElements > SIZE::Max - miUsedElements))
 	{
 		Overflowed();
-		return 0;
+		return SIZE::NotFound;
 	}
 
 	//Within the elements allocated nothing is reallocated (as Add).
@@ -317,7 +321,12 @@ typename SIZE::Count CArrayBlockBase<SIZE>::AddNum(Count iNumElements)
 		miUsedElements += iNumElements;
 		return iOldUsedElements;
 	}
-	return SetUsedElements(miUsedElements + iNumElements);
+	iOldUsedElements = miUsedElements;
+	if (!SetArraySize(miUsedElements + iNumElements))
+	{
+		return SIZE::NotFound;
+	}
+	return iOldUsedElements;
 }
 
 
@@ -333,10 +342,16 @@ void* CArrayBlockBase<SIZE>::Add(void)
 		Overflowed();
 		return NULL;
 	}
-	miUsedElements++;
-	if (miUsedElements > miNumElements)
+	if (miUsedElements + 1 > miNumElements)
 	{
-		SetArraySize(miUsedElements);
+		if (!SetArraySize(miUsedElements + 1))
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		miUsedElements++;
 	}
 	return Get(miUsedElements - 1);
 }
@@ -352,7 +367,7 @@ void* CArrayBlockBase<SIZE>::AddGetIndex(Count* piIndex)
 	void* pv;
 
 	pv = Add();
-	(*piIndex) = miUsedElements - 1;
+	(*piIndex) = pv ? miUsedElements - 1 : SIZE::NotFound;
 	return pv;
 }
 
@@ -382,7 +397,10 @@ void* CArrayBlockBase<SIZE>::Add(void* pvData)
 	void* pv;
 
 	pv = Add();
-	SIZE::Copy(pv, pvData, miElementSize);
+	if (pv)
+	{
+		SIZE::Copy(pv, pvData, miElementSize);
+	}
 	return pv;
 }
 
@@ -423,10 +441,16 @@ void* CArrayBlockBase<SIZE>::InsertAt(Count iIndex)
 		Overflowed();
 		return NULL;
 	}
-	miUsedElements++;
-	if (miUsedElements > miNumElements)
+	if (miUsedElements + 1 > miNumElements)
 	{
-		SetArraySize(miUsedElements);
+		if (!SetArraySize(miUsedElements + 1))
+		{
+			return NULL;
+		}
+	}
+	else
+	{
+		miUsedElements++;
 	}
 	pSource = Get(iIndex);
 	pDest = RemapSinglePointer(pSource, miElementSize);
@@ -764,7 +788,10 @@ void CArrayBlockBase<SIZE>::Copy(CArrayBlockBase<SIZE>* pcArray)
 	//Assumes the array is initialised.  
 	if (pcArray->miNumElements != miNumElements)
 	{
-		SetArraySize(pcArray->miUsedElements);
+		if (!SetArraySize(pcArray->miUsedElements))
+		{
+			return;
+		}
 	}
 	else
 	{
@@ -787,6 +814,10 @@ void* CArrayBlockBase<SIZE>::PushCopy(void)
 	if (miUsedElements > 0)
 	{
 		pDest = Add();
+		if (pDest == NULL)
+		{
+			return NULL;
+		}
 		pSource = Get(miUsedElements-2);
 		SIZE::Copy(pDest, pSource, miElementSize);
 		return pDest;
@@ -806,8 +837,12 @@ template<class SIZE>
 void CArrayBlockBase<SIZE>::Push(void* pvData)
 {
 	void* pv;
+
 	pv = Add();
-	SIZE::Copy(pv, pvData, miElementSize);
+	if (pv)
+	{
+		SIZE::Copy(pv, pvData, miElementSize);
+	}
 }
 
 
@@ -1055,7 +1090,11 @@ void* CArrayBlockBase<SIZE>::GrowToAtLeastNumElements(Count iNumElements, bool b
 
 	if (miUsedElements < iNumElements)
 	{
-		iOldUsedElements = Resize(iNumElements);
+		iOldUsedElements = miUsedElements;
+		if (!SetArraySize(iNumElements))
+		{
+			return NULL;
+		}
 		if (bClear)
 		{
 			if (iOldUsedElements < iNumElements)
@@ -1314,6 +1353,10 @@ void* CArrayBlockBase<SIZE>::InsertArrayAfterEnd(CArrayBlockBase<SIZE>* pcOtherA
 	Count	iArrayIndex;
 
 	iArrayIndex = AddNum(pcOtherArray->miUsedElements);
+	if (iArrayIndex == SIZE::NotFound)
+	{
+		return NULL;
+	}
 	return CopyArrayInto(pcOtherArray, iArrayIndex);
 }
 
@@ -1325,7 +1368,10 @@ void* CArrayBlockBase<SIZE>::InsertArrayAfterEnd(CArrayBlockBase<SIZE>* pcOtherA
 template<class SIZE>
 void* CArrayBlockBase<SIZE>::InsertArrayBeforeStart(CArrayBlockBase<SIZE>* pcOtherArray)
 {
-	InsertNumAt(pcOtherArray->miUsedElements, 0);
+	if ((pcOtherArray->miUsedElements != 0) && (InsertNumAt(pcOtherArray->miUsedElements, 0) == NULL))
+	{
+		return NULL;
+	}
 	return CopyArrayInto(pcOtherArray, 0);
 }
 
@@ -1337,7 +1383,10 @@ void* CArrayBlockBase<SIZE>::InsertArrayBeforeStart(CArrayBlockBase<SIZE>* pcOth
 template<class SIZE>
 void* CArrayBlockBase<SIZE>::InsertArrayAt(CArrayBlockBase<SIZE>* pcOtherArray, Count iIndex)
 {
-	InsertNumAt(pcOtherArray->miUsedElements, iIndex);
+	if ((pcOtherArray->miUsedElements != 0) && (InsertNumAt(pcOtherArray->miUsedElements, iIndex) == NULL))
+	{
+		return NULL;
+	}
 	return CopyArrayInto(pcOtherArray, iIndex);
 }
 
@@ -1359,7 +1408,10 @@ void* CArrayBlockBase<SIZE>::InsertNumAt(Count iNumElements, Count iIndex)
 	}
 
 	iNumToMove = miUsedElements - iIndex;
-	AddNum(iNumElements);
+	if (AddNum(iNumElements) == SIZE::NotFound)
+	{
+		return NULL;
+	}
 
 	pvFrom = (void*)Get(iIndex);
 	pvTo = (void*)Get(iIndex + iNumElements);
@@ -1378,6 +1430,10 @@ void* CArrayBlockBase<SIZE>::InsertBlockAfterEnd(void* paElements, Count iLength
 	Count	iArrayIndex;
 
 	iArrayIndex = AddNum(iLength);
+	if (iArrayIndex == SIZE::NotFound)
+	{
+		return NULL;
+	}
 	return CopyBlockInto(paElements, iLength, iArrayIndex);
 }
 
@@ -1389,7 +1445,10 @@ void* CArrayBlockBase<SIZE>::InsertBlockAfterEnd(void* paElements, Count iLength
 template<class SIZE>
 void* CArrayBlockBase<SIZE>::InsertBlockBeforeStart(void* paElements, Count iLength)
 {
-	InsertNumAt(iLength, 0);
+	if ((iLength != 0) && (InsertNumAt(iLength, 0) == NULL))
+	{
+		return NULL;
+	}
 	return CopyBlockInto(paElements, iLength, 0);
 }
 
@@ -1401,7 +1460,10 @@ void* CArrayBlockBase<SIZE>::InsertBlockBeforeStart(void* paElements, Count iLen
 template<class SIZE>
 void* CArrayBlockBase<SIZE>::InsertBlockAt(void* paElements, Count iLength, Count iIndex)
 {
-	InsertNumAt(iLength, iIndex);
+	if ((iLength != 0) && (InsertNumAt(iLength, iIndex) == NULL))
+	{
+		return NULL;
+	}
 	return CopyBlockInto(paElements, iLength, iIndex);
 }
 
@@ -1632,6 +1694,10 @@ void CArrayBlockBase<SIZE>::InsertBatch(Count iFirstElementPos, Count iNumInBatc
 		return;
 	}
 	iOldNumElements = AddNum(iNumInBatch * iNumBatches);
+	if (iOldNumElements == SIZE::NotFound)
+	{
+		return;
+	}
 
 	pcFirst = Get(iFirstElementPos);
 
