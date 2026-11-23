@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __UNDO_STACK_H__
 #define __UNDO_STACK_H__
 #include "Chars.h"
+#include "QueueTemplate.h"
 #include "ArrayTemplate.h"
 
 
@@ -48,7 +49,7 @@ struct SUndoSnapshot
 };
 
 
-typedef CArrayTemplate<SUndoSnapshot>	CArrayUndoSnapshot;
+typedef CQueueTemplate<SUndoSnapshot>	CQueueUndoSnapshot;
 
 
 //Logicim's UndoStack: the states saved after each change, oldest first, and the one the editor has now (the current
@@ -66,7 +67,7 @@ typedef CArrayTemplate<SUndoSnapshot>	CArrayUndoSnapshot;
 class CUndoStack
 {
 protected:
-	CArrayUndoSnapshot	masSnapshots;
+	CQueueUndoSnapshot	masSnapshots;
 	CChars				mszNewest;	//The newest snapshot's state, whole.
 	CChars				mszGot;		//The state Get last made.
 	size				muiCurrent;

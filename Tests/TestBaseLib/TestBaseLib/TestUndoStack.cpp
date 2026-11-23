@@ -160,6 +160,53 @@ void TestUndoStackMaximum(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Many more states than the maximum, so the snapshots' queue moves its
+// live snapshots down several times: the states kept are still the
+// newest, undo finds them, and a push after undoing drops what could be
+// redone from a queue whose front isn't at its start.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestUndoStackMaximumMany(void)
+{
+	CUndoStack	cStack;
+	CArrayChars	aszStates;
+	CChars		sz;
+	size		i;
+
+	cStack.Init(5);
+	aszStates.Init();
+	sz.Init();
+	for (i = 0; i < 40; i++)
+	{
+		sz.Append((char)('a' + (i % 26)));
+		cStack.Push(sz.Text(), false);
+		aszStates.Add(sz.Text());
+	}
+	while (aszStates.NumElements() > 5)
+	{
+		aszStates.Remove((size)0);
+	}
+	AssertUndoStates(&cStack, &aszStates);
+	AssertSize(4, cStack.GetCurrent());
+
+	//Back two, then a new state: the two that could be redone go.
+	cStack.MoveTo(cStack.FindUndo(false));
+	cStack.MoveTo(cStack.FindUndo(false));
+	AssertSize(2, cStack.GetCurrent());
+	cStack.Push("new", false);
+	KeepUndoStates(&aszStates, 3);
+	aszStates.Add("new");
+	AssertUndoStates(&cStack, &aszStates);
+	AssertSize(3, cStack.GetCurrent());
+
+	sz.Kill();
+	aszStates.Kill();
+	cStack.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The edits of two documents, a and b, undone and redone across both in
 // the order they were made, and a group of edits to both undone as one.
 //
@@ -436,6 +483,7 @@ void TestUndoStack(void)
 
 	TestUndoStackStates();
 	TestUndoStackMaximum();
+	TestUndoStackMaximumMany();
 	TestUndoLogAcrossDocuments();
 	TestUndoLogRenameDocument();
 	TestUndoLogRenamed();

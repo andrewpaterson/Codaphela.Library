@@ -81,9 +81,9 @@ void CUndoStack::Push(const char* szData, bool bSelectionOnly, size* pauiMarks)
 		MakeCurrentNewest();
 
 		//The state that was newest is kept as how it differs from the new one.
-		SetDifference(masSnapshots.Tail(), mszNewest.Text(), szData);
+		SetDifference(masSnapshots.Back(), mszNewest.Text(), szData);
 	}
-	psSnapshot = masSnapshots.Add();
+	psSnapshot = masSnapshots.Push();
 	psSnapshot->szMiddle.Init();
 	psSnapshot->uiPrefix = 0;
 	psSnapshot->uiSuffix = 0;
@@ -339,7 +339,7 @@ void CUndoStack::RemoveFrom(size uiIndex)
 	}
 	if (uiIndex < masSnapshots.NumElements())
 	{
-		masSnapshots.RemoveRange(uiIndex, masSnapshots.NumElements());
+		masSnapshots.RemoveFrom(uiIndex);
 	}
 }
 
@@ -352,8 +352,8 @@ void CUndoStack::RemoveFrom(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CUndoStack::RemoveFirst(void)
 {
-	masSnapshots.Get(0)->szMiddle.Kill();
-	masSnapshots.RemoveAt(0);
+	masSnapshots.Front()->szMiddle.Kill();
+	masSnapshots.Pop();
 	if (muiCurrent > 0)
 	{
 		muiCurrent--;
