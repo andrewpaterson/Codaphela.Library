@@ -261,6 +261,12 @@
     <ClInclude Include="RoundedBoxCanvasDraw.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="RoundedCornerCanvasDraw.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="RoundedCorners.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
     <ClInclude Include="DiffDividerDraw.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -696,6 +702,12 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="RoundedBoxCanvasDraw.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="RoundedCornerCanvasDraw.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="RoundedCorners.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="DiffDividerDraw.cpp">

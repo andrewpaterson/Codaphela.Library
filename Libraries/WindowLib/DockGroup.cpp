@@ -49,6 +49,10 @@ void CDockGroup::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iI
 	mpToolMenu = NULL;
 	mpMenuPane = NULL;
 
+	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockIsland)));
+	mpBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
+	AddComponent(mpBackground);
+
 	mpTabs = OMalloc<CTabbedContainer>(pWindow, pManager->GetTheme());
 	mpTabs->SetAlignment(CSH_Stretch, CSV_Stretch);
 	if (bDocuments)
@@ -70,6 +74,8 @@ void CDockGroup::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, int32 iI
 		AddComponent(mpTitleBar);
 	}
 	AddComponent(mpTabs);
+	mpCorners = OMalloc<CRoundedCorners>(pWindow, pManager->GetColour(TC_DockBackground), pManager->GetMetric(TM_DockIslandRadius));
+	AddComponent(mpCorners);
 	mpTabs->GetSelectionEvent()->Add(this, &CDockGroup::TabSelected);
 	mpTabs->GetDragEvent()->Add(this, &CDockGroup::TabDragged);
 	mpTabs->GetDoubleClickEvent()->Add(this, &CDockGroup::TabDoubleClicked);
@@ -91,8 +97,10 @@ void CDockGroup::Class(void)
 	U_Int32(miID);
 	U_Bool(mbDocuments);
 	U_Bool(mbActive);
+	M_Pointer(mpBackground);
 	M_Pointer(mpTitleBar);
 	M_Pointer(mpTabs);
+	M_Pointer(mpCorners);
 	M_Embedded(maPanes);
 	M_Pointer(mpDocumentMenu);
 	M_Pointer(mpToolMenu);
@@ -181,7 +189,8 @@ void CDockGroup::SetRequiredSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The title bar along the top, the tabs under it.
+// The title bar along the top, the tabs under it, the background under
+// both and the corners over them.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockGroup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -192,6 +201,7 @@ void CDockGroup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 
 	SetActualBounds(sPosition, sAreaSize);
 	SetContainerBounds(sPosition, sAreaSize);
+	mpBackground->Layout(sPosition, sAreaSize);
 	iTitle = 0;
 	if (mpTitleBar.IsNotNull())
 	{
@@ -205,6 +215,7 @@ void CDockGroup::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	sTabsPosition.Init(sPosition.x, sPosition.y + iTitle);
 	sTabsSize.Init(sAreaSize.x, sAreaSize.y - iTitle);
 	mpTabs->Layout(sTabsPosition, sTabsSize);
+	mpCorners->Layout(sPosition, sAreaSize);
 }
 
 

@@ -41,8 +41,9 @@ static const char*	gaszThemeMetricNames[] =
 	"FindWidth", "FindHeight", "ChooserWidth", "ChooserPreviewWidth", "ChooserRows",
 	"DockFrameBorder", "DockGuideSize", "DockGuideStep", "DockGuideInset", "DockGuideArrowLength", "DockGuideArrowTip",
 	"DockGuideIconInset", "DockGuideIconTitle", "DockGuideBarInset", "DockGuideBarWidth", "DockGuideBarEnd",
-	"DockSashSize", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth",
+	"DockSashSize", "DockIslandMargin", "DockIslandRadius", "DockTitleBarHeight", "DockTitleGap", "DockTitleButtonWidth",
 	"AutoHideStripSize", "AutoHideTabGap", "AutoHideTabSpacing", "AutoHideLine", "AutoHideEdge",
+	"SplitSashSize",
 	"ToolbarThickness", "ToolbarInset", "ToolbarSeparatorSpace", "ToolbarSeparatorLength",
 	"StatusBarHeight", "StatusFieldGap", "StatusSeparatorLength",
 	"ToolTipPaddingX", "ToolTipPaddingY", "ToolTipOffset",
@@ -68,9 +69,10 @@ static const char*	gaszThemeColourNames[] =
 	"MenuBar", "MenuBackground", "MenuBorder", "MenuSelected", "MenuHover", "MenuSeparator", "DialogBackground",
 	"DialogDivider", "LineNumber", "LineNumberActive", "Gutter", "DiffInsertedLines", "DiffDeletedLines",
 	"DiffModifiedLines", "DiffInsertedChanges", "DiffDeletedChanges", "DiffModifiedChanges", "DiffDivider",
-	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockStrip", "DockStripTab", "DockStripTabHover",
+	"DockTitleBar", "DockActiveTitleBar", "DockSash", "DockBackground", "DockIsland", "DockStrip", "DockStripTab", "DockStripTabHover",
 	"DockStripTabLine", "DockGuide", "DockGuideBorder", "DockGuideHover", "DockGuideArrow", "DockPreview",
 	"DockPreviewBorder", "DockFrameBorder",
+	"SplitSash",
 	"ToolTip", "ToolTipBorder",
 };
 static_assert(sizeof(gaszThemeColourNames) / sizeof(gaszThemeColourNames[0]) == TC_NumColours, "gaszThemeColourNames needs a row for each EThemeColour.");

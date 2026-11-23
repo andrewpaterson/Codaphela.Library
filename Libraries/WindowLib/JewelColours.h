@@ -25,8 +25,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //The colours of JetBrains' Jewel dark theme, IntelliJ IDEA's new UI, that WindowLib's Jewel looks are drawn in.
 #define JEWEL_BAR_BACKGROUND	Set32BitColour((uint8)0x27, (uint8)0x28, (uint8)0x2E)  //The main menu bar.
-#define JEWEL_PANEL				Set32BitColour((uint8)0x2B, (uint8)0x2D, (uint8)0x30)  //Panels, menus, dialogs and button faces.
-#define JEWEL_EDITOR			Set32BitColour((uint8)0x1E, (uint8)0x1F, (uint8)0x22)  //The editor, and the lines between panels.
+#define JEWEL_PANEL				Set32BitColour((uint8)0x2B, (uint8)0x2D, (uint8)0x30)  //Panels, menus, dialogs and button faces, and around the docked panes.
+#define JEWEL_EDITOR			Set32BitColour((uint8)0x1E, (uint8)0x1F, (uint8)0x22)  //The editor, and the docked panes (IntelliJ IDEA's islands).
 #define JEWEL_BORDER			Set32BitColour((uint8)0x4E, (uint8)0x51, (uint8)0x57)  //A control's border.
 #define JEWEL_BORDER_HOVER		Set32BitColour((uint8)0x6F, (uint8)0x73, (uint8)0x7A)  //A control's border under the pointer.
 #define JEWEL_BORDER_PUSHED		Set32BitColour((uint8)0x86, (uint8)0x8A, (uint8)0x91)  //A control's border while pushed.

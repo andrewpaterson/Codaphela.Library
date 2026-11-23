@@ -120,6 +120,21 @@ Activation
 - Clicking in a pane, or focusing a component in it, makes it the active pane.  The active tool group's title bar is
   highlighted (IntelliJ blue in the Jewel theme) and the active document's tab is drawn as selected and focused.
 
+Islands (user 2026-11-23: "make it similar to IDEA")
+- Groups look like the tool windows and editor of IntelliJ IDEA's Islands theme (its default since 2025.3): each group,
+  the empty document well and an auto hide flyout is an island with a background of its own (TC_DockIsland, the
+  editor's colour) and its corners rounded (TM_DockIslandRadius, 10 as IntelliJ's) by a CRoundedCorners laid over it.
+  The corners fill what lies outside each quarter circle with the dock area's background and take no clicks.
+- The area's background (TC_DockBackground, the toolbar's and status bar's colour in the Jewel theme) shows between
+  the islands: the sashes are its colour (TC_DockSash; TM_DockSashSize 5, IntelliJ's gap) and the main area keeps a
+  margin of it round its tree, inside the auto hide strips (TM_DockIslandMargin).  The strips are its colour too.
+- Floating windows have no margin, so a floated group keeps its docked size; its corners are rounded inside the
+  window's frame.  A flyout's corners are the area's colour though what is behind them is another island.
+- Title bars are the island's colour when inactive; the active one is still highlighted, though IntelliJ's islands
+  have no highlighted header (user 2026-11-23: keep it).  The code editor's gutter is the editor's colour (TC_Gutter), as IntelliJ's, so the editor's
+  island is one colour to its edge.  CSplitContainer has its own sash (TC_SplitSash, TM_SplitSashSize), so a split
+  inside a pane (the results pane's tree and preview) isn't a gap.
+
 
 Structure
 ---------

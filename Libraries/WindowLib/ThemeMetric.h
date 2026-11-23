@@ -93,6 +93,8 @@ enum EThemeMetric
 	TM_DockGuideBarWidth,
 	TM_DockGuideBarEnd,			//The bar's ends from the guide's other edges.
 	TM_DockSashSize,			//Between a split's children.
+	TM_DockIslandMargin,		//Around the main dock area's tree of nodes, inside its auto hide strips.
+	TM_DockIslandRadius,		//Of the corners of a group, or the empty document well.
 	TM_DockTitleBarHeight,		//A tool group's title bar.
 	TM_DockTitleGap,			//Before a title bar's title.
 	TM_DockTitleButtonWidth,	//A title bar's buttons.
@@ -101,6 +103,7 @@ enum EThemeMetric
 	TM_AutoHideTabSpacing,		//Between a strip's tabs.
 	TM_AutoHideLine,			//A strip tab's line along the strip's outer side.
 	TM_AutoHideEdge,			//A flyout's inner edge, dragged to resize it.
+	TM_SplitSashSize,			//Between a split container's two components.
 	TM_ToolbarThickness,		//A toolbar's height, or a vertical one's width.
 	TM_ToolbarInset,			//Before a toolbar's first item, and after its last.
 	TM_ToolbarSeparatorSpace,	//Along a toolbar, the space a separator takes.

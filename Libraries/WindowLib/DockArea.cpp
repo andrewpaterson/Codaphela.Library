@@ -174,7 +174,8 @@ void CDockArea::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The strips with tabs take their edges, the top and bottom strips
-// between the left and right ones; the root fills the rest.
+// between the left and right ones; the root fills the rest, less the
+// main area's margin.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDockArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
@@ -183,6 +184,7 @@ void CDockArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	int32		iTop;
 	int32		iRight;
 	int32		iBottom;
+	int32		iMargin;
 
 	SetActualBounds(sPosition, sAreaSize);
 	SetContainerBounds(sPosition, sAreaSize);
@@ -198,6 +200,12 @@ void CDockArea::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		LayoutStrip(mpRightStrip, DS_Right, &iLeft, &iTop, &iRight, &iBottom);
 		LayoutStrip(mpTopStrip, DS_Top, &iLeft, &iTop, &iRight, &iBottom);
 		LayoutStrip(mpBottomStrip, DS_Bottom, &iLeft, &iTop, &iRight, &iBottom);
+
+		iMargin = mpManager->GetMetric(TM_DockIslandMargin);
+		iLeft += iMargin;
+		iTop += iMargin;
+		iRight -= iMargin;
+		iBottom -= iMargin;
 	}
 
 	if (iRight < iLeft)

@@ -208,6 +208,8 @@
     <ClInclude Include="DamageArea.h" />
     <ClInclude Include="ContextMenu.h" />
     <ClInclude Include="RoundedBoxCanvasDraw.h" />
+    <ClInclude Include="RoundedCornerCanvasDraw.h" />
+    <ClInclude Include="RoundedCorners.h" />
     <ClInclude Include="DiffDividerDraw.h" />
     <ClInclude Include="DiffViewColours.h" />
     <ClInclude Include="DiffView.h" />
@@ -422,6 +424,8 @@
     <ClCompile Include="DamageArea.cpp" />
     <ClCompile Include="ContextMenu.cpp" />
     <ClCompile Include="RoundedBoxCanvasDraw.cpp" />
+    <ClCompile Include="RoundedCornerCanvasDraw.cpp" />
+    <ClCompile Include="RoundedCorners.cpp" />
     <ClCompile Include="DiffDividerDraw.cpp" />
     <ClCompile Include="DiffViewColours.cpp" />
     <ClCompile Include="DiffView.cpp" />

@@ -15,6 +15,7 @@
 #include "WindowLib/DockSplit.h"
 #include "WindowLib/DockGroup.h"
 #include "WindowLib/DocumentWell.h"
+#include "WindowLib/RoundedCorners.h"
 #include "WindowLib/DockFloatingWindow.h"
 #include "WindowLib/DockGuides.h"
 #include "WindowLib/AutoHide.h"
@@ -278,7 +279,7 @@ struct SDockTest
 	Ptr<CDockPane>				pSecondDoc;
 
 	static Ptr<CWinRefWindowFactory>	NewFactory(char* szImagePath = NULL);
-	void Init(CWinRefWindowFactory* pcFactory);
+	void Init(CWinRefWindowFactory* pcFactory, bool bIslandMargin = false);
 	void Kill(void);
 };
 
@@ -298,10 +299,11 @@ Ptr<CWinRefWindowFactory> SDockTest::NewFactory(char* szImagePath)
 //
 // An 800 x 600 window: Explorer left of the well (200), Properties right
 // (150), Output under the well (120) with Errors in its group, and two
-// documents.
+// documents.  Without bIslandMargin the area has no margin round its
+// tree, so the groups' places are worked out from the window's edges.
 //
 //////////////////////////////////////////////////////////////////////////
-void SDockTest::Init(CWinRefWindowFactory* pcFactory)
+void SDockTest::Init(CWinRefWindowFactory* pcFactory, bool bIslandMargin)
 {
 	CPointer	pNull;
 	SDockPlace	sPlace;
@@ -310,6 +312,10 @@ void SDockTest::Init(CWinRefWindowFactory* pcFactory)
 	pWindow = OMalloc<CWindow>("Docking", pcFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 	ORoot()->Add(pWindow);
 	pTheme = CJewelTheme::CreateDarkTheme(pWindow, ReadLabelFont());
+	if (!bIslandMargin)
+	{
+		pTheme->SetMetric(TM_DockIslandMargin, 0);
+	}
 	pManager = OMalloc<CDockManager>(pWindow, pTheme, Ptr<CFont>());
 	ORoot()->Add(pManager);
 	cListener.Init(&pManager);
@@ -2461,6 +2467,165 @@ void TestDockingFloatGroupBack(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The window's pixel at x, y as 0xRRGGBB.  SDockTest's window is 24 bit
+// RGB.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 GetDockPixel(Ptr<CWindow> pWindow, int x, int y)
+{
+	uint8*	puiPixel;
+
+	puiPixel = &pWindow->GetCanvas()->GetPixelData()[(y * pWindow->GetCanvas()->GetActualSize().x + x) * 3];
+	return ((uint32)puiPixel[0] << 16) | ((uint32)puiPixel[1] << 8) | (uint32)puiPixel[2];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A colour as GetDockPixel gives it.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 GetDockRGB(ARGB32 sColour)
+{
+	return ((uint32)(sColour & 0xFF) << 16) | (uint32)(sColour & 0xFF00) | (uint32)((sColour >> 16) & 0xFF);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IntelliJ IDEA's islands.  The main area's background shows in a margin
+// round its tree and between the groups.  Each group's corners are
+// rounded in that colour over whatever the group shows, stay rounded
+// when what is under them is drawn again on its own, and take no clicks.
+// The empty well is an island too.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestDockingIslands(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		SDockTest				sTest;
+		Ptr<CDockGroup>			pExplorerGroup;
+		Ptr<CCanvas>			pExplorerPage;
+		Ptr<CClearCanvasDraw>	pPageDraw;
+		Ptr<CComponent>			pFound;
+		CInt32Rect				cBounds;
+		int32					iMargin;
+		int32					iSash;
+		int32					iRadius;
+		int32					iBottom;
+		int32					iRight;
+		uint32					uiAround;
+		uint32					uiPage;
+
+		pNativeFactory = SDockTest::NewFactory();
+		sTest.Init(&pNativeFactory, true);
+		sTest.pWindow->SetPartialRedraw(true);
+		sTest.pWindow->SetVerifyRedraw(true);
+		sTest.pManager->Activate(sTest.pSecondDoc);
+		iMargin = sTest.pTheme->GetMetric(TM_DockIslandMargin);
+		iSash = sTest.pTheme->GetMetric(TM_DockSashSize);
+		iRadius = sTest.pTheme->GetMetric(TM_DockIslandRadius);
+		AssertTrue(iMargin > 0);
+		AssertTrue(iRadius > 2);
+		uiAround = GetDockRGB(sTest.pTheme->GetColour(TC_DockBackground));
+		AssertInt(uiAround, GetDockRGB(sTest.pTheme->GetColour(TC_DockSash)));
+		AssertTrue(uiAround != GetDockRGB(sTest.pTheme->GetColour(TC_DockIsland)));
+		pExplorerGroup = sTest.pExplorer->GetGroup();
+		pExplorerPage = Ptr<CCanvas>(dynamic_cast<CCanvas*>(&sTest.pExplorer->GetContent()));
+		pPageDraw = Ptr<CClearCanvasDraw>(dynamic_cast<CClearCanvasDraw*>(&pExplorerPage->GetCanvasDraw()));
+		uiPage = GetDockRGB(pPageDraw->GetColour());
+		AssertTrue(uiAround != uiPage);
+
+		//The tree is inside the margin and the groups keep their sizes.
+		pExplorerGroup->GetActualBounds(&cBounds);
+		AssertInt(iMargin, cBounds.GetLeft());
+		AssertInt(iMargin, cBounds.GetTop());
+		AssertInt(200, cBounds.GetWidth());
+		AssertInt(600 - 2 * iMargin, cBounds.GetHeight());
+		sTest.pProperties->GetGroup()->GetActualBounds(&cBounds);
+		AssertInt(800 - iMargin - 150, cBounds.GetLeft());
+		sTest.pOutput->GetGroup()->GetActualBounds(&cBounds);
+		AssertInt(600 - iMargin - 120, cBounds.GetTop());
+		AssertInt(iMargin + 200 + iSash, cBounds.GetLeft());
+
+		//The margin and the gaps are the area's colour, and so are the corners of the groups.  The Explorer has one
+		//pane, so no tabs: its page reaches its bottom corners.
+		sTest.pWindow->Paint();
+		iBottom = 600 - iMargin - 1;
+		iRight = iMargin + 200 - 1;
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, 0, 300));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, 400, 599));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iRight + 1 + iSash / 2, 300));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iMargin, iMargin));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iMargin, iBottom));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iRight, iBottom));
+		AssertInt(uiPage, GetDockPixel(sTest.pWindow, iMargin + iRadius, iBottom - iRadius));
+		AssertInt(uiPage, GetDockPixel(sTest.pWindow, iRight - iRadius, iBottom - iRadius));
+		AssertInt(uiPage, GetDockPixel(sTest.pWindow, iMargin, iBottom - iRadius - 1));
+		AssertInt(uiPage, GetDockPixel(sTest.pWindow, iMargin + iRadius + 1, iBottom));
+
+		//Drawn again on its own, the page is still under the corners.
+		pPageDraw->SetColour(Set32BitColour((uint8)0x80, (uint8)0x20, (uint8)0x10));
+		pExplorerPage->Invalidate();
+		sTest.pWindow->Paint();
+		AssertInt(0x802010, GetDockPixel(sTest.pWindow, iMargin + iRadius, iBottom - iRadius));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iMargin, iBottom));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iRight, iBottom));
+
+		//So is the title bar when it changes colour.
+		sTest.pManager->Activate(sTest.pExplorer);
+		sTest.pWindow->Paint();
+		AssertTrue(pExplorerGroup->IsActive());
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iMargin, iMargin));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, iRight, iMargin));
+		AssertInt(GetDockRGB(sTest.pTheme->GetColour(TC_DockActiveTitleBar)), GetDockPixel(sTest.pWindow, iMargin + iRadius, iMargin + iRadius / 2));
+
+		//The corners take no clicks: the page under one does.
+		pFound = sTest.pManager->GetArea()->FindComponentAt(iMargin, iBottom);
+		AssertTrue(pFound == pExplorerPage);
+
+		//An auto hidden pane's flyout is an island too, with its corners rounded.
+		sTest.pManager->AutoHide(sTest.pExplorer);
+		sTest.pManager->ShowFlyout(sTest.pExplorer);
+		sTest.pWindow->Layout();
+		sTest.pWindow->Paint();
+		sTest.pManager->GetFlyout()->GetActualBounds(&cBounds);
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, cBounds.GetLeft(), cBounds.GetTop()));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, cBounds.GetLeft(), cBounds.GetBottom() - 1));
+		AssertInt(0x802010, GetDockPixel(sTest.pWindow, cBounds.GetLeft() + iRadius, cBounds.GetBottom() - 1 - iRadius));
+		sTest.pManager->CloseFlyout();
+		sTest.pManager->Dock(sTest.pExplorer);
+
+		//The empty well is an island.
+		AssertTrue(sTest.pManager->Close(sTest.pFirstDoc));
+		AssertTrue(sTest.pManager->Close(sTest.pSecondDoc));
+		AssertTrue(sTest.pManager->GetWell()->GetRoot().IsNull());
+		sTest.pWindow->Paint();
+		sTest.pManager->GetWell()->GetActualBounds(&cBounds);
+		AssertInt(iMargin + 200 + iSash, cBounds.GetLeft());
+		AssertInt(iMargin, cBounds.GetTop());
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, cBounds.GetLeft(), cBounds.GetTop()));
+		AssertInt(GetDockRGB(sTest.pTheme->GetColour(TC_DockIsland)), GetDockPixel(sTest.pWindow, cBounds.GetLeft() + iRadius, cBounds.GetTop() + iRadius));
+		AssertInt(uiAround, GetDockPixel(sTest.pWindow, cBounds.GetRight() - 1, cBounds.GetBottom() - 1));
+		AssertSize(0, sTest.pWindow->GetRedrawMismatches());
+
+		pExplorerGroup = NULL;
+		pExplorerPage = NULL;
+		pPageDraw = NULL;
+		pFound = NULL;
+		sTest.Kill();
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDocking(void)
@@ -2491,6 +2656,7 @@ void TestDocking(void)
 	TestDockingLayoutFileAreaEdge();
 	TestDockingFloatingInput();
 	TestDockingFloatGroupBack();
+	TestDockingIslands();
 	ValidateLabelObjects();
 
 	ObjectsFlush();

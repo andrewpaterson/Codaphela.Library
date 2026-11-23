@@ -77,7 +77,8 @@ enum EThemeColour
 	TC_DockTitleBar,			//A tool group's title bar.
 	TC_DockActiveTitleBar,		//The active pane's group's title bar.
 	TC_DockSash,				//Between a split's nodes.
-	TC_DockBackground,			//The empty document well, and behind the dock area.
+	TC_DockBackground,			//Behind the dock area, showing around its islands, and the rounded corners' outsides.
+	TC_DockIsland,				//Behind a group's panes, and the empty document well.
 	TC_DockStrip,				//An auto hide strip.
 	TC_DockStripTab,			//A tab on an auto hide strip.
 	TC_DockStripTabHover,
@@ -89,6 +90,9 @@ enum EThemeColour
 	TC_DockPreview,				//Where a pane would go, drawn over the window (with its opacity).
 	TC_DockPreviewBorder,
 	TC_DockFrameBorder,			//A floating window's edge.
+
+	//Split containers' (see CSplitContainer).
+	TC_SplitSash,				//Between a split container's two components.
 
 	//Tool tips' (see CToolTips).
 	TC_ToolTip,					//Behind a tool tip's text.

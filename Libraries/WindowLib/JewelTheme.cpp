@@ -95,7 +95,9 @@ static int32	gaiJewelThemeMetrics[] =
 	5,		//TM_DockGuideBarInset
 	2,		//TM_DockGuideBarWidth
 	7,		//TM_DockGuideBarEnd
-	4,		//TM_DockSashSize
+	5,		//TM_DockSashSize
+	5,		//TM_DockIslandMargin
+	10,		//TM_DockIslandRadius
 	26,		//TM_DockTitleBarHeight
 	8,		//TM_DockTitleGap
 	22,		//TM_DockTitleButtonWidth
@@ -104,6 +106,7 @@ static int32	gaiJewelThemeMetrics[] =
 	4,		//TM_AutoHideTabSpacing
 	3,		//TM_AutoHideLine
 	4,		//TM_AutoHideEdge
+	4,		//TM_SplitSashSize
 	34,		//TM_ToolbarThickness
 	4,		//TM_ToolbarInset
 	13,		//TM_ToolbarSeparatorSpace
@@ -157,7 +160,7 @@ static ARGB32	gasJewelThemeColours[] =
 	JEWEL_SEPARATOR,		//TC_DialogDivider
 	JEWEL_LINE_NUMBER,		//TC_LineNumber
 	JEWEL_LINE_NUMBER_ACTIVE,	//TC_LineNumberActive
-	JEWEL_PANEL,			//TC_Gutter
+	JEWEL_EDITOR,			//TC_Gutter, as the editor: the editor is an island (see TC_DockIsland).
 	Set32BitColour((uint8)0x29, (uint8)0x44, (uint8)0x36),  //TC_DiffInsertedLines
 	Set32BitColour((uint8)0x48, (uint8)0x4A, (uint8)0x4A),  //TC_DiffDeletedLines
 	Set32BitColour((uint8)0x38, (uint8)0x55, (uint8)0x70),  //TC_DiffModifiedLines
@@ -165,11 +168,12 @@ static ARGB32	gasJewelThemeColours[] =
 	Set32BitColour((uint8)0x65, (uint8)0x6E, (uint8)0x76),  //TC_DiffDeletedChanges
 	Set32BitColour((uint8)0x43, (uint8)0x69, (uint8)0x8D),  //TC_DiffModifiedChanges
 	Set32BitColour((uint8)0x1E, (uint8)0x1F, (uint8)0x22),  //TC_DiffDivider
-	JEWEL_PANEL,			//TC_DockTitleBar
+	JEWEL_EDITOR,			//TC_DockTitleBar
 	JEWEL_SELECTION,		//TC_DockActiveTitleBar
-	JEWEL_EDITOR,			//TC_DockSash
-	JEWEL_EDITOR,			//TC_DockBackground
-	JEWEL_BAR_BACKGROUND,	//TC_DockStrip
+	JEWEL_PANEL,			//TC_DockSash
+	JEWEL_PANEL,			//TC_DockBackground
+	JEWEL_EDITOR,			//TC_DockIsland
+	JEWEL_PANEL,			//TC_DockStrip
 	JEWEL_PANEL,			//TC_DockStripTab
 	JEWEL_HOVER,			//TC_DockStripTabHover
 	JEWEL_BORDER,			//TC_DockStripTabLine
@@ -180,6 +184,7 @@ static ARGB32	gasJewelThemeColours[] =
 	Set32BitColour((uint8)0x35, (uint8)0x74, (uint8)0xF0, (uint8)0x50),  //TC_DockPreview, see-through blue.
 	JEWEL_BLUE,				//TC_DockPreviewBorder
 	JEWEL_SEPARATOR,		//TC_DockFrameBorder
+	JEWEL_EDITOR,			//TC_SplitSash
 	JEWEL_PANEL,			//TC_ToolTip
 	JEWEL_SEPARATOR,		//TC_ToolTipBorder
 };

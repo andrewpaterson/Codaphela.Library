@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __AUTO_HIDE_FLYOUT_H__
 #define __AUTO_HIDE_FLYOUT_H__
 #include "Canvas.h"
+#include "RoundedCorners.h"
 #include "DockEdge.h"
 #include "DockTitleBar.h"
 #include "DockNode.h"
@@ -33,7 +34,8 @@ class CDockPane;
 
 //An auto hidden pane slid out over the main window from its strip: a title bar with the pin (to dock it back) and the
 //close cross over the pane's content, and an edge on the side away from the strip that is dragged to resize it.  It is
-//a popup, so a press anywhere else slides it back.
+//a popup, so a press anywhere else slides it back.  It is an island as a group is (see CDockGroup): the title bar and
+//the content have the island's background under them and rounded corners over them.
 class CAutoHideFlyout : public CContainer, public CDockEdgeOwner
 {
 CONSTRUCTABLE(CAutoHideFlyout);
@@ -45,6 +47,7 @@ protected:
 	Ptr<CDockTitleBar>		mpTitleBar;
 	Ptr<CDockEdge>			mpEdge;
 	Ptr<CCanvas>			mpBackground;
+	Ptr<CRoundedCorners>	mpCorners;  //Over the title bar and the content, not the edge.
 	int32					miStartSize;
 	SInt32Vec2				msStartPointer;
 

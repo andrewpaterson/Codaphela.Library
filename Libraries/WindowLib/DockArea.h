@@ -32,6 +32,10 @@ class CDockGuides;
 //The root of a window's docking: a node (a split, a group, or the document well) filling it.  The main window's area
 //has an auto hide strip on each edge, shown while it has tabs, and always has the document well somewhere in its tree.
 //While a pane is dragged over it the area shows the docking guides over everything else.
+//
+//Its background shows between the groups (the splits' sashes are its colour too) and, in the main window, in a
+//margin round the tree (TM_DockIslandMargin), so each group stands alone as IntelliJ IDEA's Islands theme shows its
+//tool windows and editor.
 class CDockFloatingWindow;
 
 

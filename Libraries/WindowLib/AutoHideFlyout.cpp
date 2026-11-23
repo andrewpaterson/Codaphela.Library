@@ -47,7 +47,8 @@ void CAutoHideFlyout::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr
 	miStartSize = 0;
 	msStartPointer.Init(0, 0);
 
-	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockBackground)));
+	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pManager->GetColour(TC_DockIsland)));
+	mpCorners = OMalloc<CRoundedCorners>(pWindow, pManager->GetColour(TC_DockBackground), pManager->GetMetric(TM_DockIslandRadius));
 	mpTitleBar = OMalloc<CDockTitleBar>(pWindow, pManager, pPane->GetTitle(), false, true, pPane->IsClosable());
 	mpTitleBar->SetPinned(false);
 	mpTitleBar->SetActive(true);
@@ -73,6 +74,7 @@ void CAutoHideFlyout::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, Ptr
 	AddComponent(mpBackground);
 	AddComponent(mpTitleBar);
 	AddComponent(pPane->GetContent());
+	AddComponent(mpCorners);
 	AddComponent(mpEdge);
 	//A popup isn't in the dock area: Shift+Escape and Control+F4 are taken here too.
 	AddInputAction(CIC_CloseDocument, &pManager, &CDockManager::CloseActiveDocument);
@@ -96,6 +98,7 @@ void CAutoHideFlyout::Class(void)
 	M_Pointer(mpTitleBar);
 	M_Pointer(mpEdge);
 	M_Pointer(mpBackground);
+	M_Pointer(mpCorners);
 	U_Int32(miStartSize);
 	U_2Int32(msStartPointer);
 }
@@ -251,6 +254,7 @@ void CAutoHideFlyout::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 		iTop += mpManager->GetMetric(TM_AutoHideEdge);
 		break;
 	}
+	mpCorners->Layout(SInt32Vec2(iLeft, iTop), SInt32Vec2(iRight - iLeft, iBottom - iTop));
 	iTitle = mpManager->GetMetric(TM_DockTitleBarHeight);
 	if (iTitle > iBottom - iTop)
 	{

@@ -114,7 +114,7 @@ void CDockState::MakeParts(CDockManager* pcManager)
 	mcRestorer.Init(pcManager, this);
 	mcMover.Init(pcManager, this);
 	mpArea = OMalloc<CDockArea>(mpWindow, Ptr<CDockManager>(pcManager), true);
-	mpWell = OMalloc<CDocumentWell>(mpWindow, Ptr<CDockManager>(pcManager), pcManager->GetColour(TC_DockBackground));
+	mpWell = OMalloc<CDocumentWell>(mpWindow, Ptr<CDockManager>(pcManager), pcManager->GetColour(TC_DockIsland));
 	mpArea->SetRoot(mpWell);
 }
 

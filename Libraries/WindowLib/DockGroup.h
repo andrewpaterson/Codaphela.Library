@@ -21,6 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __DOCK_GROUP_H__
 #define __DOCK_GROUP_H__
 #include "TabbedContainer.h"
+#include "RoundedCorners.h"
 #include "DockTitleBar.h"
 #include "DockNode.h"
 
@@ -57,6 +58,10 @@ enum EDockMenuItem
 //pane's window position menu as its context menu, as does the title bar's chevron: one menu for the documents' tabs and
 //one for the tools', each acting on the pane it was opened for.  The group's ID is unique in its manager and is how
 //panes find their way back to it (see CDockPane::SetRestore).
+//
+//A group is one of IntelliJ IDEA's islands: it has a background of its own (TC_DockIsland), as its panes' contents
+//need not fill them, and its corners are rounded over whatever it shows, in the dock area's background colour
+//(TM_DockIslandRadius).
 class CDockGroup : public CDockNode
 {
 CONSTRUCTABLE(CDockGroup);
@@ -65,8 +70,10 @@ protected:
 	int32					miID;
 	bool					mbDocuments;
 	bool					mbActive;
+	Ptr<CCanvas>			mpBackground;  //Under the title bar and the tabs.
 	Ptr<CDockTitleBar>		mpTitleBar;  //NULL for a document group.
 	Ptr<CTabbedContainer>	mpTabs;
+	Ptr<CRoundedCorners>	mpCorners;  //Over the title bar and the tabs.
 	CArray<CDockPane>		maPanes;  //Not in tab order: the tabbed container moves tabs itself.  GetPane is by tab.
 	Ptr<CMenuContainer>		mpDocumentMenu;  //The window position menu of the documents' tabs, NULL until one is added.
 	Ptr<CMenuContainer>		mpToolMenu;  //And of the tools'.

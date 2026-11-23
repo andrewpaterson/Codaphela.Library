@@ -155,11 +155,11 @@ void CSplitContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, bool 
 	mbHorizontal = bHorizontal;
 	mbSecondShown = true;
 	miShare = SPLIT_CONTAINER_WHOLE / 2;
-	miSashSize = pTheme->GetMetric(TM_DockSashSize);
+	miSashSize = pTheme->GetMetric(TM_SplitSashSize);
 	miFirstSize = 0;
 	miAlong = 0;
 	mcShareChanged.Init();
-	mpSash = OMalloc<CSplitSash>(pWindow, this, bHorizontal, pTheme->GetColour(TC_DockSash));
+	mpSash = OMalloc<CSplitSash>(pWindow, this, bHorizontal, pTheme->GetColour(TC_SplitSash));
 
 	PostInit();
 }

@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
+#include "DockManager.h"
 #include "DockGroup.h"
 #include "DocumentWell.h"
 
@@ -36,7 +37,9 @@ void CDocumentWell::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, ARGB3
 	mpRoot = NULL;
 	mpBackground = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(sBackground));
 	mpBackground->SetAlignment(CSH_Stretch, CSV_Stretch);
+	mpCorners = OMalloc<CRoundedCorners>(pWindow, pManager->GetColour(TC_DockBackground), pManager->GetMetric(TM_DockIslandRadius));
 	AddComponent(mpBackground);
+	AddComponent(mpCorners);
 
 	PostInit();
 }
@@ -52,6 +55,7 @@ void CDocumentWell::Class(void)
 
 	M_Pointer(mpRoot);
 	M_Pointer(mpBackground);
+	M_Pointer(mpCorners);
 }
 
 
@@ -127,6 +131,7 @@ void CDocumentWell::SetRoot(Ptr<CDockNode> pRoot)
 	else
 	{
 		AddComponent(mpBackground);
+		AddComponent(mpCorners);
 	}
 	LayoutChanged();
 }
@@ -147,6 +152,7 @@ void CDocumentWell::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	else
 	{
 		mpBackground->Layout(sPosition, sAreaSize);
+		mpCorners->Layout(sPosition, sAreaSize);
 	}
 }
 

@@ -58,7 +58,7 @@ void TestSplitContainerShares(void)
 		pWindow = OMalloc<CWindow>("Split Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
 		ORoot()->Add(pWindow);
 		pTheme = CJewelTheme::CreateDarkTheme(pWindow, GenerateMenuFont(pWindow));
-		iSash = pTheme->GetMetric(TM_DockSashSize);
+		iSash = pTheme->GetMetric(TM_SplitSashSize);
 		iRoom = 300 - iSash;
 
 		pRoot = OMalloc<CFillContainer>(pWindow);

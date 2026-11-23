@@ -22,19 +22,22 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __DOCUMENT_WELL_H__
 #include "Canvas.h"
 #include "ClearCanvasDraw.h"
+#include "RoundedCorners.h"
 #include "DockNode.h"
 
 
 //Where documents are, in the main window's dock area; tool panes dock around it.  It holds its own tree of splits and
 //document groups (Visual Studio's New Horizontal and Vertical Tab Groups), or nothing, when it shows its background.
-//It is always in the main dock area, even empty, and takes whatever space the panes around it leave.
+//It is always in the main dock area, even empty, and takes whatever space the panes around it leave.  Empty, it is an
+//island like a group, its background's corners rounded.
 class CDocumentWell : public CDockNode, public CDockNodeHolder
 {
 CONSTRUCTABLE(CDocumentWell);
 DESTRUCTABLE(CDocumentWell);
 protected:
-	Ptr<CDockNode>	mpRoot;
-	Ptr<CCanvas>	mpBackground;
+	Ptr<CDockNode>			mpRoot;
+	Ptr<CCanvas>			mpBackground;
+	Ptr<CRoundedCorners>	mpCorners;  //Over the background.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, ARGB32 sBackground);
