@@ -996,3 +996,12 @@ Stage 15 (2026-11-23): what is left of the dozen jobs.
 	call is.  The float builtins are not rows of the table: the type checker and the front end switch on what
 	FindBuiltin finds, and would then see kinds they don't do.  TestCppCompilerLib passes (272,055); the
 	diagnostics entries and the listings are as they were; the IDE builds.
+
+	c. Exception specifications are a class of their own, CCPPExceptions (CPPExceptions.h and .cpp), beside
+	CCPPExceptionSpec, which the unit holds (mcExceptions, GetExceptions): 24 functions (what a function is
+	declared to throw, written, implicit and its parts', ExceptionsOf, IsNoexcept, AllowsOnlyWhat, the six
+	MayThrow, the pointer and assignment checks, CheckThrown, CollectTryJumps and CheckTryJumps), with
+	CCPPThrowFinder and DeclaratorOfDeclaration, which only they used.  ThrownDestroyer stays with the routines
+	the unit writes (stage 13).  Moved, not changed: TestCppCompilerLib passes (272,063, the user's new tests
+	among them); every conformance case, the Exceptions group's on both targets with them, says what it said;
+	the listings are as they were; the IDE builds.

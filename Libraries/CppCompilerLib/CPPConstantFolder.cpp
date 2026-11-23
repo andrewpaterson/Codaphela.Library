@@ -286,7 +286,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 		return mpcUnit->TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, &psValue->lliValue);
 
 	case CPPS_NoexceptExpression:
-		psValue->lliValue = !mpcUnit->MayThrow(((CCPPSyntaxNoexceptExpression*)pcExpression)->mpcOperand);
+		psValue->lliValue = !mpcUnit->GetExceptions()->MayThrow(((CCPPSyntaxNoexceptExpression*)pcExpression)->mpcOperand);
 		return true;
 
 	case CPPS_CallExpression:

@@ -378,6 +378,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcCheck.Init(this);
 	mcWarnings.Init(this);
 	mcBuiltins.Init(this);
+	mcExceptions.Init(this);
 	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
@@ -815,41 +816,6 @@ bool CCPPUnit::IsSharedFunction(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What throw's operand makes can be thrown: not an object of an incomplete
-// or abstract class, nor a pointer to an incomplete class.  [except.throw] 3
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckThrown(CCPPSyntaxThrowExpression* pcThrow)
-{
-	SCPP65Type*	psType;
-
-	psType = TypeOf(pcThrow->mpcOperand);
-	if (!psType)
-	{
-		return false;
-	}
-	psType = psType->WithoutReference()->Unqualified();
-	if (psType->IsVoid())
-	{
-		return mcDiagnostics.Error(pcThrow, "A throw's operand can't be void");
-	}
-	if (psType->IsClass())
-	{
-		if (!CompleteClass(psType->pcClass, pcThrow))
-		{
-			return false;
-		}
-		if (psType->pcClass->IsAbstract())
-		{
-			return mcDiagnostics.Error(pcThrow, "An object of an abstract class can't be thrown");
-		}
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The innermost try block or handler pcNode is in, looking no further out
 // than pcStop: the block's or the handler's node, or NULL for none.
 //
@@ -870,106 +836,6 @@ CCPPSyntax* CCPPUnit::TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop)
 		}
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The body's labels and gotos, for CheckTryJumps; and each case label is
-// checked here: it can't be in a try block or a handler that is inside its
-// switch.  A lambda's body is its own function's.  [except] 3
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CArraySyntax* papcLabels, CArraySyntax* papcGotos)
-{
-	CCPPSyntax*	pcSwitch;
-	size		i;
-	bool		bResult;
-
-	if (!pcNode || (pcNode->GetKind() == CPPS_LambdaExpression))
-	{
-		return true;
-	}
-	bResult = true;
-	if (pcNode->GetKind() == CPPS_LabelStatement)
-	{
-		papcLabels->Add(pcNode);
-	}
-	else if (pcNode->GetKind() == CPPS_GotoStatement)
-	{
-		papcGotos->Add(pcNode);
-	}
-	else if (pcNode->GetKind() == CPPS_CaseStatement)
-	{
-		for (pcSwitch = pcNode->mpcParent; pcSwitch && (pcSwitch->GetKind() != CPPS_SwitchStatement) && (pcSwitch != pcBody); pcSwitch = pcSwitch->mpcParent)
-		{
-		}
-		if (pcSwitch && (pcSwitch->GetKind() == CPPS_SwitchStatement) && TryRegionOf(pcNode, pcSwitch))
-		{
-			bResult = mcDiagnostics.Error(pcNode, "A switch can't jump into a try block or a handler");
-		}
-	}
-	for (i = 0; i < pcNode->NumChildren(); i++)
-	{
-		bResult &= CollectTryJumps(pcNode->GetChild(i), pcBody, papcLabels, papcGotos);
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// No goto or switch of the function's body jumps into a try block or a
-// handler: a goto whose label is in one must be in it too.  [except] 3
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckTryJumps(CCPPSyntax* pcBody)
-{
-	CArraySyntax	apcLabels;
-	CArraySyntax	apcGotos;
-	CCPPSyntax*		pcGoto;
-	CCPPSyntax*		pcLabel;
-	CCPPSyntax*		pcRegion;
-	CCPPSyntax*		pcParent;
-	CCPPToken*		pcGotoName;
-	CCPPToken*		pcLabelName;
-	size			i;
-	size			j;
-	bool			bResult;
-
-	if (!mpcOptions->mbExceptions || !pcBody)
-	{
-		return true;
-	}
-	apcLabels.Init();
-	apcGotos.Init();
-	bResult = CollectTryJumps(pcBody, pcBody, &apcLabels, &apcGotos);
-	for (i = 0; i < apcGotos.NumElements(); i++)
-	{
-		pcGoto = apcGotos.GetPtr(i);
-		pcGotoName = mpcTokeniser->Get(((CCPPSyntaxGotoStatement*)pcGoto)->miLabel);
-		for (j = 0; j < apcLabels.NumElements(); j++)
-		{
-			pcLabel = apcLabels.GetPtr(j);
-			pcLabelName = mpcTokeniser->Get(((CCPPSyntaxLabelStatement*)pcLabel)->miName);
-			if (!pcGotoName || !pcLabelName || !pcGotoName->IsIdentifier() || !pcLabelName->IsIdentifier() ||
-				(((CCTIdentifier*)pcGotoName)->miIdentifier != ((CCTIdentifier*)pcLabelName)->miIdentifier))
-			{
-				continue;
-			}
-			pcRegion = TryRegionOf(pcLabel, pcBody);
-			for (pcParent = pcGoto; pcRegion && pcParent && (pcParent != pcRegion); pcParent = pcParent->mpcParent)
-			{
-			}
-			if (pcRegion && !pcParent)
-			{
-				bResult = mcDiagnostics.Error(pcGoto, "A goto can't jump into a try block or a handler");
-			}
-		}
-	}
-	apcGotos.Kill();
-	apcLabels.Kill();
-	return bResult;
 }
 
 
@@ -1913,66 +1779,6 @@ SCPP65Type* CCPPUnit::FunctionType(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What an exception specification that is written allows: noexcept,
-// noexcept(true) and throw() nothing, noexcept(false) and Microsoft's
-// throw(...) anything, throw(A, B) those types.  [except.spec] 2 and 3
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest)
-{
-	SCPP65Type*	psType;
-	int64		lliValue;
-	size		i;
-
-	pcDest->SetAnything();
-	if (pcSpecification->mbNoexcept)
-	{
-		if (!pcSpecification->mpcCondition || (mcFolder.Constant(pcSpecification->mpcCondition, &lliValue) && (lliValue != 0)))
-		{
-			pcDest->SetNothing();
-		}
-		return;
-	}
-	if (pcSpecification->mbAnything)
-	{
-		return;
-	}
-	pcDest->SetNothing();
-	pcDest->mbDynamic = true;
-	for (i = 0; i < pcSpecification->macpTypes.NumElements(); i++)
-	{
-		psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcSpecification->macpTypes.GetPtr(i));
-		if (psType)
-		{
-			pcDest->AddType(ParameterType(psType)->Unqualified());
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What the exception specification a function is declared with allows.
-// noexcept(e)'s e may name the function's parameters, as the return type
-// written after them may: noexcept(noexcept(t.f())).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::DeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest)
-{
-	if (!pcSpecification->mpcCondition)
-	{
-		WrittenExceptions(pcSpecification, pcDest);
-		return;
-	}
-	EnterFunction(pcFunction);
-	AddParameters(pcFunction, pcDeclarator);
-	WrittenExceptions(pcSpecification, pcDest);
-	LeaveFunction();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The exception specification a function's declarator is written with,
 // NULL for none.
 //
@@ -1989,119 +1795,6 @@ CCPPSyntaxExceptionSpecification* CCPPUnit::WrittenSpecification(CCPPSyntaxFunct
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new function's exception specification, from its declarator.  One
-// declared with none allows anything, but: an operator delete allows
-// nothing ([except.spec] 15), and a destructor's is worked out from its
-// class when it is asked for (ExceptionsOf).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::SetDeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator)
-{
-	CCPPSyntaxExceptionSpecification*	pcSpecification;
-
-	pcSpecification = WrittenSpecification(pcDeclarator->GetFunctionSuffix());
-	if (pcSpecification)
-	{
-		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &pcFunction->mcExceptions);
-		pcFunction->mbExceptionsWritten = true;
-	}
-	else if ((pcFunction->mlliName == GetOperatorName(CT_delete, false)) || (pcFunction->mlliName == GetOperatorName(CT_delete, true)))
-	{
-		pcFunction->mcExceptions.SetNothing();
-		pcFunction->mbExceptionsWritten = true;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A function declared again: its exception specification must be
-// compatible with the one it has ([except.spec] 3).  A declaration
-// without one has what the function would have with none written, which
-// for a destructor is its class's parts' ([class.dtor] 3).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckRedeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator)
-{
-	CCPPSyntaxExceptionSpecification*	pcSpecification;
-	CCPPExceptionSpec					cDeclared;
-	bool								bCompatible;
-
-	if (pcDeclarator == pcFunction->mpcDeclarator)
-	{
-		return true;
-	}
-	pcSpecification = WrittenSpecification(pcDeclarator->GetFunctionSuffix());
-	cDeclared.Init();
-	if (pcSpecification)
-	{
-		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &cDeclared);
-	}
-	else if ((pcFunction->mlliName == GetOperatorName(CT_delete, false)) || (pcFunction->mlliName == GetOperatorName(CT_delete, true)))
-	{
-		cDeclared.SetNothing();
-	}
-	else if ((pcFunction->meKind == CPPFK_Destructor) || pcFunction->mbImplicit)
-	{
-		if (!pcFunction->mbExceptionsWritten || !pcFunction->mpcClass || !pcFunction->mpcClass->IsComplete())
-		{
-			cDeclared.Kill();
-			return true;
-		}
-		cDeclared.SetNothing();
-		ImplicitExceptions(pcFunction, &cDeclared);
-	}
-	bCompatible = cDeclared.IsCompatible(ExceptionsOf(pcFunction));
-	cDeclared.Kill();
-	if (!bCompatible)
-	{
-		//Declarations are made quietly (one that fails is only an error if it is used); this one is wrong where it is.
-		mcDiagnostics.BeginLoud();
-		mcDiagnostics.Error(pcDeclarator, "The function is declared again with a different exception specification");
-		mcDiagnostics.EndLoud();
-	}
-	return bCompatible;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// What a function may throw.  One declared with a specification has that.
-// A destructor declared without one, and a function the compiler writes,
-// allow what the functions they call allow ([except.spec] 14): it is
-// worked out here, once the class is complete.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPExceptionSpec* CCPPUnit::ExceptionsOf(CCPPFunction* pcFunction)
-{
-	if (pcFunction->mbExceptionsWritten || pcFunction->mbExceptionsKnown)
-	{
-		return &pcFunction->mcExceptions;
-	}
-	pcFunction->mbExceptionsKnown = true;
-	if (!pcFunction->mpcClass || ((pcFunction->meKind != CPPFK_Destructor) && !pcFunction->mbImplicit))
-	{
-		return &pcFunction->mcExceptions;
-	}
-	pcFunction->mcExceptions.SetNothing();
-	ImplicitExceptions(pcFunction, &pcFunction->mcExceptions);
-	pcFunction->mbExceptionsKnown = pcFunction->mpcClass->IsComplete();
-	return &pcFunction->mcExceptions;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsNoexcept(CCPPFunction* pcFunction)
-{
-	return ExceptionsOf(pcFunction)->IsNonThrowing();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether a function's label is weak, so that another object's definition
 // takes its place: __attribute__((weak)) on its definition, or on the
 // declaration it is known by (Libc65's replaceable operator new and delete
@@ -2112,220 +1805,6 @@ bool CCPPUnit::IsNoexcept(CCPPFunction* pcFunction)
 bool CCPPUnit::IsWeakFunction(CCPPFunction* pcFunction)
 {
 	return HasAttribute(pcFunction->mpcDeclarator, "weak") || (pcFunction->mpcDefinition && HasAttribute(pcFunction->mpcDefinition->mpcDeclarator, "weak"));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Adds to pcDest what a function with no specification written allows
-// because of what it does to its class's bases and fields: a destructor
-// destroys them, a default constructor makes them, a copy or move
-// constructor or operator= copies or moves them, and an inherited
-// constructor calls the base's and makes the rest.  [except.spec] 14
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ImplicitExceptions(CCPPFunction* pcFunction, CCPPExceptionSpec* pcDest)
-{
-	CCPPClass*			pcClass;
-	SCPP65Type*			psParameter;
-	ECPPSpecialMember	eMember;
-	bool				bCopier;
-	bool				bMove;
-
-	pcClass = pcFunction->mpcClass;
-	psParameter = (pcFunction->mapsParameters.NumElements() > 0) ? pcFunction->mapsParameters.GetPtr(0) : NULL;
-	bCopier = psParameter && psParameter->IsReference() && psParameter->psBase->IsClass() && (psParameter->psBase->pcClass == pcClass);
-	bMove = bCopier && psParameter->bRvalue;
-	if (pcFunction->meKind == CPPFK_Destructor)
-	{
-		eMember = CPPSM_Destroy;
-	}
-	else if (pcFunction->meKind == CPPFK_Constructor)
-	{
-		eMember = bCopier ? (bMove ? CPPSM_Move : CPPSM_Copy) : CPPSM_DefaultConstruct;
-		if (pcFunction->mpcInherited)
-		{
-			pcDest->Add(ExceptionsOf(pcFunction->mpcInherited));
-		}
-	}
-	else if (bCopier && (pcFunction->mlliName == CPP_OPERATOR_NAME(CT_Assignment)))
-	{
-		eMember = bMove ? CPPSM_MoveAssign : CPPSM_Assign;
-	}
-	else if (pcFunction->mbDeleting)
-	{
-		//A deleting destructor lets out what the destructor it calls does.
-		pcDest->Add(ExceptionsOf(pcClass->mpcDestructor));
-		return;
-	}
-	else
-	{
-		//A closure's conversion to a pointer to a function, which does nothing that throws.
-		return;
-	}
-	PartsExceptions(pcClass, eMember, pcDest);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Adds to pcDest what doing eMember to each base and field of the class
-// allows, and for making an object what its fields' default member
-// initialisers do.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::PartsExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest)
-{
-	SCPPField*	psField;
-	SCPP65Type*	psType;
-	size		i;
-
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		ClassExceptions(pcClass->macBases.Get(i)->pcClass, eMember, pcDest);
-	}
-	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
-	{
-		ClassExceptions(pcClass->macVirtualBases.Get(i)->pcClass, eMember, pcDest);
-	}
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		psType = psField->psType;
-		while (psType->IsArray())
-		{
-			psType = psType->psBase;
-		}
-		if (psType->IsClass() && (psType->pcClass != pcClass))
-		{
-			ClassExceptions(psType->pcClass, eMember, pcDest);
-		}
-		if ((eMember == CPPSM_DefaultConstruct) && psField->pcInitialiser && MayThrow(psField->pcInitialiser))
-		{
-			pcDest->SetAnything();
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Adds to pcDest what doing eMember to an object of the class allows: what
-// the function the class has for it allows, and when it has none (the
-// compiler copies, makes or destroys the object part by part where it is
-// needed) what its parts' do.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ClassExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest)
-{
-	CCPPFunction*	pcFunction;
-	CCPPFunction*	pcMember;
-	size			i;
-
-	pcFunction = NULL;
-	switch (eMember)
-	{
-	case CPPSM_Destroy:
-		if (pcClass->mpcDestructor)
-		{
-			pcDest->Add(ExceptionsOf(pcClass->mpcDestructor));
-		}
-		return;
-	case CPPSM_DefaultConstruct:
-		for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
-		{
-			pcMember = pcClass->mapcMembers.GetPtr(i);
-			if ((pcMember->meKind == CPPFK_Constructor) && !pcMember->mbDeleted && !pcMember->mpcInherited && (pcMember->RequiredParameters() == 0))
-			{
-				pcFunction = pcMember;
-				break;
-			}
-		}
-		break;
-	case CPPSM_Copy:
-	case CPPSM_Move:
-		pcFunction = pcClass->GetPartCopier(false, eMember == CPPSM_Move);
-		break;
-	default:
-		pcFunction = pcClass->GetPartCopier(true, eMember == CPPSM_MoveAssign);
-		break;
-	}
-	if (pcFunction)
-	{
-		pcDest->Add(ExceptionsOf(pcFunction));
-	}
-	else
-	{
-		PartsExceptions(pcClass, eMember, pcDest);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether doing eMember to an object of the class may throw.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ClassMayThrow(CCPPClass* pcClass, ECPPSpecialMember eMember)
-{
-	CCPPExceptionSpec	cExceptions;
-	bool				bThrows;
-
-	cExceptions.Init();
-	cExceptions.SetNothing();
-	ClassExceptions(pcClass, eMember, &cExceptions);
-	bThrows = !cExceptions.IsNonThrowing();
-	cExceptions.Kill();
-	return bThrows;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether pcTighter allows only what pcLooser allows: what an overriding
-// function's must do against the function's it overrides, and a function's
-// against the pointer's it is assigned to.  A class is allowed where a
-// base of it is.  [except.spec] 5
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::AllowsOnlyWhat(CCPPExceptionSpec* pcTighter, CCPPExceptionSpec* pcLooser)
-{
-	SCPP65Type*	psType;
-	SCPP65Type*	psAllowed;
-	size		i;
-	size		j;
-	int			iOffset;
-	bool		bAllowed;
-
-	if (pcLooser->IsAnything() || pcTighter->IsNonThrowing())
-	{
-		return true;
-	}
-	if (pcTighter->IsAnything())
-	{
-		return false;
-	}
-	for (i = 0; i < pcTighter->mapsTypes.NumElements(); i++)
-	{
-		psType = pcTighter->mapsTypes.GetPtr(i);
-		bAllowed = pcLooser->HasType(psType);
-		for (j = 0; !bAllowed && (j < pcLooser->mapsTypes.NumElements()); j++)
-		{
-			psAllowed = pcLooser->mapsTypes.GetPtr(j);
-			if (psType->IsPointer() && psAllowed->IsPointer() && !psType->IsMemberPointer() && !psAllowed->IsMemberPointer())
-			{
-				psType = psType->psBase->Unqualified();
-				psAllowed = psAllowed->psBase->Unqualified();
-			}
-			bAllowed = psType->IsClass() && psAllowed->IsClass() && IsDerived(psType->pcClass, psAllowed->pcClass, &iOffset);
-			psType = pcTighter->mapsTypes.GetPtr(i);
-		}
-		if (!bAllowed)
-		{
-			return false;
-		}
-	}
-	return true;
 }
 
 
@@ -2871,7 +2350,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		pcFunction->mbCLinkage |= mcContext.IsCLinkage() && !pcClass;
 		pcFunction->mbExplicit |= (uiFlags & CPPDS_EXPLICIT) != 0;
 		pcFunction->mbConstexpr |= (uiFlags & CPPDS_CONSTEXPR) != 0;
-		CheckRedeclaredExceptions(pcFunction, pcDeclarator);
+		mcExceptions.CheckRedeclaredExceptions(pcFunction, pcDeclarator);
 		return pcFunction;
 	}
 
@@ -2935,7 +2414,7 @@ CCPPFunction* CCPPUnit::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	pcFunction->mbCLinkage = mcContext.IsCLinkage() && !pcClass;
 	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
 	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : FindAttribute(pcDeclarator, "deprecated");
-	SetDeclaredExceptions(pcFunction, pcDeclarator);
+	mcExceptions.SetDeclaredExceptions(pcFunction, pcDeclarator);
 	pcFunction->mbOverride |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliOverride);
 	pcFunction->mbFinal |= HasVirtSpecifier(pcSuffix, mpcTokeniser->mlliFinal);
 	if (pszArguments)
@@ -3745,7 +3224,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 			bResult &= mcDiagnostics.Error(pcInit, "Only variables with simple names are supported by the compiler yet");
 			continue;
 		}
-		bResult &= CheckPointerExceptions(pcInit);
+		bResult &= mcExceptions.CheckPointerExceptions(pcInit);
 
 		//extern without an initialiser only declares; extern int x = 1; defines x.  [basic.def]
 		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mcContext.IsLinkageExtern()) && !pcInit->mpcInitializer)
@@ -4430,7 +3909,7 @@ bool CCPPUnit::GenerateDefinition(CCPPFunction* pcFunction)
 
 	EnterFunction(pcFunction);
 	AddParameters(pcFunction);
-	if (!CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator) || !CheckMemberInitialisers(pcFunction) || !AllocateLocals(pcDefinition->mpcBody) || !CheckTryJumps(pcDefinition->mpcBody))
+	if (!CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator) || !CheckMemberInitialisers(pcFunction) || !AllocateLocals(pcDefinition->mpcBody) || !mcExceptions.CheckTryJumps(pcDefinition->mpcBody))
 	{
 		LeaveFunction();
 		return false;
@@ -5245,6 +4724,7 @@ CCPPCheck* CCPPUnit::GetCheck(void) { return &mcCheck; }
 CCPPUnitObserver* CCPPUnit::GetObserver(void) { return mpcObserver; }
 CCPPWarnings* CCPPUnit::GetWarner(void) { return &mcWarnings; }
 CCPPBuiltins* CCPPUnit::GetBuiltins(void) { return &mcBuiltins; }
+CCPPExceptions* CCPPUnit::GetExceptions(void) { return &mcExceptions; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }

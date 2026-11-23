@@ -204,6 +204,9 @@
     <ClCompile Include="CPPBuiltins.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPExceptions.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPDeclarators.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1122,6 +1125,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPBuiltins.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPExceptions.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPDeclarators.h">

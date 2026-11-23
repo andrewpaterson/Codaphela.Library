@@ -454,7 +454,7 @@ void CCPP65TypeChecker::VisitThrowExpression(CCPPSyntaxThrowExpression* pcNode)
 {
 	if (mpcUnit->GetOptions()->mbExceptions)
 	{
-		mpsResult = (!pcNode->mpcOperand || (Value(pcNode->mpcOperand) && mpcUnit->CheckThrown(pcNode))) ? &mpcTypes->msVoid : NULL;
+		mpsResult = (!pcNode->mpcOperand || (Value(pcNode->mpcOperand) && mpcUnit->GetExceptions()->CheckThrown(pcNode))) ? &mpcTypes->msVoid : NULL;
 	}
 	else
 	{
@@ -1033,7 +1033,7 @@ SCPP65Type* CCPP65TypeChecker::BinaryExpression(CCPPSyntaxBinaryExpression* pcBi
 
 	if (IsCPPAssignment(pcBinary->meOperator))
 	{
-		if ((pcBinary->meOperator == CT_Assignment) && !mpcUnit->CheckAssignedExceptions(pcBinary))
+		if ((pcBinary->meOperator == CT_Assignment) && !mpcUnit->GetExceptions()->CheckAssignedExceptions(pcBinary))
 		{
 			return NULL;
 		}

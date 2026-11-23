@@ -51,7 +51,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::CallMayThrow(CCPPFunction* pcFunction)
 {
-	return mpcUnit->GetOptions()->mbExceptions && !(pcFunction && mpcUnit->IsNoexcept(pcFunction));
+	return mpcUnit->GetOptions()->mbExceptions && !(pcFunction && mpcUnit->GetExceptions()->IsNoexcept(pcFunction));
 }
 
 
@@ -129,7 +129,7 @@ CIRBlock* CCPP65IRFrontEnd::Landing(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::FunctionTerminates(void)
 {
-	return mbRoutine || !mpcCPPFunction || (mpcUnit->IsNoexcept(mpcCPPFunction) && !mpcUnit->ExceptionsOf(mpcCPPFunction)->mbDynamic);
+	return mbRoutine || !mpcCPPFunction || (mpcUnit->GetExceptions()->IsNoexcept(mpcCPPFunction) && !mpcUnit->GetExceptions()->ExceptionsOf(mpcCPPFunction)->mbDynamic);
 }
 
 
@@ -620,7 +620,7 @@ CCPPFunction* CCPP65IRFrontEnd::PlacementDeallocation(CCPPFunction* pcAllocation
 //////////////////////////////////////////////////////////////////////////
 CIRBlock* CCPP65IRFrontEnd::WayOut(void)
 {
-	if (!mbRoutine && mpcCPPFunction && mpcUnit->ExceptionsOf(mpcCPPFunction)->mbDynamic)
+	if (!mbRoutine && mpcCPPFunction && mpcUnit->GetExceptions()->ExceptionsOf(mpcCPPFunction)->mbDynamic)
 	{
 		return UnexpectedBlock();
 	}
@@ -689,7 +689,7 @@ CIRBlock* CCPP65IRFrontEnd::UnexpectedBlock(void)
 	{
 		return mpcUnexpected;
 	}
-	pcSpec = mpcUnit->ExceptionsOf(mpcCPPFunction);
+	pcSpec = mpcUnit->GetExceptions()->ExceptionsOf(mpcCPPFunction);
 	mpcUnexpected = NewBlock();
 	pcBlock = mpcBlock;
 	StartBlock(mpcUnexpected);
@@ -804,7 +804,7 @@ bool CCPP65IRFrontEnd::IsNullable(CCPPFunction* pcAllocation)
 {
 	SCPP65Type*	psSecond;
 
-	if (!pcAllocation || !mpcUnit->IsNoexcept(pcAllocation))
+	if (!pcAllocation || !mpcUnit->GetExceptions()->IsNoexcept(pcAllocation))
 	{
 		return false;
 	}
@@ -947,7 +947,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 
 	//What can't be thrown is said aloud (the front end works quietly).
 	mpcDiagnostics->BeginLoud();
-	bThrown = mpcUnit->CheckThrown(pcThrow);
+	bThrown = mpcUnit->GetExceptions()->CheckThrown(pcThrow);
 	mpcDiagnostics->EndLoud();
 	if (!bThrown)
 	{

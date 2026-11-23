@@ -872,7 +872,7 @@ CCPPFunction* CCPPClosures::AddLambdaFunction(SCPPLambda* psLambda, int64 lliNam
 	pcFunction->mpcDeclarator = psLambda->pcSyntax->mpcDefinition->mpcDeclarator;
 	pcFunction->mpcBindings = psLambda->pcBindings;
 	//[]() noexcept { }: the lambda's declarator is its operator()'s.  [expr.prim.lambda] 5
-	mpcUnit->SetDeclaredExceptions(pcFunction, pcFunction->mpcDeclarator);
+	mpcUnit->GetExceptions()->SetDeclaredExceptions(pcFunction, pcFunction->mpcDeclarator);
 	pcFunction->mpcNamespace = psLambda->pcEnclosing ? psLambda->pcEnclosing->mpcNamespace : mpcUnit->mcContext.GetNamespace();
 	pcFunction->mbDefined = true;
 	pcFunction->mbInline = true;

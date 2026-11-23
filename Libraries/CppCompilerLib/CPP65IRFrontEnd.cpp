@@ -229,7 +229,7 @@ bool CCPP65IRFrontEnd::WriteBody(CCPPFunction* pcFunction)
 	mpcUnit->GetMangler()->AppendFunctionLabel(&szLabel, pcFunction, mbBaseVersion);
 	BeginWriting(pcFunction, szLabel.Text(), ReturnIRType(pcFunction->mpsReturn), (pcFunction->mbVariadic ? IRA_Variadic : 0) | ((pcFunction->mpcClass && !pcFunction->mbStatic) ? IRA_ThisCall : 0) |
 		(mpcUnit->HasAttribute(pcFunction->mpcDeclarator, "noinline") ? IRA_NoInline : 0) | (IsWeak(pcFunction) ? IRA_Weak : 0));
-	if (mpcUnit->GetOptions()->mbExceptions && mpcUnit->IsNoexcept(pcFunction))
+	if (mpcUnit->GetOptions()->mbExceptions && mpcUnit->GetExceptions()->IsNoexcept(pcFunction))
 	{
 		//No exception leaves it (WayOut): a caller's test of it folds away.
 		mcModule.SetNoThrow(mpcFunction->muiSymbol, true);

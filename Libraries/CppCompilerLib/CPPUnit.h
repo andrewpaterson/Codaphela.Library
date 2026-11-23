@@ -72,6 +72,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnitObserver.h"
 #include "CPPWarnings.h"
 #include "CPPBuiltins.h"
+#include "CPPExceptions.h"
 
 
 class CCTString;
@@ -279,7 +280,9 @@ friend class CCPPStrings;
 friend class CCPPCheck;
 friend class CCPPWarnings;
 friend class CCPPBuiltins;
+friend class CCPPExceptions;
 protected:
+	CCPPExceptions			mcExceptions;		//Exception specifications.
 	CCPPBuiltins			mcBuiltins;			//The builtins the compiler does.
 	CCPPWarnings			mcWarnings;			//Warns of what a 16 bit int makes wrong.
 	CCPPUnitObserver		mcNoObserver;		//Hears nothing: the observer when code is made.
@@ -389,6 +392,7 @@ public:
 	CCPPUnitObserver*		GetObserver(void);
 	CCPPWarnings*			GetWarner(void);
 	CCPPBuiltins*			GetBuiltins(void);
+	CCPPExceptions*			GetExceptions(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
@@ -459,14 +463,7 @@ public:
 	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
 	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
 	SCPP65Type*				FunctionType(CCPPFunction* pcFunction);
-	void					WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest);
 	CCPPSyntaxExceptionSpecification*	WrittenSpecification(CCPPSyntaxFunctionSuffix* pcSuffix);
-	void					DeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest);
-	void					SetDeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator);
-	bool					CheckRedeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator);
-	void					ImplicitExceptions(CCPPFunction* pcFunction, CCPPExceptionSpec* pcDest);
-	void					PartsExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest);
-	bool					AllowsOnlyWhat(CCPPExceptionSpec* pcTighter, CCPPExceptionSpec* pcLooser);
 	bool					CheckOverrides(CCPPClass* pcClass);
 	bool					HasVirtSpecifier(CCPPSyntaxFunctionSuffix* pcSuffix, int64 lliName);
 	bool					IsAllocationFunction(int64 lliName);
@@ -752,22 +749,8 @@ public:
 	SCPPLiteralCall*		GetLiteralCall(CCPPSyntax* pcLiteral);
 	CCPPSyntaxImplicitArgument*	LiteralArgument(CCPPSyntax* pcLiteral, SCPP65Type* psType, CArraySyntax* papcArguments);
 	void					UserLiteralSpelling(int32 iToken, CChars* pszSpelling);
-	bool					MayThrow(CCPPSyntax* pcExpression);
-	bool					CallMayThrow(CCPPSyntaxCallExpression* pcCall);
-	bool					ArgumentMayThrow(CCPPSyntax* pcArgument, SCPP65Type* psParameter);
-	bool					ConstructionMayThrow(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, bool bTemporary);
-	bool					NewMayThrow(CCPPSyntaxNewExpression* pcNew);
-	bool					DeleteMayThrow(CCPPSyntaxDeleteExpression* pcDelete);
 	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
-	bool					PointerExceptions(CCPPSyntax* pcCallee, CCPPExceptionSpec* pcDest);
-	bool					CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit);
-	bool					CheckAssignedExceptions(CCPPSyntaxBinaryExpression* pcAssignment);
-	bool					ValueAllowsOnly(CCPPSyntax* pcValue, SCPP65Type* psPointer, CCPPExceptionSpec* pcPointer);
-	CCPPExceptionSpec*		ExceptionsOf(CCPPFunction* pcFunction);
-	bool					IsNoexcept(CCPPFunction* pcFunction);
 	bool					IsWeakFunction(CCPPFunction* pcFunction);
-	void					ClassExceptions(CCPPClass* pcClass, ECPPSpecialMember eMember, CCPPExceptionSpec* pcDest);
-	bool					ClassMayThrow(CCPPClass* pcClass, ECPPSpecialMember eMember);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				ImplicitZero(void);
 	CCPPSyntaxImplicitArgument*	ImplicitValue(CCPPSyntax* pcFor, SCPP65Type* psType, int iWhich = 0);
@@ -849,9 +832,6 @@ public:
 	bool					IsNamed(int64 lliName, const char* szName);
 	CCPPClass*				TypeInfoClass(void);
 	SCPP65Type*				HandlerType(CCPPSyntaxCatchHandler* pcHandler);
-	bool					CheckThrown(CCPPSyntaxThrowExpression* pcThrow);
-	bool					CheckTryJumps(CCPPSyntax* pcBody);
-	bool					CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CArraySyntax* papcLabels, CArraySyntax* papcGotos);
 	CCPPSyntax*				TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop);
 	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
 	bool					IsTypeInfoMember(CCPPFunction* pcFunction);

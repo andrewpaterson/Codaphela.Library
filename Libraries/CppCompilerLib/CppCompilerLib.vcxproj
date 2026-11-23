@@ -313,6 +313,7 @@
     <ClCompile Include="CPPUnitObserver.cpp" />
     <ClCompile Include="CPPWarnings.cpp" />
     <ClCompile Include="CPPBuiltins.cpp" />
+    <ClCompile Include="CPPExceptions.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
     <ClCompile Include="CPPDeduction.cpp" />
     <ClCompile Include="CPPFunctionPacks.cpp" />
@@ -602,6 +603,7 @@
     <ClInclude Include="CPPUnitObserver.h" />
     <ClInclude Include="CPPWarnings.h" />
     <ClInclude Include="CPPBuiltins.h" />
+    <ClInclude Include="CPPExceptions.h" />
     <ClInclude Include="CPPDeclarators.h" />
     <ClInclude Include="CPPDeduction.h" />
     <ClInclude Include="CPPFunctionPacks.h" />

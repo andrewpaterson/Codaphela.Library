@@ -1167,7 +1167,7 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 			//[class.virtual] 7
 			bResult &= mcDiagnostics.Defer(pcFunction->mpcDeclarator->miFirstToken, "The function returns another type than the virtual function it overrides, and not a pointer or reference to a class derived from that one's");
 		}
-		else if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
+		else if (pcOverridden && !mcExceptions.AllowsOnlyWhat(mcExceptions.ExceptionsOf(pcFunction), mcExceptions.ExceptionsOf(pcOverridden)))
 		{
 			bResult &= mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function allows exceptions that the virtual function it overrides doesn't");
 		}
@@ -1180,7 +1180,7 @@ bool CCPPUnit::CheckOverrides(CCPPClass* pcClass)
 	//The destructor the compiler declares allows what the class's parts' destructors do, which may be more.
 	pcFunction = pcClass->mpcDestructor;
 	pcOverridden = (pcFunction && pcFunction->mbImplicit) ? pcClass->FindOverridden(pcFunction) : NULL;
-	if (pcOverridden && !AllowsOnlyWhat(ExceptionsOf(pcFunction), ExceptionsOf(pcOverridden)))
+	if (pcOverridden && !mcExceptions.AllowsOnlyWhat(mcExceptions.ExceptionsOf(pcFunction), mcExceptions.ExceptionsOf(pcOverridden)))
 	{
 		bResult &= mcDiagnostics.Error(pcClass->mpcSpecifier, "The class's destructor allows exceptions that the virtual destructor it overrides doesn't");
 	}

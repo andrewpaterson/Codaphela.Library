@@ -1341,7 +1341,7 @@ void CCPPCheck::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 		mpcUnit->DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
 		return;
 	}
-	mpcUnit->CheckPointerExceptions(pcInit);
+	mpcUnit->GetExceptions()->CheckPointerExceptions(pcInit);
 	pcVariable = pcInit->mpcSymbol ? mpcUnit->GetVariable(pcInit->mpcSymbol) : NULL;
 	//alignas on it is a power of two (AlignasAlignment says so).  [dcl.align] 2
 	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
