@@ -682,6 +682,110 @@ void TestTextFieldEditCommands(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The Edit commands act on a field in a tool window shown over the
+// window (a floated tab's) once the keys go to it, though the window is
+// the active one (its menu was used): the tool window becomes the active
+// one again and keeps the keys.  Closed, its field is forgotten.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextFieldEditCommandsInToolWindow(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CWindow>			pTool;
+		Ptr<CTextField>			pField;
+		Ptr<CTextField>			pToolField;
+		Ptr<CCommandSet>		pCommands;
+		Ptr<CEditCommands>		pEdit;
+		CPointer				pNull;
+		CInt32Rect				cRect;
+		CChars					szClipboard;
+		size					uiStart;
+		size					uiEnd;
+
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 300, 100, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Text Field Edit Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pField = CreateTestTextField(pTestWindow, "main");
+		pCommands = OMalloc<CCommandSet>();
+		pEdit = OMalloc<CEditCommands>(pTestWindow, pCommands);
+		pTestWindow->SetCommands(pCommands);
+		pTestWindow->Layout();
+		pTestWindow->Activate();
+		pTestWindow->GetFocus()->SetFocus(pField);
+		AssertTrue(pEdit->GetTarget() == pField);
+
+		pTool = OMalloc<CWindow>("Tool Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTool);
+		pToolField = CreateTestTextField(pTool, "floated");
+		cRect.Init(0, 0, 200, 40);
+		AssertTrue(pTool->ShowOwned(pTestWindow, &cRect));
+		pTool->Layout();
+		AssertTrue(pTestWindow->IsShowingOwned(&pTool));
+
+		//The keys going to the tool window's field make it what the commands act on.
+		pTool->Activate();
+		pTool->GetFocus()->SetFocus(pToolField);
+		AssertTrue(pEdit->GetTarget() == pToolField);
+
+		//The window's menu used: it is the active one, the tool window isn't.  Select All and Copy act on the tool
+		//window's field, which becomes the active one again with the keys.
+		pTool->PlatformDeactivated();
+		pTestWindow->Activate();
+		AssertFalse(pTool->GetFocus()->IsActive());
+		AssertTrue(pCommands->Run("Edit.SelectAll"));
+		AssertTrue(pTool->GetFocus()->IsActive());
+		AssertTrue(pToolField->IsFocussed());
+		AssertTrue(pToolField->GetSelection(&uiStart, &uiEnd));
+		AssertSize(0, uiStart);
+		AssertSize(7, uiEnd);
+		AssertTrue(pCommands->Run("Edit.Copy"));
+		szClipboard.Init();
+		AssertTrue(pTool->GetClipboard()->GetText(&szClipboard));
+		AssertString("floated", szClipboard.Text());
+		szClipboard.Kill();
+		AssertFalse(pField->GetSelection(&uiStart, &uiEnd));
+
+		//A press on the window's field, which its window's focus still had, makes it the target again.
+		pTool->PlatformDeactivated();
+		pTestWindow->Activate();
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pField);
+		MoveTo(pTestWindow, ComponentCentre(pField));
+		Click(pTestWindow);
+		AssertTrue(pEdit->GetTarget() == pField);
+
+		//A closed tool window's field is forgotten, and no longer watched.
+		pTool->GetFocus()->SetFocus(NULL);
+		pTool->GetFocus()->SetFocus(pToolField);
+		AssertTrue(pEdit->GetTarget() == pToolField);
+		pTool->CloseOwned();
+		AssertFalse(pTestWindow->IsShowingOwned(&pTool));
+		AssertTrue(pEdit->GetTarget().IsNull());
+		pTool->GetFocus()->SetFocus(NULL);
+		pTool->GetFocus()->SetFocus(pToolField);
+		AssertTrue(pEdit->GetTarget().IsNull());
+
+		pTestWindow->SetCommands(NULL);
+		pEdit = NULL;
+		pCommands = NULL;
+		pToolField = NULL;
+		pField = NULL;
+		ORoot()->Remove(pTool);
+		pTool = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+	}
+
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A field edits as a text area does (CTextEditing): home is smart, the
 // word deletes take a selection, an edit that changes nothing isn't one,
 // and line feeds don't go in.
@@ -758,6 +862,7 @@ void TestTextField(void)
 	TestTextFieldEditing();
 	TestTextFieldUndo();
 	TestTextFieldEditCommands();
+	TestTextFieldEditCommandsInToolWindow();
 	TestTextFieldSharedEditing();
 	TestTextFieldPointer();
 	TestTextFieldFrames();

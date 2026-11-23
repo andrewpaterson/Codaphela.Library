@@ -914,6 +914,21 @@ void CWinGDIWindow::Raise(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The window, the program's, becomes the active one: WM_ACTIVATE says
+// when it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::RequestActivate(void)
+{
+    if (mhWnd)
+    {
+        SetActiveWindow(mhWnd);
+    }
+}
+
+
 bool CWinGDIWindow::IsCreated(void) const { return mhWnd != NULL; }
 
 

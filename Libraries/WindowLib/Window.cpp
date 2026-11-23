@@ -152,6 +152,8 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, CNative
 	masPosted.Init();
 	masPostedLater.Init();
 	mcClosed.Init();
+	mcOwnedShown.Init();
+	mcOwnedClosed.Init();
 
 	PostInit();
 }
@@ -167,6 +169,8 @@ void CWindow::Free(void)
 	{
 		mpTextMenu->RemoveActions();
 	}
+	mcOwnedClosed.Kill();
+	mcOwnedShown.Kill();
 	mcClosed.Kill();
 	GetFactory()->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
@@ -233,6 +237,8 @@ void CWindow::Class(void)
 	U_Unknown(CArrayMemberCalls, masPosted);
 	U_Unknown(CArrayWindowLaterCalls, masPostedLater);
 	U_Unknown(CComponentEvent<CWindow>, mcClosed);
+	U_Unknown(CComponentEvent<CWindow>, mcOwnedShown);
+	U_Unknown(CComponentEvent<CWindow>, mcOwnedClosed);
 }
 
 
@@ -1772,6 +1778,7 @@ bool CWindow::ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle)
 	mbRedraw = true;
 	mbLayoutDirty = true;
 	miLastPaintTime = GetDebugTickCount() - muiFrameMilliseconds;
+	pOwner->mcOwnedShown.Call(this);
 	return true;
 }
 
@@ -1805,6 +1812,51 @@ void CWindow::CloseOwned(void)
 	mpOwner = NULL;
 	pOwner->maOwned.Remove(this);
 	pOwner->Invalidate();
+	pOwner->mcOwnedClosed.Call(this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcWindow is a tool window shown over this one (ShowOwned).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::IsShowingOwned(CWindow* pcWindow)
+{
+	Ptr<CWindow>	pOwned;
+	size			i;
+
+	for (i = 0; i < maOwned.NumElements(); i++)
+	{
+		pOwned = maOwned.Get(i);
+		if (&pOwned == pcWindow)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+CComponentEvent<CWindow>* CWindow::GetOwnedShownEvent(void) { return &mcOwnedShown; }
+CComponentEvent<CWindow>* CWindow::GetOwnedClosedEvent(void) { return &mcOwnedClosed; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The window becomes the active one, with the keys, as a press on it
+// makes it: the platform is asked (CNativeWindow::RequestActivate), and
+// it is active now, not only when the platform says, so what is done
+// next (a command its focus is given) is done in it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::RequestActivate(void)
+{
+	mpcNativeWindow->RequestActivate();
+	if (!mcFocus.IsActive())
+	{
+		Activate();
+	}
 }
 
 

@@ -137,7 +137,11 @@ void CEditCommands::Init(Ptr<CWindow> pWindow, Ptr<CCommandSet> pCommands)
 	AddCommand(pCommands, "Edit.Paste", "Paste", CIC_Paste, &CEditCommands::Paste, &CEditCommands::CanPaste);
 	AddCommand(pCommands, "Edit.PasteFromHistory", "Paste from History...", CIC_PasteFromHistory, &CEditCommands::PasteFromHistory, &CEditCommands::CanPasteFromHistory);
 	AddCommand(pCommands, "Edit.SelectAll", "Select All", CIC_SelectAll, &CEditCommands::SelectAll, &CEditCommands::CanSelectAll);
+	maWatched.Init();
 	mpWindow->GetFocus()->GetFocusChangeEvent()->Add(this, &CEditCommands::FocusChanged);
+	mpWindow->GetFocus()->GetPressEvent()->Add(this, &CEditCommands::FocusChanged);
+	mpWindow->GetOwnedShownEvent()->Add(this, &CEditCommands::OwnedShown);
+	mpWindow->GetOwnedClosedEvent()->Add(this, &CEditCommands::OwnedClosed);
 	PostInit();
 }
 
@@ -150,6 +154,7 @@ void CEditCommands::Class(void)
 {
 	M_Pointer(mpWindow);
 	M_Pointer(mpTarget);
+	M_Embedded(maWatched);
 }
 
 
@@ -159,10 +164,26 @@ void CEditCommands::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CEditCommands::Free(void)
 {
+	Ptr<CWindow>	pWatched;
+	size			i;
+
 	if (mpWindow.IsNotNull())
 	{
 		mpWindow->GetFocus()->GetFocusChangeEvent()->Remove(this);
+		mpWindow->GetFocus()->GetPressEvent()->Remove(this);
+		mpWindow->GetOwnedShownEvent()->Remove(this);
+		mpWindow->GetOwnedClosedEvent()->Remove(this);
 	}
+	for (i = 0; i < maWatched.NumElements(); i++)
+	{
+		pWatched = maWatched.Get(i);
+		if (pWatched.IsNotNull())
+		{
+			pWatched->GetFocus()->GetFocusChangeEvent()->Remove(this);
+			pWatched->GetFocus()->GetPressEvent()->Remove(this);
+		}
+	}
+	maWatched.Kill();
 }
 
 
@@ -237,9 +258,56 @@ void CEditCommands::RunStandard(CCommand* pcCommand)
 //////////////////////////////////////////////////////////////////////////
 //
 // The keys going to a component that takes an edit command make it what
-// the commands act on.  A menu taking them doesn't.
+// the commands act on, and so does a press on it though it had them (its
+// window's, after a tool window had the keys).  A menu taking them, or a
+// menu bar's button, doesn't.
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// A tool window shown over the window, a floated tab's say: the keys
+// going to a component in it make that what the commands act on too.
+// Closed, it is no longer watched.
+//
+//////////////////////////////////////////////////////////////////////////
+void CEditCommands::OwnedShown(CWindow* pcOwned)
+{
+	Ptr<CWindow>	pWatched;
+	size			i;
+
+	for (i = 0; i < maWatched.NumElements(); i++)
+	{
+		pWatched = maWatched.Get(i);
+		if (&pWatched == pcOwned)
+		{
+			return;
+		}
+	}
+	pcOwned->GetFocus()->GetFocusChangeEvent()->Add(this, &CEditCommands::FocusChanged);
+	pcOwned->GetFocus()->GetPressEvent()->Add(this, &CEditCommands::FocusChanged);
+	maWatched.Add(Ptr<CWindow>(pcOwned));
+}
+
+
+void CEditCommands::OwnedClosed(CWindow* pcOwned)
+{
+	Ptr<CWindow>	pWatched;
+	size			i;
+
+	for (i = 0; i < maWatched.NumElements(); i++)
+	{
+		pWatched = maWatched.Get(i);
+		if (&pWatched == pcOwned)
+		{
+			pcOwned->GetFocus()->GetFocusChangeEvent()->Remove(this);
+			pcOwned->GetFocus()->GetPressEvent()->Remove(this);
+			maWatched.RemoveAt(i);
+			return;
+		}
+	}
+}
+
+
 void CEditCommands::FocusChanged(CFocus* pcFocus)
 {
 	Ptr<CComponent>	pFocussed;
@@ -285,10 +353,12 @@ Ptr<CComponent> CEditCommands::GetTarget(void)
 
 	if (mpTarget.IsNotNull())
 	{
+		//In the window, or a tool window shown over it; a component taken out of them, or in a tool window since
+		//closed, is forgotten.
 		for (pTop = mpTarget; pTop->GetParent().IsNotNull(); pTop = pTop->GetParent())
 		{
 		}
-		if (&pTop != &mpWindow)
+		if ((&pTop != &mpWindow) && !mpWindow->IsShowingOwned((CWindow*)&pTop))
 		{
 			mpTarget = NULL;
 		}
@@ -318,12 +388,19 @@ Ptr<CComponent> CEditCommands::GetDefaultTarget(void)
 void CEditCommands::Run(EComponentInputCommand eCommand)
 {
 	Ptr<CComponent>	pTarget;
+	Ptr<CWindow>	pWindow;
 
 	pTarget = GetTarget();
 	if (pTarget.IsNotNull())
 	{
-		mpWindow->GetFocus()->SetFocus(pTarget);
-		mpWindow->GetFocus()->Command(eCommand, true);
+		//In its own window, which becomes the active one again if it is a tool window (a menu of this one was used).
+		pWindow = pTarget->GetWindow();
+		if (pWindow != mpWindow)
+		{
+			pWindow->RequestActivate();
+		}
+		pWindow->GetFocus()->SetFocus(pTarget);
+		pWindow->GetFocus()->Command(eCommand, true);
 	}
 }
 

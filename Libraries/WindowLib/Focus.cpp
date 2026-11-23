@@ -73,6 +73,7 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 	mbActive = true;
 	meDrag = FD_None;
 	mcFocusChanged.Init();
+	mcPressed.Init();
 	miCaretBlinkPeriod = FOCUS_CARET_BLINK_PERIOD;
 	miCaretBlinkTime = 0;
 	miDragRepeatTime = 0;
@@ -86,6 +87,7 @@ void CFocus::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Free(void)
 {
+	mcPressed.Kill();
 	mcFocusChanged.Kill();
 }
 
@@ -106,6 +108,7 @@ void CFocus::Class(void)
 	U_Bool(mbActive);
 	U_Enum(meDrag);
 	U_Unknown(CComponentEvent<CFocus>, mcFocusChanged);
+	U_Unknown(CComponentEvent<CFocus>, mcPressed);
 	U_Int32(miCaretBlinkPeriod);
 	U_Int64(miCaretBlinkTime);
 	U_Int64(miDragRepeatTime);
@@ -295,6 +298,7 @@ void CFocus::Request(void)
 		pComponent = pComponent->GetParent();
 	}
 	SetFocus(pComponent);
+	mcPressed.Call(this);
 }
 
 
@@ -1066,6 +1070,7 @@ Ptr<CComponent>	CFocus::GetFocussedComponent(void) const { return mpFocussedComp
 Ptr<CComponent>	CFocus::GetDragComponent(void) const { return mpDragComponent; }
 EFocusDrag		CFocus::GetDrag(void) const { return meDrag; }
 CComponentEvent<CFocus>*	CFocus::GetFocusChangeEvent(void) { return &mcFocusChanged; }
+CComponentEvent<CFocus>*	CFocus::GetPressEvent(void) { return &mcPressed; }  //A press gave the keys (to what has them now), changed or not: a window's focussed component pressed again after another window had the keys.
 Ptr<CComponent>	CFocus::GetMouseOverComponent(void) const { return mpMouseOverComponent; }
 
 

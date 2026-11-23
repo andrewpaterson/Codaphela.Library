@@ -74,6 +74,7 @@ public:
 	void	SetCursor(ENativeCursor eCursor) override;
 	bool	IsCreated(void) const override;
 	void	Raise(void) override;
+	void	RequestActivate(void) override;
 	void	TitleChanged(void) override;
 
 	void	HandleEvent(_XEvent* puEvent);

@@ -30,7 +30,9 @@ class CFocus;
 //An Edit menu's commands (Undo, Redo, Cut, Copy, Paste, Paste from History and Select All, named Edit.Undo and so on)
 //for a window's command set.  They act on the component the keys last went to that can take them (a text area or field, say), not
 //on the menu holding the keys while it is open: running one gives that component the keys again and the standard
-//command (CIC_Undo ...), and each can run while it would do something there (CComponent::CanDoCommand).  Once that
+//command (CIC_Undo ...), and each can run while it would do something there (CComponent::CanDoCommand).  That
+//component can be in a tool window floating over the window (a floated tab): its window becomes the active one again
+//(CWindow::RequestActivate) and the command is run there.  Once that
 //component has gone from the window, they act on GetDefaultTarget's (an IDE's active document, say).  Their keys are
 //the standard ones, Control+Z and so on, shown but not bound again.
 //
@@ -43,6 +45,7 @@ DESTRUCTABLE(CEditCommands);
 protected:
 	Ptr<CWindow>		mpWindow;
 	Ptr<CComponent>		mpTarget;  //The component the keys last went to that takes an edit command, NULL for none.
+	CArray<CWindow>		maWatched;  //The tool windows shown over the window whose focus is watched too.
 
 public:
 	void				Init(Ptr<CWindow> pWindow, Ptr<CCommandSet> pCommands);
@@ -56,6 +59,8 @@ public:
 	Ptr<CComponent>				GetTarget(void);
 	virtual Ptr<CComponent>		GetDefaultTarget(void);
 	void						FocusChanged(CFocus* pcFocus);
+	void						OwnedShown(CWindow* pcOwned);
+	void						OwnedClosed(CWindow* pcOwned);
 
 	void				Undo(void);
 	void				Redo(void);

@@ -326,6 +326,19 @@ void CNativeWindow::Raise(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Asks the platform to make the window the active one, with the keys, as
+// a press on it would.  The platform says when it is (CWindow::Activate);
+// a window with no platform window, as a reference window, has nothing to
+// ask.
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeWindow::RequestActivate(void)
+{
+}
+
+
 bool CNativeWindow::IsTool(void) const { return mbTool; }
 ENativeCursor CNativeWindow::GetCursor(void) const { return meCursor; }
 

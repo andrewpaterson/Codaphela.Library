@@ -74,6 +74,7 @@ protected:
 	bool					mbActive;  //An inactive window remembers its focussed component but sends it no commands.
 	EFocusDrag				meDrag;
 	CComponentEvent<CFocus>	mcFocusChanged;  //The focussed component changed, see GetFocusChangeEvent.
+	CComponentEvent<CFocus>	mcPressed;  //A press gave a component the keys, though it may have had them (Request).
 	int32					miCaretBlinkPeriod;  //Milliseconds the caret is shown, then hidden, for; 0 for always shown.
 	int64					miCaretBlinkTime;  //When the caret was last shown or hidden (GetDebugTickCount).
 	bool					mbCaretOn;  //The focussed component's caret is shown.
@@ -119,6 +120,7 @@ public:
 	bool						RepeatDrag(int64 iNow);
 	EFocusDrag					GetDrag(void) const;
 	CComponentEvent<CFocus>*	GetFocusChangeEvent(void);
+	CComponentEvent<CFocus>*	GetPressEvent(void);
 
 	//The focussed component's caret blinks, as IntelliJ's: shown and hidden every period, shown again whenever it
 	//moves, its text is edited or the focus changes (ResetCaretBlink).  The window draws it over what it paints.

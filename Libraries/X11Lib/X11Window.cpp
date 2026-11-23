@@ -1309,6 +1309,26 @@ void CX11Window::Raise(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The window takes the keys and comes to the front: FocusIn says when it
+// has them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CX11Window::RequestActivate(void)
+{
+    CX11WindowFactory*  pcFactory;
+
+    if (mulWindow)
+    {
+        pcFactory = (CX11WindowFactory*)mpcWindowFactory;
+        XRaiseWindow(pcFactory->GetDisplay(), mulWindow);
+        XSetInputFocus(pcFactory->GetDisplay(), mulWindow, RevertToParent, CurrentTime);
+        XFlush(pcFactory->GetDisplay());
+    }
+}
+
+
 bool CX11Window::IsCreated(void) const { return mulWindow != 0; }
 
 

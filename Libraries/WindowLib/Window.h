@@ -98,6 +98,8 @@ protected:
 	bool						mbKeepsActive;  //It stays active when the platform's focus leaves it (SetKeepsActive).
 	CArray<CWindow>				maOwned;  //Tool windows shown over this one, run by its loop.
 	CComponentEvent<CWindow>	mcClosed;  //A tool window was closed by the platform, Alt+F4 say.
+	CComponentEvent<CWindow>	mcOwnedShown;  //A tool window was shown over this one (ShowOwned): it is the source.
+	CComponentEvent<CWindow>	mcOwnedClosed;  //A tool window over this one closed (CloseOwned): it is the source.
 	SMemberCall					msCloseApprover;  //Asked whether the close button may close the window, not set if it always may.
 	CArrayMemberCalls			masPosted;  //Called at the next tick, outside the input that posted them (see Post).
 	CArrayWindowLaterCalls		masPostedLater;  //Called at the first tick once their time has come (see PostAfter).
@@ -126,6 +128,10 @@ public:
 	bool						ShowModal(Ptr<CWindow> pOwner);
 	bool						ShowOwned(Ptr<CWindow> pOwner, CInt32Rect* pcScreenRectangle);
 	void						CloseOwned(void);
+	bool						IsShowingOwned(CWindow* pcWindow);
+	CComponentEvent<CWindow>*	GetOwnedShownEvent(void);
+	CComponentEvent<CWindow>*	GetOwnedClosedEvent(void);
+	void						RequestActivate(void);
 	bool						IsShown(void) const;
 	bool						IsModal(void) const;
 	Ptr<CWindow>				GetOwner(void) const;
