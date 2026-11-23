@@ -482,7 +482,10 @@ bool CIRW65C816Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 		}
 		return true;
 	case IRO_Slot:
-		Address(psInstruction, mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->iSlot);
+		if (!mpcBackend->mcFolds.IsDirectSlot(psInstruction->sResult))
+		{
+			Address(psInstruction, mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->iSlot);
+		}
 		return true;
 	case IRO_ArgAddress:
 		Address(psInstruction, *mpcBackend->maiParameters.Get((size)mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits));
@@ -909,6 +912,11 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 	switch (psInstruction->uiOpcode)
 	{
 	case IRO_Load:
+		if (mpcBackend->mcFolds.DirectSlot(sFirst, &iOffset))
+		{
+			Frame("lda", iOffset + 2 * iWord);
+			return;
+		}
 		PointerPlace(sFirst, &iPlace, &szSymbol, &iOffset);
 		sz.Init(CIRW65C816Backend::GetScratch());
 		if (szSymbol)
@@ -978,6 +986,11 @@ void CIRW65C816Selector::StoreMemory(SIRInstruction* psInstruction)
 	int		i;
 	CChars	sz;
 
+	if (mpcBackend->mcFolds.DirectSlot(psInstruction->asArguments[1], &iOffset))
+	{
+		DirectStore(psInstruction, iOffset);
+		return;
+	}
 	PointerPlace(psInstruction->asArguments[1], &iPlace, &szSymbol, &iOffset);
 	sz.Init(CIRW65C816Backend::GetScratch());
 	if (psInstruction->sType.Is(IRTK_I8))
@@ -1014,4 +1027,32 @@ void CIRW65C816Selector::StoreMemory(SIRInstruction* psInstruction)
 		mpcBackend->Line("rep m");
 	}
 	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A store into a direct slot (CIRW65C816Folds::DirectSlot) at D +
+// iOffset, a word at a time, a byte under sep m.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Selector::DirectStore(SIRInstruction* psInstruction, int32 iOffset)
+{
+	int		i;
+	bool	bByte;
+
+	bByte = psInstruction->sType.Is(IRTK_I8);
+	for (i = 0; i < mpcBackend->Words(psInstruction->sType); i++)
+	{
+		Operand("lda", psInstruction->asArguments[0], i);
+		if (bByte)
+		{
+			mpcBackend->Line("sep m");
+		}
+		Frame("sta", iOffset + 2 * i);
+		if (bByte)
+		{
+			mpcBackend->Line("rep m");
+		}
+	}
 }

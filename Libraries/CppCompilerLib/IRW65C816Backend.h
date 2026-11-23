@@ -139,6 +139,7 @@ struct SIRW65C816Temporary
 	uint8			uiZeroWords;	//A bit for each of its words that is always 0 (FindZeroWords).
 	bool			bLowByteOnly;	//An i8 whose every use reads its low byte alone (FindLowByteUses): not masked.
 	bool			bInX;			//Kept in X instead of its frame place (AllocateX).
+	bool			bDirectSlot;	//A kept slot only loaded and stored through (FindDirectSlots): addressed in place, never worked out.
 };
 
 
@@ -224,6 +225,7 @@ public:
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel, size uiStart);
+	void			KeepSlots(CIRW65C816Code* pcCode);
 	void			DropFrame(size uiStart);
 	bool			ReturnsNothingInA(void);
 	void			GrowTemporaries(void);

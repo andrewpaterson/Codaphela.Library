@@ -146,6 +146,8 @@ public:
 
 	CIRConstants		mcConstants;		//In the order added: a constant's index is its reference's.
 
+	CArrayIRReferences	masKept;			//The kept slots (Slot's bKept) and the addresses in them: their loads and stores are volatile.
+
 	CArrayIRBlocks		mapcBlocks;
 	CMapIRBlocks*		mpmBlockNames;
 	uint32*				mpuiSource;		//The module's source for instructions added now (CIRModule::muiSource).
@@ -196,7 +198,9 @@ public:
 	SIRReference	Add(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType, SIRReference sArgument0, const char* szName = NULL);
 	SIRReference	Load(CIRBlock* pcBlock, SIRType sType, SIRReference sAddress, bool bVolatile = false, const char* szName = NULL);
 	void			Store(CIRBlock* pcBlock, SIRType sType, SIRReference sValue, SIRReference sAddress, bool bVolatile = false);
-	SIRReference	Slot(CIRBlock* pcBlock, SIRType sPointerType, uint32 uiSize, uint32 uiAlign, const char* szName = NULL);
+	SIRReference	Slot(CIRBlock* pcBlock, SIRType sPointerType, uint32 uiSize, uint32 uiAlign, const char* szName = NULL, bool bKept = false);
+	bool			IsKept(SIRReference sAddress);
+	void			PlainKeptAccesses(void);
 	void			Argument(CIRBlock* pcBlock, SIRType sType, SIRReference sValue);
 	SIRReference	Call(CIRBlock* pcBlock, SIRType sType, SIRReference sCallee, int iNamed = -1, bool bThisCall = false, const char* szName = NULL);
 	SIRInstruction*	AddCall(CIRBlock* pcBlock, SIRType sType, SIRReference sResult, SIRReference sCallee, int iNamed, bool bThisCall = false);

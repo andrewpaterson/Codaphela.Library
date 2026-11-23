@@ -132,6 +132,21 @@ struct SCPP65IRPendingGoto
 
 
 //A function written as IR, waiting for FinishUnit: its label and the code Body generated.
+//A variable a debugger is told of (code for one, CCPPCompileOptions::mbDebuggable): the kept slot it is in, at iOffset
+//(a member of an anonymous union), or that holds its address (bIndirect: an object passed by address, or in the bytes
+//its caller pushed).  pcVariable NULL is this, sSlot IRNone a variable that has no place a debugger can read.
+struct SCPP65IRDebugVariable
+{
+	CCPPVariable*	pcVariable;
+	SIRReference	sSlot;
+	int32			iOffset;
+	bool			bIndirect;
+};
+
+
+typedef CArrayTemplate<SCPP65IRDebugVariable>	CArrayCPP65IRDebugVariables;
+
+
 struct SCPP65IRWritten
 {
 	CIRFunction*	pcFunction;		//NULL once it failed after inlining.
@@ -207,6 +222,7 @@ protected:
 	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its CCPPVariable.
 	CMapCPP65IRValues		mcImplicitValues;	//The values of the implicit arguments of the calls being written (CCPPUnit::ImplicitValue).
 	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
+	CArrayCPP65IRDebugVariables	masDebugVariables;	//The function's variables a debugger is told of (Debuggable), in their order.
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
@@ -310,6 +326,7 @@ protected:
 	SIRReference	Offset(int iBytes);
 	SIRReference	AddressAt(SIRReference sAddress, int iOffset);
 	bool			Parameters(void);
+	bool			DebugParameter(CCPPVariable* pcVariable, SIRReference sAddress, bool bByAddress);
 	void			ClosureThis(void);
 	bool			LambdaObject(SCPP65IRPlace* psPlace, CCPPSyntaxLambdaExpression* pcSyntax);
 	bool			ReturnAddressOf(CCPPFunction* pcFunction);
@@ -318,6 +335,9 @@ protected:
 	int				PieceCount(int iBytes);
 	int				PieceBytes(int iLeft);
 	bool			Locals(void);
+	bool			Debuggable(void);
+	SIRReference	KeptSlot(uint32 uiSize, uint32 uiAlign);
+	void			AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect);
 	void			Finish(void);
 	bool			Statement(CCPPSyntax* pcStatement);
 	bool			StatementOf(CCPPSyntax* pcStatement);

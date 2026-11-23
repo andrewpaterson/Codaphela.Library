@@ -38,6 +38,18 @@
 static CCPPCompileOptions	gcTestCPP816Options = *GetDefaultCPPCompileOptions();
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// The options the helpers build with, for another file's tests to set
+// (and set back).
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPCompileOptions* TestCPP816Options(void)
+{
+	return &gcTestCPP816Options;
+}
+
+
 //The native results TestCPP65Generator.cpp's FloatHelper and Quaternion tests check against.
 extern CArrayInt	gaiFloatHelperResults;
 extern CArrayInt	gaiQuaternionResults;

@@ -67,10 +67,14 @@ public:
 									//Microsoft compiler accepts it; off, it is the error C++14 has it be ([expr.type.conv] 1).
 	bool		mbCConversions;			//The sources are C: a void* becomes any object's pointer and a number an enum's value with no
 									//cast, an enum is incremented and a pointer compared with 0 by < and > (C11 6.3.2.3, 6.5.16.1).
+	bool		mbDebuggable;			//The code is for a debugger (DebuggerPlan.txt A2): each named variable, parameters too, has a
+									//frame slot of its own that always holds its value, nothing is inlined and every frame keeps its
+									//shape.  With mbOptimise the rest is optimised (a Debug build); without, nothing is.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);
 	bool		PrefersSize(void) const;
+	bool		Inlines(void) const;
 };
 
 

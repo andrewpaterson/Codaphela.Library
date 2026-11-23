@@ -103,7 +103,7 @@ SIROpcode	gasIROpcodes[IRO_NumGeneric] =
 	IR_CONVERSION("fext", IRTM_Float, IRTM_Float),
 	IR_CONVERSION("ftrunc", IRTM_Float, IRTM_Float),
 
-	IR_OPCODE("slot", IRSH_Operands, IRTM_Pointer, 0, IROK_Constant, IROK_Constant, IRRS_Same, 0, IR_PURE),
+	IR_OPCODE("slot", IRSH_Operands, IRTM_Pointer, 0, IROK_Constant, IROK_Constant, IRRS_Same, IRF_Volatile, IR_PURE),
 	IR_OPCODE("argaddr", IRSH_Operands, IRTM_Pointer, 0, IROK_Constant, IROK_None, IRRS_Same, 0, IR_PURE),
 	IR_OPCODE("ptradd", IRSH_Operands, IRTM_Pointer, 0, IROK_Same, IROK_Offset, IRRS_Same, IRF_InBank | IRF_InArray, IR_PURE),
 	IR_CONVERSION("ptrtoi", IRTM_Integer, IRTM_Pointer),

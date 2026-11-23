@@ -30,6 +30,7 @@ void CIRW65C816Code::Init(void)
 {
 	masLines.Init(CIRW65C816Backend::GetScratch());
 	maiOrder.Init(CIRW65C816Backend::GetScratch());
+	memset(mabKept, 0, sizeof(mabKept));
 }
 
 
@@ -421,5 +422,64 @@ void CIRW65C816Code::Decode(SIRW65C816CodeLine* psCode)
 	else
 	{
 		psCode->uiKind = IR816CL_OTHER;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iBytes from [D + iOffset] are a variable a debugger reads (code for
+// one, CCPPCompileOptions::mbDebuggable): no pass takes a store to them out,
+// as if the function's end read them.  Past the direct page nothing is
+// taken out anyway.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::SetKept(int32 iOffset, int32 iBytes)
+{
+	int32	i;
+
+	for (i = iOffset; (i < iOffset + iBytes) && (i < IR816_DIRECT_PAGE); i++)
+	{
+		if (i >= 0)
+		{
+			mabKept[i] = 1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether any of iBytes from [D + iOffset] is kept (SetKept).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsKept(int32 iOffset, int32 iBytes)
+{
+	int32	i;
+
+	for (i = iOffset; (i < iOffset + iBytes) && (i < IR816_DIRECT_PAGE); i++)
+	{
+		if ((i >= 0) && mabKept[i])
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The kept bytes marked read in abRead (a byte for each of the direct
+// page's, IR816FindReads).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::MarkKept(uint8* abRead)
+{
+	int32	i;
+
+	for (i = 0; i < IR816_DIRECT_PAGE; i++)
+	{
+		abRead[i] |= mabKept[i];
 	}
 }

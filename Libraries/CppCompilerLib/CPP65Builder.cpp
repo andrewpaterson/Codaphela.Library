@@ -98,6 +98,8 @@ void CCPP65Builder::Init(void)
 	mbUnitReports = false;
 	mcStatistics.Init();
 	mcOptions.Init();
+	mcUnoptimisedOptions.Init();
+	maszUnoptimised.Init();
 	masUnitReports.Init();
 }
 
@@ -148,6 +150,7 @@ void CCPP65Builder::Kill(void)
 		macIncludeDirectories.Get(i)->szDirectory.Kill();
 	}
 	macIncludeDirectories.Kill();
+	maszUnoptimised.Kill();
 }
 
 
@@ -744,6 +747,42 @@ CCPPCompileOptions* CCPP65Builder::GetOptions(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The units of szLibrary (a project) are compiled without the optimiser,
+// for a debugger (CCPPCompileOptions::mbDebuggable): every line steps as
+// it is written.  The rest are compiled with GetOptions.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetUnoptimised(const char* szLibrary)
+{
+	maszUnoptimised.AddIfUnique(szLibrary);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The options psUnit is compiled with: GetOptions, unless its library is
+// one SetUnoptimised named.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPCompileOptions* CCPP65Builder::UnitOptions(SCPP65CompiledUnit* psUnit)
+{
+	CLibrary*	pcLibrary;
+	size		ui;
+
+	pcLibrary = psUnit->pcFile->GetLibrary();
+	for (ui = 0; pcLibrary && (ui < maszUnoptimised.NumElements()); ui++)
+	{
+		if (pcLibrary->IsNamed(maszUnoptimised.GetText(ui)))
+		{
+			return &mcUnoptimisedOptions;
+		}
+	}
+	return &mcOptions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The units reported since the last time, in the order they finished,
 // added to pasDest (KillUnitReports frees them).  Safe while Compile runs
 // on another thread.
@@ -1191,6 +1230,11 @@ bool CCPP65Builder::Compile(void)
 		return mszErrors.Empty();
 	}
 	mbCompiled = true;
+
+	//The options of the units SetUnoptimised names, set once before the units' threads read them.
+	mcUnoptimisedOptions = mcOptions;
+	mcUnoptimisedOptions.mbOptimise = false;
+	mcUnoptimisedOptions.mbDebuggable = true;
 	bResult = CompileUnits();
 	return bResult && mszErrors.Empty();
 }
@@ -2357,7 +2401,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cAssembly.Init(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	psCompile->cGenerator.Init(&psCompile->cTree, mpcTarget->GetTarget());
 	psCompile->cGenerator.SetStatistics(&psUnit->cStatistics);
-	psCompile->cGenerator.SetOptions(&mcOptions);
+	psCompile->cGenerator.SetOptions(UnitOptions(psUnit));
 	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
 	if (mpcTarget->InlinesAcrossUnits())
 	{

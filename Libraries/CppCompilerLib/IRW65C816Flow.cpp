@@ -1084,7 +1084,8 @@ bool CIRW65C816Backend::RemoveFlowDeadStores(CIRW65C816Code* pcCode)
 		{
 			psLine = asLines.Get(uj - 1);
 			if ((psLine->iKind == IR816FL_INSTRUCTION) && psLine->sLine.bDirect && (psLine->sLine.uiFlags & IR816MF_STORE) &&
-				(psLine->sLine.iOffset + 2 <= iReached) && !IR816AnyLive(&sLive, psLine->sLine.iOffset, (psLine->iBytes == 1) ? 1 : 2))
+				(psLine->sLine.iOffset + 2 <= iReached) && !IR816AnyLive(&sLive, psLine->sLine.iOffset, (psLine->iBytes == 1) ? 1 : 2) &&
+				!pcCode->IsKept(psLine->sLine.iOffset, (psLine->iBytes == 1) ? 1 : 2))
 			{
 				*abRemove.Get(uj - 1) = true;
 				bRemoved = true;

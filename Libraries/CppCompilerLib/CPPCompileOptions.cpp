@@ -45,6 +45,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	false,						//mbKeepUnusedObjects: what nothing uses is dropped (the user, 2026-11-18: "I suspect it's usually fine").
 	false,						//mbMultiWordCasts (the user, 2026-11-20: "Refuse it by default, build switch").
 	false,						//mbCConversions (the user, 2026-11-20: "Build option", not the file's name).
+	false,						//mbDebuggable: a Debug build sets it (the user, 2026-11-23: "Middle + per-project -O0").
 };
 
 
@@ -92,5 +93,17 @@ void CCPPCompileOptions::SetAssemblyUnits(bool bAssemblyUnits)
 bool CCPPCompileOptions::PrefersSize(void) const
 {
 	return mePrefer == CPPP_Size;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether functions are inlined across the unit and the project: not in
+// code for a debugger, whose every function is a frame of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPCompileOptions::Inlines(void) const
+{
+	return mbInline && !mbDebuggable;
 }
 

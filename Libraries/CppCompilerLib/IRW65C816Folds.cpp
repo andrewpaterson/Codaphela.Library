@@ -152,6 +152,7 @@ void CIRW65C816Folds::FoldPointers(void)
 	}
 	aiUses.Kill();
 	aiAddressUses.Kill();
+	FindDirectSlots();
 }
 
 
@@ -362,3 +363,131 @@ SIRReference CIRW65C816Folds::FoldedBase(SIRReference sValue)
 	return sValue;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The kept slots (IRF_Volatile on the slot: a variable a debugger reads)
+// whose every use is a load's or store's address, the slot's or a folded
+// ptradd's of it with no index: each is addressed in place by its loads
+// and stores (DirectSlot) and its address is never worked out, so it has
+// no place of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Folds::FindDirectSlots(void)
+{
+	size				uiBlock;
+	size				uiInstruction;
+	size				uiPhi;
+	size				uiArgument;
+	int					iArgument;
+	CIRBlock*			pcBlock;
+	SIRInstruction*		psInstruction;
+	SIRReference		sUse;
+	SIRReference		sBase;
+	SIRW65C816Temporary*	psBase;
+	bool				bAddress;
+
+	for (uiBlock = 0; uiBlock < mpcBackend->mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcBackend->mpcFunction->GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile) && psInstruction->sResult.IsTemporary())
+			{
+				mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->bDirectSlot = true;
+			}
+		}
+	}
+
+	//A use other than as a load's or store's address (with no index), or by a ptradd folded onto it, takes it away.
+	for (uiBlock = 0; uiBlock < mpcBackend->mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcBackend->mpcFunction->GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			for (iArgument = 0; iArgument < IR_INSTRUCTION_ARGUMENTS; iArgument++)
+			{
+				sUse = psInstruction->asArguments[iArgument];
+				sBase = FoldedBase(sUse);
+				if (!sBase.IsTemporary() || !mpcBackend->masTemporaries.Get(sBase.Index())->bDirectSlot)
+				{
+					continue;
+				}
+				bAddress = ((psInstruction->uiOpcode == IRO_Load) && (iArgument == 0)) || ((psInstruction->uiOpcode == IRO_Store) && (iArgument == 1));
+				bAddress = (bAddress && FoldedIndex(sUse).IsNone()) || ((iArgument == 0) && IsFolded(psInstruction));
+				if (!bAddress)
+				{
+					mpcBackend->masTemporaries.Get(sBase.Index())->bDirectSlot = false;
+				}
+			}
+		}
+		for (uiPhi = 0; uiPhi < pcBlock->masPhis.NumElements(); uiPhi++)
+		{
+			for (uiArgument = 0; uiArgument < pcBlock->masPhis.Get(uiPhi)->asArguments.NumElements(); uiArgument++)
+			{
+				sBase = FoldedBase(pcBlock->masPhis.Get(uiPhi)->asArguments.Get(uiArgument)->sValue);
+				if (sBase.IsTemporary())
+				{
+					mpcBackend->masTemporaries.Get(sBase.Index())->bDirectSlot = false;
+				}
+			}
+		}
+		sBase = FoldedBase(pcBlock->msJump.sArgument);
+		if (sBase.IsTemporary())
+		{
+			psBase = mpcBackend->masTemporaries.Get(sBase.Index());
+			psBase->bDirectSlot = false;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sValue is a direct slot (FindDirectSlots).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Folds::IsDirectSlot(SIRReference sValue)
+{
+	return sValue.IsTemporary() && mpcBackend->masTemporaries.Get(sValue.Index())->bDirectSlot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a load or store through sPointer is in a direct slot: *piOffset
+// is then where in the frame (D + offset), the slot's place plus what was
+// folded onto it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Folds::DirectSlot(SIRReference sPointer, int32* piOffset)
+{
+	SIRReference	sBase;
+
+	sBase = FoldedBase(sPointer);
+	if (!IsDirectSlot(sBase))
+	{
+		return false;
+	}
+	*piOffset = mpcBackend->masTemporaries.Get(sBase.Index())->iSlot;
+	if (!sBase.Equals(sPointer))
+	{
+		*piOffset += mpcBackend->masTemporaries.Get(sPointer.Index())->iFoldOffset;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a use of sValue needs worked out: its folded base, unless that is a
+// direct slot, which nothing is (IRNone).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CIRW65C816Folds::Materialised(SIRReference sValue)
+{
+	sValue = FoldedBase(sValue);
+	return IsDirectSlot(sValue) ? IRNone() : sValue;
+}

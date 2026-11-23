@@ -5,6 +5,10 @@
 #include "TestCPP65Context.h"
 
 
+int32				TestCPP816Run(const char* szSource, bool bLockstep);	//TestCPPW65C816.cpp
+CCPPCompileOptions*	TestCPP816Options(void);
+
+
 //A program built for the W65C816 with its debug info (CCPP65Builder::SetLineTable), and how it was compiled.
 struct STestCPP816Debug
 {
@@ -136,7 +140,6 @@ static bool TestCPP816DebugFind(STestCPP816Debug* psDebug, const char* szName)
 void TestCPP816DebugFrames(void)
 {
 	STestCPP816Debug		sDebug;
-	SAsm65DebugFunction*	psFunction;
 
 	TestCPP816DebugBuild(&sDebug,
 		"namespace NS\n"
@@ -195,6 +198,83 @@ void TestCPP816DebugFrames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Programs whose variables are what a debugger shows (parameters by
+// value, changed and not; objects by value, by address and through this;
+// an anonymous union; locals stored and never read; recursion and loops)
+// give the same results built for a debugger, optimised (Debug) and not,
+// as built for speed (Release).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DebugModes(void)
+{
+	static const char*	szSource =
+		"struct SPoint { int x; int y; };\n"
+		"struct SBig { long al[8]; int i; };\n"
+		"class CCounter\n"
+		"{\n"
+		"public:\n"
+		"	int	miCount;\n"
+		"	CCounter() { miCount = 0; }\n"
+		"	int Add(int i) { int iOld = miCount; miCount += i; return iOld; }\n"
+		"};\n"
+		"int Distance(SPoint s, int iScale)\n"
+		"{\n"
+		"	iScale = iScale * 2;\n"
+		"	return (s.x + s.y) * iScale;\n"
+		"}\n"
+		"long Total(SBig s)\n"
+		"{\n"
+		"	long l = 0;\n"
+		"	int i;\n"
+		"	for (i = 0; i < 8; i++) { l += s.al[i]; }\n"
+		"	return l + s.i;\n"
+		"}\n"
+		"int Fibonacci(int i) { return (i < 2) ? i : Fibonacci(i - 1) + Fibonacci(i - 2); }\n"
+		"int Unread(int i)\n"
+		"{\n"
+		"	int iSquare = i * i;\n"
+		"	int iCube = iSquare * i;\n"
+		"	return i + 1;\n"
+		"}\n"
+		"int Union(int i)\n"
+		"{\n"
+		"	union { int iWord; char ac[2]; };\n"
+		"	iWord = i;\n"
+		"	return ac[0] + ac[1];\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"	SPoint s;\n"
+		"	SBig sBig;\n"
+		"	CCounter cCounter;\n"
+		"	int i;\n"
+		"	s.x = 2; s.y = 3;\n"
+		"	for (i = 0; i < 8; i++) { sBig.al[i] = 1000L * i; }\n"
+		"	sBig.i = 5;\n"
+		"	cCounter.Add(4);\n"
+		"	cCounter.Add(6);\n"
+		"	if (Distance(s, 3) != 30) return 1;\n"
+		"	if (Total(sBig) != 28005L) return 2;\n"
+		"	if (Fibonacci(10) != 55) return 3;\n"
+		"	if (Unread(7) != 8) return 4;\n"
+		"	if (Union(0x0102) != 3) return 5;\n"
+		"	if (cCounter.miCount != 10) return 6;\n"
+		"	return 100;\n"
+		"}\n";
+	CCPPCompileOptions	cWas;
+
+	cWas = *TestCPP816Options();
+	AssertInt(100, TestCPP816Run(szSource, false));
+	TestCPP816Options()->mbDebuggable = true;
+	AssertInt(100, TestCPP816Run(szSource, false));
+	TestCPP816Options()->mbOptimise = false;
+	AssertInt(100, TestCPP816Run(szSource, false));
+	*TestCPP816Options() = cWas;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Debug(void)
@@ -202,6 +282,7 @@ void TestCPP816Debug(void)
 	BeginTests();
 
 	TestCPP816DebugFrames();
+	TestCPP816DebugModes();
 
 	TestStatistics();
 }

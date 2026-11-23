@@ -95,6 +95,7 @@ public:
 	void			Load(SIRInstruction* psInstruction);
 	void			WordInA(SIRInstruction* psInstruction, int iWord);
 	void			StoreMemory(SIRInstruction* psInstruction);
+	void			DirectStore(SIRInstruction* psInstruction, int32 iOffset);
 	bool			OnlyCounts(SIRReference sValue);
 	int32			SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset);
 	void			FloatArithmetic(SIRInstruction* psInstruction);

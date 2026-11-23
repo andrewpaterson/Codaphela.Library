@@ -127,7 +127,7 @@ enum EIRShape
 
 
 //Instruction flags.  Variadic is written as ... in a call, the others as words after the opcode.
-#define IRF_Volatile	0x01		//load, store
+#define IRF_Volatile	0x01		//load, store; slot: a variable a debugger reads, its loads and stores volatile (CIRFunction::Slot)
 #define IRF_InBank		0x02		//ptradd: the result is in the pointer's 64KB bank
 #define IRF_ThisCall	0x04		//call: the first argument is a member function's this (in X on the 65C64)
 #define IRF_Variadic	0x08		//call: uiNamed is the number of named arguments

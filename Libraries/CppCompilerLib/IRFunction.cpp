@@ -55,6 +55,7 @@ void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes
 
 	mcConstants.Init();
 
+	masKept.Init();
 	mapcBlocks.Init();
 	mpmBlockNames = NULL;
 }
@@ -76,6 +77,7 @@ void CIRFunction::Kill(void)
 	}
 	SafeKill(mpmBlockNames);
 	mapcBlocks.Kill();
+	masKept.Kill();
 
 	mcConstants.Kill();
 
@@ -147,6 +149,10 @@ void CIRFunction::CopyBody(CIRFunction* pcSource)
 		masParameters.Add(pcSource->masParameters.Get(ui));
 	}
 	muiRestrictParameters = pcSource->muiRestrictParameters;
+	for (ui = 0; ui < pcSource->masKept.NumElements(); ui++)
+	{
+		masKept.Add(pcSource->masKept.Get(ui));
+	}
 	for (ui = 0; ui < pcSource->mcConstants.NumElements(); ui++)
 	{
 		psConstant = pcSource->mcConstants.GetKey(ui);
@@ -667,6 +673,10 @@ SIRReference CIRFunction::Add(CIRBlock* pcBlock, uint16 uiOpcode, SIRType sType,
 	psOpcode = GetIROpcode(uiOpcode);
 	sResult = AddTemporary((psOpcode && (psOpcode->uiResult == IRRS_I1)) ? IRType(IRTK_I1) : sType, szName);
 	pcBlock->AddInstruction(uiOpcode, sType, sResult, sArgument0, sArgument1);
+	if ((uiOpcode == IRO_PtrAdd) && IsKept(sArgument0))
+	{
+		masKept.Add(&sResult);
+	}
 	return sResult;
 }
 
@@ -694,7 +704,7 @@ SIRReference CIRFunction::Load(CIRBlock* pcBlock, SIRType sType, SIRReference sA
 	psInstruction = pcBlock->AddInstruction(IRO_Load, sType, sResult, sAddress, IRNone());
 	if (psInstruction)
 	{
-		psInstruction->uiFlags = bVolatile ? IRF_Volatile : 0;
+		psInstruction->uiFlags = (bVolatile || IsKept(sAddress)) ? IRF_Volatile : 0;
 	}
 	return sResult;
 }
@@ -711,7 +721,7 @@ void CIRFunction::Store(CIRBlock* pcBlock, SIRType sType, SIRReference sValue, S
 	psInstruction = pcBlock->AddInstruction(IRO_Store, sType, IRNone(), sValue, sAddress);
 	if (psInstruction)
 	{
-		psInstruction->uiFlags = bVolatile ? IRF_Volatile : 0;
+		psInstruction->uiFlags = (bVolatile || IsKept(sAddress)) ? IRF_Volatile : 0;
 	}
 }
 
@@ -720,9 +730,108 @@ void CIRFunction::Store(CIRBlock* pcBlock, SIRType sType, SIRReference sValue, S
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CIRFunction::Slot(CIRBlock* pcBlock, SIRType sPointerType, uint32 uiSize, uint32 uiAlign, const char* szName)
+SIRReference CIRFunction::Slot(CIRBlock* pcBlock, SIRType sPointerType, uint32 uiSize, uint32 uiAlign, const char* szName, bool bKept)
 {
-	return Add(pcBlock, IRO_Slot, sPointerType, AddInteger(IRType(IRTK_I32), uiSize), AddInteger(IRType(IRTK_I32), uiAlign), szName);
+	SIRReference	sResult;
+
+	sResult = Add(pcBlock, IRO_Slot, sPointerType, AddInteger(IRType(IRTK_I32), uiSize), AddInteger(IRType(IRTK_I32), uiAlign), szName);
+	if (bKept)
+	{
+		//A variable a debugger reads: what is stored in it is always there (volatile loads and stores, which no pass
+		//takes out or moves), and the slot itself is never promoted, split or shared.
+		pcBlock->masInstructions.Tail()->uiFlags |= IRF_Volatile;
+		masKept.Add(&sResult);
+	}
+	return sResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The kept slots' loads and stores, volatile while the function is
+// optimised (so no pass takes one out or moves it), made plain for the
+// back end: it addresses them as any slot's, and keeps their stores
+// itself (the slots are still marked, IRF_Volatile on the slot).  An
+// access is a kept slot's when its address is the slot or a ptradd of it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::PlainKeptAccesses(void)
+{
+	CArrayTemplatePtr<SIRInstruction>	apsDefinitions;
+	size								uiBlock;
+	size								uiInstruction;
+	CIRBlock*							pcBlock;
+	SIRInstruction*						psInstruction;
+	SIRInstruction*						psDefinition;
+	SIRReference						sAddress;
+
+	if (masKept.NumElements() == 0)
+	{
+		return;
+	}
+	apsDefinitions.Init();
+	apsDefinitions.GrowToAtLeastNumElements(NumTemporaries(), true, NULL);
+	for (uiBlock = 0; uiBlock < NumBlocks(); uiBlock++)
+	{
+		pcBlock = GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if (psInstruction->sResult.IsTemporary())
+			{
+				apsDefinitions.SetPtr(psInstruction->sResult.Index(), psInstruction);
+			}
+		}
+	}
+	for (uiBlock = 0; uiBlock < NumBlocks(); uiBlock++)
+	{
+		pcBlock = GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode != IRO_Load) && (psInstruction->uiOpcode != IRO_Store))
+			{
+				continue;
+			}
+			sAddress = psInstruction->asArguments[(psInstruction->uiOpcode == IRO_Load) ? 0 : 1];
+			psDefinition = NULL;
+			while (sAddress.IsTemporary())
+			{
+				psDefinition = apsDefinitions.GetPtr(sAddress.Index());
+				if (!psDefinition || (psDefinition->uiOpcode != IRO_PtrAdd))
+				{
+					break;
+				}
+				sAddress = psDefinition->asArguments[0];
+			}
+			if (psDefinition && (psDefinition->uiOpcode == IRO_Slot) && (psDefinition->uiFlags & IRF_Volatile))
+			{
+				psInstruction->uiFlags &= ~IRF_Volatile;
+			}
+		}
+	}
+	apsDefinitions.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether sAddress is in a kept slot (Slot's bKept): the slot, or an
+// address added to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRFunction::IsKept(SIRReference sAddress)
+{
+	size	ui;
+
+	for (ui = 0; ui < masKept.NumElements(); ui++)
+	{
+		if (masKept.Get(ui)->Equals(sAddress))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 

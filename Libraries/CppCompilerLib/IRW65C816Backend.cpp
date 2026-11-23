@@ -434,7 +434,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	CChars	szJump;
 
 	szJump.Init(CIRW65C816Backend::GetScratch());
-	if (Forwarder(&szJump))
+	if (!mpcOptions->mbDebuggable && Forwarder(&szJump))
 	{
 		GenerateForwarder(szLabel, &szJump);
 		szJump.Kill();
@@ -456,7 +456,10 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 		return false;
 	}
 	GenerateBody(szLabel, uiStart);
-	DropFrame(uiStart);
+	if (!mpcOptions->mbDebuggable)
+	{
+		DropFrame(uiStart);
+	}
 	if (mpcOptions->mbExceptions)
 	{
 		IR816ClearExitCarries(pszDest, uiStart);
@@ -561,7 +564,10 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	}
 	cMarkers.Init();
 	cMarkers.Take(pszCode, 0);
-	AlignFrame(pszCode, szLabel, &sFrame, bRecursive, pcProfile);
+	if (!mpcOptions->mbDebuggable)
+	{
+		AlignFrame(pszCode, szLabel, &sFrame, bRecursive, pcProfile);
+	}
 	IR816TidyExits(pszCode, sFrame.bNoResult);
 	if (mpcOptions->mbExceptions)
 	{
@@ -715,6 +721,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	mpcModule->Begin(CPPCP_CodePasses);
 	cCode.Init();
 	cCode.Load(mpszOut, uiStart);
+	KeepSlots(&cCode);
 	Peephole(&cCode);
 	PeepholeMasks(&cCode);
 	PeepholeStores(&cCode);
@@ -737,6 +744,34 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	cCode.Write(mpszOut, uiStart);
 	cCode.Kill();
 	mpcModule->End(CPPCP_CodePasses);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The kept slots' bytes (CIRFunction::Slot's bKept, variables a debugger
+// reads) told to the passes over the code, which then leave their stores.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::KeepSlots(CIRW65C816Code* pcCode)
+{
+	size			uiBlock;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile))
+			{
+				pcCode->SetKept(masTemporaries.Get(psInstruction->sResult.Index())->iSlot, (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
+			}
+		}
+	}
 }
 
 
@@ -1020,6 +1055,7 @@ void CIRW65C816Backend::GrowTemporaries(void)
 	sNew.uiZeroWords = 0;
 	sNew.bLowByteOnly = false;
 	sNew.bInX = false;
+	sNew.bDirectSlot = false;
 	while (masTemporaries.NumElements() < mpcFunction->NumTemporaries() + 1)
 	{
 		masTemporaries.Add(&sNew);

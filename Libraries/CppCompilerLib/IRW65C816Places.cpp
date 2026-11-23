@@ -1173,20 +1173,20 @@ void CIRW65C816Places::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, 
 			if (pcBlock->masInstructions.Get(uk)->uiOpcode == IRO_Call)
 			{
 				iCallPosition = iPosition + (int32)(uk - uiInstruction);
-				pcRanges->AddPair(pcBlock->masInstructions.Get(uk)->sResult, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), iCallPosition, iWeight);
+				pcRanges->AddPair(pcBlock->masInstructions.Get(uk)->sResult, mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]), iCallPosition, iWeight);
 				break;
 			}
 		}
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), iCallPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]), iCallPosition, IR816_EVENT_USE);
 	}
 	else
 	{
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
-		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
+		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.Materialised(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
 		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[0]), iPosition, IR816_EVENT_USE);
 		IR816AddEvent(&psEvents->asEvents, mpcBackend->mcFolds.FoldedIndex(psInstruction->asArguments[1]), iPosition, IR816_EVENT_USE);
 	}
-	if (!psInstruction->sResult.IsTemporary() || !mpcBackend->mcFolds.FoldedBase(psInstruction->sResult).Equals(psInstruction->sResult))
+	if (!psInstruction->sResult.IsTemporary() || !mpcBackend->mcFolds.Materialised(psInstruction->sResult).Equals(psInstruction->sResult))
 	{
 		return;
 	}
@@ -1198,7 +1198,7 @@ void CIRW65C816Places::AddInstructionPackEvents(CIRW65C816LiveRanges* pcRanges, 
 			pcRanges->AddPair(psInstruction->sResult, psInstruction->asArguments[iArgument], iPosition, iWeight);
 		}
 	}
-	if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]).IsTemporary())
+	if ((psInstruction->uiOpcode == IRO_Load) && !(psInstruction->uiFlags & IRF_Volatile) && mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]).IsTemporary())
 	{
 		//Its pointer's place: Load reads the words that overlap the pointer last (only worth keeping a word on
 		//the stack for when a phi joins them, p = p->psNext, so they're paired after the phis).

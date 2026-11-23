@@ -77,7 +77,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 		cInliner.SetProfile(this, sLimits.uiHotInstructions);
 	}
 	cInterprocedural.Init(&mcModule, this);
-	if (mpcUnit->GetOptions()->mbInline && mpcUnit->GetOptions()->mbOptimise)
+	if (mpcUnit->GetOptions()->Inlines() && mpcUnit->GetOptions()->mbOptimise)
 	{
 		cInterprocedural.SpecialiseConstantArguments();
 		cInterprocedural.RemoveDeadArguments();
@@ -88,7 +88,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 			cInterprocedural.MarkNoThrow();
 		}
 	}
-	for (ui = masWritten.NumElements(); mpcUnit->GetOptions()->mbInline && (ui > 0); ui--)
+	for (ui = masWritten.NumElements(); mpcUnit->GetOptions()->Inlines() && (ui > 0); ui--)
 	{
 		psWritten = masWritten.Get(ui - 1);
 		if (!psWritten->pcFunction)

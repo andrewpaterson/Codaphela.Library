@@ -455,6 +455,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mcAddresses.Init();
 	mcImplicitValues.Init();
 	mcAnonymousAddresses.Init();
+	masDebugVariables.Init();
 	mpcBaseObject = NULL;
 	msVTT = IRNone();
 	msVTTArgument = IRNone();
@@ -592,6 +593,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 	if (bResult)
 	{
 		szCode.Init();
+		mpcFunction->PlainKeptAccesses();
 		mcModule.Begin(CPPCP_BackEnd);
 		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &pcWritten);
 		mcModule.End(CPPCP_BackEnd);
@@ -653,6 +655,7 @@ void CCPP65IRFrontEnd::EndWriting(void)
 	mcAddresses.Kill();
 	mcImplicitValues.Kill();
 	mcAnonymousAddresses.Kill();
+	masDebugVariables.Kill();
 	mpcFunction = NULL;
 	mpcBlock = NULL;
 	mpcCPPFunction = NULL;
@@ -1325,10 +1328,17 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		{
 			//The caller's copy, which the caller destroys.
 			mcAddresses.Put((int64)(size)pcVariable, asByAddress.Get(uiParameter));
+			DebugParameter(pcVariable, *asByAddress.Get(uiParameter), true);
 			continue;
 		}
 		sAddress = mpcFunction->Add(mpcBlock, IRO_ArgAddress, IRType(IRTK_Pointer), mpcFunction->AddInteger(IRType(IRTK_I32), *aiFirst.Get(uiParameter)));
 		mcAddresses.Put((int64)(size)pcVariable, &sAddress);
+		if (!DebugParameter(pcVariable, sAddress, pcVariable->mpsType->IsClass()))
+		{
+			aiFirst.Kill();
+			asByAddress.Kill();
+			return Unsupported(__FILE__, __LINE__);
+		}
 		if (pcVariable->mpsType->IsClass())
 		{
 			sPlace.sAddress = sAddress;
@@ -1339,6 +1349,49 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	aiFirst.Kill();
 	asByAddress.Kill();
 	ClosureThis();
+	if (Debuggable() && !msThis.IsNone())
+	{
+		AddDebugVariable(NULL, KeptSlot(4, 4), 0, false);
+		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), msThis, masDebugVariables.Tail()->sSlot);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In code for a debugger (Debuggable), a parameter is a kept slot of its
+// own, its value copied in from where it was passed (sAddress, which the
+// code then forgets): the place it was passed in may be shared once it is
+// read.  An object, passed by address (bByAddress) or in the bytes its
+// caller pushed, stays where it is: the kept slot holds its address.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::DebugParameter(CCPPVariable* pcVariable, SIRReference sAddress, bool bByAddress)
+{
+	SIRReference	sSlot;
+	SIRType			sType;
+
+	if (!Debuggable())
+	{
+		return true;
+	}
+	if (bByAddress)
+	{
+		sSlot = KeptSlot(4, 4);
+		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sAddress, sSlot);
+		AddDebugVariable(pcVariable, sSlot, 0, true);
+		return true;
+	}
+	if (!IsSupportedType(pcVariable->mpsType))
+	{
+		return false;
+	}
+	sType = IRTypeOf(pcVariable->mpsType);
+	sSlot = KeptSlot((uint32)pcVariable->mpsType->iBytes, (pcVariable->mpsType->iBytes >= 4) ? 4 : (uint32)pcVariable->mpsType->iBytes);
+	mpcFunction->Store(mpcBlock, sType, mpcFunction->Load(mpcBlock, sType, sAddress), sSlot);
+	mcAddresses.Put((int64)(size)pcVariable, &sSlot);
+	AddDebugVariable(pcVariable, sSlot, 0, false);
 	return true;
 }
 
@@ -1699,10 +1752,11 @@ bool CCPP65IRFrontEnd::Locals(void)
 			psAnonymousAddress = mcAnonymousAddresses.Get((int64)(size)pcVariable->mpcAnonymous);
 			if (!psAnonymousAddress)
 			{
-				sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)pcVariable->mpcAnonymous->mpsType->iBytes, 4);
+				sAddress = KeptSlot((uint32)pcVariable->mpcAnonymous->mpsType->iBytes, 4);
 				mcAnonymousAddresses.Put((int64)(size)pcVariable->mpcAnonymous, &sAddress);
 				psAnonymousAddress = mcAnonymousAddresses.Get((int64)(size)pcVariable->mpcAnonymous);
 			}
+			AddDebugVariable(pcVariable, *psAnonymousAddress, pcVariable->miOffset, false);
 			sAddress = AddressAt(*psAnonymousAddress, pcVariable->miOffset);
 			mcAddresses.Put((int64)(size)pcVariable, &sAddress);
 			continue;
@@ -1714,7 +1768,9 @@ bool CCPP65IRFrontEnd::Locals(void)
 		{
 			//alignas asks more than a place in the frame is: a bigger slot, and the first place in it that is a multiple
 			//of the alignment.  [dcl.align] 1
-			sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)(pcVariable->mpsType->iBytes + iAlignas - iFrameAlign), (uint32)iAlign);
+			//Where in it is only known as the code runs: no place a debugger can read.
+			AddDebugVariable(pcVariable, IRNone(), 0, false);
+			sAddress = KeptSlot((uint32)(pcVariable->mpsType->iBytes + iAlignas - iFrameAlign), (uint32)iAlign);
 			sOffsetType = IRIntegerType(mcModule.GetPointerSize(0));
 			sPadding = mpcFunction->Add(mpcBlock, IRO_Neg, sOffsetType, mpcFunction->Add(mpcBlock, IRO_PtrToI, sOffsetType, sAddress));
 			sPadding = mpcFunction->Add(mpcBlock, IRO_And, sOffsetType, sPadding, mpcFunction->AddInteger(sOffsetType, iAlignas - 1));
@@ -1722,11 +1778,55 @@ bool CCPP65IRFrontEnd::Locals(void)
 		}
 		else
 		{
-			sAddress = mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), (uint32)pcVariable->mpsType->iBytes, (uint32)iAlign);
+			sAddress = KeptSlot((uint32)pcVariable->mpsType->iBytes, (uint32)iAlign);
+			AddDebugVariable(pcVariable, sAddress, 0, false);
 		}
 		mcAddresses.Put((int64)(size)pcVariable, &sAddress);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the code is for a debugger (CCPPCompileOptions::mbDebuggable).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65IRFrontEnd::Debuggable(void)
+{
+	return mpcUnit->GetOptions()->mbDebuggable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A local's slot, kept (CIRFunction::Slot) in code for a debugger.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::KeptSlot(uint32 uiSize, uint32 uiAlign)
+{
+	return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign, NULL, Debuggable());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A variable a debugger is told of, in code for one.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect)
+{
+	SCPP65IRDebugVariable*	psVariable;
+
+	if (!Debuggable())
+	{
+		return;
+	}
+	psVariable = masDebugVariables.Add();
+	psVariable->pcVariable = pcVariable;
+	psVariable->sSlot = sSlot;
+	psVariable->iOffset = iOffset;
+	psVariable->bIndirect = bIndirect;
 }
 
 

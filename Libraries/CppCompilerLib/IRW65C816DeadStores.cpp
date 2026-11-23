@@ -252,6 +252,7 @@ bool IR816FindReads(CIRW65C816Code* pcCode, size uiFrom, uint8* abRead)
 			abRead[iOffset + i] = 1;
 		}
 	}
+	pcCode->MarkKept(abRead);
 	return false;
 }
 
@@ -355,7 +356,7 @@ void CIRW65C816Backend::RemoveDeadStores(CIRW65C816Code* pcCode)
 			*abRemove.Get(ui) = 0;
 			if ((pcCode->GetText(ui)->Length() >= 3) && pcCode->Instruction(ui, &sLine))
 			{
-				if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && IR816DeadStore(pcCode, ui + 1, sLine.szOperand, sLine.uiOperand))
+				if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && !pcCode->IsKept(sLine.iOffset, 2) && IR816DeadStore(pcCode, ui + 1, sLine.szOperand, sLine.uiOperand))
 				{
 					*abRemove.Get(ui) = 1;
 					bRemoved = true;

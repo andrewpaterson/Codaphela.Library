@@ -229,6 +229,8 @@ protected:
 	CArrayChars						maszTested;				//The functions the compiled units call by name and test for an exception...
 	CArrayTemplate<CAsm65Object*>	mapcCompiled;			//...and the objects that were compiled from C++: a tested function must be in one (CheckTested).
 	CCPPCompileOptions				mcOptions;				//How the units are compiled where there is a choice (GetOptions).
+	CArrayChars						maszUnoptimised;		//The libraries (projects) whose units aren't optimised (SetUnoptimised)...
+	CCPPCompileOptions				mcUnoptimisedOptions;	//...as mcOptions without the optimiser, for a debugger.
 
 public:
 	void					Init(void);
@@ -244,6 +246,7 @@ public:
 	void					SetTimes(bool bTimes);
 	CCPPCompileStatistics*	GetStatistics(void);
 	CCPPCompileOptions*		GetOptions(void);
+	void					SetUnoptimised(const char* szLibrary);
 	void					TakeUnitReports(CArrayCPP65UnitReports* pasDest);
 	static void				KillUnitReports(CArrayCPP65UnitReports* pasReports);
 	size					NumLazySkipped(void) const;
@@ -323,6 +326,7 @@ protected:
 	void					ContinueGenerating(SCPP65CompiledUnit* psUnit);
 	void					FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated);
 	void					InitGenerator(SCPP65CompiledUnit* psUnit);
+	CCPPCompileOptions*		UnitOptions(SCPP65CompiledUnit* psUnit);
 	void					Resume(SCPP65CompiledUnit* psUnit);
 	static void				ResumeUnit(void* pvBuilder, void* pvUnit, bool bStale);
 	static void				ResumeUnitJob(void* pvUnit);

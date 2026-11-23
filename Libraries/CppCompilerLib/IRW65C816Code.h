@@ -55,6 +55,7 @@ class CIRW65C816Code
 protected:
 	CArrayIR816CodeLines	masLines;
 	CArrayIR816LineOrder	maiOrder;
+	uint8					mabKept[IR816_DIRECT_PAGE];	//The direct page bytes a debugger reads (SetKept): stores to them stay.
 
 public:
 	void		Init(void);
@@ -80,6 +81,10 @@ public:
 	void		Append(const char* szText);
 	void		Truncate(size uiLines);
 	void		Take(CIRW65C816Code* pcFrom);
+
+	void		SetKept(int32 iOffset, int32 iBytes);
+	bool		IsKept(int32 iOffset, int32 iBytes);
+	void		MarkKept(uint8* abRead);
 
 protected:
 	void			Clear(void);

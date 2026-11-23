@@ -29,7 +29,9 @@ class CIRW65C816Backend;
 //The pointers a W65C816 function never needs as values: a pointer that is another plus a constant, or plus an
 //i16, and is only loaded and stored through, is folded into the instructions that use it, which address with
 //the constant or with the index in Y (FoldPointers, FoldIndices).  The back end's record of each temporary says
-//what it is folded to; FoldedBase, FoldedIndex and IsFolded read it, and LoadY loads Y for an access.
+//what it is folded to; FoldedBase, FoldedIndex and IsFolded read it, and LoadY loads Y for an access.  A kept slot (a
+//variable a debugger reads) only loaded and stored through, at constant offsets, is addressed in place ([D + n]) and
+//never worked out either (FindDirectSlots, DirectSlot).
 class CIRW65C816Folds
 {
 protected:
@@ -45,6 +47,10 @@ public:
 	bool			IsFolded(SIRInstruction* psInstruction);
 	void			FoldIndices(CArrayTemplate<int32>* paiUses);
 	bool			LoadY(SIRReference sPointer, int32 iOffset);
+	void			FindDirectSlots(void);
+	bool			IsDirectSlot(SIRReference sValue);
+	bool			DirectSlot(SIRReference sPointer, int32* piOffset);
+	SIRReference	Materialised(SIRReference sValue);
 };
 
 
