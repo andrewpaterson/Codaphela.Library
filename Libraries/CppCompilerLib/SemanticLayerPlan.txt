@@ -6,9 +6,11 @@ the user's "Plan fixes for the semantic layer".  The findings say where each thi
 would be, and are not repeated here.  ConsolidationPlan.txt's stages 3 to 5 are where this layer got its shape;
 this plan finishes what they left and what has been added since.
 
-Where it is (2026-11-23): the first part's stages (0 to 16) are done, but for what each stage's record says it
+Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for what each stage's record says it
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
-2026-11-23) is what it left; its questions (6 to 10) are answered, and it hasn't begun.  The user on 2026-11-22: "Finish and commit,
+2026-11-23) is what it left; its questions (6 to 10) are answered, and it hasn't begun.  It was checked against
+the code on 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes,
+and questions 11 and 12 are new (answers assumed, in brackets).  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -49,9 +51,14 @@ The rules (the questions say which the user settled, 2026-11-22)
      CCPP65CheckChildren, CCPP65CheckLambdas, gasCPP65Builtins.  SCPP65Type and CCPP65Types are the type
      checker's area's and keep their names.
   5. A helper that replaces several copies gets cases of its own in TestCppCompilerLib.
-  6. The work is done in D:\gameengine\CommonLibraries itself, on master: this is the only session on the
-     computer (the user, 2026-11-22: "Why do you keep working in worktrees?").  A stage is committed when it
-     has passed, by its own paths.  Nothing is pushed.
+  6. The work is done in D:\gameengine\CommonLibraries itself, on master, not in a worktree (the user,
+     2026-11-22: "Why do you keep working in worktrees?").  A stage is committed when it has passed, by its own
+     paths.  Nothing is pushed.  It is no longer the only work in the compiler (2026-11-24): the debugger's
+     (DebuggerPlan.txt; its compiler stages A1 to A4 and C1 to C3 are in, F1 to F4 would touch the compiler
+     again) and HashMapPlan.txt's conversions land between stages.  So, as ConsolidationPlan's "The plan from
+     here" does: a stage is small enough to make, prove and commit in one sitting, nothing is left staged
+     between stages, and the listings' baseline is taken again, with the reason written in the record, when
+     another commit moves them (question 11).
   7. Plan first; measure before and after.
 
 
@@ -73,6 +80,10 @@ How a stage is proved
     the declarations, types and front end phases, TypeOf's calls and those worked out, quiet trials and those
     that failed, and stage 0's new counts.  TestCPP65Declarations' asserted counts stay as they are.  A stage
     that makes the compiler slower says so and why.
+  - The debugger's records (new 2026-11-24): TestCPPW65C816Debug passes (it is in TestCppCompilerLib), and at
+    stages 19, 22 and 24 and at the end TestBaseLib65's project is compiled for the W65C816 with
+    TEST_PROJECT65_DEBUG=1 and its listings, .dglobal and .dtype directives included, compared with the stage
+    before's: those stages move what the debug writer reads.
   - The machine has 7.9 GB: a *65 suite and TestCppCompilerLib are never run at the same time.
 
 
@@ -297,87 +308,154 @@ that makes it one thing, so stage 15 has only what no earlier stage took.
    This plan's last table: each stage's commit, the unit's functions and lines after it, the counts, the
    compile's phases.
 
-Part two (planned 2026-11-23): what the first part left
---------------------------------------------------------
+Part two (planned 2026-11-23, checked against the code and planned again 2026-11-24): what the first part left
+-----------------------------------------------------------------------------------------------------------------
 
-What is left, counted.  CCPPUnit is 307 functions: CPPUnit.cpp 174 (about 45 of them getters and setters),
-CPPUnitExpressions.cpp 53, CPPUnitClasses.cpp 46, CPPUnitPacks.cpp 17, CPPUnitOverloads.cpp 15, CPPUnitLabels.cpp 2.
-The walk of the declarations, the queue of functions and the options (about 60) stay; what else is there is a job
-of its own, and each stage's record above says what the first part left of its finding.  The rules and the proof
-are the first part's: each stage proved alone (the suite, what is said of every conformance case, the 4,213
-listings of the three *65 projects, the compile's time), "Same code" unless it says otherwise, and committed with
-its record.
+What is left, counted (2026-11-24, master e09e745ea).  CCPPUnit is 308 functions: CPPUnit.cpp 175 (about 60 of
+them getters and setters), CPPUnitExpressions.cpp 53, CPPUnitClasses.cpp 46, CPPUnitPacks.cpp 17,
+CPPUnitOverloads.cpp 15, CPPUnitLabels.cpp 2.  It was 307 at stage 16; the one more is GetDebugWriter, from the
+debugger's work (DebuggerPlan.txt A1 to A4, C1 to C3; the unit holds a CCPP65DebugWriter).  Every function the
+stages below name is still the unit's, where they say it is, and none of part two has been done by other work.
 
-17. Declaring a function (finding 23).  Same code.  (L)
+Checked 2026-11-24, and what it changed: of the 308, the stages as first written moved 168 and left about 100
+staying; the other 37 were in no stage (the handlers' writing, the questions of this, the function names, the
+questions of the syntax, the initialisers' checks, the enum records), so part two would have ended at about
+140, not at question 8's 100.  Each of the 37 is now in a stage below (34 move, 3 stay with the walk), and the
+counts are exact: every function of the unit was listed against the stages (the list goes in each stage's
+record when it is done).  What stays is the walk of the declarations, the queue of functions, the options, the
+getters and setters, the runtime calls, the static asserts and GetFunctionName and GetOperatorName
+(CPPUnitLabels.cpp, asked from ten files): 106 functions.  The rules and the proof are the
+first part's: each stage proved alone (the suite, what is said of every conformance case, the 4,213 listings of
+the three *65 projects, the compile's time), "Same code" unless it says otherwise, and committed with its
+record.  The listings' baseline is taken again at stage 17's start: deca26453 (W65C816 slots addressed in place,
+2026-11-23) changed them after stage 16's.
 
-   A signature, SCPPSignature (kind, name, parameters, defaults, qualifiers and flags), made once from a
-   declarator by DeclareSignature; a redeclaration matches it, and the function adopts it.  DeclareFunction's seven
-   parameters become it.  Then CCPPFunctionDeclarer takes the declaring out of the unit, about 35 functions, with
-   the checks that go with it: CheckDeclared, CheckVirtSpecifiers, CheckOperatorSignature,
-   CheckAllocationFunction, CheckDefaultedOrDeleted, CheckMemberInitialisers, CheckDefaultsFollow, ResolveReturn,
-   ReturnedType and the rest.
+17. Declaring a function (finding 23).  Same code.  (L, 31 functions)
 
-18. Which class a name means (finding 22, stage 7's).  Same code.  (L, the riskiest)
+   Still as finding 23 found it (2026-11-24): there is no SCPPSignature, and DeclareFunction and DeclareSignature
+   both take the same seven parameters.  A signature, SCPPSignature (kind, name, parameters, defaults, qualifiers
+   and flags), made once from a declarator by DeclareSignature; a redeclaration matches it, and the function
+   adopts it.  DeclareFunction's seven parameters become it.  Then CCPPFunctionDeclarer takes the declaring out of
+   the unit with the checks that go with it: DeclareFunction, DeclareSignature, DeclareBlockFunction,
+   DeclareQuietly, AddImplicitFunction, FunctionType, WrittenSpecification, ReturnDeclaratorType, ResolveReturn,
+   ReturnedType, FindReturns, IsFunctionByType, IsWeakFunction, IsAllocationFunction, IsAllocationName,
+   IsDefinedWhereDeclared, IsCLinkage, the parameters (AddParameters, ParameterType, ParameterVariableType),
+   CheckDeclared, CheckAbstractSignature, CheckVirtSpecifiers, CheckOperatorSignature, OperatorError,
+   CheckAllocationFunction, CheckDefaultedOrDeleted, NeedsNoInitialiser, HasFieldNeedingInitialiser,
+   CheckMemberInitialisers and CheckDefaultsFollow.
 
-   One resolver, the binder's, about 25 functions: GetClass, GetComponentClass, QualifiedMember, QualifiedClass,
-   QualifiersClass, NameQualifierClass, GetNameClass, the enumerator lookups, and the lookups in bases
-   (FindInBases, IsAmbiguousInBases, HasMember, HasOperator).  Stage 7's finding is its rule, said once: a
-   qualifier of two components is the class the parser found, one of three or more is the qualifiers walked, and a
-   member class reached through an instance is that instance's.  Proved first by a harness, as the constants and
-   the categories were: the old answer and the new at every call over the corpus, each difference read.
+18. Which class a name means (finding 22, stage 7's).  Same code.  (L, the riskiest, 24 functions)
 
-19. Static data, start-up and exit.  Same code.  (M)
+   One resolver, the binder's: GetClass, GetComponentClass, GetComponentName, GetNameClass, QualifierClass,
+   FindClass, ComponentLookup, MemberScopeClass, EnclosingInstance, GetUnnamedClass, FindBaseInstance (from
+   CPPUnitClasses.cpp); QualifiedMember, QualifiedClass, QualifiersClass, NameQualifierClass, MemberClass,
+   IsAmbiguousName, the enumerator lookups (QualifiedEnumerator, DecltypeEnumerator) and the lookups in bases
+   (FindInBases, IsAmbiguousInBases, CheckBaseMemberName, HasMember, HasOperator) from CPPUnitExpressions.cpp.
+   Stage 7's finding is its rule, said once: a qualifier of two components is the class the parser found, one of
+   three or more is the qualifiers walked, and a member class reached through an instance is that instance's.
+   Proved first by a harness, as the constants and the categories were: the old answer and the new at every call
+   over the corpus, each difference read.
 
-   CCPPGlobals, about 30: GlobalInitialiser, StaticLocal, BoundTemporary, the start-up and exit routines,
-   WriteDynamicCast, the data alignment and bss questions, and the anonymous, extern and namespace variables.
-   BoundTemporary answers once (an enum: nothing to bind, bound, or stop after an error), where it answers a bool
-   and *pbResult (stage 13's leftover).
+19. Static data, start-up and exit.  Same code.  (M, 24 and 7 functions, two commits)
 
-20. Laying a class out.  Same code.  (M)
+   a. CCPPGlobals: GlobalDeclaration, GlobalInitialiser, AddVariable, GetVariable, RedeclaredVariable,
+      SameVariableType, FreeVariables, CompleteDeclaredArrays, StringInitialiser, StaticLocal, AnonymousLocal,
+      AnonymousGlobal, ExternLocal, NamespaceVariable, BoundTemporary, the start-up and exit routines
+      (GlobalStartUpRoutines, StartUpRoutine, AddUnitRoutine, KillUnitRoutines, WriteExitRoutines),
+      WriteDynamicCast, and the data alignment and bss questions (IsBss, DataAlignment, VariableDataAlignment).
+      BoundTemporary answers once (an enum: nothing to bind, bound, or stop after an error), where it answers a
+      bool and *pbResult (stage 13's leftover; still so).  The debugger's .dglobal is written from
+      GlobalDeclaration's arm (CPPUnit.cpp, mcDebugWriter.AppendGlobal): it goes with it, and the globals are
+      given the debug writer.
+   b. New since part two was written down, found by the count: what is written for a try block and its handlers
+      is CCPPExceptions' (stage 15c's class, which has the specifications): TryRegionOf, HandlerType,
+      HandlerLocal, ThrownDestroyer, WriteThrownDestroyers, ExitNodeBytes and IsSharedFunction.  The Exceptions
+      group passes on both targets before and after, as at 15c.
 
-   CCPPClassBuilder, about 25: NewClass, CompleteClass, LayoutClass, ResolveBases, ClassMember, ClassUsing,
-   InheritConstructors, CheckOverrides, ClassBitField, the alignments and AddLayout.  The member specialisations'
-   functions go to the instantiator.
+20. Laying a class out.  Same code.  (M, 25 functions, and 10 to the instantiator)
 
-21. Bases and packs.  Same code.  (M)
+   CCPPClassBuilder: NewClass, CompleteClass, CompleteObjectClass, CompleteMembers, PlaceMembers, LayoutClass,
+   AddLayout, ResolveBases, AddBase, AddPackBases, ClassMember, ClassBitField, ClassUsing, InheritConstructors,
+   InjectedNameReached, IsDeclaredAgainInClass, CheckOverrides, ReturnsCovariant, HasVirtSpecifier,
+   IsConstantMember, FindStatic, ArrowType and the alignments (ObjectAlignment, VariableAlignment,
+   AlignasAlignment).  The member specialisations and the definitions outside a class go to the instantiator:
+   MemberSpecialisation, SpecialiseMembers, SpecialiseMember, QualifierIsInstance, AddOutsideDefinition,
+   DefineOutsideMember, DefineOutsideMembers, IsOutsideMemberOf, IsDefinedBefore and FindSpecifier.
+   CPPUnitClasses.cpp is then gone (with stage 18's eleven).
 
-   CPPUnitOverloads.cpp's questions of the bases (IsDerived, BasePaths, CountBases, CollectVirtualBases,
-   CompleteOffset ...) go beside CCPPClass::BasePaths, a class of the hierarchy's.  CPPUnitPacks.cpp and the pack
-   tables go to the instantiator, which stage 15f was to take them to and didn't (question 9).
+21. Bases, this and packs.  Same code.  (M, 10, 5 and 17 functions)
 
-22. The rest of the expressions' file.  Same code.  (S-M)
+   CPPUnitOverloads.cpp's questions of the bases (IsDerived, BasePaths, ResolveAllBases, IsOnePublicBase,
+   IsPublicBase, CountBases, CountFixedBases, CollectVirtualBases, VirtualBaseOf, CompleteOffset) go beside
+   CCPPClass::BasePaths, a class of the hierarchy's.  New: its other five, the questions of this (ThisType,
+   ThisFunction, IsConstThis, IsVolatileThis, IsConstObject), go to CCPPContext, which already holds the function
+   and whether there is a this; CPPUnitOverloads.cpp is then gone.  CPPUnitPacks.cpp and the pack tables go to
+   the instantiator, which stage 15f was to take them to and didn't (question 9); CPPUnitPacks.cpp is then gone.
 
-   The type traits, the new-expression's types and the literals' types to the type checker; the enums (EnumType,
-   EnumeratorType, EnumeratorValue, CheckEnumeratorFits) a small CCPPEnums; the attributes and deprecation
-   (HasAttribute, FindAttribute, WarnDeprecated) a small CCPPAttributes.
+22. The rest of the expressions' file.  Same code.  (M, 49 functions move, each part a commit)
 
-23. The mechanisms' leftovers, each a commit of its own.
+   a. The type checker: the type traits (TypeTrait, TypeTraitValue, IsTriviallyCopyableType,
+      IsStandardLayoutType), the new-expression's types (NewElementType, NewTypeIdArray, IsArrayNew, NewArguments,
+      NewSize), the literals' types (Literal, IntegerLiteralType, CharacterTokenType, IsStringLiteral),
+      IsNullPointerConstant and QualifiedFieldType.
+   b. A small CCPPEnums: EnumType, EnumeratorType, EnumeratorValue, CheckEnumeratorFits and CheckEnumerators; the
+      IDE's record of enum casts (RecordEnumCast, IsRecordedEnum) to CCPPCheck, which reads it.  The debug writer
+      asks EnumeratorValue (CPP65DebugWriter.cpp) and is given CCPPEnums.
+   c. A small CCPPAttributes: HasAttribute, FindAttribute (both), HasUsedAttribute, DeprecatedAttribute,
+      SaysDeprecated, WarnDeprecated and WarnDeprecatedSymbol.
+   d. New: the function names.  __func__'s text (FunctionNameText, IsFunctionName) to CCPPStrings, which makes the
+      unit's strings; the function a name means for a target type (FunctionNameFor, MemberFunctionNameFor,
+      MemberPointerName, FunctionNameOf) to the binder, beside stage 18's resolver; PointedFunctionSuffix (a
+      pointer's exception specification) to CCPPExceptions.
+   e. New: the questions of the syntax (SkipParentheses, IsMemberPointerOperator, IsDecltypeOperand,
+      DefaultArgumentOf, IsInUnevaluatedOperand, NamesFunction) onto the syntax nodes, as ConsolidationPlan stage
+      5 put the small questions (SkipParentheses alone is asked from most of the library: a script, and a commit
+      of its own).
+   f. New: the initialisers' checks (CheckInitialiser, CheckBracedValue, CheckConstexprLocal, ConstructElements)
+      to the type checker, whose KeepsQualifiers they already rest on; QuietConstant and VariableTemplateValue to
+      CCPPConstantFolder.  Supported, AppendUnsupported and ReportFailedDeclaration stay with the walk, in
+      CPPUnit.cpp, and CPPUnitExpressions.cpp is then gone.
 
-   a. RunConstant's ladder (finding 18): Fold answers folded, not a constant, or needs running, and the
-      interpreter is asked only in that last case.  Same code.
+23. The mechanisms' leftovers, each a commit of its own.  All five still apply (2026-11-24).
+
+   a. RunConstant's ladder (finding 18; CCPPConstantFolder::RunConstant, its switch of kinds then Value): Fold
+      answers folded, not a constant, or needs running, and the interpreter is asked only in that last case.
+      Same code.
    b. A floating point constant that needs running is run by the interpreter (finding 18).  Not same code: a
       float initialiser is data where it was worked out at run time; measured (question 7).
-   c. mbValueArgumentRefused is a value returned.  Same code.
-   d. TemplateDeclaration's classifying arms are one function that returns a kind (finding 24), and Declarations
-      asks IsOutsideMemberTemplate once a declaration.  Same code.
-   e. PlaceType and the front end's Place ask the record whether there is a place (stage 15e's leftover), and the
-      types phase's 0.5 to 5% the record cost is won back if it can be (its entries pooled, for one).  Same code.
+   c. mbValueArgumentRefused (CPPUnit.h, set and read by CCPPConstantFolder through mpcUnit) is a value returned.
+      Same code.
+   d. TemplateDeclaration's classifying arms (CCPPInstantiator's since 15f) are one function that returns a kind
+      (finding 24), and Declarations asks IsOutsideMemberTemplate once a declaration (it asks twice, CPPUnit.cpp
+      Declarations).  Same code.
+   e. PlaceType (CCPP65TypeChecker, still a switch of kinds) and the front end's Place ask the record whether
+      there is a place (stage 15e's leftover), and the types phase's 0.5 to 5% the record cost is won back if it
+      can be (its entries pooled, for one).  Same code.
 
 24. Finding 44: the classes out of the unit stop being its friends.  Same code.  (L)
 
-   The classes made out of the unit are its friends and reach into it (mpcUnit->mcTypes, mpcUnit->mcContext ...).
-   Each one's asks of the unit are counted, and then each is given what it works with when it is made (the types,
-   the diagnostics, the context, the binder, the classes beside it), a narrow interface its header shows, and is
-   no longer a friend (question 10).  Counted again at the end: what each still asks the unit for is the unit's
-   own (the queue, the options).
+   The unit has twelve friends (CPPUnit.h, 2026-11-24): CCPPConstantFolder, CCPPClosures, CCPPClassData,
+   CCPPStrings, CCPPCheck, CCPPWarnings, CCPPBuiltins, CCPPExceptions, CCPPDesugarings, CCPPInstantiator,
+   CCPP65TypeChecker and CCPPBinder.  The last two were never out of the unit, but reach into it the same way and
+   are in this stage too (question 12).  Each reaches into it (mpcUnit->mcTypes, mpcUnit->mcContext ...); the
+   classes stages 17 to 22 make are made without friendship.  Each one's asks of the unit are counted, and then
+   each is given what it works with when it is made (the types, the diagnostics, the context, the binder, the
+   classes beside it), a narrow interface its header shows, and is no longer a friend (question 10).  The debug
+   writer (CCPP65DebugWriter, Init(this)) is not a friend and asks the unit three things; it is given them too.
+   A first count, by text (mpcUnit-> in each file, 2026-11-24): the type checker 300, the instantiator 230,
+   CCPPCheck 175, the binder 169, the overloads 126, the class data 113, the desugarings 89, the declarators and
+   the folder 84 each, the closures 68, the exceptions 62, the warnings 46, the strings 18, the builtins 8; the IR
+   front end's files about 430 together, which are not friends and are not this stage's.  The stage's own count
+   (what each asks, by function) is made at its start and again at the end: what each still asks the unit for is
+   the unit's own (the queue, the options).
 
 25. The end.  (S)
 
    The findings' "Since:" lines, and this part's last table, as stage 16 did.
 
-Ends when: CCPPUnit is the walk, the queue, the options and the classes it holds, about 100 functions with the
-getters (question 8).  Finding 36's rest is not in it (question 6).  Size: 25 to 35 proofs, 17, 18 and 24 the
-long ones.
+Ends when: CCPPUnit is the walk, the queue, the options and the classes it holds: 106 functions by the count of
+2026-11-24, with the getters (question 8), in CPPUnit.cpp and CPPUnitLabels.cpp, and no friends.  Finding 36's
+rest is not in it (question 6).  Size: 30 to 40 proofs, 17, 18, 22 and 24 the long ones.
 
 
 
@@ -393,7 +471,15 @@ What this plan takes from the other areas' findings, and what it leaves
 
 Questions for the user
 
-Open: none.
+Open, asked 2026-11-24 (work goes on with the answer in brackets assumed):
+
+ 11. HashMapPlan.txt's conversions of StandardLib, SupportLib, LogiCim and HCP65's Assembler65Lib wait "until
+     its plan is finished", at this plan's asking: they change the *65 projects' listings this plan compares.
+     Part two is 30 to 40 proofs.  May they land between part two's stages, each followed by a fresh listings
+     baseline?  [Yes: a baseline costs one listings run, and nothing of part two needs them held back.]
+ 12. CCPP65TypeChecker and CCPPBinder are the unit's friends too, though they were never taken out of it.  Do they
+     stop being friends in stage 24, as the classes taken out do?  [Yes: the unit ends with no friends, as
+     ConsolidationPlan's stage 4 first asked.]
 
 Answered 2026-11-23 (part two's, each asked alone):
 
