@@ -277,6 +277,7 @@ protected:
 	void			Line(const char* szText);
 	void			Line(uint16 uiMnemonic, const char* szOperand = NULL);
 	void			Line(uint16 uiMnemonic, int64 lliOperand);
+	void			Line(uint16 uiMnemonic, const char* szOperand, bool bMarked);
 	void			Line(const char* szText, int64 lliValue);
 
 	int				ValueBytes(SIRType sType);
@@ -285,7 +286,7 @@ protected:
 
 	int32			ArgumentPlace(SIRRegisterArgument* psArgument, int32* piPushed);
 
-	void			Branch(const char* szMnemonic, int32 iLabel);
+	void			Branch(uint16 uiMnemonic, int32 iLabel);
 	bool			HasEdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
 	void			FunctionArguments(void);

@@ -57,7 +57,7 @@ public:
 	void			RegisterStub(CChars* pszBodyLabel);
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
 	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
-	void			StackLine(const char* szInstruction, int iOffset);
+	void			StackLine(uint16 uiMnemonic, int iOffset);
 };
 
 

@@ -94,14 +94,14 @@ void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction,
 		else if (IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2))
 		{
 			mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
-			mpcBackend->mcSelector.Frame("stx", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
+			mpcBackend->mcSelector.Frame(IR816M_Stx, mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
 		}
 		else
 		{
 			//Past the direct page Frame goes through X: the high word waits in the scratch word.
-			mpcBackend->mcSelector.Frame("stx", IR816_SCRATCH_RESULT + 2);
+			mpcBackend->mcSelector.Frame(IR816M_Stx, IR816_SCRATCH_RESULT + 2);
 			mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
-			mpcBackend->mcSelector.Frame("lda", IR816_SCRATCH_RESULT + 2);
+			mpcBackend->mcSelector.Frame(IR816M_Lda, IR816_SCRATCH_RESULT + 2);
 			mpcBackend->mcSelector.Store(psInstruction->sResult, 1);
 		}
 	}
@@ -181,19 +181,19 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 			//The target's bank and high byte pushed as one word and a byte's room below them (phb: any byte), then the
 			//target - 1 written over that byte and the high byte (which the - 1 may have borrowed from): no change of
 			//A's width for the bank's byte.
-			mpcBackend->mcSelector.Frame("pei", iCallee + 1);
+			mpcBackend->mcSelector.Frame(IR816M_Pei, iCallee + 1);
 			mpcBackend->Line(IR816M_Phb);
-			mpcBackend->mcSelector.Frame("lda", iCallee);
+			mpcBackend->mcSelector.Frame(IR816M_Lda, iCallee);
 			mpcBackend->Line(IR816M_Dec, "A");
 			mpcBackend->Line(IR816M_Sta, "[S + 1]");
 		}
 		else
 		{
 			mpcBackend->Line(IR816M_Sep, "m");
-			mpcBackend->mcSelector.Frame("lda", iCallee + 2);
+			mpcBackend->mcSelector.Frame(IR816M_Lda, iCallee + 2);
 			mpcBackend->Line(IR816M_Pha);
 			mpcBackend->Line(IR816M_Rep, "m");
-			mpcBackend->mcSelector.Frame("lda", iCallee);
+			mpcBackend->mcSelector.Frame(IR816M_Lda, iCallee);
 			mpcBackend->Line(IR816M_Dec, "A");
 			mpcBackend->Line(IR816M_Pha);
 		}
@@ -219,10 +219,10 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 		{
 			iThrown = mpcBackend->NewLabel();
 			mpcBackend->Line(IR816M_Ldy, "0");
-			mpcBackend->Branch("bcc", iThrown);
+			mpcBackend->Branch(IR816M_Bcc, iThrown);
 			mpcBackend->Line(IR816M_Iny);
 			mpcBackend->Label(iThrown);
-			mpcBackend->mcSelector.Frame("sty", IR816_SCRATCH_COUNT);
+			mpcBackend->mcSelector.Frame(IR816M_Sty, IR816_SCRATCH_COUNT);
 		}
 	}
 	CallerCleanUp(iBytes, psInstruction, mbThrownInCarry);
@@ -257,7 +257,7 @@ void CIRW65C816Calls::Thrown(SIRInstruction* psInstruction)
 	{
 		return;
 	}
-	mpcBackend->mcSelector.Frame("lda", IR816_SCRATCH_COUNT);
+	mpcBackend->mcSelector.Frame(IR816M_Lda, IR816_SCRATCH_COUNT);
 	mpcBackend->mcSelector.Store(psInstruction->sResult, 0);
 }
 
@@ -465,8 +465,7 @@ bool CIRW65C816Calls::LoadsRegisterDirectly(SIRReference sValue, int iWord)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Calls::LoadRegisterWord(int iRegister, SIRReference sValue, int iWord, int32 iHiddenResult)
 {
-	static const char*	aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
-	static const char*	aszZeros[IR816_ARGUMENT_REGISTERS] = { "lda 0", "ldx 0", "ldy 0" };
+	static const uint16	auiLoads[IR816_ARGUMENT_REGISTERS] = { IR816M_Lda, IR816M_Ldx, IR816M_Ldy };
 
 	if ((iHiddenResult >= 0) && (iWord == 0))
 	{
@@ -477,11 +476,11 @@ void CIRW65C816Calls::LoadRegisterWord(int iRegister, SIRReference sValue, int i
 	}
 	else if (iHiddenResult >= 0)
 	{
-		mpcBackend->Line(aszZeros[iRegister]);
+		mpcBackend->Line(auiLoads[iRegister], (int64)0);
 	}
 	else
 	{
-		mpcBackend->mcSelector.Operand(aszLoads[iRegister], sValue, iWord);
+		mpcBackend->mcSelector.Operand(auiLoads[iRegister], sValue, iWord);
 	}
 }
 
@@ -893,8 +892,8 @@ void CIRW65C816Calls::RegisterStub(CChars* pszBodyLabel)
 			{
 				if (iWords != iStacked)
 				{
-					StackLine("lda", 4 + 2 * iWords);
-					StackLine("sta", 4 + 2 * iStacked);
+					StackLine(IR816M_Lda, 4 + 2 * iWords);
+					StackLine(IR816M_Sta, 4 + 2 * iStacked);
 				}
 				iStacked++;
 			}
@@ -927,7 +926,7 @@ void CIRW65C816Calls::RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int i
 
 	for (k = iHigh; k >= iLow; k--)
 	{
-		StackLine("lda", 4 + 2 * aiWordOf[k] + 2 * iPushed);
+		StackLine(IR816M_Lda, 4 + 2 * aiWordOf[k] + 2 * iPushed);
 		if (k == 2)
 		{
 			mpcBackend->Line(IR816M_Tay);
@@ -969,7 +968,7 @@ void CIRW65C816Calls::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int 
 			iWord--;
 			if (psArgument->iRegister < 0)
 			{
-				StackLine("lda", 4 + 2 * iWord + 2 * iPushed);
+				StackLine(IR816M_Lda, 4 + 2 * iWord + 2 * iPushed);
 				mpcBackend->Line(IR816M_Pha);
 				iPushed++;
 			}
@@ -978,15 +977,15 @@ void CIRW65C816Calls::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int 
 
 	RegisterStubLoad(aiWordOf, mpcBackend->msFrame.iRegisterWords - 1, 0, iStacked);
 
-	sz.Init("jsl ");
+	sz.Init(CIRW65C816Backend::GetScratch());
 	sz.Append(pszBodyLabel);
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Line(IR816M_Jsl, sz.Text());
 	iThrown = -1;
 	if (mpcBackend->mpcOptions->mbExceptions && !mpcBackend->mpcModule->IsNoThrow(mpcBackend->mpcFunction->muiSymbol))
 	{
 		//Removing the pushed words loses the carry: a body that threw leaves by an exit of its own.
 		iThrown = mpcBackend->NewLabel();
-		mpcBackend->Branch("bcs", iThrown);
+		mpcBackend->Branch(IR816M_Bcs, iThrown);
 	}
 	mpcBackend->Line(IR816M_Tay);
 	mpcBackend->Line(IR816M_Tsc);
@@ -1014,14 +1013,14 @@ void CIRW65C816Calls::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int 
 // szInstruction [S + iOffset]: a stack relative load or store.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Calls::StackLine(const char* szInstruction, int iOffset)
+void CIRW65C816Calls::StackLine(uint16 uiMnemonic, int iOffset)
 {
 	CChars	sz;
 
-	sz.Init(szInstruction);
-	sz.Append(" [S + ");
+	sz.Init(CIRW65C816Backend::GetScratch());
+	sz.Append("[S + ");
 	sz.Append(iOffset);
 	sz.Append("]");
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Line(uiMnemonic, sz.Text());
 	sz.Kill();
 }

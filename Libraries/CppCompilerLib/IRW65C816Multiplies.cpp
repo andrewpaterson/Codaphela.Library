@@ -77,7 +77,7 @@ bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 	{
 		for (i = 0; i < mpcBackend->Words(sType); i++)
 		{
-			Frame("lda", IR816_SCRATCH_REMAINDER + 2 * i);
+			Frame(IR816M_Lda, IR816_SCRATCH_REMAINDER + 2 * i);
 			Store(psInstruction->sResult, i);
 		}
 		return true;
@@ -93,10 +93,10 @@ bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 			//R816_SDiv16 and R816_SRem16 take the bytes sign extended.
 			for (i = 0; i < 2; i++)
 			{
-				Operand("lda", psInstruction->asArguments[i], 0);
+				Operand(IR816M_Lda, psInstruction->asArguments[i], 0);
 				mpcBackend->Line(IR816M_And, "0xFF");
 				SignExtendInA(7);
-				Frame("sta", (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
+				Frame(IR816M_Sta, (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
 			}
 		}
 		else
@@ -112,7 +112,7 @@ bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 		{
 			if (bSigned && sType.Is(IRTK_I8))
 			{
-				Operand("lda", psInstruction->asArguments[i], 0);
+				Operand(IR816M_Lda, psInstruction->asArguments[i], 0);
 				SignExtendInA(7);
 				mpcBackend->Line(IR816M_Pha);
 			}
@@ -159,9 +159,9 @@ void CIRW65C816Selector::TableProduct(void)
 	iGot = mpcBackend->NewLabel();
 	mpcBackend->Line(IR816M_Asl, "A");
 	mpcBackend->Line(IR816M_Tax);
-	mpcBackend->Branch("bcs", iHigh);
+	mpcBackend->Branch(IR816M_Bcs, iHigh);
 	mpcBackend->Line(IR816M_Lda, "[MathMult + X]:24");
-	mpcBackend->Branch("bra", iGot);
+	mpcBackend->Branch(IR816M_Bra, iGot);
 	mpcBackend->Label(iHigh);
 	mpcBackend->Line(IR816M_Lda, "[MathMult + 0x10000 + X]:24");
 	mpcBackend->Label(iGot);
@@ -193,23 +193,23 @@ bool CIRW65C816Selector::InlineMultiply16(SIRInstruction* psInstruction)
 	iNoHighB = mpcBackend->NewLabel();
 	iDone = mpcBackend->NewLabel();
 	mpcBackend->Line(IR816M_Sep, "m");
-	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
+	Frame(IR816M_Lda, IR816_SCRATCH_ARGUMENT_B);
 	mpcBackend->Line(IR816M_Xba);
-	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Frame(IR816M_Lda, IR816_SCRATCH_ARGUMENT_A);
 	mpcBackend->Line(IR816M_Rep, "m");
 	TableProduct();
-	Frame("sta", IR816_SCRATCH_RESULT);
-	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
+	Frame(IR816M_Sta, IR816_SCRATCH_RESULT);
+	Frame(IR816M_Lda, IR816_SCRATCH_ARGUMENT_B);
 	mpcBackend->Line(IR816M_And, "0xFF00");
-	mpcBackend->Branch("beq", iNoHighB);
+	mpcBackend->Branch(IR816M_Beq, iNoHighB);
 	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_B + 1, IR816_SCRATCH_ARGUMENT_A);
 	mpcBackend->Label(iNoHighB);
-	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
+	Frame(IR816M_Lda, IR816_SCRATCH_ARGUMENT_A);
 	mpcBackend->Line(IR816M_And, "0xFF00");
-	mpcBackend->Branch("beq", iDone);
+	mpcBackend->Branch(IR816M_Beq, iDone);
 	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_A + 1, IR816_SCRATCH_ARGUMENT_B);
 	mpcBackend->Label(iDone);
-	Frame("lda", IR816_SCRATCH_RESULT);
+	Frame(IR816M_Lda, IR816_SCRATCH_RESULT);
 	return true;
 }
 
@@ -224,16 +224,16 @@ bool CIRW65C816Selector::InlineMultiply16(SIRInstruction* psInstruction)
 void CIRW65C816Selector::InlineCrossProduct(int32 iHigh, int32 iLow)
 {
 	mpcBackend->Line(IR816M_Sep, "m");
-	Frame("lda", iHigh);
+	Frame(IR816M_Lda, iHigh);
 	mpcBackend->Line(IR816M_Xba);
-	Frame("lda", iLow);
+	Frame(IR816M_Lda, iLow);
 	mpcBackend->Line(IR816M_Rep, "m");
 	TableProduct();
 	mpcBackend->Line(IR816M_Xba);
 	mpcBackend->Line(IR816M_And, "0xFF00");
 	mpcBackend->Line(IR816M_Clc);
-	Frame("adc", IR816_SCRATCH_RESULT);
-	Frame("sta", IR816_SCRATCH_RESULT);
+	Frame(IR816M_Adc, IR816_SCRATCH_RESULT);
+	Frame(IR816M_Sta, IR816_SCRATCH_RESULT);
 }
 
 
@@ -366,7 +366,7 @@ bool CIRW65C816Selector::WideMultiply(SIRInstruction* psInstruction)
 	{
 		for (i = 0; i < 4; i++)
 		{
-			Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
+			Frame(IR816M_Lda, IR816_SCRATCH_RESULT + 2 * i);
 			Store(psInstruction->sResult, i);
 		}
 	}
@@ -399,7 +399,7 @@ bool CIRW65C816Selector::TableDivide(SIRInstruction* psInstruction, bool bSigned
 	szName.Init(bSigned ? IR816_SIGNED_TABLE : IR816_UNSIGNED_TABLE);
 	szName.Append((int)ulliDivisor);
 	mpcBackend->UseRuntime(szName.Text());
-	Operand("lda", psInstruction->asArguments[0], 0);
+	Operand(IR816M_Lda, psInstruction->asArguments[0], 0);
 	mpcBackend->Line(IR816M_Asl, "A");
 	mpcBackend->Line(IR816M_Tax);
 	mpcBackend->mpszOut->Append("\t\tlda [")->Append(szName)->Append(" + X]:24\n");
@@ -431,9 +431,9 @@ bool CIRW65C816Selector::ByteMultiply(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	Operand("lda", psInstruction->asArguments[1], 0);
+	Operand(IR816M_Lda, psInstruction->asArguments[1], 0);
 	mpcBackend->Line(IR816M_Xba);
-	Operand("ora", psInstruction->asArguments[0], 0);
+	Operand(IR816M_Ora, psInstruction->asArguments[0], 0);
 	TableProduct();
 	mpcBackend->Line(IR816M_And, "0xFF");
 	if (!psInstruction->sResult.IsNone())

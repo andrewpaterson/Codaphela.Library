@@ -269,7 +269,7 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 		mpcBackend->UseRuntime(szName.Text());
 		szName.Insert(0, "jsl ");
 		mpcBackend->Line(szName.Text());
-		Frame("sta", IR816_SCRATCH_RESULT);
+		Frame(IR816M_Sta, IR816_SCRATCH_RESULT);
 	}
 	else
 	{
@@ -278,7 +278,7 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 		asTypes[0] = sType;
 		asTypes[1] = sType;
 		iBytes = SoftFloatCall(szName.Text(), asValues, asTypes, 2, -1, false, false, -1);
-		Frame("sta", IR816_SCRATCH_RESULT);
+		Frame(IR816M_Sta, IR816_SCRATCH_RESULT);
 		if (iBytes > 0)
 		{
 			mpcBackend->Line(IR816M_Tsc);
@@ -295,7 +295,7 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 	iFalse = mpcBackend->NewLabel();
 	iEnd = mpcBackend->NewLabel();
 	sz.Init(CIRW65C816Backend::GetScratch());
-	Frame("lda", IR816_SCRATCH_RESULT);
+	Frame(IR816M_Lda, IR816_SCRATCH_RESULT);
 	for (i = 0; i < iValues; i++)
 	{
 		mpcBackend->Line(IR816M_Cmp, (int64)(aiValues[i] & 0xFFFF));
@@ -362,7 +362,7 @@ void CIRW65C816Selector::FloatConversion(SIRInstruction* psInstruction)
 		if (((psInstruction->uiOpcode == IRO_SIToF) || (psInstruction->uiOpcode == IRO_UIToF)) && (mpcBackend->Words(sFrom) < 2))
 		{
 			//Extended to 32 bits (as PushInt32 does) in the scratch bytes.
-			Operand("lda", sValue, 0);
+			Operand(IR816M_Lda, sValue, 0);
 			if (sFrom.Is(IRTK_I8) || sFrom.Is(IRTK_I1))
 			{
 				Mask(sFrom);
@@ -371,7 +371,7 @@ void CIRW65C816Selector::FloatConversion(SIRInstruction* psInstruction)
 					SignExtendInA(7);
 				}
 			}
-			Frame("sta", IR816_SCRATCH_RESULT);
+			Frame(IR816M_Sta, IR816_SCRATCH_RESULT);
 			if (bSigned)
 			{
 				SignWordInA();
@@ -380,7 +380,7 @@ void CIRW65C816Selector::FloatConversion(SIRInstruction* psInstruction)
 			{
 				mpcBackend->Line(IR816M_Lda, "0");
 			}
-			Frame("sta", IR816_SCRATCH_RESULT + 2);
+			Frame(IR816M_Sta, IR816_SCRATCH_RESULT + 2);
 			iFirst = IR816_SCRATCH_RESULT;
 		}
 		else
@@ -411,12 +411,12 @@ void CIRW65C816Selector::PushInt32(SIRReference sValue, SIRType sType, bool bSig
 		PushValue(sValue, sType);
 		return;
 	}
-	Operand("lda", sValue, 0);
+	Operand(IR816M_Lda, sValue, 0);
 	if (bSigned && sType.Is(IRTK_I8))
 	{
 		SignExtendInA(7);
 	}
-	Frame("sta", IR816_SCRATCH_VALUE);
+	Frame(IR816M_Sta, IR816_SCRATCH_VALUE);
 	if (bSigned && !sType.Is(IRTK_I1))
 	{
 		SignWordInA();
@@ -426,6 +426,6 @@ void CIRW65C816Selector::PushInt32(SIRReference sValue, SIRType sType, bool bSig
 		mpcBackend->Line(IR816M_Lda, "0");
 	}
 	mpcBackend->Line(IR816M_Pha);
-	Frame("lda", IR816_SCRATCH_VALUE);
+	Frame(IR816M_Lda, IR816_SCRATCH_VALUE);
 	mpcBackend->Line(IR816M_Pha);
 }

@@ -126,14 +126,26 @@ void CIRW65C816Backend::Line(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand)
 {
+	Line(uiMnemonic, szOperand, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction uiMnemonic with szOperand (NULL for none), with the
+// IR816_KEEP_IN_A mark (Peephole's) or without.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand, bool bMarked)
+{
 	CChars	sz;
 
 	Flush();
-	mpcCode->AppendInstruction(uiMnemonic, szOperand);
+	mpcCode->AppendInstruction(uiMnemonic, szOperand, bMarked);
 	if (mbSourceMarkers || mbDebugPlaces)
 	{
 		sz.Init(CIRW65C816Backend::GetScratch());
-		IR816AppendInstruction(&sz, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0);
+		IR816AppendLine(&sz, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, bMarked);
 		mcMarkers.AddLine(sz.Text(), sz.Length());
 		sz.Kill();
 	}
@@ -1441,40 +1453,40 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 		iWords = Words(psJump->sType);
 		if (msFrame.iHiddenResult >= 0)
 		{
-			mcSelector.Frame("lda", msFrame.iHiddenResult);
-			mcSelector.Frame("sta", IR816_SCRATCH_POINTER);
-			mcSelector.Frame("lda", msFrame.iHiddenResult + 2);
-			mcSelector.Frame("sta", IR816_SCRATCH_POINTER + 2);
+			mcSelector.Frame(IR816M_Lda, msFrame.iHiddenResult);
+			mcSelector.Frame(IR816M_Sta, IR816_SCRATCH_POINTER);
+			mcSelector.Frame(IR816M_Lda, msFrame.iHiddenResult + 2);
+			mcSelector.Frame(IR816M_Sta, IR816_SCRATCH_POINTER + 2);
 			for (i = 0; i < iWords; i++)
 			{
 				Line(IR816M_Ldy, (int64)(2 * i));
-				mcSelector.Operand("lda", psJump->sArgument, i);
+				mcSelector.Operand(IR816M_Lda, psJump->sArgument, i);
 				mpszOut->Append("\t\tsta [[D + ")->Append(IR816_SCRATCH_POINTER)->Append("]:24 + Y]")->AppendNewLine();
 			}
 		}
 		else if (mcFusion.Fused(psJump->sArgument))
 		{
 			//The high word first (CanFuseReturn).
-			mcSelector.Operand("lda", psJump->sArgument, 1);
+			mcSelector.Operand(IR816M_Lda, psJump->sArgument, 1);
 			Line(IR816M_Tax);
-			mcSelector.Operand("lda", psJump->sArgument, 0);
+			mcSelector.Operand(IR816M_Lda, psJump->sArgument, 0);
 		}
 		else if (!psJump->sArgument.IsTemporary() || IR816OnDirectPage(mcPlaces.OffsetOf(psJump->sArgument) + 2 * iWords))
 		{
 			//Straight into A and X.
 			if (iWords > 1)
 			{
-				mcSelector.Operand("ldx", psJump->sArgument, 1);
+				mcSelector.Operand(IR816M_Ldx, psJump->sArgument, 1);
 			}
-			mcSelector.Operand("lda", psJump->sArgument, 0);
+			mcSelector.Operand(IR816M_Lda, psJump->sArgument, 0);
 		}
 		else
 		{
 			mcSelector.CopyWords(IR816_SCRATCH_RESULT, psJump->sArgument, iWords);
-			mcSelector.Frame("lda", IR816_SCRATCH_RESULT);
+			mcSelector.Frame(IR816M_Lda, IR816_SCRATCH_RESULT);
 			if (iWords > 1)
 			{
-				mcSelector.Frame("ldx", IR816_SCRATCH_RESULT + 2);
+				mcSelector.Frame(IR816M_Ldx, IR816_SCRATCH_RESULT + 2);
 			}
 		}
 	}
@@ -1529,27 +1541,27 @@ void CIRW65C816Backend::EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo)
 		{
 			for (i = 0; i < Words(psStep->sType); i++)
 			{
-				mcSelector.Operand("lda", psStep->sSource, i);
-				mcSelector.Frame("sta", IR816_SCRATCH_RESULT + 2 * i);
+				mcSelector.Operand(IR816M_Lda, psStep->sSource, i);
+				mcSelector.Frame(IR816M_Sta, IR816_SCRATCH_RESULT + 2 * i);
 			}
 		}
 		else if (mcPlaces.InX(psStep->sDestination))
 		{
 			if (psStep->bSaved)
 			{
-				mcSelector.Frame("ldx", IR816_SCRATCH_RESULT);
+				mcSelector.Frame(IR816M_Ldx, IR816_SCRATCH_RESULT);
 			}
 			else
 			{
-				mcSelector.Operand("ldx", psStep->sSource, 0);
+				mcSelector.Operand(IR816M_Ldx, psStep->sSource, 0);
 			}
 		}
 		else if (psStep->bSaved)
 		{
 			for (i = 0; i < Words(psStep->sType); i++)
 			{
-				mcSelector.Frame("lda", IR816_SCRATCH_RESULT + 2 * i);
-				mcSelector.Frame("sta", mcPlaces.OffsetOf(psStep->sDestination) + 2 * i);
+				mcSelector.Frame(IR816M_Lda, IR816_SCRATCH_RESULT + 2 * i);
+				mcSelector.Frame(IR816M_Sta, mcPlaces.OffsetOf(psStep->sDestination) + 2 * i);
 			}
 		}
 		else
@@ -1643,23 +1655,23 @@ void CIRW65C816Backend::JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNex
 		sz.Kill();
 		return;
 	}
-	Branch("bra", *maiBlockLabels.Get(pcTo->muiIndex));
+	Branch(IR816M_Bra, *maiBlockLabels.Get(pcTo->muiIndex));
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szMnemonic to label iLabel; the assembler makes it reach (.relax).
+// uiMnemonic to label iLabel; the assembler makes it reach (.relax).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Branch(const char* szMnemonic, int32 iLabel)
+void CIRW65C816Backend::Branch(uint16 uiMnemonic, int32 iLabel)
 {
 	CChars	sz;
 
-	sz.Init(szMnemonic);
-	sz.Append(" L");
+	sz.Init(CIRW65C816Backend::GetScratch());
+	sz.Append('L');
 	sz.Append(iLabel);
-	Line(sz.Text());
+	Line(uiMnemonic, sz.Text());
 	sz.Kill();
 }
 
@@ -1697,7 +1709,7 @@ void CIRW65C816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 		pcBlock->masInstructions.Tail()->sResult.Equals(pcBlock->msJump.sArgument))
 	{
 		//The call left its thrown in the carry (CIRW65C816Calls::Call).
-		Branch(bWhen ? "bcs" : "bcc", iLabel);
+		Branch(bWhen ? IR816M_Bcs : IR816M_Bcc, iLabel);
 	}
 	else if ((pcBlock->masInstructions.NumElements() > 0) && mcSelector.IsFusedCompare(pcBlock, pcBlock->masInstructions.NumElements() - 1))
 	{
@@ -1705,8 +1717,8 @@ void CIRW65C816Backend::BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel)
 	}
 	else
 	{
-		mcSelector.Operand("lda", pcBlock->msJump.sArgument, 0);
-		Branch(bWhen ? "bne" : "beq", iLabel);
+		mcSelector.Operand(IR816M_Lda, pcBlock->msJump.sArgument, 0);
+		Branch(bWhen ? IR816M_Bne : IR816M_Beq, iLabel);
 	}
 }
 

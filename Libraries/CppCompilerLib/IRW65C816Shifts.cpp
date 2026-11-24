@@ -51,7 +51,7 @@ void CIRW65C816Selector::Shift(SIRInstruction* psInstruction)
 	if (mpcBackend->mcPlaces.InX(psInstruction->sResult))
 	{
 		//A 16 bit shift by a constant (AllocateX), in A.
-		Operand("lda", psInstruction->asArguments[0], 0);
+		Operand(IR816M_Lda, psInstruction->asArguments[0], 0);
 		ShiftWordInA(psInstruction->uiOpcode, (int)(mpcBackend->mpcFunction->GetConstant(sAmount)->ulliBits & 63));
 		mpcBackend->Line(IR816M_Tax);
 		return;
@@ -68,9 +68,9 @@ void CIRW65C816Selector::Shift(SIRInstruction* psInstruction)
 
 	if ((psInstruction->uiOpcode == IRO_AShr) && (sType.Is(IRTK_I8) || sType.Is(IRTK_I1)))
 	{
-		Frame("lda", iResult);
+		Frame(IR816M_Lda, iResult);
 		SignExtendInA(sType.Is(IRTK_I8) ? 7 : 0);
-		Frame("sta", iResult);
+		Frame(IR816M_Sta, iResult);
 	}
 
 	if (sAmount.IsConstant())
@@ -79,9 +79,9 @@ void CIRW65C816Selector::Shift(SIRInstruction* psInstruction)
 		ShiftConstant(psInstruction->uiOpcode, iResult, iWords, (int)(mpcBackend->mpcFunction->GetConstant(sAmount)->ulliBits & 63));
 		if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
 		{
-			Frame("lda", iResult);
+			Frame(IR816M_Lda, iResult);
 			Mask(sType);
-			Frame("sta", iResult);
+			Frame(IR816M_Sta, iResult);
 		}
 		return;
 	}
@@ -98,9 +98,9 @@ void CIRW65C816Selector::Shift(SIRInstruction* psInstruction)
 	}
 	if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
 	{
-		Frame("lda", iResult);
+		Frame(IR816M_Lda, iResult);
 		Mask(sType);
-		Frame("sta", iResult);
+		Frame(IR816M_Sta, iResult);
 	}
 }
 
@@ -136,12 +136,12 @@ bool CIRW65C816Selector::ShiftCall(SIRInstruction* psInstruction)
 	if (iWords == 2)
 	{
 		CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], 2);
-		Operand("lda", psInstruction->asArguments[1], 0);
+		Operand(IR816M_Lda, psInstruction->asArguments[1], 0);
 	}
 	else
 	{
 		CopyWords(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], 4);
-		Operand("lda", psInstruction->asArguments[1], 0);
+		Operand(IR816M_Lda, psInstruction->asArguments[1], 0);
 		mpcBackend->Line(IR816M_Ldx, (int64)(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult)));
 	}
 	szName.Insert(0, "jsl ");
@@ -189,49 +189,49 @@ bool CIRW65C816Selector::ShiftTwoWords(SIRInstruction* psInstruction)
 	{
 		if (psInstruction->uiOpcode == IRO_Shl)
 		{
-			Operand("lda", sValue, 0);
+			Operand(IR816M_Lda, sValue, 0);
 			mpcBackend->Line(IR816M_Asl, "A");
-			Frame("sta", iResult);
-			Operand("lda", sValue, 1);
+			Frame(IR816M_Sta, iResult);
+			Operand(IR816M_Lda, sValue, 1);
 			mpcBackend->Line(IR816M_Rol, "A");
-			Frame("sta", iResult + 2);
+			Frame(IR816M_Sta, iResult + 2);
 		}
 		else
 		{
-			Operand("lda", sValue, 1);
+			Operand(IR816M_Lda, sValue, 1);
 			mpcBackend->Line(IR816M_Lsr, "A");
-			Frame("sta", iResult + 2);
-			Operand("lda", sValue, 0);
+			Frame(IR816M_Sta, iResult + 2);
+			Operand(IR816M_Lda, sValue, 0);
 			mpcBackend->Line(IR816M_Ror, "A");
-			Frame("sta", iResult);
+			Frame(IR816M_Sta, iResult);
 		}
 		return true;
 	}
 	if (ConstantWord(sValue, 1, &uiHigh) && (uiHigh == 0))
 	{
 		//A high word that is 0 (a zext's) needs no A: the low word may still be there.
-		Frame("stz", iResult + 2);
+		Frame(IR816M_Stz, iResult + 2);
 	}
 	else
 	{
-		Operand("lda", sValue, 1);
-		Frame("sta", iResult + 2);
+		Operand(IR816M_Lda, sValue, 1);
+		Frame(IR816M_Sta, iResult + 2);
 	}
-	Operand("lda", sValue, 0);
+	Operand(IR816M_Lda, sValue, 0);
 	for (i = 0; i < iAmount; i++)
 	{
 		if (psInstruction->uiOpcode == IRO_Shl)
 		{
 			mpcBackend->Line(IR816M_Asl, "A");
-			Frame("rol", iResult + 2);
+			Frame(IR816M_Rol, iResult + 2);
 		}
 		else
 		{
-			Frame("lsr", iResult + 2);
+			Frame(IR816M_Lsr, iResult + 2);
 			mpcBackend->Line(IR816M_Ror, "A");
 		}
 	}
-	Frame("sta", iResult);
+	Frame(IR816M_Sta, iResult);
 	return true;
 }
 
@@ -268,7 +268,7 @@ bool CIRW65C816Selector::BitShift(SIRInstruction* psInstruction)
 	szTable.Init(IR816_BITS_TABLE);
 	szTable.Append(16 * iWords);
 	mpcBackend->UseRuntime(szTable.Text());
-	Operand("lda", psInstruction->asArguments[1], 0);
+	Operand(IR816M_Lda, psInstruction->asArguments[1], 0);
 	mpcBackend->Line(IR816M_And, "63");
 	for (i = 1; i < 2 * iWords; i *= 2)
 	{
@@ -283,7 +283,7 @@ bool CIRW65C816Selector::BitShift(SIRInstruction* psInstruction)
 			mpcBackend->mpszOut->Append(" + ")->Append(2 * i);
 		}
 		mpcBackend->mpszOut->Append(" + X]:24\n");
-		Frame("sta", iResult + 2 * i);
+		Frame(IR816M_Sta, iResult + 2 * i);
 	}
 	szTable.Kill();
 	return true;
@@ -320,44 +320,44 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 
 	//The count is tested in A; it waits in X while a word or byte move uses A.
 	iSmall = mpcBackend->NewLabel();
-	Operand("lda", sAmount, 0);
+	Operand(IR816M_Lda, sAmount, 0);
 	mpcBackend->Line(IR816M_And, "63");
-	mpcBackend->Branch("beq", iEnd);
+	mpcBackend->Branch(IR816M_Beq, iEnd);
 	sz.Init("cmp ");
 	sz.Append(IR816_SHIFT_LOOP_BELOW);
 	mpcBackend->Line(sz.Text());
 	sz.Kill();
-	mpcBackend->Branch("bcc", iSmall);
+	mpcBackend->Branch(IR816M_Bcc, iSmall);
 
 	//The whole value shifted out.
 	iUnder = mpcBackend->NewLabel();
 	mpcBackend->Line((iWords == 2) ? "cmp 32" : "cmp 16");
-	mpcBackend->Branch("bcc", iUnder);
+	mpcBackend->Branch(IR816M_Bcc, iUnder);
 	ShiftConstant(uiOpcode, iResult, iWords, 16 * iWords);
-	mpcBackend->Branch("bra", iEnd);
+	mpcBackend->Branch(IR816M_Bra, iEnd);
 	mpcBackend->Label(iUnder);
 
 	if (iWords == 2)
 	{
 		iBits = mpcBackend->NewLabel();
 		mpcBackend->Line(IR816M_Cmp, "16");
-		mpcBackend->Branch("bcc", iBits);
+		mpcBackend->Branch(IR816M_Bcc, iBits);
 		mpcBackend->Line(IR816M_Tax);
 		ShiftConstant(uiOpcode, iResult, 2, 16);
 		mpcBackend->Line(IR816M_Txa);
 		mpcBackend->Line(IR816M_And, "15");
-		mpcBackend->Branch("beq", iEnd);
+		mpcBackend->Branch(IR816M_Beq, iEnd);
 		mpcBackend->Label(iBits);
 	}
 
 	iBits = mpcBackend->NewLabel();
 	mpcBackend->Line(IR816M_Cmp, "8");
-	mpcBackend->Branch("bcc", iBits);
+	mpcBackend->Branch(IR816M_Bcc, iBits);
 	mpcBackend->Line(IR816M_Tax);
 	ShiftConstant(uiOpcode, iResult, iWords, 8);
 	mpcBackend->Line(IR816M_Txa);
 	mpcBackend->Line(IR816M_And, "7");
-	mpcBackend->Branch("beq", iEnd);
+	mpcBackend->Branch(IR816M_Beq, iEnd);
 	mpcBackend->Label(iBits);
 
 	iDone = mpcBackend->NewLabel();
@@ -367,7 +367,7 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	}
 	mpcBackend->Line(IR816M_Asl, "A");
 	mpcBackend->Line(IR816M_Tax);
-	Frame("lda", iInA);
+	Frame(IR816M_Lda, iInA);
 	sz.Init("jmp [L");
 	sz.Append(iLoop);
 	sz.Append(" + X]");
@@ -390,19 +390,19 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 		ShiftStepInA(uiOpcode, iWords, iOther);
 	}
 	mpcBackend->Label(iDone);
-	Frame("sta", iInA);
-	mpcBackend->Branch("bra", iEnd);
+	Frame(IR816M_Sta, iInA);
+	mpcBackend->Branch(IR816M_Bra, iEnd);
 
 	//A few bits: one a time, counted down in X.
 	mpcBackend->Label(iSmall);
 	iSmallLoop = mpcBackend->NewLabel();
 	mpcBackend->Line(IR816M_Tax);
-	Frame("lda", iInA);
+	Frame(IR816M_Lda, iInA);
 	mpcBackend->Label(iSmallLoop);
 	ShiftStepInA(uiOpcode, iWords, iOther);
 	mpcBackend->Line(IR816M_Dex);
-	mpcBackend->Branch("bne", iSmallLoop);
-	Frame("sta", iInA);
+	mpcBackend->Branch(IR816M_Bne, iSmallLoop);
+	Frame(IR816M_Sta, iInA);
 	mpcBackend->Label(iEnd);
 }
 
@@ -430,7 +430,7 @@ void CIRW65C816Selector::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
 	}
 	if (iWords == 2)
 	{
-		Frame((uiOpcode == IRO_Shl) ? "rol" : "ror", iOther);
+		Frame((uiOpcode == IRO_Shl) ? IR816M_Rol : IR816M_Ror, iOther);
 	}
 }
 
@@ -538,9 +538,9 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 	int					i;
 	int32				iSkip;
 
-	Operand("lda", sAmount, 0);
+	Operand(IR816M_Lda, sAmount, 0);
 	mpcBackend->Line(IR816M_And, "63");
-	mpcBackend->Branch("beq", iEnd);
+	mpcBackend->Branch(IR816M_Beq, iEnd);
 
 	//The whole value shifted out (64 bits never is: the count is below 64).
 	if (16 * iWords <= 63)
@@ -550,12 +550,12 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 		sz.Append(16 * iWords);
 		mpcBackend->Line(sz.Text());
 		sz.Kill();
-		mpcBackend->Branch("bcc", iSkip);
+		mpcBackend->Branch(IR816M_Bcc, iSkip);
 		ShiftConstant(uiOpcode, iResult, iWords, 16 * iWords);
-		mpcBackend->Branch("bra", iEnd);
+		mpcBackend->Branch(IR816M_Bra, iEnd);
 		mpcBackend->Label(iSkip);
 	}
-	Frame("sta", IR816_SCRATCH_VALUE);
+	Frame(IR816M_Sta, IR816_SCRATCH_VALUE);
 
 	//Each step only when the count, now less than twice it, reaches it.
 	for (i = 0; i < 3; i++)
@@ -568,48 +568,48 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 		sz.Init("cmp ");
 		sz.Append(aiSteps[i]);
 		mpcBackend->Line(sz.Text());
-		mpcBackend->Branch("bcc", iSkip);
+		mpcBackend->Branch(IR816M_Bcc, iSkip);
 		sz.Kill();
 		ShiftConstant(uiOpcode, iResult, iWords, aiSteps[i]);
-		Frame("lda", IR816_SCRATCH_VALUE);
+		Frame(IR816M_Lda, IR816_SCRATCH_VALUE);
 		sz.Init("and ");
 		sz.Append(aiSteps[i] - 1);
 		mpcBackend->Line(sz.Text());
 		sz.Kill();
-		mpcBackend->Branch("beq", iEnd);
-		Frame("sta", IR816_SCRATCH_VALUE);
+		mpcBackend->Branch(IR816M_Beq, iEnd);
+		Frame(IR816M_Sta, IR816_SCRATCH_VALUE);
 		mpcBackend->Label(iSkip);
 	}
 
 	mpcBackend->Label(iLoop);
 	if (uiOpcode == IRO_Shl)
 	{
-		Frame("asl", iResult);
+		Frame(IR816M_Asl, iResult);
 		for (i = 1; i < iWords; i++)
 		{
-			Frame("rol", iResult + 2 * i);
+			Frame(IR816M_Rol, iResult + 2 * i);
 		}
 	}
 	else
 	{
 		if (uiOpcode == IRO_LShr)
 		{
-			Frame("lsr", iResult + 2 * (iWords - 1));
+			Frame(IR816M_Lsr, iResult + 2 * (iWords - 1));
 		}
 		else
 		{
-			Frame("lda", iResult + 2 * (iWords - 1));
+			Frame(IR816M_Lda, iResult + 2 * (iWords - 1));
 			mpcBackend->Line(IR816M_Cmp, "0x8000");
 			mpcBackend->Line(IR816M_Ror, "A");
-			Frame("sta", iResult + 2 * (iWords - 1));
+			Frame(IR816M_Sta, iResult + 2 * (iWords - 1));
 		}
 		for (i = iWords - 2; i >= 0; i--)
 		{
-			Frame("ror", iResult + 2 * i);
+			Frame(IR816M_Ror, iResult + 2 * i);
 		}
 	}
-	Frame("dec", IR816_SCRATCH_VALUE);
-	mpcBackend->Branch("bne", iLoop);
+	Frame(IR816M_Dec, IR816_SCRATCH_VALUE);
+	mpcBackend->Branch(IR816M_Bne, iLoop);
 	mpcBackend->Label(iEnd);
 }
 
@@ -634,9 +634,9 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 
 	if (iWords == 1)
 	{
-		Frame("lda", iResult);
+		Frame(IR816M_Lda, iResult);
 		ShiftWordInA(uiOpcode, iAmount);
-		Frame("sta", iResult);
+		Frame(IR816M_Sta, iResult);
 		return;
 	}
 
@@ -654,12 +654,12 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 		{
 			for (i = iWords - 1; i >= iWordShift; i--)
 			{
-				Frame("lda", iResult + 2 * (i - iWordShift));
-				Frame("sta", iResult + 2 * i);
+				Frame(IR816M_Lda, iResult + 2 * (i - iWordShift));
+				Frame(IR816M_Sta, iResult + 2 * i);
 			}
 			for (i = iWordShift - 1; i >= 0; i--)
 			{
-				Frame("stz", iResult + 2 * i);
+				Frame(IR816M_Stz, iResult + 2 * i);
 			}
 		}
 		else
@@ -667,25 +667,25 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 			if (uiOpcode == IRO_AShr)
 			{
 				//The sign word: $FFFF when the top bit is set.
-				Frame("lda", iResult + 2 * (iWords - 1));
+				Frame(IR816M_Lda, iResult + 2 * (iWords - 1));
 				SignWordInA();
-				Frame("sta", IR816_SCRATCH_COUNT);
+				Frame(IR816M_Sta, IR816_SCRATCH_COUNT);
 			}
 			for (i = 0; i < iWords - iWordShift; i++)
 			{
-				Frame("lda", iResult + 2 * (i + iWordShift));
-				Frame("sta", iResult + 2 * i);
+				Frame(IR816M_Lda, iResult + 2 * (i + iWordShift));
+				Frame(IR816M_Sta, iResult + 2 * i);
 			}
 			for (i = iWords - iWordShift; i < iWords; i++)
 			{
 				if (uiOpcode == IRO_AShr)
 				{
-					Frame("lda", IR816_SCRATCH_COUNT);
-					Frame("sta", iResult + 2 * i);
+					Frame(IR816M_Lda, IR816_SCRATCH_COUNT);
+					Frame(IR816M_Sta, iResult + 2 * i);
 				}
 				else
 				{
-					Frame("stz", iResult + 2 * i);
+					Frame(IR816M_Stz, iResult + 2 * i);
 				}
 			}
 		}
@@ -700,19 +700,19 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 		{
 			for (i = iWords - 1; i >= iWordShift; i--)
 			{
-				Frame("lda", iResult + 2 * i - 1);
+				Frame(IR816M_Lda, iResult + 2 * i - 1);
 				if (i == 0)
 				{
 					mpcBackend->Line(IR816M_And, "0xFF00");
 				}
-				Frame("sta", iResult + 2 * i);
+				Frame(IR816M_Sta, iResult + 2 * i);
 			}
 		}
 		else
 		{
 			for (i = 0; i < iWords - iWordShift; i++)
 			{
-				Frame("lda", iResult + 2 * i + 1);
+				Frame(IR816M_Lda, iResult + 2 * i + 1);
 				if (i == iWords - 1)
 				{
 					mpcBackend->Line(IR816M_And, "0xFF");
@@ -721,7 +721,7 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 						SignExtendInA(7);
 					}
 				}
-				Frame("sta", iResult + 2 * i);
+				Frame(IR816M_Sta, iResult + 2 * i);
 			}
 		}
 		iBits -= 8;
@@ -738,32 +738,32 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 		//The one word left, shifted in A (a bit of shl or lshr in memory).
 		if ((iBits == 1) && (uiOpcode != IRO_AShr))
 		{
-			Frame((uiOpcode == IRO_Shl) ? "asl" : "lsr", iLow);
+			Frame((uiOpcode == IRO_Shl) ? IR816M_Asl : IR816M_Lsr, iLow);
 			return;
 		}
-		Frame("lda", iLow);
+		Frame(IR816M_Lda, iLow);
 		ShiftWordInA(uiOpcode, iBits);
-		Frame("sta", iLow);
+		Frame(IR816M_Sta, iLow);
 		return;
 	}
 	if (iRemaining == 2)
 	{
 		//Two words left: the low one in A, the bit between them carried through memory's high word.
-		Frame("lda", iLow);
+		Frame(IR816M_Lda, iLow);
 		for (j = 0; j < iBits; j++)
 		{
 			if (uiOpcode == IRO_Shl)
 			{
 				mpcBackend->Line(IR816M_Asl, "A");
-				Frame("rol", iLow + 2);
+				Frame(IR816M_Rol, iLow + 2);
 			}
 			else
 			{
-				Frame("lsr", iLow + 2);
+				Frame(IR816M_Lsr, iLow + 2);
 				mpcBackend->Line(IR816M_Ror, "A");
 			}
 		}
-		Frame("sta", iLow);
+		Frame(IR816M_Sta, iLow);
 	}
 	else
 	{
@@ -772,18 +772,18 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 		{
 			if (uiOpcode == IRO_Shl)
 			{
-				Frame("asl", iLow);
+				Frame(IR816M_Asl, iLow);
 				for (i = 1; i < iRemaining; i++)
 				{
-					Frame("rol", iLow + 2 * i);
+					Frame(IR816M_Rol, iLow + 2 * i);
 				}
 			}
 			else
 			{
-				Frame("lsr", iLow + 2 * (iRemaining - 1));
+				Frame(IR816M_Lsr, iLow + 2 * (iRemaining - 1));
 				for (i = iRemaining - 2; i >= 0; i--)
 				{
-					Frame("ror", iLow + 2 * i);
+					Frame(IR816M_Ror, iLow + 2 * i);
 				}
 			}
 		}
@@ -792,9 +792,9 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 	//ashr was shifted as lshr: the top word left gets its sign bit, now at 15 - iBits, extended.
 	if (uiOpcode == IRO_AShr)
 	{
-		Frame("lda", iLow + 2 * (iRemaining - 1));
+		Frame(IR816M_Lda, iLow + 2 * (iRemaining - 1));
 		SignExtendInA(15 - iBits);
-		Frame("sta", iLow + 2 * (iRemaining - 1));
+		Frame(IR816M_Sta, iLow + 2 * (iRemaining - 1));
 	}
 }
 

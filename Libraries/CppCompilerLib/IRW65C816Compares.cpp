@@ -50,7 +50,7 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 		if (bSigned && (i == iWords - 1) && sRight.IsConstant())
 		{
 			//The constant's sign bit flipped as it is written.
-			Operand("lda", sLeft, i);
+			Operand(IR816M_Lda, sLeft, i);
 			mpcBackend->Line(szFlip);
 			mpcBackend->Line(IR816M_Cmp, (int64)((int64)((((i < 4) ? (mpcBackend->mpcFunction->GetConstant(sRight)->ulliBits >> (16 * i)) : 0) ^ uiFlip) & 0xFFFF)));
 		}
@@ -61,18 +61,18 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 			//left is less when the right isn't negative: C is the right's sign, and lda 1 clears Z without
 			//changing it.  No scratch word, and nothing flipped where the top words are equal.
 			iLower = mpcBackend->NewLabel();
-			Operand("lda", sLeft, i);
-			Operand("cmp", sRight, i);
+			Operand(IR816M_Lda, sLeft, i);
+			Operand(IR816M_Cmp, sRight, i);
 			sz.Init("beq L");
 			sz.Append(iLower);
 			mpcBackend->Line(sz.Text());
 			sz.Kill();
-			Operand("eor", sRight, i);
+			Operand(IR816M_Eor, sRight, i);
 			sz.Init("bpl L");
 			sz.Append(iDone);
 			mpcBackend->Line(sz.Text());
 			sz.Kill();
-			Operand("lda", sRight, i);
+			Operand(IR816M_Lda, sRight, i);
 			mpcBackend->Line(IR816M_Asl, "A");
 			mpcBackend->Line(IR816M_Lda, "1");
 			sz.Init("bra L");
@@ -84,21 +84,21 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 		}
 		else if (bSigned && (i == iWords - 1))
 		{
-			Operand("lda", sRight, i);
+			Operand(IR816M_Lda, sRight, i);
 			mpcBackend->Line(szFlip);
-			Frame("sta", IR816_SCRATCH_VALUE);
-			Operand("lda", sLeft, i);
+			Frame(IR816M_Sta, IR816_SCRATCH_VALUE);
+			Operand(IR816M_Lda, sLeft, i);
 			mpcBackend->Line(szFlip);
-			Frame("cmp", IR816_SCRATCH_VALUE);
+			Frame(IR816M_Cmp, IR816_SCRATCH_VALUE);
 		}
 		else if ((iWords == 1) && mpcBackend->mcPlaces.InX(sLeft))
 		{
-			Operand("cpx", sRight, i);
+			Operand(IR816M_Cpx, sRight, i);
 		}
 		else
 		{
-			Operand("lda", sLeft, i);
-			Operand("cmp", sRight, i);
+			Operand(IR816M_Lda, sLeft, i);
+			Operand(IR816M_Cmp, sRight, i);
 		}
 		if (i > 0)
 		{
@@ -130,17 +130,17 @@ void CIRW65C816Selector::SignedLessFlags(SIRReference* psArguments, int iWords, 
 	if (iWords == 1)
 	{
 		mpcBackend->Line(IR816M_Sec);
-		Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
-		Operand("sbc", psArguments[bSwapped ? 0 : 1], 0);
+		Operand(IR816M_Lda, psArguments[bSwapped ? 1 : 0], 0);
+		Operand(IR816M_Sbc, psArguments[bSwapped ? 0 : 1], 0);
 	}
 	else
 	{
-		Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
-		Operand("cmp", psArguments[bSwapped ? 0 : 1], 0);
-		Operand("lda", psArguments[bSwapped ? 1 : 0], 1);
-		Operand("sbc", psArguments[bSwapped ? 0 : 1], 1);
+		Operand(IR816M_Lda, psArguments[bSwapped ? 1 : 0], 0);
+		Operand(IR816M_Cmp, psArguments[bSwapped ? 0 : 1], 0);
+		Operand(IR816M_Lda, psArguments[bSwapped ? 1 : 0], 1);
+		Operand(IR816M_Sbc, psArguments[bSwapped ? 0 : 1], 1);
 	}
-	mpcBackend->Branch("bvc", iNoOverflow);
+	mpcBackend->Branch(IR816M_Bvc, iNoOverflow);
 	mpcBackend->Line(IR816M_Eor, "0x8000");
 	mpcBackend->Label(iNoOverflow);
 }
@@ -315,24 +315,24 @@ void CIRW65C816Selector::FusedBranch(SIRInstruction* psInstruction, bool bWhen, 
 	if (IsIRSignedComparison(uiOpcode) && psInstruction->sType.Is(IRTK_I16) && ConstantWord(psInstruction->asArguments[1], 0, &uiZero) && (uiZero == 0))
 	{
 		//Against 0 the sign and zero flags of the value itself answer (lda or txa sets them).
-		Operand("lda", psInstruction->asArguments[0], 0);
+		Operand(IR816M_Lda, psInstruction->asArguments[0], 0);
 		switch (uiOpcode)
 		{
 		case IRO_SLt:
-			mpcBackend->Branch("bmi", iLabel);
+			mpcBackend->Branch(IR816M_Bmi, iLabel);
 			break;
 		case IRO_SGe:
-			mpcBackend->Branch("bpl", iLabel);
+			mpcBackend->Branch(IR816M_Bpl, iLabel);
 			break;
 		case IRO_SGt:
 			iSkip = mpcBackend->NewLabel();
-			mpcBackend->Branch("beq", iSkip);
-			mpcBackend->Branch("bpl", iLabel);
+			mpcBackend->Branch(IR816M_Beq, iSkip);
+			mpcBackend->Branch(IR816M_Bpl, iLabel);
 			mpcBackend->Label(iSkip);
 			break;
 		default:
-			mpcBackend->Branch("bmi", iLabel);
-			mpcBackend->Branch("beq", iLabel);
+			mpcBackend->Branch(IR816M_Bmi, iLabel);
+			mpcBackend->Branch(IR816M_Beq, iLabel);
 			break;
 		}
 		return;
@@ -342,7 +342,7 @@ void CIRW65C816Selector::FusedBranch(SIRInstruction* psInstruction, bool bWhen, 
 		//Two values: one subtraction with its overflow folded into the sign answers lt and ge; gt and le subtract the
 		//other way around (a > b is b < a).
 		SignedLessFlags(psInstruction->asArguments, mpcBackend->Words(psInstruction->sType), (uiOpcode == IRO_SGt) || (uiOpcode == IRO_SLe));
-		mpcBackend->Branch(((uiOpcode == IRO_SLt) || (uiOpcode == IRO_SGt)) ? "bmi" : "bpl", iLabel);
+		mpcBackend->Branch(((uiOpcode == IRO_SLt) || (uiOpcode == IRO_SGt)) ? IR816M_Bmi : IR816M_Bpl, iLabel);
 		return;
 	}
 	if (!bFlagsKnown)
@@ -352,31 +352,31 @@ void CIRW65C816Selector::FusedBranch(SIRInstruction* psInstruction, bool bWhen, 
 	switch (uiOpcode)
 	{
 	case IRO_Eq:
-		mpcBackend->Branch("beq", iLabel);
+		mpcBackend->Branch(IR816M_Beq, iLabel);
 		break;
 	case IRO_Ne:
-		mpcBackend->Branch("bne", iLabel);
+		mpcBackend->Branch(IR816M_Bne, iLabel);
 		break;
 	case IRO_SLt:
 	case IRO_ULt:
-		mpcBackend->Branch("bcc", iLabel);
+		mpcBackend->Branch(IR816M_Bcc, iLabel);
 		break;
 	case IRO_SGe:
 	case IRO_UGe:
-		mpcBackend->Branch("bcs", iLabel);
+		mpcBackend->Branch(IR816M_Bcs, iLabel);
 		break;
 	case IRO_SGt:
 	case IRO_UGt:
 		//gt: C set and Z clear.
 		iSkip = mpcBackend->NewLabel();
-		mpcBackend->Branch("beq", iSkip);
-		mpcBackend->Branch("bcs", iLabel);
+		mpcBackend->Branch(IR816M_Beq, iSkip);
+		mpcBackend->Branch(IR816M_Bcs, iLabel);
 		mpcBackend->Label(iSkip);
 		break;
 	default:
 		//le: C clear or Z set.
-		mpcBackend->Branch("bcc", iLabel);
-		mpcBackend->Branch("beq", iLabel);
+		mpcBackend->Branch(IR816M_Bcc, iLabel);
+		mpcBackend->Branch(IR816M_Beq, iLabel);
 		break;
 	}
 }

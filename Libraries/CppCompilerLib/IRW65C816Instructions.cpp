@@ -50,43 +50,42 @@ void CIRW65C816Selector::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szMnemonic on the frame's word at iOffset: [D + offset], or through X past the direct page's 256 bytes.
+// uiMnemonic on the frame's word at iOffset: [D + offset], or through X past the direct page's 256 bytes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Selector::Frame(const char* szMnemonic, int32 iOffset)
+void CIRW65C816Selector::Frame(uint16 uiMnemonic, int32 iOffset)
 {
-	mpcBackend->mpszOut->Append("\t\t");
+	CChars	sz;
+
 	if (IR816OnDirectPage(iOffset))
 	{
-		mpcBackend->mpszOut->Append(szMnemonic);
-		mpcBackend->mpszOut->Append(" [D + ");
-		mpcBackend->mpszOut->Append(iOffset);
-		mpcBackend->mpszOut->Append("]");
+		sz.Init(CIRW65C816Backend::GetScratch());
+		sz.Append("[D + ");
+		sz.Append(iOffset);
+		sz.Append("]");
+		mpcBackend->Line(uiMnemonic, sz.Text());
+		sz.Kill();
 	}
 	else
 	{
-		mpcBackend->mpszOut->Append("ldx ");
-		mpcBackend->mpszOut->Append(iOffset);
-		mpcBackend->mpszOut->AppendNewLine();
-		mpcBackend->mpszOut->Append("\t\t");
-		mpcBackend->mpszOut->Append(szMnemonic);
-		mpcBackend->mpszOut->Append(" [D + X]");
+		mpcBackend->Line(IR816M_Ldx, (int64)iOffset);
+		mpcBackend->Line(uiMnemonic, "[D + X]");
 	}
-	mpcBackend->mpszOut->AppendNewLine();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szMnemonic with word iWord of a temporary, constant or symbol.
+// uiMnemonic with word iWord of a temporary, constant or symbol.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Selector::Operand(const char* szMnemonic, SIRReference sValue, int iWord)
+void CIRW65C816Selector::Operand(uint16 uiMnemonic, SIRReference sValue, int iWord)
 {
 	uint16	uiWord;
 	char*	szName;
+	CChars	sz;
 
-	if ((mpcBackend->miFused > 0) && (strcmp(szMnemonic, "lda") == 0) && mpcBackend->mcFusion.Fused(sValue))
+	if ((mpcBackend->miFused > 0) && (uiMnemonic == IR816M_Lda) && mpcBackend->mcFusion.Fused(sValue))
 	{
 		WordInA(mpcBackend->mcFusion.Fused(sValue), iWord);
 		return;
@@ -96,29 +95,29 @@ void CIRW65C816Selector::Operand(const char* szMnemonic, SIRReference sValue, in
 		if ((iWord == 0) && mpcBackend->mcPlaces.InX(sValue))
 		{
 			//Kept in X (AllocateX): read through A or a push, or else the scratch word.
-			if (strcmp(szMnemonic, "lda") == 0)
+			if (uiMnemonic == IR816M_Lda)
 			{
 				mpcBackend->Line(IR816M_Txa);
 			}
-			else if (strcmp(szMnemonic, "ldy") == 0)
+			else if (uiMnemonic == IR816M_Ldy)
 			{
 				mpcBackend->Line(IR816M_Txy);
 			}
-			else if (strcmp(szMnemonic, "pei") == 0)
+			else if (uiMnemonic == IR816M_Pei)
 			{
 				mpcBackend->Line(IR816M_Phx);
 			}
-			else if (strcmp(szMnemonic, "ldx") != 0)
+			else if (uiMnemonic != IR816M_Ldx)
 			{
-				Frame("stx", IR816_SCRATCH_COUNT);
-				Frame(szMnemonic, IR816_SCRATCH_COUNT);
+				Frame(IR816M_Stx, IR816_SCRATCH_COUNT);
+				Frame(uiMnemonic, IR816_SCRATCH_COUNT);
 			}
 			return;
 		}
 		if (mpcBackend->IsZeroWord(sValue, iWord))
 		{
 			//A word that is 0 whatever the value is (FindZeroWords): the constant, not what was stored.
-			if (strcmp(szMnemonic, "pei") == 0)
+			if (uiMnemonic == IR816M_Pei)
 			{
 				mpcBackend->Line(IR816M_Pea, "0");
 				return;
@@ -126,7 +125,7 @@ void CIRW65C816Selector::Operand(const char* szMnemonic, SIRReference sValue, in
 		}
 		else if (iWord < mpcBackend->Words(mpcBackend->mpcFunction->GetTemporaryType(sValue)))
 		{
-			Frame(szMnemonic, mpcBackend->mcPlaces.OffsetOf(sValue) + 2 * iWord);
+			Frame(uiMnemonic, mpcBackend->mcPlaces.OffsetOf(sValue) + 2 * iWord);
 			return;
 		}
 		uiWord = 0;
@@ -138,36 +137,23 @@ void CIRW65C816Selector::Operand(const char* szMnemonic, SIRReference sValue, in
 	else if (sValue.IsSymbol())
 	{
 		szName = mpcBackend->mpcModule->GetSymbolName(sValue.Index());
-		mpcBackend->mpszOut->Append("\t\t");
-		mpcBackend->mpszOut->Append(szMnemonic);
-		if (iWord == 0)
+		if (iWord > 1)
 		{
-			mpcBackend->mpszOut->Append(" ");
-			mpcBackend->mpszOut->Append(szName);
-			mpcBackend->mpszOut->Append(" & 0xFFFF");
+			mpcBackend->Line(uiMnemonic, "0");
+			return;
 		}
-		else if (iWord == 1)
-		{
-			mpcBackend->mpszOut->Append(" ");
-			mpcBackend->mpszOut->Append(szName);
-			mpcBackend->mpszOut->Append(" >> 16");
-		}
-		else
-		{
-			mpcBackend->mpszOut->Append(" 0");
-		}
-		mpcBackend->mpszOut->AppendNewLine();
+		sz.Init(CIRW65C816Backend::GetScratch());
+		sz.Append(szName);
+		sz.Append((iWord == 0) ? " & 0xFFFF" : " >> 16");
+		mpcBackend->Line(uiMnemonic, sz.Text());
+		sz.Kill();
 		return;
 	}
 	else
 	{
 		uiWord = 0;
 	}
-	mpcBackend->mpszOut->Append("\t\t");
-	mpcBackend->mpszOut->Append(szMnemonic);
-	mpcBackend->mpszOut->Append(" ");
-	mpcBackend->mpszOut->Append((int32)uiWord);
-	mpcBackend->mpszOut->AppendNewLine();
+	mpcBackend->Line(uiMnemonic, (int64)uiWord);
 }
 
 
@@ -187,13 +173,17 @@ void CIRW65C816Selector::Store(SIRReference sResult, int iWord)
 	{
 		//Its one use is later in the block: the store is marked for Peephole, which leaves the value in A when that
 		//use is the next lda of it with A not changed before it.
-		mpcBackend->mpszOut->Append("\t\tsta [D + ");
-		mpcBackend->mpszOut->Append(mpcBackend->mcPlaces.OffsetOf(sResult));
-		mpcBackend->mpszOut->Append("]" IR816_KEEP_IN_A);
-		mpcBackend->mpszOut->AppendNewLine();
+		CChars	sz;
+
+		sz.Init(CIRW65C816Backend::GetScratch());
+		sz.Append("[D + ");
+		sz.Append(mpcBackend->mcPlaces.OffsetOf(sResult));
+		sz.Append("]");
+		mpcBackend->Line(IR816M_Sta, sz.Text(), true);
+		sz.Kill();
 		return;
 	}
-	Frame("sta", mpcBackend->mcPlaces.OffsetOf(sResult) + 2 * iWord);
+	Frame(IR816M_Sta, mpcBackend->mcPlaces.OffsetOf(sResult) + 2 * iWord);
 }
 
 
@@ -232,11 +222,11 @@ void CIRW65C816Selector::CopyWords(int32 iDestination, SIRReference sValue, int 
 	{
 		if (ConstantWord(sValue, i, &uiWord) && (uiWord == 0))
 		{
-			Frame("stz", iDestination + 2 * i);
+			Frame(IR816M_Stz, iDestination + 2 * i);
 			continue;
 		}
-		Operand("lda", sValue, i);
-		Frame("sta", iDestination + 2 * i);
+		Operand(IR816M_Lda, sValue, i);
+		Frame(IR816M_Sta, iDestination + 2 * i);
 	}
 }
 
@@ -274,7 +264,7 @@ void CIRW65C816Selector::ZeroWords(int32 iDestination, int iFirst, int iWords)
 
 	for (i = 0; i < iWords; i++)
 	{
-		Frame("stz", iDestination + 2 * (iFirst + i));
+		Frame(IR816M_Stz, iDestination + 2 * (iFirst + i));
 	}
 }
 
@@ -292,11 +282,11 @@ void CIRW65C816Selector::FillSign(int32 iDestination, int iFirst, int iWords)
 	{
 		return;
 	}
-	Frame("lda", iDestination + 2 * (iFirst - 1));
+	Frame(IR816M_Lda, iDestination + 2 * (iFirst - 1));
 	SignWordInA();
 	for (i = 0; i < iWords; i++)
 	{
-		Frame("sta", iDestination + 2 * (iFirst + i));
+		Frame(IR816M_Sta, iDestination + 2 * (iFirst + i));
 	}
 }
 
@@ -327,16 +317,16 @@ void CIRW65C816Selector::PushWord(SIRReference sValue, int iWord)
 	if (sValue.IsTemporary() && (iWord < mpcBackend->Words(mpcBackend->mpcFunction->GetTemporaryType(sValue))) && (IR816OnDirectPage(mpcBackend->mcPlaces.OffsetOf(sValue) + 2 * iWord) || mpcBackend->mcPlaces.InX(sValue)))
 	{
 		//pei pushes a direct page word without A (Peephole makes it pha when A holds it).
-		Operand("pei", sValue, iWord);
+		Operand(IR816M_Pei, sValue, iWord);
 	}
 	else if (sValue.IsTemporary())
 	{
-		Operand("lda", sValue, iWord);
+		Operand(IR816M_Lda, sValue, iWord);
 		mpcBackend->Line(IR816M_Pha);
 	}
 	else
 	{
-		Operand("pea", sValue, iWord);
+		Operand(IR816M_Pea, sValue, iWord);
 	}
 }
 
@@ -425,7 +415,7 @@ bool CIRW65C816Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 		for (i = 0; i < mpcBackend->Words(psInstruction->sType); i++)
 		{
 			mpcBackend->Line(IR816M_Lda, "0");
-			Operand("sbc", psInstruction->asArguments[0], i);
+			Operand(IR816M_Sbc, psInstruction->asArguments[0], i);
 			if (mpcBackend->Words(psInstruction->sType) == 1)
 			{
 				Mask(psInstruction->sType);
@@ -436,7 +426,7 @@ bool CIRW65C816Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 	case IRO_Copy:
 		if (mpcBackend->mcPlaces.InX(psInstruction->sResult))
 		{
-			Operand("ldx", psInstruction->asArguments[0], 0);
+			Operand(IR816M_Ldx, psInstruction->asArguments[0], 0);
 			return true;
 		}
 		CopyWords(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], mpcBackend->Words(psInstruction->sType));
@@ -513,9 +503,9 @@ bool CIRW65C816Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 		return true;
 	case IRO_FNeg:
 		CopyWords(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], mpcBackend->Words(psInstruction->sType));
-		Frame("lda", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * (mpcBackend->Words(psInstruction->sType) - 1));
+		Frame(IR816M_Lda, mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * (mpcBackend->Words(psInstruction->sType) - 1));
 		mpcBackend->Line(IR816M_Eor, "0x8000");
-		Frame("sta", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * (mpcBackend->Words(psInstruction->sType) - 1));
+		Frame(IR816M_Sta, mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * (mpcBackend->Words(psInstruction->sType) - 1));
 		return true;
 	case IRO_FEq:
 	case IRO_FNe:
@@ -559,7 +549,7 @@ void CIRW65C816Selector::Arithmetic(SIRInstruction* psInstruction)
 	{
 		for (i = 0; i < uiStep; i++)
 		{
-			mpcBackend->Line((psInstruction->uiOpcode == IRO_Sub) ? "dex" : "inx");
+			mpcBackend->Line((psInstruction->uiOpcode == IRO_Sub) ? IR816M_Dex : IR816M_Inx);
 		}
 		return;
 	}
@@ -619,24 +609,24 @@ bool CIRW65C816Selector::StepInPlace(SIRInstruction* psInstruction)
 	iOffset = mpcBackend->mcPlaces.OffsetOf(sValue);
 	if (bWord)
 	{
-		Frame((uiStep == 1) ? "inc" : "dec", iOffset);
+		Frame((uiStep == 1) ? IR816M_Inc : IR816M_Dec, iOffset);
 		return true;
 	}
 	iSkip = mpcBackend->NewLabel();
 	if (uiStep == 1)
 	{
-		Frame("inc", iOffset);
-		mpcBackend->Branch("bne", iSkip);
-		Frame("inc", iOffset + 2);
+		Frame(IR816M_Inc, iOffset);
+		mpcBackend->Branch(IR816M_Bne, iSkip);
+		Frame(IR816M_Inc, iOffset + 2);
 		mpcBackend->Label(iSkip);
 	}
 	else
 	{
-		Frame("lda", iOffset);
-		mpcBackend->Branch("bne", iSkip);
-		Frame("dec", iOffset + 2);
+		Frame(IR816M_Lda, iOffset);
+		mpcBackend->Branch(IR816M_Bne, iSkip);
+		Frame(IR816M_Dec, iOffset + 2);
 		mpcBackend->Label(iSkip);
-		Frame("dec", iOffset);
+		Frame(IR816M_Dec, iOffset);
 	}
 	return true;
 }
@@ -663,7 +653,7 @@ void CIRW65C816Selector::Logic(SIRInstruction* psInstruction)
 			}
 			else
 			{
-				Frame("stz", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * i);
+				Frame(IR816M_Stz, mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2 * i);
 			}
 			continue;
 		}
@@ -706,23 +696,23 @@ void CIRW65C816Selector::ExtendInX(SIRInstruction* psInstruction)
 	{
 		mpcBackend->Line(IR816M_Lda, "0");
 		mpcBackend->Line(IR816M_Sec);
-		Operand("sbc", sValue, 0);
+		Operand(IR816M_Sbc, sValue, 0);
 		Mask(sType);
 	}
 	else if ((psInstruction->uiOpcode == IRO_SExt) && sSource.Is(IRTK_I8))
 	{
-		Operand("lda", sValue, 0);
+		Operand(IR816M_Lda, sValue, 0);
 		SignExtendInA(7);
 		Mask(sType);
 	}
 	else if (sType.Is(IRTK_I8) || sType.Is(IRTK_I1))
 	{
-		Operand("lda", sValue, 0);
+		Operand(IR816M_Lda, sValue, 0);
 		Mask(sType);
 	}
 	else
 	{
-		Operand("ldx", sValue, 0);
+		Operand(IR816M_Ldx, sValue, 0);
 		return;
 	}
 	mpcBackend->Line(IR816M_Tax);
@@ -770,16 +760,16 @@ void CIRW65C816Selector::Extend(SIRInstruction* psInstruction)
 		{
 			mpcBackend->Line(IR816M_Lda, "0");
 			mpcBackend->Line(IR816M_Sec);
-			Operand("sbc", sValue, 0);
+			Operand(IR816M_Sbc, sValue, 0);
 			Mask(sType);
-			Frame("sta", iResult);
+			Frame(IR816M_Sta, iResult);
 			iCopied = 1;
 		}
 		else if (sSource.Is(IRTK_I8))
 		{
-			Operand("lda", sValue, 0);
+			Operand(IR816M_Lda, sValue, 0);
 			SignExtendInA(7);
-			Frame("sta", iResult);
+			Frame(IR816M_Sta, iResult);
 			iCopied = 1;
 		}
 		else
@@ -794,16 +784,16 @@ void CIRW65C816Selector::Extend(SIRInstruction* psInstruction)
 	ZeroWords(iResult, iCopied, iWords - iCopied);
 	if ((psInstruction->uiOpcode == IRO_Trunc) && (sType.Is(IRTK_I8) || sType.Is(IRTK_I1)))
 	{
-		Frame("lda", iResult);
+		Frame(IR816M_Lda, iResult);
 		Mask(sType);
-		Frame("sta", iResult);
+		Frame(IR816M_Sta, iResult);
 	}
 	else if (psInstruction->uiOpcode == IRO_IToPtr)
 	{
 		//A pointer's top byte is always 0.
-		Frame("lda", iResult + 2);
+		Frame(IR816M_Lda, iResult + 2);
 		mpcBackend->Line(IR816M_And, "0xFF");
-		Frame("sta", iResult + 2);
+		Frame(IR816M_Sta, iResult + 2);
 	}
 }
 
@@ -819,7 +809,7 @@ void CIRW65C816Selector::Address(SIRInstruction* psInstruction, int32 iOffset)
 	mpcBackend->Line(IR816M_Clc);
 	mpcBackend->Line(IR816M_Adc, (int64)(iOffset));
 	Store(psInstruction->sResult, 0);
-	Frame("stz", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
+	Frame(IR816M_Stz, mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult) + 2);
 }
 
 
@@ -903,7 +893,7 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 	int32			iOffset;
 	char*			szSymbol;
 	uint16			uiWord;
-	const char*		szMnemonic;
+	uint16			uiMnemonic;
 	SIRReference	sFirst;
 	SIRReference	sSecond;
 	bool			bAnd;
@@ -926,7 +916,7 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 			{
 				mpcBackend->Line(IR816M_Sep, "m");
 			}
-			Frame("lda", iOffset + 2 * iWord);
+			Frame(IR816M_Lda, iOffset + 2 * iWord);
 			return;
 		}
 		PointerPlace(sFirst, &iPlace, &szSymbol, &iOffset);
@@ -957,19 +947,19 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 	case IRO_Sub:
 		if (iWord == 0)
 		{
-			mpcBackend->Line((psInstruction->uiOpcode == IRO_Sub) ? "sec" : "clc");
+			mpcBackend->Line((psInstruction->uiOpcode == IRO_Sub) ? IR816M_Sec : IR816M_Clc);
 		}
-		Operand("lda", sFirst, iWord);
-		Operand((psInstruction->uiOpcode == IRO_Sub) ? "sbc" : "adc", sSecond, iWord);
+		Operand(IR816M_Lda, sFirst, iWord);
+		Operand((psInstruction->uiOpcode == IRO_Sub) ? IR816M_Sbc : IR816M_Adc, sSecond, iWord);
 		return;
 	case IRO_Not:
-		Operand("lda", sFirst, iWord);
+		Operand(IR816M_Lda, sFirst, iWord);
 		mpcBackend->Line(IR816M_Eor, "0xFFFF");
 		return;
 	default:
 		//A constant word that leaves the other's (and all ones, or and eor 0) is a copy; and 0 is 0.
 		bAnd = psInstruction->uiOpcode == IRO_And;
-		szMnemonic = bAnd ? "and" : ((psInstruction->uiOpcode == IRO_Or) ? "ora" : "eor");
+		uiMnemonic = bAnd ? IR816M_And : ((psInstruction->uiOpcode == IRO_Or) ? IR816M_Ora : IR816M_Eor);
 		if (ConstantWord(sSecond, iWord, &uiWord))
 		{
 			if (bAnd && (uiWord == 0))
@@ -979,12 +969,12 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 			}
 			if ((bAnd && (uiWord == IR816AllOnes(psInstruction->sType))) || (!bAnd && (uiWord == 0)))
 			{
-				Operand("lda", sFirst, iWord);
+				Operand(IR816M_Lda, sFirst, iWord);
 				return;
 			}
 		}
-		Operand("lda", sFirst, iWord);
-		Operand(szMnemonic, sSecond, iWord);
+		Operand(IR816M_Lda, sFirst, iWord);
+		Operand(uiMnemonic, sSecond, iWord);
 		return;
 	}
 }
@@ -1031,7 +1021,7 @@ void CIRW65C816Selector::StoreMemory(SIRInstruction* psInstruction)
 		}
 
 		//The value first: a fused load sets Y.
-		Operand("lda", psInstruction->asArguments[0], i);
+		Operand(IR816M_Lda, psInstruction->asArguments[0], i);
 		if (!szSymbol)
 		{
 			sz.Append(mpcBackend->mcFolds.LoadY(psInstruction->asArguments[1], iOffset + 2 * i) ? "]:24 + Y]" : "]:24]");
@@ -1060,12 +1050,12 @@ void CIRW65C816Selector::DirectStore(SIRInstruction* psInstruction, int32 iOffse
 	bByte = psInstruction->sType.Is(IRTK_I8);
 	for (i = 0; i < mpcBackend->Words(psInstruction->sType); i++)
 	{
-		Operand("lda", psInstruction->asArguments[0], i);
+		Operand(IR816M_Lda, psInstruction->asArguments[0], i);
 		if (bByte)
 		{
 			mpcBackend->Line(IR816M_Sep, "m");
 		}
-		Frame("sta", iOffset + 2 * i);
+		Frame(IR816M_Sta, iOffset + 2 * i);
 		if (bByte)
 		{
 			mpcBackend->Line(IR816M_Rep, "m");

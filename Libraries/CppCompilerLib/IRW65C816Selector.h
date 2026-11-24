@@ -40,8 +40,8 @@ public:
 	void	Kill(void);
 
 	uint8			ZeroWords(SIRReference sValue);
-	void			Frame(const char* szMnemonic, int32 iOffset);
-	void			Operand(const char* szMnemonic, SIRReference sValue, int iWord);
+	void			Frame(uint16 uiMnemonic, int32 iOffset);
+	void			Operand(uint16 uiMnemonic, SIRReference sValue, int iWord);
 	void			Store(SIRReference sResult, int iWord);
 	void			Mask(SIRType sType);
 	bool			ConstantWord(SIRReference sValue, int iWord, uint16* puiWord);

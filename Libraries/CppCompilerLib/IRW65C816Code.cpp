@@ -486,9 +486,9 @@ void CIRW65C816Code::ClearRound(size uiLine)
 // the last line.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, const char* szOperand)
+void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, const char* szOperand, bool bMarked)
 {
-	MakeInstruction(NewLine(), uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, false);
+	MakeInstruction(NewLine(), uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, bMarked);
 }
 
 
