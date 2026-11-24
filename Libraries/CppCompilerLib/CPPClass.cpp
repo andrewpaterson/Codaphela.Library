@@ -838,6 +838,50 @@ CCPPSymbol* CCPPClass::FindMemberSymbol(int64 lliName, ECPPSymbolKind eKind, CCP
 
 bool SCPPField::IsBitField(void) const { return iBitWidth >= 0; }
 bool SCPPField::IsUnnamedBitField(void) const { return (iBitWidth >= 0) && (pcSymbol == NULL); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether nothing gives the field a value where a constructor doesn't name
+// it in its member initialisers: it has no default member initialiser, and
+// it is a reference, or a const object (or an array of them) of a type with
+// no constructor of its own, a number say.  [class.base.init] 8,
+// [class.ctor] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool SCPPField::NeedsValue(void) const
+{
+	SCPP65Type*	psElement;
+
+	if (!pcSymbol || pcInitialiser)
+	{
+		return false;
+	}
+	psElement = psType->InnermostElement();
+	return psElement->IsReference() || (psElement->bConst && !(psElement->IsClass() && psElement->pcClass->mbConstructors));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a field needs a value that nothing but a constructor of the
+// class can give it (SCPPField::NeedsValue): with none, its default
+// constructor is deleted.  [class.ctor] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClass::HasFieldNeedingValue(void)
+{
+	size	i;
+
+	for (i = 0; i < macFields.NumElements(); i++)
+	{
+		if (macFields.Get(i)->NeedsValue())
+		{
+			return true;
+		}
+	}
+	return false;
+}
 bool CCPPClass::IsComplete(void) const { return meState == CPPCS_Complete; }
 bool CCPPClass::IsBeingMade(void) const { return (meState == CPPCS_ResolvingBases) || IsLayingOut(); }
 bool CCPPClass::IsLayingOut(void) const { return meState == CPPCS_LayingOut; }

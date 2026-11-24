@@ -126,6 +126,7 @@ struct SCPP65Type
 	bool		IsScopedEnum(void) const;
 	SCPP65Type*	WithoutReference(void);
 	SCPP65Type*	ElementType(void);
+	SCPP65Type*	InnermostElement(void);
 	int64		Least(void) const;
 	int64		Most(void) const;
 	int		GetElementBytes(void) const;

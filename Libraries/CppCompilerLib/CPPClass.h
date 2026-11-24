@@ -48,6 +48,7 @@ struct SCPPField
 	void			Init(CCPPSymbol* pcSymbol, SCPP65Type* psType, int iBitWidth = -1);
 	bool			IsBitField(void) const;
 	bool			IsUnnamedBitField(void) const;
+	bool			NeedsValue(void) const;
 };
 
 
@@ -208,6 +209,7 @@ public:
 	bool			IsCopyDeleted(void);
 	bool			IsAssignmentDeleted(void);
 	bool			IsTriviallyCopyable(void);
+	bool			HasFieldNeedingValue(void);
 	bool			IsTriviallyAssignable(void);
 	bool			IsPolymorphic(void) const;
 	bool			IsAbstract(void);

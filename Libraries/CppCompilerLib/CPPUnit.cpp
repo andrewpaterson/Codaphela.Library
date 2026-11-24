@@ -1918,7 +1918,7 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 	{
 		psElement = psElement->psBase;
 	}
-	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && HasFieldNeedingInitialiser(psElement->pcClass))
+	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && psElement->pcClass->HasFieldNeedingValue())
 	{
 		//[class.ctor] 4
 		return mcDiagnostics.ReportError(pcNode, "The class's default constructor is deleted: a reference or const member of it has no initialiser");
@@ -1937,40 +1937,6 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 		return mcDiagnostics.ReportError(pcNode, "A const object of a class with no constructor must be initialised");
 	}
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a field of the class has no default member initialiser and can't
-// be made by default: a reference, or a const object of a type with no
-// constructor of its own (a number, say).  [class.ctor] 4
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::HasFieldNeedingInitialiser(CCPPClass* pcClass)
-{
-	SCPPField*	psField;
-	SCPP65Type*	psType;
-	size		i;
-
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (!psField->pcSymbol || psField->pcInitialiser)
-		{
-			continue;
-		}
-		psType = psField->psType;
-		while (psType->IsArray())
-		{
-			psType = psType->psBase;
-		}
-		if (psType->IsReference() || (psType->bConst && !(psType->IsClass() && psType->pcClass->mbConstructors)))
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 

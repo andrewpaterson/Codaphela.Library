@@ -538,7 +538,6 @@ public:
 	bool					IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFunction, size uiMembers);
 	bool					ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOverridden);
 	bool					InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType, CCPPSyntax* pcNode);
-	bool					HasFieldNeedingInitialiser(CCPPClass* pcClass);
 	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);

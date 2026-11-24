@@ -1059,7 +1059,6 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 	CCPPClass*						pcNamed;
 	CCPPClass*						pcOtherNamed;
 	SCPPField*						psField;
-	SCPP65Type*						psType;
 	int64							lliName;
 	size							i;
 	size							j;
@@ -1119,12 +1118,7 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
 		psField = pcClass->macFields.Get(i);
-		if (!psField->pcSymbol || psField->pcInitialiser)
-		{
-			continue;
-		}
-		psType = psField->psType;
-		if (!(psType->IsReference() || (psType->bConst && !(psType->IsClass() && psType->pcClass->mbConstructors))))
+		if (!psField->NeedsValue())
 		{
 			continue;
 		}

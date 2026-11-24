@@ -3921,6 +3921,9 @@ void TestCPP65GeneratorFunctionDeclarations(void)
 	AssertCPP65Error("Generated.cpp (1, 31): The member or base is named twice in the member initialisers [a]\n", "struct S { int a; S() : a(1), a(2) {} }; int main() { S s; return s.a; }");
 	AssertCPP65Error("Generated.cpp (1, 25): The constructor leaves a reference or const member without a value: name it in the member initialisers [S]\n", "struct S { const int a; S() {} }; int main() { S s; return s.a; }");
 	AssertCPP65Error("Generated.cpp (1, 20): The constructor leaves a reference or const member without a value: name it in the member initialisers [S]\n", "struct S { int& r; S() {} }; int main() { S s; return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 28): The constructor leaves a reference or const member without a value: name it in the member initialisers [S]\n", "struct S { const int a[2]; S() {} }; int main() { S s; return s.a[0]; }");
+	AssertCPP65Error("Generated.cpp (1, 46): The class's default constructor is deleted: a reference or const member of it has no initialiser [s]\n", "struct S { const int a[2]; }; int main() { S s; return s.a[0]; }");
+	AssertCPP65Generates("struct S { const int a[2]; S() : a() {} }; int main() { S s; return s.a[0]; }");
 	//And what they may be: a declaration is of the function declared before it with the same signature, whose
 	//defaults it adds to; a function is declared by its type's name; auto's return is worked out from the body.
 	AssertCPP65Generates("typedef int Binary(int, int); Binary Add; int Add(int a, int b) { return a + b; } int main() { return Add(1, 2); }");
