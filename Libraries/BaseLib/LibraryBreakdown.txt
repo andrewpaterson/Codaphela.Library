@@ -21,6 +21,8 @@ Collections
     see HashMapPlan.txt
   Queues: CQueueTemplate (QueueTemplate.h), a CArrayTemplate with a front index: pushed at the back, taken at the
     front, cut from the back
+  Binary heap: BinaryHeapPush and BinaryHeapPop (BinaryHeap.h), a min-heap kept in a CArrayTemplate
+  Union-find: CUnionFind and CUnionFindLarge (UnionFind.h, compiled once), a parent array with path halving
   Sets
   Trees
   Searching (binary) and sorting (bubble, quick, Tim)

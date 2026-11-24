@@ -17,7 +17,7 @@ deque, CArrayBit's operations, and a union-find.  Their order from here:
   4. A survey for hand rolled bit scans (population counts, first set or clear bit, and/or/xor of words over a bit
      array) and union-finds (LogiCim's and KiCad's nets, the compiler's grouping), and from what it finds a plan for
      CArrayBit's operations and for a union-find, each built only if something would use it.  (Surveyed 2026-11-23:
-     both have users; planned at the end.)
+     both have users; planned at the end.  Both built and their users converted 2026-11-24.)
   5. Fitted in around those, the hash map's follow-ups: real keys for CPP65Type's function types, CPPHeaderIndex's
      declarations and PPHeaderCache's headers (each still keys by a hash with its own collision chain, now in a hash
      map); a case insensitive text HASH (for IDECodeModel's mcProjectFiles); CPPIndex's text maps, CPP65ListingIndex
@@ -593,8 +593,13 @@ Steps
      stopped by low memory before it printed anything.
 
 
-BinaryHeap moved to BaseLib, CArrayBit's scans and a union-find (planned 2026-11-23 from the survey, not started)
-==================================================================================================================
+BinaryHeap moved to BaseLib, CArrayBit's scans and a union-find (planned 2026-11-23 from the survey; done 2026-11-24)
+======================================================================================================================
+
+Where it is: all three built and committed 2026-11-24, their users converted.  Proved: TestBaseLib 320,632 run (Release
+x64), 320,641 (Release Win32), 320,644 (Debug x64); TestSupportLib 57,912, 57,924, 57,912; TestWindowLib 23,692 in
+each; TestKicadImporterLib 1,692 in each; TestLogicimLib 18,013 in each; all 0 failed.  LogiCim built in all three.
+Still to run: TestHCP65Lib once, over the CArrayBlock fix and everything after it.
 
 The user, 2026-11-23: "Please continue with the plan up to and including step 6.  Clean up and commit as you go,
 ensure there are tests."
