@@ -544,12 +544,35 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A variable's slot is at D + its slot.
+// A variable's slot is at D + its slot, a parameter read where it was
+// passed (its argaddr) at D + the parameter's place.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::VariableSlotPlace(SIRReference sSlot)
+int32 CIRW65C816Backend::VariableSlotPlace(SIRInstruction* psSlot)
 {
-	return masTemporaries.Get(sSlot.Index())->iSlot;
+	if (psSlot->uiOpcode == IRO_ArgAddress)
+	{
+		return *maiParameters.Get((size)mpcFunction->GetConstant(psSlot->asArguments[0])->ulliBits);
+	}
+	return masTemporaries.Get(psSlot->sResult.Index())->iSlot;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The bytes of a variable's slot: a slot's size, a parameter's type's.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRW65C816Backend::VariableSlotBytes(SIRInstruction* psSlot)
+{
+	size	uiParameter;
+
+	if (psSlot->uiOpcode == IRO_ArgAddress)
+	{
+		uiParameter = (size)mpcFunction->GetConstant(psSlot->asArguments[0])->ulliBits;
+		return (int32)mpcModule->GetSize(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(uiParameter)));
+	}
+	return (int32)mpcFunction->GetConstant(psSlot->asArguments[0])->ulliBits;
 }
 
 
@@ -782,7 +805,7 @@ void CIRW65C816Backend::KeepSlots(CIRW65C816Code* pcCode)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if (VariableSlotName(psInstruction))
 			{
-				pcCode->SetKept(masTemporaries.Get(psInstruction->sResult.Index())->iSlot, (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
+				pcCode->SetKept(VariableSlotPlace(psInstruction), VariableSlotBytes(psInstruction));
 			}
 		}
 	}

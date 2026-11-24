@@ -300,7 +300,7 @@ bool CCPP65DebugValues::AppendCall(CAsm65StackWalker* pcWalker, SAsm65StackFrame
 		}
 		else
 		{
-			pszDest->Append("???");
+			pszDest->Append((psVariable->uiWhere == ADW_None) ? CPP65_DEBUG_OPTIMISED_AWAY : "???");
 		}
 	}
 	pszDest->Append(')');

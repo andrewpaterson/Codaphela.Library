@@ -303,7 +303,7 @@ protected:
 	void				Peephole(size uiStart);
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
-	int32				VariableSlotPlace(SIRReference sSlot) override;
+	int32				VariableSlotPlace(SIRInstruction* psSlot) override;
 	void				Epilogue(void);
 	void				ReturnCode(bool bThrow = false);
 	int					ReturnInstructions(void);

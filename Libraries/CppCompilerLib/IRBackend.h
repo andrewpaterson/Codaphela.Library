@@ -144,7 +144,7 @@ public:
 protected:
 	char*			VariableSlotName(SIRInstruction* psInstruction);
 	void			AddVariableSlots(CIRWrittenFunction* pcWritten);
-	virtual int32	VariableSlotPlace(SIRReference sSlot) = 0;
+	virtual int32	VariableSlotPlace(SIRInstruction* psSlot) = 0;
 	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
 
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);

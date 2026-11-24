@@ -517,16 +517,17 @@ const char* CIRWrittenFunction::GetEntry(size uiIndex) { return maszEntries.GetT
 //////////////////////////////////////////////////////////////////////////
 //
 // The name of the variable psInstruction is the slot of, NULL if it isn't
-// one.  Only a variable's slot is named (the front end's VariableSlot), and
+// one: a slot, or the argaddr of a parameter read where it was passed.
+// Only a variable's slot is named (the front end's NameVariableSlots), and
 // it keeps its name only while it is the variable's alone, Debug (kept) or
 // Release: a pass that changes what it holds forgets the name
-// (CIRFunction::ForgetTemporaryName), and a promoted slot is gone.  A
-// debugger reads it, so the back end leaves its stores.
+// (CIRFunction::ForgetTemporaryName), and a promoted slot or argaddr is
+// gone.  A debugger reads it, so the back end leaves its stores.
 //
 //////////////////////////////////////////////////////////////////////////
 char* CIRBackend::VariableSlotName(SIRInstruction* psInstruction)
 {
-	if (psInstruction->uiOpcode != IRO_Slot)
+	if ((psInstruction->uiOpcode != IRO_Slot) && (psInstruction->uiOpcode != IRO_ArgAddress))
 	{
 		return NULL;
 	}
@@ -557,7 +558,7 @@ void CIRBackend::AddVariableSlots(CIRWrittenFunction* pcWritten)
 			szName = VariableSlotName(psInstruction);
 			if (szName)
 			{
-				pcWritten->AddSlot(szName, VariableSlotPlace(psInstruction->sResult));
+				pcWritten->AddSlot(szName, VariableSlotPlace(psInstruction));
 			}
 		}
 	}

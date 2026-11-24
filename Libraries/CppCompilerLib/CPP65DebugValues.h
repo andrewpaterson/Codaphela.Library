@@ -68,6 +68,9 @@ struct SCPP65DebugWrite
 };
 
 
+#define CPP65_DEBUG_OPTIMISED_AWAY	"(optimised away)"	//What a variable kept nowhere a debugger can read shows as its value.
+
+
 //What a processor's program has, as the debugger reads it: an address's bits (24 on the W65C816, 32 on the 65C64), the
 //hexadecimal digits it is shown in, and an int's bytes (CCPPTarget::GetIntBytes).
 uint32	CPP65DebugAddressMask(CAsm65DebugRecords* pcRecords);

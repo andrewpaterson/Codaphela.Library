@@ -1397,14 +1397,29 @@ bool CCPP65IRFrontEnd::Parameters(void)
 // after them from where they were passed) stay where they are
 // (bByAddress): the kept slot holds the address.
 //
+// Built for speed, a parameter isn't copied: it is described where it was
+// passed (sAddress, its argaddr), which is its own while the argaddr is
+// (a back end shares no parameter's place in a function with one), and
+// isn't kept once the optimiser makes the parameter a value.  An object
+// passed by address has no place of its own.
+//
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::DebugParameter(CCPPVariable* pcVariable, SIRReference sAddress, bool bByAddress)
 {
 	SIRReference	sSlot;
 	SIRType			sType;
+	size			ui;
+	bool			bPassedByAddress;
 
 	if (!Debuggable())
 	{
+		//The address of an object passed by address is a parameter itself; any other is the parameter's argaddr.
+		bPassedByAddress = false;
+		for (ui = 0; ui < mpcFunction->masParameters.NumElements(); ui++)
+		{
+			bPassedByAddress |= mpcFunction->masParameters.Get(ui)->Equals(sAddress);
+		}
+		AddDebugVariable(pcVariable, bPassedByAddress ? IRNone() : sAddress, 0, false);
 		return true;
 	}
 	if (bByAddress)

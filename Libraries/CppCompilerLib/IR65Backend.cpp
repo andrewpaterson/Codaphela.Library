@@ -757,12 +757,23 @@ CIRWrittenFunction* CIR65Backend::TakeWritten(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A variable's slot is at [1 + its offset + V].
+// A variable's slot is at [1 + its offset + V].  A parameter read where it
+// was passed (its argaddr) is in the frame too when it came in a register,
+// else in the bytes its caller pushed, just above the frame address: from V
+// where the arguments start (SIR65Frame::iArguments) in a function with a
+// frame of its own, from the frame address in one without.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::VariableSlotPlace(SIRReference sSlot)
+int32 CIR65Backend::VariableSlotPlace(SIRInstruction* psSlot)
 {
-	return 1 + masPlaces.Get(sSlot.Index())->iOffset;
+	SIR65Place*	psPlace;
+
+	psPlace = masPlaces.Get(psSlot->sResult.Index());
+	if (psPlace->uiKind == IR65P_ArgumentAddress)
+	{
+		return psPlace->iOffset + (msFrame.bFrameless ? 1 : msFrame.iArguments);
+	}
+	return 1 + psPlace->iOffset;
 }
 
 

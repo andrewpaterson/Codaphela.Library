@@ -1186,6 +1186,23 @@ void TestCPP65DebugValues(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The uiFrame'th frame of the last walk as the Call Stack shows it: its
+// function and parameters.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCPP65DebugCall(STestCPP65Debug* psDebug, size uiFrame, const char* szExpected)
+{
+	CChars	sz;
+
+	sz.Init();
+	psDebug->cValues.AppendCall(psDebug->pcWalker, psDebug->asFrames.Get(uiFrame), &sz);
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A Release program (Debugger65C64Plan.txt A3) whose main keeps an array,
 // an object and an int whose address is taken in memory, and an int the
 // optimiser folds away.
@@ -1202,17 +1219,22 @@ static const char* gszTestCPP65DebugRelease =
 	"}\n"																	//8
 	"int Area(SPoint* ps) { return ps->x * ps->y; }\n"						//9
 	"void Bump(int* pi) { *pi = *pi + 1; }\n"								//10
-	"int main(void)\n"														//11
+	"int Taken(int iValue, SPoint sAt)\n"									//11
 	"{\n"																	//12
-	"	int		aiCounts[3] = { 7, 8, 9 };\n"								//13
-	"	SPoint	s;\n"														//14
-	"	int		iTaken = 4;\n"												//15
-	"	int		iFolded = 3;\n"												//16
-	"	s.x = 2;\n"															//17
-	"	s.y = 5;\n"															//18
-	"	Bump(&iTaken);\n"													//19
-	"	return Sum(aiCounts, 3) + Area(&s) + iTaken + iFolded;\n"			//20
-	"}\n";																	//21
+	"	Bump(&iValue);\n"													//13
+	"	return iValue * sAt.y + sAt.x;\n"									//14
+	"}\n"																	//15
+	"int main(void)\n"														//16
+	"{\n"																	//17
+	"	int		aiCounts[3] = { 7, 8, 9 };\n"								//18
+	"	SPoint	s;\n"														//19
+	"	int		iTaken = 4;\n"												//20
+	"	int		iFolded = 3;\n"												//21
+	"	s.x = 2;\n"															//22
+	"	s.y = 5;\n"															//23
+	"	Bump(&iTaken);\n"													//24
+	"	return Sum(aiCounts, 3) + Area(&s) + iTaken + iFolded + Taken(7, s);\n"	//25
+	"}\n";																	//26																	//21
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1250,8 +1272,9 @@ static int TestCPP65DebugWhere(STestCPP65Debug* psDebug, const char* szFunction,
 // A Release build describes the variables whose slot is theirs alone for
 // the whole function, on both processors: what stays in memory (an array,
 // an object, an int whose address is taken) is shown right in a caller's
-// frame; a variable promoted, folded or split away isn't kept.  The
-// parameters and locals in registers aren't described as kept either.
+// frame; a variable promoted, folded or split away isn't kept.  So are
+// parameters where they were passed: one whose address is taken, an
+// object its caller pushed; one the optimiser makes a value isn't kept.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65DebugRelease(void)
@@ -1271,6 +1294,10 @@ void TestCPP65DebugRelease(void)
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iCount"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Area", "ps"));
+		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "Taken", "iValue"));
+		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "Taken", "sAt"));
 		TestCPP65DebugLoad(&sDebug);
 
 		//Stopped in Area, main's: the array, the object, the int Bump added one to.
@@ -1278,6 +1305,7 @@ void TestCPP65DebugRelease(void)
 		TestCPP65DebugWalk(&sDebug);
 		AssertString("Area", TestCPP65DebugFrameName(&sDebug, 0));
 		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
+		AssertCPP65DebugCall(&sDebug, 0, "Area(SPoint* ps = (optimised away))");
 		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "aiCounts", &sValue));
 		AssertInt(3, (int)sDebug.cValues.NumChildren(&sValue));
 		AssertCPP65DebugChild(&sDebug, &sValue, 0, "[0]", "7 = int", &sChild);
@@ -1289,8 +1317,19 @@ void TestCPP65DebugRelease(void)
 		AssertCPP65DebugWatch(&sDebug, 1, "aiCounts[1] + iTaken", "13 = int");
 		AssertCPP65DebugWatch(&sDebug, 1, "iFolded", "iFolded isn't kept anywhere here (optimised away)");
 
+		//Stopped in Taken after Bump: the parameter whose address went to Bump, and the object its caller pushed.
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 14));
+		TestCPP65DebugWalk(&sDebug);
+		AssertString("Taken", TestCPP65DebugFrameName(&sDebug, 0));
+		AssertInt(8, TestCPP65DebugLocal(&sDebug, 0, "iValue"));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "sAt", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "x", "2 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "y", "5 = int", &sChild);
+		AssertCPP65DebugWatch(&sDebug, 0, "iValue * sAt.y", "40 = int");
+		AssertCPP65DebugCall(&sDebug, 0, "Taken(int iValue = 8, SPoint sAt = {...})");
+
 		szWrong.Init();
-		AssertInt(24 + 10 + 5 + 3, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertInt(24 + 10 + 5 + 3 + 8 * 5 + 2, TestCPP65DebugRunWalking(&sDebug, &szWrong));
 		AssertString("", szWrong.Text());
 		szWrong.Kill();
 		TestCPP65DebugKill(&sDebug);
@@ -1303,9 +1342,8 @@ void TestCPP65DebugRelease(void)
 // Built for speed with inlining, as the IDE's Release is, on both
 // processors: a function written again once calls are inlined into it is
 // described as it is then (its variables where its slots went last), so
-// main's array is still in its frame, and what became a value once Area and
-// Bump were inlined (the object, the int whose address went to Bump) isn't
-// kept.  A function called with a constant is copied for each
+// main's array is still in its frame, and what became a value once Bump
+// was inlined (the int whose address went to it) isn't kept.  A function called with a constant is copied for each
 // (CIRInterprocedural, as Libc65's FloorDivide is): a copy has its
 // variables too, described only once it has code of its own (one inlined
 // leaves none to describe them after).  The stack walks at every step.
@@ -1322,12 +1360,11 @@ void TestCPP65DebugReleaseInlined(void)
 	{
 		TestCPP65DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_ReleaseInlined, aeTargets[uiTarget]);
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "s"));
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
 		TestCPP65DebugLoad(&sDebug);
 		szWrong.Init();
-		AssertInt(24 + 10 + 5 + 3, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertInt(24 + 10 + 5 + 3 + 8 * 5 + 2, TestCPP65DebugRunWalking(&sDebug, &szWrong));
 		AssertString("", szWrong.Text());
 		szWrong.Kill();
 		TestCPP65DebugKill(&sDebug);
