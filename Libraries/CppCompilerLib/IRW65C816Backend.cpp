@@ -641,8 +641,8 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 //////////////////////////////////////////////////////////////////////////
 //
 // Where a value is kept, for a debugger (CIRBackend::DebugPlace): X, or
-// its frame place (D + offset; the function's base is D).  A value with
-// no place (only in A, folded) has none.  The bytes of the place are noted
+// its frame place (D + offset; the function's base is D); a slot's
+// address its value.  A value with no place (only in A, folded) has none.  The bytes of the place are noted
 // for UnreadPlaces.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -654,6 +654,11 @@ bool CIRW65C816Backend::DebugPlace(SIRReference sValue, CChars* pszPlace)
 	if (mcPlaces.InX(sValue))
 	{
 		pszPlace->Append("register, X");
+		return true;
+	}
+	if (masTemporaries.Get(sValue.Index())->iSlot >= 0)
+	{
+		pszPlace->Append("frameaddress, ")->Append(masTemporaries.Get(sValue.Index())->iSlot);
 		return true;
 	}
 	iOffset = mcPlaces.OffsetOf(sValue);

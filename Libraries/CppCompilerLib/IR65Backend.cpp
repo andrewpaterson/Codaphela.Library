@@ -716,7 +716,8 @@ int32 CIR65Backend::VariableSlotPlace(SIRInstruction* psSlot)
 // Where a value is kept, for a debugger (CIRBackend::DebugPlace): its
 // register, its pseudo register ($n, IR65PseudoWithoutW), or its frame or argument
 // place from the function's base (V, or with no frame the frame address,
-// as VariableSlotPlace).  A value only left in A, or folded, has none.
+// as VariableSlotPlace); a slot's or argaddr's address its value.  A value
+// only left in A, or folded, has none.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Backend::DebugPlace(SIRReference sValue, CChars* pszPlace)
@@ -745,6 +746,16 @@ bool CIR65Backend::DebugPlace(SIRReference sValue, CChars* pszPlace)
 		return true;
 	case IR65P_Argument:
 		pszPlace->Append("frame, ")->Append(psPlace->iOffset + (msFrame.bFrameless ? 1 : msFrame.iArguments));
+		return true;
+	case IR65P_FrameAddress:
+		if (msFrame.bFrameless)
+		{
+			return false;
+		}
+		pszPlace->Append("frameaddress, ")->Append(1 + psPlace->iOffset);
+		return true;
+	case IR65P_ArgumentAddress:
+		pszPlace->Append("frameaddress, ")->Append(psPlace->iOffset + (msFrame.bFrameless ? 1 : msFrame.iArguments));
 		return true;
 	default:
 		return false;

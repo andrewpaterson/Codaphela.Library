@@ -599,7 +599,7 @@ bool CCPP65DebugWatch::Name(const char* szName, SCPP65DebugValue* psValue)
 		return true;
 	}
 
-	psGlobal = psFunction ? mpcRecords->FindGlobal(szName, psFunction) : NULL;
+	psGlobal = psFunction ? mpcRecords->FindGlobal(szName, psFunction, mpsFrame->iInline) : NULL;
 	psGlobal = psGlobal ? psGlobal : mpcRecords->FindGlobal(szName, NULL);
 	if (psGlobal)
 	{

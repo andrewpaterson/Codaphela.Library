@@ -458,7 +458,8 @@ void CIRBackend::BeginDebugPlaces(CIRDominators* pcDominators)
 // marker (IR_PLACE_MARKER) for each variable whose place isn't what the
 // last marker for it in the text said (a block's start says them all, as
 // its predecessors' ends may be anywhere): the home of the value it holds
-// while that is live through the code (DebugPlace), else none.
+// while that is live through the code (DebugPlace), a constant's value,
+// else none.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast)
@@ -477,7 +478,11 @@ void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast)
 	{
 		szPlace.Clear();
 		sValue = mcDebugPlaces.Value(ui);
-		if (sValue.IsNone() || !DebugPlace(sValue, &szPlace))
+		if (sValue.IsConstant())
+		{
+			szPlace.Append("value, ")->Append((int64)mpcFunction->GetConstant(sValue)->ulliBits);
+		}
+		else if (sValue.IsNone() || !DebugPlace(sValue, &szPlace))
 		{
 			szPlace.Set("none");
 		}
@@ -525,8 +530,10 @@ void CIRBackend::DebugPlaceMarker(size uiSlot, const char* szPlace)
 //
 // Where the temporary sValue is kept, for a debugger, as a .drange says
 // it: "frame, 5" (the function's base + 5), "register, X", "address,
-// 128".  False if it isn't kept anywhere a debugger can read (in A only,
-// folded into an address), or the back end doesn't describe places.
+// 128"; or for the address of a place in the frame, its value:
+// "frameaddress, 5".  False if it isn't kept anywhere a debugger can read
+// (in A only, folded into an address), or the back end doesn't describe
+// places.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRBackend::DebugPlace(SIRReference sValue, CChars* pszPlace)

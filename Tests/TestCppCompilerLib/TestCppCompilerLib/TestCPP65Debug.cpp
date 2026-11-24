@@ -1263,8 +1263,8 @@ static int TestCPP65DebugWhere(STestCPP65Debug* psDebug, const char* szFunction,
 // the whole function, on both processors: what stays in memory (an array,
 // an object, an int whose address is taken) is shown right in a caller's
 // frame; a variable promoted to values is where its values are while they
-// are kept (ranges, DebuggerFPlan.txt F1), and one folded to a constant
-// isn't kept.  So are parameters where they were passed: one whose
+// are kept (ranges, DebuggerFPlan.txt F1), and one folded to a constant is
+// that value (DebuggerFixesPlan.txt G4).  So are parameters where they were passed: one whose
 // address is taken, an object its caller pushed; one the optimiser makes
 // a value is where its value is (Area's ps).
 //
@@ -1284,7 +1284,7 @@ void TestCPP65DebugRelease(void)
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
 		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
 		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Sum", "iCount"));
 		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Area", "ps"));
@@ -1309,7 +1309,7 @@ void TestCPP65DebugRelease(void)
 		AssertCPP65DebugChild(&sDebug, &sValue, 1, "y", "5 = int", &sChild);
 		AssertInt(5, TestCPP65DebugLocal(&sDebug, 1, "iTaken"));
 		AssertCPP65DebugWatch(&sDebug, 1, "aiCounts[1] + iTaken", "13 = int");
-		AssertCPP65DebugWatch(&sDebug, 1, "iFolded", "iFolded isn't kept anywhere here (optimised away)");
+		AssertCPP65DebugWatch(&sDebug, 1, "iFolded", "3 = int");
 
 		//Stopped in Taken after Bump: the parameter whose address went to Bump, and the object its caller pushed.
 		AssertTrue(TestCPP65DebugRunTo(&sDebug, 14));
@@ -1337,7 +1337,8 @@ void TestCPP65DebugRelease(void)
 // processors: a function written again once calls are inlined into it is
 // described as it is then (its variables where its slots went last), so
 // main's array is still in its frame, and what became a value once Bump
-// was inlined (the int whose address went to it) isn't kept.  A function called with a constant is copied for each
+// was inlined (the int whose address went to it) is described by its
+// values (ranges).  A function called with a constant is copied for each
 // (CIRInterprocedural, as Libc65's FloorDivide is): a copy has its
 // variables too, described only once it has code of its own (one inlined
 // leaves none to describe them after).  The stack walks at every step.
@@ -1356,8 +1357,8 @@ void TestCPP65DebugReleaseInlined(void)
 	{
 		TestCPP65DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_ReleaseInlined, aeTargets[uiTarget]);
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
 		TestCPP65DebugLoad(&sDebug);
 
 		szWrong.Init();
@@ -1367,14 +1368,16 @@ void TestCPP65DebugReleaseInlined(void)
 		TestCPP65DebugKill(&sDebug);
 	}
 
-	//Pick, inlined into main's loop (DebuggerFPlan.txt F2): a row of its own at its line, its parameter its own; main's
-	//row below it at the call, its variables its own.
+	//Pick, inlined into main's loop (DebuggerFPlan.txt F2): a row of its own at its line, its parameter and its static
+	//its own; main's row below it at the call, its variables its own.
 	for (uiTarget = 0; uiTarget < 2; uiTarget++)
 	{
 		TestCPP65DebugBuild(&sDebug,
 			"int giValues[4] = { 3, 1, 4, 1 };\n"
 			"int Pick(int iIndex)\n"
 			"{\n"
+			"	static int	siCalls = 0;\n"
+			"	siCalls++;\n"
 			"	return giValues[iIndex & 3] * 2;\n"
 			"}\n"
 			"int main(void)\n"
@@ -1384,19 +1387,23 @@ void TestCPP65DebugReleaseInlined(void)
 			"	return iSum;\n"
 			"}\n", TCB_ReleaseInlined, aeTargets[uiTarget]);
 		TestCPP65DebugLoad(&sDebug);
-		AssertTrue(TestCPP65DebugRunTo(&sDebug, 4));
-		TestCPP65DebugRunTo(&sDebug, 4);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 6));
+		TestCPP65DebugRunTo(&sDebug, 6);
 		TestCPP65DebugRegisters(&sDebug, &sRegisters);
 		sDebug.pcWalker->Walk(&sRegisters, &sDebug.asFrames, 64, true);
 		AssertString("Pick", TestCPP65DebugFrameName(&sDebug, 0));
 		AssertTrue(sDebug.asFrames.Get(0)->IsInline());
-		AssertInt(4, TestCPP65DebugFrameLine(&sDebug, 0));
+		AssertInt(6, TestCPP65DebugFrameLine(&sDebug, 0));
 		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
 		AssertFalse(sDebug.asFrames.Get(1)->IsInline());
-		AssertInt(9, TestCPP65DebugFrameLine(&sDebug, 1));
+		AssertInt(11, TestCPP65DebugFrameLine(&sDebug, 1));
 		AssertInt(1, TestCPP65DebugLocal(&sDebug, 0, "iIndex"));
-		AssertTrue(sDebug.pcRecords->FindVariable(sDebug.asFrames.Get(0)->psFunction, "iSum", 4, sDebug.asFrames.Get(0)->iInline) == NULL);
-		AssertTrue(sDebug.pcRecords->FindVariable(sDebug.asFrames.Get(1)->psFunction, "iSum", 9, sDebug.asFrames.Get(1)->iInline) != NULL);
+		AssertTrue(sDebug.pcRecords->FindVariable(sDebug.asFrames.Get(0)->psFunction, "iSum", 6, sDebug.asFrames.Get(0)->iInline) == NULL);
+		AssertTrue(sDebug.pcRecords->FindVariable(sDebug.asFrames.Get(1)->psFunction, "iSum", 11, sDebug.asFrames.Get(1)->iInline) != NULL);
+
+		//Pick's static, of its row (DebuggerFixesPlan.txt G6): not main's.
+		AssertCPP65DebugWatch(&sDebug, 0, "siCalls", "2 = int");
+		AssertCPP65DebugWatch(&sDebug, 1, "siCalls", "siCalls is undefined");
 		szWrong.Init();
 		AssertInt(18, TestCPP65DebugRunWalking(&sDebug, &szWrong));
 		AssertString("", szWrong.Text());

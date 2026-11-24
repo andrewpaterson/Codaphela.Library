@@ -305,9 +305,9 @@ size CIRDebugPlaces::NumSlots(void) const { return muiSlots; }
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The temporary slot uiSlot holds where Move moved to, while it is live
-// through all the code written next (another value may take its home
-// after its last use); else none.
+// The value slot uiSlot holds where Move moved to: a constant, or a
+// temporary while it is live through all the code written next (another
+// value may take its home after its last use); else none.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CIRDebugPlaces::Value(size uiSlot)
@@ -315,6 +315,10 @@ SIRReference CIRDebugPlaces::Value(size uiSlot)
 	SIRReference	sValue;
 
 	sValue = *masValues.Get(uiSlot);
+	if (sValue.IsConstant())
+	{
+		return sValue;
+	}
 	if (!sValue.IsTemporary() || !IsLive(sValue, miPosition) || !IsLive(sValue, miLastPosition))
 	{
 		return IRNone();

@@ -2287,7 +2287,8 @@ void CCPP65IRFrontEnd::CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* p
 //
 // .dvariable for each of the written function's variables (RecordVariables)
 // and for those of the calls inlined into it (DebuggerFPlan.txt F2-2: the
-// callee's variables, of the inline), then its static locals.
+// callee's variables, of the inline), then its static locals and its
+// inlines' (DebuggerFixesPlan.txt G6).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten, CArrayChars* paszRanges)
@@ -2296,20 +2297,26 @@ void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWri
 	SIRInlineVariable*			psInlineVariable;
 	SCPP65IRWritten*			psCallee;
 	SCPP65IRDescribedVariable*	psVariable;
+	CChars						szStatics;
 	size						ui;
 	size						uj;
 	size						uiInline;
 
+	szStatics.Init();
 	for (ui = 0; ui < psWritten->asVariables.NumElements(); ui++)
 	{
 		psVariable = psWritten->asVariables.Get(ui);
 		DescribeVariable(pszCode, psWritten, psVariable, psVariable->iSlot, -1, paszRanges);
 	}
-	//Each inline's in its callee's order.
+	//Each inline's in its callee's order, then its callee's statics again, of the inline.
 	pcFunction = psWritten->pcFunction;
 	for (uiInline = 0; pcFunction && (uiInline < pcFunction->masInlines.NumElements()); uiInline++)
 	{
 		psCallee = FindWritten(mcModule.GetSymbolName(pcFunction->masInlines.Get(uiInline)->uiCallee));
+		if (psCallee)
+		{
+			AppendInlineStatics(&szStatics, psCallee->szStatics.Text(), (int32)uiInline);
+		}
 		for (uj = 0; psCallee && (uj < psCallee->asVariables.NumElements()); uj++)
 		{
 			psVariable = psCallee->asVariables.Get(uj);
@@ -2324,6 +2331,31 @@ void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWri
 		}
 	}
 	pszCode->Append(psWritten->szStatics);
+	pszCode->Append(szStatics);
+	szStatics.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szStatics' .dstatic lines (a callee's statics) appended to pszDest as
+// statics of the inline iInline.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::AppendInlineStatics(CChars* pszDest, const char* szStatics, int32 iInline)
+{
+	const char*	szEnd;
+
+	for (; *szStatics != '\0'; szStatics = (*szEnd == '\n') ? szEnd + 1 : szEnd)
+	{
+		szEnd = strchr(szStatics, '\n');
+		if (!szEnd)
+		{
+			szEnd = szStatics + strlen(szStatics);
+		}
+		pszDest->AppendSubString(szStatics, szEnd);
+		pszDest->Append(", ")->Append(iInline)->AppendNewLine();
+	}
 }
 
 

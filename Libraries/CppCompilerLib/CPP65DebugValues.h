@@ -37,7 +37,7 @@ enum ECPP65DebugFormat
 };
 
 
-#define CPP65_DEBUG_NO_REGISTER	0xFF	//A value not read from a register (SCPP65DebugValue::uiRegister).
+#define CPP65_DEBUG_NO_REGISTER	ASM65_STACK_NO_REGISTER	//A value not read from a register (SCPP65DebugValue::uiRegister).
 
 
 //A value a debugger shows (DebuggerPlan.txt C1): of a type in a program's debug records, in memory (an address in a

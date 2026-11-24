@@ -26,8 +26,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //Which value each of a function's debug slots (its variables a debugger is told of, promoted: SIRDebugValue) holds
 //before each of its instructions, as a back end writes them (DebuggerFPlan.txt F1-3).  A block starts with the
 //values its predecessors all end with, or where they differ the phi that takes each one's (none if no phi does); its
-//markers change them in order.  A value is only the slot's while it is live (CIRLiveness): after its last use
-//its home may be another's.  The back end says where each value is (CIRBackend::DebugPlaces).
+//markers change them in order.  A temporary is only the slot's while it is live (CIRLiveness): after its last use
+//its home may be another's.  A constant is the slot's until its next marker.  The back end says where each value is (CIRBackend::DebugPlaces).
 class CIRDebugPlaces
 {
 protected:

@@ -390,6 +390,7 @@ protected:
 	void			DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten, CArrayChars* paszRanges);
 	void			DescribeVariable(CChars* pszCode, SCPP65IRWritten* psWritten, SCPP65IRDescribedVariable* psVariable, int32 iSlot, int32 iInline, CArrayChars* paszRanges);
 	SCPP65IRWritten*	FindWritten(const char* szLabel);
+	void			AppendInlineStatics(CChars* pszDest, const char* szStatics, int32 iInline);
 	void			VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast);
 	int				TokenLine(int iToken);
 	void			Finish(void);
