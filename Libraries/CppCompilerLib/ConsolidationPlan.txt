@@ -466,80 +466,203 @@ Stage 6.  The rest of an expression is resolved once.  (XL)
    expression walks are one; compile CPU is lower than stage 0's front end share by about what the second walk
    cost, and peak memory is no higher.
 
-Stage 7.  The back ends are the same parts.  (L)
+Stages 7 to 11, planned again from the code (2026-11-24)
 
-   One record for each temporary (its place, slot, folded base, offset and index, uses, whether it is in X) in
-   place of nine arrays.  CIRW65C816Backend becomes its parts: CIRW65C816Places (PackTemporaries, PlaceTemporaries,
-   GroupTemporaries, AllocateX), CIRW65C816Folds, CIRW65C816Fusion, CIRW65C816Calls (PushArguments, LoadRegisterArguments,
-   the register stub, Forwarder), CIRW65C816Selector (an IR instruction to machine instructions) and
-   CIRW65C816Runtime.  CIR65Backend becomes the same parts with the same names, which finishes the reshaping
-   IR65Reshape.txt began.
-   Measure before: the back ends' shares of the compile, by function (on 2026-11-04 the W65C816's was nearly
-   half of generation).
-   Ends when: the listings are the same (this stage only moves code); compile CPU is within the spread.
+   The stages below were written again from what the code is now, not what it was on 2026-11-11.  What each
+   stage's code is, and what of it is done, was read from the tree at fe0f0bf21.  The order they are done in
+   is at the end ("The order from here"), and what the user is still to decide is there too.
 
-Stage 8.  The back ends' code is instructions.  (L-XL)
+Stage 7.  The back ends are the same parts.  (L; mostly done, what is left is S-M)
 
-   The selector adds instructions (mnemonic, operand, source position) to the back end's code instead of
-   text.  The passes are classes over the instructions, run from a list; nothing is decoded; a source
-   position is a field of an instruction; aligning a frame changes operands.  One printer writes the text
-   at the end.  The W65C816 first, the 65C64 after.  The passes then see every instruction: today
-   CIR65Code gives up on a function with a line it doesn't know, and the passes leave that function as it
-   is.  A pass that does one job on both processors is written once over what their instructions share,
-   as the branch passes already are (CIRBranchCode).
-   Measure before: the time spent turning text into lines and back (IR816Decode, CIRW65C816Code's and CIR65Code's
-   Load and Write, CIRSourceMarkers' Take and Put), and how many times a function's code makes the trip; how
-   many 65C64 functions CIR65Code refuses, and their share of the suites' cycles (a profile): that is the
-   most the 65C64 can gain here.
-   Measure after: that time (it should be gone, several seconds of the serial compile); each machine pass's
-   time, from the list, as stage 2 gave for the IR's; the suites' cycles and sizes on each processor, as the
-   output will change here; the listings read where they differ.
-   Ends when: no text is decoded; the suites pass; cycles and size on each processor are no worse, and the
-   65C64's are better by some part of what was measured before.
+   Done 2026-11-14 (60db5a798, 047eb8cb1, 303fa97e9, 7458f271c, a9bae8b2b).  On the W65C816 each temporary is
+   one record (SIRW65C816Temporary, masTemporaries), and CIRW65C816Places, CIRW65C816Folds, CIRW65C816Fusion,
+   CIRW65C816Calls, CIRW65C816Selector and CIRW65C816Runtime are classes of the back end.  The 65C64 has
+   CIR65Places, CIR65Folds, CIR65Fusion, CIR65Calls and CIR65Selector with the same names, but their functions
+   only moved into the classes: the bodies stayed in their old files.  No row for the stage was written in
+   Progress.
 
-Stage 9.  The builder is four classes.  (M)
+   What is left, each step only moving code:
+   a. The 65C64's temporaries are one record, SIR65Temporary, as 60db5a798 did for the W65C816: masPlaces,
+      masLaidOut, maiClasses, maiLeaders, mauiUses, mauiNarrowOnly and mcMost (IR65Backend.h:241-258) are
+      parallel arrays by temporary today.
+   b. CIR65Runtime, from CIR65Backend::CallRuntime (IR65Backend.cpp:937).
+   c. The register stub and the forwarder are the Calls class's on both processors.  On the W65C816 they are
+      still the back end's (RegisterStub, RegisterStubLoad, RegisterStubCall, Forwarder: about 450 lines,
+      IRW65C816Backend.cpp:1184, 1453, 1538-1700); on the 65C64 RegisterStub and StoreRegisterParameters.
+   d. The 65C64's parts have files of their own, as the W65C816's do (CIR65Folds' bodies are in
+      IR65Places.cpp).
+   Measure before: the back ends' shares of the compile, by function.
+   Ends when: the listings are the same (take the baseline after d66d0bc7a's register work, not 2026-11-11's);
+   compile CPU is within the spread; IRW65C816Backend.cpp (2,094 lines) and IR65Backend.cpp (1,563) keep only
+   what is the function's as a whole.
 
-   CCPPBuild is what is being built and its options (a struct, in place of Generate's 14 parameters).
-   CCPPUnitCompiler is one unit from source to object, with its stage as its state.  CCPPUnitSchedule is the
-   turns, the jobs and compiling again.  CCPPProgramLinker is the objects, the libraries, the missing labels'
-   stubs, the lazy image and the listings.
-   Measure before and after: wall time on 1, 4 and 16 threads; units compiled again, stale and parked; peak
-   memory with the jobs running.  A schedule is easy to make slower without making it wrong.
-   Ends when: the listings are the same serial and parallel, as now; wall time and memory are within the
-   spread on each thread count.
+Stage 8.  The back ends' code is instructions.  (L-XL; not started; waits for the user)
 
-Stage 10.  The parser and the preprocessor.  (M and M)
+   What it is, as written: the selector adds instructions (mnemonic, operand, source position) to the back
+   end's code instead of text; the passes are classes over the instructions, run from a list; nothing is
+   decoded; one printer writes the text at the end; a pass that does one job on both processors is written
+   once over what their instructions share, as the branch passes are (CIRBranchCode).
 
-   The parser: CCPPTokenCursor (where it is, the half '>', Peek, Is, Expect), a tentative parse as an object,
-   and the parsing split into declarations, expressions, statements and lazy headers round one shared context.
-   ParseStatement (193 lines, 29 ifs) and ParsePrimaryExpression choose by a table from the token.
-   The preprocessor: the stack of sources, the macro expander, the directives (a table by name) and the
-   includes become classes, and Preprocessor.cpp is split with them.  Its four scanners (PreprocessorTokeniser,
-   PreprocessorLineTokeniser, PreprocessorParser, PreprocessorTokenParser) need reading first: I haven't read
-   them closely enough to say which should be one.  This is to be done before raw strings (A1 in
-   CppParserTodo.txt), which change how lines are read anyway.
-   Measure before and after: parsing's and preprocessing's times (about 20s and 8s of 100 on 2026-11-04);
-   tentative parses; lazy declarations skipped, loaded and read; header cache hits; tokens preprocessed; the
-   syntax trees' memory.  The highlighter's and the index's times on the IDE's solution, as they read the
+   What the code is now:
+   - Both selectors write text: CIRW65C816Backend::Line (IRW65C816Backend.cpp:108) from about 240 places and
+     67 more appends to mpszOut; CIR65Backend::Line (IR65Backend.cpp:913) from about 160 and 30 more.
+   - The W65C816 decodes it again in IR816Decode (IRW65C816Lines.cpp:272), from CIRW65C816Code::Load and Set,
+     IRW65C816Flow.cpp:626 and IRW65C816Peephole.cpp:119, 730 and 745.  GenerateBody runs its passes as calls
+     one after another over one CIRW65C816Code, loaded once and written once (IRW65C816Backend.cpp:757-780),
+     but FinishFunction takes the source markers off and puts them back again round AlignFrame
+     (IRW65C816Backend.cpp:590-614), and AlignFrame loads the code once more (IRW65C816Frames.cpp:574).  Its
+     passes are static functions of the back end, each with a CChars form that loads, runs and writes.
+   - The 65C64's passes are classes (CIR65Flags, CIR65Widths, CIR65Peephole) and each loads the text for
+     itself (IR65Flags.cpp:105, IR65Widths.cpp:144, IR65Peephole.cpp:171): about three decodes a function.
+     CIR65Code::Load refuses a function with a line it doesn't know, or a branch out of it (IR65Code.cpp:431,
+     604-640, 831), and the passes leave it as it is: 34 of 121,235 on 2026-11-11.
+   - SIRW65C816Line and SIR65CodeLine are what a line decodes to; the W65C816's operand points into the text.
+   - CIRSourceMarkers (438 lines) takes the source positions off the text and puts them back round the passes.
+   - CIRBranchCode (IRBranchPasses.h:45) is the only machine pass code the two processors share: four passes,
+     with CIR65Code and CIR816BranchCode under it.
+
+   Two ways to do it, for the user to choose between (or neither: stop at stage 7):
+   - 8 in full, as written.  Instructions for both processors; the 400 or so places that write text add
+     instructions; the passes written again over them (about 4,800 lines on the W65C816: Peephole, Flow,
+     DeadStores, Branches, Lines, Code, Frames; about 3,650 on the 65C64: IR65Code, Flags, Widths, Peephole,
+     BackendPeephole); a list that runs them; a source position as an instruction's field in place of
+     CIRSourceMarkers; AlignFrame, TidyExits and ClearExitCarries over instructions; one printer.  The
+     W65C816 first, the 65C64 after if the user wants its half.  The 65C64's refusals were 34 functions, so
+     what its half wins is the compile's time, not faster code.
+   - 8 lite: the text is decoded once for each function and the decoded code is shared by every pass.  The
+     65C64's Flags, Widths and Peephole run over one CIR65Code; the W65C816's AlignFrame, Flow and Peephole
+     use the code GenerateBody loaded instead of decoding again; the markers are taken off once and put back
+     once.  Most of the decoding's time for a small part of the work; it doesn't give passes shared between
+     the processors, and the selectors still write text.  CodeGenerationHandoff.txt says not to unify
+     CIR65Code and CIRW65C816Code before this ruling; 8 lite doesn't unify them.
+   Measure before either: the time spent decoding and writing (IR816Decode, CIRW65C816Code's and CIR65Code's
+   Load and Write, CIRSourceMarkers' Take and Put), how many times a function's code makes the trip on each
+   processor, and how many 65C64 functions CIR65Code refuses now that its code has V and W as operands
+   (CodeGenerationHandoff.txt asks for it to be counted again).
+   Measure after: that time; each machine pass's time; the suites' cycles and sizes on each processor; the
+   listings read where they differ.
+   Ends when (in full): no text is decoded; the suites pass; cycles and size on each processor are no worse.
+   Ends when (lite): each function's code is decoded once; the listings are the same.
+
+Stage 9.  The builder is four classes.  (M; not started)
+
+   What the code is now: CCPP65Builder is one class, CPP65Builder.cpp 2,621 lines, 108 functions and 55 fields
+   (CPP65Builder.h:183-237), doing the build's options, the schedule, compiling a unit and linking and
+   listings.  Generate (cpp:1549, 102 lines) is static and takes 18 parameters (it was 14: options,
+   statistics, tested and layouts came since).  SCPP65UnitCompile (h:105) and SCPP65CompiledUnit (h:123) are
+   a unit's data while it is compiled, with eStage and eAgain as its state.  CIRImports already owns the turns
+   and the stale and parked units.  About 25 commits since 2026-11-11 added to the class; none reshaped it.
+
+   The four classes:
+   - CCPPBuild: what is being built and its options, a struct carrying Generate's 18 parameters and the
+     builder's option fields.  Generate's callers move onto it: GenerateSource (cpp:1181), 13 direct calls in
+     TestCppCompilerLib (TestCPPW65C816.cpp, TestCPP65ForwardingReferences, TestCPP65Generator,
+     TestCPP65Context, TestCPPConformance) and the TestCPP65Generate wrapper.
+   - CCPPUnitCompiler: one unit from source to object, from SCPP65UnitCompile and CompileUnit, InitGenerator,
+     StartGenerating, RestartGenerating, ContinueGenerating and FinishCompile (cpp:2330-2566), with its stage
+     as its state.
+   - CCPPUnitSchedule: CompileUnits (cpp:1881, 125 lines), RunUnit, UnitJobs, CalleeExported,
+     CompileUnitAgain, DecideAgain, Resume, ResumeUnit, RestartUnitJob, the mutex and condition and the pool of
+     workspaces (cpp:1881-2330, 2568-2621).  It is smaller than the plan thought: CIRImports keeps the turns.
+   - CCPPProgramLinker: Link, Compile, LinkWith, ResetLinker, CheckTested, LinkObjects, AddUnitObject, the
+     layouts and listings (cpp:1198-1420, 1660-1880), with macObjects, macLinkLibraries and mcLinker.
+   CCPP65Builder stays as the front over the four, so BuildLib (HCP65Build.cpp), TestHCP65Lib, TestProject65
+   and TestLibc65Context, which use only its setters and Link, Compile, GetLinker, GetOutput and
+   TakeUnitReports, don't change.
+   Measure before and after: wall time on 1, 4 and 16 threads; units compiled again, stale, missed and parked
+   (a count of parked units is to be added: NumCompiledAgain, NumImportsStale and NumImportsMissed exist);
+   peak memory with the jobs running.  A schedule is easy to make slower without making it wrong.
+   Ends when: the listings are the same serial and parallel; wall time and memory are within the spread on
+   each thread count.
+
+Stage 10.  The parser and the preprocessor.  (M-L and M-L; little done)
+
+   Raw strings (A1 in CppParserTodo.txt) were finished on 2026-11-15 (29f68f7ae), so the order this stage had
+   with them is gone.  Since 2026-11-11 the preprocessor was renamed (CCPPPreprocessor, CPPPreprocessor*.cpp,
+   ae946688c, 68de8895b) and its hashes and the header cache's keys changed; nothing reshaped the parser, and
+   the feature work made both bigger.
+
+   10a.  The parser.
+   What the code is now: one class, CCPPParser, 43 fields and about 198 functions in nine files (9.6k lines,
+   split by file since 2026-10-21).  Already there: SCPPParserPosition {iToken, bHalf} and SCPPParserState
+   (CppParser.h:34, 44), and a tentative parse as a struct, SCPPTentative (CppParser.h:67), with
+   BeginTentative and EndTentative (CppParser.cpp:591, 611) at 11 places.
+   - CCPPTokenCursor: Peek, Is, IsAhead, Accept, Expect, AcceptCloseAngle, Mark and Rewind
+     (CppParser.h:204-221), with miToken, mbHalf and mcGreaterThan (CppParser.h:136-138).
+   - One way back: today there are three, the 11 tentative parses, about 10 Mark and Rewind pairs by hand
+     (Classes 385, 440; Declarations 56, 1882; Declarators 357, 422; Expressions 1399, 1476; Lazy 511;
+     Statements 92) and five SaveState and RestoreState pairs in Classes.  A tentative parse is an object.
+   - ParseStatement (CppParserStatements.cpp:75, now 216 lines and 32 ifs, a chain of 17 Is(CT_x)) and
+     ParsePrimaryExpression (CppParserExpressions.cpp:794, 179 lines and 18 ifs, partly a switch) choose by a
+     table from the token.
+   - The parsing is split into declarations, expressions, statements and lazy headers round one shared
+     context, as classes and not only as files.
+   Measure before and after: parsing's time; tentative parses; lazy declarations skipped, loaded and read;
+   the syntax trees' memory; the highlighter's and the index's times on the IDE's solution, which read the
    same tree.
    Ends when: the syntax tree is the same node for node (the syntax blocks' dump compares it); the counts are
    the same; the times are within the spread.
 
-Stage 11.  Faster code, with what has been built.  (as long as it is worth it)
+   10b.  The preprocessor.
+   What the code is now: CPPPreprocessor.cpp is 3,999 lines, 84 functions, 39 fields.  Already there:
+   directive names are looked up in a map (CDirectiveMap, PreprocessorTokeniser.cpp:46), the header cache is
+   its own file, and the stack of sources is an array of SPPSource.
+   - The directives are a table of handlers by name: ProcessDirective chooses by a chain of ifs on the enum
+     (CPPPreprocessor.cpp:3277-3337).
+   - The stack of sources (PushFile :265, PopSource, NextRaw :432), the macro expander (Next :2152,
+     ExpandMacro :2407, SubstituteParameters, Paste, Stringify) and the includes (ProcessHashInclude :3908,
+     FindBestInclude :1589) become classes, and CPPPreprocessor.cpp is split with them.
+   - The scanners, now read: CPreprocessorParser is a character cursor (position, line and column, newlines,
+     comments); CPreprocessorTokeniser reads a file into lines and directives over it; CPreprocessorLineTokeniser
+     turns a line into tokens over the same cursor, with quotes and raw strings.  Those three are one lexer
+     split in three, and become one that reads a line or a directive.  CPreprocessorTokenParser is a cursor
+     over CPPTokenList that only the directives' handlers use (define, undef, line, error, pragma), while
+     macro expansion, include names and #if work on SPreprocessedToken after ConvertTokens
+     (CPPPreprocessor.cpp:644): two forms of token with a cursor each.  The directives move onto
+     SPreprocessedToken and CPreprocessorTokenParser goes.
+   - A fifth scanner: EvaluateCondition (:3563) prints the expanded tokens back to text (:3610-3628) and
+     CPreprocessorExpression scans that text again a character at a time.  #if is evaluated from the tokens.
+   Measure before and after: preprocessing's time; tokens preprocessed; header cache hits; #if conditions
+   evaluated.
+   Ends when: the preprocessed tokens are the same for every unit of the three Lib65 suites' projects and the
+   IDE's solution; the counts are the same; the times are within the spread.
+
+Stage 11.  Faster code, with what has been built.  (as long as it is worth it; not started)
 
    Not reshaping: this is where "ideally faster" is spent, and each change is one commit with its cycles and
-   sizes.
-   - The pipeline's order, for each target, from stage 2's table: a pass that only tidies after another run
-     straight after it; passes that never change anything dropped or moved; fewer rounds if the later ones
-     do little.
+   sizes.  CIRPipeline::SetStandard (IRPipeline.cpp:96) still runs every pass "in the order they have always
+   run"; OptimiserPlan.txt (finished 2026-11-22) reshaped the passes' code but not their order.
+   - The passes' table taken again first: the one in Progress (cf550eee6) is from before OptimiserPlan.txt.
+   - Then the pipeline's order, for each target: a pass that only tidies after another runs straight after
+     it; passes that never change anything dropped or moved (on cf550eee6's table ReplaceExitValues never did,
+     and ReplaceLoopCounters, ShareDivisions, BoundDivisions and DivisibilityTests hardly ever); DeleteDeadLoops'
+     and MergeAddressPhis' cost against what they change, and SimplifyCFG's third of the W65C816's pass time;
+     fewer rounds if the later ones do little.
    - The W65C816's passes tried on the 65C64 and the other way (constant divisions, narrowed counters and
-     multiplies, biased indices; the machine passes of stage 8).
+     multiplies, biased indices, and stage 8's machine passes if it is built).  Three are already measured for
+     the 65C64 (CodeGenerationHandoff.txt).
    - What the suites' profiles (TEST_PROJECT65_PROFILE_REPORT) show is hot and badly written.
    - The rest of the places that trade speed for size given to the option.
+   - Two left by OptimiserPlan.txt: the suites' cycles and bytes under ConstantDivisions' cost rule, never
+     measured (the run was stopped for want of memory); and x / 255 of an x under 65536 as
+     (x + (x >> 8) + 1) >> 8, which is the user's to ask for.
    Measure: the suites' cycles and sizes on both processors and the soft float count, before and after each
    change, preferring speed and preferring size, and the compile's time, as a pass costs time for every
    function.
    Ends when the user says it does.
+
+The order from here (2026-11-24)
+
+   1. Stage 7's rest (a to d): small, and it leaves both back ends the same shape before anything touches them.
+   2. Stage 9, then 10b, then 10a.  They don't touch the back ends and only move code.  The parser is last: it
+      is the biggest, and the IDE's highlighter and index read its tree.
+   3. Stage 8's measures, then the user's choice: 8 in full, 8 lite, or stop at stage 7.
+   4. Stage 11, for as long as it is worth it.
+
+   For the user:
+   - Stage 8: in full, lite, or not at all; and in full, whether the 65C64 gets its half.
+   - Whether stage 11's pipeline order comes earlier.  It changes the code and nothing else depends on it, so
+     it can go anywhere in the order.
 
 
 How a stage is proved
