@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
+#include "ArrayElementNotFound.h"
 #include "PointerFunctions.h"
 #include "IntegerHelper.h"
 #include "GlobalMemory.h"
@@ -373,3 +374,74 @@ void CArrayBit::Dump(void)
 	sz.DumpKill();
 }
 
+
+//The bits CountSet counts at a time: a whole number of 32 bit words that a size counts (where size is 16 bits too).
+#define ARRAY_BIT_COUNT_CHUNK	((lsize)32768)
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many bits are 1.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CArrayBit::CountSet(void)
+{
+	uint8*	puiBits;
+	lsize	uiDone;
+	lsize	uiBits;
+	lsize	uiCount;
+
+	puiBits = (uint8*)GetData();
+	uiCount = 0;
+	for (uiDone = 0; uiDone < miNumBits; uiDone += uiBits)
+	{
+		uiBits = miNumBits - uiDone;
+		if (uiBits > ARRAY_BIT_COUNT_CHUNK)
+		{
+			uiBits = ARRAY_BIT_COUNT_CHUNK;
+		}
+		uiCount += CountBits(&puiBits[uiDone / 8], (size)uiBits);
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many bits are 0.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CArrayBit::CountClear(void)
+{
+	return miNumBits - CountSet();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CArrayBit::FindSet(lsize iStart)
+{
+	if (iStart >= miNumBits)
+	{
+		return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	}
+	return FindNextSetBitLarge(GetData(), miNumBits, iStart);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first clear bit at or after iStart, ARRAY_LARGE_ELEMENT_NOT_FOUND
+// if there is none.
+//
+//////////////////////////////////////////////////////////////////////////
+lsize CArrayBit::FindClear(lsize iStart)
+{
+	if (iStart >= miNumBits)
+	{
+		return ARRAY_LARGE_ELEMENT_NOT_FOUND;
+	}
+	return FindNextClearBitLarge(GetData(), miNumBits, iStart);
+}

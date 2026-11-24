@@ -61,6 +61,10 @@ public:
 
 	void	Set(lsize iBit, bool bBit);  //bBit can only take 1 or 0.
 	void	Set(lsize iOffset, void* pvSource, lsize iSourceOffset, lsize iNumBits);
+	lsize	CountSet(void);
+	lsize	CountClear(void);
+	lsize	FindSet(lsize iStart);  //The first set bit at or after iStart, ARRAY_LARGE_ELEMENT_NOT_FOUND if there is none.
+	lsize	FindClear(lsize iStart);
 
 	bool	Read(CFileReader* pcFileReader);
 	bool	Write(CFileWriter* pcFileWriter);
