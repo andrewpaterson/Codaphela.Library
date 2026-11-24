@@ -155,7 +155,7 @@ protected:
 	void			TakeMarkers(CChars* pszCode, size uiStart);
 	void			PutMarkers(CChars* pszCode, size uiStart);
 	void			BeginDebugPlaces(CIRDominators* pcDominators);
-	void			DebugPlaces(CIRBlock* pcBlock, size uiInstruction);
+	void			DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast);
 	void			EndDebugPlaces(void);
 	void			DebugPlaceMarker(size uiSlot, const char* szPlace);
 	virtual bool	DebugPlace(SIRReference sValue, CChars* pszPlace);

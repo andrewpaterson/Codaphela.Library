@@ -388,6 +388,8 @@ protected:
 	void			RecordVariables(SCPP65IRWritten* psWritten);
 	void			CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* psWritten);
 	void			DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten, CArrayChars* paszRanges);
+	void			DescribeVariable(CChars* pszCode, SCPP65IRWritten* psWritten, SCPP65IRDescribedVariable* psVariable, int32 iSlot, int32 iInline, CArrayChars* paszRanges);
+	SCPP65IRWritten*	FindWritten(const char* szLabel);
 	void			VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast);
 	int				TokenLine(int iToken);
 	void			Finish(void);

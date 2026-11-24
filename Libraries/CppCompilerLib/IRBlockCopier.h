@@ -41,6 +41,7 @@ protected:
 	virtual void			CopyReturn(CIRBlock* pcFrom, CIRBlock* pcCopy);
 	virtual void			CopyThrow(CIRBlock* pcFrom, CIRBlock* pcCopy);
 	virtual bool			CopiesDebugValues(void);
+	virtual uint32			CopyDebugSlot(uint32 uiSlot);
 };
 
 

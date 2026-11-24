@@ -36,6 +36,7 @@ void CIRDebugPlaces::Init(void)
 	mpcBlock = NULL;
 	muiNext = 0;
 	miPosition = 0;
+	miLastPosition = 0;
 }
 
 
@@ -268,11 +269,12 @@ void CIRDebugPlaces::Apply(CIRBlock* pcBlock, size uiBefore, size* puiNext, SIRR
 //////////////////////////////////////////////////////////////////////////
 //
 // To just before pcBlock's instruction uiInstruction (its jump when it is
-// the number of instructions): a block's instructions in order, the
-// blocks in any order.
+// the number of instructions), for code written for the instructions from
+// there to uiLast (a back end fuses some into the one they feed): a
+// block's instructions in order, the blocks in any order.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRDebugPlaces::Move(CIRBlock* pcBlock, size uiInstruction)
+void CIRDebugPlaces::Move(CIRBlock* pcBlock, size uiInstruction, size uiLast)
 {
 	if (pcBlock != mpcBlock)
 	{
@@ -281,7 +283,20 @@ void CIRDebugPlaces::Move(CIRBlock* pcBlock, size uiInstruction)
 		muiNext = 0;
 	}
 	Apply(pcBlock, uiInstruction, &muiNext, masValues.GetData());
-	miPosition = (uiInstruction < pcBlock->masInstructions.NumElements()) ? mcLiveness.Position(pcBlock, uiInstruction) : mcLiveness.Jump(pcBlock);
+	miPosition = Position(pcBlock, uiInstruction);
+	miLastPosition = Position(pcBlock, uiLast);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The liveness position of pcBlock's instruction uiInstruction, or of its
+// jump when it is the number of instructions.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRDebugPlaces::Position(CIRBlock* pcBlock, size uiInstruction)
+{
+	return (uiInstruction < pcBlock->masInstructions.NumElements()) ? mcLiveness.Position(pcBlock, uiInstruction) : mcLiveness.Jump(pcBlock);
 }
 
 
@@ -291,29 +306,41 @@ size CIRDebugPlaces::NumSlots(void) const { return muiSlots; }
 //////////////////////////////////////////////////////////////////////////
 //
 // The temporary slot uiSlot holds where Move moved to, while it is live
-// there; else none.
+// through all the code written next (another value may take its home
+// after its last use); else none.
 //
 //////////////////////////////////////////////////////////////////////////
 SIRReference CIRDebugPlaces::Value(size uiSlot)
 {
 	SIRReference	sValue;
-	SIRRange*		psRanges;
-	size			uiRanges;
-	size			ui;
 
 	sValue = *masValues.Get(uiSlot);
-	if (!sValue.IsTemporary())
+	if (!sValue.IsTemporary() || !IsLive(sValue, miPosition) || !IsLive(sValue, miLastPosition))
 	{
 		return IRNone();
 	}
+	return sValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRDebugPlaces::IsLive(SIRReference sValue, int32 iPosition)
+{
+	SIRRange*	psRanges;
+	size		uiRanges;
+	size		ui;
+
 	psRanges = mcLiveness.GetRanges(sValue);
 	uiRanges = mcLiveness.NumRanges(sValue);
 	for (ui = 0; ui < uiRanges; ui++)
 	{
-		if ((miPosition >= psRanges[ui].iFrom) && (miPosition < psRanges[ui].iTo))
+		if ((iPosition >= psRanges[ui].iFrom) && (iPosition < psRanges[ui].iTo))
 		{
-			return sValue;
+			return true;
 		}
 	}
-	return IRNone();
+	return false;
 }

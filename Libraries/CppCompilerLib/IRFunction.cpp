@@ -61,6 +61,8 @@ void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes
 
 	masInlines.Init();
 	masInlineLocations.Init();
+	masInlineVariables.Init();
+	muiDebugSlots = 0;
 }
 
 
@@ -73,6 +75,7 @@ void CIRFunction::Kill(void)
 	size		ui;
 	CIRBlock*	pcBlock;
 
+	masInlineVariables.Kill();
 	masInlineLocations.Kill();
 	masInlines.Kill();
 	for (ui = 0; ui < mapcBlocks.NumElements(); ui++)
@@ -180,6 +183,8 @@ void CIRFunction::CopyBody(CIRFunction* pcSource)
 	}
 	masInlines.Copy(&pcSource->masInlines);
 	masInlineLocations.Copy(&pcSource->masInlineLocations);
+	masInlineVariables.Copy(&pcSource->masInlineVariables);
+	muiDebugSlots = pcSource->muiDebugSlots;
 	ComputePredecessors();
 }
 

@@ -150,7 +150,18 @@ struct SIRInlineLocation
 #define IR_INLINE_LOCATION	0x80000000
 
 
+//A variable of a function inlined into this one (DebuggerFPlan.txt F2-2): the inline, the variable's debug slot in
+//the callee (its dbg<n>), and its debug slot here.
+struct SIRInlineVariable
+{
+	uint32	uiInline;
+	uint32	uiCalleeSlot;
+	uint32	uiSlot;
+};
+
+
 typedef CArrayTemplate<SIRInline>			CArrayIRInlines;
+typedef CArrayTemplate<SIRInlineVariable>	CArrayIRInlineVariables;
 typedef CArrayTemplate<SIRInlineLocation>	CArrayIRInlineLocations;
 
 
@@ -179,7 +190,9 @@ public:
 	uint32*				mpuiSource;		//The module's source for instructions added now (CIRModule::muiSource).
 
 	CArrayIRInlines			masInlines;			//The calls inlined into it, for a debugger...
-	CArrayIRInlineLocations	masInlineLocations;	//...and the locations of their instructions.
+	CArrayIRInlineLocations	masInlineLocations;	//...the locations of their instructions...
+	CArrayIRInlineVariables	masInlineVariables;	//...and their variables' debug slots here.
+	uint32					muiDebugSlots;		//Its debug slots (dbg<n>, its own variables' and its inlines').
 
 public:
 	void			Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes, uint32* puiSource);

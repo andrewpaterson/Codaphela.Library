@@ -1537,8 +1537,8 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 
 static bool			gbCPP65CheckDebugCode = false;		//Generate compiles again without debug value markers and compares the code.
 static bool			gbCPP65CheckingDebugCode = false;	//It is doing so: no check of the check.
-static const char*	gaszCPP65MarkerDirectives[] = { ".dvariable", ".drange", ".dinline", ".dinspan", ".fingerprint", NULL };	//What debug value markers may change (and a
-																												//fingerprint's time).
+//What debug value markers may change (and a fingerprint's time).
+static const char*	gaszCPP65MarkerDirectives[] = { ".dvariable", ".drange", ".dinline", ".dinspan", ".dtype", ".dmember", ".fingerprint", NULL };
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1578,8 +1578,9 @@ static size CPP65Prefix(const char* szLine, const char* szPrefix)
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether an assembly line is one debug value markers may change: where
-// variables and inlined calls are (.dvariable, .drange, .dinline,
-// .dinspan), a debug label (IR_DEBUG_LABEL) or a comment.
+// variables and inlined calls are and the types they have (.dvariable,
+// .drange, .dinline, .dinspan, .dtype, .dmember), a debug label
+// (IR_DEBUG_LABEL) or a comment.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool CPP65IsMarkerLine(const char* szLine)

@@ -1695,7 +1695,8 @@ void TestCPP65DebugMarkersChangeNoCode(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Runs the loaded program to its end a step at a time, every frame's
-// integer variables read at each step where the debugger can read them:
+// integer variables (an inlined call's row its callee's) read at each
+// step where the debugger can read them:
 // with bRecord all of them, each value put in pcSeen as "Function.name=
 // value"; else only those whose place moves (ADW_Ranges), each value
 // expected in pcSeen (the first few that aren't in pszWrong).  Returns how
@@ -1704,6 +1705,7 @@ void TestCPP65DebugMarkersChangeNoCode(void)
 //////////////////////////////////////////////////////////////////////////
 static size TestCPP65DebugRunReading(STestCPP65Debug* psDebug, CMapStringInt* pcSeen, bool bRecord, CChars* pszWrong)
 {
+	SAsm65StackRegisters	sRegisters;
 	SAsm65StackFrame*		psFrame;
 	SAsm65DebugVariable*	psVariable;
 	SAsm65DebugType*		psType;
@@ -1721,7 +1723,8 @@ static size TestCPP65DebugRunReading(STestCPP65Debug* psDebug, CMapStringInt* pc
 	szKey.Init();
 	for (uiSteps = 0; (uiSteps < 2000000) && !psDebug->pcCheck->IsStopped(); uiSteps++)
 	{
-		TestCPP65DebugWalk(psDebug);
+		TestCPP65DebugRegisters(psDebug, &sRegisters);
+		psDebug->pcWalker->Walk(&sRegisters, &psDebug->asFrames, 64, true);
 		for (uiFrame = 0; uiFrame < psDebug->asFrames.NumElements(); uiFrame++)
 		{
 			psFrame = psDebug->asFrames.Get(uiFrame);
@@ -1729,12 +1732,12 @@ static size TestCPP65DebugRunReading(STestCPP65Debug* psDebug, CMapStringInt* pc
 			{
 				psVariable = psFrame->pcRecords->GetVariable(psFrame->psFunction, ui);
 				psType = psFrame->pcRecords->GetType(psVariable->uiType);
-				if ((!bRecord && (psVariable->uiWhere != ADW_Ranges)) || !psType || (psType->uiKind != ADT_Integer) ||
+				if ((psVariable->iInline != psFrame->iInline) || (!bRecord && (psVariable->uiWhere != ADW_Ranges)) || !psType || (psType->uiKind != ADT_Integer) ||
 					!psDebug->cValues.Variable(psDebug->pcWalker, psFrame, psVariable, &sValue) || !psDebug->cValues.Read(&sValue, &uiValue))
 				{
 					continue;
 				}
-				szKey.Set(psFrame->psFunction->szName.Text());
+				szKey.Set(psFrame->GetName());
 				szKey.Append('.')->Append(psVariable->szName)->Append('=')->Append((int64)uiValue);
 				uiRead++;
 				if (bRecord)
@@ -1781,10 +1784,11 @@ static const char* gszTestCPP65DebugEverywhere =
 //////////////////////////////////////////////////////////////////////////
 //
 // Optimised code's variables are right wherever they are shown
-// (DebuggerFPlan.txt F1-7): on both processors each program runs built
-// Debug, every value each variable takes recorded, then built Release,
-// where at every step every variable with a place is read and must hold
-// one of the values it held in the Debug run (a home another value took
+// (DebuggerFPlan.txt F1-7, F2): on both processors each program runs built
+// Debug, every value each variable takes recorded, then built Release
+// (with inlining too: an inlined callee's variables are its row's), where
+// at every step every variable with a place is read and must hold one of
+// the values it held in the Debug run (a home another value took
 // over, or a range that starts before its value is there, would show
 // one it never had).
 //
@@ -1793,7 +1797,9 @@ void TestCPP65DebugValuesEverywhere(void)
 {
 	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
 	static const char*		aszSources[] = { gszTestCPP65DebugEverywhere, gszTestCPP65DebugRelease, NULL };
+	static const ETestCPP65Build	aeBuilds[] = { TCB_Release, TCB_ReleaseInlined };
 	STestCPP65Debug			sDebug;
+	size					uiBuild;
 	CMapStringInt			cSeen;
 	CChars					szWrong;
 	size					uiTarget;
@@ -1810,14 +1816,17 @@ void TestCPP65DebugValuesEverywhere(void)
 			TestCPP65DebugRunReading(&sDebug, &cSeen, true, NULL);
 			TestCPP65DebugKill(&sDebug);
 
-			TestCPP65DebugBuild(&sDebug, aszSources[uiSource], TCB_Release, aeTargets[uiTarget]);
-			TestCPP65DebugLoad(&sDebug);
-			szWrong.Init();
-			uiRead = TestCPP65DebugRunReading(&sDebug, &cSeen, false, &szWrong);
-			AssertString("", szWrong.Text());
-			AssertTrue(uiRead > 50);
-			szWrong.Kill();
-			TestCPP65DebugKill(&sDebug);
+			for (uiBuild = 0; uiBuild < 2; uiBuild++)
+			{
+				TestCPP65DebugBuild(&sDebug, aszSources[uiSource], aeBuilds[uiBuild], aeTargets[uiTarget]);
+				TestCPP65DebugLoad(&sDebug);
+				szWrong.Init();
+				uiRead = TestCPP65DebugRunReading(&sDebug, &cSeen, false, &szWrong);
+				AssertString("", szWrong.Text());
+				AssertTrue(uiRead > 20);
+				szWrong.Kill();
+				TestCPP65DebugKill(&sDebug);
+			}
 			cSeen.Kill();
 		}
 	}

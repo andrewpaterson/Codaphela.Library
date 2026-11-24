@@ -362,16 +362,22 @@ void CCPP65DebugWriter::AppendMember(CChars* pszDest, const char* szKind, const 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// .dvariable for a variable of the function whose code pszDest is, in
-// scope from line iFirstLine to iLastLine, where szWhere ("none", "frame"
-// or "indirect") at D + iOffset.
+// .dvariable for a variable of the function whose code pszDest is (or of
+// its inline iInline), in scope from line iFirstLine to iLastLine, where
+// szWhere ("none", "frame", "indirect" or "ranges") says, from its base +
+// iOffset.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65DebugWriter::AppendVariable(CChars* pszDest, const char* szName, SCPP65Type* psType, bool bParameter, const char* szWhere, int32 iOffset, int iFirstLine, int iLastLine)
+void CCPP65DebugWriter::AppendVariable(CChars* pszDest, const char* szName, SCPP65Type* psType, bool bParameter, const char* szWhere, int32 iOffset, int iFirstLine, int iLastLine, int32 iInline)
 {
 	pszDest->Append("\t\t.dvariable ")->Append(bParameter ? "parameter" : "local")->Append(", ");
 	AppendString(pszDest, szName);
-	pszDest->Append(", ")->Append(TypeIndex(psType))->Append(", ")->Append(szWhere)->Append(", ")->Append(iOffset)->Append(", ")->Append(iFirstLine)->Append(", ")->Append(iLastLine)->AppendNewLine();
+	pszDest->Append(", ")->Append(TypeIndex(psType))->Append(", ")->Append(szWhere)->Append(", ")->Append(iOffset)->Append(", ")->Append(iFirstLine)->Append(", ")->Append(iLastLine);
+	if (iInline >= 0)
+	{
+		pszDest->Append(", ")->Append(iInline);
+	}
+	pszDest->AppendNewLine();
 }
 
 

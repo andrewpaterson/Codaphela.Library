@@ -71,7 +71,7 @@ public:
 	void			Kill(void);
 
 	int32			TypeIndex(SCPP65Type* psType);
-	void			AppendVariable(CChars* pszDest, const char* szName, SCPP65Type* psType, bool bParameter, const char* szWhere, int32 iOffset, int iFirstLine, int iLastLine);
+	void			AppendVariable(CChars* pszDest, const char* szName, SCPP65Type* psType, bool bParameter, const char* szWhere, int32 iOffset, int iFirstLine, int iLastLine, int32 iInline = -1);
 	void			AppendGlobal(CChars* pszDest, CCPPVariable* pcVariable, const char* szLabel, bool bStatic);
 	void			AppendTypes(CChars* pszDest);
 

@@ -452,15 +452,16 @@ void CIRBackend::BeginDebugPlaces(CIRDominators* pcDominators)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Before the code written for pcBlock's instruction uiInstruction (its
-// jump when it is the number of instructions), and any it fuses: a place
+// Before the code written for pcBlock's instructions from uiInstruction
+// to uiLast (its jump when it is the number of instructions; a back end
+// fuses some into the one they feed): a place
 // marker (IR_PLACE_MARKER) for each variable whose place isn't what the
 // last marker for it in the text said (a block's start says them all, as
 // its predecessors' ends may be anywhere): the home of the value it holds
-// while that is live (DebugPlace), else none.
+// while that is live through the code (DebugPlace), else none.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction)
+void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast)
 {
 	CChars			szPlace;
 	SIRReference	sValue;
@@ -470,7 +471,7 @@ void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction)
 	{
 		return;
 	}
-	mcDebugPlaces.Move(pcBlock, uiInstruction);
+	mcDebugPlaces.Move(pcBlock, uiInstruction, uiLast);
 	szPlace.Init();
 	for (ui = 0; ui < mcDebugPlaces.NumSlots(); ui++)
 	{

@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdio.h>
 #include "IRLoops.h"
 #include "IRInliner.h"
 
@@ -53,6 +54,7 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	muiInline = IR_NO_INLINE;
 	mauiInlines.Init();
 	masLocations.Init();
+	mauiSlots.Init();
 	mpcProfile = NULL;
 	muiHotInstructions = 0;
 	mbForwardersJump = false;
@@ -66,6 +68,7 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 //////////////////////////////////////////////////////////////////////////
 void CIRInliner::Kill(void)
 {
+	mauiSlots.Kill();
 	masLocations.Kill();
 	mauiInlines.Kill();
 	mapcRecursiveCallees.Kill();
@@ -814,13 +817,57 @@ bool CIRInliner::HasLoopCandidate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The callee's debug value markers are of its variables, not the
-// caller's: they aren't copied.
+// The callee's debug value markers are copied, of the copies of its
+// variables (CopyDebugSlot).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIRInliner::CopiesDebugValues(void)
 {
-	return false;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caller's debug slot for the callee's uiSlot: a new one, the first
+// time, noted as the variable of the call being inlined (or of the copy
+// of the callee's inline it was a variable of).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInliner::CopyDebugSlot(uint32 uiSlot)
+{
+	SIRInlineVariable*	psVariable;
+	SIRInlineVariable*	psCallee;
+	uint32*				puiSlot;
+	size				ui;
+
+	if (uiSlot >= mauiSlots.NumElements())
+	{
+		mauiSlots.GrowToAtLeastNumElements(uiSlot + 1, true, 0xFF);
+	}
+	puiSlot = mauiSlots.Get(uiSlot);
+	if (*puiSlot != IR_NO_INLINE)
+	{
+		return *puiSlot;
+	}
+
+	*puiSlot = mpcCaller->muiDebugSlots;
+	mpcCaller->muiDebugSlots++;
+	psVariable = mpcCaller->masInlineVariables.Add();
+	psVariable->uiInline = muiInline;
+	psVariable->uiCalleeSlot = uiSlot;
+	psVariable->uiSlot = *puiSlot;
+	for (ui = 0; !mpcCalleeModule && (ui < mpcCallee->masInlineVariables.NumElements()); ui++)
+	{
+		psCallee = mpcCallee->masInlineVariables.Get(ui);
+		if (psCallee->uiSlot == uiSlot)
+		{
+			psVariable->uiInline = MapInline(psCallee->uiInline);
+			psVariable->uiCalleeSlot = psCallee->uiCalleeSlot;
+			break;
+		}
+	}
+	return *puiSlot;
 }
 
 
@@ -835,6 +882,8 @@ SIRReference CIRInliner::CopyValue(SIRReference sValue)
 	SIRReference*	psMapped;
 	SIRConstant*	psConstant;
 	SIRReference	sSymbol;
+	int32			iSlot;
+	char			szName[32];
 
 	if (sValue.IsTemporary())
 	{
@@ -842,6 +891,13 @@ SIRReference CIRInliner::CopyValue(SIRReference sValue)
 		if (psMapped->IsNone())
 		{
 			*psMapped = mpcCaller->AddTemporary(mpcCallee->GetTemporaryType(sValue));
+			iSlot = mpcCallee->GetDebugSlot(sValue);
+			if (iSlot >= 0)
+			{
+				//A variable's slot the callee kept: the copy is the caller's debug slot for it.
+				snprintf(szName, sizeof(szName), "dbg%d", (int)CopyDebugSlot((uint32)iSlot));
+				mpcCaller->NameTemporary(*psMapped, szName);
+			}
 		}
 		return *psMapped;
 	}
@@ -1020,8 +1076,10 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	muiImportSource = mpcCalleeModule ? mpcCaller->SourceToken(sCall.uiSource) : 0;
 	muiInline = mpcCaller->AddInline(sCall.asArguments[0].Index(), sCall.uiSource);
 	mauiInlines.FakeSetUsedElements(0);
-	mauiInlines.GrowToAtLeastNumElements(pcCallee->masInlines.NumElements(), true, 0xFF);
+	mauiInlines.GrowToAtLeastNumElements(pcCallee->masInlines.NumElements(), true, 0xFF);	//IR_NO_INLINE.
 	masLocations.FakeSetUsedElements(0);
+	mauiSlots.FakeSetUsedElements(0);
+	mauiSlots.GrowToAtLeastNumElements(pcCallee->muiDebugSlots, true, 0xFF);
 
 	//The parameters are the arguments; the callee's other temporaries get copies when they are first met.
 	masMap.FakeSetUsedElements(0);

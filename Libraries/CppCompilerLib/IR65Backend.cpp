@@ -1055,13 +1055,13 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 			//Writes nothing, or its consumer writes it.
 			continue;
 		}
-		DebugPlaces(pcBlock, uiFirst);
+		DebugPlaces(pcBlock, uiFirst, ui);
 		uiText = mpszOut->Length();
 		bResult &= WriteInstruction(pcBlock, ui);
 		mcPlaces.AddChunk(mcLiveness.Position(pcBlock, uiFirst), mcLiveness.Position(pcBlock, ui), uiText);
 		uiFirst = ui + 1;
 	}
-	DebugPlaces(pcBlock, uiFirst);
+	DebugPlaces(pcBlock, uiFirst, pcBlock->masInstructions.NumElements());
 	uiText = mpszOut->Length();
 	bResult &= WriteFused(pcBlock, masFused.NumElements());
 	NextInstruction();

@@ -844,7 +844,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 				mpsWritten = NULL;
 				continue;
 			}
-			DebugPlaces(pcBlock, uiFirst);
+			DebugPlaces(pcBlock, uiFirst, uiInstruction);
 			Source(pcBlock->masInstructions.Get(uiInstruction)->uiSource);
 			mbUnmasked = IsLowByteOnly(pcBlock->masInstructions.Get(uiInstruction)->sResult);
 			mcSelector.Instruction(pcBlock, uiInstruction);
@@ -853,7 +853,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 			miFused = 0;
 			uiFirst = uiInstruction + 1;
 		}
-		DebugPlaces(pcBlock, uiFirst);
+		DebugPlaces(pcBlock, uiFirst, pcBlock->masInstructions.NumElements());
 		Source(pcBlock->msJump.uiSource);
 		Jump(pcBlock, pcNext);
 		miFused = 0;

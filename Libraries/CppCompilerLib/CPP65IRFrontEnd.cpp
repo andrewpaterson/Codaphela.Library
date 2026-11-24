@@ -1759,12 +1759,11 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, 
 	uint32				uiSource;
 	SCPP65IRInlineSpans	sSpans;
 
-	if (!pszCode->Contains(IR_SOURCE_MARKER))
+	bInlines = bInlines && pcFunction && (pcFunction->masInlines.NumElements() > 0);
+	if (!bInlines && !pszCode->Contains(IR_SOURCE_MARKER))
 	{
 		return;
 	}
-
-	bInlines = bInlines && pcFunction && (pcFunction->masInlines.NumElements() > 0);
 	if (bInlines)
 	{
 		sSpans.aiOpen.Init();
@@ -1908,71 +1907,31 @@ void CCPP65IRFrontEnd::InlineSpans(SCPP65IRInlineSpans* psSpans, CIRFunction* pc
 //////////////////////////////////////////////////////////////////////////
 //
 // After the function's code: the inlines still open end, then a .dinline
-// for each with code (and each it is in), parents first, each with its
-// spans: its callee's C++ name (the function the unit wrote; another
-// unit's by its label) and its call's file and line.
+// for each of the function's inlines in order (their variables name them
+// by index), each with its spans: its callee's C++ name (the function the
+// unit wrote; another unit's by its label) and its call's file and line.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::DescribeInlines(SCPP65IRInlineSpans* psSpans, CIRFunction* pcFunction, CChars* pszOut)
 {
-	CArrayInt32			aiIndex;		//Per inline of the function: its index among those described, -1 if not.
 	SIRInline*			psInline;
 	SIRInlineLocation*	psCall;
-	SCPP65IRWritten*	psWritten;
+	SCPP65IRWritten*	psCallee;
 	CSourceFile*		pcFile;
-	const char*			szLabel;
 	const char*			szName;
 	size				ui;
-	size				uj;
-	int32				iDescribed;
 	int					iLine;
 	uint32				uiToken;
 
 	InlineSpans(psSpans, pcFunction, 0, pszOut);
-	aiIndex.Init();
 	for (ui = 0; ui < pcFunction->masInlines.NumElements(); ui++)
 	{
-		aiIndex.Add(-1);
-	}
-	for (ui = pcFunction->masInlines.NumElements(); ui > 0; ui--)
-	{
-		if ((ui - 1 < psSpans->aszSpans.NumElements()) && !psSpans->aszSpans.Get(ui - 1)->Empty())
-		{
-			//It and each inline it is in are described.
-			uj = ui - 1;
-			do
-			{
-				aiIndex.SetValue(uj, 0);
-				psCall = pcFunction->GetInlineLocation(pcFunction->masInlines.Get(uj)->uiCall);
-				uj = psCall ? psCall->uiInline : uj;
-			}
-			while (psCall);
-		}
-	}
-
-	iDescribed = 0;
-	for (ui = 0; ui < pcFunction->masInlines.NumElements(); ui++)
-	{
-		if (aiIndex.GetValue(ui) < 0)
-		{
-			continue;
-		}
-		aiIndex.SetValue(ui, iDescribed);
-		iDescribed++;
 		psInline = pcFunction->masInlines.Get(ui);
 		psCall = pcFunction->GetInlineLocation(psInline->uiCall);
-		szLabel = mcModule.GetSymbolName(psInline->uiCallee);
-		szName = szLabel;
-		for (uj = 0; uj < masWritten.NumElements(); uj++)
-		{
-			psWritten = masWritten.Get(uj);
-			if (psWritten->szLabel.Equals(szLabel))
-			{
-				szName = psWritten->szName.Text();
-				break;
-			}
-		}
-		pszOut->Append("\t\t.dinline ")->Append(psCall ? aiIndex.GetValue(psCall->uiInline) : -1)->Append(", ");
+		szName = mcModule.GetSymbolName(psInline->uiCallee);
+		psCallee = FindWritten(szName);
+		szName = psCallee ? psCallee->szName.Text() : szName;
+		pszOut->Append("\t\t.dinline ")->Append(psCall ? (int32)psCall->uiInline : -1)->Append(", ");
 		CCPP65DebugWriter::AppendString(pszOut, szName);
 		pszOut->Append(", ");
 		iLine = -1;
@@ -1991,7 +1950,6 @@ void CCPP65IRFrontEnd::DescribeInlines(SCPP65IRInlineSpans* psSpans, CIRFunction
 			pszOut->Append(*psSpans->aszSpans.Get(ui));
 		}
 	}
-	aiIndex.Kill();
 }
 
 
@@ -2207,6 +2165,7 @@ void CCPP65IRFrontEnd::NameVariableSlots(void)
 			mpcFunction->NameTemporary(psVariable->sSlot, szName);
 		}
 	}
+	mpcFunction->muiDebugSlots = (uint32)miVariableSlots;
 }
 
 
@@ -2326,49 +2285,104 @@ void CCPP65IRFrontEnd::CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* p
 
 //////////////////////////////////////////////////////////////////////////
 //
-// .dvariable for each of the written function's variables (RecordVariables),
-// where the back end last put its slot (psWritten's pcBackend); or, for one
-// whose slot was promoted, the places its values were in (paszRanges, per
-// slot, DebugRanges): ranges, its .drange lines after it.  Then its static
-// locals.
+// .dvariable for each of the written function's variables (RecordVariables)
+// and for those of the calls inlined into it (DebuggerFPlan.txt F2-2: the
+// callee's variables, of the inline), then its static locals.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten, CArrayChars* paszRanges)
 {
+	CIRFunction*				pcFunction;
+	SIRInlineVariable*			psInlineVariable;
+	SCPP65IRWritten*			psCallee;
 	SCPP65IRDescribedVariable*	psVariable;
-	char						szSlot[32];
-	const char*					szWhere;
-	CChars*						pszRanges;
-	int32						iPlace;
 	size						ui;
+	size						uj;
 
 	for (ui = 0; ui < psWritten->asVariables.NumElements(); ui++)
 	{
 		psVariable = psWritten->asVariables.Get(ui);
-		snprintf(szSlot, sizeof(szSlot), "dbg%d", (int)psVariable->iSlot);
-		pszRanges = ((psVariable->iSlot >= 0) && ((size)psVariable->iSlot < paszRanges->NumElements())) ? paszRanges->Get((size)psVariable->iSlot) : NULL;
-		iPlace = 0;
-		if ((psVariable->iSlot >= 0) && psWritten->pcBackend && psWritten->pcBackend->FindSlot(szSlot, &iPlace))
+		DescribeVariable(pszCode, psWritten, psVariable, psVariable->iSlot, -1, paszRanges);
+	}
+	pcFunction = psWritten->pcFunction;
+	for (ui = 0; pcFunction && (ui < pcFunction->masInlineVariables.NumElements()); ui++)
+	{
+		psInlineVariable = pcFunction->masInlineVariables.Get(ui);
+		psCallee = FindWritten(mcModule.GetSymbolName(pcFunction->masInlines.Get(psInlineVariable->uiInline)->uiCallee));
+		for (uj = 0; psCallee && (uj < psCallee->asVariables.NumElements()); uj++)
 		{
-			szWhere = psVariable->bIndirect ? "indirect" : "frame";
-			iPlace += psVariable->iOffset;
-		}
-		else if (pszRanges && !pszRanges->Empty() && !psVariable->bIndirect && (psVariable->iOffset == 0))
-		{
-			szWhere = "ranges";
-		}
-		else
-		{
-			szWhere = "none";
-			pszRanges = NULL;
-		}
-		mpcUnit->GetDebugWriter()->AppendVariable(pszCode, psVariable->szName.Text(), psVariable->psType, psVariable->bParameter, szWhere, iPlace, psVariable->iFirstLine, psVariable->iLastLine);
-		if (szWhere[0] == 'r')
-		{
-			pszCode->Append(*pszRanges);
+			psVariable = psCallee->asVariables.Get(uj);
+			if (psVariable->iSlot == (int32)psInlineVariable->uiCalleeSlot)
+			{
+				DescribeVariable(pszCode, psWritten, psVariable, (int32)psInlineVariable->uiSlot, (int32)psInlineVariable->uiInline, paszRanges);
+			}
 		}
 	}
 	pszCode->Append(psWritten->szStatics);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .dvariable for psVariable, its slot the written function's debug slot
+// iSlot (of its inline iInline, -1 for the function's own): where the back
+// end last put the slot (psWritten's pcBackend); or, for a slot promoted,
+// the places its values were in (paszRanges, per slot, DebugRanges):
+// ranges, its .drange lines after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DescribeVariable(CChars* pszCode, SCPP65IRWritten* psWritten, SCPP65IRDescribedVariable* psVariable, int32 iSlot, int32 iInline, CArrayChars* paszRanges)
+{
+	char		szSlot[32];
+	const char*	szWhere;
+	CChars*		pszRanges;
+	int32		iPlace;
+
+	snprintf(szSlot, sizeof(szSlot), "dbg%d", (int)iSlot);
+	pszRanges = ((iSlot >= 0) && ((size)iSlot < paszRanges->NumElements())) ? paszRanges->Get((size)iSlot) : NULL;
+	iPlace = 0;
+	if ((iSlot >= 0) && psWritten->pcBackend && psWritten->pcBackend->FindSlot(szSlot, &iPlace))
+	{
+		szWhere = psVariable->bIndirect ? "indirect" : "frame";
+		iPlace += psVariable->iOffset;
+	}
+	else if (pszRanges && !pszRanges->Empty() && !psVariable->bIndirect && (psVariable->iOffset == 0))
+	{
+		szWhere = "ranges";
+	}
+	else
+	{
+		szWhere = "none";
+		pszRanges = NULL;
+	}
+	mpcUnit->GetDebugWriter()->AppendVariable(pszCode, psVariable->szName.Text(), psVariable->psType, psVariable->bParameter, szWhere, iPlace, psVariable->iFirstLine, psVariable->iLastLine, iInline);
+	if (pszRanges)
+	{
+		pszCode->Append(*pszRanges);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The unit's written function with the label szLabel, NULL if none (a
+// function of another unit).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65IRWritten* CCPP65IRFrontEnd::FindWritten(const char* szLabel)
+{
+	SCPP65IRWritten*	psWritten;
+	size				ui;
+
+	for (ui = 0; ui < masWritten.NumElements(); ui++)
+	{
+		psWritten = masWritten.Get(ui);
+		if (psWritten->szLabel.Equals(szLabel))
+		{
+			return psWritten;
+		}
+	}
+	return NULL;
 }
 
 

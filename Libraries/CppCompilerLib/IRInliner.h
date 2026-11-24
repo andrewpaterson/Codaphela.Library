@@ -122,7 +122,8 @@ protected:
 	uint32					muiImportSource;			//The call's source token + 1 when the callee is another unit's: its sources are that unit's tokens.
 	uint32					muiInline;					//The call being inlined, in the caller's inlines (CIRFunction::AddInline)...
 	CArrayTemplate<uint32>	mauiInlines;				//...per callee inline, its copy in the caller (IR_NO_INLINE until made)...
-	CArrayIRMappedLocations	masLocations;				//...and the callee's locations met, with their copies (MapLocation).
+	CArrayIRMappedLocations	masLocations;				//...the callee's locations met, with their copies (MapLocation)...
+	CArrayTemplate<uint32>	mauiSlots;					//...and per callee debug slot, its copy in the caller (IR_NO_INLINE until made).
 	SIRReference			msArguments;				//The slot the callee's parameters are in (argaddr), IRNone if it takes none's address.
 	CArrayTemplate<int32>	maiArgumentOffsets;			//Per callee parameter: its offset in msArguments.
 	CArrayIRReferences		masArguments;				//The call's arguments, in order.
@@ -163,6 +164,7 @@ protected:
 	size			HotLimit(uint64 ulliCount);
 	SIRReference	CopyValue(SIRReference sValue) override;
 	bool			CopiesDebugValues(void) override;
+	uint32			CopyDebugSlot(uint32 uiSlot) override;
 	CIRBlock*		CopyOf(CIRBlock* pcBlock) override;
 	void			CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy) override;
 	uint32			MapLocation(uint32 uiSource);

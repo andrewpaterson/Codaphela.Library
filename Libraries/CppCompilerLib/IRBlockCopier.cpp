@@ -91,7 +91,7 @@ void CIRBlockCopier::CopyInstructions(CIRBlock* pcFrom, CIRBlock* pcCopy)
 	for (ui = 0; CopiesDebugValues() && (ui < pcFrom->masDebugValues.NumElements()); ui++)
 	{
 		psValue = pcFrom->masDebugValues.Get(ui);
-		pcCopy->AddDebugValue(uiFirst + psValue->uiBefore, psValue->uiSlot, CopyValue(psValue->sValue));
+		pcCopy->AddDebugValue(uiFirst + psValue->uiBefore, CopyDebugSlot(psValue->uiSlot), CopyValue(psValue->sValue));
 	}
 }
 
@@ -106,6 +106,18 @@ void CIRBlockCopier::CopyInstructions(CIRBlock* pcFrom, CIRBlock* pcCopy)
 bool CIRBlockCopier::CopiesDebugValues(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A debug value marker's variable in the copy: the same one, unless the
+// copy is into another function (CIRInliner).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRBlockCopier::CopyDebugSlot(uint32 uiSlot)
+{
+	return uiSlot;
 }
 
 

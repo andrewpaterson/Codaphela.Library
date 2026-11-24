@@ -38,20 +38,23 @@ protected:
 	CArrayIRReferences	masValues;		//Per slot: what it holds now (Move).
 	CIRBlock*			mpcBlock;		//Where Move last moved to...
 	size				muiNext;		//...and its next marker.
-	int32				miPosition;
+	int32				miPosition;		//The liveness positions of the code written next: its first instruction's...
+	int32				miLastPosition;	//...and its last's.
 
 public:
 	void			Init(void);
 	void			Kill(void);
 
 	bool			Begin(CIRFunction* pcFunction, CIRDominators* pcDominators);
-	void			Move(CIRBlock* pcBlock, size uiInstruction);
+	void			Move(CIRBlock* pcBlock, size uiInstruction, size uiLast);
 	size			NumSlots(void) const;
 	SIRReference	Value(size uiSlot);
 
 protected:
 	void			ComputeEntries(void);
 	bool			Enter(CIRBlock* pcBlock, SIRReference* psValues, CArrayIRReferences* pasExits, CArrayTemplate<bool>* pabReached);
+	int32			Position(CIRBlock* pcBlock, size uiInstruction);
+	bool			IsLive(SIRReference sValue, int32 iPosition);
 	SIRReference	MatchPhi(CIRBlock* pcBlock, size uiSlot, CArrayIRReferences* pasExits, CArrayTemplate<bool>* pabReached);
 	void			Apply(CIRBlock* pcBlock, size uiBefore, size* puiNext, SIRReference* psValues);
 };
