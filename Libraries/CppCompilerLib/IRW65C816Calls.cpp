@@ -731,8 +731,7 @@ bool CIRW65C816Calls::Forwarder(CIRW65C816Code* pcJump)
 				szCallee.Append(iLabel);
 				cAdjust.AppendInstruction(IR816M_Bcc, szCallee.Text());
 				cAdjust.AppendInstruction(IR816M_Inx);
-				szCallee.Append(':');
-				cAdjust.Append(szCallee.Text());
+				cAdjust.AppendLabel(szCallee.Text());
 				szCallee.Kill();
 			}
 		}
@@ -790,14 +789,10 @@ void CIRW65C816Calls::GenerateForwarder(const char* szLabel, CIRW65C816Code* pcJ
 void CIRW65C816Calls::Entry(const char* szLabel)
 {
 	CChars	szBody;
-	CChars	sz;
 
-	sz.Init(szLabel);
-	sz.Append(':');
-	mpcBackend->TextLine(sz.Text());
-	sz.Kill();
-	mpcBackend->TextLine("\t\t.width (A, X), 16");
-	mpcBackend->TextLine("\t\t.relax");
+	mpcBackend->LabelLine(szLabel);
+	mpcBackend->Directive(".width", "(A, X), 16");
+	mpcBackend->Directive(".relax");
 	if (mpcBackend->msFrame.iRegisterWords == 0)
 	{
 		return;
@@ -807,13 +802,9 @@ void CIRW65C816Calls::Entry(const char* szLabel)
 	RegisterStub(&szBody);
 	if (!(mpcBackend->mpcFunction->muiAttributes & IRA_Local) && !mpcBackend->mpcModule->IsLocal(mpcBackend->mpcFunction->muiSymbol))
 	{
-		sz.Init((mpcBackend->mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-		sz.Append(szBody);
-		mpcBackend->TextLine(sz.Text());
-		sz.Kill();
+		mpcBackend->Directive((mpcBackend->mpcFunction->muiAttributes & IRA_Weak) ? ".weak" : ".global", szBody.Text());
 	}
-	szBody.Append(':');
-	mpcBackend->TextLine(szBody.Text());
+	mpcBackend->LabelLine(szBody.Text());
 	szBody.Kill();
 }
 

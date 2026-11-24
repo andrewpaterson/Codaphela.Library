@@ -146,7 +146,7 @@ static const uint16 gauiIR816InvertedBranches[] = { IR816M_Bcc, IR816M_Bcs, IR81
 // three letter b one (but brk and bit) to branch to a label.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint32 IR816UnknownFlags(const char* szMnemonic)
+uint32 IR816UnknownFlags(const char* szMnemonic)
 {
 	uint32	uiFlags;
 

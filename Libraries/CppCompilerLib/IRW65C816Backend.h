@@ -282,9 +282,11 @@ public:
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel);
+	void			RunPasses(void);
 	void			MarkerLine(const char* szMarker) override;
 	void			Label(int32 iLabel);
-	void			TextLine(const char* szLine);
+	void			LabelLine(const char* szName);
+	void			Directive(const char* szName, const char* szOperand = NULL);
 	void			Lines(CIRW65C816Code* pcFrom);
 	void			Added(void);
 	void			KeepSlots(CIRW65C816Code* pcCode);

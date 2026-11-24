@@ -22,6 +22,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include <string.h>
 #include "IRW65C816BackendInternal.h"
 #include "IRW65C816Code.h"
+#include "IRPipeline.h"
 #include "IRW65C816Costs.h"
 
 
@@ -139,13 +140,25 @@ void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand, bool bMar
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A label's, directive's or comment's line (szLine, without its new line)
-// added to the code: its text is what it is.
+// The label szName's line ("szName:") added to the code.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::TextLine(const char* szLine)
+void CIRW65C816Backend::LabelLine(const char* szName)
 {
-	mpcCode->Append(szLine);
+	mpcCode->AppendLabel(szName);
+	Added();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The directive szName (".width") with szOperand (NULL for none) added to
+// the code.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Directive(const char* szName, const char* szOperand)
+{
+	mpcCode->AppendDirective(szName, szOperand);
 	Added();
 }
 
@@ -162,8 +175,7 @@ void CIRW65C816Backend::Label(int32 iLabel)
 	sz.Init(CIRW65C816Backend::GetScratch());
 	sz.Append('L');
 	sz.Append(iLabel);
-	sz.Append(':');
-	TextLine(sz.Text());
+	LabelLine(sz.Text());
 	sz.Kill();
 }
 
@@ -1290,29 +1302,96 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel)
 	miBlock = -1;
 	mpcDominators = NULL;
 
-	//The passes over the code.
+	//The passes over the code (gasIR816Passes).
 	mpcModule->Begin(CPPCP_CodePasses);
 	KeepSlots(mpcCode);
-	Peephole(mpcCode);
-	PeepholeMasks(mpcCode);
-	PeepholeStores(mpcCode);
-	PeepholeTransfers(mpcCode);
-	PeepholeBranches(mpcCode);
-	PeepholeRegisters(mpcCode);
-	RemoveUnreadStores(mpcCode);
-
-	//The passes after Peephole leave stores and loads it would have taken out.
-	RemoveDeadStores(mpcCode);
-
-	//Then those dead on every way on from them (the lda that fed one may be loaded over unread now).
-	if (RemoveFlowDeadStores(mpcCode))
-	{
-		RemoveDeadStores(mpcCode);
-	}
-
-	//The loads of what a register holds, known across labels.
-	PeepholeFlowRegisters(mpcCode);
+	RunPasses();
 	mpcModule->End(CPPCP_CodePasses);
+}
+
+
+//A pass over a W65C816 function's code (gasIR816Passes): its name, and what runs it, fRun or fRunChanged (true if it
+//changed the code); with bIfChanged it runs only when the pass before it changed the code.
+struct SIR816Pass
+{
+	const char*	szName;
+	void		(*fRun)(CIRW65C816Code* pcCode);
+	bool		(*fRunChanged)(CIRW65C816Code* pcCode);
+	bool		bIfChanged;
+};
+
+
+//The passes over a W65C816 function's code, in the order they run.  Peephole first; the passes after it leave stores
+//and loads it would have taken out, which RemoveDeadStores takes; then the stores dead on every way on from them
+//(the lda that fed one may be loaded over unread now), and RemoveDeadStores again if any went; last the loads of
+//what a register holds, known across labels.
+static const SIR816Pass gasIR816Passes[] =
+{
+	{ "W65C816Peephole", CIRW65C816Backend::Peephole, NULL, false },
+	{ "W65C816PeepholeMasks", CIRW65C816Backend::PeepholeMasks, NULL, false },
+	{ "W65C816PeepholeStores", CIRW65C816Backend::PeepholeStores, NULL, false },
+	{ "W65C816PeepholeTransfers", CIRW65C816Backend::PeepholeTransfers, NULL, false },
+	{ "W65C816PeepholeBranches", CIRW65C816Backend::PeepholeBranches, NULL, false },
+	{ "W65C816PeepholeRegisters", CIRW65C816Backend::PeepholeRegisters, NULL, false },
+	{ "W65C816RemoveUnreadStores", CIRW65C816Backend::RemoveUnreadStores, NULL, false },
+	{ "W65C816RemoveDeadStores", CIRW65C816Backend::RemoveDeadStores, NULL, false },
+	{ "W65C816RemoveFlowDeadStores", NULL, CIRW65C816Backend::RemoveFlowDeadStores, false },
+	{ "W65C816RemoveDeadStoresAfter", CIRW65C816Backend::RemoveDeadStores, NULL, true },
+	{ "W65C816PeepholeFlowRegisters", NULL, CIRW65C816Backend::PeepholeFlowRegisters, false },
+};
+
+
+#define IR816_NUM_PASSES	(sizeof(gasIR816Passes) / sizeof(gasIR816Passes[0]))
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The passes over the code (gasIR816Passes) in their order, each counted
+// and timed in the unit's statistics (when it has them) as the optimiser's
+// passes are, numbered after them.  A pass that doesn't say whether it
+// changed the code changed it when it has another number of lines.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::RunPasses(void)
+{
+	CCPPCompileStatistics*	pcStatistics;
+	const SIR816Pass*		psPass;
+	size					ui;
+	size					uiLines;
+	int64					lliStart;
+	bool					bChanged;
+	bool					bLastChanged;
+
+	pcStatistics = mpcModule->mpcStatistics;
+	bLastChanged = false;
+	lliStart = 0;
+	for (ui = 0; ui < IR816_NUM_PASSES; ui++)
+	{
+		psPass = &gasIR816Passes[ui];
+		if (psPass->bIfChanged && !bLastChanged)
+		{
+			continue;
+		}
+		if (pcStatistics)
+		{
+			lliStart = pcStatistics->Now();
+		}
+		uiLines = mpcCode->NumLines();
+		if (psPass->fRunChanged)
+		{
+			bChanged = psPass->fRunChanged(mpcCode);
+		}
+		else
+		{
+			psPass->fRun(mpcCode);
+			bChanged = mpcCode->NumLines() != uiLines;
+		}
+		if (pcStatistics && (IRP_NumPasses + ui < CPP_MAX_PASSES))
+		{
+			pcStatistics->CountPass((int)(IRP_NumPasses + ui), psPass->szName, bChanged, CPP_NO_ROUND, pcStatistics->Now() - lliStart);
+		}
+		bLastChanged = bChanged;
+	}
 }
 
 

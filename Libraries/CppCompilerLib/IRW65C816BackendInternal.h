@@ -249,6 +249,7 @@ bool		IR816OperandIs(SIRW65C816Line* psLine, const char* szOperand, size uiOpera
 bool		IR816LeavesA(SIRW65C816Line* psLine);
 uint16		IR816InvertedBranch(uint16 uiMnemonic);
 const char*	IR816MnemonicName(uint16 uiMnemonic);
+uint32		IR816UnknownFlags(const char* szMnemonic);
 void		IR816AppendInstruction(CChars* psz, uint16 uiMnemonic, const char* szOperand, size uiOperand);
 int64		IR816LocalLabelNumber(const char* szLabel, size uiLength);
 void		IR816AppendLine(CChars* psz, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked);

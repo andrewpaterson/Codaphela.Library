@@ -380,10 +380,10 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	mpcBackend->Label(iLoop);
 	for (i = 0; i <= IR816_SHIFT_STEPS; i++)
 	{
-		sz.Init("\t\t.word L");
+		sz.Init("L");
 		sz.Append((i == 0) ? iDone : aiSteps[IR816_SHIFT_STEPS - i]);
 		sz.Append(" & 0xFFFF");
-		mpcBackend->TextLine(sz.Text());
+		mpcBackend->Directive(".word", sz.Text());
 		sz.Kill();
 	}
 	for (i = 0; i < IR816_SHIFT_STEPS; i++)

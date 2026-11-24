@@ -94,6 +94,8 @@ public:
 	void		AppendInstruction(SIRW65C816Line* psLine, bool bMarked);
 	void		AppendLine(CIRW65C816Code* pcFrom, size uiLine);
 	void		InsertInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand = NULL);
+	void		AppendLabel(const char* szName);
+	void		AppendDirective(const char* szName, const char* szOperand = NULL);
 	bool		SameLine(size uiLine, CIRW65C816Code* pcOther, size uiOther);
 	bool		LinesAt(size uiLine, CIRW65C816Code* pcLines);
 	void		SetNote(size uiLine, uint8 uiNote);

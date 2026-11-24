@@ -610,6 +610,50 @@ void CIRW65C816Code::InsertInstruction(size uiLine, uint16 uiMnemonic, const cha
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The label szName's line ("szName:") added after the last line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::AppendLabel(const char* szName)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = NewLine();
+	psCode->uiKind = IR816CL_LABEL;
+	psCode->szText.Append(szName);
+	psCode->szText.Append(':');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The directive szName (".width") with szOperand (NULL for none) added
+// after the last line: its text, with what IR816Decode would make of it
+// (no mnemonic the passes know, the operand after its name).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::AppendDirective(const char* szName, const char* szOperand)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = NewLine();
+	psCode->uiKind = IR816CL_TABBED;
+	psCode->szText.Append("\t\t");
+	psCode->szText.Append(szName);
+	if (szOperand)
+	{
+		psCode->szText.Append(' ');
+		psCode->szText.Append(szOperand);
+	}
+	StrCpySafe(psCode->sLine.szMnemonic, szName, sizeof(psCode->sLine.szMnemonic));
+	psCode->sLine.uiMnemonic = IR816M_Unknown;
+	psCode->sLine.uiFlags = IR816UnknownFlags(szName);
+	psCode->uiOperand = 2 + StrLen(szName) + (szOperand ? 1 : 0);
+	psCode->sLine.uiOperand = psCode->szText.Length() - psCode->uiOperand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether line uiLine is line uiOther of pcOther: the same instruction
 // (mnemonic, operand and mark), or the same text.
 //
