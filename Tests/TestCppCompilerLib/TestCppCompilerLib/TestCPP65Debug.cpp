@@ -1993,6 +1993,49 @@ void TestCPP65DebugReleaseThis(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A 65C64 Release function with no frame of its own (DebuggerFixesPlan.txt
+// G1): its variables are from its frame address, which the walk finds, so
+// its parameters past the register arguments are read where its caller
+// pushed them.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugFramelessParameters(void)
+{
+	STestCPP65Debug			sDebug;
+	SAsm65DebugFunction*	psFunction;
+	CChars					szWrong;
+
+	TestCPP65DebugBuild(&sDebug,
+		"int giValues[5] = { 1, 2, 3, 4, 5 };\n"
+		"int Five(int a, int b, int c, int d, int e)\n"
+		"{\n"
+		"	return a + b * 2 + c * 3 + d * 4 + e * 5;\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"	return Five(giValues[0], giValues[1], giValues[2], giValues[3], giValues[4]);\n"
+		"}\n", TCB_Release, CPPT_65C64);
+	psFunction = TestCPP65DebugNamed(&sDebug, "Five");
+	AssertTrue(psFunction != NULL);
+	AssertInt(ASM65_DEBUG_FRAME, psFunction->uiBase);
+	AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Five", "e"));
+	TestCPP65DebugLoad(&sDebug);
+	AssertTrue(TestCPP65DebugRunTo(&sDebug, 4));
+	TestCPP65DebugWalk(&sDebug);
+	AssertString("Five", TestCPP65DebugFrameName(&sDebug, 0));
+	AssertTrue(sDebug.asFrames.Get(0)->bFrame);
+	AssertInt(4, TestCPP65DebugLocal(&sDebug, 0, "d"));
+	AssertInt(5, TestCPP65DebugLocal(&sDebug, 0, "e"));
+	szWrong.Init();
+	AssertInt(1 + 4 + 9 + 16 + 25, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+	AssertString("", szWrong.Text());
+	szWrong.Kill();
+	TestCPP65DebugKill(&sDebug);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Debug(void)
@@ -2012,6 +2055,7 @@ void TestCPP65Debug(void)
 	TestCPP65DebugValuesEverywhere();
 	TestCPP65DebugRegisterVariables();
 	TestCPP65DebugReleaseThis();
+	TestCPP65DebugFramelessParameters();
 
 	TestStatistics();
 }
