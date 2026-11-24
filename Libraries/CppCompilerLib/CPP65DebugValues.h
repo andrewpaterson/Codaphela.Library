@@ -37,6 +37,9 @@ enum ECPP65DebugFormat
 };
 
 
+#define CPP65_DEBUG_NO_REGISTER	0xFF	//A value not read from a register (SCPP65DebugValue::uiRegister).
+
+
 //A value a debugger shows (DebuggerPlan.txt C1): of a type in a program's debug records, in memory (an address in a
 //space; a bit field's bits in the bytes there) or worked out (a watch expression's, its bytes held).  uiArrayCount
 //shows that many of the type from the address, as an array (a watch's p,10).  Its children are shown as it is.
@@ -51,6 +54,7 @@ struct SCPP65DebugValue
 	uint8				uiBitOffset;
 	uint8				uiBits;			//0 for all of the value's bytes.
 	uint8				uiFormat;		//ECPP65DebugFormat.
+	uint8				uiRegister;		//A variable's value read from its frame's register (Variable), else CPP65_DEBUG_NO_REGISTER.
 	uint8				auiBytes[8];	//A value not in memory.
 
 	void	Init(CAsm65DebugRecords* pcRecords, uint32 uiType, EAsm65StackSpace eSpace, uint32 uiAddress);
@@ -58,12 +62,14 @@ struct SCPP65DebugValue
 };
 
 
-//What editing a value writes (C2): its bytes at an address in a space.
+//What editing a value writes (C2): its bytes at an address in a space, or a register's value (uiRegister, the
+//walker's numbering, not CPP65_DEBUG_NO_REGISTER; auiBytes all of it).
 struct SCPP65DebugWrite
 {
 	uint32	uiAddress;
 	uint8	uiSpace;		//EAsm65StackSpace.
 	uint8	uiSize;
+	uint8	uiRegister;
 	uint8	auiBytes[8];
 };
 

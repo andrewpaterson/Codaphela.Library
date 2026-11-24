@@ -31,6 +31,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //token + 1 (CCPP65IRFrontEnd::SourceComments makes it a comment, or takes it out).
 #define IR_SOURCE_MARKER	"\t\t;@"
 
+//A back end's line where a variable's place changes (DebuggerFPlan.txt F1, CIRDebugPlaces): the marker, the
+//variable's debug slot, a space and its place as a .drange says it ("register, X", "frame, 5", "address, 128") or
+//"none" (CCPP65IRFrontEnd::DebugRanges makes them labels and ranges, or takes them out).
+#define IR_PLACE_MARKER		"\t\t;#"
+
 //A label a back end writes only for a debugger (where a variable's place starts or ends, DebuggerFPlan.txt F1): never
 //jumped to, and taken out when the code is compared without debug information (CCPP65Builder::SetCheckDebugCode).
 #define IR_DEBUG_LABEL		"__dbg"

@@ -249,6 +249,7 @@
     <ClCompile Include="IR65Peephole.cpp" />
     <ClCompile Include="IR65Widths.cpp" />
     <ClCompile Include="IRSourceMarkers.cpp" />
+    <ClCompile Include="IRDebugPlaces.cpp" />
     <ClCompile Include="CPP65ListingIndex.cpp" />
     <ClCompile Include="IRBlock.cpp" />
     <ClCompile Include="IRDominators.cpp" />
@@ -550,6 +551,7 @@
     <ClInclude Include="IR65Peephole.h" />
     <ClInclude Include="IR65Widths.h" />
     <ClInclude Include="IRSourceMarkers.h" />
+    <ClInclude Include="IRDebugPlaces.h" />
     <ClInclude Include="CPP65ListingIndex.h" />
     <ClInclude Include="IRBlock.h" />
     <ClInclude Include="IRDivisionCosts.h" />

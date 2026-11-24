@@ -224,10 +224,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 			WriteBody(szLabel, uiStart);
 		}
 	}
-	if (mbSourceMarkers)
-	{
-		mcSourceMarkers.Take(pszDest, uiStart);
-	}
+	TakeMarkers(pszDest, uiStart);
 	//The passes over the body's code: a register function's stub before it (RegisterStub) is as it must be, and
 	//the body's label is theirs to start from (the stub's jsr of it is no branch they know).
 	mpcModule->Begin(CPPCP_CodePasses);
@@ -243,10 +240,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	CountLoaded(mcPeephole.IsLoaded());
 	IR65PseudoWithoutW(pszDest, muiBodyStart);
 	mpcModule->End(CPPCP_CodePasses);
-	if (mbSourceMarkers)
-	{
-		mcSourceMarkers.Put(pszDest, uiStart);
-	}
+	PutMarkers(pszDest, uiStart);
 	return mbResult;
 }
 
@@ -433,6 +427,7 @@ bool CIR65Backend::WriteBody(const char* szLabel, size uiStart)
 	Prologue(szLabel);
 	mpsFlags = NULL;
 	mpcFlags = NULL;
+	BeginDebugPlaces(&mcDominators);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
@@ -441,6 +436,7 @@ bool CIR65Backend::WriteBody(const char* szLabel, size uiStart)
 			mbResult = false;
 		}
 	}
+	EndDebugPlaces();
 	Epilogue();
 	return mbResult;
 }
@@ -712,6 +708,47 @@ int32 CIR65Backend::VariableSlotPlace(SIRInstruction* psSlot)
 		return psPlace->iOffset + (msFrame.bFrameless ? 1 : msFrame.iArguments);
 	}
 	return 1 + psPlace->iOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a value is kept, for a debugger (CIRBackend::DebugPlace): its
+// register, its pseudo register ($n, IR65PseudoWithoutW), or its frame or argument
+// place from the function's base (V, or with no frame the frame address,
+// as VariableSlotPlace).  A value only left in A, or folded, has none.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::DebugPlace(SIRReference sValue, CChars* pszPlace)
+{
+	SIR65Place*	psPlace;
+
+	psPlace = mcPlaces.PlaceOf(sValue);
+	if (psPlace->bInA)
+	{
+		return false;
+	}
+	switch (psPlace->uiKind)
+	{
+	case IR65P_Register:
+		pszPlace->Append("register, ")->Append(mcPlaces.RegisterName(psPlace));
+		return true;
+	case IR65P_Pseudo:
+		pszPlace->Append("address, ")->Append(psPlace->iOffset);
+		return true;
+	case IR65P_Frame:
+		if (msFrame.bFrameless)
+		{
+			return false;
+		}
+		pszPlace->Append("frame, ")->Append(1 + psPlace->iOffset);
+		return true;
+	case IR65P_Argument:
+		pszPlace->Append("frame, ")->Append(psPlace->iOffset + (msFrame.bFrameless ? 1 : msFrame.iArguments));
+		return true;
+	default:
+		return false;
+	}
 }
 
 
@@ -1018,11 +1055,13 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 			//Writes nothing, or its consumer writes it.
 			continue;
 		}
+		DebugPlaces(pcBlock, uiFirst);
 		uiText = mpszOut->Length();
 		bResult &= WriteInstruction(pcBlock, ui);
 		mcPlaces.AddChunk(mcLiveness.Position(pcBlock, uiFirst), mcLiveness.Position(pcBlock, ui), uiText);
 		uiFirst = ui + 1;
 	}
+	DebugPlaces(pcBlock, uiFirst);
 	uiText = mpszOut->Length();
 	bResult &= WriteFused(pcBlock, masFused.NumElements());
 	NextInstruction();

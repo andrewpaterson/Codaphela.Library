@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPErrors.h"
 #include "IRModule.h"
 #include "IRSourceMarkers.h"
+#include "IRDebugPlaces.h"
 #include "CPPCompileOptions.h"
 
 
@@ -111,6 +112,10 @@ protected:
 	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
 	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
 	CIRSourceMarkers		mcSourceMarkers;	//The markers while the text passes run.
+	CIRDebugPlaces			mcDebugPlaces;		//Which value each variable holds as the code is written (DebugPlaces)...
+	bool					mbDebugPlaces;		//...when the function has debug value markers...
+	CArrayChars				maszDebugPlaces;	//...and per variable, the place its last place marker said.
+	CIRSourceMarkers		mcPlaceMarkers;		//The place markers while the text passes run.
 	CCPPErrors*				mpcErrors;
 	bool					mbResult;
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
@@ -146,6 +151,14 @@ protected:
 	void			AddVariableSlots(CIRWrittenFunction* pcWritten);
 	virtual int32	VariableSlotPlace(SIRInstruction* psSlot) = 0;
 	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
+
+	void			TakeMarkers(CChars* pszCode, size uiStart);
+	void			PutMarkers(CChars* pszCode, size uiStart);
+	void			BeginDebugPlaces(CIRDominators* pcDominators);
+	void			DebugPlaces(CIRBlock* pcBlock, size uiInstruction);
+	void			EndDebugPlaces(void);
+	void			DebugPlaceMarker(size uiSlot, const char* szPlace);
+	virtual bool	DebugPlace(SIRReference sValue, CChars* pszPlace);
 
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	bool			Error(const char* szMessage, const char* szDetail = NULL);

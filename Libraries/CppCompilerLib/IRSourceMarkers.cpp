@@ -33,8 +33,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Init(void)
+void CIRSourceMarkers::Init(const char* szPrefix, bool bKeepAll)
 {
+	mszPrefix = szPrefix;
+	mbKeepAll = bKeepAll;
 	maszLines.Init();
 	maiBefore.Init();
 	maszMarkers.Init();
@@ -69,7 +71,7 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 	maszLines.ReInit();
 	maiBefore.ReInit();
 	maszMarkers.ReInit();
-	if (strstr(pszCode->Text() + uiStart, IR_SOURCE_MARKER) == NULL)
+	if (strstr(pszCode->Text() + uiStart, mszPrefix) == NULL)
 	{
 		return;
 	}
@@ -85,7 +87,7 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 	for (ui = 0; ui < aszLines.NumElements(); ui++)
 	{
 		pszLine = aszLines.Get(ui);
-		if (pszLine->StartsWith(IR_SOURCE_MARKER))
+		if (pszLine->StartsWith(mszPrefix))
 		{
 			iBefore = (int32)maszLines.NumElements();
 			maiBefore.Add(&iBefore);
@@ -109,7 +111,8 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 // two found, the lines not found are paired in order with the lines now
 // there (as a pass rewrites a line in place).  A marker goes before the
 // first line it was before that has a place now.  Of markers that go
-// before one line only the last stays (the code of the others went).
+// before one line only the last stays (the code of the others went), or
+// with mbKeepAll all, in their order.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
@@ -118,13 +121,18 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 	CArrayTemplate<int32>	aiFound;		//Per line from before: where it is now, or -1.
 	CArrayTemplate<int32>	aiMoved;		//Per line from before: where it was moved to, or -1.
 	CArrayTemplate<int32>	aiOwner;		//Per line now: the line from before found there, or -1.
-	CArrayTemplate<int32>	aiMarker;		//Per line now (and one past the end): the marker that goes before it, or -1.
+	CArrayTemplate<int32>	aiLine;			//Per marker: the line now it goes before.
+	CArrayTemplate<int32>	aiFirst;		//Per line now: its first marker in aiMarker.
+	CArrayTemplate<int32>	aiNext;
+	CArrayTemplate<int32>	aiMarker;		//The markers, by the line they go before.
 	size					ui;
 	int32					iFound;
 	int32					iMarker;
 	int32					iBefore;
 	int32					iPrevious;
 	int32					iNew;
+	int32					iFirst;
+	int32					iEnd;
 	size					uiGap;
 	size					uiGapStart;
 
@@ -197,12 +205,11 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 		}
 	}
 
-	aiMarker.Init();
-	iMarker = -1;
-	for (ui = 0; ui <= aszLines.NumElements(); ui++)
-	{
-		aiMarker.Add(&iMarker);
-	}
+	//Each marker's line now (one past the end for none), then the markers bucketed by it in order: aiFirst per line
+	//(and one past the end, and one more) the first of its markers in aiMarker.
+	aiLine.Init();
+	aiFirst.Init();
+	aiFirst.GrowToAtLeastNumElements(aszLines.NumElements() + 2, true, 0);
 	for (ui = 0; ui < maszMarkers.NumElements(); ui++)
 	{
 		iFound = (int32)aszLines.NumElements();
@@ -214,17 +221,35 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 				break;
 			}
 		}
+		aiLine.Add(&iFound);
+		(*aiFirst.Get((size)iFound + 1))++;
+	}
+	for (ui = 1; ui < aiFirst.NumElements(); ui++)
+	{
+		*aiFirst.Get(ui) += *aiFirst.Get(ui - 1);
+	}
+	aiMarker.Init();
+	aiMarker.GrowToAtLeastNumElements(maszMarkers.NumElements(), true, -1);
+	aiNext.Init();
+	aiNext.Copy(&aiFirst);
+	for (ui = 0; ui < maszMarkers.NumElements(); ui++)
+	{
 		iMarker = (int32)ui;
-		aiMarker.Set((size)iFound, &iMarker);
+		aiMarker.Set((size)(*aiNext.Get((size)*aiLine.Get(ui)))++, &iMarker);
 	}
 
 	pszCode->SetLength(uiStart);
 	for (ui = 0; ui <= aszLines.NumElements(); ui++)
 	{
-		iMarker = *aiMarker.Get(ui);
-		if (iMarker >= 0)
+		iFirst = *aiFirst.Get(ui);
+		iEnd = *aiFirst.Get(ui + 1);
+		if ((iEnd > iFirst) && !mbKeepAll)
 		{
-			pszCode->Append(*maszMarkers.Get((size)iMarker));
+			iFirst = iEnd - 1;
+		}
+		for (; iFirst < iEnd; iFirst++)
+		{
+			pszCode->Append(*maszMarkers.Get((size)*aiMarker.Get((size)iFirst)));
 			pszCode->AppendNewLine();
 		}
 		if (ui < aszLines.NumElements())
@@ -233,6 +258,9 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 			pszCode->AppendNewLine();
 		}
 	}
+	aiNext.Kill();
+	aiLine.Kill();
+	aiFirst.Kill();
 	aiMarker.Kill();
 	aiMoved.Kill();
 	aiOwner.Kill();

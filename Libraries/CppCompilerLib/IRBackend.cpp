@@ -37,6 +37,10 @@ void CIRBackend::InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pc
 	muiSource = 0;
 	mbSourceMarkers = false;
 	mcSourceMarkers.Init();
+	mcDebugPlaces.Init();
+	mbDebugPlaces = false;
+	maszDebugPlaces.Init();
+	mcPlaceMarkers.Init(IR_PLACE_MARKER, true);
 	mpcErrors = NULL;
 	mbResult = true;
 	maiBlockLabels.Init();
@@ -52,6 +56,9 @@ void CIRBackend::Kill(void)
 {
 	maszRuntime.Kill();
 	maiBlockLabels.Kill();
+	mcPlaceMarkers.Kill();
+	maszDebugPlaces.Kill();
+	mcDebugPlaces.Kill();
 	mcSourceMarkers.Kill();
 }
 
@@ -381,6 +388,149 @@ void CIRBackend::Source(uint32 uiSource)
 	mpszOut->Append(IR_SOURCE_MARKER);
 	mpszOut->Append((int64)muiSource);
 	mpszOut->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The marker lines (a listing's source markers, a debugger's place
+// markers) taken out of the code from uiStart before the text passes run,
+// so they see the code they would without them; PutMarkers puts them back
+// where the code they were before went.  The place markers are taken out
+// first and put back last, so the source markers go where they would
+// without them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::TakeMarkers(CChars* pszCode, size uiStart)
+{
+	if (mbDebugPlaces)
+	{
+		mcPlaceMarkers.Take(pszCode, uiStart);
+	}
+	if (mbSourceMarkers)
+	{
+		mcSourceMarkers.Take(pszCode, uiStart);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::PutMarkers(CChars* pszCode, size uiStart)
+{
+	if (mbSourceMarkers)
+	{
+		mcSourceMarkers.Put(pszCode, uiStart);
+	}
+	if (mbDebugPlaces)
+	{
+		mcPlaceMarkers.Put(pszCode, uiStart);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before the function's blocks are written (in their order, numbered):
+// place markers (DebugPlaces) are written if it has debug value markers.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::BeginDebugPlaces(CIRDominators* pcDominators)
+{
+	size	ui;
+
+	mbDebugPlaces = mcDebugPlaces.Begin(mpcFunction, pcDominators);
+	maszDebugPlaces.ReInit();
+	for (ui = 0; mbDebugPlaces && (ui < mcDebugPlaces.NumSlots()); ui++)
+	{
+		maszDebugPlaces.Add("none");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before the code written for pcBlock's instruction uiInstruction (its
+// jump when it is the number of instructions), and any it fuses: a place
+// marker (IR_PLACE_MARKER) for each variable whose place isn't what the
+// last marker for it in the text said (a block's start says them all, as
+// its predecessors' ends may be anywhere): the home of the value it holds
+// while that is live (DebugPlace), else none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction)
+{
+	CChars			szPlace;
+	SIRReference	sValue;
+	size			ui;
+
+	if (!mbDebugPlaces)
+	{
+		return;
+	}
+	mcDebugPlaces.Move(pcBlock, uiInstruction);
+	szPlace.Init();
+	for (ui = 0; ui < mcDebugPlaces.NumSlots(); ui++)
+	{
+		szPlace.Clear();
+		sValue = mcDebugPlaces.Value(ui);
+		if (sValue.IsNone() || !DebugPlace(sValue, &szPlace))
+		{
+			szPlace.Set("none");
+		}
+		DebugPlaceMarker(ui, szPlace.Text());
+	}
+	szPlace.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After the function's blocks, or where an epilogue takes its frame
+// apart: its variables are nowhere from here on (until the next block's
+// start says where they are).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::EndDebugPlaces(void)
+{
+	size	ui;
+
+	for (ui = 0; mbDebugPlaces && (ui < maszDebugPlaces.NumElements()); ui++)
+	{
+		DebugPlaceMarker(ui, "none");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A place marker for variable uiSlot unless the last one said szPlace.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::DebugPlaceMarker(size uiSlot, const char* szPlace)
+{
+	if (maszDebugPlaces.Get(uiSlot)->Equals(szPlace))
+	{
+		return;
+	}
+	maszDebugPlaces.Get(uiSlot)->Set(szPlace);
+	mpszOut->Append(IR_PLACE_MARKER)->Append((int64)uiSlot)->Append(' ')->Append(szPlace)->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the temporary sValue is kept, for a debugger, as a .drange says
+// it: "frame, 5" (the function's base + 5), "register, X", "address,
+// 128".  False if it isn't kept anywhere a debugger can read (in A only,
+// folded into an address), or the back end doesn't describe places.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBackend::DebugPlace(SIRReference sValue, CChars* pszPlace)
+{
+	return false;
 }
 
 

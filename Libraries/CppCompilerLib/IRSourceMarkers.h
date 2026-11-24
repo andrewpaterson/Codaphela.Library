@@ -22,20 +22,25 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __I_R_SOURCE_MARKERS_H__
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ArrayTemplate.h"
+#include "IRBlock.h"
 
 
-//The source markers (IR_SOURCE_MARKER lines) of a function's code, taken out before a back end's text passes so the
-//passes see the code they would without them (a listing's code is the same as the one without), and put back after:
-//each before the first line it was before that is still there, wherever a pass moved it.
+//The marker lines of a function's code (the source markers, IR_SOURCE_MARKER, or the debugger's place markers,
+//IR_PLACE_MARKER), taken out before a back end's text passes so the passes see the code they would without them (a
+//listing's code is the same as the one without), and put back after: each before the first line it was before that
+//is still there, wherever a pass moved it.  Of the markers that end up before one line only the last stays (a source
+//marker's code went), or with bKeepAll all of them in order (each place marker says something of its own).
 class CIRSourceMarkers
 {
 protected:
+	const char*				mszPrefix;
+	bool					mbKeepAll;
 	CArrayChars				maszLines;		//The code's lines without the markers, as Take left them.
 	CArrayTemplate<int32>	maiBefore;		//Per marker: the line (in maszLines) it was before.
 	CArrayChars				maszMarkers;	//Per marker: its line.
 
 public:
-	void	Init(void);
+	void	Init(const char* szPrefix = IR_SOURCE_MARKER, bool bKeepAll = false);
 	void	Kill(void);
 
 	void	Take(CChars* pszCode, size uiStart);

@@ -41,6 +41,7 @@ void SCPP65DebugValue::Init(CAsm65DebugRecords* pcRecords, uint32 uiType, EAsm65
 	uiBitOffset = 0;
 	uiBits = 0;
 	uiFormat = CPP65DF_Default;
+	uiRegister = CPP65_DEBUG_NO_REGISTER;
 	memset(auiBytes, 0, sizeof(auiBytes));
 }
 
@@ -189,7 +190,8 @@ void CCPP65DebugValues::SetHexadecimal(bool bHexadecimal)
 //
 // psVariable, one of psFrame's function's, where it is while psFrame
 // runs (CAsm65StackWalker::Locate): in memory, or in a register, whose
-// value it is.  False if it isn't kept anywhere then.
+// value it is (uiRegister says which).  False if it isn't kept anywhere
+// then.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65DebugValues::Variable(CAsm65StackWalker* pcWalker, SAsm65StackFrame* psFrame, SAsm65DebugVariable* psVariable, SCPP65DebugValue* psValue)
@@ -207,6 +209,7 @@ bool CCPP65DebugValues::Variable(CAsm65StackWalker* pcWalker, SAsm65StackFrame* 
 	else
 	{
 		psValue->Init(psFrame->pcRecords, psVariable->uiType, sPlace.uiValue);
+		psValue->uiRegister = sPlace.uiRegister;
 	}
 	return true;
 }
@@ -658,7 +661,7 @@ bool CCPP65DebugValues::Edit(SCPP65DebugValue* psValue, const char* szText, SCPP
 	size				ui;
 
 	psType = GetType(psValue);
-	if (!psType || !psValue->bInMemory)
+	if (!psType || (!psValue->bInMemory && (psValue->uiRegister == CPP65_DEBUG_NO_REGISTER)))
 	{
 		return false;
 	}
@@ -721,6 +724,20 @@ bool CCPP65DebugValues::Edit(SCPP65DebugValue* psValue, const char* szText, SCPP
 		break;
 	default:
 		return false;
+	}
+
+	//A value in a register: the register's other bytes as they were.
+	psWrite->uiRegister = psValue->uiRegister;
+	if (!psValue->bInMemory)
+	{
+		psWrite->uiAddress = 0;
+		psWrite->uiSpace = psValue->uiSpace;
+		psWrite->uiSize = sizeof(psWrite->auiBytes);
+		for (ui = 0; ui < sizeof(psWrite->auiBytes); ui++)
+		{
+			psWrite->auiBytes[ui] = (ui < psType->uiBytes) ? (uint8)(uiValue >> (ui * 8)) : psValue->auiBytes[ui];
+		}
+		return true;
 	}
 
 	//A bit field's bits go into the bytes that hold them.

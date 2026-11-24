@@ -250,6 +250,7 @@ protected:
 	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
 	CArrayCPP65IRDebugVariables	masDebugVariables;	//The function's variables a debugger is told of (DescribesVariables), in their order.
 	int32					miVariableSlots;	//The function's variables' slots so far (NameVariableSlots names them).
+	int32					miDebugLabels;		//The unit's debug labels so far (DebugRanges).
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
@@ -314,6 +315,7 @@ public:
 	void			AppendUnsupported(CChars* psz);
 	void			ClearUnsupported(void);
 	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
+	void			DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* paszRanges);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);
 	uint64			InlinedEntries(CAsm65Profile* pcProfile, const char* szLabel, SIRInstruction* psCall);
@@ -370,7 +372,7 @@ protected:
 	void			AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect);
 	void			RecordVariables(SCPP65IRWritten* psWritten);
 	void			CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* psWritten);
-	void			DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten);
+	void			DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten, CArrayChars* paszRanges);
 	void			VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast);
 	int				TokenLine(int iToken);
 	void			Finish(void);

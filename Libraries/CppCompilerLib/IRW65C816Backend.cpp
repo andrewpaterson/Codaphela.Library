@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <stdlib.h>
 #include <string.h>
 #include "IRW65C816BackendInternal.h"
 #include "IRW65C816Code.h"
@@ -464,10 +465,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	{
 		IR816ClearExitCarries(pszDest, uiStart);
 	}
-	if (mbSourceMarkers)
-	{
-		mcSourceMarkers.Put(pszDest, uiStart);
-	}
+	PutMarkers(pszDest, uiStart);
 	pszDest->AppendNewLine();
 	return mbResult;
 }
@@ -537,6 +535,7 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 	pcWritten = NewMalloc<CIRW65C816Written>();
 	pcWritten->Init();
 	pcWritten->msFrame = msFrame;
+	memcpy(pcWritten->mauiPlaceBytes, mauiPlaceBytes, sizeof(mauiPlaceBytes));
 	AddVariableSlots(pcWritten);
 	return pcWritten;
 }
@@ -579,16 +578,21 @@ int32 CIRW65C816Backend::VariableSlotBytes(SIRInstruction* psSlot)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function's frame is put on a page if that is worth it, now that the
-// unit's calls are known (AlignFrame; a listing's source markers are taken
-// out while it looks at the code), and then its exits keep A in Y only when
-// they must (IR816TidyExits).  A function nothing was kept for has an empty
-// frame.
+// unit's calls are known (AlignFrame; a listing's source markers and a
+// debugger's place markers are taken out while it looks at the code), and
+// then its exits keep A in Y only when they must (IR816TidyExits).  A
+// function nothing was kept for has an empty frame.  Then a place marker
+// at frame bytes the code never reads says none (UnreadPlaces).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile)
 {
 	CIRSourceMarkers	cMarkers;
-	SIRW65C816Frame			sFrame;
+	CIRSourceMarkers	cPlaces;
+	SIRW65C816Frame		sFrame;
+	CIRW65C816Code		cCode;
+	uint8				abRead[IR816_DIRECT_PAGE];
+	bool				bPlaces;
 
 	if (pcWritten)
 	{
@@ -598,6 +602,9 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	{
 		memset(&sFrame, 0, sizeof(sFrame));
 	}
+	bPlaces = pcWritten && (strstr(pszCode->Text(), IR_PLACE_MARKER) != NULL);
+	cPlaces.Init(IR_PLACE_MARKER, true);
+	cPlaces.Take(pszCode, 0);
 	cMarkers.Init();
 	cMarkers.Take(pszCode, 0);
 	if (!mpcOptions->mbDebuggable)
@@ -610,8 +617,115 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 		//An exit AlignFrame rewrote no longer adds to S, which is what left the carry clear.
 		IR816ClearExitCarries(pszCode, 0);
 	}
+	if (bPlaces)
+	{
+		cCode.Init();
+		cCode.Load(pszCode, 0);
+		if (IR816FindReads(&cCode, 0, abRead))
+		{
+			memset(abRead, 1, sizeof(abRead));
+		}
+		cCode.Kill();
+	}
 	cMarkers.Put(pszCode, 0);
 	cMarkers.Kill();
+	cPlaces.Put(pszCode, 0);
+	cPlaces.Kill();
+	if (bPlaces)
+	{
+		UnreadPlaces(pszCode, (CIRW65C816Written*)pcWritten, abRead);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where a value is kept, for a debugger (CIRBackend::DebugPlace): X, or
+// its frame place (D + offset; the function's base is D).  A value with
+// no place (only in A, folded) has none.  The bytes of the place are noted
+// for UnreadPlaces.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Backend::DebugPlace(SIRReference sValue, CChars* pszPlace)
+{
+	int32	iOffset;
+	int32	iBytes;
+
+	if (mcPlaces.InX(sValue))
+	{
+		pszPlace->Append("register, X");
+		return true;
+	}
+	iOffset = mcPlaces.OffsetOf(sValue);
+	if (iOffset < 0)
+	{
+		return false;
+	}
+	if (iOffset < IR816_DIRECT_PAGE)
+	{
+		iBytes = mcPlaces.PlaceBytes((int32)sValue.Index());
+		if (iBytes > mauiPlaceBytes[iOffset])
+		{
+			mauiPlaceBytes[iOffset] = (uint8)iBytes;
+		}
+	}
+	pszPlace->Append("frame, ")->Append(iOffset);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text passes take out stores to direct page words nothing reads
+// (RemoveUnreadStores: neither byte; AlignFrame's argument copies), so a
+// value with a word of its place (pcWritten's mauiPlaceBytes) not read
+// (abRead) in the finished code may never be there: its place markers say
+// none.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::UnreadPlaces(CChars* pszCode, CIRW65C816Written* pcWritten, uint8* abRead)
+{
+	CChars		szOut;
+	const char*	szText;
+	const char*	szEnd;
+	const char*	szPlace;
+	size		uiMarker;
+	int32		iOffset;
+	int32		iBytes;
+	int32		iByte;
+	bool		bRead;
+
+	uiMarker = strlen(IR_PLACE_MARKER);
+	szOut.Init();
+	for (szText = pszCode->Text(); *szText != '\0'; szText = (*szEnd == '\n') ? szEnd + 1 : szEnd)
+	{
+		szEnd = strchr(szText, '\n');
+		if (!szEnd)
+		{
+			szEnd = szText + strlen(szText);
+		}
+		szPlace = (strncmp(szText, IR_PLACE_MARKER, uiMarker) == 0) ? strchr(szText + uiMarker, ' ') : NULL;
+		if (szPlace && (szPlace < szEnd) && (strncmp(szPlace, " frame, ", 8) == 0))
+		{
+			iOffset = (int32)strtol(szPlace + 8, NULL, 10);
+			iBytes = ((iOffset >= 0) && (iOffset < IR816_DIRECT_PAGE)) ? pcWritten->mauiPlaceBytes[iOffset] : 0;
+			bRead = true;
+			for (iByte = iOffset; (iByte < iOffset + iBytes) && (iByte + 1 < IR816_DIRECT_PAGE); iByte += 2)
+			{
+				bRead &= (abRead[iByte] != 0) || (abRead[iByte + 1] != 0);
+			}
+			if (!bRead)
+			{
+				szOut.AppendSubString(szText, szPlace);
+				szOut.Append(" none");
+				szOut.AppendNewLine();
+				continue;
+			}
+		}
+		szOut.AppendSubString(szText, (*szEnd == '\n') ? szEnd + 1 : szEnd);
+	}
+	pszCode->Set(szOut.Text());
+	szOut.Kill();
 }
 
 
@@ -687,6 +801,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	CIRBlock*		pcNext;
 	int32			iLabel;
 	size			uiBlockStart;
+	size			uiFirst;
 	int32			iWeight;
 	int32			iDepth;
 
@@ -702,6 +817,8 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	FindLowByteUses();
 	mpcDominators = &mcDominators;
 	Prologue(szLabel);
+	memset(mauiPlaceBytes, 0, sizeof(mauiPlaceBytes));
+	BeginDebugPlaces(&mcDominators);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
@@ -712,6 +829,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 		mauiPendingArguments.FakeSetUsedElements(0);
 		miFused = 0;
 		mpsWritten = NULL;
+		uiFirst = 0;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			//Folded instructions write nothing: what is fused goes on past them.
@@ -726,13 +844,16 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 				mpsWritten = NULL;
 				continue;
 			}
+			DebugPlaces(pcBlock, uiFirst);
 			Source(pcBlock->masInstructions.Get(uiInstruction)->uiSource);
 			mbUnmasked = IsLowByteOnly(pcBlock->masInstructions.Get(uiInstruction)->sResult);
 			mcSelector.Instruction(pcBlock, uiInstruction);
 			mbUnmasked = false;
 			mpsWritten = pcBlock->masInstructions.Get(uiInstruction);
 			miFused = 0;
+			uiFirst = uiInstruction + 1;
 		}
+		DebugPlaces(pcBlock, uiFirst);
 		Source(pcBlock->msJump.uiSource);
 		Jump(pcBlock, pcNext);
 		miFused = 0;
@@ -746,12 +867,10 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 		iWeight = (int32)CIRLoops::Weight(iDepth, IR816_ALIGN_MAX_DEPTH);
 		msFrame.iDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
 	}
+	EndDebugPlaces();
 	miBlock = -1;
 	mpcDominators = NULL;
-	if (mbSourceMarkers)
-	{
-		mcSourceMarkers.Take(mpszOut, uiStart);
-	}
+	TakeMarkers(mpszOut, uiStart);
 
 	//The passes over the code, decoded once (CIRW65C816Code).
 	mpcModule->Begin(CPPCP_CodePasses);
@@ -1186,11 +1305,13 @@ void CIRW65C816Backend::Prologue(const char* szLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The result is in A (and X); Y keeps A while S is moved back.
+// The result is in A (and X); Y keeps A while S is moved back.  The
+// variables are nowhere from here on: D becomes the caller's.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Epilogue(void)
 {
+	EndDebugPlaces();
 	IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
 	Line("rtl");
 }

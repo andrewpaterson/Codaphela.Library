@@ -43,7 +43,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR816_BITS_TABLE			"R816_Bits"		//R816_Bits16, R816_Bits32 and R816_Bits64: 1 << k for k from 0 to 63 (0 past the width).
 #define IR816_BITS_TABLE_LENGTH		9
 #define IR816_FRAME_OPERANDS		".dp"	//A soft float frame operand entry's label suffix (FrameOperandCall).
-#define IR816_DIRECT_PAGE			256		//The bytes [D + n] reaches (IR816FindReads).
 #define IR816_POINTER_BYTES			4		//A pointer in memory: 24 bits and a zero byte.
 #define IR816_LONG_POINTER_BYTES	3		//The bytes an instruction reads of a pointer on the direct page.
 #define IR816_SCRATCH_FIRST			3		//The caller's bytes the scratch runtime routines may read (D + 5 to D + 22, with

@@ -1,5 +1,6 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/MapStringInt.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPP65DebugWatch.h"
 #include "Assembler65Lib/AsmW65C816StackWalker.h"
@@ -732,17 +733,39 @@ static void AssertCPP65DebugChild(STestCPP65Debug* psDebug, SCPP65DebugValue* ps
 //////////////////////////////////////////////////////////////////////////
 //
 // Types szText into psValue's Value (C2) and writes what that makes to
-// memory: false if it can't be written so.
+// memory, or to the register it is in (the 65C64's X, Y, V, W and B, the
+// W65C816's X): false if it can't be written so.
 //
 //////////////////////////////////////////////////////////////////////////
 static bool TestCPP65DebugWrite(STestCPP65Debug* psDebug, SCPP65DebugValue* psValue, const char* szText)
 {
-	SCPP65DebugWrite	sWrite;
-	size				ui;
+	static const E65Register	aeRegisters[A65DR_Count] = { R65_S, R65_V, R65_W, R65_A, R65_B, R65_X, R65_Y, R65_Zero };
+	SCPP65DebugWrite			sWrite;
+	uint64						uiValue;
+	size						ui;
 
 	if (!psDebug->cValues.Edit(psValue, szText, &sWrite))
 	{
 		return false;
+	}
+	if (sWrite.uiRegister != CPP65_DEBUG_NO_REGISTER)
+	{
+		memcpy(&uiValue, sWrite.auiBytes, sizeof(uiValue));
+		if (psDebug->pcCheck == &psDebug->cCheck65C64)
+		{
+			if ((sWrite.uiRegister < A65DR_V) || (sWrite.uiRegister > A65DR_Y) || (sWrite.uiRegister == A65DR_A))
+			{
+				return false;
+			}
+			psDebug->cFast65C64.TestSetRegister(aeRegisters[sWrite.uiRegister], uiValue);
+			return true;
+		}
+		if (sWrite.uiRegister != AW65DR_X)
+		{
+			return false;
+		}
+		psDebug->cFastW65C816.TestSetX((uint16)uiValue);
+		return true;
 	}
 	for (ui = 0; ui < sWrite.uiSize; ui++)
 	{
@@ -1219,9 +1242,11 @@ static int TestCPP65DebugWhere(STestCPP65Debug* psDebug, const char* szFunction,
 // A Release build describes the variables whose slot is theirs alone for
 // the whole function, on both processors: what stays in memory (an array,
 // an object, an int whose address is taken) is shown right in a caller's
-// frame; a variable promoted, folded or split away isn't kept.  So are
-// parameters where they were passed: one whose address is taken, an
-// object its caller pushed; one the optimiser makes a value isn't kept.
+// frame; a variable promoted to values is where its values are while they
+// are kept (ranges, DebuggerFPlan.txt F1), and one folded to a constant
+// isn't kept.  So are parameters where they were passed: one whose
+// address is taken, an object its caller pushed; one the optimiser makes
+// a value is where its value is (Area's ps).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65DebugRelease(void)
@@ -1240,9 +1265,9 @@ void TestCPP65DebugRelease(void)
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iCount"));
-		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Area", "ps"));
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Sum", "iCount"));
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "Area", "ps"));
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "Taken", "iValue"));
 		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "Taken", "sAt"));
 		TestCPP65DebugLoad(&sDebug);
@@ -1252,7 +1277,9 @@ void TestCPP65DebugRelease(void)
 		TestCPP65DebugWalk(&sDebug);
 		AssertString("Area", TestCPP65DebugFrameName(&sDebug, 0));
 		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
-		AssertCPP65DebugCall(&sDebug, 0, "Area(SPoint* ps = (optimised away))");
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "ps", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "x", "2 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "y", "5 = int", &sChild);
 		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "aiCounts", &sValue));
 		AssertInt(3, (int)sDebug.cValues.NumChildren(&sValue));
 		AssertCPP65DebugChild(&sDebug, &sValue, 0, "[0]", "7 = int", &sChild);
@@ -1667,6 +1694,251 @@ void TestCPP65DebugMarkersChangeNoCode(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Runs the loaded program to its end a step at a time, every frame's
+// integer variables read at each step where the debugger can read them:
+// with bRecord all of them, each value put in pcSeen as "Function.name=
+// value"; else only those whose place moves (ADW_Ranges), each value
+// expected in pcSeen (the first few that aren't in pszWrong).  Returns how
+// many were read.
+//
+//////////////////////////////////////////////////////////////////////////
+static size TestCPP65DebugRunReading(STestCPP65Debug* psDebug, CMapStringInt* pcSeen, bool bRecord, CChars* pszWrong)
+{
+	SAsm65StackFrame*		psFrame;
+	SAsm65DebugVariable*	psVariable;
+	SAsm65DebugType*		psType;
+	SCPP65DebugValue		sValue;
+	CChars					szKey;
+	uint64					uiValue;
+	size					uiSteps;
+	size					uiFrame;
+	size					ui;
+	size					uiRead;
+	size					uiWrong;
+
+	uiRead = 0;
+	uiWrong = 0;
+	szKey.Init();
+	for (uiSteps = 0; (uiSteps < 2000000) && !psDebug->pcCheck->IsStopped(); uiSteps++)
+	{
+		TestCPP65DebugWalk(psDebug);
+		for (uiFrame = 0; uiFrame < psDebug->asFrames.NumElements(); uiFrame++)
+		{
+			psFrame = psDebug->asFrames.Get(uiFrame);
+			for (ui = 0; psFrame->psFunction && (ui < psFrame->psFunction->uiNumVariables); ui++)
+			{
+				psVariable = psFrame->pcRecords->GetVariable(psFrame->psFunction, ui);
+				psType = psFrame->pcRecords->GetType(psVariable->uiType);
+				if ((!bRecord && (psVariable->uiWhere != ADW_Ranges)) || !psType || (psType->uiKind != ADT_Integer) ||
+					!psDebug->cValues.Variable(psDebug->pcWalker, psFrame, psVariable, &sValue) || !psDebug->cValues.Read(&sValue, &uiValue))
+				{
+					continue;
+				}
+				szKey.Set(psFrame->psFunction->szName.Text());
+				szKey.Append('.')->Append(psVariable->szName)->Append('=')->Append((int64)uiValue);
+				uiRead++;
+				if (bRecord)
+				{
+					pcSeen->Put(szKey.Text(), 1);
+				}
+				else if ((pcSeen->Get(szKey.Text(), 0) == 0) && (uiWrong++ < 5))
+				{
+					pszWrong->Append(szKey)->Append(" at ")->Append((int64)TestCPP65DebugPC(psDebug))->AppendNewLine();
+				}
+			}
+		}
+		TestCPP65DebugStep(psDebug);
+	}
+	szKey.Kill();
+	AssertTrue(psDebug->pcCheck->IsStopped());
+	return uiRead;
+}
+
+
+//A program whose variables take many values, in registers and the frame, across calls and round loops.
+static const char* gszTestCPP65DebugEverywhere =
+	"int Mix(int a, int b)\n"
+	"{\n"
+	"	int c = a * 3 + b;\n"
+	"	int d = c - a;\n"
+	"	if (d > 100) { d = d - 100; }\n"
+	"	return c * 7 + d;\n"
+	"}\n"
+	"int Count(int n)\n"
+	"{\n"
+	"	int iSum = 0;\n"
+	"	int iOdd = 0;\n"
+	"	for (int i = 1; i <= n; i++)\n"
+	"	{\n"
+	"		iSum += i * i;\n"
+	"		if (i & 1) { iOdd += Mix(i, iSum); }\n"
+	"	}\n"
+	"	return iSum + iOdd;\n"
+	"}\n"
+	"int main(void) { return Count(9) & 0x3FFF; }\n";
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Optimised code's variables are right wherever they are shown
+// (DebuggerFPlan.txt F1-7): on both processors each program runs built
+// Debug, every value each variable takes recorded, then built Release,
+// where at every step every variable with a place is read and must hold
+// one of the values it held in the Debug run (a home another value took
+// over, or a range that starts before its value is there, would show
+// one it never had).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugValuesEverywhere(void)
+{
+	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	static const char*		aszSources[] = { gszTestCPP65DebugEverywhere, gszTestCPP65DebugRelease, NULL };
+	STestCPP65Debug			sDebug;
+	CMapStringInt			cSeen;
+	CChars					szWrong;
+	size					uiTarget;
+	size					uiSource;
+	size					uiRead;
+
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		for (uiSource = 0; aszSources[uiSource]; uiSource++)
+		{
+			cSeen.Init();
+			TestCPP65DebugBuild(&sDebug, aszSources[uiSource], TCB_Debug, aeTargets[uiTarget]);
+			TestCPP65DebugLoad(&sDebug);
+			TestCPP65DebugRunReading(&sDebug, &cSeen, true, NULL);
+			TestCPP65DebugKill(&sDebug);
+
+			TestCPP65DebugBuild(&sDebug, aszSources[uiSource], TCB_Release, aeTargets[uiTarget]);
+			TestCPP65DebugLoad(&sDebug);
+			szWrong.Init();
+			uiRead = TestCPP65DebugRunReading(&sDebug, &cSeen, false, &szWrong);
+			AssertString("", szWrong.Text());
+			AssertTrue(uiRead > 50);
+			szWrong.Kill();
+			TestCPP65DebugKill(&sDebug);
+			cSeen.Kill();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Release variable in a register (DebuggerFPlan.txt F1-6), on both
+// processors: Autos lists it, editing it writes the register (the
+// program's result shows it), and it has no address.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugRegisterVariables(void)
+{
+	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	STestCPP65Debug			sDebug;
+	SCPP65DebugValue		sValue;
+	CArrayChars				aszAutos;
+	CChars					szWrong;
+	size					uiTarget;
+
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug,
+			"int Total(int n)\n"
+			"{\n"
+			"	int iTotal = 0;\n"
+			"	for (int i = 1; i <= n; i++)\n"
+			"	{\n"
+			"		iTotal += i;\n"
+			"	}\n"
+			"	return iTotal;\n"
+			"}\n"
+			"int main(void) { return Total(10); }\n", TCB_Release, aeTargets[uiTarget]);
+		TestCPP65DebugLoad(&sDebug);
+
+		//Round the loop twice: iTotal is 1 + 2 as the third time starts.
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 6));
+		TestCPP65DebugStep(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 6));
+		TestCPP65DebugStep(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 6));
+		TestCPP65DebugWalk(&sDebug);
+		AssertInt(3, TestCPP65DebugLocal(&sDebug, 0, "iTotal"));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "iTotal", &sValue));
+		if (aeTargets[uiTarget] == CPPT_65C64)
+		{
+			AssertTrue(sValue.uiRegister != CPP65_DEBUG_NO_REGISTER);
+			AssertCPP65DebugWatch(&sDebug, 0, "&iTotal", "A variable in a register has no address");
+		}
+		aszAutos.Init();
+		sDebug.cWatch.Autos(sDebug.asFrames.Get(0), 6, "		iTotal += i;", &aszAutos);
+		AssertTrue(aszAutos.Contains("iTotal"));
+		AssertTrue(aszAutos.Contains("i"));
+		aszAutos.Kill();
+
+		AssertTrue(TestCPP65DebugEdit(&sDebug, 0, "iTotal", "1003"));
+		TestCPP65DebugWalk(&sDebug);
+		AssertInt(1003, TestCPP65DebugLocal(&sDebug, 0, "iTotal"));
+		szWrong.Init();
+		AssertInt(1055, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// this in a Release member function (DebuggerGapsPlan.txt A), on both
+// processors: only a value there, it is where its value is
+// (DebuggerFPlan.txt F1), and its members are read through it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugReleaseThis(void)
+{
+	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	STestCPP65Debug			sDebug;
+	CChars					szWrong;
+	size					uiTarget;
+
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug,
+			"class CShape\n"
+			"{\n"
+			"public:\n"
+			"	int	miSides;\n"
+			"	int	miSize;\n"
+			"	int	Perimeter(void);\n"
+			"};\n"
+			"int CShape::Perimeter(void)\n"
+			"{\n"
+			"	return miSides * miSize;\n"
+			"}\n"
+			"int main(void)\n"
+			"{\n"
+			"	CShape	cShape;\n"
+			"	cShape.miSides = 3;\n"
+			"	cShape.miSize = 7;\n"
+			"	return cShape.Perimeter();\n"
+			"}\n", TCB_Release, aeTargets[uiTarget]);
+		AssertInt(ADW_Ranges, TestCPP65DebugWhere(&sDebug, "CShape::Perimeter", "this"));
+		TestCPP65DebugLoad(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 10));
+		TestCPP65DebugWalk(&sDebug);
+		AssertString("CShape::Perimeter", TestCPP65DebugFrameName(&sDebug, 0));
+		AssertCPP65DebugWatch(&sDebug, 0, "this->miSides", "3 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "miSize", "7 = int");
+		szWrong.Init();
+		AssertInt(21, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Debug(void)
@@ -1683,6 +1955,9 @@ void TestCPP65Debug(void)
 	TestCPP65DebugReleaseInlined();
 	TestCPP65C64DebugFrames();
 	TestCPP65DebugMarkersChangeNoCode();
+	TestCPP65DebugValuesEverywhere();
+	TestCPP65DebugRegisterVariables();
+	TestCPP65DebugReleaseThis();
 
 	TestStatistics();
 }

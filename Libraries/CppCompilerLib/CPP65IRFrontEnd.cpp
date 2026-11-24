@@ -62,6 +62,7 @@ void CCPP65IRFrontEnd::Init(CCPPUnit* pcUnit, bool bConstants)
 	mpcConstant = NULL;
 	muiAttempts = 0;
 	mpcUnit = pcUnit;
+	miDebugLabels = 0;
 	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mpcTypes = pcUnit->GetTypes();
 	mpcFunction = NULL;
@@ -1384,6 +1385,11 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		AddDebugVariable(NULL, VariableSlot(4, 4), 0, false);
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), msThis, masDebugVariables.Get(0)->sSlot);
 	}
+	else if (!msThis.IsNone())
+	{
+		//Optimised, this is only its value: a debug value marker says where it is (NameVariableSlots).
+		AddDebugVariable(NULL, IRNone(), 0, false);
+	}
 	return true;
 }
 
@@ -1636,6 +1642,100 @@ CArrayChars* CCPP65IRFrontEnd::GetNotImported(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The back ends write a place marker (IR_PLACE_MARKER) where a variable's
+// place changes (CIRBackend::DebugPlaces).  With bRanges each becomes a
+// label (IR_DEBUG_LABEL and a number, one for the markers before a line),
+// and paszRanges gets per variable slot the .drange lines its places make:
+// from the label where it got a place to the label where it lost it.
+// Otherwise they go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* paszRanges)
+{
+	CChars			szOut;
+	CArrayChars		aszPlaces;		//Per slot: its place now, empty for none...
+	CArrayChars		aszFrom;		//...and the label it is there from.
+	CChars			szLabel;
+	const char*		szText;
+	const char*		szEnd;
+	const char*		szPlace;
+	size			uiMarker;
+	size			uiSlot;
+
+	if (!pszCode->Contains(IR_PLACE_MARKER))
+	{
+		return;
+	}
+
+	uiMarker = strlen(IR_PLACE_MARKER);
+	szOut.Init();
+	aszPlaces.Init();
+	aszFrom.Init();
+	szLabel.Init();
+	for (szText = pszCode->Text(); *szText != '\0'; szText = (*szEnd == '\n') ? szEnd + 1 : szEnd)
+	{
+		szEnd = strchr(szText, '\n');
+		if (!szEnd)
+		{
+			szEnd = szText + strlen(szText);
+		}
+		if (strncmp(szText, IR_PLACE_MARKER, uiMarker) != 0)
+		{
+			szOut.AppendSubString(szText, (*szEnd == '\n') ? szEnd + 1 : szEnd);
+			szLabel.Clear();
+			continue;
+		}
+		if (!bRanges)
+		{
+			continue;
+		}
+
+		uiSlot = (size)strtol(szText + uiMarker, (char**)&szPlace, 10);
+		szPlace++;
+		while (aszPlaces.NumElements() <= uiSlot)
+		{
+			aszPlaces.Add("");
+			aszFrom.Add("");
+			paszRanges->Add("");
+		}
+		if (aszPlaces.Get(uiSlot)->Equals(szPlace, (size)(szEnd - szPlace)) || (aszPlaces.Get(uiSlot)->Empty() && (strncmp(szPlace, "none", 4) == 0)))
+		{
+			continue;
+		}
+
+		//The markers before one line share its label.
+		if (szLabel.Empty())
+		{
+			szLabel.Set(IR_DEBUG_LABEL);
+			szLabel.Append(miDebugLabels);
+			miDebugLabels++;
+			szOut.Append(szLabel)->Append(':')->AppendNewLine();
+		}
+		if (!aszPlaces.Get(uiSlot)->Empty())
+		{
+			paszRanges->Get(uiSlot)->Append("\t\t.drange ")->Append(*aszFrom.Get(uiSlot))->Append(", ")->Append(szLabel)->Append(", ")->Append(*aszPlaces.Get(uiSlot))->AppendNewLine();
+		}
+		if (strncmp(szPlace, "none", 4) == 0)
+		{
+			aszPlaces.Get(uiSlot)->Clear();
+		}
+		else
+		{
+			aszPlaces.Get(uiSlot)->Clear();
+			aszPlaces.Get(uiSlot)->AppendSubString(szPlace, szEnd);
+			aszFrom.Get(uiSlot)->Set(szLabel.Text());
+		}
+	}
+	pszCode->Set(szOut.Text());
+	szLabel.Kill();
+	aszFrom.Kill();
+	aszPlaces.Kill();
+	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The back ends (and CIRPrinter) write a marker line (IR_SOURCE_MARKER and
 // the source token + 1) where the instructions' source changes.  Where it
 // is another line than the last's, with bComments (a listing) it becomes a
@@ -1875,9 +1975,11 @@ SIRReference CCPP65IRFrontEnd::VariableSlot(uint32 uiSize, uint32 uiAlign)
 //
 // The slot of each variable a debugger is told of named dbg<n> (its
 // iSlot), which the back end says where it put (CIRBackend::
-// VariableSlotName) while it is still the variable's alone.  Named after
-// the function's fingerprint is taken, so the IR a profile matches is the
-// same with a line table and without.
+// VariableSlotName) while it is still the variable's alone.  Optimised
+// code's this has no slot: its iSlot is the next, and a debug value marker
+// at the function's start says it is msThis (DebuggerFPlan.txt F1).  Named
+// after the function's fingerprint is taken, so the IR a profile matches
+// is the same with a line table and without.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65IRFrontEnd::NameVariableSlots(void)
@@ -1893,6 +1995,12 @@ void CCPP65IRFrontEnd::NameVariableSlots(void)
 		psVariable = masDebugVariables.Get(ui);
 		if (psVariable->sSlot.IsNone())
 		{
+			if (!psVariable->pcVariable && !msThis.IsNone() && mpcUnit->GetOptions()->mbDebugMarkers && (mpcFunction->NumBlocks() > 0))
+			{
+				psVariable->iSlot = miVariableSlots;
+				miVariableSlots++;
+				mpcFunction->GetBlock(0)->AddDebugValue(0, (uint32)psVariable->iSlot, msThis);
+			}
 			continue;
 		}
 
@@ -2034,15 +2142,18 @@ void CCPP65IRFrontEnd::CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* p
 //////////////////////////////////////////////////////////////////////////
 //
 // .dvariable for each of the written function's variables (RecordVariables),
-// where the back end last put its slot (psWritten's pcBackend), then its
-// static locals.
+// where the back end last put its slot (psWritten's pcBackend); or, for one
+// whose slot was promoted, the places its values were in (paszRanges, per
+// slot, DebugRanges): ranges, its .drange lines after it.  Then its static
+// locals.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten)
+void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten, CArrayChars* paszRanges)
 {
 	SCPP65IRDescribedVariable*	psVariable;
 	char						szSlot[32];
 	const char*					szWhere;
+	CChars*						pszRanges;
 	int32						iPlace;
 	size						ui;
 
@@ -2050,17 +2161,27 @@ void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWri
 	{
 		psVariable = psWritten->asVariables.Get(ui);
 		snprintf(szSlot, sizeof(szSlot), "dbg%d", (int)psVariable->iSlot);
+		pszRanges = ((psVariable->iSlot >= 0) && ((size)psVariable->iSlot < paszRanges->NumElements())) ? paszRanges->Get((size)psVariable->iSlot) : NULL;
+		iPlace = 0;
 		if ((psVariable->iSlot >= 0) && psWritten->pcBackend && psWritten->pcBackend->FindSlot(szSlot, &iPlace))
 		{
 			szWhere = psVariable->bIndirect ? "indirect" : "frame";
 			iPlace += psVariable->iOffset;
 		}
+		else if (pszRanges && !pszRanges->Empty() && !psVariable->bIndirect && (psVariable->iOffset == 0))
+		{
+			szWhere = "ranges";
+		}
 		else
 		{
 			szWhere = "none";
-			iPlace = 0;
+			pszRanges = NULL;
 		}
 		mpcUnit->GetDebugWriter()->AppendVariable(pszCode, psVariable->szName.Text(), psVariable->psType, psVariable->bParameter, szWhere, iPlace, psVariable->iFirstLine, psVariable->iLastLine);
+		if (szWhere[0] == 'r')
+		{
+			pszCode->Append(*pszRanges);
+		}
 	}
 	pszCode->Append(psWritten->szStatics);
 }

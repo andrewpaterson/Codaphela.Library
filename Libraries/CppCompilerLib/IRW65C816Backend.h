@@ -112,11 +112,16 @@ struct SIRW65C816Frame
 };
 
 
-//What the W65C816 back end keeps about a function it wrote: its frame, for AlignFrame.
+#define IR816_DIRECT_PAGE	256		//The bytes [D + n] reaches (IR816FindReads).
+
+
+//What the W65C816 back end keeps about a function it wrote: its frame, for AlignFrame, and per direct page byte the
+//most bytes a place marker says a value there has (DebugPlace), for FinishFunction.
 class CIRW65C816Written : public CIRWrittenFunction
 {
 public:
 	SIRW65C816Frame		msFrame;
+	uint8				mauiPlaceBytes[IR816_DIRECT_PAGE];
 };
 
 
@@ -196,6 +201,7 @@ protected:
 	CIRLoops				mcLoops;			//...and its loops: each block's depth (PackTemporaries, AllocateX, GenerateBody).
 	CIRBackendPasses		mcBackendPasses;	//SinkSteps.
 	CIRDominators*			mpcDominators;		//While the body is written: which jumps go round loops (JumpTo).
+	uint8					mauiPlaceBytes[IR816_DIRECT_PAGE];	//As CIRW65C816Written's.
 	SIRInstruction*			mapsFused[IR816_MAX_FUSED];	//Not written: the next instruction reads their words into A as it goes (CanFuse).
 	int						miFused;
 	SIRInstruction*			mpsDivided;			//The last udiv or sdiv that called a divide routine (RemainderLeft).
@@ -221,6 +227,8 @@ public:
 	void			GetFrame(SIRW65C816Frame* psFrame);
 	CIRWrittenFunction*	TakeWritten(void) override;
 	int32			VariableSlotPlace(SIRInstruction* psSlot) override;
+	bool			DebugPlace(SIRReference sValue, CChars* pszPlace) override;
+	void			UnreadPlaces(CChars* pszCode, CIRW65C816Written* pcWritten, uint8* abRead);
 	int32			VariableSlotBytes(SIRInstruction* psSlot);
 	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile) override;
 	void			DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;

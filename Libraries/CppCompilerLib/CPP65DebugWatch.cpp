@@ -126,7 +126,7 @@ bool CCPP65DebugWatch::Evaluate(SAsm65StackFrame* psFrame, uint32 uiLine, const 
 // What Visual Studio's Autos window shows, from szSource (the line
 // stopped at and the one before it): the names its code uses, and chains
 // of members (a.b, p->c), in the order they first come, that are in
-// memory in psFrame at uiLine.  A call's name isn't one (p->Area() gives
+// memory or a register in psFrame at uiLine.  A call's name isn't one (p->Area() gives
 // p), nor a qualified one (CShape::Area), nor a constant (an enumerator).
 // Each is appended to paszExpressions, to evaluate as a watch.  Returns
 // how many.
@@ -144,7 +144,7 @@ size CCPP65DebugWatch::Autos(SAsm65StackFrame* psFrame, uint32 uiLine, const cha
 	FindNames(szSource, &aszNames);
 	for (ui = 0; ui < aszNames.NumElements(); ui++)
 	{
-		if (!paszExpressions->Contains(aszNames.GetText(ui)) && Evaluate(psFrame, uiLine, aszNames.GetText(ui), &sValue) && sValue.bInMemory)
+		if (!paszExpressions->Contains(aszNames.GetText(ui)) && Evaluate(psFrame, uiLine, aszNames.GetText(ui), &sValue) && (sValue.bInMemory || (sValue.uiRegister != CPP65_DEBUG_NO_REGISTER)))
 		{
 			paszExpressions->Add(aszNames.GetText(ui));
 		}
@@ -1044,6 +1044,10 @@ bool CCPP65DebugWatch::AddressOf(SCPP65DebugValue* psValue)
 	uint32	uiAddress;
 	uint32	uiType;
 
+	if (psValue->uiRegister != CPP65_DEBUG_NO_REGISTER)
+	{
+		return Error("A variable in a register has no address");
+	}
 	if (!psValue->bInMemory || (psValue->uiBits != 0))
 	{
 		return Error("Only something in memory has an address");

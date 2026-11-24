@@ -319,6 +319,7 @@ protected:
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
 	int32				VariableSlotPlace(SIRInstruction* psSlot) override;
+	bool				DebugPlace(SIRReference sValue, CChars* pszPlace) override;
 	void				Epilogue(void);
 	void				ReturnCode(bool bThrow = false);
 	int					ReturnInstructions(void);

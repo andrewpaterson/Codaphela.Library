@@ -163,6 +163,7 @@ void CCPP65IRFrontEnd::InlineUnit(void)
 bool CCPP65IRFrontEnd::FinishUnit(void)
 {
 	CChars				szCode;
+	CArrayChars			aszRanges;
 	SCPP65IRWritten*	psWritten;
 	size				ui;
 
@@ -206,14 +207,17 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		{
 			mpcBackend->FinishFunction(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend, !psWritten->pcFunction || CIRInterprocedural::IsRecursive(&mcModule, psWritten->pcFunction), mpcUnit->GetFrameProfile());
 		}
+		aszRanges.Init();
+		DebugRanges(&szCode, mpcUnit->HasLineTable(), &aszRanges);
 		if (mpcBackend && mpcUnit->HasLineTable())
 		{
 			mpcBackend->DescribeFrame(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend);
 			if (CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult, psWritten->pcBackend))
 			{
-				DescribeVariables(&szCode, psWritten);
+				DescribeVariables(&szCode, psWritten, &aszRanges);
 			}
 		}
+		aszRanges.Kill();
 		FreeWritten(psWritten);
 		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());
 		if (mpcUnit->HasLineTable())
