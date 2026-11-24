@@ -68,6 +68,7 @@ struct SFast65C64Op
 	uint8	uiCount;
 	uint8	uiCountValue;
 	bool	bNotZero;
+	bool	bAllBits;
 	uint8	uiUnitBits;
 	uint8	uiIndexStyle;
 	bool	bAllowStop;
@@ -160,6 +161,7 @@ static void DecodeFast65C64Op(uint16 uiOpcode, SFast65C64Op* psOp)
 	psOp->uiCount = (uint8)sDecoded.eCount;
 	psOp->uiCountValue = sDecoded.uiCount;
 	psOp->bNotZero = sDecoded.bNotZero;
+	psOp->bAllBits = sDecoded.bAllBits;
 	psOp->uiUnitBits = sDecoded.uiUnitBits;
 	psOp->uiIndexStyle = sDecoded.uiIndexStyle;
 	psOp->bAllowStop = sDecoded.bAllowStop;
@@ -1533,7 +1535,7 @@ void CFast65C64::Find(SFast65C64Op* psOp)
 	while (uiIndex < uiUnits)
 	{
 		uiUnit = (uiValue >> (uiIndex * psOp->uiUnitBits)) & uiUnitMask;
-		if (psOp->bNotZero ? (uiUnit != 0) : (uiUnit != uiUnitMask))
+		if (psOp->bAllBits ? (psOp->bNotZero ? (uiUnit == uiUnitMask) : (uiUnit == 0)) : (psOp->bNotZero ? (uiUnit != 0) : (uiUnit != uiUnitMask)))
 		{
 			bFound = true;
 			break;
@@ -2217,6 +2219,12 @@ FORCE_INLINE void CFast65C64::Execute(void)
 	case I65_Fcny:
 	case I65_Fsby:
 	case I65_Fcby:
+	case I65_Fzcr:
+	case I65_Fzny:
+	case I65_Fzby:
+	case I65_Ffcr:
+	case I65_Ffny:
+	case I65_Ffby:
 		Find(psOp);
 		break;
 

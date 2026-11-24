@@ -125,6 +125,116 @@ void Test65C64Find(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The all-bits finds: fz* stop at a unit with every bit clear, ff* at one with every
+// bit set, scanning upward.  A is 0x11000022FF0F0033: bytes 33 00 0F FF 22 00 00 11.
+//
+//////////////////////////////////////////////////////////////////////////
+void Test65C64FindAll(void)
+{
+	STest65C64			sTest;
+	CTest65C64Context*	pcContext;
+	S65C64Decoded		sDecoded;
+
+	Test65C64Begin(&sTest, 0x1000);
+	pcContext = sTest.pcContext;
+	pcContext->Op(Op65Wth(R65_A, 8));
+	pcContext->OpQuad(Op65RI(C65_CPY, R65_A, 8), 0x11000022FF0F0033ULL);
+
+	//Zero bytes from byte 0, c moving the index on: 1, 5, 6, then none (8, v set).
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(false, U65_BYTE, R65_A, R65_X));
+	pcContext->Op(Op65FindAll(false, U65_BYTE, R65_A, R65_X));
+	pcContext->Op(Op65FindAll(false, U65_BYTE, R65_A, R65_X));
+	pcContext->Op(Op65FindAll(false, U65_BYTE, R65_A, R65_X));
+
+	//The first full byte is byte 3 (FF); the first zero nybble is nybble 2 (byte 1), the
+	//first full one nybble 4 (byte 2's F); crumb 1 (byte 0's 00) is zero, crumb 0 (11) full.
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(true, U65_BYTE, R65_A, R65_X));
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(false, U65_NYBBLE, R65_A, R65_X));
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(true, U65_NYBBLE, R65_A, R65_X));
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(false, U65_CRUMB, R65_A, R65_X));
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(true, U65_CRUMB, R65_A, R65_X));
+
+	//Unlike fcny (any bit clear: nybble 0, a 3), fzny wants every bit clear.
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65Find(false, U65_NYBBLE, R65_A, R65_X, false));
+
+	//Only the width of the scanned register is scanned: one byte, 33, has no zero byte.
+	pcContext->Op(Op65Wth(R65_A, 1));
+	pcContext->Op(Op65Cep(STATUS65_CARRY));
+	pcContext->Op(Op65RR(C65_CPY, R65_X, R65_Zero));
+	pcContext->Op(Op65FindAll(false, U65_BYTE, R65_A, R65_X));
+	pcContext->Op(Op65Stp());
+
+	Test65C64Reset(&sTest);
+	AssertSize(1, Test65C64Step(&sTest));
+	AssertSize(5, Test65C64Step(&sTest));
+
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 1, false);
+	Test65C64AssertFind(&sTest, 5, false);
+	Test65C64AssertFind(&sTest, 6, false);
+	Test65C64AssertFind(&sTest, 8, true);
+
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 3, false);
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 2, false);
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 4, false);
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 1, false);
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 0, false);
+
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 0, false);
+
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64Step(&sTest);
+	Test65C64AssertFind(&sTest, 1, true);
+
+	AssertFalse(sTest.cMeta.TickInstruction());
+	Test65C64End(&sTest);
+
+	//A unit of 0 leaves multiply and divide as they were; 1 to 3 are the finds.
+	Decode65C64(Op65FindAll(false, 0, R65_Zero, R65_Zero), &sDecoded);
+	AssertInt(I65_Mul, sDecoded.eInstruction);
+	Decode65C64(Op65FindAll(true, 0, R65_Zero, R65_Zero), &sDecoded);
+	AssertInt(I65_Div, sDecoded.eInstruction);
+	Decode65C64(Op65FindAll(false, U65_CRUMB, R65_A, R65_X), &sDecoded);
+	AssertInt(I65_Fzcr, sDecoded.eInstruction);
+	AssertString("fzcr", Get65C64InstructionName(sDecoded.eInstruction));
+	Decode65C64(Op65FindAll(true, U65_BYTE, R65_B, R65_Y), &sDecoded);
+	AssertInt(I65_Ffby, sDecoded.eInstruction);
+	AssertInt(R65_B, sDecoded.eSource);
+	AssertInt(R65_Y, sDecoded.eCount);
+	AssertString("ffby", Get65C64InstructionName(sDecoded.eInstruction));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void Test65C64BitStatus(void)
@@ -238,6 +348,7 @@ void Test65C64Bits(void)
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	Test65C64Find();
+	Test65C64FindAll();
 	Test65C64BitStatus();
 	Test65C64StatusToBit();
 

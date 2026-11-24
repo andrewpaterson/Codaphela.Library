@@ -164,6 +164,14 @@ found.  One cycle.  When nothing is found the index is left one past the end
 The zero register as the index reads 0 and is scanned with an 8 bit index; the result is
 dropped (a choice, 2026-10-24: with no width the scan never ended).
 
+fzcr, fzny, fzby, ffcr, ffny, ffby (added by the user 2026-11-24, spreadsheet rows in red):
+scan upward only (there is no direction bit) for a unit with all bits clear (zero) or all
+bits set (full); otherwise as above.  They are in multiply's and divide's unused bits
+15-8: bits 15-13 the register, 12-10 the index, 9-8 the unit (1 crumb, 2 nybble, 3 byte),
+sub instruction 0 zero and 1 full.  A unit of 0 is multiply or divide, whose bits 15-10
+are unused (the decoder ignores them; the assembler writes 0).  fccr, fcny and fcby were
+renamed Find non-full crumb / nybble / byte the same day: they stop at any clear bit.
+
 
 Bit to status, status to bit, status to status
 ----------------------------------------------

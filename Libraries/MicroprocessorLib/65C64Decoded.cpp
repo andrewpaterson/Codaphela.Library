@@ -734,7 +734,9 @@ static void DecodeSubcopy(uint16 uiOpcode, S65C64Decoded* psDecoded)
 //
 // Instruction code 14: multiply and divide (no operand fields; they use A, B, W and
 // Y), negate and absolute (two registers), the finds (a register and an index) and
-// the shifts (extend 2 and 3).
+// the shifts (extend 2 and 3).  The all-bits finds (fz*, ff*) are in multiply's and
+// divide's bits 15-8: a unit (bits 9-8) of 1 to 3 makes one a find, 0 leaves it
+// multiply or divide (whose bits 15-10 are then unused).
 //
 //////////////////////////////////////////////////////////////////////////
 static void DecodeMultiplyDivideFindShift(uint16 uiOpcode, S65C64Decoded* psDecoded)
@@ -748,10 +750,23 @@ static void DecodeMultiplyDivideFindShift(uint16 uiOpcode, S65C64Decoded* psDeco
 		switch (Field(uiOpcode, 6, 2))
 		{
 		case 0:
-			psDecoded->eInstruction = I65_Mul;
-			break;
 		case 1:
-			psDecoded->eInstruction = I65_Div;
+			uiUnit = Field(uiOpcode, 8, 2);
+			if (uiUnit == 0)
+			{
+				psDecoded->eInstruction = (Field(uiOpcode, 6, 2) == 0) ? I65_Mul : I65_Div;
+			}
+			else
+			{
+				//All-bits finds, upward only: zero units (multiply's space) before full ones (divide's).
+				psDecoded->eSource = gae65Registers[Field(uiOpcode, 13, 3)];
+				psDecoded->eCount = gae65Registers[Field(uiOpcode, 10, 3)];
+				psDecoded->bDecrement = false;
+				psDecoded->bNotZero = Field(uiOpcode, 6, 2) != 0;
+				psDecoded->bAllBits = true;
+				psDecoded->uiUnitBits = auiUnitBits[uiUnit];
+				psDecoded->eInstruction = (E65Instruction)(I65_Fzcr + 3 * Field(uiOpcode, 6, 2) + (uiUnit - 1));
+			}
 			break;
 		default:
 			//Negate and absolute: the first register gets the second.

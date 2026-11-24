@@ -91,6 +91,12 @@ enum E65Instruction
 	I65_Fcny,
 	I65_Fsby,
 	I65_Fcby,
+	I65_Fzcr,
+	I65_Fzny,
+	I65_Fzby,
+	I65_Ffcr,
+	I65_Ffny,
+	I65_Ffby,
 	I65_Bist,
 	I65_Stab,
 	I65_Stat,
@@ -224,8 +230,10 @@ struct S65C64Decoded
 	E65Register		eCount;
 	uint8			uiCount;
 
-	//Find (eSource is scanned, eCount is the index), bit to status and status to bit.
+	//Find (eSource is scanned, eCount is the index), bit to status and status to bit.  bNotZero is what a find
+	//looks for: set bits (true) or clear bits (false); bAllBits says all of a unit's bits (fz*, ff*) rather than any.
 	bool			bNotZero;
+	bool			bAllBits;
 	uint8			uiUnitBits;
 	uint8			uiIndexStyle;
 

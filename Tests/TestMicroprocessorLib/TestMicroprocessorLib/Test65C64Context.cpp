@@ -632,6 +632,17 @@ uint16 Op65Find(bool bSet, uint8 uiUnit, E65Register eRegister, E65Register eInd
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The all-bits finds (fz*, ff*): multiply's (zero) or divide's (full) bits 15-8.
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 Op65FindAll(bool bFull, uint8 uiUnit, E65Register eRegister, E65Register eIndex)
+{
+	return (uint16)((eRegister << 13) | (eIndex << 10) | (uiUnit << 8) | (bFull << 6) | (0 << 4) | 14);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 uint16 Op65Bist(uint8 uiFlag, E65Register eRegister, uint8 uiIndexStyle)

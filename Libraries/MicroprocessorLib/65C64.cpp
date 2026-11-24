@@ -2119,8 +2119,8 @@ void C65C64::ABS(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Scans the first register (within its width) from the unit at the index register,
-// in the encoded direction, for a unit with any bit set (find set) or any bit clear
-// (find clear).  If c is set the index moves on one first.  v is set if no unit was
+// in the encoded direction, for a unit with any bit set (find set, fs*) or any bit
+// clear (find clear, fc*), or upward for one with all bits clear (fz*) or all set (ff*).  If c is set the index moves on one first.  v is set if no unit was
 // found, the index is then one past the end (the width in units, or all ones when
 // decrementing).  c is always set.  The zero register as the index scans from 0 with
 // an 8 bit index.
@@ -2156,7 +2156,7 @@ void C65C64::FIND(void)
 	while (uiIndex < uiUnits)
 	{
 		uiUnit = (uiValue >> (uiIndex * msDecoded.uiUnitBits)) & uiUnitMask;
-		if (msDecoded.bNotZero ? (uiUnit != 0) : (uiUnit != uiUnitMask))
+		if (msDecoded.bAllBits ? (msDecoded.bNotZero ? (uiUnit == uiUnitMask) : (uiUnit == 0)) : (msDecoded.bNotZero ? (uiUnit != 0) : (uiUnit != uiUnitMask)))
 		{
 			bFound = true;
 			break;

@@ -85,11 +85,17 @@ static S65C64InstructionName gasInstructionNames[NUM_65_INSTRUCTIONS] =
 	{ I65_Fsbi,				"fsbi",	"Find set bit" },
 	{ I65_Fcbi,				"fcbi",	"Find clear bit" },
 	{ I65_Fscr,				"fscr",	"Find non-zero crumb" },
-	{ I65_Fccr,				"fccr",	"Find zero crumb" },
+	{ I65_Fccr,				"fccr",	"Find non-full crumb" },
 	{ I65_Fsny,				"fsny",	"Find non-zero nybble" },
-	{ I65_Fcny,				"fcny",	"Find zero nybble" },
+	{ I65_Fcny,				"fcny",	"Find non-full nybble" },
 	{ I65_Fsby,				"fsby",	"Find non-zero byte" },
-	{ I65_Fcby,				"fcby",	"Find zero byte" },
+	{ I65_Fcby,				"fcby",	"Find non-full byte" },
+	{ I65_Fzcr,				"fzcr",	"Find zero crumb" },
+	{ I65_Fzny,				"fzny",	"Find zero nybble" },
+	{ I65_Fzby,				"fzby",	"Find zero byte" },
+	{ I65_Ffcr,				"ffcr",	"Find full crumb" },
+	{ I65_Ffny,				"ffny",	"Find full nybble" },
+	{ I65_Ffby,				"ffby",	"Find full byte" },
 	{ I65_Bist,				"bist",	"Bit to status" },
 	{ I65_Stab,				"stab",	"Status to bit" },
 	{ I65_Stat,				"stat",	"Status to status" },
@@ -403,7 +409,13 @@ void C65C64InstructionFactory::GetForm(S65C64Decoded* psDecoded, S65C64Form* psF
 	case I65_Fsny:
 	case I65_Fcny:
 	case I65_Fsby:
-	case I65_Fcby:	psForm->fExecute = &C65C64::FIND;	break;
+	case I65_Fcby:
+	case I65_Fzcr:
+	case I65_Fzny:
+	case I65_Fzby:
+	case I65_Ffcr:
+	case I65_Ffny:
+	case I65_Ffby:	psForm->fExecute = &C65C64::FIND;	break;
 	case I65_Bist:	psForm->fExecute = &C65C64::BIST;	break;
 	case I65_Stat:	psForm->fExecute = &C65C64::STAT;	break;
 

@@ -160,6 +160,7 @@ uint16	Op65SubcopyIndices(bool bBits, bool bSourceRegister, uint8 uiSource, bool
 uint16	Op65Neg(E65Register eDestination, E65Register eSource);
 uint16	Op65Abs(E65Register eDestination, E65Register eSource);
 uint16	Op65Find(bool bSet, uint8 uiUnit, E65Register eRegister, E65Register eIndex, bool bDecrement);
+uint16	Op65FindAll(bool bFull, uint8 uiUnit, E65Register eRegister, E65Register eIndex);
 uint16	Op65Bist(uint8 uiFlag, E65Register eRegister, uint8 uiIndexStyle);
 uint16	Op65Stab(uint8 uiFlag, E65Register eRegister, uint8 uiIndexStyle);
 uint16	Op65Stat(uint8 uiDestinationFlag, uint8 uiSourceFlag);
