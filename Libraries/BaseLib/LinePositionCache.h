@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LINE_POSITION_CACHE_H__
 #define __LINE_POSITION_CACHE_H__
-#include "MapIntTemplate.h"
+#include "HashMapPrimitiveTemplate.h"
 #include "Line.h"
 
 
@@ -51,9 +51,9 @@ class CLinePositionCache
 {
 protected:
 	CArrayLineRow			macVerticalRows;
-	CMapIntTemplate<size>	mcVerticalIndices;
+	CHashMapIntTemplate<size>	mcVerticalIndices;
 	CArrayLineRow			macHorizontalRows;
-	CMapIntTemplate<size>	mcHorizontalIndices;
+	CHashMapIntTemplate<size>	mcHorizontalIndices;
 
 public:
 	void		Init(CArrayLine* pacLines);
@@ -70,9 +70,9 @@ public:
 protected:
 	void		AddVerticalLine(CLine* pcLine);
 	void		AddHorizontalLine(CLine* pcLine);
-	void		AddLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine);
-	void		RemoveLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine);
-	CLine*		GetLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* pcIndices, int32 iKey, int32 x, int32 y);
+	void		AddLine(CArrayLineRow* pacRows, CHashMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine);
+	void		RemoveLine(CArrayLineRow* pacRows, CHashMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine);
+	CLine*		GetLine(CArrayLineRow* pacRows, CHashMapIntTemplate<size>* pcIndices, int32 iKey, int32 x, int32 y);
 	void		KillRows(CArrayLineRow* pacRows);
 };
 

@@ -132,7 +132,7 @@ void CLinePositionCache::AddHorizontalLine(CLine* pcLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePositionCache::AddLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine)
+void CLinePositionCache::AddLine(CArrayLineRow* pacRows, CHashMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine)
 {
 	size*		puiIndex;
 	size		uiIndex;
@@ -159,7 +159,7 @@ void CLinePositionCache::AddLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* 
 // pcLine must be in the row; the row keeps its place if it empties.
 //
 //////////////////////////////////////////////////////////////////////////
-void CLinePositionCache::RemoveLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine)
+void CLinePositionCache::RemoveLine(CArrayLineRow* pacRows, CHashMapIntTemplate<size>* pcIndices, int32 iKey, CLine* pcLine)
 {
 	size*		puiIndex;
 	CArrayLine*	pacLines;
@@ -178,7 +178,7 @@ void CLinePositionCache::RemoveLine(CArrayLineRow* pacRows, CMapIntTemplate<size
 // The first line in the row through x, y.
 //
 //////////////////////////////////////////////////////////////////////////
-CLine* CLinePositionCache::GetLine(CArrayLineRow* pacRows, CMapIntTemplate<size>* pcIndices, int32 iKey, int32 x, int32 y)
+CLine* CLinePositionCache::GetLine(CArrayLineRow* pacRows, CHashMapIntTemplate<size>* pcIndices, int32 iKey, int32 x, int32 y)
 {
 	size*		puiIndex;
 	CArrayLine*	pacLines;

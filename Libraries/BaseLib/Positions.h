@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __POSITIONS_H__
 #define __POSITIONS_H__
 #include "ArrayInt.h"
-#include "MapIntTemplate.h"
+#include "HashMapPrimitiveTemplate.h"
 #include "Line.h"
 
 
@@ -55,7 +55,7 @@ class CPositions
 {
 protected:
 	CArrayPositionColumn	macColumns;
-	CMapIntTemplate<size>	mcColumnIndices;
+	CHashMapIntTemplate<size>	mcColumnIndices;
 
 public:
 	void				Init(void);

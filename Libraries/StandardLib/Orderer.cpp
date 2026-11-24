@@ -32,7 +32,7 @@ void COrderer::Init(void)
 {
 	PreInit();
 	mpHolders = OMalloc<CArray<COrdererHolder>>();
-	mcHolderIndices.Init(true);
+	mcHolderIndices.Init();
 	PostInit();
 }
 
@@ -54,7 +54,7 @@ void COrderer::Free(void)
 void COrderer::Class(void)
 {
 	M_Pointer(mpHolders);
-	U_Unknown(CMapLongSize, mcHolderIndices);
+	U_Unknown(CHashMapLongSize, mcHolderIndices);
 }
 
 
@@ -75,7 +75,7 @@ bool COrderer::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool COrderer::Load(CObjectReader* pcFile)
 {
-	mcHolderIndices.Init(true);
+	mcHolderIndices.Init();
 	return true;
 }
 

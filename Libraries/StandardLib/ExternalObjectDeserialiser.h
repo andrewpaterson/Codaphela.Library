@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "DependentReadObject.h"
 #include "DependentReadPointer.h"
 #include "IndexNewOld.h"
-#include "BaseLib/MapLongLong.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "NamedIndexedObjects.h"
 
@@ -42,11 +42,11 @@ class CExternalObjectDeserialiser : public CDependentReadObjects
 {
 protected:
 	CArrayDependentReadObject	mcReadObjects;		//In the order they were found.
-	CMapLongLong				mcReadObjectPositions;	//Old index -> position in mcReadObjects.
+	CHashMapLongTemplate<int64>	mcReadObjectPositions;	//Old index -> position in mcReadObjects.
 	CArrayTemplate<OIndex>		maoiUnread;			//A min-heap of the old indices found: read smallest first.  Read ones are skipped when they come up.
 	CArrayDependentReadPointer	mcPointers;
 	CArrayIndexNewOld			mcIndexRemap;
-	CMapLongLong				mcNewIndices;		//Old index -> new index, as mcIndexRemap.
+	CHashMapLongTemplate<OIndex>	mcNewIndices;		//Old index -> new index, as mcIndexRemap.
 
 	CExternalObjectReader*		mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjects*					mpcObjects;

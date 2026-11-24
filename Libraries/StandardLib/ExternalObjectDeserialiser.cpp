@@ -34,9 +34,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects)
 {
 	mcIndexRemap.Init();
-	mcNewIndices.Init(true);
+	mcNewIndices.Init();
 	mcReadObjects.Init();
-	mcReadObjectPositions.Init(false);
+	mcReadObjectPositions.Init();
 	maoiUnread.Init();
 	mcPointers.Init();
 	mpcReader = pcReader;
@@ -339,7 +339,7 @@ void CExternalObjectDeserialiser::AddIndexRemap(OIndex oiNew, OIndex oiOld)
 
 	pcNewOld = mcIndexRemap.Add();
 	pcNewOld->Init(oiNew, oiOld);
-	mcNewIndices.Put(oiOld, oiNew);
+	mcNewIndices.Put(oiOld, &oiNew);
 }
 
 
@@ -454,6 +454,7 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 	CDependentReadObject	cDependent;
 	CDependentReadPointer*	pcPointer;
 	bool					bNameExistsInDatabase;
+	int64					lliPosition;
 
 	//Dependents are found by the index they were written with.  Only an object in no Objects has none.
 	if (pcObjectIdentifier->moi == INVALID_O_INDEX)
@@ -474,7 +475,8 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectIdenti
 			}
 		}
 
-		mcReadObjectPositions.Put(pcObjectIdentifier->moi, (int64)mcReadObjects.NumElements());
+		lliPosition = (int64)mcReadObjects.NumElements();
+		mcReadObjectPositions.Put(pcObjectIdentifier->moi, &lliPosition);
 		PushUnread(pcObjectIdentifier->moi);
 		mcReadObjects.Add(&cDependent);
 	}

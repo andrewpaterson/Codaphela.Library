@@ -20,13 +20,13 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ORDERER_H__
 #define __ORDERER_H__
-#include "BaseLib/MapLongTemplate.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/MapStringInt.h"
 #include "Array.h"
 #include "OrdererHolder.h"
 
 
-typedef CMapLongTemplate<size>	CMapLongSize;
+typedef CHashMapLongTemplate<size>	CHashMapLongSize;
 
 
 //Orders objects so that each comes after the objects that fulfil the names it requires (ported from Logicim's
@@ -45,7 +45,7 @@ CONSTRUCTABLE(COrderer);
 DESTRUCTABLE(COrderer);
 protected:
 	Ptr<CArray<COrdererHolder>>	mpHolders;
-	CMapLongSize				mcHolderIndices;  //Object index to holder index, rebuilt when it doesn't match mpHolders (after a Load).
+	CHashMapLongSize			mcHolderIndices;  //Object index to holder index, rebuilt when it doesn't match mpHolders (after a Load).
 
 public:
 	void					Init(void);
