@@ -76,6 +76,7 @@ public:
 	bool		IsBare(size uiLine, uint16 uiMnemonic);
 	bool		IsWith(size uiLine, uint16 uiMnemonic, const char* szOperand);
 	bool		IsDirective(size uiLine);
+	bool		IsInstructionLine(size uiLine);
 	bool		IsComment(size uiLine);
 	bool		IsRound(size uiLine);
 	const char*	LabelName(size uiLine, size* puiLength);
@@ -91,6 +92,9 @@ public:
 	void		AppendInstruction(uint16 uiMnemonic, int64 lliOperand);
 	void		AppendInstruction(SIRW65C816Line* psLine, bool bMarked);
 	void		AppendLine(CIRW65C816Code* pcFrom, size uiLine);
+	void		InsertInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand = NULL);
+	bool		SameLine(size uiLine, CIRW65C816Code* pcOther, size uiOther);
+	bool		LinesAt(size uiLine, CIRW65C816Code* pcLines);
 
 	void		Set(size uiLine, const char* szText);
 	void		Remove(size uiLine);

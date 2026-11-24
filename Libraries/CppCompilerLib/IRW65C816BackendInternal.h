@@ -224,6 +224,7 @@ void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFr
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 void		IR816TidyExits(CChars* pszCode, bool bNoResult);
 void		IR816ClearExitCarries(CChars* pszCode, size uiStart);
+void		IR816ClearExitCarries(CIRW65C816Code* pcCode);
 
 //IRW65C816Places.cpp: what the direct page reaches, and how X serves an instruction (AllocateX).
 bool		IR816OnDirectPage(int32 iOffset);
@@ -246,6 +247,7 @@ bool		IR816IsPrinted(CChars* psz, SIRW65C816Line* psLine, size uiOperand);
 void		IR816MakeLine(SIRW65C816Line* psLine, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked);
 uint64		IR816DecimalNumber(const char* szDigits, size uiLength);
 bool		IR816OperandHas(SIRW65C816Line* psLine, const char* szText);
+bool		IR816OperandsHave(const char* szText, size uiLength, const char* szFind);
 bool		IR816IsDecimal(const char* szOperand);
 bool		IR816ZNReadAfter(CIRW65C816Code* pcCode, size uiLine);
 void		IR816ForgetHeld(SIRW65C816Held* asHeld, int iFirst, int iLast);

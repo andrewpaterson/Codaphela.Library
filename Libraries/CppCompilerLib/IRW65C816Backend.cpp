@@ -556,18 +556,18 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 		return false;
 	}
 	GenerateBody(szLabel);
+	if (!mpcOptions->mbDebuggable)
+	{
+		DropFrame();
+	}
+	if (mpcOptions->mbExceptions)
+	{
+		IR816ClearExitCarries(mpcCode);
+	}
 	cCode.Write(pszDest, uiStart);
 	cCode.Kill();
 	mpcCode = NULL;
 	mpszOut = pszDest;
-	if (!mpcOptions->mbDebuggable)
-	{
-		DropFrame(uiStart);
-	}
-	if (mpcOptions->mbExceptions)
-	{
-		IR816ClearExitCarries(pszDest, uiStart);
-	}
 	PutMarkers(pszDest, uiStart);
 	pszDest->AppendNewLine();
 	return mbResult;

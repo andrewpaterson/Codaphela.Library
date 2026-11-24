@@ -298,6 +298,18 @@ bool CIRW65C816Code::IsWith(size uiLine, uint16 uiMnemonic, const char* szOperan
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a line is an instruction held as its fields (not a label,
+// directive or comment, nor a line kept as text).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsInstructionLine(size uiLine)
+{
+	return !Line(uiLine)->bText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether a line is a directive (".width ...").
 //
 //////////////////////////////////////////////////////////////////////////
@@ -573,6 +585,73 @@ void CIRW65C816Code::AppendLine(CIRW65C816Code* pcFrom, size uiLine)
 	psCode->sLine = psFrom->sLine;
 	psCode->uiOperand = psFrom->uiOperand;
 	psCode->szText.Append(psFrom->szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction uiMnemonic with szOperand (NULL for none) inserted
+// before line uiLine (after the last for NumLines).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::InsertInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand)
+{
+	size	uiIndex;
+
+	NewLine();
+	uiIndex = *maiOrder.Get(maiOrder.NumElements() - 1);
+	maiOrder.RemoveAt(maiOrder.NumElements() - 1, true);
+	*maiOrder.InsertAt(uiLine) = uiIndex;
+	MakeInstruction(masLines.Get(uiIndex), uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, false);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether line uiLine is line uiOther of pcOther: the same instruction
+// (mnemonic, operand and mark), or the same text.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::SameLine(size uiLine, CIRW65C816Code* pcOther, size uiOther)
+{
+	SIRW65C816CodeLine*	psLine;
+	SIRW65C816CodeLine*	psOther;
+
+	psLine = Line(uiLine);
+	psOther = pcOther->Line(uiOther);
+	if (psLine->bText != psOther->bText)
+	{
+		return false;
+	}
+	if (!psLine->bText && ((psLine->sLine.uiMnemonic != psOther->sLine.uiMnemonic) || (psLine->sLine.bMarked != psOther->sLine.bMarked)))
+	{
+		return false;
+	}
+	return psLine->szText.Equals(psOther->szText.Text());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the lines from uiLine on are pcLines' (all of them, in order).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::LinesAt(size uiLine, CIRW65C816Code* pcLines)
+{
+	size	ui;
+
+	if (uiLine + pcLines->NumLines() > NumLines())
+	{
+		return false;
+	}
+	for (ui = 0; ui < pcLines->NumLines(); ui++)
+	{
+		if (!SameLine(uiLine + ui, pcLines, ui))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 

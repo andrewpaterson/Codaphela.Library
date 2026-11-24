@@ -380,13 +380,25 @@ uint64 IR816DecimalNumber(const char* szDigits, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 bool IR816OperandHas(SIRW65C816Line* psLine, const char* szText)
 {
-	size	uiText;
+	return IR816OperandsHave(psLine->szOperand, psLine->uiOperand, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether szText (uiLength long, an operand or a line's mentions) has
+// szFind in it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IR816OperandsHave(const char* szText, size uiLength, const char* szFind)
+{
+	size	uiFind;
 	size	ui;
 
-	uiText = StrLen(szText);
-	for (ui = 0; ui + uiText <= psLine->uiOperand; ui++)
+	uiFind = StrLen(szFind);
+	for (ui = 0; ui + uiFind <= uiLength; ui++)
 	{
-		if (strncmp(psLine->szOperand + ui, szText, uiText) == 0)
+		if (strncmp(szText + ui, szFind, uiFind) == 0)
 		{
 			return true;
 		}

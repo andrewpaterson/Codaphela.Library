@@ -244,7 +244,7 @@ public:
 	void			Lines(CIRW65C816Code* pcFrom);
 	void			Added(void);
 	void			KeepSlots(CIRW65C816Code* pcCode);
-	void			DropFrame(size uiStart);
+	void			DropFrame(void);
 	bool			ReturnsNothingInA(void);
 	void			GrowTemporaries(void);
 	void			FindSingleUses(void);
