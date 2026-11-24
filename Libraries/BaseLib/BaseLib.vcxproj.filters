@@ -1110,6 +1110,9 @@
     <ClInclude Include="HashBlock.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
+    <ClInclude Include="UnionFind.h">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClInclude>
     <ClInclude Include="HashMapString.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
@@ -2433,6 +2436,9 @@
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
     <ClCompile Include="HashBlock.cpp">
+      <Filter>Source\Data\Map\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="UnionFind.cpp">
       <Filter>Source\Data\Map\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapHelper.cpp">

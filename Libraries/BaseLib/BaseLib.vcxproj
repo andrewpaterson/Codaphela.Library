@@ -244,6 +244,7 @@
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="FNVHash.h" />
     <ClInclude Include="HashBlock.h" />
+    <ClInclude Include="UnionFind.h" />
     <ClInclude Include="HashMapString.h" />
     <ClInclude Include="HashMapTemplate.h" />
     <ClInclude Include="HashMapPrimitiveTemplate.h" />
@@ -820,6 +821,7 @@
     <ClCompile Include="MapAccess.cpp" />
     <ClCompile Include="MapBlock.cpp" />
     <ClCompile Include="HashBlock.cpp" />
+    <ClCompile Include="UnionFind.cpp" />
     <ClCompile Include="IndexBlock.cpp" />
     <ClCompile Include="MapIndexAccess.cpp" />
     <ClCompile Include="MapHelper.cpp" />
