@@ -332,6 +332,7 @@ public:
 	CCPPInstantiator*		GetInstantiator(void);
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPFunctionDeclarer*	GetFunctionDeclarer(void);
+	CCPPNames*				GetNames(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
 	CCPP65DebugWriter*		GetDebugWriter(void);
@@ -437,7 +438,6 @@ public:
 	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
-	bool					CheckBaseMemberName(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	bool					ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
@@ -482,19 +482,12 @@ public:
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
 	CCPPClass*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
 	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcEnclosing = NULL);
-	CCPPClass*				MemberScopeClass(CCPPSymbol* pcSymbol);
-	CCPPClass*				EnclosingInstance(CCPPSymbol* pcSymbol);
 	CCPPClass*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
 	CCPPClass*			FindClass(int64 lliName, CCPPScope* pcLookup);
-	CCPPScope*				ComponentLookup(CCPPSyntaxNameComponent* pcComponent);
-	CCPPClass*			GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext = NULL);
-	CCPPClass*			FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate);
-	CCPPClass*			QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	int						AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass = false);
 	int						ObjectAlignment(SCPP65Type* psType);
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
@@ -581,7 +574,6 @@ public:
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					IsStringLiteral(CCPPSyntax* pcExpression);
 	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
-	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewTypeIdArray(CCPPSyntaxNewExpression* pcNew);
@@ -589,17 +581,6 @@ public:
 	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);
 	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
-	bool					HasMember(CCPPClass* pcClass, int64 lliName);
-	bool					HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments);
-	CCPPSymbol*				QualifiedEnumerator(CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPClass** ppcClass);
-	CCPPSymbol*				DecltypeEnumerator(CCPPSyntaxName* pcName);
-	CCPPSymbol*				QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass);
-	bool					IsAmbiguousInBases(CCPPClass* pcClass, int64 lliName);
-	void					FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses* papcFound);
-	CCPPClass*				QualifiersClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	CCPPClass*				NameQualifierClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	CCPPClass*				QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	CCPPClass*				MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
 	bool					NamesFunction(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);

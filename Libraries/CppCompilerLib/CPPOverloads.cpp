@@ -1342,7 +1342,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	if (bQualified)
 	{
 		mpcDiagnostics->BeginQuiet();
-		pcClass = mpcUnit->NameQualifierClass(pcName, pcNode);
+		pcClass = mpcUnit->GetNames()->NameQualifierClass(pcName, pcNode);
 		mpcDiagnostics->EndQuiet();
 	}
 	else if (mpcUnit->GetClosures()->OuterFunction() && mpcUnit->GetClosures()->OuterFunction()->mpcClass)

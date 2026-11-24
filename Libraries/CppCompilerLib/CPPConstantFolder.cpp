@@ -469,7 +469,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 	if (!pcSymbol || (pcSymbol->meKind == CPPSK_Enumerator))
 	{
 		mpcUnit->mbValueArgumentRefused = false;
-		pcEnumerator = mpcUnit->QualifiedEnumerator(pcId->mpcName, pcId, &pcClass);
+		pcEnumerator = mpcUnit->GetNames()->QualifiedEnumerator(pcId->mpcName, pcId, &pcClass);
 		if (pcEnumerator)
 		{
 			mpcUnit->mcContext.EnterBindings(pcClass ? pcClass->mpcBindings : mpcUnit->mcContext.GetBindings());
@@ -489,7 +489,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 	pcClass = NULL;
 	if (!pcSymbol || (pcSymbol->meKind == CPPSK_Field))
 	{
-		pcMember = mpcUnit->QualifiedMember(pcId->mpcName, CPPSK_Field, pcId, &pcClass);
+		pcMember = mpcUnit->GetNames()->QualifiedMember(pcId->mpcName, CPPSK_Field, pcId, &pcClass);
 		if (pcMember)
 		{
 			pcSymbol = pcMember;

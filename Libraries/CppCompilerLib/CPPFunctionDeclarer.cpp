@@ -630,7 +630,7 @@ SCPP65Type* CCPPFunctionDeclarer::ReturnDeclaratorType(SCPP65Type* psReturn, CCP
 			break;
 		case CPPP_MemberPointer:
 			//int B::* Get() returns a pointer to an int member of B.
-			pcClass = pcDeclarator->GetPointer(i)->mpcClass ? mpcUnit->GetNameClass(pcDeclarator->GetPointer(i)->mpcClass, pcDeclarator) : NULL;
+			pcClass = pcDeclarator->GetPointer(i)->mpcClass ? mpcUnit->GetNames()->GetNameClass(pcDeclarator->GetPointer(i)->mpcClass, pcDeclarator) : NULL;
 			psReturn = pcClass ? mpcTypes->MemberPointer(pcClass, psReturn) : NULL;
 			if (!pcClass)
 			{
@@ -1087,7 +1087,7 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 			return true;
 		}
 		lliName = mpcUnit->GetComponentName(pcMember->mpcName->GetLast());
-		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNames()->GetNameClass(pcMember->mpcName, pcMember);
 		if (pcNamed == pcClass)
 		{
 			bDelegating = true;
@@ -1103,7 +1103,7 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 		for (j = 0; j < i; j++)
 		{
 			pcOther = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(j);
-			pcOtherNamed = (pcOther->mpcName->mpcSymbol && (pcOther->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcOther->mpcName, pcOther);
+			pcOtherNamed = (pcOther->mpcName->mpcSymbol && (pcOther->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNames()->GetNameClass(pcOther->mpcName, pcOther);
 			if (pcNamed ? (pcOtherNamed == pcNamed) : (!pcOtherNamed && (mpcUnit->GetComponentName(pcOther->mpcName->GetLast()) == lliName)))
 			{
 				return mpcDiagnostics->Error(pcMember, "The member or base is named twice in the member initialisers");

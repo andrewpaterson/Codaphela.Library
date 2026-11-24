@@ -389,7 +389,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 	{
 		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNames()->GetNameClass(pcMember->mpcName, pcMember);
 		if (pcNamed == pcClass)
 		{
 			if (papcInitialisers->NumElements() != 1)
@@ -478,7 +478,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 	{
 		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNames()->GetNameClass(pcMember->mpcName, pcMember);
 		if (!(pcNamed && mpcUnit->IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(mpcUnit->GetComponentName(pcMember->mpcName->GetLast()), &iOffset))
 		{
 			return Unsupported(__FILE__, __LINE__);
@@ -510,7 +510,7 @@ bool CCPP65IRFrontEnd::ConstructBase(CArraySyntax* papcInitialisers, CCPPClass* 
 	for (uiMember = 0; uiMember < papcInitialisers->NumElements(); uiMember++)
 	{
 		pcMember = (CCPPSyntaxMemberInitializer*)papcInitialisers->GetPtr(uiMember);
-		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNameClass(pcMember->mpcName, pcMember);
+		pcNamed = (pcMember->mpcName->mpcSymbol && (pcMember->mpcName->mpcSymbol->meKind == CPPSK_Field)) ? NULL : mpcUnit->GetNames()->GetNameClass(pcMember->mpcName, pcMember);
 		if (pcNamed == pcBase)
 		{
 			pcFound = pcMember;

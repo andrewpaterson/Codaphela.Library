@@ -324,6 +324,7 @@
     <ClCompile Include="CPPOverloads.cpp" />
     <ClCompile Include="CPPAccess.cpp" />
     <ClCompile Include="CPPBinder.cpp" />
+    <ClCompile Include="CPPNames.cpp" />
     <ClCompile Include="CPPTemplate.cpp" />
     <ClCompile Include="CPPFunction.cpp" />
     <ClCompile Include="CPP65IRCleanups.cpp" />
@@ -621,6 +622,7 @@
     <ClInclude Include="CPPOverloads.h" />
     <ClInclude Include="CPPAccess.h" />
     <ClInclude Include="CPPBinder.h" />
+    <ClInclude Include="CPPNames.h" />
     <ClInclude Include="CPPTemplate.h" />
     <ClInclude Include="CPPFunction.h" />
     <ClInclude Include="CPP65IRCleanups.h" />

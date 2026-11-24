@@ -295,7 +295,7 @@ bool CCPPDesugarings::RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65T
 		{
 			return mpcUnit->mcDiagnostics.Error(pcFor->mpcRange, "A range must be an array or an object with begin and end");
 		}
-		bMember = mpcUnit->HasMember(psRanged->pcClass, mpcUnit->mpcTokeniser->GetIdentifierID((char*)"begin")) || mpcUnit->HasMember(psRanged->pcClass, mpcUnit->mpcTokeniser->GetIdentifierID((char*)"end"));
+		bMember = mpcUnit->GetNames()->HasMember(psRanged->pcClass, mpcUnit->mpcTokeniser->GetIdentifierID((char*)"begin")) || mpcUnit->GetNames()->HasMember(psRanged->pcClass, mpcUnit->mpcTokeniser->GetIdentifierID((char*)"end"));
 		pcBegin = mpcUnit->mcBinder.BindRangeFunction(mpcUnit->mpcTokeniser->GetIdentifierID((char*)"begin"), bMember ? psRanged->pcClass : NULL, psRangeFor->pcRangeOfBegin, pcFor);
 		pcEnd = mpcUnit->mcBinder.BindRangeFunction(mpcUnit->mpcTokeniser->GetIdentifierID((char*)"end"), bMember ? psRanged->pcClass : NULL, psRangeFor->pcRangeOfEnd, pcFor);
 		if (!pcBegin || !pcEnd)

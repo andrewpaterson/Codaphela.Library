@@ -785,7 +785,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 
 	*pbMember = false;
 	pcName = pcId->mpcName;
-	pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
+	pcClass = mpcUnit->GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
 	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
 	if (!pcClass || (lliName == -1) || !mpcUnit->CompleteClass(pcClass, pcId))
 	{

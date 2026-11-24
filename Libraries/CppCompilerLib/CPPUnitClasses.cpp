@@ -57,7 +57,7 @@ CCPPClass* CCPPUnit::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClas
 	CCPPClass*	pcClass;
 	size		i;
 
-	pcEnclosing = pcEnclosing ? pcEnclosing : EnclosingInstance(pcSymbol);
+	pcEnclosing = pcEnclosing ? pcEnclosing : GetNames()->EnclosingInstance(pcSymbol);
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClass = mapcClasses.GetPtr(i);
@@ -73,51 +73,6 @@ CCPPClass* CCPPUnit::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClas
 		pcClass->mpcBindings = pcEnclosing->mpcBindings;
 	}
 	return pcClass;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class template's instance, or the member class of one, that a symbol
-// is a member of with the bindings in use, or NULL if it is a member of
-// neither.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::EnclosingInstance(CCPPSymbol* pcSymbol)
-{
-	CCPPClass*	pcClass;
-
-	pcClass = MemberScopeClass(pcSymbol);
-	return (pcClass && (pcClass->mpcTemplate || pcClass->mpcEnclosing)) ? pcClass : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class a member's symbol is declared in, where the member is named in
-// its class but not in a member function (sizeof(t(0)) in an enumerator):
-// for a class template, its instance in the bindings in use.  NULL if the
-// symbol isn't a member, or its class template's instance isn't in use.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::MemberScopeClass(CCPPSymbol* pcSymbol)
-{
-	CCPPScope*				pcScope;
-	CCPPTemplateArguments*	pcBindings;
-
-	pcScope = pcSymbol ? pcSymbol->mpcScope : NULL;
-	if (!pcScope || (pcScope->meKind != CPPSC_Class) || !pcScope->mpcOwner)
-	{
-		return NULL;
-	}
-	for (pcBindings = mcContext.GetBindings(); pcBindings; pcBindings = pcBindings->mpcOuter)
-	{
-		if (pcBindings->mpcClass && (pcBindings->mpcClass->mpcSymbol == pcScope->mpcOwner))
-		{
-			return pcBindings->mpcClass;
-		}
-	}
-	return mcInstantiator.GetTemplate(pcScope->mpcOwner) ? NULL : GetClass(pcScope->mpcOwner, NULL);
 }
 
 
@@ -188,22 +143,6 @@ CCPPClass* CCPPUnit::FindClass(int64 lliName, CCPPScope* pcLookup)
 		}
 	}
 	return pcFound;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Where a name's component is declared if the parser resolved it, else where
-// the name was looked up: what to choose between things of its name with.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPScope* CCPPUnit::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
-{
-	if (pcComponent->mpcSymbol)
-	{
-		return pcComponent->mpcSymbol->mpcScope;
-	}
-	return (pcComponent->mpcParent && (pcComponent->mpcParent->GetKind() == CPPS_Name)) ? ((CCPPSyntaxName*)pcComponent->mpcParent)->mpcLookup : NULL;
 }
 
 
@@ -318,150 +257,6 @@ int CCPPUnit::AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class a name component names: a class, a typedef of one, an instance of a
-// class template (Name<Arguments>), a class template's own name inside it, or the
-// type of decltype(e)::'s e.  A base template's name without arguments is psContext's
-// (or else the current member function's class's) base instance of it.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcContext)
-{
-	CCPPTemplate*	pcTemplate;
-	CCPPTemplateArguments*	pcBindings;
-	SCPPBinding*	psBinding;
-	CCPPClass*	pcClass;
-	SCPP65Type*		psType;
-	int64			lliName;
-
-	if (!pcSymbol && pcComponent)
-	{
-		pcSymbol = pcComponent->mpcSymbol;
-	}
-	if (pcComponent && (pcComponent->meKind == CPPNC_Decltype))
-	{
-		//[dcl.type.simple] 4: a class as it is, not a reference to one.
-		psType = mcDeclarators.GetTypeIdType(pcComponent->mpcType);
-		return (psType && psType->IsClass()) ? psType->pcClass : NULL;
-	}
-	if (!pcSymbol && pcComponent)
-	{
-		//Names in templates are not always resolved by the parser.
-		lliName = GetComponentName(pcComponent);
-		pcTemplate = mcInstantiator.GetComponentTemplate(pcComponent);
-		if (pcTemplate)
-		{
-			pcSymbol = pcTemplate->mpcSymbol;
-		}
-		else if (lliName != -1)
-		{
-			return FindClass(lliName, ComponentLookup(pcComponent));
-		}
-	}
-	if (!pcSymbol)
-	{
-		return NULL;
-	}
-
-	if (pcSymbol->meKind == CPPSK_Class)
-	{
-		return GetClass(pcSymbol, pcNode);
-	}
-	if (pcSymbol->meKind == CPPSK_Typedef)
-	{
-		psType = mcDeclarators.GetSymbolType(pcSymbol, pcNode);
-		return (psType && psType->IsClass()) ? psType->pcClass : NULL;
-	}
-	if (pcSymbol->meKind == CPPSK_TypeParameter)
-	{
-		psBinding = mcInstantiator.FindBinding(pcSymbol);
-		return (psBinding && psBinding->psType && psBinding->psType->IsClass()) ? psBinding->psType->pcClass : NULL;
-	}
-	if (pcSymbol->meKind == CPPSK_TemplateTemplateParameter)
-	{
-		//C<T>, C bound to a class template: its instance.
-		psBinding = mcInstantiator.FindBinding(pcSymbol);
-		if (!psBinding || !psBinding->pcTemplate || !pcComponent || !pcComponent->mbTemplateArguments)
-		{
-			mcDiagnostics.Error(pcNode, "A template template parameter used outside an instantiation");
-			return NULL;
-		}
-		return mcInstantiator.InstantiateClass(psBinding->pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
-	}
-	if (pcSymbol->meKind == CPPSK_ClassTemplate)
-	{
-		pcTemplate = mcInstantiator.GetTemplate(pcSymbol);
-		if (!pcTemplate)
-		{
-			//A pointer to an instance of a template that is only declared needs no definition.
-			pcClass = (pcComponent && pcComponent->mbTemplateArguments) ? mcInstantiator.UndefinedInstance(pcSymbol, &pcComponent->macpTemplateArguments, pcNode) : NULL;
-			if (!pcClass)
-			{
-				mcDiagnostics.Error(pcNode, "The class template has not been defined");
-			}
-			return pcClass;
-		}
-		if (pcComponent && pcComponent->mbTemplateArguments)
-		{
-			return mcInstantiator.InstantiateClass(pcTemplate, &pcComponent->macpTemplateArguments, pcNode);
-		}
-
-		//The template's own name inside it is the instance being made, and a base's name
-		//in a class derived from an instance is that instance.
-		for (pcBindings = mcContext.GetBindings(); pcBindings; pcBindings = pcBindings->mpcOuter)
-		{
-			if (pcBindings->mpcClass && pcBindings->mpcClass->mpcTemplate && (pcBindings->mpcClass->mpcTemplate->mpcPrimary == pcTemplate))
-			{
-				return pcBindings->mpcClass;
-			}
-		}
-		if (!pcContext && mcClosures.OuterFunction())
-		{
-			pcContext = mcClosures.OuterFunction()->mpcClass;
-		}
-		pcClass = pcContext ? FindBaseInstance(pcContext, pcTemplate) : NULL;
-		if (pcClass)
-		{
-			return pcClass;
-		}
-		mcDiagnostics.Error(pcNode, "A class template needs template arguments");
-		return NULL;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The instance of a class template that is pcClass or one of its bases, or NULL.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate)
-{
-	CCPPClass*	pcBase;
-	size			i;
-
-	mpcStatistics->Count(CPPCC_BaseWalks);
-	if (pcClass->mpcTemplate && (pcClass->mpcTemplate->mpcPrimary == pcTemplate))
-	{
-		return pcClass;
-	}
-	mcDiagnostics.BeginQuiet();
-	ResolveBases(pcClass, NULL);
-	mcDiagnostics.EndQuiet();
-	for (i = 0; i < pcClass->macBases.NumElements(); i++)
-	{
-		pcBase = FindBaseInstance(pcClass->macBases.Get(i)->pcClass, pcTemplate);
-		if (pcBase)
-		{
-			return pcBase;
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether a class is complete where pcNode is: its definition is before
 // pcNode, or pcNode is in it, or in a class it is defined in (whose member
 // function bodies see the class complete).  A class is laid out when it is
@@ -493,66 +288,6 @@ bool CCPPUnit::IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode)
 		}
 	}
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class a qualified member name (object.Qualifier::f) names: pcClass or one of its bases.  A class
-// template's name without arguments is pcClass's base instance of it.  A qualifier the context doesn't
-// find is looked up in the object's class: p->Base::v, Base a member typedef.  [basic.lookup.classref] 4
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode)
-{
-	CCPPClass*	pcQualifier;
-	CCPPSymbol*	pcSymbol;
-	int64		lliName;
-
-	pcSymbol = NULL;
-	if (pcComponent && !pcComponent->mpcSymbol && (pcComponent->meKind == CPPNC_Identifier) && pcClass->mpcSymbol && pcClass->mpcSymbol->mpcMembers)
-	{
-		lliName = GetComponentName(pcComponent);
-		pcSymbol = (lliName != -1) ? pcClass->mpcSymbol->mpcMembers->FindMember(lliName, CPPL_Type) : NULL;
-	}
-	pcQualifier = GetComponentClass(pcComponent, pcSymbol, pcNode, pcClass);
-	if (!pcQualifier || !IsDerived(pcClass, pcQualifier, NULL))
-	{
-		mcDiagnostics.Error(pcNode, "The qualifier is not the object's class or one of its bases");
-		return NULL;
-	}
-	return pcQualifier;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The class a (possibly qualified) name's last component names.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPClass* CCPPUnit::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
-{
-	CCPPSymbol*	pcSymbol;
-	CCPPClass*	pcClass;
-
-	//P<char>::Q<long>: P<char>'s member class template's instance.
-	pcSymbol = pcName->mpcSymbol;
-	if (pcName->GetQualifier() && pcSymbol && (pcSymbol->meKind == CPPSK_ClassTemplate) && pcSymbol->mpcScope && (pcSymbol->mpcScope->meKind == CPPSC_Class))
-	{
-		return QualifiedClass(pcName, pcNode);
-	}
-	if (pcSymbol && (pcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance())
-	{
-		//P<char>::Inner: that instance's member class.  [temp.mem.class]
-		mcDiagnostics.BeginSilent();
-		pcClass = QualifiedClass(pcName, pcNode);
-		mcDiagnostics.EndSilent();
-		if (pcClass)
-		{
-			return pcClass;
-		}
-	}
-	return GetComponentClass(pcName->GetLast(), pcSymbol, pcNode);
 }
 
 
@@ -605,7 +340,7 @@ bool CCPPUnit::AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecif
 	SCPPBase*	psBase;
 	bool		bResult;
 
-	pcBaseClass = GetNameClass(pcName, pcBaseSpecifier);
+	pcBaseClass = GetNames()->GetNameClass(pcName, pcBaseSpecifier);
 	if (!pcBaseClass)
 	{
 		//[class.derived] 2
@@ -1271,7 +1006,7 @@ void CCPPUnit::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsin
 		return;
 	}
 	mcDiagnostics.BeginQuiet();
-	pcBase = GetComponentClass(pcName->GetQualifier(), NULL, pcUsing, pcClass);
+	pcBase = GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcUsing, pcClass);
 	mcDiagnostics.EndQuiet();
 	if (!pcBase || (pcBase == pcClass))
 	{

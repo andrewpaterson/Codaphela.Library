@@ -2131,7 +2131,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		{
 			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.  The member is the
 			//class's own: each instance of a class template has one of the symbol (template<> int S<int>::k = 5;).
-			pcClass = pcDefining ? pcDefining->mpcClass : GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
+			pcClass = pcDefining ? pcDefining->mpcClass : GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 			if (pcClass)
 			{
 				CompleteClass(pcClass, pcInit);
@@ -2635,7 +2635,7 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 	pcName = pcDefinition->mpcDeclarator->GetName();
 	if (!pcClass && pcName && pcName->IsQualifiedByClass())
 	{
-		pcClass = GetComponentClass(pcName->GetQualifier(), NULL, pcDefinition);
+		pcClass = GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcDefinition);
 		if (!pcClass)
 		{
 			return mcDiagnostics.Error(pcDefinition, "The function's class has not been defined");
@@ -3631,6 +3631,7 @@ CCPPDesugarings* CCPPUnit::GetDesugarings(void) { return &mcDesugarings; }
 CCPPInstantiator* CCPPUnit::GetInstantiator(void) { return &mcInstantiator; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPFunctionDeclarer* CCPPUnit::GetFunctionDeclarer(void) { return &mcFunctionDeclarer; }
+CCPPNames* CCPPUnit::GetNames(void) { return mcBinder.GetNames(); }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }
 CCPP65DebugWriter* CCPPUnit::GetDebugWriter(void) { return &mcDebugWriter; }

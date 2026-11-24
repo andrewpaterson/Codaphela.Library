@@ -909,7 +909,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
 		if (!pcSymbol)
 		{
-			pcSymbol = mpcUnit->QualifiedEnumerator(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression, &pcClass);
+			pcSymbol = mpcUnit->GetNames()->QualifiedEnumerator(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression, &pcClass);
 		}
 		psType = mpcUnit->EnumeratorType(pcSymbol);
 	}
@@ -931,7 +931,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 		uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 		if ((pcExpression->GetKind() == CPPS_IdExpression) && ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->IsQualifiedByClass())
 		{
-			mpcUnit->QualifiersClass(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression);
+			mpcUnit->GetNames()->QualifiersClass(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression);
 		}
 		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
@@ -977,7 +977,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 	SCPP65Type*				psType;
 	int64					lliValue;
 
-	if (mpcUnit->IsAmbiguousName(pcId->mpcName))
+	if (mpcUnit->GetNames()->IsAmbiguousName(pcId->mpcName))
 	{
 		mpcDiagnostics->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
 		return NULL;
@@ -1105,7 +1105,7 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* 
 
 	pcName = pcId->mpcName;
 	mpcDiagnostics->BeginQuiet();
-	pcClass = mpcUnit->NameQualifierClass(pcName, pcId);
+	pcClass = mpcUnit->GetNames()->NameQualifierClass(pcName, pcId);
 	mpcDiagnostics->EndQuiet();
 	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
 	*ppsType = NULL;
@@ -1199,7 +1199,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
 		mpcUnit->GetCheck()->Changed(pcOperand, CPPPC_ADDRESS);
-		if (IsObject(pcOperand) && mpcUnit->HasMember(ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
+		if (IsObject(pcOperand) && mpcUnit->GetNames()->HasMember(ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, pcUnary);
 		}
@@ -1422,7 +1422,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 		//Its operator= (or its using Base::operator=) is known once it is laid out.
 		return NULL;
 	}
-	if (psResult && psResult->IsClass() && mpcUnit->HasOperator(psResult->pcClass, mpcUnit->GetOperatorName(pcBinary->meOperator, false), 1))
+	if (psResult && psResult->IsClass() && mpcUnit->GetNames()->HasOperator(psResult->pcClass, mpcUnit->GetOperatorName(pcBinary->meOperator, false), 1))
 	{
 		apcRight.Init();
 		apcRight.Add(pcBinary->mpcRight);
@@ -2783,7 +2783,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	case CPPS_IdExpression:
 		//A variable, or a field of this.
 		pcId = (CCPPSyntaxIdExpression*)pcExpression;
-		if (mpcUnit->IsAmbiguousName(pcId->mpcName))
+		if (mpcUnit->GetNames()->IsAmbiguousName(pcId->mpcName))
 		{
 			mpcDiagnostics->ReportOnce(pcId, "The name is ambiguous: it finds more than one thing");
 			return NULL;

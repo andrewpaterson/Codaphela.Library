@@ -28,6 +28,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPFunction.h"
 #include "CPPClass.h"
 #include "CPPVariable.h"
+#include "CPPNames.h"
 #include "CPPTemplate.h"
 #include "CPPOverloads.h"
 #include "CPPAccess.h"
@@ -184,12 +185,14 @@ protected:
 	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPPOverloads		mcOverloads;	//Chooses between the functions of a name; only the binder asks it.
 	CCPPAccess			mcAccess;		//Says whether what was chosen may be named where it is.
+	CCPPNames			mcNames;		//What a name means as a class or a member.
 	CMapCPPBoundCalls	mcBound;
 	CMapCPPBoundCalls	mcOperators;	//By left operand.
 
 public:
 	void	Init(CCPPUnit* pcUnit);
 	void	Kill(void);
+	CCPPNames*	GetNames(void);
 
 	bool	Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, bool bReport);
 	bool	BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);

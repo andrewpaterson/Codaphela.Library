@@ -57,6 +57,7 @@ void CCPPBinder::Init(CCPPUnit* pcUnit)
 	mpcDiagnostics = pcUnit->GetDiagnostics();
 	mcOverloads.Init(pcUnit);
 	mcAccess.Init(pcUnit);
+	mcNames.Init(pcUnit, this);
 	mcBound.Init();
 	mcOperators.Init();
 }
@@ -71,8 +72,16 @@ void CCPPBinder::Kill(void)
 	mcOperators.Kill();
 	mcBound.Kill();
 	mcOverloads.Kill();
+	mcNames.Kill();
 	mpcUnit = NULL;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPNames* CCPPBinder::GetNames(void) { return &mcNames; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -192,7 +201,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	pcMember = mpcUnit->GetClosures()->OuterFunction();
 
 	//In a class but not in its member functions (sizeof(test<T>(0)) in an enumerator), a member's name is its member.
-	if (pcName && !pcName->mbGlobal && !(pcMember && pcMember->mpcClass) && mpcUnit->MemberScopeClass(pcSymbol))
+	if (pcName && !pcName->mbGlobal && !(pcMember && pcMember->mpcClass) && mcNames.MemberScopeClass(pcSymbol))
 	{
 		ResolveMember(pcCall, pcBound);
 		return;
@@ -202,7 +211,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate))
 	{
 		pcBound->mlliName = pcSymbol->mlliName;
-		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mcOverloads.FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcBound->mpapcArguments->NumElements()) || mpcUnit->HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
+		if (pcMember && pcMember->mpcClass && !pcName->mbGlobal && (mcOverloads.FindMemberTemplate(pcMember->mpcClass, pcSymbol->mlliName, pcBound->mpapcArguments->NumElements()) || mcNames.HasMember(pcMember->mpcClass, pcSymbol->mlliName)))
 		{
 			ResolveMember(pcCall, pcBound);
 			return;
@@ -266,12 +275,12 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	//f() in a member function may be a member, even when the parser could not resolve it in a template.
 	lliName = pcSymbol ? pcSymbol->mlliName : mpcUnit->GetFunctionName(pcComponent);
 	pcBound->mlliName = lliName;
-	if (pcName && !pcName->mbGlobal && pcMember && pcMember->mpcClass && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mpcUnit->HasMember(pcMember->mpcClass, lliName))
+	if (pcName && !pcName->mbGlobal && pcMember && pcMember->mpcClass && (!pcSymbol || (pcSymbol->meKind == CPPSK_Function)) && mcNames.HasMember(pcMember->mpcClass, lliName))
 	{
 		ResolveMember(pcCall, pcBound);
 		return;
 	}
-	if (pcName && !pcName->mbGlobal && pcSymbol && (pcSymbol->meKind == CPPSK_Function) && mpcUnit->MemberScopeClass(pcSymbol))
+	if (pcName && !pcName->mbGlobal && pcSymbol && (pcSymbol->meKind == CPPSK_Function) && mcNames.MemberScopeClass(pcSymbol))
 	{
 		//A member function of a class the function's class is nested in (or the function is a friend in): one of its
 		//static members, with no object.  [class.nest] 1
@@ -435,7 +444,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	pcBound->mlliName = mpcUnit->GetOperatorName(CT_OpenRoundBracket, false);
 	uiErrors = mpcDiagnostics->GetErrors()->NumErrors();
 	pcFunction = NULL;
-	if (mpcUnit->HasMember(psType->pcClass, pcBound->mlliName))
+	if (mcNames.HasMember(psType->pcClass, pcBound->mlliName))
 	{
 		mpcDiagnostics->BeginQuiet();
 		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
@@ -458,7 +467,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 		mcAccess.CheckFunction(pcSurrogate, psType->pcClass, pcCall);
 		return true;
 	}
-	if (!pcFunction && mpcUnit->HasMember(psType->pcClass, pcBound->mlliName))
+	if (!pcFunction && mcNames.HasMember(psType->pcClass, pcBound->mlliName))
 	{
 		//Said again with its errors.
 		pcFunction = mcOverloads.FindOperator(psType->pcClass, pcBound->mlliName, pcBound->mpapcArguments, pcCall, CalledObject(pcBound->mpcCallee, false));
@@ -594,16 +603,16 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		pcName = ((CCPPSyntaxIdExpression*)pcCallee)->mpcName;
 		if (pcName->IsQualifiedByClass())
 		{
-			pcClass = mpcUnit->NameQualifierClass(pcName, pcCallee);
+			pcClass = mcNames.NameQualifierClass(pcName, pcCallee);
 			bVirtual = false;
 		}
 		else
 		{
-			pcClass = (pcIn && pcIn->mpcClass) ? pcIn->mpcClass : mpcUnit->MemberScopeClass(pcName->mpcSymbol);
-			if (pcClass && mpcUnit->MemberScopeClass(pcName->mpcSymbol) && !mpcUnit->HasMember(pcClass, mpcUnit->GetFunctionName(pcName->GetLast())))
+			pcClass = (pcIn && pcIn->mpcClass) ? pcIn->mpcClass : mcNames.MemberScopeClass(pcName->mpcSymbol);
+			if (pcClass && mcNames.MemberScopeClass(pcName->mpcSymbol) && !mcNames.HasMember(pcClass, mpcUnit->GetFunctionName(pcName->GetLast())))
 			{
 				//The enclosing class's member, which the function's own class doesn't have.
-				pcClass = mpcUnit->MemberScopeClass(pcName->mpcSymbol);
+				pcClass = mcNames.MemberScopeClass(pcName->mpcSymbol);
 				bVirtual = false;
 			}
 		}
@@ -642,7 +651,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	pcLookup = pcClass;
 	if (pcObject && pcName->IsQualifiedByClass())
 	{
-		pcLookup = mpcUnit->QualifierClass(pcClass, pcName->GetQualifier(), pcCallee);
+		pcLookup = mcNames.QualifierClass(pcClass, pcName->GetQualifier(), pcCallee);
 		if (!pcLookup)
 		{
 			return;
@@ -652,7 +661,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	}
 
 	//object.pf() calls through a field that points to a function.
-	if (pcObject && !mpcUnit->HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
+	if (pcObject && !mcNames.HasMember(pcLookup, lliName) && pcLookup->FindField(lliName, &iOffset))
 	{
 		psType = mpcUnit->GetTypeChecker()->TypeOf(pcCallee);
 		if (psType && psType->IsPointer() && psType->psBase->IsFunction())
@@ -919,7 +928,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcBound->mpcLeft);
 	apcArguments.Init();
 	pcMember = NULL;
-	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mpcUnit->HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
+	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mcNames.HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
 	{
 		if (pcBound->mpcRight)
 		{
@@ -1162,7 +1171,7 @@ CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65T
 	*pbFailed = false;
 	lliName = mpcUnit->GetOperatorName(CT_new, mpcUnit->IsArrayNew(pcNew));
 	pcClass = (psType->IsClass() && !pcNew->mbGlobal) ? psType->pcClass : NULL;
-	if (pcClass && mpcUnit->HasMember(pcClass, lliName))
+	if (pcClass && mcNames.HasMember(pcClass, lliName))
 	{
 		pcFunction = mcOverloads.FindFunction(pcClass, lliName, CPPFK_Function, papcArguments, true, pcNew, CPPCO_None);
 		*pbFailed = !pcFunction;
@@ -1247,7 +1256,7 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray, bool
 	bool			bMember;
 
 	lliName = mpcUnit->GetOperatorName(CT_delete, bArray);
-	bMember = pcClass && mpcUnit->HasMember(pcClass, lliName);
+	bMember = pcClass && mcNames.HasMember(pcClass, lliName);
 	pcFound = NULL;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(lliName); (bMember || bSized) && pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
@@ -1722,7 +1731,7 @@ void CCPPBinder::BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound)
 	if ((pcBound->meWhat != CPPBN_Nothing) && (pcBound->meWhat != CPPBN_FunctionName) && (pcBound->meWhat != CPPBN_Field))
 	{
 		//A static member or an enumerator of a base, by its name alone.  (A field's is HasOneMeaning's.)
-		if (!mpcUnit->CheckBaseMemberName(pcId->mpcName, pcId))
+		if (!mcNames.CheckBaseMemberName(pcId->mpcName, pcId))
 		{
 			pcBound->meWhat = CPPBN_Nothing;
 		}
@@ -1808,7 +1817,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		pcMemberClass = NULL;
 		if (pcId->mpcName->macpComponents.NumElements() > 1)
 		{
-			mpcUnit->QualifiedMember(pcId->mpcName, CPPSK_Field, pcId, &pcMemberClass);
+			mcNames.QualifiedMember(pcId->mpcName, CPPSK_Field, pcId, &pcMemberClass);
 		}
 		else if (pcSymbol)
 		{
@@ -1843,7 +1852,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 
 	if (!pcSymbol)
 	{
-		pcSymbol = mpcUnit->QualifiedEnumerator(pcId->mpcName, pcId, &pcEnumeratorClass);
+		pcSymbol = mcNames.QualifiedEnumerator(pcId->mpcName, pcId, &pcEnumeratorClass);
 		pcBound->mpcSymbol = pcSymbol;
 	}
 	if (pcSymbol && ((pcSymbol->meKind == CPPSK_Enumerator) || (pcSymbol->meKind == CPPSK_ValueParameter)))
@@ -1873,7 +1882,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	}
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
 	{
-		pcLookup = pcId->mpcName->IsQualifiedByClass() ? mpcUnit->GetComponentClass(pcId->mpcName->GetQualifier(), NULL, pcId, pcClass) : NULL;
+		pcLookup = pcId->mpcName->IsQualifiedByClass() ? mcNames.GetComponentClass(pcId->mpcName->GetQualifier(), NULL, pcId, pcClass) : NULL;
 		if (pcLookup && (pcLookup != pcClass) && mpcUnit->IsDerived(pcClass, pcLookup, NULL))
 		{
 			pcBound->mpcQualifier = pcLookup;
@@ -1981,7 +1990,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	pcLookup = pcClass;
 	if (pcName->IsQualifiedByClass())
 	{
-		pcLookup = mpcUnit->QualifierClass(pcClass, pcName->GetQualifier(), pcNode);
+		pcLookup = mcNames.QualifierClass(pcClass, pcName->GetQualifier(), pcNode);
 		if (!pcLookup)
 		{
 			return false;
@@ -2061,7 +2070,7 @@ bool CCPPBinder::HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::HasOneMeaning(CCPPClass* pcClass, int64 lliName, CCPPSyntax* pcNode)
 {
-	return !mpcUnit->IsAmbiguousInBases(pcClass, lliName) || mpcDiagnostics->ReportOnce(pcNode, "The name is a member of more than one of the class's bases");
+	return !mcNames.IsAmbiguousInBases(pcClass, lliName) || mpcDiagnostics->ReportOnce(pcNode, "The name is a member of more than one of the class's bases");
 }
 
 

@@ -177,7 +177,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			psType = mpcUnit->GetTypes()->Reference(psType, pcPointer->meKind == CPPP_RValueReference);
 			break;
 		case CPPP_MemberPointer:
-			pcClass = pcPointer->mpcClass ? mpcUnit->GetNameClass(pcPointer->mpcClass, pcNode) : NULL;
+			pcClass = pcPointer->mpcClass ? mpcUnit->GetNames()->GetNameClass(pcPointer->mpcClass, pcNode) : NULL;
 			if (!pcClass)
 			{
 				mpcDiagnostics->Error(pcNode, "The class of a pointer to a member is not supported by the compiler yet");
@@ -780,7 +780,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 				mpcDiagnostics->Error(pcNode, "The name is an enum's: struct, class and union name a class");
 				return NULL;
 			}
-			pcClass = mpcUnit->GetComponentClass(pcElaborated->mpcName->GetLast(), pcSymbol ? pcSymbol : pcElaborated->mpcName->mpcSymbol, pcNode);
+			pcClass = mpcUnit->GetNames()->GetComponentClass(pcElaborated->mpcName->GetLast(), pcSymbol ? pcSymbol : pcElaborated->mpcName->mpcSymbol, pcNode);
 			if (pcClass)
 			{
 				return pcClass->mpsType;
@@ -789,10 +789,10 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		else if (pcType->GetKind() == CPPS_NamedTypeSpecifier)
 		{
 			pcName = ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
-			pcMember = mpcUnit->QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
+			pcMember = mpcUnit->GetNames()->QualifiedMember(pcName, CPPSK_Typedef, pcNode, &pcMemberClass);
 			mpcUnit->GetBinder()->CheckTypeName(pcMember ? pcMember : pcName->mpcSymbol, pcName);
 			mpcUnit->WarnDeprecatedSymbol(pcMember ? pcMember : pcName->mpcSymbol, pcName);
-			if (!pcMember && !mpcUnit->CheckBaseMemberName(pcName, pcNode))
+			if (!pcMember && !mpcUnit->GetNames()->CheckBaseMemberName(pcName, pcNode))
 			{
 				return NULL;
 			}
@@ -827,11 +827,11 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 					{
 						return AliasTemplateType(pcName, pcNode, psBinding->pcAlias);
 					}
-					pcClass = mpcUnit->GetNameClass(pcName, pcNode);
+					pcClass = mpcUnit->GetNames()->GetNameClass(pcName, pcNode);
 					return pcClass ? pcClass->mpsType : NULL;
 				case CPPSK_Class:
 				case CPPSK_ClassTemplate:
-					pcClass = mpcUnit->GetNameClass(pcName, pcNode);
+					pcClass = mpcUnit->GetNames()->GetNameClass(pcName, pcNode);
 					return pcClass ? pcClass->mpsType : NULL;
 				case CPPSK_BuiltinType:
 					if (mpcUnit->GetSemanticPass())
@@ -847,7 +847,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			else
 			{
 				//typename C::template In<long>, C bound to a class.
-				pcClass = mpcUnit->QualifiedClass(pcName, pcNode);
+				pcClass = mpcUnit->GetNames()->QualifiedClass(pcName, pcNode);
 				if (pcClass)
 				{
 					return pcClass->mpsType;

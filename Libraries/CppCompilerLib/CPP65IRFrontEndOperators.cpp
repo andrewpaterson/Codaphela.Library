@@ -85,7 +85,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		{
 			return false;
 		}
-		if (mpcUnit->GetTypeChecker()->IsObject(pcOperand) && mpcUnit->HasMember(mpcUnit->GetTypeChecker()->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
+		if (mpcUnit->GetTypeChecker()->IsObject(pcOperand) && mpcUnit->GetNames()->HasMember(mpcUnit->GetTypeChecker()->ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
 			//&object with the object's operator&.
 			return OperatorExpression(CT_BitwiseAnd, pcOperand, NULL, psValue);
@@ -336,7 +336,7 @@ bool CCPP65IRFrontEnd::Assignment(CCPPSyntaxBinaryExpression* pcBinary, SCPP65IR
 	{
 		//object op= value calls the class's operator if it has one; object = object assigns each part otherwise, as
 		//the compiler's own operator= does: the bytes, unless a part's class has an operator=.
-		if (mpcUnit->HasOperator(psLeft->pcClass, mpcUnit->GetOperatorName(pcBinary->meOperator, false), 1))
+		if (mpcUnit->GetNames()->HasOperator(psLeft->pcClass, mpcUnit->GetOperatorName(pcBinary->meOperator, false), 1))
 		{
 			return OperatorCall(pcBinary->mpcLeft, pcBinary->meOperator, pcBinary->mpcRight, psValue);
 		}

@@ -1551,7 +1551,7 @@ bool CCPPPatternMatch::MatchClass(CCPPSyntaxName* pcName, CCPPClass* pcClass)
 	}
 	mpcUnit->GetContext()->EnterBindings(NULL);
 	mpcDiagnostics->BeginQuiet();
-	pcNamed = mpcUnit->GetNameClass(pcName, pcName);
+	pcNamed = mpcUnit->GetNames()->GetNameClass(pcName, pcName);
 	mpcDiagnostics->EndQuiet();
 	mpcUnit->GetContext()->LeaveBindings();
 	miScore += 2;

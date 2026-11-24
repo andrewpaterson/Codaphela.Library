@@ -277,7 +277,7 @@ CCPPTemplate* CCPPInstantiator::VariableTemplate(CCPPSymbol* pcSymbol, CCPPSynta
 	CCPPTemplate*	pcTemplate;
 	CCPPClass*		pcDeclaring;
 
-	pcClass = pcClass ? pcClass : mpcUnit->MemberScopeClass(pcSymbol);
+	pcClass = pcClass ? pcClass : mpcUnit->GetNames()->MemberScopeClass(pcSymbol);
 	if (!pcClass)
 	{
 		return GetTemplate(pcSymbol);
@@ -411,7 +411,7 @@ CCPPSyntaxInitDeclarator* CCPPInstantiator::VariableDeclarator(CCPPVariable* pcV
 //////////////////////////////////////////////////////////////////////////
 CCPPVariable* CCPPInstantiator::VariableInstance(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 {
-	return ClassVariableInstance(pcName->mpcSymbol, pcName->GetLast(), pcName->IsQualifiedByClass() ? mpcUnit->NameQualifierClass(pcName, pcNode) : NULL, pcNode);
+	return ClassVariableInstance(pcName->mpcSymbol, pcName->GetLast(), pcName->IsQualifiedByClass() ? mpcUnit->GetNames()->NameQualifierClass(pcName, pcNode) : NULL, pcNode);
 }
 
 
@@ -1118,7 +1118,7 @@ CCPPTemplate* CCPPInstantiator::Specialisation(CCPPSymbol* pcSymbol, CCPPSyntaxT
 	lliName = pcPattern ? mpcUnit->GetComponentName(pcPattern) : -1;
 	if (!pcPrimary && (lliName != -1))
 	{
-		pcPrimary = GetTemplateByName(lliName, pcDefinition->GetKind(), mpcUnit->ComponentLookup(pcPattern));
+		pcPrimary = GetTemplateByName(lliName, pcDefinition->GetKind(), mpcUnit->GetNames()->ComponentLookup(pcPattern));
 	}
 	if (!pcPrimary || (pcPrimary->DefinitionKind() != pcDefinition->GetKind()))
 	{
@@ -1266,7 +1266,7 @@ bool CCPPInstantiator::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bEx
 		return mpcUnit->mcDiagnostics.Error(pcDeclaration, "Only explicit instantiations of class templates and function templates are supported by the compiler yet");
 	}
 	pcName = (pcType->GetKind() == CPPS_ElaboratedTypeSpecifier) ? ((CCPPSyntaxElaboratedTypeSpecifier*)pcType)->mpcName : ((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName;
-	pcClass = mpcUnit->GetNameClass(pcName, pcDeclaration);
+	pcClass = mpcUnit->GetNames()->GetNameClass(pcName, pcDeclaration);
 	if (!pcClass)
 	{
 		return false;
@@ -1366,7 +1366,7 @@ bool CCPPInstantiator::ExplicitMemberInstantiation(CCPPSyntaxInitDeclarator* pcI
 	size				i;
 
 	pcName = pcInit->mpcDeclarator->GetName();
-	pcClass = mpcUnit->GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
+	pcClass = mpcUnit->GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 	if (!pcClass || !pcClass->mpcTemplate || !mpcUnit->CompleteClass(pcClass, pcInit))
 	{
 		return mpcUnit->mcDiagnostics.Error(pcInit, "The explicit instantiation names no member of a class template's instance");
@@ -1465,7 +1465,7 @@ bool CCPPInstantiator::ExplicitFunctionInstantiation(CCPPSyntaxInitDeclarator* p
 	if (!pcTemplate || !pcTemplate->IsFunction())
 	{
 		lliName = mpcUnit->GetComponentName(pcComponent);
-		pcTemplate = (lliName != -1) ? GetTemplateByName(lliName, CPPS_FunctionDefinition, mpcUnit->ComponentLookup(pcComponent)) : NULL;
+		pcTemplate = (lliName != -1) ? GetTemplateByName(lliName, CPPS_FunctionDefinition, mpcUnit->GetNames()->ComponentLookup(pcComponent)) : NULL;
 	}
 	if (!pcTemplate)
 	{
@@ -1559,7 +1559,7 @@ CCPPTemplate* CCPPInstantiator::MemberClassTemplate(CCPPSymbol* pcSymbol, CCPPCl
 	CCPPTemplate*	pcTemplate;
 	size			i;
 
-	pcClass = pcClass ? pcClass : mpcUnit->MemberScopeClass(pcSymbol);
+	pcClass = pcClass ? pcClass : mpcUnit->GetNames()->MemberScopeClass(pcSymbol);
 	if (!pcClass || !mpcUnit->CompleteClass(pcClass, NULL))
 	{
 		return NULL;
@@ -1652,7 +1652,7 @@ CCPPTemplate* CCPPInstantiator::GetComponentTemplate(CCPPSyntaxNameComponent* pc
 	int64	lliName;
 
 	lliName = mpcUnit->GetComponentName(pcComponent);
-	return (lliName != -1) ? GetTemplateByName(lliName, CPPS_ClassSpecifier, mpcUnit->ComponentLookup(pcComponent)) : NULL;
+	return (lliName != -1) ? GetTemplateByName(lliName, CPPS_ClassSpecifier, mpcUnit->GetNames()->ComponentLookup(pcComponent)) : NULL;
 }
 
 
@@ -1928,7 +1928,7 @@ bool CCPPInstantiator::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* 
 	if (bAddress && pcSymbol && (pcSymbol->meKind == CPPSK_Field) && ((CCPPSyntaxIdExpression*)pcEntity)->mpcName->IsQualifiedByClass())
 	{
 		//&S::m for a pointer to a member: mangled as _XM, the class, the member's name, E.  [temp.arg.nontype] 1
-		pcClass = mpcUnit->GetComponentClass(((CCPPSyntaxIdExpression*)pcEntity)->mpcName->GetQualifier(), NULL, pcEntity);
+		pcClass = mpcUnit->GetNames()->GetComponentClass(((CCPPSyntaxIdExpression*)pcEntity)->mpcName->GetQualifier(), NULL, pcEntity);
 		if (!pcClass)
 		{
 			return mpcUnit->mcDiagnostics.Error(psArgument->pcArgument, "The template argument must name a member of a class");
