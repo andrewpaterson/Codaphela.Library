@@ -1791,6 +1791,26 @@ void TestCPP816IndexedWords(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// A volatile byte read through a constant address (a device's register,
+// as Libc65's console input is) makes the pointer with m 16 bits and then
+// reads with m 8 bits: m was set first, and the pointer's words did not
+// fit an 8 bit lda.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816VolatileByteAtAddress(void)
+{
+	AssertInt(1, TestCPP816Run(
+		"#define REGISTER 0x012345\n"
+		"int main(void)\n"
+		"{\n"
+		"\t*(volatile unsigned char*)REGISTER = 0x5A;\n"
+		"\t*(volatile unsigned char*)(REGISTER + 1) = 0xC3;\n"
+		"\treturn ((*(volatile unsigned char*)REGISTER == 0x5A) && (*(volatile unsigned char*)(REGISTER + 1) == 0xC3)) ? 1 : 0;\n"
+		"}\n"));
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -7004,6 +7024,7 @@ void TestCPP816(void)
 	TEST_PART(TestCPP816BitTable64());
 	TEST_PART(TestCPP816ShiftCounts());
 	TEST_PART(TestCPP816IndexedWords());
+	TEST_PART(TestCPP816VolatileByteAtAddress());
 	TEST_PART(TestCPP816SmallShifts());
 	TEST_PART(TestCPP816ScratchOperands());
 	TEST_PART(TestCPP816PointerPlaceLoads());

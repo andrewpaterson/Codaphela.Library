@@ -825,8 +825,19 @@ void CIRW65C816Selector::Address(SIRInstruction* psInstruction, int32 iOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A load read with m 8 bits: a volatile i8 (it may be a device's register, and the byte after it another).
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR816LoadsByte(SIRInstruction* psInstruction)
+{
+	return psInstruction->sType.Is(IRTK_I8) && (psInstruction->uiFlags & IRF_Volatile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A word at a time (WordInA).  An i8 is read as a word and masked (the byte after it is only memory), or with m 8 bits
-// when volatile (it may be a device's register).  A value in its pointer's place (p = p->psNext, PackTemporaries) has
+// when volatile (IR816LoadsByte; WordInA sets m once the pointer is made, as making it takes 16 bits).  A value in its pointer's place (p = p->psNext, PackTemporaries) has
 // its words past the pointer read first, then its second word is kept on the stack while the first is read.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -835,12 +846,8 @@ void CIRW65C816Selector::Load(SIRInstruction* psInstruction)
 	int		i;
 	bool	bByte;
 
-	bByte = psInstruction->sType.Is(IRTK_I8) && (psInstruction->uiFlags & IRF_Volatile);
-	if (bByte)
-	{
-		mpcBackend->Line("sep m");
-	}
-	else if ((mpcBackend->Words(psInstruction->sType) >= 2) && !mpcBackend->mcPlaces.InX(psInstruction->sResult) && mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]).IsTemporary() &&
+	bByte = IR816LoadsByte(psInstruction);
+	if ((mpcBackend->Words(psInstruction->sType) >= 2) && !mpcBackend->mcPlaces.InX(psInstruction->sResult) && mpcBackend->mcFolds.Materialised(psInstruction->asArguments[0]).IsTemporary() &&
 			 mpcBackend->mcFusion.FusedOverlaps(psInstruction->sResult, mpcBackend->mcFolds.FoldedBase(psInstruction->asArguments[0]), true))
 	{
 		for (i = mpcBackend->Words(psInstruction->sType) - 1; i >= 2; i--)
@@ -915,10 +922,18 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 	case IRO_Load:
 		if (mpcBackend->mcFolds.DirectSlot(sFirst, &iOffset))
 		{
+			if (IR816LoadsByte(psInstruction))
+			{
+				mpcBackend->Line("sep m");
+			}
 			Frame("lda", iOffset + 2 * iWord);
 			return;
 		}
 		PointerPlace(sFirst, &iPlace, &szSymbol, &iOffset);
+		if (IR816LoadsByte(psInstruction))
+		{
+			mpcBackend->Line("sep m");
+		}
 		sz.Init(CIRW65C816Backend::GetScratch());
 		if (szSymbol)
 		{
