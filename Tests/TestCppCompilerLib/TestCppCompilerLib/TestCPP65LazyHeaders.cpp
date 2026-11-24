@@ -1,4 +1,5 @@
 #include "CppCompilerLib/CPP65Builder.h"
+#include "CppCompilerLib/CPPHeaderIndex.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -233,12 +234,64 @@ void TestCPP65LazyHeadersNamespaces(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The header index's places: a declaration is found only at its own file,
+// line and column; one with the same tokens published again there goes;
+// one with other tokens there follows it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65LazyHeadersIndex(void)
+{
+	CCPPHeaderIndex			cIndex;
+	SCPPHeaderDeclaration*	psFirst;
+	SCPPHeaderDeclaration*	psOther;
+	SCPPHeaderDeclaration*	psSame;
+
+	cIndex.Init();
+	AssertNull(cIndex.Get("A.h", 1, 1));
+
+	psFirst = cIndex.New();
+	psFirst->uiTokens = 5;
+	psFirst->uiHash = 77;
+	cIndex.Publish("A.h", 3, 9, psFirst);
+	AssertPointer(psFirst, cIndex.Get("A.h", 3, 9));
+	AssertNull(cIndex.Get("A.h", 9, 3));
+	AssertNull(cIndex.Get("A.h", 3, 10));
+	AssertNull(cIndex.Get("B.h", 3, 9));
+	AssertNull(cIndex.Get("a.h", 3, 9));
+
+	psSame = cIndex.New();
+	psSame->uiTokens = 5;
+	psSame->uiHash = 77;
+	cIndex.Publish("A.h", 3, 9, psSame);
+	AssertSize(1, cIndex.NumDeclarations());
+
+	psOther = cIndex.New();
+	psOther->uiTokens = 5;
+	psOther->uiHash = 78;
+	cIndex.Publish("A.h", 3, 9, psOther);
+	AssertSize(2, cIndex.NumDeclarations());
+	AssertPointer(psFirst, cIndex.Get("A.h", 3, 9));
+	AssertPointer(psOther, psFirst->psNext);
+	AssertNull(psOther->psNext);
+
+	psOther = cIndex.New();
+	cIndex.Publish("B.h", 3, 9, psOther);
+	AssertPointer(psOther, cIndex.Get("B.h", 3, 9));
+	AssertPointer(psFirst, cIndex.Get("A.h", 3, 9));
+	AssertSize(3, cIndex.NumDeclarations());
+	cIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65LazyHeaders(void)
 {
 	BeginTests();
 
+	TestCPP65LazyHeadersIndex();
 	TestCPP65LazyHeadersSame();
 	TestCPP65LazyHeadersFriends();
 	TestCPP65LazyHeadersMembers();

@@ -20,8 +20,6 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
-#include "BaseLib/FNVHash.h"
-#include "BaseLib/PointerFunctions.h"
 #include "CPPHeaderIndex.h"
 
 
@@ -31,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CCPPHeaderIndex::Init(void)
 {
+	mcFiles.Init();
 	mcDeclarations.Init();
 	mapsDeclarations.Init();
 	mcMutex.Init();
@@ -43,20 +42,15 @@ void CCPPHeaderIndex::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPHeaderIndex::Kill(void)
 {
-	size					i;
-	SCPPHeaderDeclaration*	psDeclaration;
+	size	i;
 
 	for (i = 0; i < mapsDeclarations.NumElements(); i++)
 	{
-		psDeclaration = mapsDeclarations.GetPtr(i);
-		psDeclaration->aszNames.Kill();
-		psDeclaration->aiKinds.Kill();
-		psDeclaration->szClass.Kill();
-		psDeclaration->auiBlock.Kill();
-		SafeFree(psDeclaration);
+		Free(mapsDeclarations.GetPtr(i));
 	}
 	mapsDeclarations.Kill();
 	mcDeclarations.Kill();
+	mcFiles.Kill();
 	mcMutex.Kill();
 }
 
@@ -85,11 +79,19 @@ void CCPPHeaderIndex::Unlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPHeaderDeclaration* CCPPHeaderIndex::Get(uint64 uiKey)
+SCPPHeaderDeclaration* CCPPHeaderIndex::Get(const char* szFile, int iLine, int iColumn)
 {
-	SCPPHeaderDeclaration**	ppsDeclaration;
+	SCPPHeaderPlace				sPlace;
+	SCPPHeaderDeclaration**		ppsDeclaration;
 
-	ppsDeclaration = mcDeclarations.Get((int64)uiKey);
+	sPlace.uiFile = mcFiles.Find(szFile);
+	if (sPlace.uiFile == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return NULL;
+	}
+	sPlace.iLine = iLine;
+	sPlace.iColumn = iColumn;
+	ppsDeclaration = mcDeclarations.Get(&sPlace);
 	return ppsDeclaration ? *ppsDeclaration : NULL;
 }
 
@@ -118,19 +120,24 @@ SCPPHeaderDeclaration* CCPPHeaderIndex::New(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Adds psDeclaration (from New, filled in) starting at uiKey, after any already starting there.  If another unit
-// published the same one (the same tokens) first, psDeclaration goes.
+// Adds psDeclaration (from New, filled in) starting at line iLine and
+// column iColumn of szFile, after any already starting there.  If another
+// unit published the same one (the same tokens) first, psDeclaration goes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPHeaderIndex::Publish(uint64 uiKey, SCPPHeaderDeclaration* psDeclaration)
+void CCPPHeaderIndex::Publish(const char* szFile, int iLine, int iColumn, SCPPHeaderDeclaration* psDeclaration)
 {
+	SCPPHeaderPlace			sPlace;
 	SCPPHeaderDeclaration*	psLast;
 
 	mcMutex.Lock();
-	psLast = Get(uiKey);
+	psLast = Get(szFile, iLine, iColumn);
 	if (!psLast)
 	{
-		mcDeclarations.Put((int64)uiKey, &psDeclaration);
+		sPlace.uiFile = mcFiles.FindOrAddIndex(szFile);
+		sPlace.iLine = iLine;
+		sPlace.iColumn = iColumn;
+		mcDeclarations.Put(&sPlace, &psDeclaration);
 	}
 	else
 	{
@@ -139,11 +146,7 @@ void CCPPHeaderIndex::Publish(uint64 uiKey, SCPPHeaderDeclaration* psDeclaration
 			if ((psLast->uiTokens == psDeclaration->uiTokens) && (psLast->uiHash == psDeclaration->uiHash))
 			{
 				mcMutex.Unlock();
-				psDeclaration->aszNames.Kill();
-				psDeclaration->aiKinds.Kill();
-				psDeclaration->szClass.Kill();
-				psDeclaration->auiBlock.Kill();
-				free(psDeclaration);
+				Free(psDeclaration);
 				return;
 			}
 			if (!psLast->psNext)
@@ -178,11 +181,11 @@ size CCPPHeaderIndex::NumDeclarations(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint64 CCPPHeaderIndex::Key(const char* szFile, int iLine, int iColumn)
+void CCPPHeaderIndex::Free(SCPPHeaderDeclaration* psDeclaration)
 {
-	uint64	uiHash;
-
-	uiHash = FNVHash64(szFile, strlen(szFile));
-	uiHash = FNVMix64(uiHash, (uint32)iLine);
-	return FNVMix64(uiHash, (uint32)iColumn);
+	psDeclaration->aszNames.Kill();
+	psDeclaration->aiKinds.Kill();
+	psDeclaration->szClass.Kill();
+	psDeclaration->auiBlock.Kill();
+	free(psDeclaration);
 }

@@ -142,7 +142,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 	SPreprocessedToken*		psSource;
 	CSourceFile*			pcFile;
 	uint64					uiHash;
-	uint64					uiKey;
+	char*					szFile;
 	SCPPHeaderDeclaration*	psRecord;
 	CCPPSymbol*				pcSymbol;
 	CCPPSymbol*				pcClass;
@@ -157,9 +157,9 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 		return;
 	}
 	psSource = mpcTokeniser->GetSource(mpcTokeniser->Get(iFirst));
-	uiKey = CCPPHeaderIndex::Key(pcFile->FullName(), psSource->iLine, psSource->iColumn);
+	szFile = pcFile->FullName();
 	mpcHeaderIndex->Lock();
-	for (psRecord = mpcHeaderIndex->Get(uiKey); psRecord; psRecord = psRecord->psNext)
+	for (psRecord = mpcHeaderIndex->Get(szFile, psSource->iLine, psSource->iColumn); psRecord; psRecord = psRecord->psNext)
 	{
 		if ((psRecord->uiTokens == (uint32)(iLast - iFirst + 1)) && (psRecord->uiHash == uiHash))
 		{
@@ -249,7 +249,7 @@ void CCPPParser::RecordHeaderDeclaration(int iFirst, int iLast, CCPPSyntaxDeclar
 	{
 		CCPPSyntaxBlockWriter::Write(mpcTree, pcDeclaration, mpcSymbols->GetGlobalScope(), &psRecord->auiBlock);
 	}
-	mpcHeaderIndex->Publish(uiKey, psRecord);
+	mpcHeaderIndex->Publish(szFile, psSource->iLine, psSource->iColumn, psRecord);
 }
 
 
@@ -291,7 +291,7 @@ bool CCPPParser::SkipLazy(CArraySyntax* papcDeclarations, CCPPSyntax* pcParent)
 	//they don't change once in it.
 	mpcHeaderIndex->Lock();
 	uiVariants = 0;
-	for (psRecord = mpcHeaderIndex->Get(CCPPHeaderIndex::Key(psSource->pcFile->FullName(), psSource->iLine, psSource->iColumn)); psRecord && (uiVariants < CPP_PARSER_LAZY_VARIANTS); psRecord = psRecord->psNext)
+	for (psRecord = mpcHeaderIndex->Get(psSource->pcFile->FullName(), psSource->iLine, psSource->iColumn); psRecord && (uiVariants < CPP_PARSER_LAZY_VARIANTS); psRecord = psRecord->psNext)
 	{
 		apsVariants[uiVariants] = psRecord;
 		uiVariants++;
