@@ -787,7 +787,7 @@ bool CCPPClosures::LambdaCall(SCPPLambda* psLambda)
 		bResult = psType != NULL;
 		if (bResult)
 		{
-			apsParameters.Add(mpcUnit->ParameterType(psType));
+			apsParameters.Add(mpcUnit->GetFunctionDeclarer()->ParameterType(psType));
 		}
 	}
 	psLambda->pcCall = bResult ? LambdaFunction(psLambda, &apsParameters) : NULL;
@@ -819,7 +819,7 @@ void CCPPClosures::AddLambdaConversion(SCPPLambda* psLambda, CCPPFunction* pcCal
 	}
 	pcInvoker = AddLambdaFunction(psLambda, mpcUnit->mpcTokeniser->GetIdentifierID((char*)"__invoke"), &pcCall->mapsParameters, pcCall->mpsReturn);
 	pcInvoker->mbStatic = true;
-	pcConversion = mpcUnit->AddImplicitFunction(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mpcUnit->mcTypes.Pointer(mpcUnit->mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)), true);
+	pcConversion = mpcUnit->GetFunctionDeclarer()->AddImplicit(psLambda->pcClass, CPP_CONVERSION_NAME, CPPFK_Function, mpcUnit->mcTypes.Pointer(mpcUnit->mcTypes.Function(pcCall->mpsReturn, &pcCall->mapsParameters, false)), true);
 	pcConversion->mbConstThis = true;
 	pcConversion->mpcAddressOf = pcInvoker;
 }
@@ -839,7 +839,7 @@ CCPPFunction* CCPPClosures::LambdaFunction(SCPPLambda* psLambda, CArrayCPP65Type
 	pcDefinition = psLambda->pcSyntax->mpcDefinition;
 	pcFunction = AddLambdaFunction(psLambda, mpcUnit->GetOperatorName(CT_OpenRoundBracket, false), papsParameters, &mpcUnit->mcTypes.msUndeduced);
 	pcFunction->mbConstThis = !psLambda->bMutable;
-	if (!mpcUnit->ResolveReturn(pcFunction, pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator))
+	if (!mpcUnit->GetFunctionDeclarer()->ResolveReturn(pcFunction, pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator))
 	{
 		return NULL;
 	}
@@ -924,7 +924,7 @@ void CCPPClosures::GenericLambdaCall(SCPPLambda* psLambda, CArraySyntax* papcArg
 			apsParameters.Kill();
 			return;
 		}
-		apsParameters.Add(mpcUnit->ParameterType(psType));
+		apsParameters.Add(mpcUnit->GetFunctionDeclarer()->ParameterType(psType));
 	}
 
 	GenericLambdaInstance(psLambda, &apsParameters);
@@ -1031,7 +1031,7 @@ bool CCPPClosures::ParameterTakesType(CCPPSyntaxParameter* pcParameter, SCPP65Ty
 	if (!mpcUnit->mcDeclarators.IsAuto(pcParameter->mpcSpecifiers))
 	{
 		psDeclared = mpcUnit->mcDeclarators.GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-		return psDeclared && mpcUnit->ParameterType(psDeclared)->Same(psType);
+		return psDeclared && mpcUnit->GetFunctionDeclarer()->ParameterType(psDeclared)->Same(psType);
 	}
 	uiPointers = pcParameter->mpcDeclarator ? pcParameter->mpcDeclarator->NumPointers() : 0;
 	if (uiPointers == 0)

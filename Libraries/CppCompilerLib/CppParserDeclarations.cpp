@@ -1429,8 +1429,8 @@ bool CCPPParser::IsConstructorName(CCPPSyntaxName* pcName)
 // What = default is written on, as far as the declaration alone tells: a
 // constructor, a destructor or an operator=, with no default argument.  An
 // error if not, said here as a class nothing uses is never laid out by the
-// generator (CCPPUnit::CheckDefaultedOrDeleted says the rest, of one that
-// is).  [dcl.fct.def.default] 1
+// generator (CCPPFunctionDeclarer::CheckDefaultedOrDeleted says the rest,
+// of one that is).  [dcl.fct.def.default] 1
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPPParser::CheckDefaulted(CCPPSyntaxDeclarator* pcDeclarator)

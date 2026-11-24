@@ -381,7 +381,7 @@ bool CCPPOverloads::HasOverloadOfType(CCPPSyntaxIdExpression* pcFunction, SCPP65
 		return false;
 	}
 	pcFound = FindAddressedFunction(pcFunction->mpcName, pcFunction->mpcName->mpcSymbol->mlliName, psPointer->psBase, pcFunction, &bOverloaded);
-	return pcFound && psPointer->psBase->Equals(mpcUnit->FunctionType(pcFound));
+	return pcFound && psPointer->psBase->Equals(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFound));
 }
 
 
@@ -407,7 +407,7 @@ CCPPFunction* CCPPOverloads::FindMemberFunction(CCPPClass* pcClass, int64 lliNam
 	{
 		if ((pcFunction->mpcClass == pcClass) && (pcFunction->mbStatic == bStatic) && (pcFunction->meKind == CPPFK_Function) && !pcFunction->mpcTemplate)
 		{
-			if (psTarget && psTarget->Equals(mpcUnit->FunctionType(pcFunction)))
+			if (psTarget && psTarget->Equals(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction)))
 			{
 				pcFound = pcFunction;
 				*pbOverloaded = false;
@@ -887,7 +887,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		}
 		if (papsOnly)
 		{
-			for (j = 0; (j < papsOnly->NumElements()) && !papsOnly->GetPtr(j)->Equals(mpcUnit->FunctionType(pcFunction)); j++)
+			for (j = 0; (j < papsOnly->NumElements()) && !papsOnly->GetPtr(j)->Equals(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction)); j++)
 			{
 			}
 			if (j == papsOnly->NumElements())
@@ -1368,7 +1368,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	{
 		if (!pcFunction->mpcClass && !pcFunction->mpcTemplate && (!pcName || apcNamespaces.Takes(pcFunction->mpcNamespace, DeclarationToken(pcFunction))))
 		{
-			if (psTarget && psTarget->Equals(mpcUnit->FunctionType(pcFunction)))
+			if (psTarget && psTarget->Equals(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction)))
 			{
 				pcFound = pcFunction;
 				*pbOverloaded = false;
@@ -1378,7 +1378,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 			pcFound = pcFunction;
 		}
 	}
-	if (psTarget && psTarget->IsFunction() && !(pcFound && !*pbOverloaded && psTarget->Equals(mpcUnit->FunctionType(pcFound))))
+	if (psTarget && psTarget->IsFunction() && !(pcFound && !*pbOverloaded && psTarget->Equals(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFound))))
 	{
 		//No function of the type that isn't a template's: an instance of a function template of the name may be.
 		pcFunction = AddressedInstance(pcName, lliName, psTarget, pcName ? &apcNamespaces : NULL, pcNode, &bAmbiguous);

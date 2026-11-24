@@ -47,6 +47,7 @@ public:
 	bool					CheckThrown(CCPPSyntaxThrowExpression* pcThrow);
 	bool					CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CArraySyntax* papcLabels, CArraySyntax* papcGotos);
 	bool					CheckTryJumps(CCPPSyntax* pcBody);
+	CCPPSyntaxExceptionSpecification*	WrittenSpecification(CCPPSyntaxFunctionSuffix* pcSuffix);
 	void					WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest);
 	void					DeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxExceptionSpecification* pcSpecification, CCPPExceptionSpec* pcDest);
 	void					SetDeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator);

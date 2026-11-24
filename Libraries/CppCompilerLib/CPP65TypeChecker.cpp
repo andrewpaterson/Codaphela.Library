@@ -1051,7 +1051,7 @@ SCPP65Type* CCPP65TypeChecker::FunctionAddress(CCPPSyntax* pcNode, int64 lliName
 		Error(pcNode, "The function has not been declared");
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcUnit->FunctionType(pcFound));
+	return mpcTypes->Pointer(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFound));
 }
 
 
@@ -1079,7 +1079,7 @@ SCPP65Type* CCPP65TypeChecker::FunctionTemplateAddress(CCPPSyntaxIdExpression* p
 	{
 		return NULL;
 	}
-	return mpcTypes->Pointer(mpcUnit->FunctionType(pcFunction));
+	return mpcTypes->Pointer(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction));
 }
 
 
@@ -1125,7 +1125,7 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* 
 	}
 	if (pcFunction)
 	{
-		*ppsType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->FunctionType(pcFunction));
+		*ppsType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction));
 		return true;
 	}
 
@@ -2152,7 +2152,7 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 	{
 		return NULL;
 	}
-	if (!mpcUnit->CheckAbstractSignature(pcFunction, pcNode))
+	if (!mpcUnit->GetFunctionDeclarer()->CheckAbstractSignature(pcFunction, pcNode))
 	{
 		return NULL;
 	}

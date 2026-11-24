@@ -1385,7 +1385,7 @@ bool CCPPInstantiator::ExplicitMemberInstantiation(CCPPSyntaxInitDeclarator* pcI
 		{
 			continue;
 		}
-		if (!pcFound || (psType && psType->IsFunction() && psType->papsParameters && (psType->papsParameters->NumElements() == pcFunction->mapsParameters.NumElements()) && mpcUnit->FunctionType(pcFunction)->papsParameters && SameParameters(psType, mpcUnit->FunctionType(pcFunction))))
+		if (!pcFound || (psType && psType->IsFunction() && psType->papsParameters && (psType->papsParameters->NumElements() == pcFunction->mapsParameters.NumElements()) && mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction)->papsParameters && SameParameters(psType, mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction))))
 		{
 			pcFound = pcFunction;
 		}
@@ -2773,7 +2773,7 @@ CCPPFunction* CCPPInstantiator::InstantiateFunctionFor(CCPPTemplate* pcTemplate,
 	pcFunction = pcBindings ? InstanceOfFunction(pcTemplate, pcBindings, &szArguments, pcNode) : NULL;
 	szArguments.Kill();
 	mpcUnit->mcDiagnostics.EndSilent();
-	if (pcFunction && !psFunction->Equals(mpcUnit->FunctionType(pcFunction)))
+	if (pcFunction && !psFunction->Equals(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction)))
 	{
 		return NULL;
 	}
@@ -2828,7 +2828,7 @@ CCPPFunction* CCPPInstantiator::InstanceOfFunction(CCPPTemplate* pcTemplate, CCP
 	pcSpecifiers = pcDefinition ? pcDefinition->mpcSpecifiers : pcTemplate->FunctionSpecifiers();
 	mpcUnit->mcContext.EnterBindings(pcBindings);
 	mpcUnit->mcContext.EnterNamespace(pcTemplate->mpcNamespace);
-	pcFunction = mpcUnit->DeclareFunction(pcSpecifiers, pcDeclarator, pcDefinition != NULL, pcTemplate->mpcClass, false, pcTemplate, pszArguments);
+	pcFunction = mpcUnit->GetFunctionDeclarer()->Declare(pcSpecifiers, pcDeclarator, pcDefinition != NULL, pcTemplate->mpcClass, false, pcTemplate, pszArguments);
 	mpcUnit->mcContext.LeaveNamespace();
 	mpcUnit->mcContext.LeaveBindings();
 	if (!pcTemplate->mpcClass)

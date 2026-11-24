@@ -237,6 +237,22 @@ bool CCPPExceptions::CheckTryJumps(CCPPSyntax* pcBody)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The exception specification a function's declarator is written with,
+// NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxExceptionSpecification* CCPPExceptions::WrittenSpecification(CCPPSyntaxFunctionSuffix* pcSuffix)
+{
+	if (!pcSuffix || !pcSuffix->mpcExceptionSpecification || (pcSuffix->mpcExceptionSpecification->GetKind() != CPPS_ExceptionSpecification))
+	{
+		return NULL;
+	}
+	return (CCPPSyntaxExceptionSpecification*)pcSuffix->mpcExceptionSpecification;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What an exception specification that is written allows: noexcept,
 // noexcept(true) and throw() nothing, noexcept(false) and Microsoft's
 // throw(...) anything, throw(A, B) those types.  [except.spec] 2 and 3
@@ -268,7 +284,7 @@ void CCPPExceptions::WrittenExceptions(CCPPSyntaxExceptionSpecification* pcSpeci
 		psType = mpcUnit->mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcSpecification->macpTypes.GetPtr(i));
 		if (psType)
 		{
-			pcDest->AddType(mpcUnit->ParameterType(psType)->Unqualified());
+			pcDest->AddType(mpcUnit->GetFunctionDeclarer()->ParameterType(psType)->Unqualified());
 		}
 	}
 }
@@ -307,7 +323,7 @@ void CCPPExceptions::SetDeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxD
 {
 	CCPPSyntaxExceptionSpecification*	pcSpecification;
 
-	pcSpecification = mpcUnit->WrittenSpecification(pcDeclarator->GetFunctionSuffix());
+	pcSpecification = WrittenSpecification(pcDeclarator->GetFunctionSuffix());
 	if (pcSpecification)
 	{
 		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &pcFunction->mcExceptions);
@@ -339,7 +355,7 @@ bool CCPPExceptions::CheckRedeclaredExceptions(CCPPFunction* pcFunction, CCPPSyn
 	{
 		return true;
 	}
-	pcSpecification = mpcUnit->WrittenSpecification(pcDeclarator->GetFunctionSuffix());
+	pcSpecification = WrittenSpecification(pcDeclarator->GetFunctionSuffix());
 	cDeclared.Init();
 	if (pcSpecification)
 	{
@@ -656,7 +672,7 @@ bool CCPPExceptions::PointerExceptions(CCPPSyntax* pcCallee, CCPPExceptionSpec* 
 		return false;
 	}
 	pcDest->SetAnything();
-	pcSpecification = mpcUnit->WrittenSpecification(mpcUnit->PointedFunctionSuffix(pcDeclarator));
+	pcSpecification = WrittenSpecification(mpcUnit->PointedFunctionSuffix(pcDeclarator));
 	if (pcSpecification)
 	{
 		WrittenExceptions(pcSpecification, pcDest);
@@ -682,7 +698,7 @@ bool CCPPExceptions::CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit)
 	SCPP65Type*							psType;
 	bool								bAllowed;
 
-	pcSpecification = mpcUnit->WrittenSpecification(mpcUnit->PointedFunctionSuffix(pcInit->mpcDeclarator));
+	pcSpecification = WrittenSpecification(mpcUnit->PointedFunctionSuffix(pcInit->mpcDeclarator));
 	pcValue = pcInit->mpcInitializer;
 	if (!pcSpecification || !pcValue || !pcInit->mpcParent || (pcInit->mpcParent->GetKind() != CPPS_SimpleDeclaration))
 	{

@@ -381,7 +381,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 	{
 		if (mpcDiagnostics->GetErrors()->NumErrors() == uiErrors)
 		{
-			mpcUnit->ReportFailedDeclaration(lliName);
+			mpcUnit->GetFunctionDeclarer()->ReportFailed(lliName);
 			mpcDiagnostics->Error(pcCallee, "The function has not been declared");
 		}
 		return;

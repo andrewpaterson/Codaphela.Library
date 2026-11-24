@@ -326,7 +326,7 @@ SCPP65Type* CCPPDeclarators::GetFunctionType(SCPP65Type* psReturn, CCPPSyntaxFun
 		{
 			break;
 		}
-		apsParameters.Add(mpcUnit->ParameterType(psType));
+		apsParameters.Add(mpcUnit->GetFunctionDeclarer()->ParameterType(psType));
 	}
 	psType = mpcUnit->GetTypes()->Function(psReturn, &apsParameters, pcSuffix->mbVariadic, pcSuffix->IsConst(), pcSuffix->IsVolatile());
 	apsParameters.Kill();

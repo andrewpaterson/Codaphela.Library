@@ -314,6 +314,7 @@
     <ClCompile Include="CPPWarnings.cpp" />
     <ClCompile Include="CPPBuiltins.cpp" />
     <ClCompile Include="CPPExceptions.cpp" />
+    <ClCompile Include="CPPFunctionDeclarer.cpp" />
     <ClCompile Include="CPPDesugarings.cpp" />
     <ClCompile Include="CPPInstantiator.cpp" />
     <ClCompile Include="CPPDeclarators.cpp" />
@@ -609,6 +610,7 @@
     <ClInclude Include="CPPWarnings.h" />
     <ClInclude Include="CPPBuiltins.h" />
     <ClInclude Include="CPPExceptions.h" />
+    <ClInclude Include="CPPFunctionDeclarer.h" />
     <ClInclude Include="CPPDesugarings.h" />
     <ClInclude Include="CPPInstantiator.h" />
     <ClInclude Include="CPPDeclarators.h" />

@@ -181,7 +181,7 @@ protected:
 
 public:
 	SCPP65Type			msVoid;
-	SCPP65Type			msUndeduced;	//What auto f() returns until its definition says (CCPPUnit::ResolveReturn): void, but itself.
+	SCPP65Type			msUndeduced;	//What auto f() returns until its definition says (CCPPFunctionDeclarer::ResolveReturn): void, but itself.
 	SCPP65Type			msBool;
 	SCPP65Type			msNullPointer;		//std::nullptr_t.
 	SCPP65Type			msChar;				//Signed, but not signed char.

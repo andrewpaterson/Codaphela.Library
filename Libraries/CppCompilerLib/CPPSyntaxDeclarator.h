@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntax.h"
 
 
+class CCPPSyntaxDeclSpecifiers;
 class CCPPSyntaxFunctionSuffix;
 class CCPPSyntaxName;
 class CCPPSyntaxPointerOperator;
@@ -45,6 +46,7 @@ public:
 	void					VisitFields(CCPPSyntaxFields* pcFields) override;
 	bool					IsEmpty(void) const;
 	bool					IsFunction(void);
+	bool					IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					IsParenthesisedName(void) const;
 	bool					IsNameAlone(void) const;
 	CCPPSyntaxFunctionSuffix*	GetFunctionSuffix(void);

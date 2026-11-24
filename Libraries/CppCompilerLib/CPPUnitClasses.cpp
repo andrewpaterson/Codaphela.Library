@@ -856,7 +856,7 @@ void CCPPUnit::SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition
 
 	mcContext.EnterBindings(pcClass->mpcBindings);
 	mcDiagnostics.BeginQuiet();
-	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
+	pcFunction = mcFunctionDeclarer.Declare(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
 	mcDiagnostics.EndQuiet();
 	mcContext.LeaveBindings();
 	if (pcFunction && (pcDefinition->meBody == CPPFB_Body))
@@ -890,7 +890,7 @@ void CCPPUnit::DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember)
 	pcDefinition = (CCPPSyntaxFunctionDefinition*)pcMember->mpcDefinition;
 	mcContext.EnterBindings(pcMemberBindings);
 	mcDiagnostics.BeginQuiet();
-	pcFunction = DeclareFunction(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
+	pcFunction = mcFunctionDeclarer.Declare(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
 	mcDiagnostics.EndQuiet();
 	mcContext.LeaveBindings();
 	if (pcFunction && (pcDefinition->meBody == CPPFB_Body) && !pcFunction->mpcDefinition)
@@ -1067,7 +1067,7 @@ bool CCPPUnit::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	//A class that needs one but declares none gets a constructor written for it when it is called.
 	if (!pcClass->mbConstructors && pcClass->NeedsConstructor())
 	{
-		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid, true);
+		pcFunction = mcFunctionDeclarer.AddImplicit(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid, true);
 	}
 	mcContext.LeaveBindings();
 	return bResult;
@@ -1088,14 +1088,14 @@ void CCPPUnit::CompleteMembers(CCPPClass* pcClass)
 	//A destructor is needed to destroy the bases or the fields.
 	if (!pcClass->mpcDestructor && pcClass->NeedsDestructor())
 	{
-		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
+		pcFunction = mcFunctionDeclarer.AddImplicit(pcClass, pcClass->mlliName, CPPFK_Destructor, &mcTypes.msVoid, false);
 		pcClass->mpcDestructor = pcFunction;
 	}
 	if (pcClass->HasVirtualDestructor())
 	{
 		//delete of a pointer to a base frees the object as its own class does, which only the object knows: by a
 		//virtual function of its class, written for it, that destroys it and frees it.  [expr.delete] 3, 9, 10
-		pcFunction = AddImplicitFunction(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid, false);
+		pcFunction = mcFunctionDeclarer.AddImplicit(pcClass, CPP_DELETING_NAME, CPPFK_Function, &mcTypes.msVoid, false);
 		pcFunction->mbDeleting = true;
 		pcFunction->mbVirtual = true;
 		pcFunction->mbDefined = true;
@@ -1379,7 +1379,7 @@ void CCPPUnit::InheritConstructors(CCPPClass* pcClass)
 
 	if (bAdded && !pcClass->mbConstructors)
 	{
-		pcFunction = AddImplicitFunction(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid, true);
+		pcFunction = mcFunctionDeclarer.AddImplicit(pcClass, pcClass->mlliName, CPPFK_Constructor, &mcTypes.msVoid, true);
 		pcClass->mbConstructors = true;
 	}
 }
@@ -1439,7 +1439,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		}
 		bFriend = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
 		uiMembers = pcClass->mapcMembers.NumElements();
-		pcFunction = DeclareQuietly(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, bFriend ? NULL : pcClass, false);
+		pcFunction = mcFunctionDeclarer.DeclareQuietly(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, bFriend ? NULL : pcClass, false);
 		if (!pcFunction && pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 		{
 			//Leaving out a virtual function would move the vtable's other entries.
@@ -1453,7 +1453,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		{
 			return mcDiagnostics.Defer(pcDefinition->mpcDeclarator->miFirstToken, "The member function is declared twice in its class");
 		}
-		if (!CheckDefaultedOrDeleted(pcFunction, pcDefinition))
+		if (!mcFunctionDeclarer.CheckDefaultedOrDeleted(pcFunction, pcDefinition))
 		{
 			return false;
 		}
@@ -1472,7 +1472,7 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 				pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
 				if (pcInit->mpcDeclarator && pcInit->mpcDeclarator->IsFunction())
 				{
-					DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
+					mcFunctionDeclarer.DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false);
 				}
 			}
 			return true;
@@ -1515,12 +1515,12 @@ bool CCPPUnit::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 		for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
 		{
 			pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
-			if (pcInit->mpcDeclarator->IsFunction() || (!pcInit->mpcBitField && IsFunctionByType(pcSpecifiers, pcInit->mpcDeclarator)))
+			if (pcInit->mpcDeclarator->IsFunction() || (!pcInit->mpcBitField && pcInit->mpcDeclarator->IsFunctionByType(pcSpecifiers)))
 			{
 				//virtual int f() = 0;
 				bPure = pcInit->mpcInitializer && mcFolder.Constant(pcInit->mpcInitializer, &lliZero) && (lliZero == 0);
 				uiMembers = pcClass->mapcMembers.NumElements();
-				pcFunction = DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
+				pcFunction = mcFunctionDeclarer.DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, pcClass, bPure);
 				if (!pcFunction && (pcSpecifiers->muiFlags & CPPDS_VIRTUAL))
 				{
 					//Leaving out a virtual function would move the vtable's other entries.

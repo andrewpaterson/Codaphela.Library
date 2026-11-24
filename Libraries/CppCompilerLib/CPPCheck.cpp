@@ -358,8 +358,8 @@ void CCPPCheck::CheckFunction(CCPPFunction* pcFunction)
 
 	mpcUnit->EnterFunction(pcFunction);
 	mpcUnit->AddParameters(pcFunction);
-	mpcUnit->CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator);
-	mpcUnit->CheckMemberInitialisers(pcFunction);
+	mpcUnit->GetFunctionDeclarer()->CheckAbstractSignature(pcFunction, pcDefinition->mpcDeclarator);
+	mpcUnit->GetFunctionDeclarer()->CheckMemberInitialisers(pcFunction);
 	mpcUnit->AllocateLocals(pcDefinition->mpcBody);
 	for (i = 0; i < pcDefinition->macpMemberInitializers.NumElements(); i++)
 	{
@@ -1338,7 +1338,7 @@ void CCPPCheck::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 
 	if (pcInit->mpcDeclarator->IsFunction())
 	{
-		mpcUnit->DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
+		mpcUnit->GetFunctionDeclarer()->DeclareBlockFunction(((CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent)->mpcSpecifiers, pcInit->mpcDeclarator);
 		return;
 	}
 	mpcUnit->GetExceptions()->CheckPointerExceptions(pcInit);

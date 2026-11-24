@@ -968,30 +968,6 @@ bool CCPPUnit::IsMemberPointerOperator(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A call to a function whose declaration could not be generated: what
-// declaring it said is said now (as if said here: in quiet code it only
-// fails).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ReportFailedDeclaration(int64 lliName)
-{
-	CCPPSyntaxDeclarator*	pcDeclarator;
-	size					i;
-
-	for (i = 0; i < masFailed.NumElements(); i++)
-	{
-		pcDeclarator = masFailed.Get(i)->pcDeclarator;
-		if (pcDeclarator->GetName() && (GetFunctionName(pcDeclarator->GetName()->GetLast()) == lliName))
-		{
-			mcDiagnostics.Repeat(masFailed.Get(i)->pcErrors);
-			return;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether pcNode is the operand of a decltype, or the right of a comma that
 // is (in brackets or not): what decltype asks only the type of, so a call
 // there makes no temporary.  [expr.call] 11, [dcl.type.simple] 5

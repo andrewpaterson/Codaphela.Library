@@ -81,7 +81,7 @@ enum ECPPCompileCount
 	CPPCC_ClassLayoutsWhereDefined,	//...and those of them laid out where they are defined, to check override and final.
 	CPPCC_NamedInstanceNodes,		//Syntax nodes CCPPUnit::ReportNamedInstances looked at.
 	CPPCC_ErrorsTakenAway,			//Errors made and then taken off the unit's list (CCPPErrors::Truncate).
-	CPPCC_ReportedAgain,			//Work done a second time only to say its errors (ReportTypeOf, ReportFailedDeclaration).
+	CPPCC_ReportedAgain,			//Work done a second time only to say its errors (ReportTypeOf, CCPPFunctionDeclarer::ReportFailed).
 	CPPCC_Constants,				//CCPPUnit::Constant calls...
 	CPPCC_ConstantsFolded,			//...those the tree folder answered (FoldConstant)...
 	CPPCC_ConstantsRun,				//...and those that took RunConstant.

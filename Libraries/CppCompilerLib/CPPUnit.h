@@ -54,6 +54,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65DebugWriter.h"
 #include "CPPBinder.h"
 #include "CPPDeclarators.h"
+#include "CPPFunctionDeclarer.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
@@ -128,18 +129,6 @@ struct SCPPExpandedArguments
 
 
 typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
-
-
-//A function declared quietly that couldn't be (DeclareQuietly): its declarator, and what was said declaring it, which
-//is said where it is called.
-struct SCPPFailedDeclaration
-{
-	CCPPSyntaxDeclarator*	pcDeclarator;
-	CCPPErrors*				pcErrors;		//The diagnostics' to free; NULL for nothing said.
-};
-
-
-typedef CArrayTemplate<SCPPFailedDeclaration>	CArrayCPPFailedDeclarations;
 
 
 //A routine the unit writes once its functions are: a static local's R_Finalise (WriteExitRoutines) or the function
@@ -276,7 +265,6 @@ protected:
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
-	CArrayCPPFailedDeclarations	masFailed;	//Functions whose declarations were not supported, and why (ReportFailedDeclaration).
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
@@ -293,6 +281,7 @@ protected:
 	CCPPContext				mcContext;			//Where the compiler is: the template arguments, the namespace, the linkage, the function.
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
+	CCPPFunctionDeclarer	mcFunctionDeclarer;	//Declares the functions.
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPFunctionScopes	mapsFunctionScopes;	//The functions entered, the last the one being written (GetLocals, GetFunctionPacks).
 	CArrayCPPVariables		mapcStaticLocals;	//Each static local as last defined, which a local class's member functions name (EnclosingStatic).
@@ -342,6 +331,7 @@ public:
 	CCPPDesugarings*		GetDesugarings(void);
 	CCPPInstantiator*		GetInstantiator(void);
 	CCPPDeclarators*		GetDeclarators(void);
+	CCPPFunctionDeclarer*	GetFunctionDeclarer(void);
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
 	CCPP65DebugWriter*		GetDebugWriter(void);
@@ -409,30 +399,15 @@ public:
 	void					AppendName(CChars* psz, int64 lliName);
 	int64					GetName(CCPPSyntaxDeclarator* pcDeclarator);
 
-	CCPPFunction*			DeclareFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
-	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
-	SCPP65Type*				FunctionType(CCPPFunction* pcFunction);
-	CCPPSyntaxExceptionSpecification*	WrittenSpecification(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					CheckOverrides(CCPPClass* pcClass);
 	bool					HasVirtSpecifier(CCPPSyntaxFunctionSuffix* pcSuffix, int64 lliName);
-	bool					IsAllocationFunction(int64 lliName);
-	bool					IsDefinedWhereDeclared(CCPPSyntaxName* pcName);
-	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
-	SCPP65Type*				ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn);
-	void					FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns);
-	SCPP65Type*				ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDeclarator* pcDeclarator);
 	void					EnterFunction(CCPPFunction* pcFunction);
 	void					LeaveFunction(void);
 	void					PushFunctionScope(void);
 	void					PopFunctionScope(void);
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
-	CCPPFunction*			AddImplicitFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn, bool bDefined);
-	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool					CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser);
-	bool					CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
-	bool					CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode);
-	bool					IsAllocationName(CCPPSyntaxDeclarator* pcDeclarator);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
 	void					RequireFunction(CCPPFunction* pcFunction);
 	bool					Emit(CChars* pszLabel);
@@ -497,7 +472,6 @@ public:
 	bool					SaysDeprecated(void);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
-	SCPP65Type*				ParameterType(SCPP65Type* psType);
 	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
 	int						DataAlignment(SCPP65Type* psType, bool bClass);
@@ -521,7 +495,6 @@ public:
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	CCPPClass*			GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
-	bool					IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
@@ -558,8 +531,6 @@ public:
 	void					SpecialiseMembers(CCPPClass* pcClass);
 	void					SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPClass* pcClass, CCPPSyntax* pcNode);
-	bool					CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int64 lliName, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPClass* pcClass, CCPPSyntax* pcNode);
-	bool					OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage);
 	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
 	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
@@ -567,9 +538,7 @@ public:
 	bool					IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFunction, size uiMembers);
 	bool					ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOverridden);
 	bool					InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType, CCPPSyntax* pcNode);
-	bool					CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					HasFieldNeedingInitialiser(CCPPClass* pcClass);
-	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
 	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
@@ -613,7 +582,6 @@ public:
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	bool					IsStringLiteral(CCPPSyntax* pcExpression);
 	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
-	bool					IsWeakFunction(CCPPFunction* pcFunction);
 	bool					IsAmbiguousName(CCPPSyntaxName* pcName);
 	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
 	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
@@ -633,8 +601,6 @@ public:
 	CCPPClass*				NameQualifierClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				QualifiedClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode);
 	CCPPClass*				MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* pcComponent, CCPPSyntax* pcNode);
-	void					ReportFailedDeclaration(int64 lliName);
-	CCPPFunction*			DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors = NULL);
 	bool					NamesFunction(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
@@ -663,7 +629,6 @@ public:
 
 	//Check only.  CPPUnitCheck.cpp
 	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);
-	void					DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
 
 	//Floating point.  CPPUnitFloat.cpp
 };

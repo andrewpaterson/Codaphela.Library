@@ -756,7 +756,7 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = FunctionSymbol(pcFound);
-	psValue->psType = mpcTypes->Pointer(mpcUnit->FunctionType(pcFound));
+	psValue->psType = mpcTypes->Pointer(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFound));
 	return true;
 }
 
@@ -814,7 +814,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 		}
 		//The function's address, and nothing to add to the object's for its this.
 		psValue->sValue = ConvertIR(sSymbol, IRType(IRTK_Pointer), IRType(IRTK_I64), false);
-		psValue->psType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->FunctionType(pcFound));
+		psValue->psType = mpcTypes->MemberPointer(pcFoundClass, mpcUnit->GetFunctionDeclarer()->FunctionType(pcFound));
 		return true;
 	}
 
@@ -1777,7 +1777,7 @@ bool CCPP65IRFrontEnd::FunctionTemplateAddress(CCPPSyntaxIdExpression* pcId, SCP
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psValue->sValue = FunctionSymbol(pcFunction);
-	psValue->psType = mpcTypes->Pointer(mpcUnit->FunctionType(pcFunction));
+	psValue->psType = mpcTypes->Pointer(mpcUnit->GetFunctionDeclarer()->FunctionType(pcFunction));
 	return true;
 }
 

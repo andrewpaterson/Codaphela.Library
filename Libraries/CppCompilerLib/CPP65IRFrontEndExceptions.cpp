@@ -643,7 +643,7 @@ CIRBlock* CCPP65IRFrontEnd::WayOut(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::IsWeak(CCPPFunction* pcFunction)
 {
-	return mpcUnit->IsWeakFunction(pcFunction);
+	return mpcUnit->GetFunctionDeclarer()->IsWeak(pcFunction);
 }
 
 

@@ -207,6 +207,9 @@
     <ClCompile Include="CPPExceptions.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPFunctionDeclarer.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPPDesugarings.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1143,6 +1146,9 @@
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPExceptions.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPFunctionDeclarer.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPPDesugarings.h">

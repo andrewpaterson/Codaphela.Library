@@ -174,6 +174,22 @@ bool CCPPSyntaxDeclarator::IsFunction(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether this declarator, only a name, declares a function by its
+// specifiers naming a function's type: typedef int Binary(int, int);
+// Binary Add;  [dcl.fct] 10
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntaxDeclarator::IsFunctionByType(CCPPSyntaxDeclSpecifiers* pcSpecifiers)
+{
+	CCPPSyntaxDeclSpecifiers*	pcTypeSpecifiers;
+	CCPPSyntaxDeclarator*		pcShape;
+
+	return pcSpecifiers && IsNameAlone() && pcSpecifiers->NamesFunctionType(&pcTypeSpecifiers, &pcShape);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxName* CCPPSyntaxDeclarator::GetName(void) const

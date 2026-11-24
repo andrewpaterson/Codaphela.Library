@@ -3862,6 +3862,60 @@ void TestCPP65GeneratorSemanticErrors(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a function's declaration and definition may not be, each error with
+// its text and where it is said (CCPPFunctionDeclarer): its name and where
+// it is defined, an operator's, an allocation function's and a literal
+// operator's parameters, what an abstract class can't be, a redeclaration
+// that differs, default arguments, extern "C", & and && overloads, auto's
+// returns, = default and = delete, and a constructor's member initialisers.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorFunctionDeclarations(void)
+{
+	AssertCPP65Error("Generated.cpp (1, 1): Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet [operator]\n", "operator int() { return 0; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 44): The function is defined in a namespace that doesn't enclose it [A]\n", "namespace A { int f(); } namespace C { int A::f() { return 0; } } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): Only a member function is const [f]\nGenerated.cpp (1, 36): The function has not been declared [f]\n", "int f() const; int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 5): Only a member function is volatile [f]\nGenerated.cpp (1, 52): The function has not been declared [f]\n", "int f() volatile { return 0; } int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 5): Only a member function is const [f]\nGenerated.cpp (1, 49): The function has not been declared [f]\n", "int f() const { return 0; } int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 5): operator new returns void* [operator]\n", "int operator new(decltype(sizeof(0)) n); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): operator new's first parameter is a std::size_t [*]\n", "void* operator new(int n); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): operator delete returns void [operator]\n", "int operator delete(void* p); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 6): operator delete's first parameter is a void* [operator]\n", "void operator delete(int* p); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): A literal operator's parameters are one of: const char*; unsigned long long; long double; a character type; a pointer to const characters and a size_t [operator]\n", "int operator \"\" _x(double d) { return 1; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 18): An operator function has no default arguments (but operator()) [operator]\n", "struct S {}; int operator+(S a, S b = S()) { return 0; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 16): An operator function has no default arguments (but operator()) [operator]\n", "struct S { int operator+(int b = 1); }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): An operator function that is no class's member has a parameter of a class or an enum [operator]\n", "int operator+(int a, int b) { return 0; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 16): A postfix ++ or --'s second parameter is an int [operator]\n", "struct S {}; S operator++(S& s, long l) { return s; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 14): A postfix ++ or --'s second parameter is an int [operator]\n", "struct S { S operator++(long l); }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 19): An operator new or delete is declared in the global namespace or in a class [*]\n", "namespace N { void* operator new(decltype(sizeof(0)) n); } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 12): An operator new or delete in the global namespace can't be static [*]\n", "static void* operator new(decltype(sizeof(0)) n); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 38): An abstract class is no function's parameter or result: no object of it can be made [*]\n", "struct A { virtual void f() = 0; }; A* g(A a) { return 0; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 15): The function is declared again with another return type [f]\n", "int f(); long f(); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 33): The parameter's default argument is given once: an earlier declaration has it [1]\n", "int f(int a = 1); int f(int a = 1) { return a; } int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 5): A parameter after one with a default argument needs one too [f]\n", "int f(int a = 1, int b) { return a; } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 55): Two extern \"C\" functions of one name are one function: it can't be overloaded [f]\n", "extern \"C\" int f(int a); namespace N { extern \"C\" int f(long a); } int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 27): Where one overload taking these parameters is declared & or &&, each is [f]\n", "struct S { int f() &; int f(); }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 34): Each return of a function declared auto must give the same type [return]\n", "auto f(int a) { if (a) return 1; return 2.0; } int main() { return f(1); }");
+	AssertCPP65Error("Generated.cpp (1, 10): A function is deleted where it is first declared [int]\n", "int f(); int f() = delete; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 16): Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default [f]\nGenerated.cpp (1, 12): Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default [int]\n", "struct S { int f() = default; }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 19): A function that is = default has no default argument [const]\nGenerated.cpp (1, 17): A function that is = default has no default argument [S]\n", "struct S { S(); S(const S& s = *(S*)0) = default; }; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 44): A constructor that names its own class in its member initialisers has no other [S]\n", "struct S { int a; S(int x) : a(x) {} S() : S(1), a(2) {} }; int main() { S s; return s.a; }");
+	AssertCPP65Error("Generated.cpp (1, 25): The member initialiser names no member or base of the class [b]\n", "struct S { int a; S() : b(1) {} }; int main() { S s; return s.a; }");
+	AssertCPP65Error("Generated.cpp (1, 31): The member or base is named twice in the member initialisers [a]\n", "struct S { int a; S() : a(1), a(2) {} }; int main() { S s; return s.a; }");
+	AssertCPP65Error("Generated.cpp (1, 25): The constructor leaves a reference or const member without a value: name it in the member initialisers [S]\n", "struct S { const int a; S() {} }; int main() { S s; return s.a; }");
+	AssertCPP65Error("Generated.cpp (1, 20): The constructor leaves a reference or const member without a value: name it in the member initialisers [S]\n", "struct S { int& r; S() {} }; int main() { S s; return 0; }");
+	//And what they may be: a declaration is of the function declared before it with the same signature, whose
+	//defaults it adds to; a function is declared by its type's name; auto's return is worked out from the body.
+	AssertCPP65Generates("typedef int Binary(int, int); Binary Add; int Add(int a, int b) { return a + b; } int main() { return Add(1, 2); }");
+	AssertCPP65Generates("int f(int a, int b = 2); int f(int a = 1, int b); int f(int a, int b) { return a + b; } int main() { return f(); }");
+	AssertCPP65Generates("auto f(int a) { if (a) return 1; return 2; } auto g() -> long { return 3; } int main() { return f(1) + (int)g(); }");
+	AssertCPP65Generates("extern \"C\" int f(int a); namespace N { extern \"C\" int f(int a); } int g() { return N::f(1) + f(2); }");
+	AssertCPP65Generates("struct S { int f() &; int f() &&; int g() const; int g(); }; int main() { return 0; }");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // BaseLib projects (one with soft float) run on CFast65C64 and C65C64 in lockstep.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4227,6 +4281,7 @@ void TestCPP65Generator(void)
 	TEST_PART(TestCPP65GeneratorLockstep());
 	TEST_PART(TestCPP65GeneratorErrors());
 	TEST_PART(TestCPP65GeneratorSemanticErrors());
+	TEST_PART(TestCPP65GeneratorFunctionDeclarations());
 	TEST_PART(TestCPP65GeneratorListing());
 	TEST_PART(TestCPP65GeneratorLayoutsFile());
 	TEST_PART(TestCPP65GeneratorEnumClass());
