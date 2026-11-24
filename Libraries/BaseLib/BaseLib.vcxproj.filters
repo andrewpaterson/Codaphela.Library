@@ -385,6 +385,9 @@
     <Filter Include="Source\Text\JSON">
       <UniqueIdentifier>{39a8feb6-cc80-47be-b816-8019d738d212}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text\YAML">
+      <UniqueIdentifier>{793575b8-79ee-47f5-864d-b95357a72ccf}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Text\Encoding">
       <UniqueIdentifier>{31917a0c-e105-4327-ba3d-75d7b21483b3}</UniqueIdentifier>
     </Filter>
@@ -1665,6 +1668,15 @@
     <ClInclude Include="JSONWhitespace.h">
       <Filter>Source\Text\JSON</Filter>
     </ClInclude>
+    <ClInclude Include="YAMLFile.h">
+      <Filter>Source\Text\YAML</Filter>
+    </ClInclude>
+    <ClInclude Include="YAMLParser.h">
+      <Filter>Source\Text\YAML</Filter>
+    </ClInclude>
+    <ClInclude Include="YAMLWhitespace.h">
+      <Filter>Source\Text\YAML</Filter>
+    </ClInclude>
     <ClInclude Include="BaseParser.h">
       <Filter>Source\Text\Parser</Filter>
     </ClInclude>
@@ -2917,6 +2929,15 @@
     </ClCompile>
     <ClCompile Include="JSONWhitespace.cpp">
       <Filter>Source\Text\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="YAMLFile.cpp">
+      <Filter>Source\Text\YAML</Filter>
+    </ClCompile>
+    <ClCompile Include="YAMLParser.cpp">
+      <Filter>Source\Text\YAML</Filter>
+    </ClCompile>
+    <ClCompile Include="YAMLWhitespace.cpp">
+      <Filter>Source\Text\YAML</Filter>
     </ClCompile>
     <ClCompile Include="BaseParser.cpp">
       <Filter>Source\Text\Parser</Filter>

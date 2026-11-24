@@ -783,6 +783,9 @@
     <ClCompile Include="TestJSONParser.cpp">
       <Filter>Source\Text</Filter>
     </ClCompile>
+    <ClCompile Include="TestYAMLParser.cpp">
+      <Filter>Source\Text</Filter>
+    </ClCompile>
     <ClCompile Include="TestMapStringIntAndPointer.cpp">
       <Filter>Source\Data\Map\Map\String</Filter>
     </ClCompile>

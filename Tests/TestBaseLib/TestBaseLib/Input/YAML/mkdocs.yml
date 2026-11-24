@@ -1,0 +1,159 @@
+# A copy of HCP65/Website/mkdocs.yml (2026-11-24) with the extra.sources map DocsPlan.txt decision 13 describes.
+site_name: Codaphela
+site_description: The HCP65 modern home computer, its C++ compiler, the 65C64 microprocessor proposal, the C++ software libraries and the HCP65 drivers and runtime
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+
+plugins:
+  - search
+  - privacy
+  - glightbox
+  - table-reader
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path:
+        - ../Tests/TestAssembler65Lib/TestAssembler65Lib/Input
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - HCP65 Modern Home Computer:
+      - hcp65/index.md
+      - Memory Map: hcp65/memory-map.md
+      - Memory Management: hcp65/memory.md
+      - Kernel Calls: hcp65/kernel-calls.md
+      - On-board Registers: hcp65/registers.md
+      - Devices and Main Memory: hcp65/devices.md
+      - Starting Up: hcp65/boot.md
+      - The Console and the Shell: hcp65/console.md
+      - The Screen: hcp65/screen.md
+      - Sprites: hcp65/sprites.md
+      - Drivers and Runtime:
+          - hcp65/runtime/index.md
+          - W65C816 Runtime: hcp65/runtime/w65c816.md
+      - Emulator: hcp65/emulator.md
+  - HCP65 C++ Compiler:
+      - compiler/index.md
+      - Building Programs: compiler/building.md
+      - Supported C++: compiler/language.md
+      - Inside the Compiler: compiler/inside.md
+      - Intermediate Representation: compiler/ir.md
+      - W65C816 Code: compiler/w65c816.md
+      - 65C64 Code: compiler/65c64.md
+      - W65C816 Assembler: compiler/assembler-w65c816.md
+      - Linker and Outputs: compiler/linker.md
+      - Libc65: compiler/libc65.md
+      - Listings, Profiling and Testing: compiler/testing.md
+  - HCP65 IDE:
+      - ide/index.md
+      - Solutions and Workspaces: ide/solutions.md
+      - The Editor: ide/editor.md
+      - Finding Your Way: ide/navigation.md
+      - Building and Running: ide/building.md
+      - Debugging: ide/debugging.md
+      - Git: ide/git.md
+      - New Files and Templates: ide/templates.md
+      - Refactoring:
+          - ide/refactoring/index.md
+          - Rename: ide/refactoring/rename.md
+          - Safe Delete: ide/refactoring/safe-delete.md
+          - Change Signature: ide/refactoring/change-signature.md
+          - Introduce: ide/refactoring/introduce.md
+          - Inline: ide/refactoring/inline.md
+          - Extract: ide/refactoring/extract.md
+          - Declarations and Definitions: ide/refactoring/definitions.md
+          - Moving Members: ide/refactoring/members.md
+          - Moving to Other Files: ide/refactoring/move.md
+          - Namespaces: ide/refactoring/namespaces.md
+          - Converting: ide/refactoring/convert.md
+          - Templates: ide/refactoring/templates.md
+          - "#includes": ide/refactoring/includes.md
+      - The Claude Tab: ide/claude-tab.md
+      - Settings and Keys: ide/settings.md
+      - Checking the IDE: ide/checks.md
+  - 65C64 Microprocessor Proposal:
+      - 65c64/index.md
+      - Registers: 65c64/registers.md
+      - Notation: 65c64/notation.md
+      - Operands and Addressing: 65c64/operands.md
+      - Instructions:
+          - 65c64/instructions/index.md
+          - Copy: 65c64/instructions/cpy.md
+          - Copy Extend: 65c64/instructions/cpyx.md
+          - Logical: 65c64/instructions/logical.md
+          - Arithmetic: 65c64/instructions/arithmetic.md
+          - Shift: 65c64/instructions/shift.md
+          - Subcopy: 65c64/instructions/subcopy.md
+          - Find: 65c64/instructions/find.md
+          - Multiply and Divide: 65c64/instructions/multiply-divide.md
+          - Jump: 65c64/instructions/jump.md
+          - Branch: 65c64/instructions/branch.md
+          - Return: 65c64/instructions/return.md
+          - Stack: 65c64/instructions/stack.md
+          - Status: 65c64/instructions/status.md
+          - Register Width: 65c64/instructions/width.md
+          - Control: 65c64/instructions/control.md
+          - Block: 65c64/instructions/block.md
+          - Vector: 65c64/instructions/vector.md
+          - Hardware Registers: 65c64/instructions/hardware.md
+      - Opcode Encoding: 65c64/opcode-encoding.md
+      - Sizes and Timing: 65c64/timing.md
+      - Interrupts and Modes: 65c64/interrupts.md
+      - Bus and Signals: 65c64/bus.md
+      - Memory Map: 65c64/memory-map.md
+      - Assembler: 65c64/assembler.md
+      - Objects and Linking: 65c64/linking.md
+      - Calling Convention: 65c64/calling-convention.md
+      - Worked Examples: 65c64/examples.md
+      - Emulator: 65c64/emulator.md
+  - C++ Software Libraries:
+      - libraries/index.md
+extra:
+  sources:
+    - folder: HCP65-IDE/HCP65IDE/Docs
+      site: ide
+      branch: main
+    - folder: CommonLibraries/Libraries/CppCompilerLib/Docs
+      site: compiler
+      branch: master

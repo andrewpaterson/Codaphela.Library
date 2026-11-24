@@ -297,6 +297,7 @@
     <ClCompile Include="TestIntVec3.cpp" />
     <ClCompile Include="TestIntVec4.cpp" />
     <ClCompile Include="TestJSONParser.cpp" />
+    <ClCompile Include="TestYAMLParser.cpp" />
     <ClCompile Include="TestLinkedList.cpp" />
     <ClCompile Include="TestLinkedListBlock.cpp" />
     <ClCompile Include="TestSafeLinkedListBlock.cpp" />

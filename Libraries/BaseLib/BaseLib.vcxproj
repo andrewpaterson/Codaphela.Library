@@ -274,6 +274,9 @@
     <ClInclude Include="JSONParser.h" />
     <ClInclude Include="JSONString.h" />
     <ClInclude Include="JSONWhitespace.h" />
+    <ClInclude Include="YAMLFile.h" />
+    <ClInclude Include="YAMLParser.h" />
+    <ClInclude Include="YAMLWhitespace.h" />
     <ClInclude Include="LeakDetector.h" />
     <ClInclude Include="MapIntString.h" />
     <ClInclude Include="MapStringIntAndPointer.h" />
@@ -739,6 +742,9 @@
     <ClCompile Include="JSONParser.cpp" />
     <ClCompile Include="JSONString.cpp" />
     <ClCompile Include="JSONWhitespace.cpp" />
+    <ClCompile Include="YAMLFile.cpp" />
+    <ClCompile Include="YAMLParser.cpp" />
+    <ClCompile Include="YAMLWhitespace.cpp" />
     <ClCompile Include="Killable.cpp" />
     <ClCompile Include="LeakDetector.cpp" />
     <ClCompile Include="LogToMemory.cpp" />

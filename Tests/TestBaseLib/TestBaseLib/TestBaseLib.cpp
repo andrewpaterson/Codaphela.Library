@@ -162,6 +162,7 @@ void TestIntegerHelper(void);
 void TestFixedPoint(void);
 void TestPropertiesFile(void);
 void TestJSONParser(void);
+void TestYAMLParser(void);
 void TestXMLParser(void);
 void TestXMLFile(void);
 void TestXMLWriter(void);
@@ -387,6 +388,7 @@ int __cdecl main(void)
 
 	TestPropertiesFile();
 	TestJSONParser();
+	TestYAMLParser();
 	TestXMLParser();
 	TestXMLFile();
 	TestXMLWriter();
