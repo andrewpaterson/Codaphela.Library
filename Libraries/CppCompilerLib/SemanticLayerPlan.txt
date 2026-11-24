@@ -10,8 +10,8 @@ Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for wh
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
 2026-11-23) is what it left; its questions (6 to 10) are answered.  It was checked against the code on
 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes, and
-questions 11 and 12 were asked and answered as assumed.  Stages 17 to 22 are done (2026-11-24, their
-records at the end); 23 is next.  The user on 2026-11-22: "Finish and commit,
+questions 11 and 12 were asked and answered as assumed.  Stages 17 to 23 are done (2026-11-24, their
+records at the end; 23e's place question was tried and taken back); 24 is next.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -1626,3 +1626,42 @@ diagnostics the same.
 
 	The unit: 157 functions after stage 22a, 122 at stage 22's end: CPPUnit.cpp, CPPUnitData.cpp,
 	CPPUnitLabels.cpp and CPPUnitObserver.cpp are what is left of its files.
+
+
+Stage 23 (2026-11-24): the mechanisms' leftovers, each proved alone (listings, diagnostics, the suite) against the
+one before, and the first against a baseline taken at the HEAD it was made on (f10f2c4e0, the debugger's F1-7).  The
+proofs now build in their own folders (the shared ../build ones may hold another session's half-finished edits).
+Done in the order a, c, d, e, b: b alone may change code.
+
+	fa32522f9  23a.  Fold answers ECPPFold: folded, not a constant, or by its kind may be one only running it
+	           gives (CPPFO_Run), each arm saying so beside how it folds (FoldTree); Evaluate runs only that last
+	           case, and RunConstant's own switch of kinds is gone.  Same code.
+	f52b62a22  23c.  mbValueArgumentRefused is gone from the unit: the instantiator counts the template
+	           arguments it refuses (NumRefusedArguments), and the folder compares the count before and after
+	           naming an enumerator.  A count, not a value returned as the item was written: the refusal is made
+	           deep inside the instantiation that naming the enumerator asks for, under calls that return other
+	           things.  Same code (Clause05e's Count<-1>::V still says what it said).
+	5c28e93a0  23d.  TemplateDeclaration asks ClassifyTemplateDeclaration what a template declaration is
+	           (ECPPTemplateForm, eighteen kinds, and its pieces in SCPPTemplateForm), then records it; its long
+	           arms are functions of their own (GiveMemberVariableTemplates, StaticMemberTemplate,
+	           OutsideMember, FunctionSpecialisation, FunctionTemplateDefinition).  IsOutsideMemberTemplate is
+	           the instantiator's, from the same classifying, and Declarations asks it once a declaration (a
+	           CArrayBit).  The unit: 121 functions.  Same code.
+	07e031cf4  23e, tried.  The front end's Place asked the record whether there is a place (PlaceOf) before
+	9c12e4748  writing one, and its arms lost their own checks.  Same code, but taken back: the record has a place
+	           only for what the type checker placed, so asking worked out five times the places compiling
+	           TestSupportLib65's project (90,597 to 484,219) and the types phase was slower (3,697 and 3,760 ms
+	           before, 3,839 twice after).  PlaceType can't ask the record: it is where the record's place comes
+	           from, as WorkOutCategory is where its category does.  Winning back the record's cost: not done.
+	           This machine has no profiler a session may use (perf_event_paranoid is 4, no valgrind), so where
+	           the cost is couldn't be measured; one guess, each record looked up once where it was looked up
+	           twice, made no difference beyond the clock's noise (3,711 to 3,748 ms against 3,668 and 3,721),
+	           and was not kept.
+	50348c040  23b.  A floating point constant the tree can't fold is run by the interpreter as an integer one
+	           is: CCPPConstants::Value gives an SCPPConstant (an integer or a float, from the result's bits,
+	           IRInterpreterFloat), and RunConstant, ConstexprCall and ConstexprResult take floats
+	           (IsRunnableType).  float gk = Twice(1.25f); with a constexpr Twice is data (.long 1075838976),
+	           where it was code run at start-up; TestCPP65GeneratorFloatConstexpr pins it, and a constexpr
+	           float variable from one.  Question 7's bar: no listing of the suites' changed (none of their
+	           programs has such a constant), so no suite is worse in cycles or bytes on either processor.
+	           TestCppCompilerLib: 278,107 run, 0 failed.
