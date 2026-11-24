@@ -1175,8 +1175,6 @@ bool CCPP65IRFrontEnd::TypeidPlace(CCPPSyntaxTypeidExpression* pcTypeid, SCPP65I
 //////////////////////////////////////////////////////////////////////////
 //
 // Variables, *pointer, array[index], and calls that return references.
-// Whether there is a place is the type checker's (PlaceOf): what has none
-// is said there.  The arms write the place's code.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
@@ -1195,11 +1193,6 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	psPlace->psBitField = NULL;
 
 	pcExpression = CPPSkipParentheses(pcExpression);
-	if (!mpcUnit->GetTypeChecker()->PlaceOf(pcExpression))
-	{
-		mpcUnit->GetTypeChecker()->ReportTypeOf(pcExpression);
-		return Unsupported(__FILE__, __LINE__);
-	}
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_IdExpression:
@@ -1260,7 +1253,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		if (pcUnary->meOperator != CT_Multiply)
 		{
 			//-object, +object, ~object: the temporary its operator made.
-			if (!ObjectValue(pcExpression, &sAddress))
+			psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
+			if (!psType || !psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}
@@ -1344,6 +1338,11 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 	case CPPS_CallExpression:
 	case CPPS_LiteralExpression:
 		//What a call (or a user-defined literal's) that returns a reference refers to, or the object it makes.
+		psType = mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcExpression);
+		if (!psType || !(psType->IsReference() || psType->IsClass()) || ((pcExpression->GetKind() != CPPS_CallExpression) && !mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression)))
+		{
+			return Unsupported(__FILE__, __LINE__);
+		}
 		if ((pcExpression->GetKind() == CPPS_CallExpression) ? !CallExpression((CCPPSyntaxCallExpression*)pcExpression, &sAddress) : !LiteralCall(pcExpression, &sAddress))
 		{
 			return false;
@@ -1398,7 +1397,8 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		}
 
 		//An operator function's object (a temporary it made, or the object it refers to).
-		if (!Value(pcExpression, &sAddress))
+		psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
+		if (!psType || !(psType->IsReference() || psType->IsClass()) || !Value(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1419,7 +1419,13 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		{
 			return ConditionalPlace((CCPPSyntaxConditionalExpression*)pcExpression, psPlace);
 		}
-		if (!ObjectValue(pcExpression, &sAddress))
+		if (!psType)
+		{
+			//C++ that is wrong (a cast from a virtual base to a class derived from it): the type checker says what.
+			mpcUnit->GetTypeChecker()->ReportTypeOf(pcExpression);
+			return Unsupported(__FILE__, __LINE__);
+		}
+		if (!psType->IsClass() || !ObjectValue(pcExpression, &sAddress))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
