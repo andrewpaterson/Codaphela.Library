@@ -500,11 +500,7 @@ void CCPPExceptions::PartsExceptions(CCPPClass* pcClass, ECPPSpecialMember eMemb
 	for (i = 0; i < pcClass->macFields.NumElements(); i++)
 	{
 		psField = pcClass->macFields.Get(i);
-		psType = psField->psType;
-		while (psType->IsArray())
-		{
-			psType = psType->psBase;
-		}
+		psType = psField->psType->InnermostElement();
 		if (psType->IsClass() && (psType->pcClass != pcClass))
 		{
 			ClassExceptions(psType->pcClass, eMember, pcDest);
@@ -962,10 +958,7 @@ bool CCPPExceptions::NewMayThrow(CCPPSyntaxNewExpression* pcNew)
 	{
 		return true;
 	}
-	while (psType->IsArray())
-	{
-		psType = psType->psBase;
-	}
+	psType = psType->InnermostElement();
 	return psType->IsClass() && ConstructionMayThrow(psType->pcClass, pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL, pcNew, false);
 }
 

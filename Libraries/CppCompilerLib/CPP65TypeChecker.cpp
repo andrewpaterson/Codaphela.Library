@@ -1646,11 +1646,7 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 {
 	SCPP65Type*	psPointee;
 
-	psPointee = psPointer->psBase;
-	while (psPointee->IsArray())
-	{
-		psPointee = psPointee->psBase;
-	}
+	psPointee = psPointer->psBase->InnermostElement();
 	if (psPointee->IsVoid())
 	{
 		return Error(pcNode, "A pointer to void doesn't step: void has no size");
@@ -4074,11 +4070,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	bool			bResult;
 	bool			bDirect;
 
-	psElement = psType;
-	while (psElement->IsArray())
-	{
-		psElement = psElement->psBase;
-	}
+	psElement = psType->InnermostElement();
 	if (psElement->IsClass())
 	{
 		return Construct(psType, NULL, pcInitialiser, pcNode);

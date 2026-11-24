@@ -630,11 +630,7 @@ bool CCPPClass::IsAssignmentDeleted(void)
 	}
 	for (i = 0; i < macFields.NumElements(); i++)
 	{
-		psType = macFields.Get(i)->psType;
-		while (psType->IsArray())
-		{
-			psType = psType->psBase;
-		}
+		psType = macFields.Get(i)->psType->InnermostElement();
 		if (psType->IsReference() || psType->bConst || (psType->IsClass() && psType->pcClass->IsAssignmentDeleted()))
 		{
 			return true;

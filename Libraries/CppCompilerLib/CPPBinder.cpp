@@ -2136,11 +2136,7 @@ bool CCPPBinder::IsCopyDeleted(CCPPClass* pcClass)
 	for (i = 0; !pcClass->mbUnion && (i < pcClass->macFields.NumElements()); i++)
 	{
 		psField = pcClass->macFields.Get(i);
-		psType = psField->psType;
-		while (psType->IsArray())
-		{
-			psType = psType->psBase;
-		}
+		psType = psField->psType->InnermostElement();
 		if ((psType->IsReference() && psType->bRvalue) || (psType->IsClass() && IsCopyDeleted(psType->pcClass)))
 		{
 			return true;
@@ -2190,11 +2186,7 @@ bool CCPPBinder::IsMoveDeleted(CCPPClass* pcClass)
 	for (i = 0; !pcClass->mbUnion && (i < pcClass->macFields.NumElements()); i++)
 	{
 		psField = pcClass->macFields.Get(i);
-		psType = psField->psType;
-		while (psType->IsArray())
-		{
-			psType = psType->psBase;
-		}
+		psType = psField->psType->InnermostElement();
 		if (psType->IsClass() && IsMoveDeleted(psType->pcClass))
 		{
 			return true;

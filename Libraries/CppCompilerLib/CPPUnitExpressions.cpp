@@ -1380,10 +1380,7 @@ bool CCPPUnit::IsTriviallyCopyableType(SCPP65Type* psType)
 {
 	CCPPClass*	pcClass;
 
-	while (psType->IsArray())
-	{
-		psType = psType->psBase;
-	}
+	psType = psType->InnermostElement();
 	if (!psType->IsClass())
 	{
 		return !psType->IsReference();
@@ -1406,10 +1403,7 @@ bool CCPPUnit::IsStandardLayoutType(SCPP65Type* psType)
 	CCPPClass*	pcFields;
 	size		i;
 
-	while (psType->IsArray())
-	{
-		psType = psType->psBase;
-	}
+	psType = psType->InnermostElement();
 	if (!psType->IsClass())
 	{
 		return !psType->IsReference();

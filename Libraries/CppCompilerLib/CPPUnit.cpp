@@ -1820,11 +1820,7 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 	{
 		return false;
 	}
-	psElement = psType;
-	while (psElement->IsArray())
-	{
-		psElement = psElement->psBase;
-	}
+	psElement = psType->InnermostElement();
 	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
 	bExtern = pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN);
 	if (psElement->IsClass() && !bExtern && CompleteClass(psElement->pcClass, pcInit) && !mcBinder.ReachesDestructor(psElement->pcClass, pcInit))
@@ -1913,11 +1909,7 @@ bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
 	{
 		return mcDiagnostics.ReportError(pcNode, "A reference must be initialised");
 	}
-	psElement = psType;
-	while (psElement->IsArray())
-	{
-		psElement = psElement->psBase;
-	}
+	psElement = psType->InnermostElement();
 	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && psElement->pcClass->HasFieldNeedingValue())
 	{
 		//[class.ctor] 4
