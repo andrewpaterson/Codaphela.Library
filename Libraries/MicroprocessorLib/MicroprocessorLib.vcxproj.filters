@@ -1436,4 +1436,17 @@
       <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{5205fe25-6534-411e-836b-ddc95474957b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\65c64">
+      <UniqueIdentifier>{c5000d30-baa1-4937-a751-e5ae1728fbf8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\65c64\emulator.md">
+      <Filter>Docs\65c64</Filter>
+    </None>
+  </ItemGroup>
 </Project>
