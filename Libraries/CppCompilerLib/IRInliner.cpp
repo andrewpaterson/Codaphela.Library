@@ -50,6 +50,9 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 	mpaszNotImported = NULL;
 	mpcCalleeModule = NULL;
 	muiImportSource = 0;
+	muiInline = IR_NO_INLINE;
+	mauiInlines.Init();
+	masLocations.Init();
 	mpcProfile = NULL;
 	muiHotInstructions = 0;
 	mbForwardersJump = false;
@@ -63,6 +66,8 @@ void CIRInliner::Init(CIRModule* pcModule, size uiMaxInstructions, size uiMaxLoo
 //////////////////////////////////////////////////////////////////////////
 void CIRInliner::Kill(void)
 {
+	masLocations.Kill();
+	mauiInlines.Kill();
 	mapcRecursiveCallees.Kill();
 	mapcRecursiveCallers.Kill();
 	masArguments.Kill();
@@ -1009,9 +1014,14 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 		auiUses.Kill();
 	}
 
-	//Another unit's function's sources are its tokens, not this unit's: its copy is the call's line's code (a listing
-	//shows it under the call).
-	muiImportSource = mpcCalleeModule ? sCall.uiSource : 0;
+	//The call is an inline of the caller's, for a debugger: each copied instruction's location is in it, and the
+	//callee's own inlines are copied in it (MapLocation).  Another unit's function's sources are its tokens, not this
+	//unit's: its copy is the call's line's code (a listing shows it under the call).
+	muiImportSource = mpcCalleeModule ? mpcCaller->SourceToken(sCall.uiSource) : 0;
+	muiInline = mpcCaller->AddInline(sCall.asArguments[0].Index(), sCall.uiSource);
+	mauiInlines.FakeSetUsedElements(0);
+	mauiInlines.GrowToAtLeastNumElements(pcCallee->masInlines.NumElements(), true, 0xFF);
+	masLocations.FakeSetUsedElements(0);
 
 	//The parameters are the arguments; the callee's other temporaries get copies when they are first met.
 	masMap.FakeSetUsedElements(0);
@@ -1059,10 +1069,7 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 	{
 		pcCopy = mapcCopies.GetPtr(ui);
 		CopyBlock(pcCallee->GetBlock(ui), pcCopy);
-		if (mpcCalleeModule)
-		{
-			pcCopy->msJump.uiSource = muiImportSource;
-		}
+		pcCopy->msJump.uiSource = MapLocation(pcCallee->GetBlock(ui)->msJump.uiSource);
 	}
 	pcBlock->Jump(mapcCopies.GetPtr(0));
 
@@ -1139,16 +1146,79 @@ CIRBlock* CIRInliner::CopyOf(CIRBlock* pcBlock)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The operands of a callee's instruction in the caller.  Another unit's
-// instruction has the call's source: its own are that unit's tokens.
+// The location in the caller of a callee's instruction at uiSource: in
+// the call being inlined (muiInline) at its token, or for one the callee
+// inlined, in that inline's copy (MapInline).  Another unit's callee's
+// are all at the call's token (muiImportSource).  Each location is made
+// once an inlining.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInliner::MapLocation(uint32 uiSource)
+{
+	SIRMappedLocation*	psMapped;
+	SIRInlineLocation*	psLocation;
+	size				ui;
+	uint32				uiTo;
+
+	for (ui = 0; ui < masLocations.NumElements(); ui++)
+	{
+		psMapped = masLocations.Get(ui);
+		if (psMapped->uiFrom == uiSource)
+		{
+			return psMapped->uiTo;
+		}
+	}
+
+	psLocation = mpcCalleeModule ? NULL : mpcCallee->GetInlineLocation(uiSource);
+	if (mpcCalleeModule)
+	{
+		uiTo = mpcCaller->AddInlineLocation(muiInline, muiImportSource);
+	}
+	else if (psLocation)
+	{
+		uiTo = mpcCaller->AddInlineLocation(MapInline(psLocation->uiInline), psLocation->uiSource);
+	}
+	else
+	{
+		uiTo = mpcCaller->AddInlineLocation(muiInline, uiSource);
+	}
+	psMapped = masLocations.Add();
+	psMapped->uiFrom = uiSource;
+	psMapped->uiTo = uiTo;
+	return uiTo;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The copy in the caller of the callee's inline uiInline: a call inlined
+// into the callee is inlined into the caller in the call being inlined.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRInliner::MapInline(uint32 uiInline)
+{
+	SIRInline	sInline;
+	uint32		uiCall;
+
+	if (*mauiInlines.Get(uiInline) == IR_NO_INLINE)
+	{
+		sInline = *mpcCallee->masInlines.Get(uiInline);
+		uiCall = MapLocation(sInline.uiCall);
+		*mauiInlines.Get(uiInline) = mpcCaller->AddInline(sInline.uiCallee, uiCall);
+	}
+	return *mauiInlines.Get(uiInline);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The operands of a callee's instruction in the caller, and its location
+// (MapLocation).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRInliner::CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy)
 {
-	if (mpcCalleeModule)
-	{
-		psCopy->uiSource = muiImportSource;
-	}
+	psCopy->uiSource = MapLocation(psFrom->uiSource);
 	if ((psFrom->uiOpcode == IRO_ArgAddress) && !msArguments.IsNone())
 	{
 		//A parameter's address is its place in the arguments' slot.

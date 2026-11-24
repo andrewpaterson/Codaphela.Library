@@ -1737,14 +1737,16 @@ void CCPP65IRFrontEnd::DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* p
 //////////////////////////////////////////////////////////////////////////
 //
 // The back ends (and CIRPrinter) write a marker line (IR_SOURCE_MARKER and
-// the source token + 1) where the instructions' source changes.  Where it
+// the instructions' location: the source token + 1, or an inline location
+// of pcFunction, CIRFunction::SourceToken) where the instructions' source
+// changes.  Where it
 // is another line than the last's, with bComments (a listing) it becomes a
 // comment with the file, line and text of the line, and with bLines a
 // .line directive with the file's full name (the linker's line table);
 // otherwise they go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments, bool bLines)
+void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, bool bComments, bool bLines)
 {
 	CChars				szOut;
 	const char*			szText;
@@ -1755,6 +1757,7 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments, bool bLin
 	CSourceFile*		pcFile;
 	int					iLine;
 	size				uiMarker;
+	uint32				uiSource;
 
 	if (!pszCode->Contains(IR_SOURCE_MARKER))
 	{
@@ -1777,7 +1780,9 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, bool bComments, bool bLin
 			szOut.AppendSubString(szText, (*szEnd == '\n') ? szEnd + 1 : szEnd);
 			continue;
 		}
-		if ((!bComments && !bLines) || !SourceLine((int)strtol(szText + uiMarker, NULL, 10) - 1, &pcFile, &iLine))
+		uiSource = (uint32)strtoul(szText + uiMarker, NULL, 10);
+		uiSource = pcFunction ? pcFunction->SourceToken(uiSource) : uiSource;
+		if ((!bComments && !bLines) || (uiSource == 0) || (uiSource & IR_INLINE_LOCATION) || !SourceLine((int)uiSource - 1, &pcFile, &iLine))
 		{
 			continue;
 		}
@@ -2302,7 +2307,7 @@ void CCPP65IRFrontEnd::PrintIR(CIRFunction* pcFunction)
 
 	szText.Init();
 	PrintFunction(pcFunction, &szText, true);
-	SourceComments(&szText, true, false);
+	SourceComments(&szText, pcFunction, true, false);
 	fprintf(stderr, "%s\n", szText.Text());
 	szText.Kill();
 }

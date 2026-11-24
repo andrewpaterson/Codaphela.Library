@@ -84,6 +84,20 @@ struct SIRInlineLimits
 };
 
 
+//A callee's instruction location and its copy's in the caller (CIRInliner::MapLocation).
+struct SIRMappedLocation
+{
+	uint32	uiFrom;
+	uint32	uiTo;
+};
+
+
+typedef CArrayTemplate<SIRMappedLocation>	CArrayIRMappedLocations;
+
+
+#define IR_NO_INLINE	0xFFFFFFFF
+
+
 class CIRInliner : public CIRBlockCopier
 {
 protected:
@@ -105,7 +119,10 @@ protected:
 	CArrayChars*			mpaszMissing;				//Named callees with no body here or in mpcImports, NULL to not keep.
 	CArrayChars*			mpaszNotImported;			//Every name looked for in mpcImports and not found, NULL to not keep.
 	CIRModule*				mpcCalleeModule;			//The module of the callee being inlined when it isn't this one (its symbols are mapped by name).
-	uint32					muiImportSource;			//The call's source when the callee is another unit's: its sources are that unit's tokens.
+	uint32					muiImportSource;			//The call's source token + 1 when the callee is another unit's: its sources are that unit's tokens.
+	uint32					muiInline;					//The call being inlined, in the caller's inlines (CIRFunction::AddInline)...
+	CArrayTemplate<uint32>	mauiInlines;				//...per callee inline, its copy in the caller (IR_NO_INLINE until made)...
+	CArrayIRMappedLocations	masLocations;				//...and the callee's locations met, with their copies (MapLocation).
 	SIRReference			msArguments;				//The slot the callee's parameters are in (argaddr), IRNone if it takes none's address.
 	CArrayTemplate<int32>	maiArgumentOffsets;			//Per callee parameter: its offset in msArguments.
 	CArrayIRReferences		masArguments;				//The call's arguments, in order.
@@ -148,6 +165,8 @@ protected:
 	bool			CopiesDebugValues(void) override;
 	CIRBlock*		CopyOf(CIRBlock* pcBlock) override;
 	void			CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy) override;
+	uint32			MapLocation(uint32 uiSource);
+	uint32			MapInline(uint32 uiInline);
 	void			CopyReturn(CIRBlock* pcFrom, CIRBlock* pcCopy) override;
 	void			CopyThrow(CIRBlock* pcFrom, CIRBlock* pcCopy) override;
 	bool			InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCallee);

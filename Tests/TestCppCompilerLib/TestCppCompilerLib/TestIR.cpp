@@ -2941,6 +2941,117 @@ void TestIROptimiserPointerOffsets(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Each source of pcFunction's instructions and jumps set to uiSource.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestIRSetSources(CIRFunction* pcFunction, uint32 uiSource)
+{
+	CIRBlock*	pcBlock;
+	size		uiBlock;
+	size		ui;
+
+	for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = pcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			pcBlock->masInstructions.Get(ui)->uiSource = uiSource;
+		}
+		pcBlock->msJump.uiSource = uiSource + 1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The location of pcFunction's first instruction with uiOpcode, 0 if none.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 TestIRLocationOf(CIRFunction* pcFunction, uint16 uiOpcode)
+{
+	CIRBlock*	pcBlock;
+	size		uiBlock;
+	size		ui;
+
+	for (uiBlock = 0; uiBlock < pcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = pcFunction->GetBlock(uiBlock);
+		for (ui = 0; ui < pcBlock->masInstructions.NumElements(); ui++)
+		{
+			if (pcBlock->masInstructions.Get(ui)->uiOpcode == uiOpcode)
+			{
+				return pcBlock->masInstructions.Get(ui)->uiSource;
+			}
+		}
+	}
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An inlined instruction's location (DebuggerFPlan.txt F2-1): its token in
+// the callee, in an inline of the callee at the call's location; a call
+// the callee had inlined is an inline of its own, its call in the callee's
+// inline.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIRInlineLocations(void)
+{
+	CIRModule		cModule;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIRInliner		cInliner;
+	CIRFunction*	pcA;
+	SIRInline*		psInline;
+	uint32			uiLocation;
+
+	cErrors.Init();
+	cModule.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse("space default 4\n\n"
+		"function i32 @C(i32 %x)\n{\nentry:\n\t%y = add i32 %x, 1\n\tret i32 %y\n}\n\n"
+		"function i32 @B(i32 %x)\n{\nentry:\n\t%y = call i32 @C(i32 %x)\n\t%z = mul i32 %y, 3\n\tret i32 %z\n}\n\n"
+		"function i32 @A(i32 %x)\n{\nentry:\n\t%y = call i32 @B(i32 %x)\n\tret i32 %y\n}\n"));
+	cParser.Kill();
+	TestIRSetSources(cModule.GetFunction(0), 31);
+	TestIRSetSources(cModule.GetFunction(1), 21);
+	TestIRSetSources(cModule.GetFunction(2), 11);
+	pcA = cModule.GetFunction(2);
+
+	cInliner.Init(&cModule, 16, 16, 4);
+	AssertTrue(cInliner.InlineCalls(cModule.GetFunction(1)));
+	AssertTrue(cInliner.InlineCalls(pcA));
+	cInliner.Kill();
+
+	//B's mul: at its token, in B's inline at A's call.
+	uiLocation = TestIRLocationOf(pcA, IRO_Mul);
+	AssertTrue((uiLocation & IR_INLINE_LOCATION) != 0);
+	AssertInt(21, pcA->SourceToken(uiLocation));
+	psInline = pcA->GetInline(uiLocation);
+	AssertString("B", cModule.GetSymbolName(psInline->uiCallee));
+	AssertInt(11, psInline->uiCall);
+
+	//C's add: in C's inline, whose call is in B's inline at B's call's token.
+	uiLocation = TestIRLocationOf(pcA, IRO_Add);
+	AssertInt(31, pcA->SourceToken(uiLocation));
+	psInline = pcA->GetInline(uiLocation);
+	AssertString("C", cModule.GetSymbolName(psInline->uiCallee));
+	AssertInt(21, pcA->SourceToken(psInline->uiCall));
+	psInline = pcA->GetInline(psInline->uiCall);
+	AssertString("B", cModule.GetSymbolName(psInline->uiCallee));
+	AssertInt(11, psInline->uiCall);
+	AssertTrue(pcA->GetInline(11) == NULL);
+	AssertInt(11, pcA->SourceToken(11));
+	AssertSize(2, pcA->masInlines.NumElements());
+
+	cModule.Kill();
+	cErrors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A restrict symbol stays restrict when a function naming it is exported
 // to CIRImports and inlined into another unit.
 //
@@ -6731,6 +6842,7 @@ void TestIR(void)
 	TestIROptimiserLoopInvariants();
 	TestIROptimiserRestrict();
 	TestIROptimiserRestrictParameters();
+	TestIRInlineLocations();
 	TestIRImportsRestrict();
 	TestIRImportsCalls();
 	TestIRInlineForwarders();

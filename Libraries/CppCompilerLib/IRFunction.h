@@ -128,6 +128,32 @@ struct SIRUse
 };
 
 
+//A call inlined into a function (DebuggerFPlan.txt F2): the function inlined (a symbol of the module) and the call's
+//location in the function (an instruction's uiSource: a source token + 1, or an inline location).
+struct SIRInline
+{
+	uint32	uiCallee;
+	uint32	uiCall;
+};
+
+
+//An inlined instruction's location: the inline it came from and its source token + 1 there (0 for none).  An
+//instruction's uiSource with IR_INLINE_LOCATION set is the index of one of its function's (CIRFunction::
+//AddInlineLocation).
+struct SIRInlineLocation
+{
+	uint32	uiInline;
+	uint32	uiSource;
+};
+
+
+#define IR_INLINE_LOCATION	0x80000000
+
+
+typedef CArrayTemplate<SIRInline>			CArrayIRInlines;
+typedef CArrayTemplate<SIRInlineLocation>	CArrayIRInlineLocations;
+
+
 //A function: its blocks (the first is the entry), temporaries, constants and parameters.  Temporaries and blocks
 //may have names (unique in the function; a name that is all digits is not kept); the others are numbered when
 //printed.  The name maps are only made when the first name is given.
@@ -152,6 +178,9 @@ public:
 	CMapIRBlocks*		mpmBlockNames;
 	uint32*				mpuiSource;		//The module's source for instructions added now (CIRModule::muiSource).
 
+	CArrayIRInlines			masInlines;			//The calls inlined into it, for a debugger...
+	CArrayIRInlineLocations	masInlineLocations;	//...and the locations of their instructions.
+
 public:
 	void			Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes, uint32* puiSource);
 	void			Kill(void);
@@ -171,6 +200,12 @@ public:
 	void			ReplaceDebugValues(SIRReference sOld, SIRReference sNew, CArrayIRBlocks* papcBlocks);
 	void			NameTemporary(SIRReference sTemporary, const char* szName);
 	void			ForgetTemporaryName(SIRReference sTemporary);
+
+	uint32			AddInline(uint32 uiCallee, uint32 uiCall);
+	uint32			AddInlineLocation(uint32 uiInline, uint32 uiSource);
+	uint32			SourceToken(uint32 uiLocation);
+	SIRInline*		GetInline(uint32 uiLocation);
+	SIRInlineLocation*	GetInlineLocation(uint32 uiLocation);
 
 	SIRReference	AddConstant(SIRType sType, uint64 ulliBits);
 	SIRReference	AddInteger(SIRType sType, int64 lliValue);

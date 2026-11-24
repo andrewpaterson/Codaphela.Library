@@ -58,6 +58,9 @@ void CIRFunction::Init(uint32 uiSymbol, SIRType sReturnType, uint32 uiAttributes
 	masKept.Init();
 	mapcBlocks.Init();
 	mpmBlockNames = NULL;
+
+	masInlines.Init();
+	masInlineLocations.Init();
 }
 
 
@@ -70,6 +73,8 @@ void CIRFunction::Kill(void)
 	size		ui;
 	CIRBlock*	pcBlock;
 
+	masInlineLocations.Kill();
+	masInlines.Kill();
 	for (ui = 0; ui < mapcBlocks.NumElements(); ui++)
 	{
 		pcBlock = mapcBlocks.GetPtr(ui);
@@ -173,7 +178,89 @@ void CIRFunction::CopyBody(CIRFunction* pcSource)
 		cCopier.CopyBlock(pcFrom, pcTo);
 		pcTo->msJump.uiSource = pcFrom->msJump.uiSource;
 	}
+	masInlines.Copy(&pcSource->masInlines);
+	masInlineLocations.Copy(&pcSource->masInlineLocations);
 	ComputePredecessors();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A call of uiCallee (a symbol of the module) at the location uiCall
+// inlined into the function: its index, for AddInlineLocation.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRFunction::AddInline(uint32 uiCallee, uint32 uiCall)
+{
+	SIRInline*	psInline;
+
+	psInline = masInlines.Add();
+	psInline->uiCallee = uiCallee;
+	psInline->uiCall = uiCall;
+	return (uint32)masInlines.NumElements() - 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The location of instructions inlined by uiInline whose source in the
+// callee was uiSource (a token + 1, 0 for none): an instruction's
+// uiSource.  The inliner adds each once (CIRInliner::MapLocation).
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRFunction::AddInlineLocation(uint32 uiInline, uint32 uiSource)
+{
+	SIRInlineLocation*	psLocation;
+
+	psLocation = masInlineLocations.Add();
+	psLocation->uiInline = uiInline;
+	psLocation->uiSource = uiSource;
+	return IR_INLINE_LOCATION | (uint32)(masInlineLocations.NumElements() - 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The source token + 1 of an instruction at uiLocation (0 for none): the
+// innermost inlined function's line it was written for.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIRFunction::SourceToken(uint32 uiLocation)
+{
+	SIRInlineLocation*	psLocation;
+
+	psLocation = GetInlineLocation(uiLocation);
+	return psLocation ? psLocation->uiSource : uiLocation;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The inline location uiLocation is, NULL if it is a source token (not
+// inlined, or 0).
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInlineLocation* CIRFunction::GetInlineLocation(uint32 uiLocation)
+{
+	if (!(uiLocation & IR_INLINE_LOCATION))
+	{
+		return NULL;
+	}
+	return masInlineLocations.SafeGet(uiLocation & ~IR_INLINE_LOCATION);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The inlined call uiLocation is in (the innermost), NULL if none.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRInline* CIRFunction::GetInline(uint32 uiLocation)
+{
+	SIRInlineLocation*	psLocation;
+
+	psLocation = GetInlineLocation(uiLocation);
+	return psLocation ? masInlines.SafeGet(psLocation->uiInline) : NULL;
 }
 
 

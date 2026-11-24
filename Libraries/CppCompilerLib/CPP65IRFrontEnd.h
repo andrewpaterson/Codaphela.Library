@@ -314,7 +314,7 @@ public:
 	void			SetUnsupported(const char* szFile, int iLine, const char* szReason);
 	void			AppendUnsupported(CChars* psz);
 	void			ClearUnsupported(void);
-	void			SourceComments(CChars* pszCode, bool bComments, bool bLines);
+	void			SourceComments(CChars* pszCode, CIRFunction* pcFunction, bool bComments, bool bLines);
 	void			DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* paszRanges);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);

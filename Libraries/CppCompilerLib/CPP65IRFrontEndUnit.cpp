@@ -219,7 +219,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		}
 		aszRanges.Kill();
 		FreeWritten(psWritten);
-		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());
+		SourceComments(&szCode, psWritten->pcFunction, mpcUnit->HasListing(), mpcUnit->HasLineTable());
 		if (mpcUnit->HasLineTable())
 		{
 			szCode.Append("\t\t.fingerprint \"");
@@ -474,9 +474,11 @@ uint64 CCPP65IRFrontEnd::CallCount(CIRFunction* pcCaller, SIRInstruction* psCall
 	size					ui;
 	uint64					ulliCount;
 	uint64					ulliEntered;
+	uint32					uiToken;
 
 	pcProfile = InliningProfile();
-	if (!pcProfile || (psCall->uiSource == 0) || !SourceLine((int)psCall->uiSource - 1, &pcFile, &iLine))
+	uiToken = pcCaller->SourceToken(psCall->uiSource);
+	if (!pcProfile || (uiToken == 0) || !SourceLine((int)uiToken - 1, &pcFile, &iLine))
 	{
 		return IR_INLINE_UNKNOWN;
 	}
@@ -554,7 +556,7 @@ uint64 CCPP65IRFrontEnd::InlinedEntries(CAsm65Profile* pcProfile, const char* sz
 	ulliMost = 0;
 	for (ui = 0; ui <= pcEntry->masInstructions.NumElements(); ui++)
 	{
-		uiSource = (ui < pcEntry->masInstructions.NumElements()) ? pcEntry->masInstructions.Get(ui)->uiSource : pcEntry->msJump.uiSource;
+		uiSource = pcCallee->SourceToken((ui < pcEntry->masInstructions.NumElements()) ? pcEntry->masInstructions.Get(ui)->uiSource : pcEntry->msJump.uiSource);
 		if ((uiSource != 0) && SourceLine((int)uiSource - 1, &pcFile, &iLine))
 		{
 			psLine = pcProfile->GetLine(szLabel, pcFile->FullName(), (uint32)iLine + 1);
