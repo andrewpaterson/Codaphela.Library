@@ -999,6 +999,50 @@ static void TestDebugServerDataBreakpoints(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Stepping over a line of a function that calls itself (DebuggerFixes-
+// Plan.txt G2): the line's code run again by the call it makes is the
+// call's, so the step stops after the line in the call it started in
+// (the stack as it was), not in the deepest.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestDebugServerStepOverRecursion(void)
+{
+	CFlatW65C816DebugTarget		cTarget;
+	CTestDebugW65C816Decoder	cDecoder;
+	STestDebugLink				sLink;
+	STestDebugLink*				psLink;
+	CDebugClient*				pcClient;
+	SDebugRange					sLine;
+	uint64						uiS;
+	static uint8				auiCountDown[] = { 0xCA, 0xF0, 0x03, 0x20, 0x00, 0x30, 0x60 };	//dex / beq +3 / jsr $3000 / rts
+
+	cTarget.Init(TEST_DEBUG_W65C816_MEMORY);
+	cTarget.SetDecoder(&cDecoder);
+	psLink = &sLink;
+	AssertTrue(TestDebugLinkInit(psLink, TDT_SharedMemory, &cTarget));
+	pcClient = &psLink->cClient;
+	AssertTrue(pcClient->Hello());
+	TestDebugWaitForStop(psLink, DS_Start, 0);
+	AssertTrue(pcClient->Load(0x3000, auiCountDown, sizeof(auiCountDown)));
+	AssertTrue(pcClient->SetProgramAddress(0x3000));
+	AssertTrue(pcClient->WriteRegister(DW65C816R_X, 3));
+	TestDebugSync(psLink);
+	uiS = pcClient->GetRegisterValue(DW65C816R_S);
+
+	//The line is all but the rts: over it, the calls it makes (three deep) run to their ends.
+	sLine.uiStart = 0x3000;
+	sLine.uiEnd = 0x3006;
+	AssertTrue(pcClient->StepRange(&sLine, 1, true));
+	TestDebugWaitForStop(psLink, DS_Step, 0x3006);
+	AssertLongLongIntHex(0, pcClient->GetRegisterValue(DW65C816R_X));
+	AssertLongLongIntHex(uiS, pcClient->GetRegisterValue(DW65C816R_S));
+	TestDebugLinkKill(psLink, TDT_SharedMemory);
+	cTarget.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDebugServer(void)
@@ -1013,6 +1057,7 @@ void TestDebugServer(void)
 	TestDebugServerAttach();
 	TestDebugServerResetTarget();
 	TestDebugServerDataBreakpoints();
+	TestDebugServerStepOverRecursion();
 
 	TestStatistics();
 }

@@ -73,8 +73,8 @@ protected:
 	CArrayDebugBreakpoints	masDataBreakpoints;
 	bool				mbOver;
 	bool				mbOut;			//A DM_StepOut: steps until a return of its own takes the stack above muiDepth.
-	uint32				muiDepth;		//The stack pointer at the last instruction in a range, or where a step out started.
-	size				muiCalls;		//Calls a step out has made that haven't returned.
+	uint32				muiDepth;		//The stack pointer at the step's last instruction in a range, or where a step out started.
+	size				muiCalls;		//Calls a step over or out has made that haven't returned.
 
 public:
 	void				Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget, bool bStopped = true);
@@ -115,6 +115,8 @@ protected:
 	void				StepOut(void);
 	void				StartStepping(bool bOver, bool bOut);
 	bool				StepOutStep(bool bForce);
+	uint8				NextInstructionKind(void);
+	bool				CountCall(uint8 uiKind);
 	void				StepRange(size uiMaxSteps);
 	bool				IsInRanges(uint32 uiAddress);
 	void				Reset(void* pvData, size uiSize);

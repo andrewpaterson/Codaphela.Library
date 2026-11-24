@@ -976,35 +976,20 @@ void CDebugServer::StartStepping(bool bOver, bool bOut)
 //////////////////////////////////////////////////////////////////////////
 bool CDebugServer::StepOutStep(bool bForce)
 {
-	SDebugInstruction	sInstruction;
-	bool				bStepped;
+	uint8	uiKind;
+	bool	bStepped;
 
-	if (DecodeDebugInstructions(mpcTarget, mpcTarget->GetProgramAddress(), 1, &sInstruction) != 1)
-	{
-		sInstruction.uiKind = DI_Other;
-	}
+	uiKind = NextInstructionKind();
 	bStepped = bForce ? ForceStep() : TargetStep();
 	if (!bStepped)
 	{
 		Stop(StopReason(DS_Step));
 		return false;
 	}
-
-	if (sInstruction.uiKind == DI_Call)
+	if (!CountCall(uiKind) && (uiKind == DI_Return) && (mpcTarget->GetStackPointer() > muiDepth))
 	{
-		muiCalls++;
-	}
-	else if (sInstruction.uiKind == DI_Return)
-	{
-		if (muiCalls > 0)
-		{
-			muiCalls--;
-		}
-		else if (mpcTarget->GetStackPointer() > muiDepth)
-		{
-			Stop(DS_Step);
-			return false;
-		}
+		Stop(DS_Step);
+		return false;
 	}
 	return true;
 }
@@ -1012,15 +997,61 @@ bool CDebugServer::StepOutStep(bool bForce)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the instruction at the program address is (EDebugInstruction):
+// DI_Other if the target can't say.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CDebugServer::NextInstructionKind(void)
+{
+	SDebugInstruction	sInstruction;
+
+	if (DecodeDebugInstructions(mpcTarget, mpcTarget->GetProgramAddress(), 1, &sInstruction) != 1)
+	{
+		return DI_Other;
+	}
+	return sInstruction.uiKind;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instruction of uiKind was stepped: a call opens one (muiCalls), a
+// return closes one.  False for a return with none open (it leaves where
+// the step started) or any other instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugServer::CountCall(uint8 uiKind)
+{
+	if (uiKind == DI_Call)
+	{
+		muiCalls++;
+		return true;
+	}
+	if ((uiKind == DI_Return) && (muiCalls > 0))
+	{
+		muiCalls--;
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Steps while the program address is in the ranges, or (stepping over)
-// while the stack is deeper than at the last instruction in them.  A step
-// out steps until it returns (StepOutStep).
+// while a call it made hasn't returned (counted, as a step out counts
+// them) or the stack is deeper than at its last instruction in them (an
+// interrupt).  Code of the ranges a call runs (a function calling itself
+// runs its line again) is the call's: only code with no call open is the
+// step's.  The stack above that again closes any call still counted (an
+// exception unwound).  A step out steps until it returns (StepOutStep).
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StepRange(size uiMaxSteps)
 {
 	size	i;
 	uint32	uiStack;
+	uint8	uiKind;
 
 	for (i = 0; i < uiMaxSteps; i++)
 	{
@@ -1034,21 +1065,30 @@ void CDebugServer::StepRange(size uiMaxSteps)
 		}
 
 		uiStack = mpcTarget->GetStackPointer();
-		if (IsInRanges(mpcTarget->GetProgramAddress()))
+		if ((muiCalls > 0) && (uiStack > muiDepth))
 		{
-			muiDepth = uiStack;
+			muiCalls = 0;
 		}
-		else if (!mbOver || (uiStack >= muiDepth))
+		if (muiCalls == 0)
 		{
-			Stop(DS_Step);
-			return;
+			if (IsInRanges(mpcTarget->GetProgramAddress()))
+			{
+				muiDepth = uiStack;
+			}
+			else if (!mbOver || (uiStack >= muiDepth))
+			{
+				Stop(DS_Step);
+				return;
+			}
 		}
 
+		uiKind = mbOver ? NextInstructionKind() : DI_Other;
 		if (!TargetStep())
 		{
 			Stop(StopReason(DS_Stopped));
 			return;
 		}
+		CountCall(uiKind);
 	}
 }
 
