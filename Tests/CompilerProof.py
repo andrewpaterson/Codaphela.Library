@@ -13,7 +13,9 @@
     python CompilerProof.py said <file> <file>
         Two runs of "diagnostics", case by case: the cases only one has, and those of which something else is said.
 
-Listings are compared from one folder: a program has its sources' paths in it (__FILE__), so two checkouts' listings
+COMPILER_PROOF_BUILD=<folder> runs <folder>/<Project>/<Project> instead: another build's, such as a worktree's at the
+commit a proof compares with, from this folder, so that both compile the same sources.  Listings are compared from one
+folder: a program has its sources' paths in it (__FILE__), so two checkouts' listings
 differ where nothing else does.  The machine these were written on has 7.9 GB: "listings" runs one compile at a time,
 and is not run beside TestCppCompilerLib.  SemanticLayerPlan.txt in CppCompilerLib says what they are for.
 """
@@ -31,6 +33,9 @@ PROCESSORS = [('65C64', []), ('W65C816', ['816'])]
 
 
 def executable(project):
+    build = os.environ.get('COMPILER_PROOF_BUILD')
+    if build:
+        return os.path.join(build, project, project + ('.exe' if os.name == 'nt' else ''))
     if os.name == 'nt':
         return os.path.join(TESTS, project, 'x64', 'Release', project + '.exe')
     return os.path.join(TESTS, '..', '..', 'build', project, project)
