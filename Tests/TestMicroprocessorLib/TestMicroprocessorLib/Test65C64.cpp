@@ -9,7 +9,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The 65C64 from 658-Computer/W65C64/65C64 Instruction Architecture.xlsx.
+// The 65C64 from HCP65/X65C64-Proposal/65C64 Instruction Architecture.xlsx.
 // Programs run from reset.  Every test checks the cycles each instruction takes:
 // the opcode, its operand words, pointer words and the data words it reads and writes.
 //
