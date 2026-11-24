@@ -17,9 +17,11 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 
 ## Documentation
 
-- The website (MkDocs) is in `../HCP65/Website/docs`: `libraries/`, `compiler/` (CppCompilerLib) and
-  `65c64/` (the processor MicroprocessorLib simulates).  `../HCP65/Website/DocsPlan.txt` is the plan for the
-  documentation: pages are to move beside the code they describe.
+- A library's documentation pages are in its `Docs` folder, laid out as the website's paths and listed as items of
+  its `.vcxproj`: `Libraries/CppCompilerLib/Docs/compiler` (the compiler, and `65c64/calling-convention.md`),
+  `Libraries/MicroprocessorLib/Docs/65c64/emulator.md` (the 65C64 simulators).  The website (MkDocs,
+  `../HCP65/Website`) gathers every repository's `Docs` folders through its `mkdocs.yml`'s `extra.sources`.
+  `../HCP65/Website/DocsPlan.txt` is the plan for the documentation.
 - Plans and design notes are text files beside their code; list them with
   `find Libraries Tests -name "*.txt" -not -path "*/Input/*" -not -path "*/Output/*"`.  The larger ones:
   `Libraries/CppCompilerLib/Cpp14CompliancePlan.txt`, `Libraries/CppCompilerLib/W65C816.txt`,
