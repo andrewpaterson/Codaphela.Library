@@ -57,6 +57,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPFunctionDeclarer.h"
 #include "CPPGlobals.h"
 #include "CPPClasses.h"
+#include "CPPEnums.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
@@ -177,8 +178,6 @@ protected:
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CHashMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
-	CHashMapPrimitiveTemplate<CCPPSyntaxEnumerator*, int64>	mcEnumeratorValues;	//The values enumerators are given, folded once (GivenEnumeratorValue).
-	CHashMapPrimitiveTemplate<CCPPSyntaxEnumerator*, SCPP65Type*>	mcEnumeratorBodyTypes;	//While EnumType works out an enum's type, each of its enumerators' so far: its value's.  [dcl.enum] 5
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
@@ -197,6 +196,7 @@ protected:
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
 	CCPPFunctionDeclarer	mcFunctionDeclarer;	//Declares the functions.
+	CCPPEnums				mcEnums;			//The enums: their types and their enumerators' values.
 	CCPPClasses				mcClasses;			//The classes: made, laid out and checked.
 	CCPPGlobals				mcGlobals;			//The data of static storage, and what makes and destroys it.
 	CCPPMangler				mcMangler;			//Makes the labels.
@@ -248,6 +248,7 @@ public:
 	CCPPNames*				GetNames(void);
 	CCPPGlobals*			GetGlobals(void);
 	CCPPClasses*			GetClasses(void);
+	CCPPEnums*				GetEnums(void);
 	CArrayCPPVariables*		GetGlobalVariables(void);
 	CCPP65IRFrontEnd*		GetIRFrontEnd(void) const;
 	CCPPMangler*			GetMangler(void);
@@ -266,8 +267,6 @@ public:
 	CCPPSyntaxTree*			GetTree(void) const;
 	CSpillStore*			GetSpillStore(void) const;
 	CCPPSemanticPass*		GetSemanticPass(void) const;
-	bool					RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind);
-	bool					IsRecordedEnum(SCPP65Type* psType);
 	CAsm65Profile*			GetFrameProfile(void) const;
 	uint32					GetSpillUnit(void) const;
 	size					GetImportsTurn(void) const;
@@ -348,7 +347,6 @@ public:
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
-	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }
@@ -370,12 +368,6 @@ public:
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
-	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
-	bool					GivenEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, size uiEnumerator, int64* plliValue);
-	bool					FoldEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64* plliValue);
-	static bool				IsOutsideTemplates(CCPPSyntax* pcNode);
-	void					SetEnumeratorBodyType(CCPPSyntaxEnumSpecifier* pcSpecifier, size uiEnumerator, SCPP65Type* psFixed);
-	void					ForgetEnumeratorBodyTypes(CCPPSyntaxEnumSpecifier* pcSpecifier);
 	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
 	CCPPSyntaxParameter*	DefaultArgumentOf(CCPPSyntax* pcNode);
 	bool					IsDecltypeOperand(CCPPSyntax* pcNode);
@@ -408,9 +400,6 @@ public:
 
 
 	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
-	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);
-	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
-	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 
 	//Objects and copies.  CPPUnitObjects.cpp

@@ -356,8 +356,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbValueArgumentRefused = false;
 	mapcHiddenSymbols.Init();
 	mcExplicitInstances.Init();
-	mcEnumeratorValues.Init();
-	mcEnumeratorBodyTypes.Init();
+	mcEnums.Init(this);
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mcClosures.Init(this);
@@ -440,8 +439,7 @@ void CCPPUnit::Kill(void)
 	}
 	mapcHiddenSymbols.Kill();
 	mcExplicitInstances.Kill();
-	mcEnumeratorValues.Kill();
-	mcEnumeratorBodyTypes.Kill();
+	mcEnums.Kill();
 	mcClosures.Kill();
 	mcDesugarings.Kill();
 	mapcVariableInstances.Kill();
@@ -897,29 +895,6 @@ void CCPPUnit::GetExternals(CArrayChars* paszLabels)
 			paszLabels->AddIfUnique(maszRuntime.GetText(i));
 		}
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A check for a refactoring records where an enum's value would need a
-// cast if it were an enum class, instead of refusing it there
-// (CCPPSemanticPass::SetRecordedEnum).  True if it was recorded.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::RecordEnumCast(CCPPSyntax* pcNode, SCPP65Type* psFrom, SCPP65Type* psTo, uint8 uiKind)
-{
-	return mpcObserver->RecordEnumCast(pcNode, psFrom, psTo, uiKind);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsRecordedEnum(SCPP65Type* psType)
-{
-	return mpcObserver->IsRecordedEnum(psType);
 }
 
 
@@ -2091,62 +2066,8 @@ bool CCPPUnit::ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier)
 		}
 		else if ((pcMember->GetKind() == CPPS_SimpleDeclaration) && ((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers)
 		{
-			bResult &= CheckEnumerators(((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers->mpcType);
+			bResult &= mcEnums.CheckEnumerators(((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers->mpcType);
 		}
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An enum's enumerators when it is declared (pcType, a declaration's
-// type, may be anything else): a value given that is definitely no
-// constant (it overflows, divides by zero, takes too long ...) is an error
-// even if nothing uses it.  One the compiler can't work out yet is left to
-// where it is used.  [dcl.enum] 2
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckEnumerators(CCPPSyntax* pcType)
-{
-	CCPPSyntaxEnumSpecifier*	pcSpecifier;
-	CCPPSyntaxEnumerator*		pcEnumerator;
-	const char*					szReason;
-	int64						lliValue;
-	size						uiErrors;
-	size						i;
-	bool						bConstant;
-	bool						bResult;
-
-	if (!pcType || (pcType->GetKind() != CPPS_EnumSpecifier) || !((CCPPSyntaxEnumSpecifier*)pcType)->mbBody)
-	{
-		return true;
-	}
-	pcSpecifier = (CCPPSyntaxEnumSpecifier*)pcType;
-	bResult = true;
-	for (i = 0; i < pcSpecifier->macpEnumerators.NumElements(); i++)
-	{
-		pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i);
-		if (!pcEnumerator->mpcValue)
-		{
-			continue;
-		}
-		mcDiagnostics.BeginQuiet();
-		bConstant = mcFolder.Constant(pcEnumerator->mpcValue, &lliValue);
-		mcDiagnostics.EndQuiet();
-		szReason = mpcConstants->GetReason();
-		if (!bConstant && (szReason[0] != '\0') && (strncmp(szReason, "It uses what", 12) != 0) && (strncmp(szReason, "Its initialiser uses what", 25) != 0))
-		{
-			bResult &= mcFolder.ConstantError(pcEnumerator->mpcValue, "An enumerator's value must be a constant");
-		}
-	}
-	if (bResult && pcSpecifier->mpcSymbol && pcSpecifier->mpcBase)
-	{
-		//A fixed underlying type holds each value, whether or not the enum is used (EnumType says where one doesn't).
-		//[dcl.enum] 5
-		uiErrors = mcDiagnostics.GetErrors()->NumErrors();
-		EnumType(pcSpecifier->mpcSymbol, pcSpecifier);
-		bResult = mcDiagnostics.GetErrors()->NumErrors() == uiErrors;
 	}
 	return bResult;
 }
@@ -2332,6 +2253,7 @@ CCPPFunctionDeclarer* CCPPUnit::GetFunctionDeclarer(void) { return &mcFunctionDe
 CCPPNames* CCPPUnit::GetNames(void) { return mcBinder.GetNames(); }
 CCPPGlobals* CCPPUnit::GetGlobals(void) { return &mcGlobals; }
 CCPPClasses* CCPPUnit::GetClasses(void) { return &mcClasses; }
+CCPPEnums* CCPPUnit::GetEnums(void) { return &mcEnums; }
 bool CCPPUnit::IsCompiledBefore(void) const { return mbCompiledBefore; }
 CArrayCPPVariables* CCPPUnit::GetGlobalVariables(void) { return &mapcGlobals; }
 CCPP65IRFrontEnd* CCPPUnit::GetIRFrontEnd(void) const { return mpcIRFrontEnd; }

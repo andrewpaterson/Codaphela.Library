@@ -473,7 +473,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 		if (pcEnumerator)
 		{
 			mpcUnit->mcContext.EnterBindings(pcClass ? pcClass->mpcBindings : mpcUnit->mcContext.GetBindings());
-			bResult = mpcUnit->EnumeratorValue(pcEnumerator, plliValue);
+			bResult = mpcUnit->GetEnums()->EnumeratorValue(pcEnumerator, plliValue);
 			mpcUnit->mcContext.LeaveBindings();
 			return bResult;
 		}
@@ -505,7 +505,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 	}
 	if (pcSymbol->meKind == CPPSK_Enumerator)
 	{
-		return mpcUnit->EnumeratorValue(pcSymbol, plliValue);
+		return mpcUnit->GetEnums()->EnumeratorValue(pcSymbol, plliValue);
 	}
 	if (pcSymbol->meKind == CPPSK_VariableTemplate)
 	{

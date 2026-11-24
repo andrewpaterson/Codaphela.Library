@@ -652,8 +652,8 @@ bool CCPP65IRFrontEnd::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember, SC
 	{
 		return false;
 	}
-	psValue->psType = mpcUnit->EnumeratorType(pcEnumerator);
-	if (!psValue->psType || !mpcUnit->EnumeratorValue(pcEnumerator, &lliValue))
+	psValue->psType = mpcUnit->GetEnums()->EnumeratorType(pcEnumerator);
+	if (!psValue->psType || !mpcUnit->GetEnums()->EnumeratorValue(pcEnumerator, &lliValue))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

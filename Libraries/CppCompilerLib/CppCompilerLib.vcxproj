@@ -317,6 +317,7 @@
     <ClCompile Include="CPPFunctionDeclarer.cpp" />
     <ClCompile Include="CPPGlobals.cpp" />
     <ClCompile Include="CPPClasses.cpp" />
+    <ClCompile Include="CPPEnums.cpp" />
     <ClCompile Include="CPPSignature.cpp" />
     <ClCompile Include="CPPDesugarings.cpp" />
     <ClCompile Include="CPPInstantiator.cpp" />
@@ -617,6 +618,7 @@
     <ClInclude Include="CPPFunctionDeclarer.h" />
     <ClInclude Include="CPPGlobals.h" />
     <ClInclude Include="CPPClasses.h" />
+    <ClInclude Include="CPPEnums.h" />
     <ClInclude Include="CPPSignature.h" />
     <ClInclude Include="CPPDesugarings.h" />
     <ClInclude Include="CPPInstantiator.h" />

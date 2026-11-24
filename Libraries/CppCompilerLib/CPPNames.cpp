@@ -547,7 +547,7 @@ CCPPSymbol* CCPPNames::DecltypeEnumerator(CCPPSyntaxName* pcName)
 	//A scoped enumeration's enumerators are its members; one that isn't scoped has them in the scope it is in too.
 	pcSymbol = pcEnum->mpcMembers ? pcEnum->mpcMembers->FindHere(mpcUnit->GetComponentName(pcName->GetLast())) : NULL;
 	pcSymbol = pcSymbol ? pcSymbol : (pcEnum->mpcScope ? pcEnum->mpcScope->FindHere(mpcUnit->GetComponentName(pcName->GetLast())) : NULL);
-	psType = (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator)) ? mpcUnit->EnumeratorType(pcSymbol) : NULL;
+	psType = (pcSymbol && (pcSymbol->meKind == CPPSK_Enumerator)) ? mpcUnit->GetEnums()->EnumeratorType(pcSymbol) : NULL;
 	return (psType && (psType->pcEnum == pcEnum)) ? pcSymbol : NULL;
 }
 

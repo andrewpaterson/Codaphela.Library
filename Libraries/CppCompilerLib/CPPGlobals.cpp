@@ -115,7 +115,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 	bool						bDestroyed;
 
 	pcSpecifiers = pcDeclaration->mpcSpecifiers;
-	if (pcSpecifiers && !mpcUnit->CheckEnumerators(pcSpecifiers->mpcType))
+	if (pcSpecifiers && !mpcUnit->GetEnums()->CheckEnumerators(pcSpecifiers->mpcType))
 	{
 		return false;
 	}

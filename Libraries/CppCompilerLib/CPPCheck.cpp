@@ -557,7 +557,7 @@ void CCPPCheck::CheckNode(CCPPSyntax* pcNode)
 		}
 		return;
 	case CPPS_EnumSpecifier:
-		mpcUnit->CheckEnumerators(pcNode);
+		mpcUnit->GetEnums()->CheckEnumerators(pcNode);
 		return;
 	case CPPS_StaticAssert:
 		mpcUnit->StaticAssert((CCPPSyntaxStaticAssert*)pcNode);

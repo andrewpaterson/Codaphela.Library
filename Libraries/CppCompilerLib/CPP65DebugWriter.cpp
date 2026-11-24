@@ -278,7 +278,7 @@ void CCPP65DebugWriter::DescribeEnum(CCPPSymbol* pcEnum, CChars* pszMembers)
 	cWriter.Init(mpcUnit, CPPTW_Shown);
 	for (bMore = pcEnum->mpcMembers->mcSymbols.StartIteration(&sIter, NULL, NULL, (void**)&ppcMember, NULL); bMore; bMore = pcEnum->mpcMembers->mcSymbols.Iterate(&sIter, NULL, NULL, (void**)&ppcMember, NULL))
 	{
-		if (!ppcMember || !*ppcMember || ((*ppcMember)->meKind != CPPSK_Enumerator) || !mpcUnit->EnumeratorValue(*ppcMember, &lliValue))
+		if (!ppcMember || !*ppcMember || ((*ppcMember)->meKind != CPPSK_Enumerator) || !mpcUnit->GetEnums()->EnumeratorValue(*ppcMember, &lliValue))
 		{
 			continue;
 		}

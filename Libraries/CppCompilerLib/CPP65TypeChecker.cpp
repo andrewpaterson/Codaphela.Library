@@ -629,7 +629,7 @@ void CCPP65TypeChecker::VisitMemberExpression(CCPPSyntaxMemberExpression* pcNode
 	pcEnumerator = mpcUnit->GetBinder()->MemberEnumerator(pcNode);
 	if (pcEnumerator)
 	{
-		mpsResult = Value(pcNode->mpcObject) ? mpcUnit->EnumeratorType(pcEnumerator) : NULL;
+		mpsResult = Value(pcNode->mpcObject) ? mpcUnit->GetEnums()->EnumeratorType(pcEnumerator) : NULL;
 		return;
 	}
 	mpsResult = Load(Place(pcNode), pcNode);
@@ -921,7 +921,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 		{
 			pcSymbol = mpcUnit->GetNames()->QualifiedEnumerator(((CCPPSyntaxIdExpression*)pcExpression)->mpcName, pcExpression, &pcClass);
 		}
-		psType = mpcUnit->EnumeratorType(pcSymbol);
+		psType = mpcUnit->GetEnums()->EnumeratorType(pcSymbol);
 	}
 	else
 	{
@@ -1299,7 +1299,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		Error(pcUnary, (pcUnary->meOperator == CT_BitwiseNot) ? "The operand of ~ must be an integer" : "The operand must be a number");
 		return NULL;
 	}
-	if (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_ARITHMETIC))
+	if (psType->IsScopedEnum() && !mpcUnit->GetObserver()->RecordEnumCast(pcUnary, psType, psType, CPPEC_ARITHMETIC))
 	{
 		Error(pcUnary, "An enum class has no arithmetic: cast its value to an integer");
 		return NULL;
@@ -1327,7 +1327,7 @@ SCPP65Type* CCPP65TypeChecker::IncrementExpression(CCPPSyntaxUnaryExpression* pc
 	{
 		return NULL;
 	}
-	if (!psType->IsScalar() || (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcUnary, psType, psType, CPPEC_INCREMENT)))
+	if (!psType->IsScalar() || (psType->IsScopedEnum() && !mpcUnit->GetObserver()->RecordEnumCast(pcUnary, psType, psType, CPPEC_INCREMENT)))
 	{
 		Error(pcUnary, "Only integers and pointers can be incremented");
 		return NULL;
@@ -2008,7 +2008,7 @@ bool CCPP65TypeChecker::Truth(SCPP65Type* psType, CCPPSyntax* pcNode)
 	{
 		return Error(pcNode, "A condition must be an integer or a pointer");
 	}
-	if (psType->IsScopedEnum() && !mpcUnit->RecordEnumCast(pcNode, psType, psType, CPPEC_CONDITION))
+	if (psType->IsScopedEnum() && !mpcUnit->GetObserver()->RecordEnumCast(pcNode, psType, psType, CPPEC_CONDITION))
 	{
 		return Error(pcNode, "An enum class's value is not a condition: compare it with one of its values");
 	}
@@ -4330,11 +4330,11 @@ bool CCPP65TypeChecker::KeepsNullPointer(SCPP65Type* psFrom, SCPP65Type* psTo, C
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65TypeChecker::RecordsEnumOperands(CCPPSyntax* pcNode, SCPP65Type* psLeft, SCPP65Type* psRight, uint8 uiKind)
 {
-	if ((psLeft->IsScopedEnum() && !mpcUnit->IsRecordedEnum(psLeft)) || (psRight->IsScopedEnum() && !mpcUnit->IsRecordedEnum(psRight)))
+	if ((psLeft->IsScopedEnum() && !mpcUnit->GetObserver()->IsRecordedEnum(psLeft)) || (psRight->IsScopedEnum() && !mpcUnit->GetObserver()->IsRecordedEnum(psRight)))
 	{
 		return false;
 	}
-	return mpcUnit->RecordEnumCast(pcNode, psLeft, psRight, uiKind);
+	return mpcUnit->GetObserver()->RecordEnumCast(pcNode, psLeft, psRight, uiKind);
 }
 
 
@@ -4362,11 +4362,11 @@ bool CCPP65TypeChecker::KeepsEnum(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSynt
 	}
 	if (psFrom->IsScopedEnum())
 	{
-		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_OTHER) || Error(pcNode, "An enum class's value becomes another type only by a cast");
+		return mpcUnit->GetObserver()->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_OTHER) || Error(pcNode, "An enum class's value becomes another type only by a cast");
 	}
 	if (psTo->IsScopedEnum())
 	{
-		return mpcUnit->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_ENUM) || Error(pcNode, "An enum class is given only its own values, or a cast");
+		return mpcUnit->GetObserver()->RecordEnumCast(pcNode, psFrom, psTo, CPPEC_TO_ENUM) || Error(pcNode, "An enum class is given only its own values, or a cast");
 	}
 	if (psTo->pcEnum && !mpcUnit->IsCSource())
 	{

@@ -747,7 +747,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		}
 		if (pcType->GetKind() == CPPS_EnumSpecifier)
 		{
-			return mpcUnit->EnumType(((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol, (CCPPSyntaxEnumSpecifier*)pcType);
+			return mpcUnit->GetEnums()->EnumType(((CCPPSyntaxEnumSpecifier*)pcType)->mpcSymbol, (CCPPSyntaxEnumSpecifier*)pcType);
 		}
 		if (pcType->GetKind() == CPPS_ClassSpecifier)
 		{
@@ -766,7 +766,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 			if (pcElaborated->meKey == CT_enum)
 			{
 				pcSymbol = pcElaborated->mpcName->mpcSymbol;
-				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? mpcUnit->EnumType(pcSymbol, NULL) : &mpcUnit->GetTypes()->msInt;
+				return (pcSymbol && (pcSymbol->meKind == CPPSK_Enum)) ? mpcUnit->GetEnums()->EnumType(pcSymbol, NULL) : &mpcUnit->GetTypes()->msInt;
 			}
 			//struct timsort names the class even when a function timsort was declared first.
 			pcSymbol = pcElaborated->mpcName->mpcSymbol;
@@ -808,7 +808,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 				switch (pcName->mpcSymbol->meKind)
 				{
 				case CPPSK_Enum:
-					return mpcUnit->EnumType(pcName->mpcSymbol, NULL);
+					return mpcUnit->GetEnums()->EnumType(pcName->mpcSymbol, NULL);
 				case CPPSK_Typedef:
 					return GetSymbolType(pcName->mpcSymbol, pcNode);
 				case CPPSK_AliasTemplate:
