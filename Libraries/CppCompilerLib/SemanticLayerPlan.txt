@@ -10,8 +10,8 @@ Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for wh
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
 2026-11-23) is what it left; its questions (6 to 10) are answered.  It was checked against the code on
 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes, and
-questions 11 and 12 were asked and answered as assumed.  Stage 17 is done (2026-11-24, its record at the
-end); 18 is next.  The user on 2026-11-22: "Finish and commit,
+questions 11 and 12 were asked and answered as assumed.  Stages 17, 18 and 19 are done (2026-11-24, their
+records at the end); 20 is next.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -346,7 +346,8 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
    CheckAllocationFunction, CheckDefaultedOrDeleted, NeedsNoInitialiser, HasFieldNeedingInitialiser,
    CheckMemberInitialisers and CheckDefaultsFollow.
 
-18. Which class a name means (finding 22, stage 7's).  Same code.  (L, the riskiest, 24 functions)
+18. Which class a name means (finding 22, stage 7's).  Same code.  (L, the riskiest, 24 functions)  Done 2026-11-24:
+    its record, at the end, says where the list below differed (twenty moved, four stayed).
 
    One resolver, the binder's: GetClass, GetComponentClass, GetComponentName, GetNameClass, QualifierClass,
    FindClass, ComponentLookup, MemberScopeClass, EnclosingInstance, GetUnnamedClass, FindBaseInstance (from
@@ -358,7 +359,8 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
    Proved first by a harness, as the constants and the categories were: the old answer and the new at every call
    over the corpus, each difference read.
 
-19. Static data, start-up and exit.  Same code.  (M, 24 and 7 functions, two commits)
+19. Static data, start-up and exit.  Same code.  (M, 24 and 7 functions, two commits)  Done 2026-11-24 in three
+    commits: its record, at the end, says where the list below differed.
 
    a. CCPPGlobals: GlobalDeclaration, GlobalInitialiser, AddVariable, GetVariable, RedeclaredVariable,
       SameVariableType, FreeVariables, CompleteDeclaredArrays, StringInitialiser, StaticLocal, AnonymousLocal,
@@ -376,14 +378,15 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
 
 20. Laying a class out.  Same code.  (M, 25 functions, and 10 to the instantiator)
 
-   CCPPClassBuilder: NewClass, CompleteClass, CompleteObjectClass, CompleteMembers, PlaceMembers, LayoutClass,
+   CCPPClassBuilder: the unit's classes (mapcClasses, NewClass, and from stage 18 GetClass, GetUnnamedClass and
+   FindClass, which find or make a class in it), CompleteClass, CompleteObjectClass, CompleteMembers, PlaceMembers, LayoutClass,
    AddLayout, ResolveBases, AddBase, AddPackBases, ClassMember, ClassBitField, ClassUsing, InheritConstructors,
    InjectedNameReached, IsDeclaredAgainInClass, CheckOverrides, CheckVirtSpecifiers (from stage 17: it lays a
-   class out), ReturnsCovariant, HasVirtSpecifier, IsConstantMember, FindStatic, ArrowType and the alignments (ObjectAlignment, VariableAlignment,
-   AlignasAlignment).  The member specialisations and the definitions outside a class go to the instantiator:
+   class out), ReturnsCovariant, HasVirtSpecifier, IsConstantMember, FindStatic, ArrowType and the alignments
+   (ObjectAlignment, VariableAlignment, AlignasAlignment).  The member specialisations and the definitions outside a class go to the instantiator:
    MemberSpecialisation, SpecialiseMembers, SpecialiseMember, QualifierIsInstance, AddOutsideDefinition,
    DefineOutsideMember, DefineOutsideMembers, IsOutsideMemberOf, IsDefinedBefore and FindSpecifier.
-   CPPUnitClasses.cpp is then gone (with stage 18's eleven).
+   CPPUnitClasses.cpp is then gone (stage 18 took seven of it, and GetComponentName goes beside GetFunctionName).
    Found in stage 17: a class's own operator=(...) = default is passed over as the implicit copy assignment
    (ClassMember), so what it takes is never checked (struct S { S& operator=(int) = default; } is taken; g++
    refuses it).  It is put right here, with a case in TestCPP65GeneratorFunctionDeclarations.
@@ -417,6 +420,7 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
       5 put the small questions (SkipParentheses alone is asked from most of the library: a script, and a commit
       of its own).
    f. New: the initialisers' checks (CheckInitialiser, CheckBracedValue, CheckConstexprLocal, ConstructElements,
+      StringInitialiser from stage 19,
       and from stage 17 CheckDeclared and NeedsNoInitialiser, a variable's) to the type checker, whose KeepsQualifiers they already rest on; QuietConstant and VariableTemplateValue to
       CCPPConstantFolder.  Supported and AppendUnsupported stay with the walk, in CPPUnit.cpp
       (ReportFailedDeclaration went with stage 17), and CPPUnitExpressions.cpp is then gone.
@@ -1441,9 +1445,10 @@ Stage 16 (2026-11-23): the end.
 
 Stage 17 (2026-11-24): declaring a function.  Four commits, each proved alone: the suite (RunParallel.py, 4 jobs),
 what is said of every conformance case and the 4,229 listings of the three *65 projects on both processors, this
-time on Linux (CompilerProof.py finds the CMake builds, d00da5a99; Release, 32 bit).
+time on Linux (CompilerProof.py finds the CMake builds, 60555a81c; Release, 32 bit).  The hashes are the commits'
+after the user's pull rebased them (2026-11-24).
 
-	3478792cc  CCPPFunctionDeclarer (CPPFunctionDeclarer.h and .cpp), the unit's mcFunctionDeclarer and
+	7b18a6b50  CCPPFunctionDeclarer (CPPFunctionDeclarer.h and .cpp), the unit's mcFunctionDeclarer and
 	           GetFunctionDeclarer: the functions moved as they were.  Not a friend: what it asks the unit (31
 	           asks, of 21 functions: the names, the functions of a name, the packs, the attributes, entering a
 	           function and its locals) is public.  The failed declarations (SCPPFailedDeclaration, masFailed)
@@ -1452,7 +1457,7 @@ time on Linux (CompilerProof.py finds the CMake builds, d00da5a99; Release, 32 b
 	           declarator's (CCPPSyntaxDeclarator::IsFunctionByType).  TestCPP65GeneratorFunctionDeclarations:
 	           each of the declarer's errors with its text and place (32), and what a declaration may be.
 	           Listings and diagnostics the same; 272,892 checks.
-	73eb5b02b  SCPPSignature (CPPSignature.h and .cpp): what declares a function (its specifiers, its
+	dc197a767  SCPPSignature (CPPSignature.h and .cpp): what declares a function (its specifiers, its
 	           declarator as written, its class, an instance's template and arguments, ECPPDeclaredAs) and what
 	           the declaration says (name, kind, return, parameters and defaults, const, volatile, & and &&,
 	           namespace, extern "C", the specifiers' flags), read once (ReadSignature, ReadParameters).  A
@@ -1465,13 +1470,13 @@ time on Linux (CompilerProof.py finds the CMake builds, d00da5a99; Release, 32 b
 	           DeclareInstance's.  CPPIsNewName, CPPIsDeleteName and CPPIsAllocationName (CPPFunction.h) are the
 	           five copies of the test of operator new's and delete's names, CCPPExceptions' two too;
 	           CheckAbstract is the two copies of the abstract class's.  Listings and diagnostics the same.
-	036c443cf  Not the same diagnostics, on purpose (rule 2): = default's errors were said twice, the parser's
+	27e02500e  Not the same diagnostics, on purpose (rule 2): = default's errors were said twice, the parser's
 	           (CCPPParser::CheckDefaulted, which a class nothing lays out needs) and the declarer's.  The
 	           declarer says only what the class tells.  DclDefaultedNotSpecialRefused's error is said once on
 	           both targets; the IDE's check's record has none, as the IDE has the parser's errors apart
 	           (CIDECodeModel, mcTree.GetErrors()), so the Problems tab shows it once where it showed it twice.
 	           No other case and no listing differs.
-	ab7e6c023  Not the same diagnostics, on purpose: a constructor that left a const array member without a
+	172312c56  Not the same diagnostics, on purpose: a constructor that left a const array member without a
 	           value was taken (the test of such a field didn't look through arrays where the class's did); g++
 	           refuses it.  SCPPField::NeedsValue is the one test (SCPP65Type::InnermostElement looks through
 	           the arrays) and CCPPClass::HasFieldNeedingValue the unit's HasFieldNeedingInitialiser.
@@ -1488,3 +1493,56 @@ time on Linux (CompilerProof.py finds the CMake builds, d00da5a99; Release, 32 b
 	The unit: 308 functions at the stage's start, 283 at its end.  The suite's count moved by 18 between runs
 	with nothing changed in that file (TestIRW65C816Backend counts 18 more in two parts than in one); each run's
 	count is the parts it happened to be split into.
+
+
+Stage 18 (2026-11-24): which class a name means.  Two commits, each proved alone as stage 17's were.  The listings'
+baseline was taken again before the first (question 11): HashMapPlan's conversions and the debugger's frame model
+(0f53e5129) came in under this plan's work with the user's pull and moved 78 listings; against the new baseline
+the first commit's were the same.
+
+	725b3d9a3  CCPPNames (CPPNames.h and .cpp), the binder's (CCPPBinder::GetNames; CCPPUnit::GetNames hands it
+	           out), as CCPPOverloads and CCPPAccess are: twenty functions moved as they were, the class a name, its
+	           qualifiers or a component names, the member a qualified name names with the class that declares
+	           it, and lookup in a class's bases.  Not a friend.  Listings and diagnostics the same.
+	9fea344e5  The rule, said once.  Proved first by a harness (not committed): at every call of QualifiedMember
+	           and NameQualifierClass the other's rule was worked out too, silently, over the three *65 projects
+	           on both processors and the whole suite.  They disagreed only in QualifiedMember, on four names
+	           (W<X>::Type::N, Wrap<int,char>::Type::N, Wrap<int,char>::More::N, P<char>::Q<long>::V: stage 7's
+	           three cases' kind), and never in NameQualifierClass.  So QualifiedMember's rule is the rule:
+	           NameQualifierClass is it (two components: the class the parser found; three or more: the
+	           qualifiers walked) and QualifiedMember asks it.  The instance rule had been wrong where the corpus
+	           never went: W<C>::Type::F(), Type a typedef of the instance, which the semantic pass refused.
+	           TypedefOfInstanceCall (it, which fails on the old rule) and InstanceMemberClassCall are
+	           conformance cases.  Listings the same; the diagnostics but for the two new cases.
+
+	Where the list in the stage differed.  GetClass, GetUnnamedClass and FindClass find or make a class in the
+	unit's list of them, which NewClass adds to: they go with it in stage 20.  GetComponentName, a component's
+	identifier, stays beside GetFunctionName.  GetNameClass keeps its own rules for the last component (a member
+	class template or class named through an instance): it answers another question, and the harness did not
+	cover it.  CCPPDeclarators' ladder on a symbol's kind works out types, GetComponentClass's classes: left.
+
+Stage 19 (2026-11-24): static data, start-up and exit.  Three commits, each proved alone.
+
+	fe50c2f00  CCPPGlobals (CPPGlobals.h and .cpp), the unit's mcGlobals (GetGlobals): eighteen functions moved as
+	           they were, with the static locals (which CCPPClosures::EnclosingStatic reads through
+	           GetStaticLocals), the exit finalisers, miStatics and the exit lists' and dynamic_cast's flags.
+	           SCPPUnitRoutine is CPPUnitData.h's, as the exceptions use it too; the unit gives its IR front end
+	           and its global variables (GetIRFrontEnd, GetGlobalVariables).  Not a friend.  The same.
+	3c9400cbc  BoundTemporary answers once (ECPPBoundTemporary: nothing, bound, bound with an error said in its
+	           routines, or an error), where it answered a bool and *pbResult.  CheckRedeclaredType is the three
+	           copies of "declared again with another type"; GlobalDeclaration knows once whether its variable is
+	           thread_local and destroyed (three and four copies).  CCPPUnitData::AppendRoutineSection,
+	           AddRoutine and KillRoutines are the unit's AddUnitRoutine and KillUnitRoutines and four copies of a
+	           routine's section.  TestCPP65GeneratorGlobals: what static data may and may not be (none of its
+	           twelve errors had a test).  The same.
+	125d94db7  The try block's and the handlers' functions and the thrown objects' destroyers are CCPPExceptions'
+	           (TryRegionOf, HandlerType, HandlerLocal, ThrownDestroyer, WriteThrownDestroyers, and the list of
+	           destroyers to write).  Whether every unit that needs a function writes it is CCPPFunction::IsShared:
+	           a question of the function's, not the exceptions'.  The same.
+
+	Where the list in the stage differed.  AddVariable, GetVariable and FreeVariables are the unit's table of
+	variables, locals first, and stay with the walk; so does AnonymousLocal, a local in the frame.
+	StringInitialiser is an initialiser's rule (stage 22f).  ExitNodeBytes went with the globals, its one user.
+	Not changed: the handlers' checks have conformance cases whose texts the diagnostics' proof pins.
+
+	The unit: 283 functions at stage 18's start, 241 at stage 19's end.
