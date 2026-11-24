@@ -3963,6 +3963,9 @@ void TestCPP65GeneratorFunctionDeclarations(void)
 	//What only the class tells: a constructor or an operator= that is = default takes its own class (said once, here).
 	AssertCPP65Error("Generated.cpp (1, 12): Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default [S]\n", "struct S { S(int a) = default; }; int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 36): Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default [S]\n", "struct S { S& operator=(int a); }; S& S::operator=(int a) = default; int main() { S s; return 0; }");
+	//A class's own operator= that is = default is the implicit copy assignment, and takes its own class too.
+	AssertCPP65Error("Generated.cpp (1, 12): Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default [S]\n", "struct S { S& operator=(int a) = default; }; int main() { S s; return 0; }");
+	AssertCPP65Generates("struct S { int v; S& operator=(const S& o) = default; }; int main() { S a; S b; a.v = 1; b = a; return b.v; }");
 	AssertCPP65Error("Generated.cpp (1, 44): A constructor that names its own class in its member initialisers has no other [S]\n", "struct S { int a; S(int x) : a(x) {} S() : S(1), a(2) {} }; int main() { S s; return s.a; }");
 	AssertCPP65Error("Generated.cpp (1, 25): The member initialiser names no member or base of the class [b]\n", "struct S { int a; S() : b(1) {} }; int main() { S s; return s.a; }");
 	AssertCPP65Error("Generated.cpp (1, 31): The member or base is named twice in the member initialisers [a]\n", "struct S { int a; S() : a(1), a(2) {} }; int main() { S s; return s.a; }");

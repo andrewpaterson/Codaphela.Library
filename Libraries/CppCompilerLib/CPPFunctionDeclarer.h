@@ -81,6 +81,7 @@ public:
 
 	bool					CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 	bool					CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition);
+	bool					CheckDefaultedAssignment(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition);
 	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
 
 protected:
@@ -102,6 +103,8 @@ protected:
 	bool					CheckAbstract(SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode);
 	bool					OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage);
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
+	bool					TakesOwnClass(SCPP65Type* psParameter, CCPPClass* pcClass);
+	bool					DefaultedError(CCPPSyntaxFunctionDefinition* pcDefinition);
 };
 
 

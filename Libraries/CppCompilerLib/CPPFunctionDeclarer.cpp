@@ -1005,7 +1005,6 @@ bool CCPPFunctionDeclarer::CheckAbstract(SCPP65Type* psReturn, CArrayCPP65Types*
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition)
 {
-	SCPP65Type*	psParameter;
 	size		i;
 	bool		bOwnClass;
 	bool		bAssignment;
@@ -1023,11 +1022,10 @@ bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCP
 	{
 		return false;
 	}
-	psParameter = (pcFunction->mapsParameters.NumElements() == 1) ? pcFunction->mapsParameters.GetPtr(0)->WithoutReference() : NULL;
-	bOwnClass = psParameter && psParameter->IsClass() && (psParameter->pcClass == pcFunction->mpcClass);
+	bOwnClass = (pcFunction->mapsParameters.NumElements() == 1) && TakesOwnClass(pcFunction->mapsParameters.GetPtr(0), pcFunction->mpcClass);
 	if (!pcFunction->mpcClass || ((pcFunction->meKind == CPPFK_Constructor) && (pcFunction->mapsParameters.NumElements() != 0) && !bOwnClass) || (bAssignment && !bOwnClass))
 	{
-		return mpcDiagnostics->ReportError(pcDefinition, "Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
+		return DefaultedError(pcDefinition);
 	}
 	for (i = 0; i < pcFunction->mapcDefaults.NumElements(); i++)
 	{
@@ -1037,6 +1035,55 @@ bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCP
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class's own operator=(...) = default, which the class doesn't declare:
+// = does what it would (CCPPClasses::ClassMember).  It takes its own class,
+// as one defined outside the class must (CheckDefaultedOrDeleted): an
+// error (and false) if not.  [dcl.fct.def.default] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::CheckDefaultedAssignment(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	CCPPSyntaxFunctionSuffix*	pcSuffix;
+	CCPPSyntaxParameter*		pcParameter;
+	SCPP65Type*					psParameter;
+
+	pcSuffix = pcDefinition->mpcDeclarator->GetFunctionSuffix();
+	if (!pcSuffix || (pcSuffix->macpParameters.NumElements() != 1))
+	{
+		return DefaultedError(pcDefinition);
+	}
+	pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(0);
+	psParameter = mpcDeclarators->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
+	return (psParameter && TakesOwnClass(psParameter, pcClass)) || DefaultedError(pcDefinition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a parameter of psParameter's type is of pcClass, or a reference
+// to it: a copy or a move.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::TakesOwnClass(SCPP65Type* psParameter, CCPPClass* pcClass)
+{
+	psParameter = psParameter->WithoutReference();
+	return psParameter->IsClass() && (psParameter->pcClass == pcClass);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The error of a function that can't be = default, at pcDefinition.  False.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::DefaultedError(CCPPSyntaxFunctionDefinition* pcDefinition)
+{
+	return mpcDiagnostics->ReportError(pcDefinition, "Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
 }
 
 

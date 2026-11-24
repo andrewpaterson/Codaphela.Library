@@ -569,10 +569,10 @@ bool CCPPClasses::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 
 	case CPPS_FunctionDefinition:
 		pcDefinition = (CCPPSyntaxFunctionDefinition*)pcMember;
-		if ((pcDefinition->meBody == CPPFB_Default) && pcDefinition->mpcDeclarator->GetName() && (mpcUnit->GetFunctionName(pcDefinition->mpcDeclarator->GetName()->GetLast()) == mpcUnit->GetOperatorName(CT_Assignment, false)))
+		if ((pcDefinition->meBody == CPPFB_Default) && pcDefinition->mpcDeclarator->GetName() && (mpcUnit->GetFunctionName(pcDefinition->mpcDeclarator->GetName()->GetLast()) == CPP_OPERATOR_NAME(CT_Assignment)))
 		{
 			//operator = (...) = default is the implicit copy assignment, which = does when the class declares none.
-			return true;
+			return mpcUnit->GetFunctionDeclarer()->CheckDefaultedAssignment(pcClass, pcDefinition);
 		}
 		bFriend = pcDefinition->mpcSpecifiers && (pcDefinition->mpcSpecifiers->muiFlags & CPPDS_FRIEND);
 		uiMembers = pcClass->mapcMembers.NumElements();
