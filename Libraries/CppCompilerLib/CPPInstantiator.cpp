@@ -141,7 +141,7 @@ bool CCPPInstantiator::DefineInstanceStatics(bool* pbResult)
 				continue;
 			}
 			mpcUnit->mcContext.EnterBindings(RenameBindings(pcClass, pcDeclaration));
-			*pbResult &= mpcUnit->GlobalDeclaration(pcSimple, pcVariable);
+			*pbResult &= mpcUnit->GetGlobals()->GlobalDeclaration(pcSimple, pcVariable);
 			mpcUnit->mcContext.LeaveBindings();
 			bDefined = true;
 		}
@@ -200,7 +200,7 @@ bool CCPPInstantiator::DefineVariableInstances(bool* pbResult)
 			continue;
 		}
 		mpcUnit->mcContext.EnterBindings(pcVariable->mpcBindings);
-		*pbResult &= mpcUnit->GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcVariable->mpcTemplate->mpcDefinition, pcVariable);
+		*pbResult &= mpcUnit->GetGlobals()->GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcVariable->mpcTemplate->mpcDefinition, pcVariable);
 		mpcUnit->mcContext.LeaveBindings();
 		pcVariable->mbDefined = true;
 		bDefined = true;
@@ -664,7 +664,7 @@ bool CCPPInstantiator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemp
 		else if (bExplicit && IsStaticMemberDefinition(pcSimple))
 		{
 			//template<> int S<int>::count = 5; defines that instance's, which DefineInstanceStatics then leaves be.  [temp.expl.spec] 13
-			return mpcUnit->GlobalDeclaration(pcSimple);
+			return mpcUnit->GetGlobals()->GlobalDeclaration(pcSimple);
 		}
 		else if (MemberVariableTemplateName(pcSimple))
 		{

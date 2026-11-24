@@ -27,12 +27,28 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 typedef CArrayTemplate<CChars>	CArrayCPPStrings;
 
 
+struct SCPP65Type;
+
+
+//A routine the unit writes once its functions are: a static local's R_Finalise (CCPPGlobals::WriteExitRoutines) or the function
+//that destroys a thrown object (WriteThrownDestroyers).
+struct SCPPUnitRoutine
+{
+	CChars			szLabel;	//The static local's, for its R_Finalise; the destroyer's own.
+	SCPP65Type*		psType;		//What it destroys.
+	bool			bShared;	//A shared function's static local: its R_Finalise is a COMDAT.
+};
+
+
+typedef CArrayTemplate<SCPPUnitRoutine>	CArrayCPPUnitRoutines;
+
+
 //What a unit has other than its code, as the assembly it is written in: each global in a section of its own
 //(data.label, or bss.label for one that starts as zeros), the entries of the init and fini tables for the globals
 //that are constructed and destroyed, whatever else the unit puts with them (vtables and type infos, through
 //GetText), and the string literals, which are kept apart until the unit is finished (AppendStrings).  It needs
 //nothing of the unit.
-//An exit list node's alignment; its size is two pointers' (CCPPUnit::ExitNodeBytes): the next node and the routine
+//An exit list node's alignment; its size is two pointers' (CCPPGlobals::ExitNodeBytes): the next node and the routine
 //that destroys its object.
 #define CPP65_EXIT_NODE_ALIGNMENT	4
 

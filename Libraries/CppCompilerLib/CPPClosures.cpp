@@ -500,11 +500,11 @@ CCPPVariable* CCPPClosures::EnclosingStatic(CCPPSymbol* pcSymbol)
 {
 	size	i;
 
-	for (i = mpcUnit->mapcStaticLocals.NumElements(); i > 0; i--)
+	for (i = mpcUnit->GetGlobals()->GetStaticLocals()->NumElements(); i > 0; i--)
 	{
-		if (mpcUnit->mapcStaticLocals.GetPtr(i - 1)->mpcSymbol == pcSymbol)
+		if (mpcUnit->GetGlobals()->GetStaticLocals()->GetPtr(i - 1)->mpcSymbol == pcSymbol)
 		{
-			return mpcUnit->mapcStaticLocals.GetPtr(i - 1);
+			return mpcUnit->GetGlobals()->GetStaticLocals()->GetPtr(i - 1);
 		}
 	}
 	return NULL;

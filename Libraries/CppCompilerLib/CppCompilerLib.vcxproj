@@ -315,6 +315,7 @@
     <ClCompile Include="CPPBuiltins.cpp" />
     <ClCompile Include="CPPExceptions.cpp" />
     <ClCompile Include="CPPFunctionDeclarer.cpp" />
+    <ClCompile Include="CPPGlobals.cpp" />
     <ClCompile Include="CPPSignature.cpp" />
     <ClCompile Include="CPPDesugarings.cpp" />
     <ClCompile Include="CPPInstantiator.cpp" />
@@ -613,6 +614,7 @@
     <ClInclude Include="CPPBuiltins.h" />
     <ClInclude Include="CPPExceptions.h" />
     <ClInclude Include="CPPFunctionDeclarer.h" />
+    <ClInclude Include="CPPGlobals.h" />
     <ClInclude Include="CPPSignature.h" />
     <ClInclude Include="CPPDesugarings.h" />
     <ClInclude Include="CPPInstantiator.h" />

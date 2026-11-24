@@ -227,7 +227,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	asArguments[1] = TypeInfoSymbol(pcFrom);
 	asArguments[2] = TypeInfoSymbol(pcTo);
 	asArguments[3] = mpcFunction->AddInteger(asTypes[3], mpcUnit->IsOnePublicBase(pcTo, pcFrom, &iDown) ? iDown : CPP65_DYNAMIC_CAST_NO_PLACE);
-	mpcUnit->UseDynamicCast();
+	mpcUnit->GetGlobals()->UseDynamicCast();
 	return CallNoThrow(CPP65_DYNAMIC_CAST, IRType(IRTK_Pointer), asTypes, asArguments, 4);
 }
 

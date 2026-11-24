@@ -856,7 +856,7 @@ void CCPP65IRFrontEnd::PushExitNode(const char* szNode, const char* szFinaliser,
 	mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), mpcFunction->Load(mpcBlock, IRType(IRTK_Pointer), sHead), sNode);
 	mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), mcModule.Symbol(szFinaliser), mpcFunction->Add(mpcBlock, IRO_PtrAdd, IRType(IRTK_Pointer), sNode, Offset(mcModule.GetPointerSize(0))));
 	mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sNode, sHead);
-	mpcUnit->UseExitLists();
+	mpcUnit->GetGlobals()->UseExitLists();
 }
 
 

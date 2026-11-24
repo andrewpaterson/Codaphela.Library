@@ -55,6 +55,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPBinder.h"
 #include "CPPDeclarators.h"
 #include "CPPFunctionDeclarer.h"
+#include "CPPGlobals.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
@@ -129,19 +130,6 @@ struct SCPPExpandedArguments
 
 
 typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
-
-
-//A routine the unit writes once its functions are: a static local's R_Finalise (WriteExitRoutines) or the function
-//that destroys a thrown object (WriteThrownDestroyers).
-struct SCPPUnitRoutine
-{
-	CChars			szLabel;	//The static local's, for its R_Finalise; the destroyer's own.
-	SCPP65Type*		psType;		//What it destroys.
-	bool			bShared;	//A shared function's static local: its R_Finalise is a COMDAT.
-};
-
-
-typedef CArrayTemplate<SCPPUnitRoutine>	CArrayCPPUnitRoutines;
 
 
 //What a definition written outside its class template defines (SCPPOutsideDefinition).
@@ -269,12 +257,7 @@ protected:
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
 	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
-	bool					mbExitLists;		//Something is pushed on an exit list: the unit writes R_RunExitLists (UseExitLists).
-	bool					mbExitListsWritten;
-	bool					mbDynamicCast;		//Something casts with dynamic_cast: the unit writes R_DynamicCast (UseDynamicCast).
-	bool					mbDynamicCastWritten;
 	CArrayCPPUnitRoutines	masThrownDestroyers;	//The functions that destroy thrown objects, still to write (ThrownDestroyer).
-	CArrayCPPUnitRoutines	masExitFinalisers;	//The static locals destroyed at exit whose R_Finalise is still to write (WriteExitRoutines).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPP65DebugWriter		mcDebugWriter;		//With a line table: its debug directives' types and its globals.
@@ -282,10 +265,9 @@ protected:
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
 	CCPPFunctionDeclarer	mcFunctionDeclarer;	//Declares the functions.
+	CCPPGlobals				mcGlobals;			//The data of static storage, and what makes and destroys it.
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPFunctionScopes	mapsFunctionScopes;	//The functions entered, the last the one being written (GetLocals, GetFunctionPacks).
-	CArrayCPPVariables		mapcStaticLocals;	//Each static local as last defined, which a local class's member functions name (EnclosingStatic).
-	int						miStatics;			//Static locals in the unit.
 	int						miLabels;
 	CCPP65IRFrontEnd*		mpcIRFrontEnd;		//Writes every function body as IR.
 	CCPPConstants*			mpcConstants;		//Works out the constants that take running the IR (constexpr).
@@ -333,6 +315,9 @@ public:
 	CCPPDeclarators*		GetDeclarators(void);
 	CCPPFunctionDeclarer*	GetFunctionDeclarer(void);
 	CCPPNames*				GetNames(void);
+	CCPPGlobals*			GetGlobals(void);
+	CArrayCPPVariables*		GetGlobalVariables(void);
+	CCPP65IRFrontEnd*		GetIRFrontEnd(void) const;
 	CCPPMangler*			GetMangler(void);
 	CCPPUnitData*			GetData(void);
 	CCPP65DebugWriter*		GetDebugWriter(void);
@@ -415,12 +400,9 @@ public:
 	bool					Declarations(CArraySyntax* papcDeclarations);
 	bool					IsScopeDeclaration(CCPPSyntax* pcDeclaration);
 	bool					IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration);
-	bool					GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable* pcDefining = NULL);
-	bool					GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise);
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
 	CCPPVariable*			GetVariable(CCPPSymbol* pcSymbol);
-	void					CompleteDeclaredArrays(CCPPVariable* pcDefined);
 	CCPPSyntax*				StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement);
 
 	bool					Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* pcClass);
@@ -433,37 +415,23 @@ public:
 	bool					AllocateLocals(CCPPSyntax* pcNode);
 	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
 	bool					IsSharedFunction(CCPPFunction* pcFunction);
-	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
-	bool					AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
-	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
-	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
-	bool					ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
-	bool					StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
-	bool					WriteExitRoutines(void);
 	bool					WriteThrownDestroyers(void);
-	int						ExitNodeBytes(void);
 	void					AddUnitRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared);
 	void					KillUnitRoutines(CArrayCPPUnitRoutines* pasRoutines);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }
 	void					UseRecursiveInit(void) { mbRecursiveInit = true; }
-	void					UseExitLists(void) { mbExitLists = true; }
-	void					UseDynamicCast(void) { mbDynamicCast = true; }
-	bool					WriteDynamicCast(void);
 	CArrayChars*			GetRuntimeCalls(void) override;
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;
 	void					RuntimeError(const char* szMessage) override;
-	bool					StartUpRoutine(bool bFinalise, SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, CChars* pszNode, CChars* pszFinaliser, bool bEntry, bool bThread);
-	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread);
-	bool					BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult);
 	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
 	bool					HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
 	int32					FindAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
@@ -473,9 +441,6 @@ public:
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);
-	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);
-	int						DataAlignment(SCPP65Type* psType, bool bClass);
-	int						VariableDataAlignment(CCPPVariable* pcVariable, bool bClass);
 
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,

@@ -355,6 +355,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcBinder.Init(this);
 	mcDeclarators.Init(this);
 	mcFunctionDeclarer.Init(this);
+	mcGlobals.Init(this);
 	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
 	mapcClasses.Init();
 	mapcTemplates.Init();
@@ -387,17 +388,10 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mbPureVirtual = false;
 	mbBadCast = false;
 	mbRecursiveInit = false;
-	mbExitLists = false;
-	mbExitListsWritten = false;
-	mbDynamicCast = false;
-	mbDynamicCastWritten = false;
-	masExitFinalisers.Init();
 	masThrownDestroyers.Init();
 
 	mapsFunctionScopes.Init();
 	PushFunctionScope();
-	mapcStaticLocals.Init();
-	miStatics = 0;
 	miLabels = 0;
 }
 
@@ -424,8 +418,7 @@ void CCPPUnit::Kill(void)
 		PopFunctionScope();
 	}
 	mapsFunctionScopes.Kill();
-	FreeVariables(&mapcStaticLocals);
-	mapcStaticLocals.Kill();
+	mcGlobals.Kill();
 	mcBackendScratch.Kill();
 
 	for (i = 0; i < mapcClasses.NumElements(); i++)
@@ -509,8 +502,6 @@ void CCPPUnit::Kill(void)
 	mcDiagnostics.Kill();
 	KillUnitRoutines(&masThrownDestroyers);
 	masThrownDestroyers.Kill();
-	KillUnitRoutines(&masExitFinalisers);
-	masExitFinalisers.Kill();
 	maszRuntime.Kill();
 	maszLayouts.Kill();
 	mszThunks.Kill();
@@ -596,7 +587,7 @@ bool CCPPUnit::GenerateBeforeTurn(void)
 	//class templates' static members and variable templates' instances.
 	GenerateQueued();
 	mcInstantiator.DefineInstanceData();
-	while (WriteExitRoutines() || WriteThrownDestroyers() || WriteDynamicCast())
+	while (mcGlobals.WriteExitRoutines() || WriteThrownDestroyers() || mcGlobals.WriteDynamicCast())
 	{
 		GenerateQueued();
 	}
@@ -654,139 +645,6 @@ bool CCPPUnit::GenerateAfterTurn(CCPP65Assembly* pcDest)
 	szStrings.Kill();
 	pcDest->SetPieces(&mauiCodePieces);
 	return mcDiagnostics.GetErrors()->NumErrors() == 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A global reference (pszLabel's) that pcInitialiser binds to a temporary
-// (const long& r = 7, BindsToTemporary): the temporary is a global of its
-// own, pszBound (pszLabel and __Bound), made from the initialiser and
-// destroyed as a global of its type is.  Its data goes before the
-// reference's, which is its address, or its base's *piOffset into it.
-// pszBound is left empty for any other initialiser.  False (and *pbResult cleared) after an error.
-// [class.temporary] 6
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult)
-{
-	SCPP65Type*	psType;
-	CCPPSyntax*	pcValue;
-	bool		bClass;
-
-	pcValue = pcInitialiser;
-	if (pcValue && (pcValue->GetKind() == CPPS_ParenthesisedInitializer) && (ListElements(pcValue)->NumElements() == 1))
-	{
-		pcValue = ListElements(pcValue)->GetPtr(0);
-	}
-	if (!pcValue || (pcValue->GetKind() == CPPS_InitializerList))
-	{
-		return true;
-	}
-	psType = psReference->psBase->Unqualified();
-	if (!mcBinder.BindsToTemporary(psReference, pcValue))
-	{
-		//const S& r = make() and const S& r = D(): the object made for the reference, which may be of a class derived from S.
-		psType = mcTypeChecker.TypeOf(pcValue);
-		if (!psReference->psBase->IsClass() || !psType || !psType->IsClass() || mcTypeChecker.IsObjectLvalue(pcValue))
-		{
-			return true;
-		}
-	}
-
-	bClass = psType->IsClass();
-	if (bClass && !CompleteObjectClass(psType->pcClass, pcInitialiser))
-	{
-		*pbResult = false;
-		return false;
-	}
-	*piOffset = 0;
-	if (bClass && (psType->pcClass != psReference->psBase->pcClass))
-	{
-		CompleteOffset(psType->pcClass, psReference->psBase->pcClass, piOffset);
-	}
-	mcMangler.AppendBoundLabel(pszBound, pszLabel->Text());
-	mcData.BeginData(pszBound, DataAlignment(psType, bClass), bGlobal, szOptions, false);
-	mcData.AppendZeros(psType->iBytes);
-	*pbResult &= GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL), false);
-	mcData.NextStartUp();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A global's R_Initialise and R_Finalise are written by the IR front end (CCPP65IRFrontEnd::GlobalRoutine).  bConstruct when it needs constructing, bDestroy when it needs
-// destroying.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread)
-{
-	CChars	szFinaliser;
-	CChars	szNode;
-	bool	bResult;
-	bool	bListed;
-
-	//One made when the program starts is put on an exit list once it has been (bThread: a thread_local's), so objects
-	//are destroyed in the reverse of the order they were made, with the atexit functions between them; one made in the
-	//data, before any of those, is in the fini table, run after the lists.  [basic.start.term] 1, 3
-	bListed = bConstruct && bDestroy;
-	szFinaliser.Init();
-	mcMangler.AppendStartUpLabel(&szFinaliser, true, mcData.GetStartUp());
-	szNode.Init();
-	mcMangler.AppendExitNodeLabel(&szNode, pszData->Text());
-	bResult = true;
-	if (bConstruct)
-	{
-		//One on an exit list is put there by its R_Initialise.
-		bResult &= StartUpRoutine(false, psType, pcInitialiser, pszData, bListed ? &szNode : NULL, &szFinaliser, true, bThread);
-	}
-	if (bDestroy)
-	{
-		//One on an exit list is destroyed from it; else from the fini table.
-		bResult &= StartUpRoutine(true, psType, pcInitialiser, pszData, NULL, &szFinaliser, !bListed, bThread);
-	}
-	if (bListed)
-	{
-		mcData.AppendExitNode(&szNode, pszData, ExitNodeBytes());
-	}
-	szNode.Kill();
-	szFinaliser.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A global's R_Initialise, or with bFinalise its R_Finalise (written by
-// the IR front end, CCPP65IRFrontEnd::GlobalRoutine), and with bEntry its
-// entry in the init or fini table.  pszNode is the exit list node an
-// R_Initialise puts it on, with pszFinaliser the routine that destroys it
-// from there; NULL for none.  False after an error.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::StartUpRoutine(bool bFinalise, SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, CChars* pszNode, CChars* pszFinaliser, bool bEntry, bool bThread)
-{
-	CChars	szLabel;
-	bool	bResult;
-
-	szLabel.Init();
-	mcMangler.AppendStartUpLabel(&szLabel, bFinalise, mcData.GetStartUp());
-	CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, NULL);
-	bResult = true;
-	if (mpcIRFrontEnd->GlobalRoutine(szLabel.Text(), pszData->Text(), psType, pcInitialiser, bFinalise, pszNode ? pszNode->Text() : NULL, pszFinaliser->Text(), bThread))
-	{
-		if (bEntry)
-		{
-			mcData.AppendStartUpEntry(bFinalise ? "fini" : "init", &szLabel, pszData, mpcOptions->mbKeepUnusedObjects);
-		}
-	}
-	else
-	{
-		bResult = mcDiagnostics.ErrorAt(pcInitialiser ? pcInitialiser->miFirstToken : -1, "This global's construction or destruction uses C++ the IR front end doesn't support yet");
-	}
-	szLabel.Kill();
-	return bResult;
 }
 
 
@@ -928,24 +786,6 @@ void CCPPUnit::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-// Once the unit's functions are written: the functions that destroy the
-// thrown objects of the classes they throw (ThrownDestroyer).  True if it
-// wrote any (which may queue destructors to generate).
-//
-//////////////////////////////////////////////////////////////////////////
-//
-// The bytes of an exit list node: the next node and the routine that
-// destroys its object, two pointers (CPP65_EXIT_NODE_ALIGNMENT aligned).
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPPUnit::ExitNodeBytes(void)
-{
-	return 2 * mcTypes.Pointer(&mcTypes.msVoid)->iBytes;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::WriteThrownDestroyers(void)
 {
 	CChars	szLabel;
@@ -1005,90 +845,6 @@ void CCPPUnit::KillUnitRoutines(CArrayCPPUnitRoutines* pasRoutines)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Once the unit's functions are written: the R_Finalise of each static
-// local destroyed at exit that they reach (StaticLocal), and the exit
-// lists' runner if anything is pushed on them (R_RunExitLists, a COMDAT
-// section any unit may write).  True if it wrote anything (which may
-// queue destructors to generate).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::WriteExitRoutines(void)
-{
-	CChars				szFinaliser;
-	CChars				szLabel;
-	SCPPUnitRoutine*	psRoutine;
-	size				i;
-	bool				bWritten;
-
-	bWritten = false;
-	for (i = 0; i < masExitFinalisers.NumElements(); i++)
-	{
-		psRoutine = masExitFinalisers.Get(i);
-		szFinaliser.Init();
-		mcMangler.AppendStartUpLabel(&szFinaliser, true, psRoutine->szLabel.Text());
-		CCPPUnitData::AppendSection(&mszCode, "text", &szFinaliser, psRoutine->bShared ? ", comdat" : NULL);
-		if (psRoutine->bShared)
-		{
-			CCPPUnitData::AppendGlobal(&mszCode, &szFinaliser);
-		}
-		if (!mpcIRFrontEnd->GlobalRoutine(szFinaliser.Text(), psRoutine->szLabel.Text(), psRoutine->psType, NULL, true, NULL, NULL, false, !psRoutine->bShared))
-		{
-			mcDiagnostics.ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
-		}
-		szFinaliser.Kill();
-		bWritten = true;
-	}
-	KillUnitRoutines(&masExitFinalisers);
-
-	if (mbExitLists && !mbExitListsWritten)
-	{
-		mbExitListsWritten = true;
-		szLabel.Init("R_RunExitLists");
-		if (Emit(&szLabel))
-		{
-			CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
-			CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
-			mpcIRFrontEnd->ExitListsRoutine(szLabel.Text());
-			bWritten = true;
-		}
-		szLabel.Kill();
-	}
-	return bWritten;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// R_DynamicCast, the routine the unit's dynamic_casts call (UseDynamicCast),
-// in a section the linker keeps one of, once.  True if it was written now.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::WriteDynamicCast(void)
-{
-	CChars	szLabel;
-	bool	bWritten;
-
-	if (!mbDynamicCast || mbDynamicCastWritten)
-	{
-		return false;
-	}
-	mbDynamicCastWritten = true;
-	bWritten = false;
-	szLabel.Init(CPP65_DYNAMIC_CAST);
-	if (Emit(&szLabel))
-	{
-		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
-		mpcIRFrontEnd->DynamicCastRoutine(szLabel.Text());
-		bWritten = true;
-	}
-	szLabel.Kill();
-	return bWritten;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A whole program from one translation unit, as one object: the target's start up
 // (CCPPTarget::AppendStartUp), then the translation unit.
 //
@@ -1097,53 +853,6 @@ bool CCPPUnit::GenerateProgram(CChars* pszDest)
 {
 	mpcTarget->AppendStartUp(pszDest, mpcOptions->mbExceptions);
 	return Generate(pszDest);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A global or static local with no initialiser starts as zeros: on a
-// target whose start up clears bss (CCPPTarget::HasZeroedBss) it goes
-// there, and takes no space in the program's image.  An object is cleared
-// there too, before its constructor runs from the init table.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType)
-{
-	return mpcTarget->HasZeroedBss() && !pcInitialiser && !psType->IsReference() && (psType->iBytes > 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// 4 for objects and data of 4 bytes or more, 2 for 2 bytes, otherwise 1;
-// less where the target aligns objects to less.
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPPUnit::DataAlignment(SCPP65Type* psType, bool bClass)
-{
-	int		iAlign;
-
-	iAlign = ((psType->iBytes >= 4) || bClass) ? 4 : ((psType->iBytes == 2) ? 2 : 1);
-	return CCPPClassLayout::PackAlignment(iAlign, mpcTarget->GetObjectAlignmentLimit());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A variable's data's alignment: DataAlignment, or more where its type or
-// alignas asks it (VariableAlignment).
-//
-//////////////////////////////////////////////////////////////////////////
-int CCPPUnit::VariableDataAlignment(CCPPVariable* pcVariable, bool bClass)
-{
-	int		iAlign;
-	int		iAlignas;
-	int		iVariable;
-
-	iAlign = DataAlignment(pcVariable->mpsType, bClass);
-	iVariable = VariableAlignment(pcVariable, &iAlignas);
-	return (iVariable > iAlign) ? iVariable : iAlign;
 }
 
 
@@ -1651,7 +1360,7 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 			bResult &= Function((CCPPSyntaxFunctionDefinition*)pcDeclaration, NULL);
 			break;
 		case CPPS_SimpleDeclaration:
-			bResult &= GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
+			bResult &= mcGlobals.GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
 			break;
 		case CPPS_LinkageSpecification:
 			//extern "C" int x; declares x, as if it were extern; extern "C" { int x; } defines it.  [dcl.link]
@@ -2042,389 +1751,6 @@ bool CCPPUnit::Emit(CChars* pszLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Function declarations, classes, typedefs, enums and global variables.  Global
-// variables are data with constant initialisers (zero without one).  Global objects
-// are zero and made by their R_Initialise before main, and destroyed (last first) by
-// their R_Finalise after it.  A qualified name defines a static data member.  Function
-// and extern declarations the compiler cannot do are only errors when used.
-// pcDefining is the variable being defined when the declaration is a
-// template's, written once and defined for each instance (a class
-// template's static member, a variable template): NULL for any other.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCPPVariable* pcDefining)
-{
-	size						i;
-	CCPPSyntaxInitDeclarator*	pcInit;
-	CCPPSyntax*					pcInitialiser;
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	CCPPVariable*				pcVariable;
-	CCPPFunction*				pcFunction;
-	SCPP65Type*					psType;
-	SCPP65Type*					psElement;
-	CChars						szLabel;
-	CCPPSyntaxName*				pcName;
-	CCPPClass*				pcClass;
-	int64						lliName;
-	bool						bResult;
-	CCPPErrors*					pcErrors;
-	bool						bBss;
-	bool						bInitialise;
-	CChars						szWritten;
-	CChars::Count				iDataLength;
-	bool						bConstantData;
-	const char*					szOptions;
-	CChars						szBound;
-	int							iBound;
-
-	pcSpecifiers = pcDeclaration->mpcSpecifiers;
-	if (pcSpecifiers && !CheckEnumerators(pcSpecifiers->mpcType))
-	{
-		return false;
-	}
-	if (pcSpecifiers && (pcSpecifiers->muiFlags & CPPDS_TYPEDEF))
-	{
-		return CheckTypedefs(pcDeclaration);
-	}
-	if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
-	{
-		//The class is laid out when it is first needed whole.
-		mcDiagnostics.BeginQuiet();
-		mcDeclarators.GetBaseType(pcSpecifiers, pcDeclaration);
-		mcDiagnostics.EndQuiet();
-		if (!ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType) || !CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
-		{
-			return false;
-		}
-		if ((pcDeclaration->macpDeclarators.NumElements() == 0) && !((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType)->mpcName)
-		{
-			return AnonymousGlobal((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
-		}
-	}
-
-	bResult = true;
-	for (i = 0; i < pcDeclaration->macpDeclarators.NumElements(); i++)
-	{
-		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
-		if (pcInit->mpcDeclarator->IsFunction() || pcInit->mpcDeclarator->IsFunctionByType(pcSpecifiers))
-		{
-			pcFunction = mcFunctionDeclarer.DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, NULL, CPPDA_Declaration, &pcErrors);
-			if (!pcFunction && mcFunctionDeclarer.DeclaresAllocation(pcInit->mpcDeclarator))
-			{
-				//What is wrong with an operator new or delete is said where it is declared: a program replaces the
-				//library's by declaring its own, and a wrong one would be called by none of its news.
-				mcDiagnostics.Report(pcErrors);
-				bResult = false;
-			}
-			continue;
-		}
-
-		lliName = GetName(pcInit->mpcDeclarator);
-		pcName = pcInit->mpcDeclarator->GetName();
-		pcVariable = pcInit->mpcSymbol ? (pcDefining ? pcDefining : GetVariable(pcInit->mpcSymbol)) : NULL;
-		if (!pcVariable && pcInit->mpcSymbol && !pcDefining)
-		{
-			//int x; after extern int x; is the same variable.
-			pcVariable = RedeclaredVariable(pcInit->mpcSymbol);
-		}
-		if ((lliName == -1) && pcName && pcName->IsQualifiedByClass())
-		{
-			//int CClass::siStatic = 0; defines a static data member, so the class is laid out.  The member is the
-			//class's own: each instance of a class template has one of the symbol (template<> int S<int>::k = 5;).
-			pcClass = pcDefining ? pcDefining->mpcClass : GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
-			if (pcClass)
-			{
-				CompleteClass(pcClass, pcInit);
-				pcVariable = (pcInit->mpcSymbol && !pcDefining) ? mcInstantiator.OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
-			}
-		}
-		if (!pcInit->mpcSymbol || ((lliName == -1) && pcName && pcName->IsQualifiedByClass() && !(pcVariable && pcVariable->mpcClass)))
-		{
-			bResult &= mcDiagnostics.Error(pcInit, "Only variables with simple names are supported by the compiler yet");
-			continue;
-		}
-		bResult &= mcExceptions.CheckPointerExceptions(pcInit);
-
-		//extern without an initialiser only declares; extern int x = 1; defines x.  [basic.def]
-		if (((pcSpecifiers->muiFlags & CPPDS_EXTERN) || mcContext.IsLinkageExtern()) && !pcInit->mpcInitializer)
-		{
-			mcDiagnostics.BeginQuiet();
-			psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
-			mcDiagnostics.EndQuiet();
-			if (psType && pcVariable && !SameVariableType(pcVariable->mpsType, psType))
-			{
-				bResult &= mcDiagnostics.Error(pcInit, "The variable is declared again with another type");
-				continue;
-			}
-			if (psType && !pcVariable)
-			{
-				pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
-			}
-			if (pcVariable)
-			{
-				pcVariable->mbRestrict |= IsRestrictPointer(pcInit->mpcDeclarator);
-			}
-			continue;
-		}
-
-		//const int CClass::k; has the initialiser the class gave it, and const int CClass::k = 5; is what k is from here.
-		pcInitialiser = pcInit->mpcInitializer;
-		if (!pcInitialiser && pcVariable)
-		{
-			pcInitialiser = pcVariable->mpcInClassInitialiser;
-		}
-		else if (pcVariable && pcVariable->mpcClass)
-		{
-			pcVariable->mpcOutsideInitialiser = pcInitialiser;
-		}
-
-		psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInitialiser);
-		if (!psType)
-		{
-			bResult = false;
-			continue;
-		}
-		if (psType->IsReference())
-		{
-			pcInitialiser = mcBinder.BoundInitialiser(psType, pcInitialiser);
-		}
-		psElement = psType->ElementType();
-		if (psElement->IsClass() && !CompleteObjectClass(psElement->pcClass, pcInit))
-		{
-			bResult = false;
-			continue;
-		}
-
-		if (pcVariable && !pcVariable->mpcClass && !SameVariableType(pcVariable->mpsType, psType))
-		{
-			bResult &= mcDiagnostics.Error(pcInit, "The variable is declared again with another type");
-			continue;
-		}
-		if (!pcVariable)
-		{
-			pcVariable = AddVariable(&mapcGlobals, pcInit->mpcSymbol, psType, CPPVS_Global, 0);
-		}
-		pcVariable->mbInternal |= !pcVariable->mpcClass && ((pcSpecifiers->muiFlags & CPPDS_STATIC) != 0);
-		pcVariable->mbRestrict |= IsRestrictPointer(pcInit->mpcDeclarator);
-		if (pcVariable->mbDefined)
-		{
-			bResult &= mcDiagnostics.Error(pcInit, "The variable is defined twice");
-			continue;
-		}
-		pcVariable->mbDefined = true;
-		pcVariable->mpsType = psType;
-		CompleteDeclaredArrays(pcVariable);
-		if (!CheckDeclared(psType, pcInit, pcInitialiser))
-		{
-			bResult = false;
-			continue;
-		}
-		if ((pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcConstants->CheckVariable(pcVariable, pcInit))
-		{
-			bResult = false;
-			continue;
-		}
-
-		szLabel.Init();
-		mcMangler.AppendVariableLabel(&szLabel, pcVariable);
-		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
-		bBss = !bConstantData && IsBss(pcInitialiser, psType);
-		szOptions = pcDefining ? ", comdat" : (HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
-		szBound.Init();
-		if (psType->IsReference() && !BoundTemporary(psType, pcInitialiser, &szLabel, !pcVariable->mbInternal, szOptions, &szBound, &iBound, &bResult))
-		{
-			szBound.Kill();
-			szLabel.Kill();
-			continue;
-		}
-		mcData.BeginData(&szLabel, VariableDataAlignment(pcVariable, psElement->IsClass()), !pcVariable->mbInternal, szOptions, bBss);
-		if (HasLineTable())
-		{
-			mcDebugWriter.AppendGlobal(mcData.GetText(), pcVariable, szLabel.Text(), false);
-		}
-
-		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
-		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
-		mcContext.EnterNoThis();
-		if (bConstantData && mpcConstants->AppendData(pcVariable, &mcData))
-		{
-			//A constexpr variable's value, worked out when it was defined: its data, with nothing to run.
-		}
-		else if (szBound.Length() > 0)
-		{
-			//A reference to the temporary it is bound to (BoundTemporary).
-			mcData.AppendAddress(&szBound, iBound, psType->iBytes);
-		}
-		else if (bBss)
-		{
-			mcData.AppendSpace(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
-		}
-		else if (!psElement->IsClass() && !psType->IsReference())
-		{
-			bInitialise = false;
-			iDataLength = mcData.GetText()->Length();
-			bResult &= GlobalInitialiser(psType, pcInitialiser, pcInit, &bInitialise);
-			if (bInitialise && bResult && !(pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) && psElement->IsPointer())
-			{
-				//A pointer to an object of static storage, or a table of them, is a constant the interpreter works out.
-				szWritten.Init();
-				szWritten.AppendSubString(mcData.GetText(), iDataLength, mcData.GetText()->Length());
-				mcData.GetText()->SetLength(iDataLength);
-				bInitialise = !mpcConstants->AppendConstantInitialisation(pcVariable, &mcData);
-				if (bInitialise)
-				{
-					mcData.GetText()->Append(&szWritten);
-				}
-				szWritten.Kill();
-			}
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, bInitialise, false, false);
-		}
-		else if (!(pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) && mpcConstants->AppendConstantInitialisation(pcVariable, &mcData))
-		{
-			//An object made by a constexpr constructor from constants, or a reference bound to an object of static
-			//storage: initialised before anything runs, as data, though not constexpr.  [basic.start.init] 2
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, false, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), false);
-		}
-		else
-		{
-			mcData.AppendZeros(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
-		}
-		mcContext.LeaveNoThis();
-		mcData.NextStartUp();
-		szBound.Kill();
-		szLabel.Kill();
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Appends the data for a global of psType: zero, a constant, a list of constants or
-// a string.  A char pointer initialised with a string literal is the literal's
-// address.  A value that is not a constant is zero data, worked out by the global's
-// R_Initialise: *pbInitialise is set when there is one.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode, bool* pbInitialise)
-{
-	int64						lliValue;
-	CArraySyntax*				papcElements;
-	size						i;
-	CArrayUint8					auiBytes;
-	bool						bResult;
-	double						dValue;
-
-	pcInitialiser = mcDesugarings.BracedFor(psType, pcInitialiser);
-	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer))
-	{
-		papcElements = &((CCPPSyntaxParenthesisedInitializer*)pcInitialiser)->macpElements;
-		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : pcInitialiser;
-	}
-	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psType->IsScalar())
-	{
-		papcElements = ListElements(pcInitialiser);
-		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
-		if (pcInitialiser && !CheckBracedValue(pcInitialiser, psType))
-		{
-			return false;
-		}
-	}
-
-	if (psType->IsArray())
-	{
-		bResult = true;
-		pcInitialiser = StringInitialiser(pcInitialiser, psType->psBase);
-		if (!pcInitialiser)
-		{
-			i = 0;
-		}
-		else if (IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mcStrings.StringElementBytes(pcInitialiser)))
-		{
-			auiBytes.Init();
-			bResult = mcStrings.DecodeString(pcInitialiser, &auiBytes);
-			for (i = 0; i < auiBytes.NumElements() / psType->psBase->iBytes; i++)
-			{
-				mcData.AppendData(psType->psBase->iBytes, mcStrings.StringElement(&auiBytes, psType->psBase->iBytes, i));
-			}
-			auiBytes.Kill();
-			if (i > (size)psType->iCount)
-			{
-				return mcDiagnostics.Error(pcInitialiser, "The string is longer than the array");
-			}
-		}
-		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
-		{
-			papcElements = ListElements(pcInitialiser);
-			if (papcElements->NumElements() > (size)psType->iCount)
-			{
-				return mcDiagnostics.Error(pcInitialiser, "Too many initialisers for the array");
-			}
-			for (i = 0; i < papcElements->NumElements(); i++)
-			{
-				bResult &= GlobalInitialiser(psType->psBase, papcElements->GetPtr(i), pcNode, pbInitialise);
-			}
-		}
-		else
-		{
-			return mcDiagnostics.Error(pcInitialiser, "An array needs a list of initialisers");
-		}
-
-		for (; i < (size)psType->iCount; i++)
-		{
-			GlobalInitialiser(psType->psBase, NULL, pcNode, pbInitialise);
-		}
-		return bResult;
-	}
-
-	if (!psType->IsScalar())
-	{
-		return mcDiagnostics.Error(pcNode, "This type of global variable is not supported by the compiler yet");
-	}
-	lliValue = 0;
-	if (pcInitialiser && psType->IsFloat() && mcFolder.FloatConstant(pcInitialiser, &dValue))
-	{
-		mcData.AppendData(psType->iBytes, mcFolder.FloatBits(psType, dValue));
-		return true;
-	}
-	if (pcInitialiser && psType->IsPointer() && IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mcStrings.StringElementBytes(pcInitialiser)))
-	{
-		auiBytes.Init();
-		bResult = mcStrings.DecodeString(pcInitialiser, &auiBytes);
-		if (bResult)
-		{
-			//AddString ends it with one zero byte.
-			auiBytes.GrowToAtLeastNumElements(auiBytes.NumElements() + psType->psBase->iBytes - 1, true, 0);
-			mcData.GetText()->Append("\t\t.long Str")->Append(mcData.AddString((char*)auiBytes.GetData(), auiBytes.NumElements()))->AppendNewLine();
-		}
-		auiBytes.Kill();
-		return bResult;
-	}
-	if (pcInitialiser && (psType->IsFloat() || !mcFolder.Constant(pcInitialiser, &lliValue)))
-	{
-		//Not a constant: R_Initialise works it out before main, or for a static local its declaration the first time it
-		//is reached.  [basic.start.init], [stmt.dcl] 4
-		mcData.AppendData(psType->iBytes, 0);
-		if (!mcTypeChecker.ImplicitConvert(mcTypeChecker.ValueFor(pcInitialiser, psType, false), psType, pcInitialiser))
-		{
-			return false;
-		}
-		*pbInitialise = true;
-		return true;
-	}
-	if (pcInitialiser)
-	{
-		mcWarnings.ConversionOverflow(pcInitialiser, psType);
-	}
-	mcData.AppendData(psType->iBytes, lliValue);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPVariable* CCPPUnit::AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset)
@@ -2461,34 +1787,6 @@ void CCPPUnit::FreeVariables(CArrayCPPVariables* papcVariables)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// extern int a[]; declared an array of unknown bound that the definition
-// of pcDefined, int a[3], has now completed: the earlier declaration's
-// variable, which what was written before the definition names, is of the
-// same array.  [dcl.array] 3
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CompleteDeclaredArrays(CCPPVariable* pcDefined)
-{
-	CCPPSymbol*		pcSymbol;
-	CCPPVariable*	pcDeclared;
-
-	if (!pcDefined->mpsType->IsArray() || !pcDefined->mpcSymbol->mpcScope)
-	{
-		return;
-	}
-	for (pcSymbol = pcDefined->mpcSymbol->mpcScope->FindHere(pcDefined->mpcSymbol->mlliName); pcSymbol; pcSymbol = pcSymbol->mpcNext)
-	{
-		pcDeclared = (pcSymbol != pcDefined->mpcSymbol) ? GetVariable(pcSymbol) : NULL;
-		if (pcDeclared && pcDeclared->mpsType->IsArray() && (pcDeclared->mpsType->iCount == 0) && pcDeclared->mpsType->psBase->Same(pcDefined->mpsType->psBase))
-		{
-			pcDeclared->mpsType = pcDefined->mpsType;
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The local, parameter or global a symbol names.  Locals are searched first.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -2514,58 +1812,6 @@ CCPPVariable* CCPPUnit::GetVariable(CCPPSymbol* pcSymbol)
 		}
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The variable an earlier declaration of a namespace scope variable's name
-// in its scope made: extern int x; int x; is one variable, which can be
-// defined once.  NULL if there is none, and in C, where int x; int x; are
-// tentative definitions of one.  [basic.def.odr] 1, [basic.link] 9
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPVariable* CCPPUnit::RedeclaredVariable(CCPPSymbol* pcSymbol)
-{
-	CCPPSymbol*		pcOther;
-	CCPPVariable*	pcVariable;
-
-	if (IsCSource() || (pcSymbol->meKind != CPPSK_Variable) || !pcSymbol->mpcScope || (pcSymbol->mpcScope->meKind != CPPSC_Namespace))
-	{
-		return NULL;
-	}
-	for (pcOther = pcSymbol->mpcScope->FindHere(pcSymbol->mlliName); pcOther; pcOther = pcOther->mpcNext)
-	{
-		if ((pcOther != pcSymbol) && (pcOther->mpcScope == pcSymbol->mpcScope) && (pcOther->meKind == CPPSK_Variable))
-		{
-			pcVariable = GetVariable(pcOther);
-			if (pcVariable && (pcVariable->meStorage == CPPVS_Global) && !pcVariable->mpcClass)
-			{
-				return pcVariable;
-			}
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether two declarations of a variable give it one type: the same, but
-// for an array's bound, which one may leave out.  [basic.link] 10
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond)
-{
-	if (!psFirst || !psSecond || psFirst->Same(psSecond))
-	{
-		return true;
-	}
-	if (psFirst->IsArray() && psSecond->IsArray())
-	{
-		return psFirst->psBase->Same(psSecond->psBase);
-	}
-	return false;
 }
 
 
@@ -2974,12 +2220,12 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 		{
 			if (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN)
 			{
-				return ExternLocal(pcInit, pcDeclaration->mpcSpecifiers);
+				return mcGlobals.ExternLocal(pcInit, pcDeclaration->mpcSpecifiers);
 			}
 			if (pcDeclaration->mpcSpecifiers->muiFlags & (CPPDS_STATIC | CPPDS_THREAD_LOCAL))
 			{
 				//thread_local in a block is static too; there is one thread.  [dcl.stc] 3
-				return StaticLocal(pcInit, pcDeclaration->mpcSpecifiers);
+				return mcGlobals.StaticLocal(pcInit, pcDeclaration->mpcSpecifiers);
 			}
 			psType = mcDeclarators.GetType(pcDeclaration->mpcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			if (!psType)
@@ -3121,251 +2367,6 @@ bool CCPPUnit::CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration)
 				bResult &= mcDiagnostics.Error(pcInit, "A typedef of a class's or an enum's name in its scope names that class or enum");
 			}
 		}
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// An anonymous union at namespace scope: one object, zero, whose label is
-// its first member's, and a global variable for each member at its offset
-// in it, internal as the union is (static or in an unnamed namespace).
-// [class.union] 5
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier)
-{
-	CCPPClass*		pcClass;
-	SCPPField*		psField;
-	CCPPVariable*	pcVariable;
-	CCPPVariable*	pcObject;
-	CChars			szLabel;
-	size			i;
-
-	pcClass = GetUnnamedClass(pcSpecifier);
-	if (!pcClass || !CompleteClass(pcClass, pcSpecifier) || !pcClass->mbUnion)
-	{
-		return mcDiagnostics.Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
-	}
-	pcObject = NULL;
-	for (i = 0; i < pcClass->macFields.NumElements(); i++)
-	{
-		psField = pcClass->macFields.Get(i);
-		if (!psField->pcSymbol || psField->IsBitField())
-		{
-			return mcDiagnostics.Error(pcSpecifier, "This anonymous union's member is not supported by the compiler yet");
-		}
-		pcVariable = AddVariable(&mapcGlobals, psField->pcSymbol, psField->psType, CPPVS_Global, psField->iOffset);
-		pcVariable->mpcAnonymous = pcClass;
-		pcVariable->mbInternal = true;
-		pcVariable->mbDefined = true;
-		pcObject = pcObject ? pcObject : pcVariable;
-		pcVariable->mpcAnonymousObject = pcObject;
-	}
-	if (!pcObject)
-	{
-		return true;
-	}
-	szLabel.Init();
-	mcMangler.AppendVariableLabel(&szLabel, pcObject);
-	mcData.BeginData(&szLabel, DataAlignment(pcClass->mpsType, true), false, NULL, IsBss(NULL, pcClass->mpsType));
-	if (IsBss(NULL, pcClass->mpsType))
-	{
-		mcData.AppendSpace(pcClass->mpsType->iBytes);
-	}
-	else
-	{
-		mcData.AppendZeros(pcClass->mpsType->iBytes);
-	}
-	mcData.NextStartUp();
-	szLabel.Kill();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// extern int k; in a block declares the variable of the namespace it is in,
-// defined elsewhere (before or after the function, or in another unit): a
-// variable of the function's with the global's label.  [basic.link] 6
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
-{
-	SCPP65Type*		psType;
-	CCPPVariable*	pcGlobal;
-
-	if (pcInit->mpcInitializer)
-	{
-		return mcDiagnostics.Error(pcInit, "An extern variable declared in a block can't be initialised there");
-	}
-	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, NULL);
-	if (!psType)
-	{
-		return false;
-	}
-	pcGlobal = NamespaceVariable(pcInit->mpcSymbol);
-	if (pcGlobal && !SameVariableType(pcGlobal->mpsType, psType))
-	{
-		//It names the variable of the namespace it is in, which has one type.  [basic.link] 6, 10
-		return mcDiagnostics.Error(pcInit, "The variable is declared again with another type");
-	}
-	AddVariable(GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Global, 0);
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The variable of the innermost namespace a block's extern declaration is
-// in that it names, if that namespace declares one.  [basic.link] 6
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPVariable* CCPPUnit::NamespaceVariable(CCPPSymbol* pcSymbol)
-{
-	CCPPScope*		pcNamespace;
-	CCPPSymbol*		pcOther;
-	CCPPVariable*	pcVariable;
-
-	pcNamespace = pcSymbol->mpcScope ? pcSymbol->mpcScope->GetEnclosingNamespace() : NULL;
-	if (!pcNamespace)
-	{
-		return NULL;
-	}
-	for (pcOther = pcNamespace->FindHere(pcSymbol->mlliName); pcOther; pcOther = pcOther->mpcNext)
-	{
-		if ((pcOther->mpcScope == pcNamespace) && (pcOther->meKind == CPPSK_Variable))
-		{
-			pcVariable = GetVariable(pcOther);
-			if (pcVariable)
-			{
-				return pcVariable;
-			}
-		}
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A static local variable is data with its own label, initialised in the
-// data.  An object, a reference, or a variable whose initialiser isn't a
-// constant is initialised the first time its declaration is reached
-// (CCPP65IRFrontEnd::Declaration), with a guard byte beside it that says
-// whether it has been (mbGuarded).  An object whose class needs a
-// destructor is destroyed when the program ends: once made it is pushed
-// on an exit list (the thread's for a thread_local), with the R_Finalise
-// WriteExitRoutines writes.  [stmt.dcl] 4, [basic.start.term] 1
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSpecifiers* pcSpecifiers)
-{
-	CCPPVariable*		pcVariable;
-	CCPPVariable*		pcKept;
-	SCPP65Type*			psType;
-	SCPP65Type*			psElement;
-	CChars				szLabel;
-	CChars				szNode;
-	bool				bResult;
-	bool				bInitialise;
-	bool				bObject;
-	CCPPFunction*		pcShared;
-	const char*			szOptions;
-	size				uiData;
-	bool				bFirst;
-	size				i;
-	int					iNumber;
-
-	psType = mcDeclarators.GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
-	if (!psType)
-	{
-		return false;
-	}
-	psElement = psType->ElementType();
-	bObject = psElement->IsClass() || psType->IsReference();
-	if (psElement->IsClass() && !CompleteClass(psElement->pcClass, pcInit))
-	{
-		return false;
-	}
-
-	//In a function every unit may write it is one object: labelled for the function and its number there, its data COMDAT.
-	pcShared = IsSharedFunction(mcContext.GetFunction()) ? mcContext.GetFunction() : NULL;
-	iNumber = miStatics;
-	if (pcShared)
-	{
-		iNumber = 0;
-		for (i = 0; i < GetLocals()->NumElements(); i++)
-		{
-			iNumber += (GetLocals()->GetPtr(i)->meStorage == CPPVS_Static) ? 1 : 0;
-		}
-	}
-	szOptions = pcShared ? ", comdat" : NULL;
-	pcVariable = AddVariable(GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
-	miStatics++;
-	pcVariable->mbDefined = true;
-	pcVariable->mbThreadLocal = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
-	pcVariable->mpcSharedIn = pcShared;
-	pcKept = mcClosures.EnclosingStatic(pcInit->mpcSymbol);
-	if (!pcKept)
-	{
-		pcKept = AddVariable(&mapcStaticLocals, pcInit->mpcSymbol, psType, CPPVS_Static, iNumber);
-	}
-	pcKept->miOffset = iNumber;
-	pcKept->mpsType = psType;
-	pcKept->mbDefined = true;
-	pcKept->mbThreadLocal = pcVariable->mbThreadLocal;
-	pcKept->mpcSharedIn = pcShared;
-	szLabel.Init();
-	mcMangler.AppendVariableLabel(&szLabel, pcVariable);
-	//A function written again in the unit has its static locals again: a shared one's data is the unit's once.
-	bFirst = !pcShared || Emit(&szLabel);
-	uiData = mcData.GetText()->Length();
-	mcData.BeginData(&szLabel, VariableDataAlignment(pcVariable, psElement->IsClass()), pcShared != NULL, szOptions, bObject || IsBss(pcInit->mpcInitializer, psType));
-	szLabel.Kill();
-	bResult = true;
-	bInitialise = false;
-	if (bObject || IsBss(pcInit->mpcInitializer, psType))
-	{
-		mcData.AppendSpace(psType->iBytes);
-	}
-	else
-	{
-		//Constant data if the initialiser is a constant; else it is worked out where the function first comes to it,
-		//with the function's this.  [stmt.dcl] 4
-		bResult = GlobalInitialiser(psType, pcInit->mpcInitializer, pcInit, &bInitialise);
-	}
-
-	pcVariable->mbGuarded = bResult && (bObject || bInitialise);
-	if (pcVariable->mbGuarded)
-	{
-		szLabel.Init();
-		mcMangler.AppendGuardLabel(&szLabel, pcVariable);
-		mcData.BeginData(&szLabel, 1, pcShared != NULL, szOptions, true);
-		mcData.AppendSpace(1);
-		szLabel.Kill();
-	}
-	if (pcVariable->mbGuarded && psElement->IsClass() && psElement->pcClass->NeedsDestructor())
-	{
-		pcVariable->mbExitNode = true;
-		szLabel.Init();
-		mcMangler.AppendVariableLabel(&szLabel, pcVariable);
-		if (bFirst)
-		{
-			AddUnitRoutine(&masExitFinalisers, szLabel.Text(), psType, pcShared != NULL);
-		}
-		szNode.Init();
-		mcMangler.AppendExitNodeLabel(&szNode, szLabel.Text());
-		mcData.BeginData(&szNode, CPP65_EXIT_NODE_ALIGNMENT, pcShared != NULL, szOptions, true);
-		mcData.AppendSpace(ExitNodeBytes());
-		szNode.Kill();
-		szLabel.Kill();
-		UseExitLists();
-	}
-	if (!bFirst)
-	{
-		mcData.GetText()->SetLength(uiData);
 	}
 	return bResult;
 }
@@ -3632,6 +2633,9 @@ CCPPInstantiator* CCPPUnit::GetInstantiator(void) { return &mcInstantiator; }
 CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPFunctionDeclarer* CCPPUnit::GetFunctionDeclarer(void) { return &mcFunctionDeclarer; }
 CCPPNames* CCPPUnit::GetNames(void) { return mcBinder.GetNames(); }
+CCPPGlobals* CCPPUnit::GetGlobals(void) { return &mcGlobals; }
+CArrayCPPVariables* CCPPUnit::GetGlobalVariables(void) { return &mapcGlobals; }
+CCPP65IRFrontEnd* CCPPUnit::GetIRFrontEnd(void) const { return mpcIRFrontEnd; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }
 CCPPUnitData* CCPPUnit::GetData(void) { return &mcData; }
 CCPP65DebugWriter* CCPPUnit::GetDebugWriter(void) { return &mcDebugWriter; }
