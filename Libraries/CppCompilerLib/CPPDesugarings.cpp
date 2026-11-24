@@ -250,7 +250,7 @@ bool CCPPDesugarings::RangeForLocals(CCPPSyntaxRangeForStatement* pcFor)
 		return psType ? mpcUnit->mcDiagnostics.Error(pcFor, "This declaration is not supported by the compiler yet") : false;
 	}
 	psElement = psType->ElementType();
-	if (psElement->IsClass() && !mpcUnit->CompleteObjectClass(psElement->pcClass, pcFor))
+	if (psElement->IsClass() && !mpcUnit->GetClasses()->CompleteObjectClass(psElement->pcClass, pcFor))
 	{
 		return false;
 	}
@@ -291,7 +291,7 @@ bool CCPPDesugarings::RangeIterators(CCPPSyntaxRangeForStatement* pcFor, SCPP65T
 	}
 	else
 	{
-		if (!psRanged->IsClass() || !mpcUnit->CompleteClass(psRanged->pcClass, pcFor->mpcRange))
+		if (!psRanged->IsClass() || !mpcUnit->GetClasses()->CompleteClass(psRanged->pcClass, pcFor->mpcRange))
 		{
 			return mpcUnit->mcDiagnostics.Error(pcFor->mpcRange, "A range must be an array or an object with begin and end");
 		}
@@ -716,7 +716,7 @@ CCPPSyntaxBinaryExpression* CCPPDesugarings::ImplicitAssignment(CCPPSyntaxCallEx
 		return *ppcAssignment;
 	}
 	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcMember->mpcObject);
-	if (!psType || !psType->IsClass() || !mpcUnit->CompleteClass(psType->pcClass, pcCall))
+	if (!psType || !psType->IsClass() || !mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcCall))
 	{
 		return NULL;
 	}
@@ -913,7 +913,7 @@ bool CCPPDesugarings::InitializerListLayout(CCPPClass* pcClass, bool* pbEnd)
 	SCPPField*	psFirst;
 	SCPPField*	psSecond;
 
-	if (!mpcUnit->CompleteClass(pcClass, NULL) || (pcClass->macFields.NumElements() != 2) || (pcClass->macBases.NumElements() != 0) || pcClass->IsPolymorphic())
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, NULL) || (pcClass->macFields.NumElements() != 2) || (pcClass->macBases.NumElements() != 0) || pcClass->IsPolymorphic())
 	{
 		return false;
 	}

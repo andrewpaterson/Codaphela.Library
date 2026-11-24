@@ -897,7 +897,7 @@ bool CCPPConstants::IsLiteralType(SCPP65Type* psType)
 	if (!pcClass->IsComplete() && pcClass->mpcSpecifier && !pcClass->IsBeingMade())
 	{
 		//A class is laid out when it is first needed whole: this is such a need.
-		mpcUnit->CompleteClass(pcClass, NULL);
+		mpcUnit->GetClasses()->CompleteClass(pcClass, NULL);
 	}
 	if (!pcClass->IsComplete())
 	{

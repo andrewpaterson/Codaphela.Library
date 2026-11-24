@@ -107,7 +107,7 @@ void CCPPUnit::SetListing(bool bListing)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::SetLayouts(bool bLayouts)
 {
-	mbLayouts = bLayouts;
+	mcClasses.SetLayouts(bLayouts);
 }
 
 
@@ -291,12 +291,7 @@ void CCPPUnit::GetTestedCallees(CArrayChars* paszNames)
 //////////////////////////////////////////////////////////////////////////
 void CCPPUnit::GetLayouts(CArrayChars* paszLines)
 {
-	size	i;
-
-	for (i = 0; i < maszLayouts.NumElements(); i++)
-	{
-		paszLines->InsertIntoSorted(maszLayouts.Get(i));
-	}
+	mcClasses.GetLayouts(paszLines);
 }
 
 
@@ -314,14 +309,12 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mszCode.Init();
 	mszThunks.Init();
 	maszRuntime.Init();
-	maszLayouts.Init();
 	mcBackendScratch.Init((size)CPP65_BACKEND_SCRATCH_CHUNK);
 	mpcImports = NULL;
 	muiImportsTurn = 0;
 	mbMissedImports = false;
 	mpcFrameProfile = NULL;
 	mbListing = false;
-	mbLayouts = false;
 	mbLineTable = false;
 	mbNoFloats = false;
 	mbCompiledBefore = false;
@@ -356,8 +349,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcDeclarators.Init(this);
 	mcFunctionDeclarer.Init(this);
 	mcGlobals.Init(this);
-	mcMangler.Init(mpcTokeniser, &mapcClasses, &mcFunctionsOfNames);
-	mapcClasses.Init();
+	mcClasses.Init(this);
+	mcMangler.Init(mpcTokeniser, mcClasses.GetClassList(), &mcFunctionsOfNames);
 	mapcTemplates.Init();
 	mapcAllBindings.Init();
 	mapapsPacks.Init();
@@ -422,13 +415,7 @@ void CCPPUnit::Kill(void)
 	mcGlobals.Kill();
 	mcBackendScratch.Kill();
 
-	for (i = 0; i < mapcClasses.NumElements(); i++)
-	{
-		pcClass = mapcClasses.GetPtr(i);
-		pcClass->Kill();
-		SafeFree(pcClass);
-	}
-	mapcClasses.Kill();
+	mcClasses.Kill();
 	for (i = 0; i < mapcFunctions.NumElements(); i++)
 	{
 		pcFunction = mapcFunctions.GetPtr(i);
@@ -504,7 +491,6 @@ void CCPPUnit::Kill(void)
 
 	mcDiagnostics.Kill();
 	maszRuntime.Kill();
-	maszLayouts.Kill();
 	mszThunks.Kill();
 	mszCode.Kill();
 	mauiCodePieces.Kill();
@@ -1338,7 +1324,7 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 	psElement = psType->InnermostElement();
 	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
 	bExtern = pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN);
-	if (psElement->IsClass() && !bExtern && CompleteClass(psElement->pcClass, pcInit) && !mcBinder.ReachesDestructor(psElement->pcClass, pcInit))
+	if (psElement->IsClass() && !bExtern && mcClasses.CompleteClass(psElement->pcClass, pcInit) && !mcBinder.ReachesDestructor(psElement->pcClass, pcInit))
 	{
 		//The object is destroyed where it ends.  [class.dtor] 11
 		return false;
@@ -1347,62 +1333,6 @@ bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcIni
 	bResult = mcTypeChecker.Initialise(psType, pcInitialiser, pcInit);
 	mcDiagnostics.EndLoud();
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A class written in a source file (IsInSourceFile) with a member function
-// declared override or final, or with a base, is laid out where it is
-// defined, so what final and override say is checked whether or not
-// anything uses the class (CheckOverrides: one that overrides nothing, one
-// that isn't virtual, one that overrides a final function; ResolveBases: a
-// base that is final); any other class is laid out when it is first needed
-// whole, and one nothing uses never is.
-//
-// A header's class is not: it is checked in the unit that first needs it
-// whole.  Every unit parses each class its headers so much as name, and
-// laying all of those out in every unit was half the time of the
-// declarations (DeclarationsSpeedPlan.txt).  Nor is any class when the unit
-// was compiled before, which found what there is to find
-// (SetCompiledBefore).
-// [class.virtual] 4, 5, [class] 3
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
-{
-	CCPPClass*						pcClass;
-	CCPPSyntax*						pcMember;
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
-	size							i;
-	bool							bResult;
-
-	if (mbCompiledBefore || !pcSpecifier->mpcSymbol || (pcSpecifier->mpcSymbol->meKind != CPPSK_Class) || !mcCheck.IsInSourceFile(pcSpecifier))
-	{
-		return true;
-	}
-
-	//The classes defined in it, in their turn.
-	bResult = true;
-	for (i = 0; i < pcSpecifier->macpMembers.NumElements(); i++)
-	{
-		pcMember = pcSpecifier->macpMembers.GetPtr(i);
-		pcSpecifiers = (pcMember->GetKind() == CPPS_SimpleDeclaration) ? ((CCPPSyntaxSimpleDeclaration*)pcMember)->mpcSpecifiers : NULL;
-		if (pcSpecifiers && pcSpecifiers->mpcType && (pcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
-		{
-			bResult &= CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
-		}
-	}
-	if (!bResult || !(pcSpecifier->HasVirtSpecifiedMember() || (pcSpecifier->macpBases.NumElements() > 0)))
-	{
-		return bResult;
-	}
-	pcClass = GetClass(pcSpecifier->mpcSymbol, pcSpecifier);
-	if (!pcClass->IsComplete() && !pcClass->IsBeingMade())
-	{
-		mpcStatistics->Count(CPPCC_ClassLayoutsWhereDefined);
-	}
-	return CompleteClass(pcClass, pcSpecifier);
 }
 
 
@@ -1692,7 +1622,7 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 		{
 			return mcDiagnostics.Error(pcDefinition, "The function's class has not been defined");
 		}
-		if (!CompleteClass(pcClass, pcDefinition))
+		if (!mcClasses.CompleteClass(pcClass, pcDefinition))
 		{
 			return false;
 		}
@@ -1954,7 +1884,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 				if (psType->IsClass())
 				{
 					//Laid out now, as the IR front end needs it.
-					CompleteClass(psType->pcClass, pcParameter);
+					mcClasses.CompleteClass(psType->pcClass, pcParameter);
 				}
 			}
 			j++;
@@ -2047,7 +1977,7 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 			{
 				return mcDiagnostics.Error(pcNode, "This type of local variable is not supported by the compiler yet");
 			}
-			if (psType->ElementType()->IsClass() && !CompleteObjectClass(psType->ElementType()->pcClass, pcNode))
+			if (psType->ElementType()->IsClass() && !mcClasses.CompleteObjectClass(psType->ElementType()->pcClass, pcNode))
 			{
 				return false;
 			}
@@ -2087,8 +2017,8 @@ bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 	CCPPVariable*	pcVariable;
 	size			i;
 
-	pcClass = GetUnnamedClass(pcSpecifier);
-	if (!pcClass || !CompleteClass(pcClass, pcSpecifier))
+	pcClass = mcClasses.GetUnnamedClass(pcSpecifier);
+	if (!pcClass || !mcClasses.CompleteClass(pcClass, pcSpecifier))
 	{
 		return mcDiagnostics.Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
 	}
@@ -2440,6 +2370,8 @@ CCPPDeclarators* CCPPUnit::GetDeclarators(void) { return &mcDeclarators; }
 CCPPFunctionDeclarer* CCPPUnit::GetFunctionDeclarer(void) { return &mcFunctionDeclarer; }
 CCPPNames* CCPPUnit::GetNames(void) { return mcBinder.GetNames(); }
 CCPPGlobals* CCPPUnit::GetGlobals(void) { return &mcGlobals; }
+CCPPClasses* CCPPUnit::GetClasses(void) { return &mcClasses; }
+bool CCPPUnit::IsCompiledBefore(void) const { return mbCompiledBefore; }
 CArrayCPPVariables* CCPPUnit::GetGlobalVariables(void) { return &mapcGlobals; }
 CCPP65IRFrontEnd* CCPPUnit::GetIRFrontEnd(void) const { return mpcIRFrontEnd; }
 CCPPMangler* CCPPUnit::GetMangler(void) { return &mcMangler; }

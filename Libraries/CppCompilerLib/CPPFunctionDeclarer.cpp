@@ -406,8 +406,8 @@ CCPPFunction* CCPPFunctionDeclarer::AddDeclared(SCPPSignature* psSignature)
 	}
 	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : mpcUnit->FindAttribute(psSignature->pcDeclarator, "deprecated");
 	mpcUnit->GetExceptions()->SetDeclaredExceptions(pcFunction, psSignature->pcDeclarator);
-	pcFunction->mbOverride |= mpcUnit->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliOverride);
-	pcFunction->mbFinal |= mpcUnit->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliFinal);
+	pcFunction->mbOverride |= mpcUnit->GetClasses()->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliOverride);
+	pcFunction->mbFinal |= mpcUnit->GetClasses()->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliFinal);
 	if (psSignature->pcTemplate)
 	{
 		psSignature->pcTemplate->mapcInstances.Add(pcFunction);
@@ -1068,7 +1068,7 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 
 	pcDefinition = pcFunction->mpcDefinition;
 	pcClass = pcFunction->mpcClass;
-	if ((pcFunction->meKind != CPPFK_Constructor) || !pcDefinition || !pcClass || (pcDefinition->meBody != CPPFB_Body) || !mpcUnit->CompleteClass(pcClass, pcDefinition))
+	if ((pcFunction->meKind != CPPFK_Constructor) || !pcDefinition || !pcClass || (pcDefinition->meBody != CPPFB_Body) || !mpcUnit->GetClasses()->CompleteClass(pcClass, pcDefinition))
 	{
 		return true;
 	}

@@ -753,7 +753,7 @@ CCPPClass* CCPPDeduction::FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTem
 	if (!pcClass->HasBases())
 	{
 		mpcDiagnostics->BeginQuiet();
-		mpcUnit->ResolveBases(pcClass, NULL);
+		mpcUnit->GetClasses()->ResolveBases(pcClass, NULL);
 		mpcDiagnostics->EndQuiet();
 	}
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)

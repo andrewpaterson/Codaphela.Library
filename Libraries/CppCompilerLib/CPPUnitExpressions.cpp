@@ -849,7 +849,7 @@ bool CCPPUnit::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValu
 	{
 		psType = (pcTrait->macpArguments.GetPtr(i)->GetKind() == CPPS_TypeId) ? mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(i)) : NULL;
 		pcClass = (psType && psType->WithoutReference()->IsClass()) ? psType->WithoutReference()->pcClass : NULL;
-		bResult = psType && (!pcClass || CompleteClass(pcClass, pcTrait));
+		bResult = psType && (!pcClass || mcClasses.CompleteClass(pcClass, pcTrait));
 		if (bResult)
 		{
 			apsTypes.Add(psType);
@@ -1396,7 +1396,7 @@ SCPP65Type* CCPPUnit::QualifiedFieldType(CCPPSyntax* pcExpression)
 	{
 		//decltype(d)::m: the parser doesn't know d's class, so the field is found by its name.
 		pcClass = GetNames()->QualifiersClass(pcName, pcExpression);
-		psField = (pcClass && CompleteClass(pcClass, pcExpression)) ? pcClass->FindField(GetComponentName(pcName->GetLast()), &iOffset) : NULL;
+		psField = (pcClass && mcClasses.CompleteClass(pcClass, pcExpression)) ? pcClass->FindField(GetComponentName(pcName->GetLast()), &iOffset) : NULL;
 		return psField ? psField->psType : NULL;
 	}
 	if (!pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_Field) || !pcName->IsQualifiedByClass())
@@ -1404,7 +1404,7 @@ SCPP65Type* CCPPUnit::QualifiedFieldType(CCPPSyntax* pcExpression)
 		return NULL;
 	}
 	pcClass = GetNames()->NameQualifierClass(pcName, pcExpression);
-	psField = (pcClass && CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
+	psField = (pcClass && mcClasses.CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
 	return psField ? psField->psType : NULL;
 }
 

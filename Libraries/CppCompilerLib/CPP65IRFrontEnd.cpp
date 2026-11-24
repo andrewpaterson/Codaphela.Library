@@ -202,7 +202,7 @@ bool CCPP65IRFrontEnd::Body(CCPPFunction* pcFunction)
 	}
 	if (((pcFunction->meKind != CPPFK_Function) && (pcFunction->meKind != CPPFK_Constructor) && (pcFunction->meKind != CPPFK_Destructor)) ||
 		!pcFunction->mpsReturn || (!IsSupportedType(pcFunction->mpsReturn) && !pcFunction->mpsReturn->IsClass()) || pcFunction->mpsReturn->IsArray() ||
-		(pcFunction->mpsReturn->IsClass() && !mpcUnit->CompleteClass(pcFunction->mpsReturn->pcClass, NULL)))
+		(pcFunction->mpsReturn->IsClass() && !mpcUnit->GetClasses()->CompleteClass(pcFunction->mpsReturn->pcClass, NULL)))
 	{
 		mbUnsupported = false;
 		Unsupported(__FILE__, __LINE__);
@@ -1079,7 +1079,7 @@ bool CCPP65IRFrontEnd::IsLocalType(SCPP65Type* psType)
 	psElement = ElementType(psType);
 	if (psElement && psElement->IsClass())
 	{
-		return mpcUnit->CompleteClass(psElement->pcClass, NULL);
+		return mpcUnit->GetClasses()->CompleteClass(psElement->pcClass, NULL);
 	}
 	return IsSupportedType(psType);
 }
@@ -1306,7 +1306,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 		if (psType->IsClass())
 		{
 			//An object passed by value is its bytes where the caller pushed them, or its address (IsPassedByAddress).
-			if (!mpcUnit->CompleteClass(psType->pcClass, NULL))
+			if (!mpcUnit->GetClasses()->CompleteClass(psType->pcClass, NULL))
 			{
 				aiFirst.Kill();
 				asByAddress.Kill();
@@ -1808,7 +1808,7 @@ bool CCPP65IRFrontEnd::Locals(void)
 			continue;
 		}
 		iAlign = ((pcVariable->mpsType->iBytes >= 4) || pcVariable->mpsType->IsArray() || pcVariable->mpsType->IsClass()) ? 4 : pcVariable->mpsType->iBytes;
-		mpcUnit->VariableAlignment(pcVariable, &iAlignas);
+		mpcUnit->GetClasses()->VariableAlignment(pcVariable, &iAlignas);
 		iFrameAlign = mpcUnit->GetTarget()->GetFrameAlignment();
 		if (iAlignas > iFrameAlign)
 		{
@@ -2392,7 +2392,7 @@ int CCPP65IRFrontEnd::BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase)
 {
 	int	iOffset;
 
-	if (!pcDerived || !pcBase || (pcDerived == pcBase) || !mpcUnit->CompleteClass(pcDerived, NULL) || !mpcUnit->IsDerived(pcDerived, pcBase, &iOffset))
+	if (!pcDerived || !pcBase || (pcDerived == pcBase) || !mpcUnit->GetClasses()->CompleteClass(pcDerived, NULL) || !mpcUnit->IsDerived(pcDerived, pcBase, &iOffset))
 	{
 		return 0;
 	}

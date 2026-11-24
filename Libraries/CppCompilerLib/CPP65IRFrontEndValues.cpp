@@ -212,7 +212,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 			return true;
 		case CPPBN_Variable:
 			//A static const member initialised in its class is its value (CCPP65TypeChecker::IdExpression).
-			if (mpcUnit->IsConstantMember(cBound.mpcVariable) && ConstantValue(pcExpression, psValue))
+			if (mpcUnit->GetClasses()->IsConstantMember(cBound.mpcVariable) && ConstantValue(pcExpression, psValue))
 			{
 				return true;
 			}
@@ -787,7 +787,7 @@ bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* p
 	pcName = pcId->mpcName;
 	pcClass = mpcUnit->GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcId);
 	lliName = mpcUnit->GetFunctionName(pcName->GetLast());
-	if (!pcClass || (lliName == -1) || !mpcUnit->CompleteClass(pcClass, pcId))
+	if (!pcClass || (lliName == -1) || !mpcUnit->GetClasses()->CompleteClass(pcClass, pcId))
 	{
 		return false;
 	}
@@ -1069,7 +1069,7 @@ bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefere
 	}
 	pcFrom = sOperand.psType->pcClass;
 	pcTo = psReference->psBase->pcClass;
-	if (!mpcUnit->CompleteClass(pcFrom, NULL) || !mpcUnit->CompleteClass(pcTo, NULL))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcFrom, NULL) || !mpcUnit->GetClasses()->CompleteClass(pcTo, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1223,7 +1223,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 			return !msClosure.IsNone() ? FieldAt(msClosure, cBound.mpsField, cBound.miOffset, psPlace) : Unsupported(__FILE__, __LINE__);
 		}
 		//A field of this (or of the base a qualifier names), where there is one.
-		if ((cBound.meWhat != CPPBN_Field) || msThis.IsNone() || !mpcUnit->CompleteClass(cBound.mpcClass, NULL))
+		if ((cBound.meWhat != CPPBN_Field) || msThis.IsNone() || !mpcUnit->GetClasses()->CompleteClass(cBound.mpcClass, NULL))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -1544,7 +1544,7 @@ SCPP65Type* CCPP65IRFrontEnd::ArrowClass(CCPPSyntax* pcObject, SCPP65Type* psTyp
 	psType = psType->WithoutReference();
 	if (psType->IsClass())
 	{
-		psType = mpcUnit->ArrowType(pcObject, pcObject);
+		psType = mpcUnit->GetClasses()->ArrowType(pcObject, pcObject);
 	}
 	return (psType && psType->IsPointer() && psType->psBase->IsClass()) ? psType->psBase : NULL;
 }

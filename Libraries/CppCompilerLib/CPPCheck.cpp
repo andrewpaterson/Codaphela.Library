@@ -321,8 +321,8 @@ void CCPPCheck::CheckClasses(CArraySyntax* papcDeclarations)
 			pcSymbol = pcClassSpecifier->mpcSymbol;
 			if (pcSymbol && (pcSymbol->meKind == CPPSK_Class))
 			{
-				pcClass = mpcUnit->GetClass(pcSymbol, pcClassSpecifier);
-				mpcUnit->CompleteClass(pcClass, pcClassSpecifier);
+				pcClass = mpcUnit->GetClasses()->GetClass(pcSymbol, pcClassSpecifier);
+				mpcUnit->GetClasses()->CompleteClass(pcClass, pcClassSpecifier);
 			}
 			break;
 		case CPPS_LinkageSpecification:
@@ -391,16 +391,16 @@ void CCPPCheck::CheckUncalledFunctions(void)
 	}
 
 	//The classes defined there are laid out (their members declared and checked) though nothing uses them.
-	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
 	{
-		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 		if (pcClass->IsComplete() || pcClass->IsBeingMade() || !pcClass->mpcSpecifier || pcClass->mpcTemplate || pcClass->mpcBindings)
 		{
 			continue;
 		}
 		if (IsInSourceFile(pcClass->mpcSpecifier))
 		{
-			mpcUnit->CompleteClass(pcClass, pcClass->mpcSpecifier);
+			mpcUnit->GetClasses()->CompleteClass(pcClass, pcClass->mpcSpecifier);
 		}
 	}
 	mpcUnit->GenerateQueued();
@@ -1013,7 +1013,7 @@ bool CCPPCheck::CheckLocalClass(CCPPSyntax* pcDeclaration)
 		return true;
 	}
 	mpcUnit->mcDiagnostics.BeginLoud();
-	bResult = mpcUnit->CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
+	bResult = mpcUnit->GetClasses()->CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType);
 	mpcUnit->mcDiagnostics.EndLoud();
 	return bResult;
 }
@@ -1196,7 +1196,7 @@ bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement*
 		mpcUnit->mcDiagnostics.EndQuiet();
 		return !psValue || psValue->IsVoid() || mpcUnit->mcDiagnostics.ReportOnce(pcReturn, "A void function returns no value");
 	}
-	if (!psReturn->IsClass() || !mpcUnit->CompleteClass(psReturn->pcClass, pcReturn))
+	if (!psReturn->IsClass() || !mpcUnit->GetClasses()->CompleteClass(psReturn->pcClass, pcReturn))
 	{
 		return true;
 	}
@@ -1347,9 +1347,9 @@ void CCPPCheck::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
 	if (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers)
 	{
-		mpcUnit->AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
+		mpcUnit->GetClasses()->AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
 	}
-	mpcUnit->AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
+	mpcUnit->GetClasses()->AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
 	if (pcVariable && mpcUnit->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
 	{
 		return;
@@ -1471,7 +1471,7 @@ void CCPPCheck::CheckTemplatesAsThemselves(void)
 			pcClass = mpcUnit->GetInstantiator()->InstantiateClassAsItself(pcTemplate);
 			if (pcClass)
 			{
-				mpcUnit->CompleteClass(pcClass, pcTemplate->mpcDefinition);
+				mpcUnit->GetClasses()->CompleteClass(pcClass, pcTemplate->mpcDefinition);
 			}
 			mpcUnit->mcDiagnostics.EndQuiet();
 		}

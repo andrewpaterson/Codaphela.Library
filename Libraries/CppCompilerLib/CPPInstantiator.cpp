@@ -127,9 +127,9 @@ bool CCPPInstantiator::DefineInstanceStatics(bool* pbResult)
 		pcSimple = mpcUnit->masOutsideDefinitions.Get(i)->pcSimple;
 		pcName = mpcUnit->masOutsideDefinitions.Get(i)->pcName;
 		pcOwner = GetComponentTemplate(pcName->GetQualifier());
-		for (j = 0; j < mpcUnit->mapcClasses.NumElements(); j++)
+		for (j = 0; j < mpcUnit->GetClasses()->GetClassList()->NumElements(); j++)
 		{
-			pcClass = mpcUnit->mapcClasses.GetPtr(j);
+			pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(j);
 			if (!pcClass->mpcTemplate || (pcClass->mpcTemplate != pcOwner) || !pcClass->IsComplete() || pcClass->mbExternInstance || IsInstanceStaticDefined(pcClass, pcName))
 			{
 				continue;
@@ -282,7 +282,7 @@ CCPPTemplate* CCPPInstantiator::VariableTemplate(CCPPSymbol* pcSymbol, CCPPSynta
 	{
 		return GetTemplate(pcSymbol);
 	}
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
 	}
@@ -1088,9 +1088,9 @@ void CCPPInstantiator::DefineClassTemplate(CCPPSymbol* pcSymbol, CCPPSyntaxTempl
 
 	pcTemplate->mpcDeclaration = pcDeclaration;
 	pcTemplate->mpcDefinition = pcSpecifier;
-	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
 	{
-		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 		if ((pcClass->mpcTemplate == pcTemplate) && !pcClass->mpcSpecifier)
 		{
 			pcClass->mpcSpecifier = pcSpecifier;
@@ -1278,7 +1278,7 @@ bool CCPPInstantiator::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bEx
 		return true;
 	}
 	pcClass->mbExternInstance = false;
-	if (!ExplicitlyInstantiatedOnce(pcClass, pcDeclaration) || !mpcUnit->CompleteClass(pcClass, pcDeclaration))
+	if (!ExplicitlyInstantiatedOnce(pcClass, pcDeclaration) || !mpcUnit->GetClasses()->CompleteClass(pcClass, pcDeclaration))
 	{
 		return false;
 	}
@@ -1367,7 +1367,7 @@ bool CCPPInstantiator::ExplicitMemberInstantiation(CCPPSyntaxInitDeclarator* pcI
 
 	pcName = pcInit->mpcDeclarator->GetName();
 	pcClass = mpcUnit->GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
-	if (!pcClass || !pcClass->mpcTemplate || !mpcUnit->CompleteClass(pcClass, pcInit))
+	if (!pcClass || !pcClass->mpcTemplate || !mpcUnit->GetClasses()->CompleteClass(pcClass, pcInit))
 	{
 		return mpcUnit->mcDiagnostics.Error(pcInit, "The explicit instantiation names no member of a class template's instance");
 	}
@@ -1560,7 +1560,7 @@ CCPPTemplate* CCPPInstantiator::MemberClassTemplate(CCPPSymbol* pcSymbol, CCPPCl
 	size			i;
 
 	pcClass = pcClass ? pcClass : mpcUnit->GetNames()->MemberScopeClass(pcSymbol);
-	if (!pcClass || !mpcUnit->CompleteClass(pcClass, NULL))
+	if (!pcClass || !mpcUnit->GetClasses()->CompleteClass(pcClass, NULL))
 	{
 		return NULL;
 	}
@@ -2279,9 +2279,9 @@ CCPPClass* CCPPInstantiator::InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTempl
 	CCPPClass*	pcClass;
 	size			i;
 
-	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
 	{
-		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 		if (pcClass->mpcTemplate && (pcClass->mpcTemplate->mpcPrimary == pcTemplate) && pcClass->mszArguments.Equals(pszArguments))
 		{
 			return pcClass;
@@ -2303,11 +2303,11 @@ CCPPClass* CCPPInstantiator::InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTempl
 
 	//An instance used before the template was defined (UndefinedInstance) becomes this instance.
 	pcClass = NULL;
-	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
 	{
-		if (mpcUnit->mapcClasses.GetPtr(i)->IsInstanceNamed(pcTemplate->mpcSymbol) && mpcUnit->mapcClasses.GetPtr(i)->mszArguments.Equals(pszArguments))
+		if (mpcUnit->GetClasses()->GetClassList()->GetPtr(i)->IsInstanceNamed(pcTemplate->mpcSymbol) && mpcUnit->GetClasses()->GetClassList()->GetPtr(i)->mszArguments.Equals(pszArguments))
 		{
-			pcClass = mpcUnit->mapcClasses.GetPtr(i);
+			pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 			pcClass->mpcSymbol = pcTemplate->mpcSymbol;
 			pcClass->mszArguments.Kill();
 			pcClass->mszArguments.Init();
@@ -2316,7 +2316,7 @@ CCPPClass* CCPPInstantiator::InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTempl
 	}
 	if (!pcClass)
 	{
-		pcClass = mpcUnit->NewClass(pcTemplate->mpcSymbol, pcTemplate->mpcSymbol->mlliName);
+		pcClass = mpcUnit->GetClasses()->NewClass(pcTemplate->mpcSymbol, pcTemplate->mpcSymbol->mlliName);
 	}
 	pcClass->mpcTemplate = pcTemplate;
 	pcClass->mpcSpecifier = pcTemplate->IsDeclaredClass() ? NULL : (CCPPSyntaxClassSpecifier*)pcTemplate->mpcDefinition;
@@ -2342,15 +2342,15 @@ CCPPClass* CCPPInstantiator::PlaceholderClass(CCPPSymbol* pcParameter)
 	CCPPClass*	pcClass;
 	size		i;
 
-	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
 	{
-		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 		if (pcClass->mbPlaceholder && (pcClass->mpcSymbol == pcParameter))
 		{
 			return pcClass;
 		}
 	}
-	pcClass = mpcUnit->NewClass(pcParameter, pcParameter->mlliName);
+	pcClass = mpcUnit->GetClasses()->NewClass(pcParameter, pcParameter->mlliName);
 	pcClass->mbPlaceholder = true;
 	pcClass->mbEmpty = true;
 	pcClass->meState = CPPCS_Complete;
@@ -2513,16 +2513,16 @@ CCPPClass* CCPPInstantiator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySynta
 		szArguments.Kill();
 		return NULL;
 	}
-	for (i = 0; i < mpcUnit->mapcClasses.NumElements(); i++)
+	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
 	{
-		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 		if (pcClass->IsInstanceNamed(pcSymbol) && pcClass->mszArguments.Equals(&szArguments))
 		{
 			szArguments.Kill();
 			return pcClass;
 		}
 	}
-	pcClass = mpcUnit->NewClass(pcSymbol, pcSymbol->mlliName);
+	pcClass = mpcUnit->GetClasses()->NewClass(pcSymbol, pcSymbol->mlliName);
 	pcClass->mszArguments.Append(&szArguments);
 	szArguments.Kill();
 	return pcClass;

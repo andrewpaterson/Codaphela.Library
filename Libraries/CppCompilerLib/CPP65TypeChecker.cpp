@@ -815,7 +815,7 @@ void CCPP65TypeChecker::VisitTypeidExpression(CCPPSyntaxTypeidExpression* pcNode
 		Error(pcNode, "typeid of this is not supported by the compiler yet");
 		return;
 	}
-	if (psOf->WithoutReference()->IsClass() && !mpcUnit->CompleteClass(psOf->WithoutReference()->pcClass, pcNode))
+	if (psOf->WithoutReference()->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psOf->WithoutReference()->pcClass, pcNode))
 	{
 		//[expr.typeid] 4
 		return;
@@ -1014,7 +1014,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return (psType && psType->IsNullPointer()) ? mpcUnit->GetInstantiator()->ValueParameterType(cBound.mpcSymbol, psType) : psType;
 	case CPPBN_Variable:
 		//SIZE::Max's value is the constant its class gives it: it needs no definition.  [class.static.data] 4
-		if (mpcUnit->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->GetFolder()->Constant(pcId, &lliValue)))
+		if (mpcUnit->GetClasses()->IsConstantMember(cBound.mpcVariable) && (cBound.mpcVariable->mpsType->IsFloat() || mpcUnit->GetFolder()->Constant(pcId, &lliValue)))
 		{
 			return Load(cBound.mpcVariable->mpsType, pcId);
 		}
@@ -1113,7 +1113,7 @@ bool CCPP65TypeChecker::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* 
 	{
 		return false;
 	}
-	if (!mpcUnit->CompleteClass(pcClass, pcId))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcId))
 	{
 		return true;
 	}
@@ -1417,7 +1417,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 	CArraySyntax	apcRight;
 
 	psResult = TypeOf(pcBinary->mpcLeft);
-	if (psResult && psResult->IsClass() && !mpcUnit->CompleteClass(psResult->pcClass, pcBinary))
+	if (psResult && psResult->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psResult->pcClass, pcBinary))
 	{
 		//Its operator= (or its using Base::operator=) is known once it is laid out.
 		return NULL;
@@ -1655,7 +1655,7 @@ bool CCPP65TypeChecker::CompletePointee(SCPP65Type* psPointer, CCPPSyntax* pcNod
 	{
 		return Error(pcNode, "A pointer to a function doesn't step: a function has no size");
 	}
-	return !psPointee->IsClass() || mpcUnit->CompleteClass(psPointee->pcClass, pcNode);
+	return !psPointee->IsClass() || mpcUnit->GetClasses()->CompleteClass(psPointee->pcClass, pcNode);
 }
 
 
@@ -1900,7 +1900,7 @@ SCPP65Type* CCPP65TypeChecker::ObjectConditional(CCPPSyntaxConditionalExpression
 	}
 	if (psType->IsClass())
 	{
-		return (mpcUnit->CompleteClass(psType->pcClass, pcConditional) &&
+		return (mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcConditional) &&
 				Construct(psType, NULL, pcConditional->mpcTrue, pcConditional->mpcTrue) &&
 				Construct(psType, NULL, pcConditional->mpcFalse, pcConditional->mpcFalse)) ? psType : NULL;
 	}
@@ -2218,7 +2218,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 	{
 		return false;
 	}
-	return !(psReturn && psReturn->IsClass()) || mpcUnit->IsDecltypeOperand(pcNode) || mpcUnit->CompleteClass(psReturn->pcClass, pcNode);
+	return !(psReturn && psReturn->IsClass()) || mpcUnit->IsDecltypeOperand(pcNode) || mpcUnit->GetClasses()->CompleteClass(psReturn->pcClass, pcNode);
 }
 
 
@@ -2264,7 +2264,7 @@ bool CCPP65TypeChecker::ParameterArguments(CArrayCPP65Types* papsParameters, CAr
 		}
 		if (psParameter->IsClass())
 		{
-			if (!mpcUnit->CompleteClass(psParameter->pcClass, pcArgument) || !Construct(psParameter, NULL, pcArgument, pcArgument))
+			if (!mpcUnit->GetClasses()->CompleteClass(psParameter->pcClass, pcArgument) || !Construct(psParameter, NULL, pcArgument, pcArgument))
 			{
 				return false;
 			}
@@ -2515,7 +2515,7 @@ SCPP65Type* CCPP65TypeChecker::ArrowPointer(CCPPSyntax* pcObject, CCPPSyntax* pc
 	{
 		//An operator-> that returns an object (or a reference to one): its operator-> is applied, until one returns a
 		//pointer.  [over.ref] 1
-		pcFunction = mpcUnit->CompleteClass(psType->pcClass, pcNode) ? mpcUnit->GetBinder()->FindArrowOperator(psType->pcClass, NULL, pcNode) : NULL;
+		pcFunction = mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcNode) ? mpcUnit->GetBinder()->FindArrowOperator(psType->pcClass, NULL, pcNode) : NULL;
 		psType = pcFunction ? Call(pcFunction, NULL, pcNode) : NULL;
 		psType = (psType && psType->IsReference() && psType->psBase->IsClass()) ? psType->psBase : psType;
 	}
@@ -2657,7 +2657,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 	if (psMember->pcClass && (pcClass != psMember->pcClass))
 	{
 		//A base further on in the object is where the member is.
-		if (!mpcUnit->CompleteClass(pcClass, pcBinary))
+		if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcBinary))
 		{
 			return NULL;
 		}
@@ -3177,7 +3177,7 @@ bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 		return true;
 	}
 	pcDerived = mpcUnit->IsDerived(pcFrom, pcTo, NULL) ? pcFrom : pcTo;
-	if ((pcDerived == pcTo) && !psFrom->IsMemberPointer() && !(pcNamed && (pcNamed->meCast == CT_dynamic_cast)) && mpcUnit->CompleteClass(pcTo, pcNode) && mpcUnit->IsDerived(pcTo, pcFrom, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
+	if ((pcDerived == pcTo) && !psFrom->IsMemberPointer() && !(pcNamed && (pcNamed->meCast == CT_dynamic_cast)) && mpcUnit->GetClasses()->CompleteClass(pcTo, pcNode) && mpcUnit->IsDerived(pcTo, pcFrom, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
 	{
 		//A virtual base is nowhere fixed in the class: only dynamic_cast goes from it to the derived class.
 		//[expr.static.cast] 2, 11
@@ -3212,7 +3212,7 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcConstruct->mpcType);
 	if (psType && psType->IsClass())
 	{
-		return mpcUnit->CompleteObjectClass(psType->pcClass, pcConstruct) ? TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct) : NULL;
+		return mpcUnit->GetClasses()->CompleteObjectClass(psType->pcClass, pcConstruct) ? TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct) : NULL;
 	}
 	papcElements = mpcUnit->ConstructElements(pcConstruct);
 	if (psType && papcElements && (papcElements->NumElements() == 0) && (psType->IsScalar() || psType->IsVoid()))
@@ -3348,7 +3348,7 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 		}
 		mpcDiagnostics->BeginQuiet();
 		psType = OperandType(pcExpression->mpcType, pcExpression->mpcOperand);
-		bComplete = !psType || !psType->IsClass() || mpcUnit->CompleteClass(psType->pcClass, pcSizeof);
+		bComplete = !psType || !psType->IsClass() || mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcSizeof);
 		mpcDiagnostics->EndQuiet();
 		if (psType && psType->IsFunction())
 		{
@@ -3406,7 +3406,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 	bool			bFailed;
 
 	psType = mpcUnit->NewElementType(pcNew);
-	if (!psType || (psType->IsClass() && !mpcUnit->CompleteObjectClass(psType->pcClass, pcNew)))
+	if (!psType || (psType->IsClass() && !mpcUnit->GetClasses()->CompleteObjectClass(psType->pcClass, pcNew)))
 	{
 		return NULL;
 	}
@@ -3557,7 +3557,7 @@ SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDe
 		return NULL;
 	}
 	psType = psPointer->psBase;
-	if (psType->IsClass() && !(mpcUnit->CompleteClass(psType->pcClass, pcDelete) && mpcUnit->GetBinder()->ReachesDestructor(psType->pcClass, pcDelete)))
+	if (psType->IsClass() && !(mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcDelete) && mpcUnit->GetBinder()->ReachesDestructor(psType->pcClass, pcDelete)))
 	{
 		return NULL;
 	}
@@ -3572,7 +3572,7 @@ SCPP65Type* CCPP65TypeChecker::DeleteExpression(CCPPSyntaxDeleteExpression* pcDe
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65TypeChecker::TemporaryObject(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CCPPSyntax* pcNode)
 {
-	if (!mpcUnit->CompleteClass(psType->pcClass, pcNode) || !Construct(psType, pcInitialiser ? NULL : &mapcNone, pcInitialiser, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcNode) || !Construct(psType, pcInitialiser ? NULL : &mapcNone, pcInitialiser, pcNode))
 	{
 		return NULL;
 	}
@@ -3824,7 +3824,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	}
 
 	pcClass = psType->pcClass;
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		apcArguments.Kill();
 		return false;
@@ -3913,7 +3913,7 @@ bool CCPP65TypeChecker::InitializerListElements(SCPP65Type* psType, SCPP65Type* 
 	{
 		return Error(pcNode, "This std::initializer_list isn't laid out as the compiler fills one: a pointer to its elements, then their count or end");
 	}
-	if (psElement->IsClass() && !mpcUnit->CompleteClass(psElement->pcClass, pcNode))
+	if (psElement->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psElement->pcClass, pcNode))
 	{
 		return false;
 	}
@@ -4239,13 +4239,13 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 	//A pointer to a derived class points at its base, which may be further on: the derived class is laid out.
 	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
 	{
-		mpcUnit->CompleteClass(psFrom->psBase->pcClass, pcNode);
+		mpcUnit->GetClasses()->CompleteClass(psFrom->psBase->pcClass, pcNode);
 		return true;
 	}
 
 	//A pointer to a member of a base is a pointer to a member of a class derived from it, but not of a virtual base,
 	//whose members are nowhere fixed in the class.  [conv.mem] 2
-	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->pcClass && psTo->pcClass && (psFrom->pcClass != psTo->pcClass) && mpcUnit->CompleteClass(psTo->pcClass, pcNode) &&
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->pcClass && psTo->pcClass && (psFrom->pcClass != psTo->pcClass) && mpcUnit->GetClasses()->CompleteClass(psTo->pcClass, pcNode) &&
 		mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
 	{
 		return Error(pcNode, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
@@ -4543,7 +4543,7 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 		return true;
 	}
 	psTo = psTo->psBase;
-	if ((psTo->IsClass() && !mpcUnit->CompleteClass(psTo->pcClass, pcCast)) || (psFrom->IsClass() && !mpcUnit->CompleteClass(psFrom->pcClass, pcCast)))
+	if ((psTo->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psTo->pcClass, pcCast)) || (psFrom->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psFrom->pcClass, pcCast)))
 	{
 		//[expr.dynamic.cast] 1, 2
 		return false;
@@ -5502,7 +5502,7 @@ bool CCPP65TypeChecker::IsAggregate(SCPP65Type* psType)
 	}
 	pcClass = psType->pcClass;
 	mpcUnit->mcDiagnostics.BeginQuiet();
-	bComplete = mpcUnit->CompleteClass(pcClass, NULL);
+	bComplete = mpcUnit->GetClasses()->CompleteClass(pcClass, NULL);
 	mpcUnit->mcDiagnostics.EndQuiet();
 	return bComplete && !pcClass->mbConstructors && !pcClass->mpsLambda && (pcClass->macBases.NumElements() == 0) && !pcClass->IsPolymorphic();
 }
@@ -5540,9 +5540,9 @@ CCPPClass* CCPP65TypeChecker::TypeInfoClass(void)
 	CCPPClass*	pcClass;
 	size		i;
 
-	for (i = 0; !mpcUnit->mpcTypeInfo && (i < mpcUnit->mapcClasses.NumElements()); i++)
+	for (i = 0; !mpcUnit->mpcTypeInfo && (i < mpcUnit->GetClasses()->GetClassList()->NumElements()); i++)
 	{
-		pcClass = mpcUnit->mapcClasses.GetPtr(i);
+		pcClass = mpcUnit->GetClasses()->GetClassList()->GetPtr(i);
 		if (!pcClass->mpcTemplate && pcClass->mpcSymbol && mpcUnit->mcBinder.IsStdName(pcClass->mlliName, pcClass->mpcSymbol->mpcScope, "type_info"))
 		{
 			mpcUnit->mpcTypeInfo = pcClass;
@@ -5582,7 +5582,7 @@ SCPP65Type* CCPP65TypeChecker::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, 
 	psType = psType ? psType->WithoutReference() : NULL;
 	if (!pcTypeid->mpcType)
 	{
-		*pbDynamic = psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && mpcUnit->mcTypeChecker.IsObjectLvalue(pcTypeid->mpcOperand);
+		*pbDynamic = psType && psType->IsClass() && mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcTypeid) && psType->pcClass->IsPolymorphic() && mpcUnit->mcTypeChecker.IsObjectLvalue(pcTypeid->mpcOperand);
 	}
 	return psType ? psType->Unqualified() : NULL;
 }

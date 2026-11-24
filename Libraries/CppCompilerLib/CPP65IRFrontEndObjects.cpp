@@ -379,7 +379,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 		return false;
 	}
 	pcClass = mpcCPPFunction->mpcClass;
-	if (msThis.IsNone() || !mpcUnit->CompleteClass(pcClass, NULL))
+	if (msThis.IsNone() || !mpcUnit->GetClasses()->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -931,7 +931,7 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	}
 
 	pcClass = psType->pcClass;
-	if (!mpcUnit->CompleteClass(pcClass, NULL))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1457,7 +1457,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	for (psElement = psType; psElement->IsArray(); psElement = psElement->psBase)
 	{
 	}
-	if (psElement->IsClass() && !mpcUnit->CompleteClass(psElement->pcClass, NULL))
+	if (psElement->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psElement->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -1746,7 +1746,7 @@ bool CCPP65IRFrontEnd::DeleteExpression(CCPPSyntaxDeleteExpression* pcDelete, SC
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psType = sPointer.psType->psBase;
-	if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, NULL))
+	if (psType->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psType->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -2247,7 +2247,7 @@ bool CCPP65IRFrontEnd::Temporary(SCPP65Type* psType, SCPP65IRPlace* psPlace, SCP
 	CIRBlock*	pcEntry;
 	SIRType		sFlag;
 
-	if (!mpcUnit->CompleteClass(psType->pcClass, NULL))
+	if (!mpcUnit->GetClasses()->CompleteClass(psType->pcClass, NULL))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

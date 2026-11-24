@@ -239,7 +239,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 			mpcDiagnostics->Error(pcArray->mpcSize, "An array size must be a positive constant");
 			return NULL;
 		}
-		if (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, pcNode))
+		if (psType->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcNode))
 		{
 			return NULL;
 		}
@@ -753,7 +753,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 		{
 			//The class is laid out when it is first needed whole.
 			pcClassSpecifier = (CCPPSyntaxClassSpecifier*)pcType;
-			pcClass = pcClassSpecifier->mpcSymbol ? mpcUnit->GetClass(pcClassSpecifier->mpcSymbol, pcNode) : mpcUnit->GetUnnamedClass(pcClassSpecifier);
+			pcClass = pcClassSpecifier->mpcSymbol ? mpcUnit->GetClasses()->GetClass(pcClassSpecifier->mpcSymbol, pcNode) : mpcUnit->GetClasses()->GetUnnamedClass(pcClassSpecifier);
 			if (!pcClass->mpcSpecifier)
 			{
 				pcClass->mpcSpecifier = pcClassSpecifier;

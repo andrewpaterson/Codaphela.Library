@@ -315,11 +315,11 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 			return false;
 		}
 		psType = psType->WithoutReference();
-		if (psType->ElementType()->IsClass() && !mpcUnit->CompleteClass(psType->ElementType()->pcClass, pcExpression))
+		if (psType->ElementType()->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psType->ElementType()->pcClass, pcExpression))
 		{
 			return false;
 		}
-		psValue->lliValue = (pcSizeof->meKeyword == CT_alignof) ? mpcUnit->ObjectAlignment(psType) : psType->iBytes;
+		psValue->lliValue = (pcSizeof->meKeyword == CT_alignof) ? mpcUnit->GetClasses()->ObjectAlignment(psType) : psType->iBytes;
 		return true;
 
 	default:
@@ -533,7 +533,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 	pcBindings = pcClass ? pcClass->mpcBindings : NULL;
 	if (!pcInitialiser && (pcSymbol->meKind == CPPSK_Field))
 	{
-		pcVariable = pcClass ? mpcUnit->FindStatic(pcClass, pcSymbol->mlliName) : mpcUnit->GetVariable(pcSymbol);
+		pcVariable = pcClass ? mpcUnit->GetClasses()->FindStatic(pcClass, pcSymbol->mlliName) : mpcUnit->GetVariable(pcSymbol);
 		pcInitialiser = pcVariable ? pcVariable->mpcOutsideInitialiser : NULL;
 		if (!pcInitialiser && pcClass && pcClass->mpcTemplate)
 		{

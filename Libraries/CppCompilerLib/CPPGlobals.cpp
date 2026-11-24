@@ -129,7 +129,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 		mpcDiagnostics->BeginQuiet();
 		mpcDeclarators->GetBaseType(pcSpecifiers, pcDeclaration);
 		mpcDiagnostics->EndQuiet();
-		if (!mpcUnit->ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType) || !mpcUnit->CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
+		if (!mpcUnit->ClassStaticAsserts((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType) || !mpcUnit->GetClasses()->CheckVirtSpecifiers((CCPPSyntaxClassSpecifier*)pcSpecifiers->mpcType))
 		{
 			return false;
 		}
@@ -171,7 +171,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 			pcClass = pcDefining ? pcDefining->mpcClass : mpcUnit->GetNames()->GetComponentClass(pcName->GetQualifier(), NULL, pcInit);
 			if (pcClass)
 			{
-				mpcUnit->CompleteClass(pcClass, pcInit);
+				mpcUnit->GetClasses()->CompleteClass(pcClass, pcInit);
 				pcVariable = (pcInit->mpcSymbol && !pcDefining) ? mpcUnit->GetInstantiator()->OwnStatic(pcClass, pcInit->mpcSymbol) : pcVariable;
 			}
 		}
@@ -226,7 +226,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 			pcInitialiser = mpcUnit->GetBinder()->BoundInitialiser(psType, pcInitialiser);
 		}
 		psElement = psType->ElementType();
-		if (psElement->IsClass() && !mpcUnit->CompleteObjectClass(psElement->pcClass, pcInit))
+		if (psElement->IsClass() && !mpcUnit->GetClasses()->CompleteObjectClass(psElement->pcClass, pcInit))
 		{
 			bResult = false;
 			continue;
@@ -482,8 +482,8 @@ bool CCPPGlobals::AnonymousGlobal(CCPPSyntaxClassSpecifier* pcSpecifier)
 	CChars			szLabel;
 	size			i;
 
-	pcClass = mpcUnit->GetUnnamedClass(pcSpecifier);
-	if (!pcClass || !mpcUnit->CompleteClass(pcClass, pcSpecifier) || !pcClass->mbUnion)
+	pcClass = mpcUnit->GetClasses()->GetUnnamedClass(pcSpecifier);
+	if (!pcClass || !mpcUnit->GetClasses()->CompleteClass(pcClass, pcSpecifier) || !pcClass->mbUnion)
 	{
 		return mpcDiagnostics->Error(pcSpecifier, "This anonymous class is not supported by the compiler yet");
 	}
@@ -655,7 +655,7 @@ ECPPBoundTemporary CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSynt
 	}
 
 	bClass = psType->IsClass();
-	if (bClass && !mpcUnit->CompleteObjectClass(psType->pcClass, pcInitialiser))
+	if (bClass && !mpcUnit->GetClasses()->CompleteObjectClass(psType->pcClass, pcInitialiser))
 	{
 		return CPPBT_Error;
 	}
@@ -791,7 +791,7 @@ int CCPPGlobals::VariableDataAlignment(CCPPVariable* pcVariable, bool bClass)
 	int		iVariable;
 
 	iAlign = DataAlignment(pcVariable->mpsType, bClass);
-	iVariable = mpcUnit->VariableAlignment(pcVariable, &iAlignas);
+	iVariable = mpcUnit->GetClasses()->VariableAlignment(pcVariable, &iAlignas);
 	return (iVariable > iAlign) ? iVariable : iAlign;
 }
 
@@ -897,7 +897,7 @@ bool CCPPGlobals::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSp
 	}
 	psElement = psType->ElementType();
 	bObject = psElement->IsClass() || psType->IsReference();
-	if (psElement->IsClass() && !mpcUnit->CompleteClass(psElement->pcClass, pcInit))
+	if (psElement->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psElement->pcClass, pcInit))
 	{
 		return false;
 	}

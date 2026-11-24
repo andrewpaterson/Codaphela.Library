@@ -91,7 +91,7 @@ SCPPLambda* CCPPClosures::GetLambda(CCPPSyntaxLambdaExpression* pcSyntax)
 	psLambda->pcErrors = NULL;
 	psLambda->pcCall = NULL;
 	psLambda->szName.Init();
-	psLambda->pcClass = mpcUnit->NewClass(NULL, -1);
+	psLambda->pcClass = mpcUnit->GetClasses()->NewClass(NULL, -1);
 	psLambda->pcClass->mpsLambda = psLambda;
 	NameLambda(psLambda);
 	psLambda->pcClass->mpcBindings = psLambda->pcBindings;
@@ -680,7 +680,7 @@ bool CCPPClosures::AddCapture(SCPPLambda* psLambda, CCPPSymbol* pcSymbol, CCPPSy
 	for (psObject = psType; psObject->IsArray(); psObject = psObject->psBase)
 	{
 	}
-	if (psObject->IsClass() && !mpcUnit->CompleteObjectClass(psObject->pcClass, pcNode))
+	if (psObject->IsClass() && !mpcUnit->GetClasses()->CompleteObjectClass(psObject->pcClass, pcNode))
 	{
 		return false;
 	}
@@ -751,8 +751,8 @@ bool CCPPClosures::LayoutClosure(SCPPLambda* psLambda)
 
 	pcClass = psLambda->pcClass;
 	pcClass->meState = CPPCS_LayingOut;
-	mpcUnit->CompleteMembers(pcClass);
-	mpcUnit->PlaceMembers(pcClass, 0, 0);
+	mpcUnit->GetClasses()->CompleteMembers(pcClass);
+	mpcUnit->GetClasses()->PlaceMembers(pcClass, 0, 0);
 	pcClass->meState = CPPCS_Complete;
 	return true;
 }

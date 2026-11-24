@@ -431,7 +431,7 @@ bool CCPPBinder::ResolveCallOperator(CCPPSyntaxCallExpression* pcCall, CCPPBound
 	{
 		return false;
 	}
-	if (!mpcUnit->CompleteClass(psType->pcClass, pcCall))
+	if (!mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcCall))
 	{
 		return true;
 	}
@@ -571,7 +571,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		bArrow = pcMember->mbArrow;
 		if (bArrow)
 		{
-			psType = mpcUnit->ArrowType(pcMember->mpcObject, pcCallee);
+			psType = mpcUnit->GetClasses()->ArrowType(pcMember->mpcObject, pcCallee);
 			psType = (psType && psType->IsPointer()) ? psType->psBase : NULL;
 		}
 		else
@@ -589,7 +589,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 			return;
 		}
 		pcClass = psType->pcClass;
-		if (!mpcUnit->CompleteClass(pcClass, pcCallee))
+		if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcCallee))
 		{
 			return;
 		}
@@ -625,7 +625,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	//p->~X(), o.~X(), p->X::~X() or ~X() (this's): nothing if the class has no destructor.
 	if (pcName->GetLast()->meKind == CPPNC_Destructor)
 	{
-		if (!pcClass || (pcBound->mpapcArguments->NumElements() != 0) || !mpcUnit->CompleteClass(pcClass, pcCallee))
+		if (!pcClass || (pcBound->mpapcArguments->NumElements() != 0) || !mpcUnit->GetClasses()->CompleteClass(pcClass, pcCallee))
 		{
 			mpcDiagnostics->Error(pcCallee, "This destructor call is not supported by the compiler yet");
 			return;
@@ -675,11 +675,11 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	pcComponent = pcName->GetLast();
 	papcExplicit = pcComponent->mbTemplateArguments ? &pcComponent->macpTemplateArguments : NULL;
 	eObject = CalledObject(pcObject, bArrow);
-	if (mpcUnit->CompleteClass(pcLookup, pcCall) && !HasOneMeaning(pcLookup, lliName, pcCallee))
+	if (mpcUnit->GetClasses()->CompleteClass(pcLookup, pcCall) && !HasOneMeaning(pcLookup, lliName, pcCallee))
 	{
 		return;
 	}
-	pcTemplate = mpcUnit->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcBound->mpapcArguments, papcExplicit, eObject) : NULL;
+	pcTemplate = mpcUnit->GetClasses()->CompleteClass(pcLookup, pcCall) ? mcOverloads.ChooseMemberTemplate(pcLookup, lliName, pcCall, pcBound->mpapcArguments, papcExplicit, eObject) : NULL;
 	pcFunction = NULL;
 	if (pcComponent->meKind == CPPNC_Conversion)
 	{
@@ -928,7 +928,7 @@ void CCPPBinder::ResolveOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcBound->mpcLeft);
 	apcArguments.Init();
 	pcMember = NULL;
-	if (psType && psType->IsClass() && mpcUnit->CompleteClass(psType->pcClass, pcNode) && mcNames.HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
+	if (psType && psType->IsClass() && mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcNode) && mcNames.HasOperator(psType->pcClass, pcBound->mlliName, pcBound->mpcRight ? 1 : 0))
 	{
 		if (pcBound->mpcRight)
 		{
@@ -996,7 +996,7 @@ void CCPPBinder::ResolveOwnOperator(CCPPSyntax* pcNode, CCPPBoundCall* pcBound)
 		mpcDiagnostics->Error(pcNode, "An operator call needs an object");
 		return;
 	}
-	if (!mpcUnit->CompleteClass(psType->pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcNode))
 	{
 		return;
 	}
@@ -1826,7 +1826,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		}
 		if (pcMemberClass)
 		{
-			pcBound->mpcVariable = mpcUnit->FindStatic(pcMemberClass, mpcUnit->GetComponentName(pcId->mpcName->GetLast()));
+			pcBound->mpcVariable = mpcUnit->GetClasses()->FindStatic(pcMemberClass, mpcUnit->GetComponentName(pcId->mpcName->GetLast()));
 		}
 	}
 
@@ -1977,7 +1977,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	pcBound->miOffset = 0;
 	pcBound->mpcQualifier = NULL;
 	pcBound->mpcVirtualBase = NULL;
-	if (!pcClass || !(pcClass->IsLayingOut() || mpcUnit->CompleteClass(pcClass, pcNode)))
+	if (!pcClass || !(pcClass->IsLayingOut() || mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode)))
 	{
 		return false;
 	}
@@ -2013,7 +2013,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 		//object.size<char> is its class's member variable template's instance for the arguments (each a static member
 		//of the name).  [temp.variable] 1
 		pcSymbol = pcName->GetLast()->mbTemplateArguments ? pcLookup->FindMemberSymbol(lliName, CPPSK_VariableTemplate, &pcDeclaring) : NULL;
-		pcBound->mpcVariable = pcSymbol ? mpcUnit->GetInstantiator()->ClassVariableInstance(pcSymbol, pcName->GetLast(), pcLookup, pcNode) : mpcUnit->FindStatic(pcClass, lliName);
+		pcBound->mpcVariable = pcSymbol ? mpcUnit->GetInstantiator()->ClassVariableInstance(pcSymbol, pcName->GetLast(), pcLookup, pcNode) : mpcUnit->GetClasses()->FindStatic(pcClass, lliName);
 		if (!pcBound->mpcVariable)
 		{
 			return false;
@@ -2461,7 +2461,7 @@ bool CCPPBinder::BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArgument
 {
 	pcBound->meHow = CPPBO_Failed;
 	pcBound->mpcConstructor = NULL;
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		return false;
 	}
@@ -2526,7 +2526,7 @@ CCPPClass* CCPPBinder::MemberObjectClass(CCPPSyntaxMemberExpression* pcMember)
 	SCPP65Type*	psObject;
 
 	mpcUnit->mcDiagnostics.BeginQuiet();
-	psObject = pcMember->mbArrow ? mpcUnit->ArrowType(pcMember->mpcObject, pcMember) : mpcUnit->mcTypeChecker.ValueTypeOf(pcMember->mpcObject);
+	psObject = pcMember->mbArrow ? mpcUnit->GetClasses()->ArrowType(pcMember->mpcObject, pcMember) : mpcUnit->mcTypeChecker.ValueTypeOf(pcMember->mpcObject);
 	mpcUnit->mcDiagnostics.EndQuiet();
 	if (psObject && pcMember->mbArrow)
 	{
@@ -2569,7 +2569,7 @@ CCPPSymbol* CCPPBinder::MemberEnumerator(CCPPSyntaxMemberExpression* pcMember)
 	CCPPClass*	pcDeclaring;
 
 	pcClass = MemberObjectClass(pcMember);
-	return (pcClass && mpcUnit->CompleteClass(pcClass, pcMember)) ? pcClass->FindMemberSymbol(mpcUnit->GetComponentName(pcMember->mpcName->GetLast()), CPPSK_Enumerator, &pcDeclaring) : NULL;
+	return (pcClass && mpcUnit->GetClasses()->CompleteClass(pcClass, pcMember)) ? pcClass->FindMemberSymbol(mpcUnit->GetComponentName(pcMember->mpcName->GetLast()), CPPSK_Enumerator, &pcDeclaring) : NULL;
 }
 
 

@@ -56,6 +56,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPDeclarators.h"
 #include "CPPFunctionDeclarer.h"
 #include "CPPGlobals.h"
+#include "CPPClasses.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
@@ -235,7 +236,6 @@ protected:
 	CArrayCPPVariables	mapcGlobals;
 	CArrayCPPFunctions	mapcFunctions;
 	CMapCPPFunctionsOfNames	mcFunctionsOfNames;	//mapcFunctions by name (FirstFunctionOfName).
-	CArrayCPPClasses		mapcClasses;
 	CArrayCPPTemplates	mapcTemplates;
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
@@ -266,6 +266,7 @@ protected:
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
 	CCPPFunctionDeclarer	mcFunctionDeclarer;	//Declares the functions.
+	CCPPClasses				mcClasses;			//The classes: made, laid out and checked.
 	CCPPGlobals				mcGlobals;			//The data of static storage, and what makes and destroys it.
 	CCPPMangler				mcMangler;			//Makes the labels.
 	CArrayCPPFunctionScopes	mapsFunctionScopes;	//The functions entered, the last the one being written (GetLocals, GetFunctionPacks).
@@ -278,8 +279,6 @@ protected:
 	bool					mbMissedImports;	//The unit must be generated again (MissedImports).
 	CAsm65Profile*			mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames (SetFrameProfile), or NULL.
 	bool					mbListing;			//The code has comments with the C++ source lines it is for (SetListing).
-	bool					mbLayouts;			//Each class laid out is written down (SetLayouts)...
-	CArrayChars				maszLayouts;		//...here, a line each (GetLayouts).
 	bool					mbLineTable;		//The code has .line and .fingerprint directives, for the linker's line table (SetLineTable).
 	bool					mbNoFloats;			//Floating point in the code it writes is an error (SetNoFloats): a kernal's units.
 	bool					mbCompiledBefore;	//The same text was compiled before with no error (SetCompiledBefore): nothing is done only to report.
@@ -317,6 +316,7 @@ public:
 	CCPPFunctionDeclarer*	GetFunctionDeclarer(void);
 	CCPPNames*				GetNames(void);
 	CCPPGlobals*			GetGlobals(void);
+	CCPPClasses*			GetClasses(void);
 	CArrayCPPVariables*		GetGlobalVariables(void);
 	CCPP65IRFrontEnd*		GetIRFrontEnd(void) const;
 	CCPPMangler*			GetMangler(void);
@@ -367,6 +367,7 @@ public:
 	void					SetLineTable(bool bLineTable, int64 lliCompileTime);
 	void					SetNoFloats(bool bNoFloats);
 	void					SetCompiledBefore(bool bCompiledBefore);
+	bool					IsCompiledBefore(void) const;
 	bool					IsCSource(void) const;
 	void					SetSpillStore(CSpillStore* pcStore, uint32 uiUnit = 0);
 	void					SetStatistics(CCPPCompileStatistics* pcStatistics);
@@ -386,8 +387,6 @@ public:
 	void					AppendName(CChars* psz, int64 lliName);
 	int64					GetName(CCPPSyntaxDeclarator* pcDeclarator);
 
-	bool					CheckOverrides(CCPPClass* pcClass);
-	bool					HasVirtSpecifier(CCPPSyntaxFunctionSuffix* pcSuffix, int64 lliName);
 	void					EnterFunction(CCPPFunction* pcFunction);
 	void					LeaveFunction(void);
 	void					PushFunctionScope(void);
@@ -418,7 +417,6 @@ public:
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
-	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendRuntime(void);
@@ -441,13 +439,6 @@ public:
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
-	CCPPClass*			NewClass(CCPPSymbol* pcSymbol, int64 lliName);
-	CCPPClass*			GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPClass* pcEnclosing = NULL);
-	CCPPClass*			GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier);
-	CCPPClass*			FindClass(int64 lliName, CCPPScope* pcLookup);
-	int						AlignasAlignment(CArraySyntax* papcSpecifiers, bool bClass = false);
-	int						ObjectAlignment(SCPP65Type* psType);
-	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
 	bool					GivenEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, size uiEnumerator, int64* plliValue);
@@ -473,16 +464,7 @@ public:
 	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
 	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
 
-	bool					CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	bool					FindSpecifier(CCPPClass* pcClass);
-	bool					CompleteObjectClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	bool					ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	bool					AddBase(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier, CCPPSyntaxName* pcName);
-	bool					AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBaseSpecifier);
-	bool					LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	void					AddLayout(CCPPClass* pcClass);
-	void					CompleteMembers(CCPPClass* pcClass);
-	void					PlaceMembers(CCPPClass* pcClass, int iPack, int iAlign);
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
 	void					AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined);
@@ -492,17 +474,8 @@ public:
 	bool					QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
-	bool					ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember);
-	bool					ClassBitField(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxInitDeclarator* pcInit);
-	bool					IsDeclaredAgainInClass(CCPPClass* pcClass, CCPPFunction* pcFunction, size uiMembers);
-	bool					ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOverridden);
-	bool					InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifiers* pcSpecifiers, SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
-	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
-	bool					IsConstantMember(CCPPVariable* pcVariable);
-	void					ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing);
-	void					InheritConstructors(CCPPClass* pcClass);
 	bool					IsConstObject(CCPPSyntax* pcExpression);
 	CCPPFunction*			ThisFunction(void);
 	bool					IsConstThis(void);
@@ -518,7 +491,6 @@ public:
 	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
-	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);
 
 

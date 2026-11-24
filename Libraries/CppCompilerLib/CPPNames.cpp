@@ -170,7 +170,7 @@ CCPPClass* CCPPNames::MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* p
 	SCPP65Type*		psType;
 	int64			lliName;
 
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
 	}
@@ -248,7 +248,7 @@ CCPPClass* CCPPNames::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CC
 		}
 		else if (lliName != -1)
 		{
-			return mpcUnit->FindClass(lliName, ComponentLookup(pcComponent));
+			return mpcUnit->GetClasses()->FindClass(lliName, ComponentLookup(pcComponent));
 		}
 	}
 	if (!pcSymbol)
@@ -258,7 +258,7 @@ CCPPClass* CCPPNames::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CC
 
 	if (pcSymbol->meKind == CPPSK_Class)
 	{
-		return mpcUnit->GetClass(pcSymbol, pcNode);
+		return mpcUnit->GetClasses()->GetClass(pcSymbol, pcNode);
 	}
 	if (pcSymbol->meKind == CPPSK_Typedef)
 	{
@@ -356,7 +356,7 @@ CCPPClass* CCPPNames::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTempl
 		return pcClass;
 	}
 	mpcDiagnostics->BeginQuiet();
-	mpcUnit->ResolveBases(pcClass, NULL);
+	mpcUnit->GetClasses()->ResolveBases(pcClass, NULL);
 	mpcDiagnostics->EndQuiet();
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
@@ -411,7 +411,7 @@ CCPPClass* CCPPNames::MemberScopeClass(CCPPSymbol* pcSymbol)
 			return pcBindings->mpcClass;
 		}
 	}
-	return mpcUnit->GetInstantiator()->GetTemplate(pcScope->mpcOwner) ? NULL : mpcUnit->GetClass(pcScope->mpcOwner, NULL);
+	return mpcUnit->GetInstantiator()->GetTemplate(pcScope->mpcOwner) ? NULL : mpcUnit->GetClasses()->GetClass(pcScope->mpcOwner, NULL);
 }
 
 
@@ -488,7 +488,7 @@ CCPPSymbol* CCPPNames::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eK
 
 	mpcDiagnostics->BeginSilent();
 	pcClass = NameQualifierClass(pcName, pcNode);
-	pcSymbol = (pcClass && mpcUnit->CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(mpcUnit->GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
+	pcSymbol = (pcClass && mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(mpcUnit->GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	bAmbiguous = pcSymbol && (pcClass->macBases.NumElements() > 1) && IsAmbiguousInBases(pcClass, mpcUnit->GetComponentName(pcName->GetLast()));
 	mpcDiagnostics->EndSilent();
 	if (bAmbiguous)
@@ -588,7 +588,7 @@ bool CCPPNames::HasMember(CCPPClass* pcClass, int64 lliName)
 	CCPPFunction*	pcFunction;
 	size			i;
 
-	if (!mpcUnit->CompleteClass(pcClass, NULL))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, NULL))
 	{
 		return false;
 	}
@@ -625,7 +625,7 @@ bool CCPPNames::HasOperator(CCPPClass* pcClass, int64 lliName, size uiArguments)
 	{
 		//A base's operator= is hidden by the copy assignment operator every class declares: only the class's own
 		//are, and those a using-declaration in it names (using Base::operator=;).  [over.ass] 1, [namespace.udecl] 4
-		if (!mpcUnit->CompleteClass(pcClass, NULL))
+		if (!mpcUnit->GetClasses()->CompleteClass(pcClass, NULL))
 		{
 			return false;
 		}
@@ -713,7 +713,7 @@ void CCPPNames::FindInBases(CCPPClass* pcClass, int64 lliName, CArrayCPPClasses*
 		}
 		return;
 	}
-	if (!mpcUnit->ResolveBases(pcClass, NULL))
+	if (!mpcUnit->GetClasses()->ResolveBases(pcClass, NULL))
 	{
 		return;
 	}

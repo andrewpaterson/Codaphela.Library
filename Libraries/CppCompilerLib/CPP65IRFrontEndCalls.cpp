@@ -539,7 +539,7 @@ bool CCPP65IRFrontEnd::Call(CCPPFunction* pcFunction, SIRReference sCallee, SCPP
 	msElide = IRNone();
 	sVTT = msVTTArgument;
 	msVTTArgument = IRNone();
-	if ((!IsSupportedType(psReturn) && !psReturn->IsClass()) || psReturn->IsArray() || (psReturn->IsClass() && (bVariadic || !mpcUnit->CompleteClass(psReturn->pcClass, NULL))))
+	if ((!IsSupportedType(psReturn) && !psReturn->IsClass()) || psReturn->IsArray() || (psReturn->IsClass() && (bVariadic || !mpcUnit->GetClasses()->CompleteClass(psReturn->pcClass, NULL))))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -825,7 +825,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 	{
 		pcArgument = papcArguments ? papcArguments->GetPtr(ui - 1) : NULL;
 		psParameter = papsParameters->GetPtr(ui - 1);
-		if (pcArgument && psParameter->IsClass() && (!bVariadic || (ui < uiParameters)) && mpcUnit->CompleteClass(psParameter->pcClass, NULL) && IsPassedByAddress(psParameter))
+		if (pcArgument && psParameter->IsClass() && (!bVariadic || (ui < uiParameters)) && mpcUnit->GetClasses()->CompleteClass(psParameter->pcClass, NULL) && IsPassedByAddress(psParameter))
 		{
 			//A copy made here (and destroyed at the end of the full expression) is passed by its address.  Not a variadic
 			//function's last named parameter, whose address va_start takes for the arguments after it.
@@ -840,7 +840,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 			continue;
 		}
 		if (!pcArgument || psParameter->IsArray() || (!IsSupportedType(psParameter) && !psParameter->IsClass()) ||
-			(psParameter->IsClass() && (bVariadic || !mpcUnit->CompleteClass(psParameter->pcClass, NULL) || !psParameter->pcClass->IsTriviallyCopyable())))
+			(psParameter->IsClass() && (bVariadic || !mpcUnit->GetClasses()->CompleteClass(psParameter->pcClass, NULL) || !psParameter->pcClass->IsTriviallyCopyable())))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}

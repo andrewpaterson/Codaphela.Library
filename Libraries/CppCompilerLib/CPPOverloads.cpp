@@ -229,7 +229,7 @@ CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, ECPPCo
 
 	*pbAmbiguous = false;
 	pcFound = NULL;
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
 	}
@@ -274,7 +274,7 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 	size				i;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindConversion);
-	if (!mpcUnit->CompleteClass(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
 	}
@@ -848,7 +848,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		cResolved = 1;
 		mcResolved.Put(lliResolved, &cResolved);
 	}
-	if (pcClass && !mpcUnit->CompleteClass(pcClass, pcNode))
+	if (pcClass && !mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		return NULL;
 	}
@@ -1349,7 +1349,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 	{
 		pcClass = mpcUnit->GetClosures()->OuterFunction()->mpcClass;
 	}
-	if (pcClass && mpcUnit->CompleteClass(pcClass, pcNode))
+	if (pcClass && mpcUnit->GetClasses()->CompleteClass(pcClass, pcNode))
 	{
 		pcFound = FindMemberFunction(pcClass, lliName, psTarget, true, NULL, pbOverloaded);
 	}
@@ -2078,7 +2078,7 @@ int CCPPOverloads::ConvertingConstructorRank(CCPPClass* pcClass, SCPP65Type* psA
 	int				iBest;
 	int				iRank;
 
-	if (!mpcUnit->CompleteClass(pcClass, pcArgument) || !pcClass->mbConstructors)
+	if (!mpcUnit->GetClasses()->CompleteClass(pcClass, pcArgument) || !pcClass->mbConstructors)
 	{
 		return CPPCR_None;
 	}

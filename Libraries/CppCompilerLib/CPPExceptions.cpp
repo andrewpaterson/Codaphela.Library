@@ -125,7 +125,7 @@ bool CCPPExceptions::CheckThrown(CCPPSyntaxThrowExpression* pcThrow)
 	}
 	if (psType->IsClass())
 	{
-		if (!mpcUnit->CompleteClass(psType->pcClass, pcThrow))
+		if (!mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcThrow))
 		{
 			return false;
 		}
@@ -1155,7 +1155,7 @@ bool CCPPExceptions::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
 	{
 		return mpcUnit->GetDiagnostics()->Error(pcHandler->mpcParameter, "A handler of an array or a function is not supported by the compiler yet");
 	}
-	if (psObject->IsClass() && !mpcUnit->CompleteObjectClass(psObject->pcClass, pcHandler->mpcParameter))
+	if (psObject->IsClass() && !mpcUnit->GetClasses()->CompleteObjectClass(psObject->pcClass, pcHandler->mpcParameter))
 	{
 		return false;
 	}

@@ -954,7 +954,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 		return Unsupported(__FILE__, __LINE__);
 	}
 	psType = ThrownType(psType);
-	if (psType->IsVoid() || (psType->IsClass() && !mpcUnit->CompleteClass(psType->pcClass, pcThrow)) || (!psType->IsClass() && !IsSupportedType(psType)))
+	if (psType->IsVoid() || (psType->IsClass() && !mpcUnit->GetClasses()->CompleteClass(psType->pcClass, pcThrow)) || (!psType->IsClass() && !IsSupportedType(psType)))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}

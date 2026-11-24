@@ -151,7 +151,7 @@ void CCPPUnit::ResolveAllBases(CCPPClass* pcClass)
 	{
 		return;
 	}
-	ResolveBases(pcClass, NULL);
+	mcClasses.ResolveBases(pcClass, NULL);
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		ResolveAllBases(pcClass->macBases.Get(i)->pcClass);

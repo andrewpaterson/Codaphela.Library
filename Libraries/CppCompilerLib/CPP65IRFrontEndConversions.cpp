@@ -102,7 +102,7 @@ bool CCPP65IRFrontEnd::DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom
 {
 	int		iOffset;
 
-	if (!mpcUnit->CompleteClass(pcTo, NULL) || !mpcUnit->IsDerived(pcTo, pcFrom, &iOffset))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcTo, NULL) || !mpcUnit->IsDerived(pcTo, pcFrom, &iOffset))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -169,7 +169,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	}
 
 	pcFrom = psValue->psType->psBase->pcClass;
-	if (!mpcUnit->CompleteClass(pcFrom, pcCast))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcFrom, pcCast))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -177,7 +177,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 	if (psTo->psBase->IsClass())
 	{
 		pcTarget = psTo->psBase->pcClass;
-		if (!mpcUnit->CompleteClass(pcTarget, pcCast))
+		if (!mpcUnit->GetClasses()->CompleteClass(pcTarget, pcCast))
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
@@ -613,7 +613,7 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	//A pointer to a derived class points at its base, which may be further on (a null pointer stays null).  The
 	//derived class is laid out to know where its base is, even if nothing else has needed it whole yet.
 	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) &&
-		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcUnit->CompleteClass(psFrom->psBase->pcClass, NULL) &&
+		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcUnit->GetClasses()->CompleteClass(psFrom->psBase->pcClass, NULL) &&
 		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
 	{
 		psValue->sValue = BaseAddress(psValue->sValue, psFrom->psBase->pcClass, psTo->psBase->pcClass, true);
@@ -761,7 +761,7 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, CCPPClass* pcF
 	int					iOffset;
 	int					iBelow;
 
-	if (!pcFrom || !pcTo || (pcFrom == pcTo) || !mpcUnit->CompleteClass(pcFrom, NULL) || !mpcUnit->IsDerived(pcFrom, pcTo, &iOffset))
+	if (!pcFrom || !pcTo || (pcFrom == pcTo) || !mpcUnit->GetClasses()->CompleteClass(pcFrom, NULL) || !mpcUnit->IsDerived(pcFrom, pcTo, &iOffset))
 	{
 		return sAddress;
 	}
