@@ -355,6 +355,67 @@ void TestJSONParser65816SampleTest(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The error szJSON gives, as logged.
+//
+//////////////////////////////////////////////////////////////////////////
+void ParseJSONError(const char* szJSON, CChars* pszLog)
+{
+	CJSONParser		cJSONParser;
+	CMarkup			cMarkup;
+	CLogger			cLogger;
+	CMemoryFile		cMemory;
+	SLogConfig		sLogConfig;
+	char			szZero[1] = { 0 };
+
+	cMemory.Init();
+	cMemory.Open(EFM_ReadWrite_Create);
+	cLogger.Init(&cMemory, NULL);
+	sLogConfig = cLogger.SetSilent();
+	cMarkup.Init();
+	cJSONParser.Init(szJSON, "InMemory", &cMarkup, &cLogger);
+	AssertTristate(TRIERROR, cJSONParser.Parse());
+	cMemory.Write(szZero, 1, 1);
+	pszLog->Init((const char*)cMemory.GetBufferPointer());
+
+	cLogger.SetConfig(&sLogConfig);
+	cJSONParser.Kill();
+	cMarkup.Kill();
+	cLogger.Kill();
+	cMemory.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A byte order mark isn't in a column: an error after one is reported
+// where it is without one.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestJSONParserByteOrderMark(void)
+{
+	CMarkup		cMarkup;
+	CJSONParser	cJSONParser;
+	CChars		szWith;
+	CChars		szWithout;
+	char		szJSON[] = "\xEF\xBB\xBF" "{\"a\": 1}";
+
+	cMarkup.Init();
+	cJSONParser.Init(szJSON, "", &cMarkup, &gcLogger);
+	AssertTritrue(cJSONParser.Parse());
+	cJSONParser.Kill();
+	AssertTrue(cMarkup.mpcDoc->GetRootTag()->GetAttribute("a", NULL, NULL));
+	cMarkup.Kill();
+
+	ParseJSONError("{\"a\" 1}", &szWithout);
+	ParseJSONError("\xEF\xBB\xBF" "{\"a\" 1}", &szWith);
+	AssertString(szWithout.Text(), szWith.Text());
+	szWith.Kill();
+	szWithout.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestJSONParser(void)
@@ -368,6 +429,7 @@ void TestJSONParser(void)
 	TestJSONParserReadLiterals();
 	TestJSONParserNullAttribute();
 	TestJSONParser65816SampleTest();
+	TestJSONParserByteOrderMark();
 
 	DataMemoryKill();
 	TestStatistics();

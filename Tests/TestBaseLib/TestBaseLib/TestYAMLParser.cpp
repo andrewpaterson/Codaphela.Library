@@ -335,6 +335,45 @@ quoted: !custom 'a b'\n";
 //
 //
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+// A comment after a key, a '- ' or a --- whose value is on the lines
+// below (the caller has skipped the spaces before the #).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestYAMLParserCommentsBeforeBlocks(void)
+{
+	CMarkup			cMarkup;
+	CChars			sz;
+	const char*		szYAML = "\
+--- # the document\n\
+map:   # a map below\n\
+  b: 1\n\
+list:\t# a list below\n\
+  -   # an entry below\n\
+    x\n\
+  - # another\n\
+    - y\n\
+empty: # nothing below\n\
+end: 2\n";
+
+	AssertTritrue(ParseAndPrintYAML(szYAML, &cMarkup, &sz));
+	AssertString(
+		"<empty=null, end=2>\n"
+		"  <map b=1/>\n"
+		"  <list \"x\">\n"
+		"    [\"y\"]\n"
+		"  </list>\n"
+		"</>\n", sz.Text());
+	sz.Kill();
+	cMarkup.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestYAMLParserDocuments(void)
 {
 	CMarkup			cMarkup;
@@ -450,6 +489,8 @@ void TestYAMLParserErrors(void)
 	AssertYAMLError("a: [x, !tag y]\n", "Tags inside [ ] and { } are not supported");
 	AssertYAMLError("a: !tag [x]\n", "Tags on [ ] and { } collections are not supported");
 	AssertYAMLError("a: b: c\n", "A value can't contain ': '");
+	AssertYAMLError("a: b: c\n", "InMemory(0,4): A value can't contain ': '");
+	AssertYAMLError("\xEF\xBB\xBF" "a: b: c\n", "InMemory(0,4): A value can't contain ': '");
 	AssertYAMLError("a: [x, y] z\n", "Expected the end of the line");
 	AssertYAMLError("a: 'x'#y\n", "A comment needs a space before its #");
 	AssertYAMLError("- a\nb: 1\n", "Expected the end of the document");
@@ -540,6 +581,7 @@ void TestYAMLParser(void)
 	TestYAMLParserFlow();
 	TestYAMLParserQuoted();
 	TestYAMLParserTags();
+	TestYAMLParserCommentsBeforeBlocks();
 	TestYAMLParserDocuments();
 	TestYAMLParserReadsJSON();
 	TestYAMLParserErrors();

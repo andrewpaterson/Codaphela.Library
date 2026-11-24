@@ -685,14 +685,26 @@ TRISTATE CTextParser::GetDebugCharacterSequence(char* szSequence)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The UTF-8 byte order mark, if the text starts with one.  Nothing is
+// skipped before it (white space before it means it isn't one), it isn't
+// in a column (the text after it starts at column 0) and text without one,
+// empty text included, is TRIFALSE rather than an error.
 //
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::SkipUTF8BOM(void)
 {
-	TRISTATE	tResult;
+	if (mbOutsideText || (mszParserPos != mszStartOfText) || (RemainingLength() < 3))
+	{
+		return TRIFALSE;
+	}
 
-	tResult = GetExactCharacterSequence("\xEF\xBB\xBF");
-	return tResult;
+	if ((mszParserPos[0] == '\xEF') && (mszParserPos[1] == '\xBB') && (mszParserPos[2] == '\xBF'))
+	{
+		mszParserPos = &mszParserPos[3];
+		TestEnd();
+		return TRITRUE;
+	}
+	return TRIFALSE;
 }
 
 
@@ -3491,7 +3503,13 @@ void CTextParser::GetLineLocationMarkerString(CChars* pszDest)
 		return;
 	}
 	szStartOfLine = mszParserPos;
-	
+
+	//A byte order mark isn't part of the first line (SkipUTF8BOM): leave it out, or the marker is three columns right.
+	if ((szStartOfLine == mszStartOfText) && (sState.szPos >= &mszStartOfText[3]) && (szStartOfLine[0] == '\xEF') && (szStartOfLine[1] == '\xBB') && (szStartOfLine[2] == '\xBF'))
+	{
+		szStartOfLine = &szStartOfLine[3];
+	}
+
 	SetPosition(&sState);
 
 	tResult = FindEndOfLine();

@@ -536,6 +536,60 @@ void TestTextParserGetString()
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The byte order mark only counts at the very start, isn't in a column,
+// and its absence (empty text too) is TRIFALSE, not an error.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextParserSkipUTF8BOM(void)
+{
+	CTextParser	cTextParser;
+	char		szEmpty[] = "";
+	char		szSpaces[] = "  x";
+	char		szBOM[] = "\xEF\xBB\xBF" "ab";
+	char		szOnlyBOM[] = "\xEF\xBB\xBF";
+	char		szShort[] = "\xEF\xBB";
+	char		szLate[] = "a\xEF\xBB\xBF";
+
+	cTextParser.Init(szEmpty);
+	AssertTristate(TRIFALSE, cTextParser.SkipUTF8BOM());
+	cTextParser.Kill();
+
+	cTextParser.Init(szSpaces);
+	AssertTristate(TRIFALSE, cTextParser.SkipUTF8BOM());
+	AssertLSize(0, cTextParser.Column());
+	AssertChar(' ', cTextParser.Current());
+	cTextParser.Kill();
+
+	cTextParser.Init(szBOM);
+	AssertTristate(TRITRUE, cTextParser.SkipUTF8BOM());
+	AssertLSize(0, cTextParser.Line());
+	AssertLSize(0, cTextParser.Column());
+	AssertChar('a', cTextParser.Current());
+	cTextParser.StepRight();
+	AssertLSize(1, cTextParser.Column());
+	AssertChar('b', cTextParser.Current());
+	cTextParser.Kill();
+
+	cTextParser.Init(szOnlyBOM);
+	AssertTristate(TRITRUE, cTextParser.SkipUTF8BOM());
+	AssertTrue(cTextParser.IsOutside());
+	cTextParser.Kill();
+
+	cTextParser.Init(szShort);
+	AssertTristate(TRIFALSE, cTextParser.SkipUTF8BOM());
+	AssertLSize(0, cTextParser.Column());
+	cTextParser.Kill();
+
+	cTextParser.Init(szLate);
+	cTextParser.StepRight();
+	AssertTristate(TRIFALSE, cTextParser.SkipUTF8BOM());
+	AssertChar('\xEF', cTextParser.Current());
+	cTextParser.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextParser(void)
@@ -549,6 +603,7 @@ void TestTextParser(void)
 	TestTextParserGetFloatWithExponent();
 	TestTextParserGetIdentifierWithWhitespace();
 	TestTextParserGetString();
+	TestTextParserSkipUTF8BOM();
 
 	TestStatistics();
 }

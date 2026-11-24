@@ -101,17 +101,11 @@ void CYAMLParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CYAMLParser::Parse(void)
 {
-	TRISTATE		tResult;
-	STextPosition	sPosition;
+	TRISTATE	tResult;
 
-	//Not CTextParser::SkipUTF8BOM: it skips white space first, and fails on empty text.  The BOM isn't in a column:
-	//indentation is counted from after it.
-	if ((Peek(0) == '\xEF') && (Peek(1) == '\xBB') && (Peek(2) == '\xBF'))
-	{
-		Step(3);
-		sPosition.Init(mcParser.Position(), mcParser.Line(), (lsize)0);
-		mcParser.SetPosition(&sPosition);
-	}
+	//The BOM isn't in a column: indentation is counted from after it.
+	tResult = mcParser.SkipUTF8BOM();
+	ReturnOnError(tResult);
 
 	tResult = ParseRoot();
 	if (tResult != TRITRUE)
