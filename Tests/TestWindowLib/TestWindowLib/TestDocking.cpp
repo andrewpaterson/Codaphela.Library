@@ -375,7 +375,7 @@ void TestDockingDefaults(void)
 		Ptr<CDockGroup>			pOutputGroup;
 		Ptr<CDockGroup>			pDocGroup;
 		Ptr<CDockSplit>			pRoot;
-		Ptr<CDockSash>			pSash;
+		Ptr<CSash>				pSash;
 		CInt32Rect				cBounds;
 		CInt32Rect				cScreen;
 		int32					iWellWidth;
@@ -1267,7 +1267,7 @@ void TestDockingNarrowToolTabs(void)
 		DockPress(sTest.pWindow, iGroupRight + 1, y);
 		pOver = sTest.pWindow->GetFocus()->GetMouseOverComponent();
 		AssertTrue(pOver != pCutOff);
-		AssertTrue(dynamic_cast<CDockSash*>(&pOver) != NULL);
+		AssertTrue(dynamic_cast<CSash*>(&pOver) != NULL);
 		DockRelease(sTest.pWindow);
 		AssertTrue(pTabs->GetSelected() == pSelected);
 		AssertFalse(pCutOff->IsSelected());

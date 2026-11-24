@@ -31,150 +31,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockSash::Init(Ptr<CWindow> pWindow, Ptr<CDockSplit> pSplit, bool bHorizontal, ARGB32 sColour)
-{
-	PreInit();
-
-	CCanvas::Init(pWindow, OMalloc<CClearCanvasDraw>(sColour));
-	mpSplit = pSplit;
-	mbDragging = false;
-	miPressed = 0;
-	SetCanGetFocus(true);
-	SetAlignment(CSH_Stretch, CSV_Stretch);
-	SetHorizontal(bHorizontal);
-	AddInputAction(CIC_ActivateComponent, this, &CDockSash::ActivateComponent);
-	AddInputAction(CIC_ExecuteComponent, this, &CDockSash::ExecuteComponent);
-	AddInputAction(CIC_ContDragSelect, this, &CDockSash::ContDragSelect);
-	AddInputAction(CIC_StopDragSelect, this, &CDockSash::StopDragSelect);
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockSash::Class(void)
-{
-	CCanvas::Class();
-
-	M_Pointer(mpSplit);
-	U_Bool(mbDragging);
-	U_Int32(miPressed);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDockSash::Save(CObjectWriter* pcFile)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CDockSash::Load(CObjectReader* pcFile)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A horizontal split's sashes are upright and moved left and right.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockSash::SetHorizontal(bool bHorizontal)
-{
-	SetCursor(bHorizontal ? NC_SizeWestEast : NC_SizeNorthSouth);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// x and y are relative to the sash.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockSash::ActivateComponent(int x, int y)
-{
-	SInt32Vec2	sPosition;
-
-	sPosition = GetPosition();
-	miPressed = mpSplit->IsHorizontal() ? sPosition.x + x : sPosition.y + y;
-	mbDragging = true;
-	mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockSash::ExecuteComponent(int x, int y)
-{
-	if (mbDragging)
-	{
-		mpWindow->GetFocus()->StopDrag(FD_Select);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The split moves the sash by how far the pointer has come since it was
-// pressed or last moved it.  x and y are relative to the sash.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockSash::ContDragSelect(int x, int y)
-{
-	SInt32Vec2	sPosition;
-	int32		iAlong;
-
-	if (!mbDragging)
-	{
-		return;
-	}
-	sPosition = GetPosition();
-	iAlong = mpSplit->IsHorizontal() ? sPosition.x + x : sPosition.y + y;
-	if (iAlong != miPressed)
-	{
-		mpSplit->SashMoved(this, iAlong - miPressed);
-		miPressed = iAlong;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The keys go back to the active pane.
-//
-//////////////////////////////////////////////////////////////////////////
-void CDockSash::StopDragSelect(int x, int y)
-{
-	Ptr<CDockManager>	pManager;
-
-	mbDragging = false;
-	pManager = mpSplit->GetManager();
-	if (pManager.IsNotNull())
-	{
-		pManager->RestoreFocus(mpWindow);
-	}
-}
-
-
-bool CDockSash::IsDragging(void) const { return mbDragging; }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CDockSplit::Init(Ptr<CWindow> pWindow, Ptr<CDockManager> pManager, bool bHorizontal, ARGB32 sSashColour)
 {
 	PreInit();
@@ -212,6 +68,13 @@ void CDockSplit::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CDockSplit::Free(void)
 {
+	size	i;
+
+	for (i = 0; i < maSashes.NumElements(); i++)
+	{
+		maSashes.Get(i)->GetMovedEvent()->Remove(this);
+		maSashes.Get(i)->GetReleasedEvent()->Remove(this);
+	}
 	maiSizes.Kill();
 	CDockNode::Free();
 }
@@ -381,13 +244,15 @@ bool CDockSplit::ReplaceNode(Ptr<CDockNode> pOld, Ptr<CDockNode> pNew)
 void CDockSplit::PlaceChildren(void)
 {
 	size			i;
-	Ptr<CDockSash>	pSash;
+	Ptr<CSash>		pSash;
 	Ptr<CWindow>	pWindow;
 
 	RemoveAllComponents();
 	while (maSashes.NumElements() + 1 < maNodes.NumElements())
 	{
-		pSash = OMalloc<CDockSash>(mpWindow, Ptr<CDockSplit>(this), mbHorizontal, msSashColour);
+		pSash = OMalloc<CSash>(mpWindow, mbHorizontal, msSashColour);
+		pSash->GetMovedEvent()->Add(this, &CDockSplit::SashMoved);
+		pSash->GetReleasedEvent()->Add(this, &CDockSplit::SashReleased);
 		maSashes.Add(pSash);
 	}
 	while ((maSashes.NumElements() > 0) && (maSashes.NumElements() + 1 > maNodes.NumElements()))
@@ -709,13 +574,27 @@ void CDockSplit::LayoutAlong(Ptr<CComponent> pComponent, SInt32Vec2 sPosition, S
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The keys go back to the active pane once a sash has been dragged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDockSplit::SashReleased(CSash* pcSash)
+{
+	if (mpManager.IsNotNull())
+	{
+		mpManager->RestoreFocus(mpWindow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The sash's nodes on each side take their sizes from the last layout,
 // iDelta moving from one to the other but neither going under the
 // minimum.  Every node's dock size becomes its laid out size so the
 // others don't move.
 //
 //////////////////////////////////////////////////////////////////////////
-void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
+void CDockSplit::SashMoved(CSash* pcSash, int32 iDelta)
 {
 	size	uiSash;
 	size	i;
@@ -724,7 +603,7 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 
 	for (uiSash = 0; uiSash < maSashes.NumElements(); uiSash++)
 	{
-		if (maSashes.Get(uiSash) == pSash)
+		if (&maSashes.Get(uiSash) == pcSash)
 		{
 			break;
 		}
@@ -769,7 +648,7 @@ void CDockSplit::SashMoved(Ptr<CDockSash> pSash, int32 iDelta)
 size				CDockSplit::NumNodes(void) { return maNodes.NumElements(); }
 Ptr<CDockNode>		CDockSplit::GetNode(size uiIndex) { return maNodes.Get(uiIndex); }
 bool				CDockSplit::IsHorizontal(void) const { return mbHorizontal; }
-Ptr<CDockSash>		CDockSplit::GetSash(size uiIndex) { return maSashes.Get(uiIndex); }
+Ptr<CSash>			CDockSplit::GetSash(size uiIndex) { return maSashes.Get(uiIndex); }
 int32				CDockSplit::GetNodeSize(size uiIndex) { return (uiIndex < maiSizes.NumElements()) ? maiSizes.GetValue(uiIndex) : 0; }
 
 

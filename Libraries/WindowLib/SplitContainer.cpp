@@ -26,124 +26,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSplitSash::Init(Ptr<CWindow> pWindow, CSplitContainer* pcSplit, bool bHorizontal, ARGB32 sColour)
-{
-	PreInit();
-
-	CCanvas::Init(pWindow, OMalloc<CClearCanvasDraw>(sColour));
-	mpcSplit = pcSplit;
-	mbDragging = false;
-	miPressed = 0;
-	SetCanGetFocus(true);
-	SetAlignment(CSH_Stretch, CSV_Stretch);
-	SetCursor(bHorizontal ? NC_SizeWestEast : NC_SizeNorthSouth);
-	AddInputAction(CIC_ActivateComponent, this, &CSplitSash::ActivateComponent);
-	AddInputAction(CIC_ExecuteComponent, this, &CSplitSash::ExecuteComponent);
-	AddInputAction(CIC_ContDragSelect, this, &CSplitSash::ContDragSelect);
-	AddInputAction(CIC_StopDragSelect, this, &CSplitSash::StopDragSelect);
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSplitSash::Class(void)
-{
-	CCanvas::Class();
-
-	U_Pointer(mpcSplit);
-	U_Bool(mbDragging);
-	U_Int32(miPressed);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CSplitSash::Save(CObjectWriter* pcFile) { return false; }
-bool CSplitSash::Load(CObjectReader* pcFile) { return false; }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// x and y are relative to the sash.
-//
-//////////////////////////////////////////////////////////////////////////
-void CSplitSash::ActivateComponent(int x, int y)
-{
-	SInt32Vec2	sPosition;
-
-	sPosition = GetPosition();
-	miPressed = mpcSplit->IsHorizontal() ? sPosition.x + x : sPosition.y + y;
-	mbDragging = true;
-	mpWindow->GetFocus()->StartDrag(FD_Select, x, y);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSplitSash::ExecuteComponent(int x, int y)
-{
-	if (mbDragging)
-	{
-		mpWindow->GetFocus()->StopDrag(FD_Select);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The split moves the sash by how far the pointer has come since it was
-// pressed or last moved it.  x and y are relative to the sash.
-//
-//////////////////////////////////////////////////////////////////////////
-void CSplitSash::ContDragSelect(int x, int y)
-{
-	SInt32Vec2	sPosition;
-	int32		iAlong;
-
-	if (!mbDragging)
-	{
-		return;
-	}
-	sPosition = GetPosition();
-	iAlong = mpcSplit->IsHorizontal() ? sPosition.x + x : sPosition.y + y;
-	if (iAlong != miPressed)
-	{
-		mpcSplit->SashMoved(iAlong - miPressed);
-		miPressed = iAlong;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CSplitSash::StopDragSelect(int x, int y)
-{
-	mbDragging = false;
-}
-
-
-bool CSplitSash::IsDragging(void) const { return mbDragging; }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The sash is the theme's dock sash: its size and its colour.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -159,7 +41,8 @@ void CSplitContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, bool 
 	miFirstSize = 0;
 	miAlong = 0;
 	mcShareChanged.Init();
-	mpSash = OMalloc<CSplitSash>(pWindow, this, bHorizontal, pTheme->GetColour(TC_SplitSash));
+	mpSash = OMalloc<CSash>(pWindow, bHorizontal, pTheme->GetColour(TC_SplitSash));
+	mpSash->GetMovedEvent()->Add(this, &CSplitContainer::SashDragged);
 
 	PostInit();
 }
@@ -194,6 +77,7 @@ void CSplitContainer::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CSplitContainer::Free(void)
 {
+	mpSash->GetMovedEvent()->Remove(this);
 	mcShareChanged.Kill();
 	CContainer::Free();
 }
@@ -272,6 +156,17 @@ void CSplitContainer::SetShare(int32 iShare)
 		miShare = iShare;
 		InvalidateLayout();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The sash's moved event.
+//
+//////////////////////////////////////////////////////////////////////////
+void CSplitContainer::SashDragged(CSash* pcSash, int32 iDelta)
+{
+	SashMoved(iDelta);
 }
 
 
@@ -435,7 +330,7 @@ bool CSplitContainer::IsChildDrawn(Ptr<CComponent> pChild)
 
 Ptr<CComponent> CSplitContainer::GetFirst(void) const { return mpFirst; }
 Ptr<CComponent> CSplitContainer::GetSecond(void) const { return mpSecond; }
-Ptr<CSplitSash> CSplitContainer::GetSash(void) const { return mpSash; }
+Ptr<CSash> CSplitContainer::GetSash(void) const { return mpSash; }
 bool CSplitContainer::IsHorizontal(void) const { return mbHorizontal; }
 bool CSplitContainer::IsSecondShown(void) const { return mbSecondShown; }
 int32 CSplitContainer::GetShare(void) const { return miShare; }

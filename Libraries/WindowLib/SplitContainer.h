@@ -20,43 +20,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPLIT_CONTAINER_H__
 #define __SPLIT_CONTAINER_H__
-#include "Canvas.h"
-#include "ClearCanvasDraw.h"
 #include "ComponentEvent.h"
 #include "Container.h"
+#include "Sash.h"
 #include "WindowTheme.h"
 
 
 #define SPLIT_CONTAINER_WHOLE		1000	//What a share is out of.
 #define SPLIT_CONTAINER_MINIMUM		40		//The least the sash leaves either side, while there is room.
-
-
-class CSplitContainer;
-
-
-//The bar between a split container's two components.  Dragging it moves the bar, resizing the components on each side
-//of it as it goes.  The pointer shows which way it moves.
-class CSplitSash : public CCanvas
-{
-CONSTRUCTABLE(CSplitSash);
-DESTRUCTABLE(CSplitSash);
-protected:
-	CSplitContainer*	mpcSplit;  //Not held: it holds the sash.
-	bool				mbDragging;
-	int32				miPressed;  //Where it was pressed along the split, in window client space.
-
-public:
-	void			Init(Ptr<CWindow> pWindow, CSplitContainer* pcSplit, bool bHorizontal, ARGB32 sColour);
-	void			Class(void) override;
-	bool			Save(CObjectWriter* pcFile) override;
-	bool			Load(CObjectReader* pcFile) override;
-
-	void			ActivateComponent(int x, int y);
-	void			ExecuteComponent(int x, int y);
-	void			ContDragSelect(int x, int y);
-	void			StopDragSelect(int x, int y);
-	bool			IsDragging(void) const;
-};
 
 
 //Two components side by side (horizontal) or one above the other, with a sash between them that is dragged to give
@@ -76,7 +47,7 @@ DESTRUCTABLE(CSplitContainer);
 protected:
 	Ptr<CComponent>						mpFirst;
 	Ptr<CComponent>						mpSecond;
-	Ptr<CSplitSash>						mpSash;
+	Ptr<CSash>							mpSash;
 	bool								mbHorizontal;
 	bool								mbSecondShown;
 	int32								miShare;  //The first's, out of SPLIT_CONTAINER_WHOLE.
@@ -95,7 +66,7 @@ public:
 	void			SetComponents(Ptr<CComponent> pFirst, Ptr<CComponent> pSecond);
 	Ptr<CComponent>	GetFirst(void) const;
 	Ptr<CComponent>	GetSecond(void) const;
-	Ptr<CSplitSash>	GetSash(void) const;
+	Ptr<CSash>		GetSash(void) const;
 	bool			IsHorizontal(void) const;
 	void			SetSecondShown(bool bShown);
 	bool			IsSecondShown(void) const;
@@ -103,6 +74,7 @@ public:
 	int32			GetShare(void) const;
 	int32			GetFirstSize(void) const;
 	void			SashMoved(int32 iDelta);
+	void			SashDragged(CSash* pcSash, int32 iDelta);
 	CComponentEvent<CSplitContainer>*	GetShareEvent(void);
 
 	bool			AddComponent(Ptr<CComponent> pComponent) override;  //Fails: the components are given with SetComponents.

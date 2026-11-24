@@ -411,6 +411,9 @@
     <ClInclude Include="CodePreview.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
+    <ClInclude Include="Sash.h">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClInclude>
     <ClInclude Include="SplitContainer.h">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClInclude>
@@ -867,6 +870,9 @@
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="CodePreview.cpp">
+      <Filter>Source\Component\Widgets\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="Sash.cpp">
       <Filter>Source\Component\Widgets\Dialog</Filter>
     </ClCompile>
     <ClCompile Include="SplitContainer.cpp">

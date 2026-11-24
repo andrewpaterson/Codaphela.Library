@@ -281,6 +281,7 @@
     <ClInclude Include="PromptPopup.h" />
     <ClInclude Include="PasteHistoryDialog.h" />
     <ClInclude Include="CodePreview.h" />
+    <ClInclude Include="Sash.h" />
     <ClInclude Include="SplitContainer.h" />
     <ClInclude Include="FindInFilesDialog.h" />
     <ClInclude Include="ComponentInputNumKey.h" />
@@ -389,6 +390,7 @@
     <ClCompile Include="PromptPopup.cpp" />
     <ClCompile Include="PasteHistoryDialog.cpp" />
     <ClCompile Include="CodePreview.cpp" />
+    <ClCompile Include="Sash.cpp" />
     <ClCompile Include="SplitContainer.cpp" />
     <ClCompile Include="FindInFilesDialog.cpp" />
     <ClCompile Include="ComponentInputNumKey.cpp" />

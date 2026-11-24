@@ -21,37 +21,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __DOCK_SPLIT_H__
 #define __DOCK_SPLIT_H__
 #include "BaseLib/ArrayInt.h"
-#include "Canvas.h"
-#include "ClearCanvasDraw.h"
 #include "DockNode.h"
+#include "Sash.h"
 
 
 class CDockSplit;
-
-
-//The bar between two of a split's children.  Dragging it moves the bar, resizing the children on each side of it as
-//it goes.  The pointer shows which way it moves.
-class CDockSash : public CCanvas
-{
-CONSTRUCTABLE(CDockSash);
-DESTRUCTABLE(CDockSash);
-protected:
-	Ptr<CDockSplit>		mpSplit;
-	bool				mbDragging;
-	int32				miPressed;  //Where it was pressed along the split, in window client space.
-
-public:
-	void			Init(Ptr<CWindow> pWindow, Ptr<CDockSplit> pSplit, bool bHorizontal, ARGB32 sColour);
-	void			Class(void) override;
-	bool			Save(CObjectWriter* pcFile) override;
-	bool			Load(CObjectReader* pcFile) override;
-	void			SetHorizontal(bool bHorizontal);
-	void			ActivateComponent(int x, int y);
-	void			ExecuteComponent(int x, int y);
-	void			ContDragSelect(int x, int y);
-	void			StopDragSelect(int x, int y);
-	bool			IsDragging(void) const;
-};
 
 
 //Two or more nodes side by side (horizontal) or one above the other, with a sash between each pair.  Each node has a
@@ -68,7 +42,7 @@ DESTRUCTABLE(CDockSplit);
 protected:
 	bool				mbHorizontal;
 	CArray<CDockNode>	maNodes;
-	CArray<CDockSash>	maSashes;  //maSashes[i] is between maNodes[i] and maNodes[i + 1].
+	CArray<CSash>		maSashes;  //maSashes[i] is between maNodes[i] and maNodes[i + 1].
 	CArrayInt			maiSizes;  //Each node's size along the split, the last time it was laid out.
 	ARGB32				msSashColour;
 
@@ -94,12 +68,13 @@ public:
 	bool				IsHorizontal(void) const;
 	bool				IsAlong(EDockSide eSide);
 	bool				IsSameDirection(Ptr<CDockSplit> pOther);
-	Ptr<CDockSash>		GetSash(size uiIndex);
+	Ptr<CSash>			GetSash(size uiIndex);
 	int32				GetNodeSize(size uiIndex);
 
 	void				SetRequiredSize(void) override;
 	void				Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
-	void				SashMoved(Ptr<CDockSash> pSash, int32 iDelta);
+	void				SashMoved(CSash* pcSash, int32 iDelta);
+	void				SashReleased(CSash* pcSash);
 
 protected:
 	void				PlaceChildren(void);
