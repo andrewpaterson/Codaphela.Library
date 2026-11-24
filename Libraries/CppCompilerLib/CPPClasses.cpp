@@ -231,7 +231,7 @@ bool CCPPClasses::CompleteClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	{
 		return mpcDiagnostics->Error(pcNode, "A class cannot contain itself");
 	}
-	if (!mpcUnit->FindSpecifier(pcClass))
+	if (!mpcUnit->GetInstantiator()->FindSpecifier(pcClass))
 	{
 		return mpcDiagnostics->Error(pcNode, "The class has not been defined");
 	}
@@ -276,7 +276,7 @@ bool CCPPClasses::ResolveBases(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	{
 		return true;
 	}
-	if (!mpcUnit->FindSpecifier(pcClass))
+	if (!mpcUnit->GetInstantiator()->FindSpecifier(pcClass))
 	{
 		return mpcDiagnostics->Error(pcNode, "The class has not been defined");
 	}
@@ -422,16 +422,16 @@ bool CCPPClasses::LayoutClass(CCPPClass* pcClass, CCPPSyntax* pcNode)
 	for (i = 0; (pcClass->mpcTemplate || pcClass->mpcEnclosing) && (i < mpcUnit->GetTemplates()->NumElements()); i++)
 	{
 		pcMember = mpcUnit->GetTemplates()->GetPtr(i);
-		if (mpcUnit->IsOutsideMemberOf(pcMember, pcClass))
+		if (mpcUnit->GetInstantiator()->IsOutsideMemberOf(pcMember, pcClass))
 		{
-			mpcUnit->DefineOutsideMember(pcClass, pcMember);
+			mpcUnit->GetInstantiator()->DefineOutsideMember(pcClass, pcMember);
 		}
 	}
 
 	//Its members a template<> definition specialises for it.
 	if (pcClass->mpcTemplate)
 	{
-		mpcUnit->SpecialiseMembers(pcClass);
+		mpcUnit->GetInstantiator()->SpecialiseMembers(pcClass);
 	}
 
 	CompleteMembers(pcClass);
@@ -1449,4 +1449,40 @@ SCPP65Type* CCPPClasses::ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode)
 		psType = (psType && psType->IsReference() && psType->psBase->IsClass()) ? psType->psBase : psType;
 	}
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a class is complete where pcNode is: its definition is before
+// pcNode, or pcNode is in it, or in a class it is defined in (whose member
+// function bodies see the class complete).  A class is laid out when it is
+// first needed whole, wherever that is; this says whether the program may
+// need it there.  What a template instance or a template's code uses is
+// complete where the instance is made, so is taken to be.  [basic.types] 5,
+// [class.mem] 2
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPClasses::IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode)
+{
+	CCPPSyntaxClassSpecifier*	pcSpecifier;
+	CCPPSyntax*					pcIn;
+
+	pcSpecifier = pcClass->mpcSpecifier;
+	if (!pcSpecifier || !pcNode || (pcNode->miFirstToken < 0) || (pcSpecifier->miFirstToken < 0) || pcClass->mpcTemplate || pcClass->mpcBindings || mpcContext->GetBindings())
+	{
+		return true;
+	}
+	if (pcSpecifier->miFirstToken < pcNode->miFirstToken)
+	{
+		return true;
+	}
+	for (pcIn = pcNode->mpcParent; pcIn; pcIn = pcIn->mpcParent)
+	{
+		if ((pcIn->GetKind() == CPPS_ClassSpecifier) && (pcIn->miFirstToken <= pcSpecifier->miFirstToken) && (pcIn->miLastToken >= pcSpecifier->miLastToken))
+		{
+			return true;
+		}
+	}
+	return false;
 }

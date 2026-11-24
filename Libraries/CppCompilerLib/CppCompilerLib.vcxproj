@@ -293,7 +293,6 @@
     <ClCompile Include="SpillStore.cpp" />
     <ClCompile Include="VisualStudioProject.cpp" />
     <ClCompile Include="CPPUnit.cpp" />
-    <ClCompile Include="CPPUnitClasses.cpp" />
     <ClCompile Include="CPPUnitOverloads.cpp" />
     <ClCompile Include="CPPUnitLabels.cpp" />
     <ClCompile Include="CPPUnitExpressions.cpp" />

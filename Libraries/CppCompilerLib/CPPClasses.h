@@ -74,6 +74,7 @@ public:
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	bool					IsConstantMember(CCPPVariable* pcVariable);
+	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 
 protected:

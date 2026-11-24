@@ -374,7 +374,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcExceptions.Init(this);
 	mcDesugarings.Init(this);
 	mcInstantiator.Init(this);
-	masOutsideDefinitions.Init();
 	mapcVariableInstances.Init();
 	miSaysDeprecated = -1;
 	mapcQueue.Init();
@@ -482,7 +481,6 @@ void CCPPUnit::Kill(void)
 	mcEnumeratorBodyTypes.Kill();
 	mcClosures.Kill();
 	mcDesugarings.Kill();
-	masOutsideDefinitions.Kill();
 	mapcVariableInstances.Kill();
 	mapcQueue.Kill();
 	maszEmitted.Kill();

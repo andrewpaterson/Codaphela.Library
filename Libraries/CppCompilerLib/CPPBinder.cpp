@@ -1981,7 +1981,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 	{
 		return false;
 	}
-	if (!mpcUnit->IsDefinedBefore(pcClass, pcNode))
+	if (!mpcUnit->GetClasses()->IsDefinedBefore(pcClass, pcNode))
 	{
 		//[expr.ref] 2, [basic.types] 5
 		return mpcDiagnostics->ReportOnce(pcNode, "The class is incomplete here: it is defined further on");

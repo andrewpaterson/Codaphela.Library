@@ -133,36 +133,6 @@ struct SCPPExpandedArguments
 typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
 
 
-//What a definition written outside its class template defines (SCPPOutsideDefinition).
-enum ECPPOutsideDefinition
-{
-	CPPOD_MemberSpecialisation,			//template<> R Class<Arguments>::f() { ... }, given to its instance (SpecialiseMembers).
-	CPPOD_MemberTemplateSpecialisation,	//template<> template<> R Class<Arguments>::f<T>(...) { ... }, given to the instance's member template (AddMemberTemplateSpecialisations).
-	CPPOD_MemberClass,					//template<class T> struct Class<T>::Inner { ... }; and template<class T> template<class U> struct Class<T>::Pair { ... }; (MemberClassDefinition).
-	CPPOD_MemberVariableTemplate,		//template<class C> template<class T> T W<C>::value = ...;, each instance's member variable template's definition (DefineMemberVariableTemplate).
-	CPPOD_MemberVariableSpecialisation,	//template<class C> template<class T> T W<C>::value<T*> = ...;, each instance's member variable template's partial specialisation.
-	CPPOD_StaticMember,					//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
-};
-
-
-//A definition written outside its class template, kept to be given to each instance: what it is, and the pieces of it
-//its readers want, worked out once when it is seen (AddOutsideDefinition).
-struct SCPPOutsideDefinition
-{
-	ECPPOutsideDefinition			eKind;
-	CCPPSyntaxTemplateDeclaration*	pcDeclaration;	//The template declaration whose parameters name the class template's (the inner template<> of a member template's specialisation); NULL for a member's specialisation.
-	CCPPSyntaxTemplateDeclaration*	pcMember;		//A member template's own template declaration, in pcDeclaration; else NULL.
-	CCPPSyntaxFunctionDefinition*	pcFunction;		//The function defined, or NULL.
-	CCPPSyntaxSimpleDeclaration*	pcSimple;		//The declaration of the class, variable or static member defined, or NULL.
-	CCPPSyntaxClassSpecifier*		pcSpecifier;	//The member class defined, or NULL.
-	CCPPSyntaxInitDeclarator*		pcInit;			//The static member's declarator, or NULL.
-	CCPPSyntaxName*					pcName;			//The name defined (Class<T>::s, W<C>::value), or NULL for a class.
-};
-
-
-typedef CArrayTemplate<SCPPOutsideDefinition>	CArrayCPPOutsideDefinitions;
-
-
 //What a function has while it is entered (CCPPUnit::EnterFunction): its parameters and locals, and the function
 //parameter packs it can expand.  The unit's first is no function's: what is asked of when none is entered.
 struct SCPPFunctionScope
@@ -249,7 +219,6 @@ protected:
 	CHashMapPrimitiveTemplate<CCPPSyntaxEnumerator*, SCPP65Type*>	mcEnumeratorBodyTypes;	//While EnumType works out an enum's type, each of its enumerators' so far: its value's.  [dcl.enum] 5
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
-	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
 	int						miSaysDeprecated;	//Whether the source says deprecated anywhere (SaysDeprecated): 1, 0, or -1 until it is asked.
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
@@ -439,7 +408,6 @@ public:
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
-	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
 	bool					GivenEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, size uiEnumerator, int64* plliValue);
 	bool					FoldEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64* plliValue);
@@ -464,16 +432,7 @@ public:
 	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
 	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
 
-	bool					FindSpecifier(CCPPClass* pcClass);
-	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
-	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
-	void					AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined);
 	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
-	void					SpecialiseMembers(CCPPClass* pcClass);
-	void					SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition);
-	bool					QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPClass* pcClass, CCPPSyntax* pcNode);
-	void					DefineOutsideMembers(CCPPTemplate* pcMember);
-	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
 	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
 	bool					IsConstObject(CCPPSyntax* pcExpression);

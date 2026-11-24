@@ -65,6 +65,28 @@ int64 CCPPUnit::GetFunctionName(CCPPSyntaxNameComponent* pcComponent)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The identifier of a name component, or -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CCPPUnit::GetComponentName(CCPPSyntaxNameComponent* pcComponent)
+{
+	CCPPToken*	pcToken;
+
+	if (!pcComponent || (pcComponent->miName < 0))
+	{
+		return -1;
+	}
+	pcToken = mpcTokeniser->Get(pcComponent->miName);
+	if (!pcToken->IsIdentifier())
+	{
+		return -1;
+	}
+	return ((CCTIdentifier*)pcToken)->miIdentifier;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Operators are named by their token (CPP_OPERATOR_NAME), new[] and delete[]
 // apart from new and delete.
 //

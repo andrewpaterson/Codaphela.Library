@@ -35,6 +35,36 @@ struct SCPP65Type;
 struct SCPPBinding;
 
 
+//What a definition written outside its class template defines (SCPPOutsideDefinition).
+enum ECPPOutsideDefinition
+{
+	CPPOD_MemberSpecialisation,			//template<> R Class<Arguments>::f() { ... }, given to its instance (SpecialiseMembers).
+	CPPOD_MemberTemplateSpecialisation,	//template<> template<> R Class<Arguments>::f<T>(...) { ... }, given to the instance's member template (AddMemberTemplateSpecialisations).
+	CPPOD_MemberClass,					//template<class T> struct Class<T>::Inner { ... }; and template<class T> template<class U> struct Class<T>::Pair { ... }; (MemberClassDefinition).
+	CPPOD_MemberVariableTemplate,		//template<class C> template<class T> T W<C>::value = ...;, each instance's member variable template's definition (DefineMemberVariableTemplate).
+	CPPOD_MemberVariableSpecialisation,	//template<class C> template<class T> T W<C>::value<T*> = ...;, each instance's member variable template's partial specialisation.
+	CPPOD_StaticMember,					//template<class T> int Class<T>::s = ...;, defined for each instance (DefineInstanceStatics).
+};
+
+
+//A definition written outside its class template, kept to be given to each instance: what it is, and the pieces of it
+//its readers want, worked out once when it is seen (AddOutsideDefinition).
+struct SCPPOutsideDefinition
+{
+	ECPPOutsideDefinition			eKind;
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;	//The template declaration whose parameters name the class template's (the inner template<> of a member template's specialisation); NULL for a member's specialisation.
+	CCPPSyntaxTemplateDeclaration*	pcMember;		//A member template's own template declaration, in pcDeclaration; else NULL.
+	CCPPSyntaxFunctionDefinition*	pcFunction;		//The function defined, or NULL.
+	CCPPSyntaxSimpleDeclaration*	pcSimple;		//The declaration of the class, variable or static member defined, or NULL.
+	CCPPSyntaxClassSpecifier*		pcSpecifier;	//The member class defined, or NULL.
+	CCPPSyntaxInitDeclarator*		pcInit;			//The static member's declarator, or NULL.
+	CCPPSyntaxName*					pcName;			//The name defined (Class<T>::s, W<C>::value), or NULL for a class.
+};
+
+
+typedef CArrayTemplate<SCPPOutsideDefinition>	CArrayCPPOutsideDefinitions;
+
+
 //The unit's templates (CCPPUnit::GetInstantiator): each template declaration read, a class template's, a function
 //template's and a variable template's instances made for their arguments, their explicit and partial
 //specialisations found, the definitions written outside a class template given to each instance, and explicit
@@ -43,6 +73,7 @@ class CCPPInstantiator
 {
 protected:
 	CCPPUnit*				mpcUnit;
+	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
 
 public:
 	void					Init(CCPPUnit* pcUnit);
@@ -124,6 +155,16 @@ public:
 	bool					MemberTemplate(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
 	ECPPRefQualifier		RefQualifier(CCPPSyntaxFunctionSuffix* pcSuffix);
 	bool					DefineMemberTemplate(CCPPTemplate* pcTemplate, CCPPSyntax* pcNode);
+
+	bool					FindSpecifier(CCPPClass* pcClass);
+	void					AddOutsideDefinition(ECPPOutsideDefinition eKind, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxTemplateDeclaration* pcMember, CCPPSyntax* pcDefined);
+	void					MemberSpecialisation(CCPPSyntaxFunctionDefinition* pcDefinition);
+	void					SpecialiseMembers(CCPPClass* pcClass);
+	void					SpecialiseMember(CCPPClass* pcClass, CCPPSyntaxFunctionDefinition* pcDefinition);
+	bool					QualifierIsInstance(CCPPSyntaxNameComponent* pcQualifier, CCPPClass* pcClass, CCPPSyntax* pcNode);
+	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
+	void					DefineOutsideMembers(CCPPTemplate* pcMember);
+	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
 };
 
 
