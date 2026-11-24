@@ -1055,6 +1055,167 @@ void TestCPP816DebugValues(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The uiFrame'th frame of the last walk's line (CAsm65StackFrame::
+// GetLineAddress): 0 if the line table has none.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 TestCPP816DebugFrameLine(STestCPP816Debug* psDebug, size uiFrame)
+{
+	SAsm65LineEntry*	psLine;
+
+	psLine = psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLine(psDebug->asFrames.Get(uiFrame)->GetLineAddress(uiFrame == 0));
+	return psLine ? psLine->uiLine : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The uiFrame'th frame's variables as Locals lists them, their names
+// with a space after each.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCPP816DebugLocals(STestCPP816Debug* psDebug, size uiFrame, const char* szExpected)
+{
+	SAsm65StackFrame*	psFrame;
+	CArrayUint32		auiVisible;
+	CChars				sz;
+	size				ui;
+
+	psFrame = psDebug->asFrames.Get(uiFrame);
+	auiVisible.Init();
+	sz.Init();
+	psFrame->pcRecords->FindVisible(psFrame->psFunction, TestCPP816DebugFrameLine(psDebug, uiFrame), &auiVisible);
+	for (ui = 0; ui < auiVisible.NumElements(); ui++)
+	{
+		sz.Append(psFrame->pcRecords->GetVariable(psFrame->psFunction, auiVisible.GetValue(ui))->szName)->Append(' ');
+	}
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+	auiVisible.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What Autos shows for the uiFrame'th frame, from szSource's lines at and
+// before the frame's: the expressions with a space after each.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCPP816DebugAutos(STestCPP816Debug* psDebug, size uiFrame, const char* szSource, const char* szExpected)
+{
+	CArrayChars	aszLines;
+	CArrayChars	aszAutos;
+	CChars		szLines;
+	CChars		sz;
+	uint32		uiLine;
+	size		ui;
+
+	uiLine = TestCPP816DebugFrameLine(psDebug, uiFrame);
+	aszLines.Init();
+	aszLines.Split(szSource, '\n');
+	szLines.Init();
+	szLines.Append(aszLines.GetText(uiLine - 2))->AppendNewLine()->Append(aszLines.GetText(uiLine - 1));
+	aszAutos.Init();
+	psDebug->cWatch.Autos(psDebug->asFrames.Get(uiFrame), uiLine, szLines.Text(), &aszAutos);
+	sz.Init();
+	for (ui = 0; ui < aszAutos.NumElements(); ui++)
+	{
+		sz.Append(aszAutos.GetText(ui))->Append(' ');
+	}
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+	aszAutos.Kill();
+	szLines.Kill();
+	aszLines.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the debugger's windows show (DebuggerPlan.txt E): each frame's
+// Call Stack text, the variables Locals lists at its line (an inner i
+// hiding main's), what Autos shows from the lines, and what a function
+// returned just after it returned.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DebugWindows(void)
+{
+	static const char*		szSource =
+		"struct SPoint { int x; int y; };\n"						//1
+		"long Scale(SPoint* psPoint, int iBy)\n"					//2
+		"{\n"														//3
+		"	long lArea;\n"											//4
+		"	lArea = (long)psPoint->x * psPoint->y;\n"				//5
+		"	lArea = lArea * iBy;  // psPoint->x isn't used\n"		//6
+		"	return lArea;\n"										//7
+		"}\n"														//8
+		"int main(void)\n"											//9
+		"{\n"														//10
+		"	SPoint	sPoint;\n"										//11
+		"	long	lResult;\n"										//12
+		"	int		i = 1;\n"										//13
+		"	sPoint.x = 300; sPoint.y = 400;\n"						//14
+		"	{\n"													//15
+		"		int i = 2;\n"										//16
+		"		lResult = Scale(&sPoint, i) /* \"i\" */;\n"			//17
+		"	}\n"													//18
+		"	return (int)(lResult / 100) + i;\n"					//19
+		"}\n";														//20
+	static const ETestCPP816Build	aeBuilds[] = { TCB_Debug, TCB_Unoptimised };
+	STestCPP816Debug				sDebug;
+	SAsm65StackFrame				sCaller;
+	SCPP65DebugValue				sValue;
+	CChars							sz;
+	size							uiBuild;
+
+	for (uiBuild = 0; uiBuild < 2; uiBuild++)
+	{
+		TestCPP816DebugBuild(&sDebug, szSource, aeBuilds[uiBuild]);
+		TestCPP816DebugLoad(&sDebug);
+		AssertTrue(TestCPP816DebugRunTo(&sDebug, 5));
+		TestCPP816DebugWalk(&sDebug);
+		AssertString("Scale", TestCPP816DebugFrameName(&sDebug, 0));
+		AssertString("main", TestCPP816DebugFrameName(&sDebug, 1));
+		AssertInt(5, TestCPP816DebugFrameLine(&sDebug, 0));
+		AssertInt(17, TestCPP816DebugFrameLine(&sDebug, 1));
+
+		//The Call Stack's rows.
+		sz.Init();
+		AssertTrue(sDebug.cValues.AppendCall(&sDebug.cWalker, sDebug.asFrames.Get(0), &sz));
+		AssertTrue(sz.StartsWith("Scale(SPoint* psPoint = 0x"));
+		AssertTrue(sz.EndsWith(", int iBy = 2)"));
+		sz.Clear();
+		AssertTrue(sDebug.cValues.AppendCall(&sDebug.cWalker, sDebug.asFrames.Get(1), &sz));
+		AssertString("main()", sz.Text());
+		sz.Kill();
+
+		//Locals: main's outer i is hidden at its call.
+		AssertCPP816DebugLocals(&sDebug, 0, "psPoint iBy lArea ");
+		AssertCPP816DebugLocals(&sDebug, 1, "sPoint lResult i ");
+		AssertCPP816DebugWatch(&sDebug, 1, "i", "2 = int");
+
+		//Autos: the names on the line and the one before, not calls, types, comments or strings.
+		AssertCPP816DebugAutos(&sDebug, 0, szSource, "lArea psPoint->x psPoint->y ");
+		AssertCPP816DebugAutos(&sDebug, 1, szSource, "i lResult sPoint ");
+		AssertTrue(TestCPP816DebugRunTo(&sDebug, 7));
+		TestCPP816DebugWalk(&sDebug);
+		AssertCPP816DebugAutos(&sDebug, 0, szSource, "lArea iBy ");
+
+		//Stepped out: what Scale returned, in A and X.
+		sCaller = *sDebug.asFrames.Get(1);
+		while (!sDebug.cFast.IsStopped() && (sDebug.cFast.GetProgramAddress() != sCaller.uiPC))
+		{
+			TestCPP816DebugStep(&sDebug);
+		}
+		AssertTrue(sDebug.cValues.Result(sDebug.pcRecords, sDebug.asFrames.Get(0)->psFunction, sDebug.cFast.GetC(), sDebug.cFast.GetX(), &sValue));
+		AssertCPP816DebugShown(&sDebug, "240000 = long", &sValue);
+		TestCPP816DebugKill(&sDebug);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Debug(void)
@@ -1066,6 +1227,7 @@ void TestCPP816Debug(void)
 	TestCPP816DebugVariables();
 	TestCPP816DebugStack();
 	TestCPP816DebugValues();
+	TestCPP816DebugWindows();
 
 	TestStatistics();
 }

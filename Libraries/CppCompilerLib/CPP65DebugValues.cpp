@@ -182,6 +182,78 @@ void CCPP65DebugValues::Global(CAsm65DebugRecords* pcRecords, SAsm65DebugGlobal*
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What psFunction (of pcRecords' program) returned, just after it
+// returned, from the W65C816's A and X: a result of up to 32 bits that
+// isn't an object is in A (its low 16 bits) and X (its high), as the
+// back end returns one (IRW65C816Backend.h).  False for void, or a result
+// returned through a hidden pointer.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65DebugValues::Result(CAsm65DebugRecords* pcRecords, SAsm65DebugFunction* psFunction, uint16 uiA, uint16 uiX, SCPP65DebugValue* psValue)
+{
+	SAsm65DebugType*	psType;
+
+	psType = pcRecords->GetType(psFunction->uiResult);
+	if (!psType || (psType->uiKind == ADT_Class) || (psType->uiKind == ADT_Array) || (psType->uiBytes == 0) || (psType->uiBytes > 4))
+	{
+		return false;
+	}
+	psValue->Init(pcRecords, psFunction->uiResult, (uint64)uiA | ((uint64)uiX << 16));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The Call Stack's text for the frame, as Visual Studio's: its function's
+// name and its parameters, each's type, name and value,
+// "Factorial(int i = 3, char* sz = 0x012345 "Hello")".  A parameter that
+// isn't kept anywhere is "???".  False if some of it couldn't be read.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65DebugValues::AppendCall(CAsm65StackWalker* pcWalker, SAsm65StackFrame* psFrame, CChars* pszDest)
+{
+	SAsm65DebugVariable*	psVariable;
+	SCPP65DebugValue		sValue;
+	size					ui;
+	bool					bFirst;
+	bool					bResult;
+
+	pszDest->Append(psFrame->psFunction->szName);
+	pszDest->Append('(');
+	bFirst = true;
+	bResult = true;
+	for (ui = 0; ui < psFrame->psFunction->uiNumVariables; ui++)
+	{
+		psVariable = psFrame->pcRecords->GetVariable(psFrame->psFunction, ui);
+		if (!psVariable->bParameter || psVariable->szName.Equals("this"))
+		{
+			continue;
+		}
+		if (!bFirst)
+		{
+			pszDest->Append(", ");
+		}
+		bFirst = false;
+		sValue.Init(psFrame->pcRecords, psVariable->uiType, (EAsm65StackSpace)psFrame->uiSpace, 0);
+		AppendType(&sValue, pszDest);
+		pszDest->Append(' ')->Append(psVariable->szName)->Append(" = ");
+		if (Variable(pcWalker, psFrame, psVariable, &sValue))
+		{
+			bResult &= Format(&sValue, pszDest);
+		}
+		else
+		{
+			pszDest->Append("???");
+		}
+	}
+	pszDest->Append(')');
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The Value column's text.  False if some of it couldn't be read (shown
 // as ???).
 //

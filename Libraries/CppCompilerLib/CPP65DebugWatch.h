@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __CPP65_DEBUG_WATCH_H__
 #define __CPP65_DEBUG_WATCH_H__
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayChars.h"
 #include "CPP65DebugValues.h"
 
 
@@ -73,6 +74,7 @@ public:
 
 	bool		Evaluate(SAsm65StackFrame* psFrame, uint32 uiLine, const char* szExpression, SCPP65DebugValue* psResult);
 	const char*	GetError(void);
+	size		Autos(SAsm65StackFrame* psFrame, uint32 uiLine, const char* szSource, CArrayChars* paszExpressions);
 
 protected:
 	bool		Expression(int iLeast, SCPP65DebugValue* psValue);
@@ -103,6 +105,8 @@ protected:
 	bool		Accept(const char* szPunctuator);
 	bool		Expect(const char* szPunctuator);
 	void		TokenText(CChars* pszDest);
+	void		FindNames(const char* szSource, CArrayChars* paszNames);
+	static void	BlankCommentsAndStrings(const char* szSource, CChars* pszDest);
 	bool		Error(const char* szError, bool bToken = false);
 };
 

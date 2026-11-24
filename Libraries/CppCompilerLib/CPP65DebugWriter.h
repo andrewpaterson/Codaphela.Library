@@ -73,7 +73,7 @@ public:
 	void			AppendTypes(CChars* pszDest);
 
 	static void		AppendString(CChars* pszDest, const char* szText);
-	static bool		DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName);
+	static bool		DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName, int32 iResult);
 	static size		FindAfterLabel(const char* szCode, const char* szLabel);
 
 protected:

@@ -209,7 +209,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		if (mpcBackend && mpcUnit->HasLineTable())
 		{
 			mpcBackend->DescribeFrame(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend);
-			CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text());
+			CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult);
 		}
 		FreeWritten(psWritten);
 		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());
@@ -280,6 +280,7 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	psWritten->pcFunction = pcCopy;
 	psWritten->szLabel.Init(szName.Text());
 	psWritten->szName.Init(szMarker);
+	psWritten->iResult = masWritten.Get(uiFunction)->iResult;
 	szMarker.Kill();
 	psWritten->uiPieces = 0;
 	psWritten->pcBackend = NULL;

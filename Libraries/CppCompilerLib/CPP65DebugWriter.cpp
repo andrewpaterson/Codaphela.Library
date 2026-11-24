@@ -449,10 +449,11 @@ void CCPP65DebugWriter::AppendString(CChars* pszDest, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 //
 // .dfunction "szName" after the function's label in its code: it starts
-// there.  False if the code has no such label.
+// there, and returns the unit's type iResult (-1 for void, left out).
+// False if the code has no such label.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65DebugWriter::DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName)
+bool CCPP65DebugWriter::DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName, int32 iResult)
 {
 	CChars	szDirective;
 	size	uiAfter;
@@ -464,6 +465,10 @@ bool CCPP65DebugWriter::DescribeFunction(CChars* pszCode, const char* szLabel, c
 	}
 	szDirective.Init("\t\t.dfunction ");
 	AppendString(&szDirective, szName);
+	if (iResult >= 0)
+	{
+		szDirective.Append(", long, ")->Append(iResult);
+	}
 	szDirective.AppendNewLine();
 	pszCode->Insert(uiAfter, &szDirective);
 	szDirective.Kill();

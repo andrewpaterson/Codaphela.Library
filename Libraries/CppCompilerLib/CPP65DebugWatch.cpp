@@ -123,6 +123,161 @@ bool CCPP65DebugWatch::Evaluate(SAsm65StackFrame* psFrame, uint32 uiLine, const 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What Visual Studio's Autos window shows, from szSource (the line
+// stopped at and the one before it): the names its code uses, and chains
+// of members (a.b, p->c), in the order they first come, that are in
+// memory in psFrame at uiLine.  A call's name isn't one (p->Area() gives
+// p), nor a qualified one (CShape::Area), nor a constant (an enumerator).
+// Each is appended to paszExpressions, to evaluate as a watch.  Returns
+// how many.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65DebugWatch::Autos(SAsm65StackFrame* psFrame, uint32 uiLine, const char* szSource, CArrayChars* paszExpressions)
+{
+	CArrayChars			aszNames;
+	SCPP65DebugValue	sValue;
+	size				ui;
+	size				uiFirst;
+
+	uiFirst = paszExpressions->NumElements();
+	aszNames.Init();
+	FindNames(szSource, &aszNames);
+	for (ui = 0; ui < aszNames.NumElements(); ui++)
+	{
+		if (!paszExpressions->Contains(aszNames.GetText(ui)) && Evaluate(psFrame, uiLine, aszNames.GetText(ui), &sValue) && sValue.bInMemory)
+		{
+			paszExpressions->Add(aszNames.GetText(ui));
+		}
+	}
+	aszNames.Kill();
+	mszError.Clear();
+	return paszExpressions->NumElements() - uiFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The names and member chains in szSource's code, in order (see Autos),
+// not yet bound to anything.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65DebugWatch::FindNames(const char* szSource, CArrayChars* paszNames)
+{
+	CChars	szCode;
+	CChars	szChain;
+	size	uiBefore;
+	bool	bQualified;
+
+	BlankCommentsAndStrings(szSource, &szCode);
+	szChain.Init();
+	msToken.szNext = szCode.Text();
+	Next();
+	bQualified = false;
+	while (msToken.eToken != CPP65WT_End)
+	{
+		if ((msToken.eToken != CPP65WT_Identifier) || bQualified)
+		{
+			bQualified = Is("::");
+			Next();
+			continue;
+		}
+
+		//A name, and the members after it; uiBefore is where the last of them starts, to leave it out if it's called.
+		szChain.Clear();
+		uiBefore = 0;
+		for (;;)
+		{
+			TokenText(&szChain);
+			Next();
+			if (!Is(".") && !Is("->"))
+			{
+				break;
+			}
+			uiBefore = szChain.Length();
+			TokenText(&szChain);
+			Next();
+			if (msToken.eToken != CPP65WT_Identifier)
+			{
+				szChain.SetLength(uiBefore);
+				break;
+			}
+		}
+		if (Is("::"))
+		{
+			continue;
+		}
+		if (Is("("))
+		{
+			szChain.SetLength(uiBefore);
+		}
+		if (!szChain.Empty())
+		{
+			paszNames->Add(szChain.Text());
+		}
+	}
+	szChain.Kill();
+	szCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szSource with its comments and the insides of its strings and
+// character literals made spaces, so that only code has names.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65DebugWatch::BlankCommentsAndStrings(const char* szSource, CChars* pszDest)
+{
+	char*	sz;
+	char	cQuote;
+
+	pszDest->Init(szSource);
+	for (sz = pszDest->Text(); *sz; sz++)
+	{
+		if ((sz[0] == '/') && (sz[1] == '/'))
+		{
+			for (; *sz && (*sz != '\n'); sz++)
+			{
+				*sz = ' ';
+			}
+		}
+		else if ((sz[0] == '/') && (sz[1] == '*'))
+		{
+			sz[0] = ' ';
+			sz[1] = ' ';
+			for (sz += 2; *sz && !((sz[0] == '*') && (sz[1] == '/')); sz++)
+			{
+				*sz = ' ';
+			}
+			if (*sz)
+			{
+				sz[0] = ' ';
+				sz[1] = ' ';
+				sz++;
+			}
+		}
+		else if ((*sz == '"') || (*sz == '\''))
+		{
+			cQuote = *sz;
+			for (sz++; *sz && (*sz != cQuote) && (*sz != '\n'); sz++)
+			{
+				if ((*sz == '\\') && sz[1])
+				{
+					*sz++ = ' ';
+				}
+				*sz = ' ';
+			}
+		}
+		if (*sz == '\0')
+		{
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CCPP65DebugWatch::GetError(void)
@@ -417,7 +572,6 @@ bool CCPP65DebugWatch::Suffix(SCPP65DebugValue* psValue)
 bool CCPP65DebugWatch::Name(const char* szName, SCPP65DebugValue* psValue)
 {
 	SAsm65DebugFunction*	psFunction;
-	SAsm65DebugVariable*	psVariable;
 	SAsm65DebugVariable*	psFound;
 	SAsm65DebugVariable*	psThis;
 	SAsm65DebugGlobal*		psGlobal;
@@ -428,21 +582,8 @@ bool CCPP65DebugWatch::Name(const char* szName, SCPP65DebugValue* psValue)
 	size					uiMember;
 
 	psFunction = mpsFrame->psFunction;
-	psFound = NULL;
-	psThis = NULL;
-	for (ui = 0; psFunction && (ui < psFunction->uiNumVariables); ui++)
-	{
-		psVariable = mpcRecords->GetVariable(psFunction, ui);
-		if ((muiLine != 0) && ((muiLine < psVariable->uiFirstLine) || (muiLine > psVariable->uiLastLine)))
-		{
-			continue;
-		}
-		if (psVariable->szName.Equals(szName) && (!psFound || (psVariable->uiFirstLine >= psFound->uiFirstLine)))
-		{
-			psFound = psVariable;
-		}
-		psThis = psVariable->szName.Equals("this") ? psVariable : psThis;
-	}
+	psFound = psFunction ? mpcRecords->FindVariable(psFunction, szName, muiLine) : NULL;
+	psThis = psFunction ? mpcRecords->FindVariable(psFunction, "this", muiLine) : NULL;
 	if (psFound)
 	{
 		if (!mpcValues->Variable(mpcWalker, mpsFrame, psFound, psValue))

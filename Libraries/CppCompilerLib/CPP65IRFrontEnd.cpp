@@ -529,6 +529,23 @@ void CCPP65IRFrontEnd::FunctionName(CChars* pszDest, const char* szLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The debug type the C++ function being written returns, for a debugger
+// to show what it returned (.dfunction): -1 for void, or code that isn't
+// a C++ function's, or a unit without a line table.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CCPP65IRFrontEnd::ResultTypeIndex(void)
+{
+	if (!mpcCPPFunction || mbRoutine || !mpcUnit->HasLineTable() || !mpcCPPFunction->mpsReturn || mpcCPPFunction->mpsReturn->IsVoid())
+	{
+		return -1;
+	}
+	return mpcUnit->GetDebugWriter()->TypeIndex(mpcCPPFunction->mpsReturn);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Finishes the function BeginWriting started (bResult false if writing it failed): verifies, optimises and generates
 // it, and leaves a marker where its code goes in the generator's code (FinishUnit).  False, with nothing changed,
 // if it didn't verify or generate.
@@ -610,6 +627,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			psWritten->pcFunction = mpcFunction;
 			psWritten->szLabel.Init(szLabel);
 			FunctionName(&psWritten->szName, szLabel);
+			psWritten->iResult = ResultTypeIndex();
 			psWritten->uiPieces = 0;
 			CCPP65Assembly::PutCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 			psWritten->pcBackend = pcWritten;
