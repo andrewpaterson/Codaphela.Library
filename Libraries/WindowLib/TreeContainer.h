@@ -149,6 +149,7 @@ public:
 	Ptr<CFont>		GetNodeRangeFont(int32 iNode, size uiIndex);
 	int32			GetNodeParent(int32 iNode);
 	int32			GetNodeDepth(int32 iNode);
+	int32			GetNameLeft(int32 iNode);
 	int32			GetFirstChild(int32 iNode);
 	int32			GetNextSibling(int32 iNode);
 	bool			HasChildren(int32 iNode);

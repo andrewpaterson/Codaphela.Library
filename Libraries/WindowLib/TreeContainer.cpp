@@ -698,6 +698,25 @@ Ptr<CFont> CTreeContainer::GetPieceFont(int32 iNode, STreeNodePiece* psPiece)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where the node's name starts across its row: after its indent, its
+// chevron and its icon (CTreeRow::Layout).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTreeContainer::GetNameLeft(int32 iNode)
+{
+	int32	iLeft;
+
+	iLeft = masNodes.Get(iNode)->iDepth * miIndent + mpTheme->GetMetric(TM_TreeChevronWidth);
+	if (maIcons.Get(iNode).IsNotNull())
+	{
+		iLeft += mpTheme->GetMetric(TM_TreeIconWidth);
+	}
+	return iLeft;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the node's row needs across: its indent, the chevron, its icon
 // and each piece of its name in its font.  Worked out from the fonts, as
 // its labels would be laid out, and kept until its font or ranges change.
@@ -712,11 +731,7 @@ int32 CTreeContainer::GetNodeWidth(int32 iNode)
 	psNode = masNodes.Get(iNode);
 	if (psNode->iWidth < 0)
 	{
-		iWidth = psNode->iDepth * miIndent + mpTheme->GetMetric(TM_TreeChevronWidth);
-		if (maIcons.Get(iNode).IsNotNull())
-		{
-			iWidth += mpTheme->GetMetric(TM_TreeIconWidth);
-		}
+		iWidth = GetNameLeft(iNode);
 		sPiece.Init();
 		while (NextNodePiece(psNode, &sPiece))
 		{

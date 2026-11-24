@@ -39,10 +39,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //nodes' names, each other a cell of each node's.  The sash between two captions is dragged to make the column left of
 //it wider or narrower; the last column takes what is left of the table's width.
 //
-//A column can be editable.  Enter or a double click on a node edits its first editable cell in a field over it (the
-//chevron and left and right open and close nodes); enter (or the field losing focus) ends the edit keeping what was
-//typed, escape without.  The edit event says a cell was typed into (GetEditedNode, GetEditedColumn, GetEditedText):
-//its owner changes the cell, or doesn't, as a debugger writes a variable and shows what it then reads.
+//A column can be editable, the names' too (a Watch window's expressions).  Enter or a double click on a node edits the
+//editable cell under the pointer, or its first editable cell, in a field over it (the chevron and left and right open
+//and close nodes); enter (or the field losing focus) ends the edit keeping what was typed, escape without.  The edit
+//event says a cell was typed into (GetEditedNode, GetEditedColumn, GetEditedText): its owner changes the cell, or
+//doesn't, as a debugger writes a variable and shows what it then reads.  A name typed is the owner's to show (it
+//makes its nodes again).
 class CTreeTable : public CContainer
 {
 CONSTRUCTABLE(CTreeTable);
@@ -107,6 +109,7 @@ protected:
 	void							FieldEnded(CCellField* pcField, int32 eEnd);
 	void							Scrolled(CScrollPane* pcScroll, SInt32Vec2 sPosition);
 	void							LayoutField(void);
+	int32							FindPointerColumn(void);
 	int32							GetHeaderHeight(void);
 };
 

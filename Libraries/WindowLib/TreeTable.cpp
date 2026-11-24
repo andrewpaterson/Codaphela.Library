@@ -264,7 +264,7 @@ void CTreeTable::SetCellFont(int32 iNode, int32 iColumn, Ptr<CFont> pFont)
 //////////////////////////////////////////////////////////////////////////
 bool CTreeTable::BeginEdit(int32 iNode, int32 iColumn)
 {
-	if ((iColumn <= 0) || (iColumn >= NumColumns()) || !mabEditable.Get(iColumn) || (iNode < 0) || (iNode >= mpTree->NumNodes()))
+	if ((iColumn < 0) || (iColumn >= NumColumns()) || !mabEditable.Get(iColumn) || (iNode < 0) || (iNode >= mpTree->NumNodes()))
 	{
 		return false;
 	}
@@ -322,8 +322,9 @@ bool CTreeTable::EndEdit(bool bKeep)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Where a node's cell is, in window client space.  False if its row isn't
-// laid out or it has no such column.
+// Where a node's cell is, in window client space: its name's from where
+// the name starts.  False if its row isn't laid out or it has no such
+// column.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CTreeTable::GetCellBounds(int32 iNode, int32 iColumn, CInt32Rect* pcDest)
@@ -331,13 +332,15 @@ bool CTreeTable::GetCellBounds(int32 iNode, int32 iColumn, CInt32Rect* pcDest)
 	CInt32Rect	cTable;
 	int32		iTop;
 	int32		iHeight;
+	int32		iLeft;
 
 	if ((iColumn < 0) || ((size)iColumn >= maiLefts.NumElements()) || !GetContainerBounds(&cTable) ||
 		!mpTree->GetRowBounds(mpTree->FindNodeRow(iNode), &iTop, &iHeight))
 	{
 		return false;
 	}
-	pcDest->Init(cTable.GetLeft() + maiLefts.GetValue(iColumn), iTop, cTable.GetLeft() + maiLefts.GetValue(iColumn) + maiLaidWidths.GetValue(iColumn), iTop + iHeight);
+	iLeft = cTable.GetLeft() + maiLefts.GetValue(iColumn) + ((iColumn == 0) ? mpTree->GetNameLeft(iNode) : 0);
+	pcDest->Init(iLeft, iTop, cTable.GetLeft() + maiLefts.GetValue(iColumn) + maiLaidWidths.GetValue(iColumn), iTop + iHeight);
 	return true;
 }
 
@@ -471,14 +474,19 @@ void CTreeTable::SashMoved(CSash* pcSash, int32 iDelta)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Enter or a double click on a node: its first editable cell is edited.
+// Enter or a double click on a node: its editable cell under the pointer
+// is edited, else its first editable cell.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTreeTable::Activated(void)
 {
 	int32	iColumn;
 
-	for (iColumn = 1; iColumn < NumColumns(); iColumn++)
+	if (BeginEdit(mpTree->GetSelectedNode(), FindPointerColumn()))
+	{
+		return;
+	}
+	for (iColumn = 0; iColumn < NumColumns(); iColumn++)
 	{
 		if (mabEditable.Get(iColumn))
 		{
@@ -486,6 +494,34 @@ void CTreeTable::Activated(void)
 			return;
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The column of the selected node's cell under the pointer, -1 if the
+// pointer isn't on one.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CTreeTable::FindPointerColumn(void)
+{
+	SInt32Vec2	sPointer;
+	CInt32Rect	cCell;
+	int32		iColumn;
+
+	if (!mpWindow->GetFocus()->IsPointerIn())
+	{
+		return -1;
+	}
+	sPointer = mpWindow->GetFocus()->GetPointer();
+	for (iColumn = 0; iColumn < NumColumns(); iColumn++)
+	{
+		if (GetCellBounds(mpTree->GetSelectedNode(), iColumn, &cCell) && cCell.ContainsPoint(sPointer.x, sPointer.y))
+		{
+			return iColumn;
+		}
+	}
+	return -1;
 }
 
 

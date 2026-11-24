@@ -59,12 +59,12 @@ struct STestTreeTableNodes
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A debugger's Locals: Name (120 wide), Value (150, editable) and Type,
-// in a window of 400 by 200, inset by 10; a class with two members and an
-// int.
+// A debugger's Locals: Name (120 wide; with bNames editable, as a Watch
+// window's), Value (150, editable) and Type, in a window of 400 by 200,
+// inset by 10; a class with two members and an int.
 //
 //////////////////////////////////////////////////////////////////////////
-static Ptr<CTreeTable> CreateTestTreeTable(Ptr<CWindow> pWindow, CTestTreeTableListener* pcListener, STestTreeTableNodes* psNodes)
+static Ptr<CTreeTable> CreateTestTreeTable(Ptr<CWindow> pWindow, CTestTreeTableListener* pcListener, STestTreeTableNodes* psNodes, bool bNames = false)
 {
 	Ptr<CFillContainer>		pFill;
 	Ptr<CTreeTable>			pTable;
@@ -79,7 +79,7 @@ static Ptr<CTreeTable> CreateTestTreeTable(Ptr<CWindow> pWindow, CTestTreeTableL
 	pTable = OMalloc<CTreeTable>(pWindow, pTheme);
 	pTable->SetAlignment(CSH_Stretch, CSV_Stretch);
 	pFill->AddComponent(pTable);
-	AssertInt(0, pTable->AddColumn("Name", 120));
+	AssertInt(0, pTable->AddColumn("Name", 120, bNames));
 	AssertInt(1, pTable->AddColumn("Value", 150, true));
 	AssertInt(2, pTable->AddColumn("Type", 80));
 	pTable->GetEditEvent()->Add(pcListener, &CTestTreeTableListener::Edited);
@@ -330,6 +330,81 @@ void TestTreeTableEditing(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Watch window's names are edited too: the field from where the name
+// starts (after its indent and chevron), and enter or a double click
+// edits the cell under the pointer, else the name.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTreeTableNameEditing(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>			pTestWindow;
+		Ptr<CTreeTable>			pTable;
+		Ptr<CFocus>				pFocus;
+		CTestTreeTableListener	cListener;
+		STestTreeTableNodes		sNodes;
+		CPointer				pNull;
+		CChars					szLog;
+		CInt32Rect				cCell;
+		CInt32Rect				cParent;
+		CInt32Rect				cField;
+		CChars					sz;
+
+		szLog.Init();
+		cListener.Init(&szLog);
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 400, 200, (char*)NULL);
+		pTestWindow = OMalloc<CWindow>("Tree Table Window", &pNativeFactory, pNull, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pFocus = pTestWindow->GetFocus();
+		pTable = CreateTestTreeTable(pTestWindow, &cListener, &sNodes, true);
+		pTable->GetTree()->SetExpanded(sNodes.iShape, true);
+		pTestWindow->Layout();
+
+		//miSide's name: the field is from where it starts, one indent further in than its parent's, to the Value column.
+		AssertTrue(pTable->BeginEdit(sNodes.iSide, 0));
+		AssertString("miSide", pTable->GetEditField()->GetText());
+		pTestWindow->Layout();
+		AssertTrue(pTable->GetCellBounds(sNodes.iSide, 0, &cCell));
+		AssertTrue(pTable->GetCellBounds(sNodes.iShape, 0, &cParent));
+		AssertInt(pTable->GetTree()->GetNameLeft(sNodes.iSide) - pTable->GetTree()->GetNameLeft(sNodes.iShape), cCell.GetLeft() - cParent.GetLeft());
+		AssertTrue(cCell.GetLeft() > cParent.GetLeft());
+		AssertInt(cParent.GetRight(), cCell.GetRight());
+		pTable->GetEditField()->GetActualBounds(&cField);
+		AssertInt(cCell.GetLeft(), cField.GetLeft());
+		AssertInt(cCell.GetRight(), cField.GetRight());
+		pTestWindow->InputPrintable('x', true);
+		pTestWindow->InputCommand(CIC_Enter, true);
+		sz.Init("Edited:")->Append(sNodes.iSide)->Append(",0=x;");
+		AssertLog(sz.Text());
+		sz.Kill();
+
+		//Enter with the pointer on iCount's Value edits it; with the pointer off the row, its name.
+		pTable->GetTree()->SelectNode(sNodes.iCount);
+		pFocus->SetFocus(pTable->GetTree());
+		AssertTrue(pTable->GetCellBounds(sNodes.iCount, 1, &cCell));
+		MoveTo(pTestWindow, SInt32Vec2(cCell.GetLeft() + 5, cCell.GetTop() + 2));
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertTrue(pTable->IsEditing());
+		AssertString("5", pTable->GetEditField()->GetText());
+		pTestWindow->InputCommand(CIC_ClearSelection, true);
+		MoveTo(pTestWindow, SInt32Vec2(cCell.GetLeft() + 5, cCell.GetBottom() + 40));
+		pTestWindow->InputCommand(CIC_Enter, true);
+		AssertTrue(pTable->IsEditing());
+		AssertString("iCountOfEveryShapeEverDrawnSinceTheStart", pTable->GetEditField()->GetText());
+		AssertTrue(pTable->EndEdit(false));
+		AssertLog("");
+
+		pTestWindow->Kill();
+		szLog.Kill();
+	}
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTreeTable(void)
@@ -339,6 +414,7 @@ void TestTreeTable(void)
 
 	TestTreeTableColumns();
 	TestTreeTableEditing();
+	TestTreeTableNameEditing();
 
 	ObjectsFlush();
 	ObjectsKill();
