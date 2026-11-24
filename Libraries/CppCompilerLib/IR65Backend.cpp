@@ -488,7 +488,7 @@ void CIR65Backend::Prologue(const char* szLabel)
 		//(visible to other objects when the plain one is).
 		szBody.Init(szLabel);
 		AppendRegisterSuffix(&szBody, &masArguments, IR65_REGISTER_LETTERS);
-		RegisterStub(szBody.Text());
+		mcCalls.RegisterStub(szBody.Text());
 		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 		{
 			mpszOut->Append((mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
@@ -633,111 +633,6 @@ void CIR65Backend::StoreRegisterParameters(void)
 		iMoves--;
 		aszSources[i] = aszSources[iMoves];
 		apsPlaces[i] = apsPlaces[iMoves];
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A register function's plain label, for callers that push every argument
-// (function pointers, vtables, thunks, assembly): on entry the arguments
-// are at [5 + S] on, as they were pushed (a thiscall's this is in X either
-// way).  Those the body wants in A, B and Y are loaded from there and it
-// goes straight on to the body (szBody), which follows.  When it also takes
-// arguments on the stack they must be just above its return address: they
-// are pushed again (through A, before it is loaded), the body is called,
-// they are removed and it returns.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::RegisterStub(const char* szBody)
-{
-	static const char*	aszRegisters[IR65_ARGUMENT_REGISTERS] = { "A", "B", "Y" };
-	SIR65Frame			sFrame;
-	SIR65Place			sArrival;
-	SIRType				sType;
-	size				ui;
-	size				uiFirst;
-	int32				iOffset;
-	int32				iPushed;
-	int32				iThrown;
-	int					iBytes;
-	int					i;
-
-	//The arguments as they were all pushed, from S.
-	sFrame = msFrame;
-	msFrame.cRegister = 'S';
-	msFrame.iArguments = 1 + 4;
-	uiFirst = (mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0;
-	sArrival.uiKind = IR65P_Argument;
-	sArrival.bInA = false;
-
-	//The pushed ones again, last first.
-	iPushed = 0;
-	for (ui = mpcFunction->masParameters.NumElements(); ui > uiFirst; ui--)
-	{
-		if (mcPlaces.ParameterRegister(ui - 1) >= 0)
-		{
-			continue;
-		}
-		sType = mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui - 1));
-		iBytes = ValueBytes(sType);
-		iOffset = 0;
-		for (i = (int)uiFirst; i < (int)(ui - 1); i++)
-		{
-			iOffset += ValueBytes(mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(i)));
-		}
-		sArrival.iOffset = iOffset + iPushed;
-		sArrival.iBytes = iBytes;
-		mcSelector.LoadPlace(&sArrival, sType, "A", IR65E_Zero);
-		if (iBytes != 4)
-		{
-			Line("wth A, ")->Append(8 * iBytes)->AppendNewLine();
-		}
-		Line("psh A")->AppendNewLine();
-		if (iBytes != 4)
-		{
-			Line("wth A, 32")->AppendNewLine();
-		}
-		iPushed += iBytes;
-	}
-
-	//The registers, A last.
-	for (i = IR65_ARGUMENT_REGISTERS - 1; i >= 0; i--)
-	{
-		iOffset = 0;
-		for (ui = uiFirst; ui < mpcFunction->masParameters.NumElements(); ui++)
-		{
-			sType = mpcFunction->GetTemporaryType(*mpcFunction->masParameters.Get(ui));
-			if (mcPlaces.ParameterRegister(ui) == i)
-			{
-				sArrival.iOffset = iOffset + iPushed;
-				sArrival.iBytes = ValueBytes(sType);
-				mcSelector.LoadPlace(&sArrival, sType, aszRegisters[i], IR65E_Zero);
-			}
-			iOffset += ValueBytes(sType);
-		}
-	}
-	msFrame = sFrame;
-
-	if (iPushed > 0)
-	{
-		Line("jsr ")->Append(szBody)->AppendNewLine();
-		iThrown = -1;
-		if (mpcOptions->mbExceptions && !mpcModule->IsNoThrow(mpcFunction->muiSymbol))
-		{
-			//Removing the pushed bytes clears the carry: a body that threw leaves by an exit of its own.
-			iThrown = NewLabel();
-			Branch("bras c, ", iThrown);
-		}
-		Line("add S, ")->Append(iPushed)->AppendNewLine();
-		Line("ret")->AppendNewLine();
-		if (iThrown >= 0)
-		{
-			Label(iThrown);
-			Line("add S, ")->Append(iPushed)->AppendNewLine();
-			Line("cmp S, S")->AppendNewLine();
-			Line("ret")->AppendNewLine();
-		}
 	}
 }
 
@@ -968,25 +863,6 @@ CChars* CIR65Backend::Line(const char* szText)
 void CIR65Backend::Branch(const char* szBranch, int32 iLabel)
 {
 	Line(szBranch)->Append('L')->Append(iLabel)->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Calls a soft float routine (_ and its name) and removes iBytes of
-// arguments.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::CallRuntime(const char* szName, int iBytes)
-{
-	CChars	szLabel;
-
-	szLabel.Init("_");
-	szLabel.Append(szName);
-	UseRuntime(szLabel.Text());
-	Line("jsr ")->Append(szLabel)->AppendNewLine();
-	szLabel.Kill();
-	mcCalls.RemoveArguments(iBytes);
 }
 
 

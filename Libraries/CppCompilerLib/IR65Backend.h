@@ -324,12 +324,10 @@ protected:
 	int					ReturnInstructions(void);
 	CChars*				Line(const char* szText);
 	void				Branch(const char* szBranch, int32 iLabel);
-	void				CallRuntime(const char* szName, int iBytes);
 	int					ValueBytes(SIRType sType);
 	bool				IsWide(SIRType sType);
 	bool				IsNarrow(SIRType sType);
 	bool				EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
-	void				RegisterStub(const char* szBody);
 	void				StoreRegisterParameters(void);
 	void				StoreArrivedRegister(const char* szRegister, SIR65Place* psPlace, SIRType sType, const char** aszSources, SIR65Place** apsPlaces, int* piMoves);
 	bool				WriteBody(const char* szLabel, size uiStart);

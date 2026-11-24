@@ -60,7 +60,7 @@ bool CIR65Selector::FloatOperation(SIRInstruction* psInstruction)
 	Push(psInstruction->asArguments[0], psInstruction->sType);
 	szName.Init();
 	mpcBackend->AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
-	mpcBackend->CallRuntime(szName.Text(), 2 * mpcBackend->ValueBytes(psInstruction->sType));
+	mpcBackend->mcCalls.CallRuntime(szName.Text(), 2 * mpcBackend->ValueBytes(psInstruction->sType));
 	szName.Kill();
 	mpcBackend->msAvailable = IRNone();
 	StoreResult(psInstruction->sResult);
@@ -88,7 +88,7 @@ bool CIR65Selector::FloatConversion(SIRInstruction* psInstruction)
 	case IRO_FExt:
 	case IRO_FTrunc:
 		Push(psInstruction->asArguments[0], sFrom);
-		mpcBackend->CallRuntime(szName.Text(), mpcBackend->ValueBytes(sFrom));
+		mpcBackend->mcCalls.CallRuntime(szName.Text(), mpcBackend->ValueBytes(sFrom));
 		break;
 
 	case IRO_SIToF:
@@ -104,12 +104,12 @@ bool CIR65Selector::FloatConversion(SIRInstruction* psInstruction)
 			LoadValue(psInstruction->asArguments[0], "A", bSigned ? IR65E_Sign : IR65E_Zero);
 			mpcBackend->Line("psh A")->AppendNewLine();
 		}
-		mpcBackend->CallRuntime(szName.Text(), mpcBackend->IsWide(sFrom) ? 8 : 4);
+		mpcBackend->mcCalls.CallRuntime(szName.Text(), mpcBackend->IsWide(sFrom) ? 8 : 4);
 		break;
 
 	default:
 		Push(psInstruction->asArguments[0], sFrom);
-		mpcBackend->CallRuntime(szName.Text(), mpcBackend->ValueBytes(sFrom));
+		mpcBackend->mcCalls.CallRuntime(szName.Text(), mpcBackend->ValueBytes(sFrom));
 		break;
 	}
 	szName.Kill();
@@ -139,7 +139,7 @@ bool CIR65Selector::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, in
 	Push(psInstruction->asArguments[0], psInstruction->sType);
 	szName.Init();
 	mpcBackend->AppendSoftFloatName(&szName, psInstruction, psInstruction->sType);
-	mpcBackend->CallRuntime(szName.Text(), 2 * mpcBackend->ValueBytes(psInstruction->sType));
+	mpcBackend->mcCalls.CallRuntime(szName.Text(), 2 * mpcBackend->ValueBytes(psInstruction->sType));
 	szName.Kill();
 	mpcBackend->msAvailable = IRNone();
 

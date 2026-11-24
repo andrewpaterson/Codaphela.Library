@@ -27,7 +27,9 @@ class CIR65Backend;
 
 
 //A call, for the 65C64: the arguments pushed or loaded into A, B and Y as the function called takes them, the
-//call itself, and the stack put right after it.
+//call itself, and the stack put right after it; a call of a runtime routine (CallRuntime).  And the callee's side
+//of the register rule: a register function's plain label is a stub that loads the registers from the stack
+//(RegisterStub).
 class CIR65Calls
 {
 protected:
@@ -45,6 +47,9 @@ public:
 	uint8				ReadsRegisters(SIRReference sValue);
 	void				CallerCleanUp(int32 iBytes, SIRInstruction* psCall);
 	void				RemoveArguments(int32 iBytes);
+	void				CallRuntime(const char* szName, int iBytes);
+
+	void				RegisterStub(const char* szBody);
 };
 
 

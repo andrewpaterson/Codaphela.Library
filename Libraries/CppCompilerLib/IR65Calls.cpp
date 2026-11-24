@@ -359,3 +359,127 @@ void CIR65Calls::RemoveArguments(int32 iBytes)
 		mpcBackend->Line("add S, ")->Append(iBytes)->AppendNewLine();
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Calls a soft float routine (_ and its name) and removes iBytes of
+// arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Calls::CallRuntime(const char* szName, int iBytes)
+{
+	CChars	szLabel;
+
+	szLabel.Init("_");
+	szLabel.Append(szName);
+	mpcBackend->UseRuntime(szLabel.Text());
+	mpcBackend->Line("jsr ")->Append(szLabel)->AppendNewLine();
+	szLabel.Kill();
+	RemoveArguments(iBytes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A register function's plain label, for callers that push every argument
+// (function pointers, vtables, thunks, assembly): on entry the arguments
+// are at [5 + S] on, as they were pushed (a thiscall's this is in X either
+// way).  Those the body wants in A, B and Y are loaded from there and it
+// goes straight on to the body (szBody), which follows.  When it also takes
+// arguments on the stack they must be just above its return address: they
+// are pushed again (through A, before it is loaded), the body is called,
+// they are removed and it returns.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Calls::RegisterStub(const char* szBody)
+{
+	static const char*	aszRegisters[IR65_ARGUMENT_REGISTERS] = { "A", "B", "Y" };
+	SIR65Frame			sFrame;
+	SIR65Place			sArrival;
+	SIRType				sType;
+	size				ui;
+	size				uiFirst;
+	int32				iOffset;
+	int32				iPushed;
+	int32				iThrown;
+	int					iBytes;
+	int					i;
+
+	//The arguments as they were all pushed, from S.
+	sFrame = mpcBackend->msFrame;
+	mpcBackend->msFrame.cRegister = 'S';
+	mpcBackend->msFrame.iArguments = 1 + 4;
+	uiFirst = (mpcBackend->mpcFunction->muiAttributes & IRA_ThisCall) ? 1 : 0;
+	sArrival.uiKind = IR65P_Argument;
+	sArrival.bInA = false;
+
+	//The pushed ones again, last first.
+	iPushed = 0;
+	for (ui = mpcBackend->mpcFunction->masParameters.NumElements(); ui > uiFirst; ui--)
+	{
+		if (mpcBackend->mcPlaces.ParameterRegister(ui - 1) >= 0)
+		{
+			continue;
+		}
+		sType = mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(ui - 1));
+		iBytes = mpcBackend->ValueBytes(sType);
+		iOffset = 0;
+		for (i = (int)uiFirst; i < (int)(ui - 1); i++)
+		{
+			iOffset += mpcBackend->ValueBytes(mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(i)));
+		}
+		sArrival.iOffset = iOffset + iPushed;
+		sArrival.iBytes = iBytes;
+		mpcBackend->mcSelector.LoadPlace(&sArrival, sType, "A", IR65E_Zero);
+		if (iBytes != 4)
+		{
+			mpcBackend->Line("wth A, ")->Append(8 * iBytes)->AppendNewLine();
+		}
+		mpcBackend->Line("psh A")->AppendNewLine();
+		if (iBytes != 4)
+		{
+			mpcBackend->Line("wth A, 32")->AppendNewLine();
+		}
+		iPushed += iBytes;
+	}
+
+	//The registers, A last.
+	for (i = IR65_ARGUMENT_REGISTERS - 1; i >= 0; i--)
+	{
+		iOffset = 0;
+		for (ui = uiFirst; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
+		{
+			sType = mpcBackend->mpcFunction->GetTemporaryType(*mpcBackend->mpcFunction->masParameters.Get(ui));
+			if (mpcBackend->mcPlaces.ParameterRegister(ui) == i)
+			{
+				sArrival.iOffset = iOffset + iPushed;
+				sArrival.iBytes = mpcBackend->ValueBytes(sType);
+				mpcBackend->mcSelector.LoadPlace(&sArrival, sType, aszRegisters[i], IR65E_Zero);
+			}
+			iOffset += mpcBackend->ValueBytes(sType);
+		}
+	}
+	mpcBackend->msFrame = sFrame;
+
+	if (iPushed > 0)
+	{
+		mpcBackend->Line("jsr ")->Append(szBody)->AppendNewLine();
+		iThrown = -1;
+		if (mpcBackend->mpcOptions->mbExceptions && !mpcBackend->mpcModule->IsNoThrow(mpcBackend->mpcFunction->muiSymbol))
+		{
+			//Removing the pushed bytes clears the carry: a body that threw leaves by an exit of its own.
+			iThrown = mpcBackend->NewLabel();
+			mpcBackend->Branch("bras c, ", iThrown);
+		}
+		mpcBackend->Line("add S, ")->Append(iPushed)->AppendNewLine();
+		mpcBackend->Line("ret")->AppendNewLine();
+		if (iThrown >= 0)
+		{
+			mpcBackend->Label(iThrown);
+			mpcBackend->Line("add S, ")->Append(iPushed)->AppendNewLine();
+			mpcBackend->Line("cmp S, S")->AppendNewLine();
+			mpcBackend->Line("ret")->AppendNewLine();
+		}
+	}
+}
