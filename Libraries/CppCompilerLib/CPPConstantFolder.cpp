@@ -65,22 +65,25 @@ void CCPPConstantFolder::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The value of a constant expression, of an integer or a floating point
-// type: what the syntax tree folds to (Fold), or else what running it
-// gives (RunConstant), which is an integer's.  False if it isn't a
-// constant.
+// type: what the syntax tree folds to (Fold), or else, where Fold says
+// running may give it, what running it gives (RunConstant), which is an
+// integer's.  False if it isn't a constant.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPConstantFolder::Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 {
+	ECPPFold	eFold;
+
 	mpcUnit->mpcConstants->ClearReason();
 	mpcUnit->mpcStatistics->Count(CPPCC_Constants);
-	if (Fold(pcExpression, psValue))
+	eFold = Fold(pcExpression, psValue);
+	if (eFold == CPPFO_Folded)
 	{
 		mpcUnit->mpcStatistics->Count(CPPCC_ConstantsFolded);
 		return true;
 	}
 	psValue->psFloat = NULL;
-	if (RunConstant(pcExpression, &psValue->lliValue))
+	if ((eFold == CPPFO_Run) && RunConstant(pcExpression, &psValue->lliValue))
 	{
 		mpcUnit->mpcStatistics->Count(CPPCC_ConstantsRun);
 		return true;
@@ -122,7 +125,7 @@ bool CCPPConstantFolder::FloatConstant(CCPPSyntax* pcExpression, double* pdValue
 	SCPPConstant	sValue;
 
 	mpcUnit->mpcStatistics->Count(CPPCC_FloatConstants);
-	if (!Fold(pcExpression, &sValue) || !sValue.psFloat)
+	if ((Fold(pcExpression, &sValue) != CPPFO_Folded) || !sValue.psFloat)
 	{
 		return false;
 	}
@@ -138,10 +141,33 @@ bool CCPPConstantFolder::FloatConstant(CCPPSyntax* pcExpression, double* pdValue
 // floating point one (SCPPConstant), the one walk for both.  An integer
 // is kept as its type keeps it (ConstantOfType): unsigned and narrow
 // arithmetic wraps.  What it is made of is worked out by Evaluate: what
-// the tree can't give may be run.
+// the tree can't give may be run.  What doesn't fold either isn't a
+// constant or, by its kind, may be one only running it gives
+// (CPPFO_Run): a name, a member or an element (of a constant object), *
+// of a pointer, a comparison or a difference (of what aren't integers), a
+// cast but dynamic_cast, and an object made.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
+ECPPFold CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
+{
+	bool	bRunnable;
+
+	bRunnable = false;
+	if (FoldTree(pcExpression, psValue, &bRunnable))
+	{
+		return CPPFO_Folded;
+	}
+	return bRunnable ? CPPFO_Run : CPPFO_NotConstant;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Fold's walk of the tree: true if it folded, else *pbRunnable says
+// whether running may give the value.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstantFolder::FoldTree(CCPPSyntax* pcExpression, SCPPConstant* psValue, bool* pbRunnable)
 {
 	CCPPSyntaxUnaryExpression*		pcUnary;
 	CCPPSyntaxBinaryExpression*		pcBinary;
@@ -205,6 +231,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 		return TokenConstant(pcToken, &psValue->lliValue);
 
 	case CPPS_IdExpression:
+		*pbRunnable = true;
 		if (NameConstant((CCPPSyntaxIdExpression*)pcExpression, &psValue->lliValue))
 		{
 			return true;
@@ -213,6 +240,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 
 	case CPPS_UnaryExpression:
 		pcUnary = (CCPPSyntaxUnaryExpression*)pcExpression;
+		*pbRunnable = pcUnary->meOperator == CT_Multiply;
 		if (!Evaluate(pcUnary->mpcOperand, &sLeft))
 		{
 			return false;
@@ -230,6 +258,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
+		*pbRunnable = IsCPPComparison(pcBinary->meOperator) || (pcBinary->meOperator == CT_Subtract);
 		if (!Evaluate(pcBinary->mpcLeft, &sLeft))
 		{
 			return false;
@@ -260,15 +289,18 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 
 	case CPPS_CastExpression:
 		pcCast = (CCPPSyntaxCastExpression*)pcExpression;
+		*pbRunnable = true;
 		return CastConstant(pcCast->mpcType, pcCast->mpcOperand, psValue);
 
 	case CPPS_NamedCastExpression:
 		//static_cast<int>(3 > 2), as (int)(3 > 2) is.  No other named cast of a number is a constant ([expr.const] 2).
 		pcNamedCast = (CCPPSyntaxNamedCastExpression*)pcExpression;
+		*pbRunnable = pcNamedCast->meCast != CT_dynamic_cast;
 		return (pcNamedCast->meCast == CT_static_cast) && CastConstant(pcNamedCast->mpcType, pcNamedCast->mpcOperand, psValue);
 
 	case CPPS_ConstructExpression:
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
+		*pbRunnable = true;
 		psType = mpcUnit->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
 		papcElements = mpcUnit->GetTypeChecker()->ConstructElements(pcConstruct);
 		if (!psType || !(psType->IsInteger() || psType->IsPointer()) || !papcElements || (papcElements->NumElements() > 1))
@@ -321,6 +353,11 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 		}
 		psValue->lliValue = (pcSizeof->meKeyword == CT_alignof) ? mpcUnit->GetClasses()->ObjectAlignment(psType) : psType->iBytes;
 		return true;
+
+	case CPPS_MemberExpression:
+	case CPPS_SubscriptExpression:
+		*pbRunnable = true;
+		return false;
 
 	default:
 		return false;
@@ -659,8 +696,9 @@ void CCPPConstantFolder::ConstantMessage(const char* szMessage, CChars* pszDest)
 // point constant, a comparison or a difference of two that aren't integers
 // (floating point constants, addresses), and an object where an integer is
 // wanted, which is what its constexpr conversion function gives
-// (ObjectConstantType).  Only an expression that needs running
-// (NamesConstexpr) is run; its value is the interpreter's.
+// (ObjectConstantType).  It is asked only of what Fold says may be run
+// (CPPFO_Run), and only an expression that needs running (NamesConstexpr)
+// is run; its value is the interpreter's.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
@@ -670,36 +708,6 @@ bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
-		return false;
-	}
-	switch (pcExpression->GetKind())
-	{
-	case CPPS_IdExpression:
-	case CPPS_MemberExpression:
-	case CPPS_SubscriptExpression:
-	case CPPS_CastExpression:
-		break;
-	case CPPS_NamedCastExpression:
-		if (((CCPPSyntaxNamedCastExpression*)pcExpression)->meCast == CT_dynamic_cast)
-		{
-			return false;
-		}
-		break;
-	case CPPS_UnaryExpression:
-		if (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_Multiply)
-		{
-			return false;
-		}
-		break;
-	case CPPS_BinaryExpression:
-		if (!IsCPPComparison(((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator) && (((CCPPSyntaxBinaryExpression*)pcExpression)->meOperator != CT_Subtract))
-		{
-			return false;
-		}
-		break;
-	case CPPS_ConstructExpression:
-		break;
-	default:
 		return false;
 	}
 	psType = ObjectConstantType(pcExpression);

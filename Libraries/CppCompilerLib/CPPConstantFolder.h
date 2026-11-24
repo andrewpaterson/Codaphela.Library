@@ -31,6 +31,15 @@ class CCPPToken;
 class CCPPFunction;
 
 
+//What folding a constant expression's tree answers (CCPPConstantFolder::Fold).
+enum ECPPFold
+{
+	CPPFO_Folded,		//Its value.
+	CPPFO_NotConstant,	//It isn't a constant.
+	CPPFO_Run,			//It didn't fold, and by its kind running it may give its value (RunConstant).
+};
+
+
 //A constant's value (CCPPConstantFolder::Evaluate): an integer's, or a floating point number's with its type.
 struct SCPPConstant
 {
@@ -60,7 +69,7 @@ public:
 	bool					Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValue);
 	bool					Constant(CCPPSyntax* pcExpression, int64* plliValue);
 	bool					FloatConstant(CCPPSyntax* pcExpression, double* pdValue);
-	bool					Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue);
+	ECPPFold				Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue);
 	bool					BinaryFloat(ECppTokens eOperator, SCPPConstant* psLeft, SCPPConstant* psRight, SCPPConstant* psValue);
 	bool					CastConstant(CCPPSyntaxTypeId* pcType, CCPPSyntax* pcOperand, SCPPConstant* psValue);
 	bool					ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConstant* psValue);
@@ -69,6 +78,7 @@ public:
 	bool					ConstantError(CCPPSyntax* pcNode, const char* szMessage);
 	void					ConstantMessage(const char* szMessage, CChars* pszDest);
 	bool					RunConstant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					FoldTree(CCPPSyntax* pcExpression, SCPPConstant* psValue, bool* pbRunnable);
 	SCPP65Type*				ObjectConstantType(CCPPSyntax* pcExpression);
 	bool					NamesConstexpr(CCPPSyntax* pcNode);
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
