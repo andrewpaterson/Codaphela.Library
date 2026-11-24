@@ -564,6 +564,49 @@ Stage 8.  The back ends' code is instructions.  (L-XL; not started; in full, in 
    Ends when (each half): its processor's code is never decoded; the suites pass; cycles and size on each
    processor are no worse.  After 8b no text is decoded anywhere and CIRSourceMarkers is gone.
 
+   What the code showed when the work began (2026-11-24, read at 0f1f8611a), which the steps below are made from:
+   - CIRW65C816Code already holds a function's code a line at a time with each line decoded, and the passes
+     already run over it (GenerateBody loads it once).  What makes the text trip is that every change is text:
+     Set, Insert and Append take a line's text and decode it again, and the passes build that text.
+   - Besides the line passes, five passes work on the whole function's text: IR816CountDirectPage (AlignFrame's
+     estimate, per block), DropFrame, IR816ClearExitCarries, IR816TidyExits and AlignFrame (which loads the code
+     again only for IR816FindReads, then swaps the prologue's and the exits' text).  DescribeFrame reads the
+     text too (IR816FindRegisterBody, IR816FindSavedS).
+   - Between GenerateFunction and FinishFunction a function's code is text in the unit's spill store
+     (CCPP65Assembly::PutCode), which is how a unit's code stays out of memory; the front end then turns the
+     source markers into comments or .line directives (SourceComments) and the assembler reads the text.  So
+     the text the printer writes is what crosses to FinishFunction, and what FinishFunction needs is worked out
+     while the function's instructions are still there and kept with what the back end keeps of it
+     (CIRW65C816Written).
+   - " ;A" (IR816_KEEP_IN_A) and " ;R" (IR816_ROUND) are marks in a line's text that passes look for.
+
+   The steps of 8a.  Each changes only how the code is held, so each is proved by the listings being the same
+   (a listing's source comments may move where an instruction's source position, now a field, puts them: the
+   listings are then compared with the comments taken out as well, and the moves read).
+   1. The instruction.  CIRW65C816Code's line is an instruction: what it is (a label, an instruction, a
+      directive or a comment), its mnemonic and flags, its operand, the marks as flags, and its source
+      position.  Structured ways to add, insert and change one, and a printer that writes the text as it is
+      written now.  The text ways stay while their callers do.
+   2. The selector writes instructions.  GenerateFunction makes the code and the selector, the prologue, the
+      labels, the branches and the forwarder add to it; the printer writes mpszOut once, after the passes.
+      Source markers are each instruction's source position, printed where it changes, and the W65C816 no
+      longer takes them out and puts them back.
+   3. Line's callers give a mnemonic and an operand (scripted where the text is a literal, by hand where it is
+      built); a directive or a comment is said to be one.  Line(text) and the split it needs go.
+   4. The passes over the lines, a file at a time (Peephole, Branches with CIR816BranchCode, Flow, DeadStores,
+      Lines' helpers): every change made by mnemonic and operand, every reading from the fields.  The text
+      Set, Insert and Append go when their last caller does.
+   5. The passes over the whole text over instructions: IR816CountDirectPage, DropFrame, IR816ClearExitCarries
+      and IR816TidyExits, in GenerateFunction.
+   6. FinishFunction without reading the code: what AlignFrame and DescribeFrame look for (the argument words
+      read, whether the function calls itself, its body's label, where its prologue and exits are and what each
+      exit is) kept in CIRW65C816Written; AlignFrame writes the aligned prologue and exits (tidied, and with
+      the carry cleared, as they would have been after it) in their places.
+   7. IR816Decode, CIRW65C816Code's text ways and SIRW65C816Line's operand into the text go.  The pass list:
+      GenerateBody's passes as entries of a list that runs and times each, in the order they run now.
+   The steps of 8b are the same over CIR65Code, and then CIRSourceMarkers goes; they are written out when 8a is
+   done, from what it found.
+
 Stage 9.  The builder is four classes.  (M; not started)
 
    What the code is now: CCPP65Builder is one class, CPP65Builder.cpp 2,621 lines, 108 functions and 55 fields
@@ -1180,6 +1223,16 @@ setup asserts 3).
   - de211d60a  7d: IR65Folds.cpp holds CIR65Folds' functions.
   - 94ab4a3d3  CIRW65C816Calls::Entry writes a function's entry for both Prologue and GenerateForwarder.
 Not measured: compile CPU (moving functions between classes changes no work done).  Next: stage 8a's measures.
+
+Stage 8's measures before, 2026-11-24 (0f1f8611a).  CompilerMeasure.py --compile --serial --only TestSupportLib65,
+milliseconds added over the threads: code passes 11,968 on the 65C64 and 26,643 on the W65C816 (parsing is 24,665
+and 24,286: on the W65C816 the code passes are now the compile's biggest phase); back end 5,414 and 7,107;
+assemble 10,967 and 18,477.  The 65C64's code was loaded 318,848 times (about three times a function) and 157 of
+them refused (34 on 2026-11-11, before its code had V and W as operands).  VTune (sampling, the W65C816's compile
+of the same project, 134 s): GenerateBody 20.6% with its passes; of the passes' time about 40% is the text, not
+the work: CIRW65C816Code::Load and its decoding 2.4%, CIRW65C816Code::Append (each line a pass rebuilds, decoded
+again) 3.7%, CIR816BranchCode::Init 2.3%, Write 0.3%, and AlignFrame's load in FinishFunction 1.4%.  The source
+markers cost nothing here (they are only written for a listing or a line table).
 
 The numbers of 2026-11-11.
 
