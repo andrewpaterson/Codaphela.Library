@@ -42,18 +42,14 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	InitBackend(pcModule, piLabels, NULL);
 	mcDominators.Init();
 	mcLiveness.Init();
-	masPlaces.Init();
-	masLaidOut.Init();
+	masTemporaries.Init();
 	mauiAddressed.Init();
 	masArguments.Init();
 	miRegisterArguments = 0;
-	maiClasses.Init();
-	maiLeaders.Init();
 	masHomes.Init();
 	maiCalls.Init();
 	maiChangesXY.Init();
 	maiChangesY.Init();
-	mauiUses.Init();
 	masCopies.Init();
 	masCopySteps.Init();
 	masStubs.Init();
@@ -74,7 +70,6 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mcWidths.Init();
 	mcPeephole.Init();
 	mcBackendPasses.Init();
-	mauiNarrowOnly.Init();
 	mcMost.Init();
 	maiChangesB.Init();
 	maiLosesB.Init();
@@ -101,7 +96,6 @@ void CIR65Backend::Kill(void)
 	maiLosesB.Kill();
 	maiChangesB.Kill();
 	mcMost.Kill();
-	mauiNarrowOnly.Kill();
 	mcPeephole.Kill();
 	mcBackendPasses.Kill();
 	mcWidths.Kill();
@@ -111,7 +105,6 @@ void CIR65Backend::Kill(void)
 	masStubs.Kill();
 	masCopySteps.Kill();
 	masCopies.Kill();
-	mauiUses.Kill();
 	maiChangesY.Kill();
 	maiChangesXY.Kill();
 	maiCalls.Kill();
@@ -120,12 +113,9 @@ void CIR65Backend::Kill(void)
 		masHomes.Get(ui)->asRanges.Kill();
 	}
 	masHomes.Kill();
-	maiLeaders.Kill();
-	maiClasses.Kill();
 	masArguments.Kill();
 	mauiAddressed.Kill();
-	masLaidOut.Kill();
-	masPlaces.Kill();
+	masTemporaries.Kill();
 	mcLiveness.Kill();
 	mcDominators.Kill();
 	CIRBackend::Kill();
@@ -159,16 +149,17 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcBackendPasses.IsolateThrowns(pcFunction);
 	pcFunction->Renumber();
 	pcFunction->ComputePredecessors();
-	mpcFunction->CountUses(&mauiUses);
+	masTemporaries.FakeSetUsedElements(0);
+	CountUses();
 	AdjustComparisons();
 	PreferSingleBranches();
 	mcBackendPasses.OrderBlocks(pcFunction, false);
 	mcBackendPasses.MoveLoopTests(pcFunction);
 	mcBackendPasses.SinkLoads(pcFunction);
 	mcBackendPasses.SinkSteps(pcFunction);
-	mpcFunction->CountUses(&mauiUses);
+	CountUses();
 	CopyAddresses();
-	mpcFunction->CountUses(&mauiUses);
+	CountUses();
 	mcPlaces.FindNarrowOnly();
 	mpcModule->Count(CPPCC_Dominators);
 	mcDominators.Compute(pcFunction);
@@ -177,10 +168,9 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcPlaces.Layout();
 	mcMost.Compute(pcFunction);
 	sLaidOut = msFrame;
-	masLaidOut.FakeSetUsedElements(0);
-	for (ui = 0; ui < masPlaces.NumElements(); ui++)
+	for (ui = 0; ui < masTemporaries.NumElements(); ui++)
 	{
-		masLaidOut.Add(masPlaces.Get(ui));
+		masTemporaries.Get(ui)->sLaidOut = masTemporaries.Get(ui)->sPlace;
 	}
 	maiChangesB.FakeSetUsedElements(0);
 	maiLosesB.FakeSetUsedElements(0);
@@ -264,7 +254,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 //////////////////////////////////////////////////////////////////////////
 //
 // Homes given again, from the frame and places Layout left (psLaidOut,
-// masLaidOut), with B one of them or not.
+// each temporary's sLaidOut), with B one of them or not.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::Reallocate(SIR65Frame* psLaidOut, bool bHomeB)
@@ -272,12 +262,65 @@ void CIR65Backend::Reallocate(SIR65Frame* psLaidOut, bool bHomeB)
 	size	ui;
 
 	msFrame = *psLaidOut;
-	for (ui = 0; ui < masPlaces.NumElements(); ui++)
+	for (ui = 0; ui < masTemporaries.NumElements(); ui++)
 	{
-		*masPlaces.Get(ui) = *masLaidOut.Get(ui);
+		masTemporaries.Get(ui)->sPlace = masTemporaries.Get(ui)->sLaidOut;
 	}
 	mbHomeB = bHomeB;
 	mcPlaces.Allocate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A record for each of the function's temporaries, and one more (as
+// CIRFunction::CountUses counts).  The records made are nothing known; those
+// there already are kept, as the function may have more temporaries than
+// when the last pass ran.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::GrowTemporaries(void)
+{
+	SIR65Temporary	sNew;
+
+	memset(&sNew, 0, sizeof(SIR65Temporary));
+	sNew.iNextInClass = -1;
+	sNew.iLeader = -1;
+	while (masTemporaries.NumElements() < mpcFunction->NumTemporaries() + 1)
+	{
+		masTemporaries.Add(&sNew);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times each temporary is used, by instructions, phis and jumps.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::CountUses(void)
+{
+	CArrayTemplate<uint32>	auiUses;
+	size					ui;
+
+	auiUses.Init();
+	mpcFunction->CountUses(&auiUses);
+	GrowTemporaries();
+	for (ui = 0; ui < auiUses.NumElements(); ui++)
+	{
+		masTemporaries.Get(ui)->uiUses = *auiUses.Get(ui);
+	}
+	auiUses.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SIR65Temporary* CIR65Backend::GetTemporary(size uiTemporary)
+{
+	return masTemporaries.Get(uiTemporary);
 }
 
 
@@ -768,7 +811,7 @@ int32 CIR65Backend::VariableSlotPlace(SIRInstruction* psSlot)
 {
 	SIR65Place*	psPlace;
 
-	psPlace = masPlaces.Get(psSlot->sResult.Index());
+	psPlace = &masTemporaries.Get(psSlot->sResult.Index())->sPlace;
 	if (psPlace->uiKind == IR65P_ArgumentAddress)
 	{
 		return psPlace->iOffset + (msFrame.bFrameless ? 1 : msFrame.iArguments);
@@ -1038,7 +1081,7 @@ bool CIR65Backend::Skipped(SIRInstruction* psInstruction)
 	{
 		return false;
 	}
-	return (mcPlaces.PlaceOf(psInstruction->sResult)->uiKind == IR65P_Folded) || (*mauiUses.Get(psInstruction->sResult.Index()) == 0);
+	return (mcPlaces.PlaceOf(psInstruction->sResult)->uiKind == IR65P_Folded) || (masTemporaries.Get(psInstruction->sResult.Index())->uiUses == 0);
 }
 
 

@@ -212,7 +212,7 @@ void CIR65Backend::CopyAddresses(void)
 				{
 					iDefinition = *aiDefinitions.Get(sAddress.Index());
 					psLast = asNew.SafeGet(asNew.NumElements() - 1);
-					if ((iDefinition >= 0) && !(psLast && psLast->sResult.Equals(sAddress) && (*mauiUses.Get(sAddress.Index()) == 1)))
+					if ((iDefinition >= 0) && !(psLast && psLast->sResult.Equals(sAddress) && (masTemporaries.Get(sAddress.Index())->uiUses == 1)))
 					{
 						psInstruction = asNew.Add(asDefinitions.Get(iDefinition));
 						psInstruction->sResult = mpcFunction->AddTemporary(psInstruction->sType);

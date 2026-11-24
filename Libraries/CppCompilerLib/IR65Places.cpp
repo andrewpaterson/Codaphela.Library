@@ -94,7 +94,7 @@ void CIR65Folds::MarkFolded(void)
 				continue;
 			}
 			psPrevious = pcBlock->masInstructions.Get(uiInstruction - 1);
-			if (mpcBackend->ConstantPtrAdd(psPrevious) && psPrevious->sResult.Equals(sAddress) && (*mpcBackend->mauiUses.Get(sAddress.Index()) == 1))
+			if (mpcBackend->ConstantPtrAdd(psPrevious) && psPrevious->sResult.Equals(sAddress) && (mpcBackend->masTemporaries.Get(sAddress.Index())->uiUses == 1))
 			{
 				psPlace = mpcBackend->mcPlaces.PlaceOf(sAddress);
 				psPlace->uiKind = IR65P_Folded;
@@ -191,7 +191,7 @@ SIRInstruction* CIR65Places::FusedComparison(CIRBlock* pcBlock)
 	SIRInstruction*	psLast;
 
 	psLast = mpcBackend->BranchComparison(pcBlock);
-	if (psLast && (*mpcBackend->mauiUses.Get(psLast->sResult.Index()) == 1))
+	if (psLast && (mpcBackend->masTemporaries.Get(psLast->sResult.Index())->uiUses == 1))
 	{
 		return psLast;
 	}
@@ -226,14 +226,14 @@ void CIR65Places::MarkInA(void)
 		uiNumInstructions = pcBlock->masInstructions.NumElements();
 		if (psFused)
 		{
-			mpcBackend->masPlaces.Get(psFused->sResult.Index())->bInA = true;
+			mpcBackend->masTemporaries.Get(psFused->sResult.Index())->sPlace.bInA = true;
 			uiNumInstructions--;
 		}
 		for (uiInstruction = 0; uiInstruction < uiNumInstructions; uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			sResult = psInstruction->sResult;
-			if (!sResult.IsTemporary() || (*mpcBackend->mauiUses.Get(sResult.Index()) != 1) || mpcBackend->Skipped(psInstruction))
+			if (!sResult.IsTemporary() || (mpcBackend->masTemporaries.Get(sResult.Index())->uiUses != 1) || mpcBackend->Skipped(psInstruction))
 			{
 				continue;
 			}
@@ -249,7 +249,7 @@ void CIR65Places::MarkInA(void)
 			{
 				bInA = mpcBackend->mcSelector.JumpTakesInA(pcBlock, psFused, sResult) || (psFused && mpcBackend->mcSelector.TakesInB(psFused, sResult)) || (psFused && mpcBackend->mcFolds.FoldedBase(psFused, sResult));
 			}
-			mpcBackend->masPlaces.Get(sResult.Index())->bInA = bInA;
+			mpcBackend->masTemporaries.Get(sResult.Index())->sPlace.bInA = bInA;
 		}
 	}
 }
@@ -384,8 +384,11 @@ void CIR65Places::Layout(void)
 	SIRInstruction*	psInstruction;
 	SIR65Place*		psPlace;
 
-	mpcBackend->masPlaces.FakeSetUsedElements(0);
-	mpcBackend->masPlaces.GrowToAtLeastNumElements(mpcBackend->mpcFunction->NumTemporaries(), true, 0);
+	mpcBackend->GrowTemporaries();
+	for (ui = 0; ui < mpcBackend->masTemporaries.NumElements(); ui++)
+	{
+		memset(&mpcBackend->masTemporaries.Get(ui)->sPlace, 0, sizeof(SIR65Place));
+	}
 	mpcBackend->mauiAddressed.FakeSetUsedElements(0);
 	mpcBackend->mauiAddressed.GrowToAtLeastNumElements(mpcBackend->mpcFunction->masParameters.NumElements(), true, 0);
 	mpcBackend->msFrame.Init();
@@ -402,7 +405,7 @@ void CIR65Places::Layout(void)
 			{
 				continue;
 			}
-			psPlace = mpcBackend->masPlaces.Get(psInstruction->sResult.Index());
+			psPlace = &mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->sPlace;
 			if (psInstruction->uiOpcode == IRO_Slot)
 			{
 				psPlace->uiKind = IR65P_FrameAddress;
@@ -459,9 +462,9 @@ bool CIR65Places::NeedsHome(int32 iTemporary)
 	SIR65Place*		psPlace;
 	SIRReference	sTemporary;
 
-	psPlace = mpcBackend->masPlaces.Get(iTemporary);
+	psPlace = &mpcBackend->masTemporaries.Get(iTemporary)->sPlace;
 	sTemporary = IRReference(IRRK_Temporary, (uint32)iTemporary);
-	return (psPlace->uiKind == IR65P_None) && !psPlace->bInA && (*mpcBackend->mauiUses.Get(iTemporary) > 0) && (mpcBackend->mcLiveness.NumRanges(sTemporary) > 0);
+	return (psPlace->uiKind == IR65P_None) && !psPlace->bInA && (mpcBackend->masTemporaries.Get(iTemporary)->uiUses > 0) && (mpcBackend->mcLiveness.NumRanges(sTemporary) > 0);
 }
 
 
@@ -498,13 +501,11 @@ void CIR65Places::Allocate(void)
 	FindChanges();
 
 	iNumTemporaries = (int32)mpcBackend->mpcFunction->NumTemporaries();
-	mpcBackend->maiClasses.FakeSetUsedElements(0);
-	mpcBackend->maiLeaders.FakeSetUsedElements(0);
+	mpcBackend->GrowTemporaries();
 	for (iTemporary = 0; iTemporary < iNumTemporaries; iTemporary++)
 	{
-		iMember = -1;
-		mpcBackend->maiClasses.Add(&iMember);
-		mpcBackend->maiLeaders.Add(&iTemporary);
+		mpcBackend->masTemporaries.Get(iTemporary)->iNextInClass = -1;
+		mpcBackend->masTemporaries.Get(iTemporary)->iLeader = iTemporary;
 	}
 	Coalesce();
 
@@ -518,7 +519,7 @@ void CIR65Places::Allocate(void)
 		psWeight = asWeights.Add();
 		psWeight->iLeader = iTemporary;
 		psWeight->uiWeight = 0;
-		for (iMember = iTemporary; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+		for (iMember = iTemporary; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 		{
 			psWeight->uiWeight += mpcBackend->mcLiveness.GetWeight(IRReference(IRRK_Temporary, (uint32)iMember));
 		}
@@ -656,7 +657,7 @@ bool CIR65Places::Fits32BitRegister(int32 iLeader)
 	int32	iMember;
 	SIRType	sType;
 
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 		sType = mpcBackend->mpcFunction->GetTemporaryType(IRReference(IRRK_Temporary, (uint32)iMember));
 		if (!sType.IsPointer() && !sType.Is(IRTK_I32))
@@ -816,7 +817,7 @@ void CIR65Places::Coalesce(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CIR65Places::Find(int32 iTemporary)
 {
-	return *mpcBackend->maiLeaders.Get(iTemporary);
+	return mpcBackend->masTemporaries.Get(iTemporary)->iLeader;
 }
 
 
@@ -832,10 +833,10 @@ bool CIR65Places::Interferes(int32 iLeader1, int32 iLeader2)
 	SIRReference	sMember1;
 	SIRReference	sMember2;
 
-	for (iMember1 = iLeader1; iMember1 >= 0; iMember1 = *mpcBackend->maiClasses.Get(iMember1))
+	for (iMember1 = iLeader1; iMember1 >= 0; iMember1 = mpcBackend->masTemporaries.Get(iMember1)->iNextInClass)
 	{
 		sMember1 = IRReference(IRRK_Temporary, (uint32)iMember1);
-		for (iMember2 = iLeader2; iMember2 >= 0; iMember2 = *mpcBackend->maiClasses.Get(iMember2))
+		for (iMember2 = iLeader2; iMember2 >= 0; iMember2 = mpcBackend->masTemporaries.Get(iMember2)->iNextInClass)
 		{
 			sMember2 = IRReference(IRRK_Temporary, (uint32)iMember2);
 			if (CIRLiveness::Intersect(mpcBackend->mcLiveness.GetRanges(sMember1), mpcBackend->mcLiveness.NumRanges(sMember1), mpcBackend->mcLiveness.GetRanges(sMember2), mpcBackend->mcLiveness.NumRanges(sMember2)))
@@ -857,13 +858,13 @@ void CIR65Places::Join(int32 iLeader1, int32 iLeader2)
 {
 	int32	iMember;
 
-	for (iMember = iLeader1; *mpcBackend->maiClasses.Get(iMember) >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader1; mpcBackend->masTemporaries.Get(iMember)->iNextInClass >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 	}
-	*mpcBackend->maiClasses.Get(iMember) = iLeader2;
-	for (iMember = iLeader2; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	mpcBackend->masTemporaries.Get(iMember)->iNextInClass = iLeader2;
+	for (iMember = iLeader2; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
-		*mpcBackend->maiLeaders.Get(iMember) = iLeader1;
+		mpcBackend->masTemporaries.Get(iMember)->iLeader = iLeader1;
 	}
 }
 
@@ -889,7 +890,7 @@ bool CIR65Places::Crosses(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 	{
 		return false;
 	}
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 		sMember = IRReference(IRRK_Temporary, (uint32)iMember);
 		psRanges = mpcBackend->mcLiveness.GetRanges(sMember);
@@ -940,7 +941,7 @@ bool CIR65Places::LiveAt(int32 iLeader, CArrayTemplate<int32>* paiPositions)
 	{
 		return false;
 	}
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 		psRanges = mpcBackend->mcLiveness.GetRanges(IRReference(IRRK_Temporary, (uint32)iMember));
 		uiNumRanges = mpcBackend->mcLiveness.NumRanges(IRReference(IRRK_Temporary, (uint32)iMember));
@@ -980,7 +981,7 @@ bool CIR65Places::HasParameter(int32 iLeader)
 	int32	iMember;
 	size	ui;
 
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 		for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 		{
@@ -1380,7 +1381,7 @@ bool CIR65Places::HomeFree(int32 iHome, int32 iLeader)
 	size			ui;
 
 	pasRanges = &mpcBackend->masHomes.Get(iHome)->asRanges;
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 		sMember = IRReference(IRRK_Temporary, (uint32)iMember);
 		psRanges = mpcBackend->mcLiveness.GetRanges(sMember);
@@ -1446,7 +1447,7 @@ void CIR65Places::TakeHome(int32 iHome, int32 iLeader)
 	int32			iIndex;
 
 	pasRanges = &mpcBackend->masHomes.Get(iHome)->asRanges;
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
 		sMember = IRReference(IRRK_Temporary, (uint32)iMember);
 		psRanges = mpcBackend->mcLiveness.GetRanges(sMember);
@@ -1475,9 +1476,9 @@ void CIR65Places::PlaceClass(int32 iLeader, uint8 uiKind, int32 iOffset, int32 i
 	int32		iMember;
 	SIR65Place*	psPlace;
 
-	for (iMember = iLeader; iMember >= 0; iMember = *mpcBackend->maiClasses.Get(iMember))
+	for (iMember = iLeader; iMember >= 0; iMember = mpcBackend->masTemporaries.Get(iMember)->iNextInClass)
 	{
-		psPlace = mpcBackend->masPlaces.Get(iMember);
+		psPlace = &mpcBackend->masTemporaries.Get(iMember)->sPlace;
 		psPlace->uiKind = uiKind;
 		psPlace->iOffset = iOffset;
 		psPlace->iBytes = iBytes;
@@ -1543,7 +1544,7 @@ bool CIR65Places::AllocateClass(int32 iLeader, uint32 uiWeight)
 	//A pushed parameter alone in its class (not a thiscall's this, which comes in X, nor one that comes in A, B or Y),
 	//whose arrival place nothing stores to through an argaddr.
 	iParameter = -1;
-	if (*mpcBackend->maiClasses.Get(iLeader) < 0)
+	if (mpcBackend->masTemporaries.Get(iLeader)->iNextInClass < 0)
 	{
 		for (ui = 0; ui < mpcBackend->mpcFunction->masParameters.NumElements(); ui++)
 		{
@@ -1668,7 +1669,7 @@ int32 CIR65Places::FindUnits(int32 iFirstHome, int32 iUnits, int32 iLeader)
 //////////////////////////////////////////////////////////////////////////
 SIR65Place* CIR65Places::PlaceOf(SIRReference sValue)
 {
-	return mpcBackend->masPlaces.Get(sValue.Index());
+	return &mpcBackend->masTemporaries.Get(sValue.Index())->sPlace;
 }
 
 
@@ -1790,7 +1791,7 @@ bool CIR65Places::InRegister(SIRReference sValue)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Places::NarrowOnly(SIRReference sValue)
 {
-	return sValue.IsConstant() || (sValue.IsTemporary() && *mpcBackend->mauiNarrowOnly.Get(sValue.Index()));
+	return sValue.IsConstant() || (sValue.IsTemporary() && mpcBackend->masTemporaries.Get(sValue.Index())->bNarrowOnly);
 }
 
 
@@ -1809,8 +1810,11 @@ void CIR65Places::FindNarrowOnly(void)
 	SIRPhi*			psPhi;
 	SIRReference	sValue;
 
-	mpcBackend->mauiNarrowOnly.FakeSetUsedElements(0);
-	mpcBackend->mauiNarrowOnly.GrowToAtLeastNumElements(mpcBackend->mpcFunction->NumTemporaries() + 1, true, 0);
+	mpcBackend->GrowTemporaries();
+	for (ui = 0; ui < mpcBackend->masTemporaries.NumElements(); ui++)
+	{
+		mpcBackend->masTemporaries.Get(ui)->bNarrowOnly = false;
+	}
 	for (ui = 0; ui < mpcBackend->mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcBackend->mpcFunction->GetBlock(ui);
@@ -1819,7 +1823,7 @@ void CIR65Places::FindNarrowOnly(void)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
 			if ((psInstruction->uiOpcode == IRO_Load) && mpcBackend->IsNarrow(psInstruction->sType) && !psInstruction->sType.Is(IRTK_I1))
 			{
-				*mpcBackend->mauiNarrowOnly.Get(psInstruction->sResult.Index()) = 1;
+				mpcBackend->masTemporaries.Get(psInstruction->sResult.Index())->bNarrowOnly = true;
 			}
 		}
 	}
@@ -1834,7 +1838,7 @@ void CIR65Places::FindNarrowOnly(void)
 				sValue = psPhi->asArguments.Get(uiArgument)->sValue;
 				if (sValue.IsTemporary())
 				{
-					*mpcBackend->mauiNarrowOnly.Get(sValue.Index()) = 0;
+					mpcBackend->masTemporaries.Get(sValue.Index())->bNarrowOnly = false;
 				}
 			}
 		}
@@ -1850,14 +1854,14 @@ void CIR65Places::FindNarrowOnly(void)
 				sValue = psInstruction->asArguments[uiArgument];
 				if (sValue.IsTemporary())
 				{
-					*mpcBackend->mauiNarrowOnly.Get(sValue.Index()) = 0;
+					mpcBackend->masTemporaries.Get(sValue.Index())->bNarrowOnly = false;
 				}
 			}
 		}
 		sValue = pcBlock->msJump.sArgument;
 		if (sValue.IsTemporary())
 		{
-			*mpcBackend->mauiNarrowOnly.Get(sValue.Index()) = 0;
+			mpcBackend->masTemporaries.Get(sValue.Index())->bNarrowOnly = false;
 		}
 	}
 }

@@ -150,7 +150,7 @@ SIRInstruction* CIR65Fusion::ExtendOf(CIRBlock* pcBlock, size uiLoad)
 	psLoad = pcBlock->masInstructions.Get(uiLoad);
 	psExtend = pcBlock->masInstructions.SafeGet(uiLoad + 1);
 	if ((psLoad->uiOpcode != IRO_Load) || (mpcBackend->ValueBytes(psLoad->sType) >= 4) || (psExtend == NULL) || (psExtend->uiOpcode != IRO_SExt) || !psExtend->asArguments[0].Equals(psLoad->sResult) ||
-		!psLoad->sResult.IsTemporary() || (*mpcBackend->mauiUses.Get(psLoad->sResult.Index()) != 1) || mpcBackend->IsWide(psExtend->sType) || mpcBackend->Skipped(psExtend))
+		!psLoad->sResult.IsTemporary() || (mpcBackend->masTemporaries.Get(psLoad->sResult.Index())->uiUses != 1) || mpcBackend->IsWide(psExtend->sType) || mpcBackend->Skipped(psExtend))
 	{
 		return NULL;
 	}

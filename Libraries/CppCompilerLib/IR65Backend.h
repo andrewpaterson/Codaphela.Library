@@ -86,6 +86,23 @@ struct SIR65Place
 typedef CArrayTemplate<SIR65Place>	CArrayIR65Places;
 
 
+//What is known of one temporary of the function being written.  Each pass sets what it finds for every temporary
+//before it is read (CountUses, FindNarrowOnly, Layout, Allocate), so a record left from another function is never
+//read.
+struct SIR65Temporary
+{
+	SIR65Place	sPlace;			//Its home, or for a slot or argaddr the address it is (Layout, then Allocate).
+	SIR65Place	sLaidOut;		//Its place as Layout left it, for Allocate again (GenerateFunction, Reallocate).
+	int32		iNextInClass;	//The temporaries sharing a home are a list through this (Allocate, Coalesce)...
+	int32		iLeader;		//...and this is the first of its list.
+	uint32		uiUses;			//How many times it is used (CountUses).
+	bool		bNarrowOnly;	//A narrow load only compared (FindNarrowOnly).
+};
+
+
+typedef CArrayTemplate<SIR65Temporary>	CArrayIR65Temporaries;
+
+
 //The ranges of the temporaries given one home (a register, or four bytes of pseudo registers or frame), sorted.
 struct SIR65Home
 {
@@ -238,14 +255,11 @@ friend class CIR65Places;
 protected:
 	CIRDominators			mcDominators;
 	CIRLiveness				mcLiveness;
-	CArrayIR65Places		masPlaces;			//Per temporary.
-	CArrayIR65Places		masLaidOut;			//Per temporary: its place as Layout left it, for Allocate again (GenerateFunction).
+	CArrayIR65Temporaries	masTemporaries;		//What is known of each temporary of the function being written (GrowTemporaries).
 	CArrayTemplate<uint8>	mauiAddressed;		//Per parameter: 1 if an argaddr of it is taken.
 	CArrayIRRegisterArguments	masArguments;	//The function's parameters as its callers pass them, less a thiscall's this (FunctionArguments).
 	int						miRegisterArguments;	//How many of them arrive in A, B and Y.
 	size					muiBodyStart;		//Where the function's body starts in the text: its label, after a register function's stub.
-	CArrayTemplate<int32>	maiClasses;			//Per temporary: the temporaries sharing a home are a list through this...
-	CArrayTemplate<int32>	maiLeaders;			//...and per temporary the first of its list.
 	CArrayIR65Homes			masHomes;			//X, Y, the pseudo registers, the saved pseudo registers, the frame.
 	CArrayTemplate<int32>	maiCalls;			//Positions of instructions that change X, Y and [$00 + W] to [$7F + W]...
 	CArrayTemplate<int32>	maiChangesXY;		//...that change X and Y...
@@ -254,9 +268,7 @@ protected:
 	CArrayTemplate<int32>	maiLosesB;			//...nor one live at a position whose code lost a value kept in B (CheckHomeB).
 	CArrayIR65Chunks		masChunks;			//The code of each instruction or jump, as it is written (Block).
 	bool					mbHomeB;			//B may be a home in this Allocate.
-	CArrayTemplate<uint32>	mauiUses;			//Per temporary: how many times it is used.
 	CIRMost					mcMost;				//The largest each temporary can be: a result that fits its type isn't masked.
-	CArrayTemplate<uint8>	mauiNarrowOnly;		//Per temporary: 1 for a narrow load only compared (NarrowOnly).
 	CArrayIRCopies			masCopies;			//A jump's phi copies (Edge)...
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
 	CArrayIR65Stubs			masStubs;
@@ -296,6 +308,9 @@ public:
 	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
 
 protected:
+	void				GrowTemporaries(void);
+	void				CountUses(void);
+	SIR65Temporary*		GetTemporary(size uiTemporary);
 	void				AdjustComparisons(void);
 	void				PreferSingleBranches(void);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
