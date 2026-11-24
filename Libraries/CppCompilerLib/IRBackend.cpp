@@ -916,8 +916,8 @@ SIRReference CIRBackend::InsertBefore(CIRBlock* pcBlock, size* puiIndex, uint16 
 	sResult = mpcFunction->Add(pcBlock, uiOpcode, sType, sFirst, sSecond);
 	uiLast = pcBlock->masInstructions.NumElements() - 1;
 	sMoved = *pcBlock->masInstructions.Get(uiLast);
-	pcBlock->masInstructions.RemoveAt(uiLast, true);
-	pcBlock->masInstructions.InsertAt(&sMoved, *puiIndex);
+	pcBlock->RemoveInstruction(uiLast);
+	pcBlock->InsertInstruction(&sMoved, *puiIndex);
 	(*puiIndex)++;
 	return sResult;
 }

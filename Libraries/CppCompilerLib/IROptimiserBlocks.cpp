@@ -714,10 +714,7 @@ bool CIRBlockPasses::JoinBlocks(void)
 			psPhi = pcNext->masPhis.Get(uiInstruction);
 			Replace(psPhi->sResult, psPhi->asArguments.Get(0)->sValue);
 		}
-		for (uiInstruction = 0; uiInstruction < pcNext->masInstructions.NumElements(); uiInstruction++)
-		{
-			pcBlock->masInstructions.Add(pcNext->masInstructions.Get(uiInstruction));
-		}
+		pcBlock->TakeInstructions(pcNext, 0, pcBlock->masInstructions.NumElements());
 		pcBlock->msJump = pcNext->msJump;
 		for (uiSuccessor = 0; uiSuccessor < pcNext->NumSuccessors(); uiSuccessor++)
 		{
@@ -914,8 +911,8 @@ bool CIRBlockPasses::SinkComparisons(void)
 			continue;
 		}
 		sMoved = *psCompare;
-		pcFrom->masInstructions.RemoveAt(iIndex, true);
-		pcBlock->masInstructions.Add(&sMoved);
+		pcFrom->RemoveInstruction(iIndex);
+		pcBlock->InsertInstruction(&sMoved, pcBlock->masInstructions.NumElements());
 		bChanged = true;
 		FindDefinitions();
 	}
@@ -987,7 +984,7 @@ bool CIRBlockPasses::RemoveDeadCode(void)
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction - 1);
 			if (!IRHasEffect(psInstruction) && psInstruction->sResult.IsTemporary() && !*abLive.Get(psInstruction->sResult.Index()))
 			{
-				pcBlock->masInstructions.RemoveAt(uiInstruction - 1, true);
+				pcBlock->RemoveInstruction(uiInstruction - 1);
 				bChanged = true;
 			}
 		}

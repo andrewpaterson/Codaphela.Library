@@ -164,6 +164,7 @@ bool CIR65Backend::ConstantPtrAdd(SIRInstruction* psInstruction)
 void CIR65Backend::CopyAddresses(void)
 {
 	CArrayIRInstructions	asNew;
+	CArrayTemplate<uint32>	auiOld;			//Each old instruction's index in asNew (where what it became starts), then the jump's.
 	CArrayTemplate<int32>	aiDefinitions;	//Per temporary: its constant ptradd in asDefinitions, -1 for none.
 	CArrayIRInstructions	asDefinitions;
 	size					ui;
@@ -175,6 +176,7 @@ void CIR65Backend::CopyAddresses(void)
 	SIRInstruction			sCopy;
 	SIRReference			sAddress;
 	int32					iDefinition;
+	uint32					uiNew;
 	bool					bChanged;
 
 	//SinkLoads counted the uses (moving loads doesn't change them).
@@ -198,13 +200,17 @@ void CIR65Backend::CopyAddresses(void)
 	if (asDefinitions.NumElements() > 0)
 	{
 		asNew.Init();
+		auiOld.Init();
 		for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 		{
 			pcBlock = mpcFunction->GetBlock(ui);
 			asNew.FakeSetUsedElements(0);
+			auiOld.FakeSetUsedElements(0);
 			bChanged = false;
 			for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 			{
+				uiNew = (uint32)asNew.NumElements();
+				auiOld.Add(&uiNew);
 				sCopy = *pcBlock->masInstructions.Get(uiInstruction);
 				uiArgument = (sCopy.uiOpcode == IRO_Load) ? 0 : 1;
 				sAddress = IRAddressOf(&sCopy);
@@ -222,11 +228,14 @@ void CIR65Backend::CopyAddresses(void)
 				}
 				asNew.Add(&sCopy);
 			}
+			uiNew = (uint32)asNew.NumElements();
+			auiOld.Add(&uiNew);
 			if (bChanged)
 			{
-				pcBlock->masInstructions.Copy(&asNew);
+				pcBlock->ReplaceInstructions(&asNew, &auiOld);
 			}
 		}
+		auiOld.Kill();
 		asNew.Kill();
 	}
 	asDefinitions.Kill();

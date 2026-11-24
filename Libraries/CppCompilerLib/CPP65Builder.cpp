@@ -1535,6 +1535,150 @@ CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
 }
 
 
+static bool			gbCPP65CheckDebugCode = false;		//Generate compiles again without debug value markers and compares the code.
+static bool			gbCPP65CheckingDebugCode = false;	//It is doing so: no check of the check.
+static const char*	gaszCPP65MarkerDirectives[] = { ".dvariable", ".drange", ".dinline", ".fingerprint", NULL };	//What debug value markers may change (and a
+																												//fingerprint's time).
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For tests: each Generate with a line table also compiles the source
+// without debug value markers (CCPPCompileOptions::mbDebugMarkers), and it
+// is an error if the code differs: they must change no code
+// (DebuggerFPlan.txt F1).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetCheckDebugCode(bool bCheck)
+{
+	gbCPP65CheckDebugCode = bCheck;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The length of szPrefix if szLine starts with it, else 0.
+//
+//////////////////////////////////////////////////////////////////////////
+static size CPP65Prefix(const char* szLine, const char* szPrefix)
+{
+	size	i;
+
+	for (i = 0; szPrefix[i] != '\0'; i++)
+	{
+		if (szLine[i] != szPrefix[i])
+		{
+			return 0;
+		}
+	}
+	return i;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an assembly line is one debug value markers may change: where
+// variables are (.dvariable, .drange, .dinline), a debug label
+// (IR_DEBUG_LABEL) or a comment.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool CPP65IsMarkerLine(const char* szLine)
+{
+	size	i;
+	size	uiLength;
+
+	while ((*szLine == ' ') || (*szLine == '\t'))
+	{
+		szLine++;
+	}
+	if ((*szLine == '\0') || (*szLine == ';') || (CPP65Prefix(szLine, IR_DEBUG_LABEL) != 0))
+	{
+		return true;
+	}
+	for (i = 0; gaszCPP65MarkerDirectives[i]; i++)
+	{
+		uiLength = CPP65Prefix(szLine, gaszCPP65MarkerDirectives[i]);
+		if ((uiLength != 0) && ((szLine[uiLength] == ' ') || (szLine[uiLength] == '\t') || (szLine[uiLength] == '\0')))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// szAssembly's lines that markers mustn't change (not CPP65IsMarkerLine):
+// the code, and the rest of what a debugger is told.
+//
+//////////////////////////////////////////////////////////////////////////
+static void CPP65CodeLines(const char* szAssembly, CArrayChars* paszDest)
+{
+	CArrayChars	aszLines;
+	size		i;
+
+	aszLines.Init();
+	aszLines.Split(szAssembly, '\n');
+	for (i = 0; i < aszLines.NumElements(); i++)
+	{
+		if (!CPP65IsMarkerLine(aszLines.GetText(i)))
+		{
+			paszDest->Add(aszLines.GetText(i));
+		}
+	}
+	aszLines.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// SetCheckDebugCode's check: the source compiled again without debug
+// value markers; an error naming the first line of code that differs.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool CPP65CheckDebugCode(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, ECPPTarget eTarget, CAsm65Profile* pcFrameProfile, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions)
+{
+	CCPPCompileOptions	cOptions;
+	CChars				szPlain;
+	CChars				szPlainErrors;
+	CArrayChars			aszDebug;
+	CArrayChars			aszPlain;
+	size				i;
+	bool				bResult;
+
+	cOptions = pcOptions ? *pcOptions : *GetDefaultCPPCompileOptions();
+	cOptions.mbDebugMarkers = false;
+	szPlain.Init();
+	szPlainErrors.Init();
+	gbCPP65CheckingDebugCode = true;
+	bResult = CCPP65Builder::Generate(&szPlain, &szPlainErrors, pacIncludeDirectories, szName, szSource, bProgram, NULL, eTarget, NULL, pcFrameProfile, false, true, bNoFloats, bMathTables, &cOptions);
+	gbCPP65CheckingDebugCode = false;
+	aszDebug.Init();
+	aszPlain.Init();
+	CPP65CodeLines(pszAssembly->Text(), &aszDebug);
+	CPP65CodeLines(szPlain.Text(), &aszPlain);
+	for (i = 0; bResult && (i < aszDebug.NumElements()) && (i < aszPlain.NumElements()); i++)
+	{
+		if (!aszDebug.Get(i)->Equals(aszPlain.Get(i)))
+		{
+			pszErrors->Append("Debug value markers changed the code, line ")->Append((int)i + 1)->Append(": [")->Append(aszDebug.GetText(i))->Append("] without it [")->Append(aszPlain.GetText(i))->Append("]\n");
+			bResult = false;
+		}
+	}
+	if (bResult && (aszDebug.NumElements() != aszPlain.NumElements()))
+	{
+		pszErrors->Append("Debug value markers changed the code's length: ")->Append((int)aszDebug.NumElements())->Append(" lines without it ")->Append((int)aszPlain.NumElements())->Append("\n");
+		bResult = false;
+	}
+	aszPlain.Kill();
+	aszDebug.Kill();
+	szPlainErrors.Kill();
+	szPlain.Kill();
+	return bResult;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Preprocesses, parses and generates szSource with the include directories.  As a program (with its start up) if
@@ -1635,6 +1779,10 @@ bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65
 		pszWarnings->Append(cGenerator.GetWarnings()->Text());
 	}
 	cGenerator.Kill();
+	if (bResult && bLineTable && gbCPP65CheckDebugCode && !gbCPP65CheckingDebugCode)
+	{
+		bResult = CPP65CheckDebugCode(pszAssembly, pszErrors, pacIncludeDirectories, szName, szSource, bProgram, eTarget, pcFrameProfile, bNoFloats, bMathTables, pcOptions);
+	}
 
 	cTree.Kill();
 	cTokeniser.Kill();

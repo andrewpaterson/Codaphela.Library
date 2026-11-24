@@ -418,6 +418,32 @@ char* CIRFunction::GetTemporaryName(SIRReference sTemporary)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The n of a slot (or argaddr) named dbg<n>, a variable's that a debugger
+// is told of; -1 for any other.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRFunction::GetDebugSlot(SIRReference sTemporary)
+{
+	char*	szName;
+	char*	szEnd;
+	long	iSlot;
+
+	if (!sTemporary.IsTemporary())
+	{
+		return -1;
+	}
+	szName = GetTemporaryName(sTemporary);
+	if (!szName || (szName[0] != 'd') || (szName[1] != 'b') || (szName[2] != 'g') || (szName[3] < '0') || (szName[3] > '9'))
+	{
+		return -1;
+	}
+	iSlot = strtol(&szName[3], &szEnd, 10);
+	return (*szEnd == '\0') ? (int32)iSlot : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's constant of sType with these bits, added if it is new.
 // Integers are truncated to their width.
 //
@@ -1150,7 +1176,7 @@ void CIRFunction::SetUse(SIRUse* psUse, SIRReference sNew)
 //////////////////////////////////////////////////////////////////////////
 //
 // Every use of sOld (an operand, a phi's argument, a branch's or return's
-// value) is sNew.
+// value) is sNew, and so is every debug value marker's (ReplaceDebugValues).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRFunction::ReplaceUses(SIRReference sOld, SIRReference sNew)
@@ -1161,5 +1187,34 @@ void CIRFunction::ReplaceUses(SIRReference sOld, SIRReference sNew)
 	for (bUse = FirstUse(&sUse, sOld); bUse; bUse = NextUse(&sUse))
 	{
 		*sUse.psSlot = sNew;
+	}
+	ReplaceDebugValues(sOld, sNew, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The debug value markers (CIRBlock::masDebugValues) of sOld are of sNew,
+// in papcBlocks only if it isn't NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::ReplaceDebugValues(SIRReference sOld, SIRReference sNew, CArrayIRBlocks* papcBlocks)
+{
+	CIRBlock*		pcBlock;
+	SIRDebugValue*	psValue;
+	size			ui;
+	size			uj;
+
+	for (ui = 0; ui < (papcBlocks ? papcBlocks->NumElements() : NumBlocks()); ui++)
+	{
+		pcBlock = papcBlocks ? papcBlocks->GetPtr(ui) : GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masDebugValues.NumElements(); uj++)
+		{
+			psValue = pcBlock->masDebugValues.Get(uj);
+			if (psValue->sValue.Equals(sOld))
+			{
+				psValue->sValue = sNew;
+			}
+		}
 	}
 }

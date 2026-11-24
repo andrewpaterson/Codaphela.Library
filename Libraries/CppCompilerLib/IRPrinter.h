@@ -55,6 +55,7 @@ protected:
 	void	PrintResult(CIRFunction* pcFunction, SIRReference sResult);
 	void	PrintBlock(CIRFunction* pcFunction, CIRBlock* pcBlock);
 	void	PrintSource(uint32 uiSource, uint32* puiLast);
+	void	PrintDebugValues(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiFirst, size uiLast);
 	void	PrintPhi(CIRFunction* pcFunction, SIRPhi* psPhi);
 	size	PrintInstruction(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiIndex);
 	void	PrintCall(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiFirstArg, size uiCall);

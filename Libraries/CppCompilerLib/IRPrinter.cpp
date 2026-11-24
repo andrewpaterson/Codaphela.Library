@@ -531,6 +531,7 @@ void CIRPrinter::PrintFunction(CIRFunction* pcFunction)
 void CIRPrinter::PrintBlock(CIRFunction* pcFunction, CIRBlock* pcBlock)
 {
 	size	ui;
+	size	uiPrinted;
 	uint32	uiLast;
 
 	PrintBlockName(pcBlock);
@@ -541,16 +542,45 @@ void CIRPrinter::PrintBlock(CIRFunction* pcFunction, CIRBlock* pcBlock)
 		PrintPhi(pcFunction, pcBlock->masPhis.Get(ui));
 	}
 	uiLast = 0;
+	uiPrinted = 0;
 	ui = 0;
 	while (ui < pcBlock->masInstructions.NumElements())
 	{
+		PrintDebugValues(pcFunction, pcBlock, uiPrinted, ui);
+		uiPrinted = ui + 1;
 		PrintSource(pcBlock->masInstructions.Get(ui)->uiSource, &uiLast);
 		ui = PrintInstruction(pcFunction, pcBlock, ui);
 	}
+	PrintDebugValues(pcFunction, pcBlock, uiPrinted, ui);
 	if (pcBlock->HasJump())
 	{
 		PrintSource(pcBlock->msJump.uiSource, &uiLast);
 		PrintJump(pcFunction, &pcBlock->msJump);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The debug value markers before instructions uiFirst to uiLast (a marker
+// inside a call's args comes before the next instruction printed), as
+// comments the parser doesn't read: "; dbgvalue dbg2 = %5".
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPrinter::PrintDebugValues(CIRFunction* pcFunction, CIRBlock* pcBlock, size uiFirst, size uiLast)
+{
+	SIRDebugValue*	psValue;
+	size			ui;
+
+	for (ui = 0; ui < pcBlock->masDebugValues.NumElements(); ui++)
+	{
+		psValue = pcBlock->masDebugValues.Get(ui);
+		if ((psValue->uiBefore >= uiFirst) && (psValue->uiBefore <= uiLast))
+		{
+			mpszDest->Append("\t\t; dbgvalue dbg")->Append(psValue->uiSlot)->Append(" = ");
+			PrintReference(pcFunction, psValue->sValue);
+			mpszDest->AppendNewLine();
+		}
 	}
 }
 

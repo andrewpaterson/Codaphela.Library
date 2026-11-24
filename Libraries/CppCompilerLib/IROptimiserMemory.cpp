@@ -505,8 +505,8 @@ bool CIRMemoryPasses::SplitSlots(void)
 			if (pcBlock->masInstructions.Get(uiInstruction - 1)->uiOpcode == IRO_Slot)
 			{
 				sMoved = *pcBlock->masInstructions.Get(uiInstruction - 1);
-				pcBlock->masInstructions.RemoveAt(uiInstruction - 1, true);
-				pcEntry->masInstructions.InsertAt(&sMoved, 0);
+				pcBlock->RemoveInstruction(uiInstruction - 1);
+				pcEntry->InsertInstruction(&sMoved, 0);
 				bChanged = true;
 			}
 		}
@@ -617,16 +617,13 @@ bool CIRMemoryPasses::SplitSlots(void)
 		//The old slot is no longer its variable's (CIRFunction::ForgetTemporaryName); the new ones have no names.
 		mpcFunction->ForgetTemporaryName(psAccess->sSlot);
 		sNew = mpcFunction->AddTemporary(IRType(IRTK_Pointer));
-		pcEntry->masInstructions.InsertAt(0);
-		psInstruction = pcEntry->masInstructions.Get(0);
-		psInstruction->uiOpcode = IRO_Slot;
-		psInstruction->uiFlags = 0;
-		psInstruction->uiNamed = 0;
-		psInstruction->uiSource = 0;
-		psInstruction->sType = IRType(IRTK_Pointer);
-		psInstruction->sResult = sNew;
-		psInstruction->asArguments[0] = mpcFunction->AddInteger(IRType(IRTK_I32), mpcModule->GetSize(psAccess->sType));
-		psInstruction->asArguments[1] = mpcFunction->AddInteger(IRType(IRTK_I32), 4);
+		memset(&sMoved, 0, sizeof(SIRInstruction));
+		sMoved.uiOpcode = IRO_Slot;
+		sMoved.sType = IRType(IRTK_Pointer);
+		sMoved.sResult = sNew;
+		sMoved.asArguments[0] = mpcFunction->AddInteger(IRType(IRTK_I32), mpcModule->GetSize(psAccess->sType));
+		sMoved.asArguments[1] = mpcFunction->AddInteger(IRType(IRTK_I32), 4);
+		pcEntry->InsertInstruction(&sMoved, 0);
 		for (uiOther = uiAccess; uiOther < asAccesses.NumElements(); uiOther++)
 		{
 			psOther = asAccesses.Get(uiOther);

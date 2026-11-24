@@ -597,25 +597,31 @@ bool CIRRangePasses::BoundIndices(void)
 bool CIRRangePasses::NarrowTruncations(void)
 {
 	CArrayIRInstructions	asNew;
+	CArrayTemplate<uint32>	auiOld;		//Each old instruction's index in asNew (where what it became starts), then the jump's.
 	SIRInstruction			sInstruction;
 	SIRInstruction*			psWide;
 	CIRBlock*				pcBlock;
 	SIRType					sType;
 	size					ui;
 	size					uiInstruction;
+	uint32					uiNew;
 	bool					bChanged;
 	bool					bBlockChanged;
 
 	NeedDefinitions();
 	asNew.Init();
+	auiOld.Init();
 	bChanged = false;
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
 		asNew.FakeSetUsedElements(0);
+		auiOld.FakeSetUsedElements(0);
 		bBlockChanged = false;
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
+			uiNew = (uint32)asNew.NumElements();
+			auiOld.Add(&uiNew);
 			sInstruction = *pcBlock->masInstructions.Get(uiInstruction);
 			sType = sInstruction.sType;
 			psWide = (sInstruction.uiOpcode == IRO_Trunc) && sInstruction.sResult.IsTemporary() && sType.IsInteger() && !sType.Is(IRTK_I1) ? mpcContext->mcDefinitions.Instruction(sInstruction.asArguments[0]) : NULL;
@@ -632,17 +638,16 @@ bool CIRRangePasses::NarrowTruncations(void)
 			}
 			asNew.Add(&sInstruction);
 		}
+		uiNew = (uint32)asNew.NumElements();
+		auiOld.Add(&uiNew);
 		if (bBlockChanged)
 		{
-			pcBlock->masInstructions.FakeSetUsedElements(0);
-			for (uiInstruction = 0; uiInstruction < asNew.NumElements(); uiInstruction++)
-			{
-				pcBlock->masInstructions.Add(asNew.Get(uiInstruction));
-			}
+			pcBlock->ReplaceInstructions(&asNew, &auiOld);
 			bChanged = true;
 			FindDefinitions();
 		}
 	}
+	auiOld.Kill();
 	asNew.Kill();
 	return bChanged;
 }

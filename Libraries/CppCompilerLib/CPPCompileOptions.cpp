@@ -46,6 +46,7 @@ static CCPPCompileOptions	gcCPPDefaultCompileOptions =
 	false,						//mbMultiWordCasts (the user, 2026-11-20: "Refuse it by default, build switch").
 	false,						//mbCConversions (the user, 2026-11-20: "Build option", not the file's name).
 	false,						//mbDebuggable: a Debug build sets it (the user, 2026-11-23: "Middle + per-project -O0").
+	true,						//mbDebugMarkers
 };
 
 

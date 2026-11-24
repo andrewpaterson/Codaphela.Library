@@ -1123,7 +1123,7 @@ void CIRInterprocedural::RemoveCalleeArguments(CIRFunction* pcCallee, uint32 uiD
 		{
 			if ((uj <= IR_PARAMETER_BITS) && (uiDead & ((uint32)1 << (uj - 1))))
 			{
-				psSite->pcBlock->masInstructions.RemoveAt(uiFirst + uj - 1, true);
+				psSite->pcBlock->RemoveInstruction(uiFirst + uj - 1);
 			}
 		}
 		*pabOptimise->Get(psSite->uiFunction) = true;

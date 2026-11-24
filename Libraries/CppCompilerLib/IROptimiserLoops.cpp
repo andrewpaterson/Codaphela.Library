@@ -316,8 +316,8 @@ bool CIRLoopPasses::SinkLoad(CIRBlock* pcFrom, size uiLoad, CIRBlock* pcTo, size
 		return false;
 	}
 
-	pcFrom->masInstructions.RemoveAt(uiLoad, true);
-	pcTo->masInstructions.InsertAt(&sLoad, uiUse);
+	pcFrom->RemoveInstruction(uiLoad);
+	pcTo->InsertInstruction(&sLoad, uiUse);
 	return true;
 }
 
@@ -374,13 +374,16 @@ bool CIRLoopPasses::UsedOutside(size uiLoop, SIRReference sValue)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Blocks outside the loop read sNew where they read sValue.
+// Blocks outside the loop read sNew where they read sValue (their debug
+// value markers too).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRLoopPasses::ReplaceOutside(size uiLoop, SIRReference sValue, SIRReference sNew)
 {
-	SIRUse	sUse;
-	bool	bUse;
+	SIRUse			sUse;
+	bool			bUse;
+	CArrayIRBlocks	apcOutside;
+	size			ui;
 
 	for (bUse = mpcFunction->FirstUse(&sUse, sValue); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
@@ -389,6 +392,16 @@ void CIRLoopPasses::ReplaceOutside(size uiLoop, SIRReference sValue, SIRReferenc
 			*sUse.psSlot = sNew;
 		}
 	}
+	apcOutside.Init();
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		if (!mpcContext->mcLoops.Contains(uiLoop, mpcFunction->GetBlock(ui)))
+		{
+			apcOutside.Add(mpcFunction->GetBlock(ui));
+		}
+	}
+	mpcFunction->ReplaceDebugValues(sValue, sNew, &apcOutside);
+	apcOutside.Kill();
 }
 
 
@@ -713,16 +726,16 @@ bool CIRLoopPasses::HoistCommon(void)
 
 			//Before the comparison the brif reads, if that is last.
 			Replace(psSecond->sResult, psFirst->sResult);
-			pcElse->masInstructions.RemoveAt(uiSecond, true);
+			pcElse->RemoveInstruction(uiSecond);
 			sMoved = *psFirst;
-			pcThen->masInstructions.RemoveAt(uiFirst, true);
+			pcThen->RemoveInstruction(uiFirst);
 			uiInsert = pcBlock->masInstructions.NumElements();
 			if ((uiInsert > 0) && pcBlock->masInstructions.Get(uiInsert - 1)->sResult.Equals(pcBlock->msJump.sArgument) &&
 				!sMoved.asArguments[0].Equals(pcBlock->msJump.sArgument) && !sMoved.asArguments[1].Equals(pcBlock->msJump.sArgument))
 			{
 				uiInsert--;
 			}
-			pcBlock->masInstructions.InsertAt(&sMoved, uiInsert);
+			pcBlock->InsertInstruction(&sMoved, uiInsert);
 			bChanged = true;
 			ApplyReplacements();
 			ClearReplacements();
@@ -921,8 +934,8 @@ bool CIRLoopPasses::HoistInvariants(void)
 					bPreheader = false;
 				}
 				sMoved = *psInstruction;
-				pcBlock->masInstructions.RemoveAt(uiInstruction, true);
-				pcEntering->masInstructions.Add(&sMoved);
+				pcBlock->RemoveInstruction(uiInstruction);
+				pcEntering->InsertInstruction(&sMoved, pcEntering->masInstructions.NumElements());
 				uiInstruction--;
 				bChanged = true;
 

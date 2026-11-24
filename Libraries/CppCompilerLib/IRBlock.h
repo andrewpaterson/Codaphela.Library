@@ -31,6 +31,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //token + 1 (CCPP65IRFrontEnd::SourceComments makes it a comment, or takes it out).
 #define IR_SOURCE_MARKER	"\t\t;@"
 
+//A label a back end writes only for a debugger (where a variable's place starts or ends, DebuggerFPlan.txt F1): never
+//jumped to, and taken out when the code is compared without debug information (CCPP65Builder::SetCheckDebugCode).
+#define IR_DEBUG_LABEL		"__dbg"
+
 //An instruction's operands; those its opcode doesn't take are IRNone.
 #define IR_INSTRUCTION_ARGUMENTS	2
 
@@ -93,7 +97,22 @@ struct SIRJump
 };
 
 
+//A debug value marker (DebuggerFPlan.txt F1): from before the block's instruction uiBefore (its jump when uiBefore is
+//the number of instructions) the variable of debug slot uiSlot (dbg<n>) is sValue, or isn't known (IRNone, or a value
+//no longer defined).  Markers are kept beside a block's instructions, not among them, so no pass counts or uses them
+//and the code is the same with them as without; the block's instruction edits (InsertInstruction, RemoveInstruction,
+//TakeInstructions ...) keep each before the instruction it was before.  Replacing a value replaces it in the markers
+//too (CIRPasses::ApplyReplacements, CIRFunction::ReplaceUses).
+struct SIRDebugValue
+{
+	uint32			uiBefore;
+	uint32			uiSlot;
+	SIRReference	sValue;
+};
+
+
 typedef CArrayTemplate<SIRInstruction>	CArrayIRInstructions;
+typedef CArrayTemplate<SIRDebugValue>	CArrayIRDebugValues;
 typedef CArrayTemplate<SIRPhi>			CArrayIRPhis;
 typedef CArrayTemplatePtr<CIRBlock>		CArrayIRBlocks;
 
@@ -127,6 +146,7 @@ public:
 	CChars					mszName;
 	CArrayIRPhis			masPhis;
 	CArrayIRInstructions	masInstructions;
+	CArrayIRDebugValues		masDebugValues;		//In the order of their uiBefore.
 	SIRJump					msJump;
 	CArrayIRBlocks			mapcPredecessors;
 	size					muiIndex;			//Position in the function, set by CIRFunction::Renumber.
@@ -139,6 +159,14 @@ public:
 	const char*		GetName(void) const;
 
 	SIRInstruction*	AddInstruction(uint16 uiOpcode, SIRType sType, SIRReference sResult, SIRReference sArgument0, SIRReference sArgument1);
+	void			InsertInstruction(SIRInstruction* psInstruction, size uiIndex);
+	void			RemoveInstruction(size uiIndex);
+	void			MoveInstruction(size uiFrom, size uiTo);
+	void			TakeInstructions(CIRBlock* pcFrom, size uiFirst, size uiIndex);
+	void			TruncateInstructions(size uiCount);
+	void			ReplaceInstructions(CArrayIRInstructions* pasNew, CArrayTemplate<uint32>* pauiOld);
+
+	void			AddDebugValue(size uiBefore, uint32 uiSlot, SIRReference sValue);
 	SIRPhi*			AddPhi(SIRType sType, SIRReference sResult);
 	void			AddPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock, SIRReference sValue);
 	SIRPhiArgument*	FindPhiArgument(SIRPhi* psPhi, CIRBlock* pcBlock);

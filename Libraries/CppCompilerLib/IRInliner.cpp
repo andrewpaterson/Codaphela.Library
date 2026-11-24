@@ -809,6 +809,18 @@ bool CIRInliner::HasLoopCandidate(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The callee's debug value markers are of its variables, not the
+// caller's: they aren't copied.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRInliner::CopiesDebugValues(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the callee's operand is in the caller: a parameter the argument, a
 // temporary its copy, a constant the caller's constant.
 //
@@ -1013,10 +1025,7 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 
 	//The rest of the block, after the call, goes to a block of its own with the block's jump.
 	pcRest = mpcCaller->AddBlock();
-	if (uiRest < pcBlock->masInstructions.NumElements())
-	{
-		pcRest->masInstructions.InsertBlockAt(pcBlock->masInstructions.Get(uiRest), pcBlock->masInstructions.NumElements() - uiRest, 0);
-	}
+	pcRest->TakeInstructions(pcBlock, uiRest, 0);
 	pcRest->msJump = pcBlock->msJump;
 	for (uiSuccessor = 0; uiSuccessor < pcRest->NumSuccessors(); uiSuccessor++)
 	{
@@ -1030,7 +1039,7 @@ bool CIRInliner::InlineCall(CIRBlock* pcBlock, size uiCall, CIRFunction* pcCalle
 			}
 		}
 	}
-	pcBlock->masInstructions.FakeSetUsedElements(uiFirst);
+	pcBlock->TruncateInstructions(uiFirst);
 	StoreArguments(pcBlock, pcCallee);
 
 	//The copies of the callee's blocks, made first so jumps can name them.

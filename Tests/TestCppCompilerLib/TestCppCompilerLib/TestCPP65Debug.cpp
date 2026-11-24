@@ -1623,6 +1623,50 @@ void TestCPP65C64DebugFrames(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Debug value markers (DebuggerFPlan.txt F1) change no code: Release
+// programs with variables promoted out of their slots (loops, reassigned
+// locals, parameters, a variable only a phi holds) compiled with a line
+// table on both processors, each also compiled without markers and the
+// two compared (CCPP65Builder::SetCheckDebugCode).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugMarkersChangeNoCode(void)
+{
+	static const char*	aszSources[] = {
+		"int main() { int s = 0; for (int i = 1; i <= 100; i++) { s += i; } return s; }",
+		"int Pick(int a, int b) { int c = a; if (b > a) { c = b; } c = c * 2; return c; }\nint main() { return Pick(3, 4) + Pick(9, 2); }",
+		"int Steps(int n) { int k = 0; while (n != 1) { n = (n & 1) ? 3 * n + 1 : n / 2; k++; } return k; }\nint main() { return Steps(27); }",
+		gszTestCPP65DebugRelease,
+		NULL };
+	static ECPPTarget	aeTargets[] = { CPPT_65C64, CPPT_W65C816 };
+	CCPP65Builder		cBuilder;
+	CChars				szAssembly;
+	CChars				szErrors;
+	size				ui;
+	size				uj;
+
+	CCPP65Builder::SetCheckDebugCode(true);
+	for (uj = 0; uj < sizeof(aeTargets) / sizeof(ECPPTarget); uj++)
+	{
+		for (ui = 0; aszSources[ui]; ui++)
+		{
+			cBuilder.Init();
+			TestCPP65AddIncludeDirectories(&cBuilder);
+			szAssembly.Init();
+			szErrors.Init();
+			AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", aszSources[ui], true, NULL, aeTargets[uj], NULL, NULL, false, true));
+			AssertString("", szErrors.Text());
+			szErrors.Kill();
+			szAssembly.Kill();
+			cBuilder.Kill();
+		}
+	}
+	CCPP65Builder::SetCheckDebugCode(getenv("TEST_CPP65_SAME_CODE") != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Debug(void)
@@ -1638,6 +1682,7 @@ void TestCPP65Debug(void)
 	TestCPP65DebugRelease();
 	TestCPP65DebugReleaseInlined();
 	TestCPP65C64DebugFrames();
+	TestCPP65DebugMarkersChangeNoCode();
 
 	TestStatistics();
 }

@@ -40,6 +40,7 @@ protected:
 	virtual void			CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy);
 	virtual void			CopyReturn(CIRBlock* pcFrom, CIRBlock* pcCopy);
 	virtual void			CopyThrow(CIRBlock* pcFrom, CIRBlock* pcCopy);
+	virtual bool			CopiesDebugValues(void);
 };
 
 

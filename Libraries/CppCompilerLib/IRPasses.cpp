@@ -248,17 +248,30 @@ SIRReference CIRPasses::Replacement(SIRReference sReference)
 //////////////////////////////////////////////////////////////////////////
 //
 // Every use of a temporary is what the replacements make it (Replacement;
-// anything else stays as it is).
+// anything else stays as it is), and every debug value marker's.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRPasses::ApplyReplacements(void)
 {
-	SIRUse	sUse;
-	bool	bUse;
+	SIRUse			sUse;
+	bool			bUse;
+	CIRBlock*		pcBlock;
+	SIRDebugValue*	psValue;
+	size			ui;
+	size			uj;
 
 	for (bUse = mpcFunction->FirstTemporaryUse(&sUse); bUse; bUse = mpcFunction->NextUse(&sUse))
 	{
 		*sUse.psSlot = Replacement(*sUse.psSlot);
+	}
+	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
+	{
+		pcBlock = mpcFunction->GetBlock(ui);
+		for (uj = 0; uj < pcBlock->masDebugValues.NumElements(); uj++)
+		{
+			psValue = pcBlock->masDebugValues.Get(uj);
+			psValue->sValue = Replacement(psValue->sValue);
+		}
 	}
 }
 
@@ -340,11 +353,7 @@ void CIRPasses::ComputeLoops(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRPasses::MoveInstruction(CIRBlock* pcBlock, size uiFrom, size uiTo)
 {
-	SIRInstruction	sMoved;
-
-	sMoved = *pcBlock->masInstructions.Get(uiFrom);
-	pcBlock->masInstructions.RemoveAt(uiFrom, true);
-	pcBlock->masInstructions.InsertAt(&sMoved, uiTo);
+	pcBlock->MoveInstruction(uiFrom, uiTo);
 }
 
 
@@ -369,8 +378,8 @@ SIRReference CIRPasses::InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint1
 		//Part of the work of the instruction it goes before: its source line too (for listings and profiles).
 		sMoved.uiSource = pcBlock->masInstructions.Get(uiIndex)->uiSource;
 	}
-	pcBlock->masInstructions.RemoveAt(uiLast, true);
-	pcBlock->masInstructions.InsertAt(&sMoved, uiIndex);
+	pcBlock->RemoveInstruction(uiLast);
+	pcBlock->InsertInstruction(&sMoved, uiIndex);
 	return sResult;
 }
 
@@ -394,7 +403,7 @@ void CIRPasses::InsertInstruction(CIRBlock* pcBlock, size uiIndex, uint16 uiOpco
 	sNew.sResult = sResult;
 	sNew.asArguments[0] = sFirst;
 	sNew.asArguments[1] = sSecond;
-	pcBlock->masInstructions.InsertAt(&sNew, uiIndex);
+	pcBlock->InsertInstruction(&sNew, uiIndex);
 }
 
 

@@ -167,6 +167,8 @@ public:
 	SIRType			GetTemporaryType(SIRReference sTemporary);
 	void			SetTemporaryType(SIRReference sTemporary, SIRType sType);
 	char*			GetTemporaryName(SIRReference sTemporary);
+	int32			GetDebugSlot(SIRReference sTemporary);
+	void			ReplaceDebugValues(SIRReference sOld, SIRReference sNew, CArrayIRBlocks* papcBlocks);
 	void			NameTemporary(SIRReference sTemporary, const char* szName);
 	void			ForgetTemporaryName(SIRReference sTemporary);
 

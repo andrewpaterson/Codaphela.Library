@@ -589,6 +589,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			uiFingerprint = Fingerprint(mpcFunction);
 		}
 		NameVariableSlots();
+		mcModule.mbDebugMarkers = mpcUnit->GetOptions()->mbDebugMarkers;
 		if (mpcUnit->GetOptions()->mbOptimise)
 		{
 			InitOptimiser(&cOptimiser);

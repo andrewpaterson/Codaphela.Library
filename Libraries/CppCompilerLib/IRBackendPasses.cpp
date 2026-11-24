@@ -365,7 +365,6 @@ void CIRBackendPasses::SinkLoads(CIRFunction* pcFunction)
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psLoad;
 	SIRInstruction*	psUse;
-	SIRInstruction	sLoad;
 	SIRReference	sResult;
 	bool			bBlocked;
 
@@ -401,9 +400,7 @@ void CIRBackendPasses::SinkLoads(CIRFunction* pcFunction)
 			{
 				continue;
 			}
-			sLoad = *psLoad;
-			pcBlock->masInstructions.RemoveAt(uiLoad - 1, true);
-			pcBlock->masInstructions.InsertAt(&sLoad, uiUse - 1);
+			pcBlock->MoveInstruction(uiLoad - 1, uiUse - 1);
 		}
 	}
 }
@@ -475,10 +472,7 @@ bool CIRBackendPasses::IsolateThrowns(CIRFunction* pcFunction)
 			pcBlock = pcFunction->GetBlock(ui);
 			psThrown = pcBlock->masInstructions.Get(uiInstruction);
 			psThrown->sResult = sNew;
-			if (uiInstruction + 1 < uiNum)
-			{
-				pcRest->masInstructions.InsertBlockAt(pcBlock->masInstructions.Get(uiInstruction + 1), uiNum - (uiInstruction + 1), 0);
-			}
+			pcRest->TakeInstructions(pcBlock, uiInstruction + 1, 0);
 			pcRest->msJump = pcBlock->msJump;
 			for (uiSuccessor = 0; uiSuccessor < pcRest->NumSuccessors(); uiSuccessor++)
 			{
@@ -492,7 +486,6 @@ bool CIRBackendPasses::IsolateThrowns(CIRFunction* pcFunction)
 					}
 				}
 			}
-			pcBlock->masInstructions.FakeSetUsedElements(uiInstruction + 1);
 			pcBlock->Branch(sNew, pcThrew, pcReturned);
 			pcThrew->Jump(pcRest);
 			pcReturned->Jump(pcRest);
@@ -600,7 +593,6 @@ void CIRBackendPasses::SinkStep(CIRBlock* pcBlock, SIRReference sStep, SIRRefere
 	size			uiLast;
 	SIRInstruction*	psStep;
 	SIRInstruction*	psLater;
-	SIRInstruction	sMoved;
 	bool			bStep;
 
 	for (uiStep = 0; (uiStep < pcBlock->masInstructions.NumElements()) && !pcBlock->masInstructions.Get(uiStep)->sResult.Equals(sStep); uiStep++)
@@ -663,7 +655,5 @@ void CIRBackendPasses::SinkStep(CIRBlock* pcBlock, SIRReference sStep, SIRRefere
 	{
 		return;
 	}
-	sMoved = *psStep;
-	pcBlock->masInstructions.RemoveAt(uiStep, true);
-	pcBlock->masInstructions.InsertAt(&sMoved, uiLast);
+	pcBlock->MoveInstruction(uiStep, uiLast);
 }

@@ -194,6 +194,7 @@ void CIRModule::Init(void)
 	muiNumTargetOpcodes = 0;
 	muiSource = 0;
 	mpcStatistics = NULL;
+	mbDebugMarkers = true;
 }
 
 

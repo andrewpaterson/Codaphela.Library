@@ -38,6 +38,7 @@ void CIRBlock::Init(uint32* puiSource, const char* szName)
 	}
 	masPhis.Init();
 	masInstructions.Init();
+	masDebugValues.Init();
 	memset(&msJump, 0, sizeof(SIRJump));
 	mapcPredecessors.Init();
 	muiIndex = 0;
@@ -53,6 +54,7 @@ void CIRBlock::Kill(void)
 	size	ui;
 
 	mapcPredecessors.Kill();
+	masDebugValues.Kill();
 	masInstructions.Kill();
 	for (ui = 0; ui < masPhis.NumElements(); ui++)
 	{
@@ -95,6 +97,166 @@ SIRInstruction* CIRBlock::AddInstruction(uint16 uiOpcode, SIRType sType, SIRRefe
 	psInstruction->asArguments[1] = sArgument1;
 	psInstruction->uiSource = *mpuiSource;
 	return psInstruction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A copy of psInstruction at uiIndex in the instructions.  The debug value
+// markers stay before the instructions they were before (one at uiIndex
+// is before the new one).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::InsertInstruction(SIRInstruction* psInstruction, size uiIndex)
+{
+	size	ui;
+
+	masInstructions.InsertAt(psInstruction, uiIndex);
+	for (ui = 0; ui < masDebugValues.NumElements(); ui++)
+	{
+		if (masDebugValues.Get(ui)->uiBefore > uiIndex)
+		{
+			masDebugValues.Get(ui)->uiBefore++;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction at uiIndex goes; a debug value marker before it is
+// before the one after it now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::RemoveInstruction(size uiIndex)
+{
+	size	ui;
+
+	masInstructions.RemoveAt(uiIndex, true);
+	for (ui = 0; ui < masDebugValues.NumElements(); ui++)
+	{
+		if (masDebugValues.Get(ui)->uiBefore > uiIndex)
+		{
+			masDebugValues.Get(ui)->uiBefore--;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction at uiFrom goes to uiTo (an index in the instructions
+// without it).  The debug value markers don't move with it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::MoveInstruction(size uiFrom, size uiTo)
+{
+	SIRInstruction	sMoved;
+
+	sMoved = *masInstructions.Get(uiFrom);
+	RemoveInstruction(uiFrom);
+	InsertInstruction(&sMoved, uiTo);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcFrom's instructions from uiFirst to its end, and the debug value
+// markers before them and before its jump, go to uiIndex in this block's
+// (a block split: the rest of it goes to a new block).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::TakeInstructions(CIRBlock* pcFrom, size uiFirst, size uiIndex)
+{
+	SIRDebugValue*	psValue;
+	size			uiCount;
+	size			ui;
+
+	uiCount = pcFrom->masInstructions.NumElements() - uiFirst;
+	for (ui = 0; ui < uiCount; ui++)
+	{
+		InsertInstruction(pcFrom->masInstructions.Get(uiFirst + ui), uiIndex + ui);
+	}
+	for (ui = 0; ui < pcFrom->masDebugValues.NumElements(); )
+	{
+		psValue = pcFrom->masDebugValues.Get(ui);
+		if (psValue->uiBefore >= uiFirst)
+		{
+			AddDebugValue(psValue->uiBefore - uiFirst + uiIndex, psValue->uiSlot, psValue->sValue);
+			pcFrom->masDebugValues.RemoveAt(ui, true);
+		}
+		else
+		{
+			ui++;
+		}
+	}
+	pcFrom->TruncateInstructions(uiFirst);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Only the first uiCount instructions are kept: a debug value marker
+// before one that goes is before the jump.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::TruncateInstructions(size uiCount)
+{
+	size	ui;
+
+	masInstructions.FakeSetUsedElements(uiCount);
+	for (ui = 0; ui < masDebugValues.NumElements(); ui++)
+	{
+		if (masDebugValues.Get(ui)->uiBefore > uiCount)
+		{
+			masDebugValues.Get(ui)->uiBefore = (uint32)uiCount;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instructions made again (a pass that rewrites a block whole):
+// pauiOld has, for each old instruction and then its jump, the index of
+// the new one it became the first of, so a debug value marker before it
+// is before that.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::ReplaceInstructions(CArrayIRInstructions* pasNew, CArrayTemplate<uint32>* pauiOld)
+{
+	SIRDebugValue*	psValue;
+	size			ui;
+
+	masInstructions.Copy(pasNew);
+	for (ui = 0; ui < masDebugValues.NumElements(); ui++)
+	{
+		psValue = masDebugValues.Get(ui);
+		psValue->uiBefore = *pauiOld->Get(psValue->uiBefore);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A debug value marker before the instruction uiBefore (the jump when it
+// is the number of instructions), after any already there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBlock::AddDebugValue(size uiBefore, uint32 uiSlot, SIRReference sValue)
+{
+	SIRDebugValue	sMarker;
+	size			ui;
+
+	sMarker.uiBefore = (uint32)uiBefore;
+	sMarker.uiSlot = uiSlot;
+	sMarker.sValue = sValue;
+	ui = masDebugValues.NumElements();
+	while ((ui > 0) && (masDebugValues.Get(ui - 1)->uiBefore > uiBefore))
+	{
+		ui--;
+	}
+	masDebugValues.InsertAt(&sMarker, ui);
 }
 
 

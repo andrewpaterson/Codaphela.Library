@@ -301,6 +301,7 @@ public:
 	bool					GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*			GetLazyImage(void);
 
+	static void				SetCheckDebugCode(bool bCheck);
 	static bool				Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL, CArrayChars* paszTested = NULL, CArrayChars* paszLayouts = NULL);
 	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
 

@@ -52,6 +52,8 @@ protected:
 	void			RenameBlock(CIRBlock* pcBlock, size* puiPushed);
 	void			FillSuccessorPhis(CIRBlock* pcBlock);
 	void			RemovePromoted(void);
+	int32			DebugSlot(SIRReference sAddress);
+	void			AddPhiMarkers(CIRBlock* pcBlock);
 };
 
 

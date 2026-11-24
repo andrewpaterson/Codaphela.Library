@@ -145,6 +145,7 @@ protected:
 	bool			InlineAt(size uiBlock, size uiInstruction, CIRFunction* pcCallee);
 	size			HotLimit(uint64 ulliCount);
 	SIRReference	CopyValue(SIRReference sValue) override;
+	bool			CopiesDebugValues(void) override;
 	CIRBlock*		CopyOf(CIRBlock* pcBlock) override;
 	void			CopyOperands(SIRInstruction* psFrom, SIRInstruction* psCopy) override;
 	void			CopyReturn(CIRBlock* pcFrom, CIRBlock* pcCopy) override;

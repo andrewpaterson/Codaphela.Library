@@ -67,15 +67,19 @@ void CIRBlockCopier::CopyPhis(CIRBlock* pcFrom, CIRBlock* pcCopy)
 //////////////////////////////////////////////////////////////////////////
 //
 // pcFrom's instructions added to the end of pcCopy's: the operands first
-// (CopyOperands), then the result.
+// (CopyOperands), then the result.  Its debug value markers go with them
+// when the copier keeps them (CopiesDebugValues).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBlockCopier::CopyInstructions(CIRBlock* pcFrom, CIRBlock* pcCopy)
 {
 	SIRInstruction*	psInstruction;
 	SIRInstruction	sCopy;
+	SIRDebugValue*	psValue;
+	size			uiFirst;
 	size			ui;
 
+	uiFirst = pcCopy->masInstructions.NumElements();
 	for (ui = 0; ui < pcFrom->masInstructions.NumElements(); ui++)
 	{
 		psInstruction = pcFrom->masInstructions.Get(ui);
@@ -84,6 +88,24 @@ void CIRBlockCopier::CopyInstructions(CIRBlock* pcFrom, CIRBlock* pcCopy)
 		sCopy.sResult = CopyValue(psInstruction->sResult);
 		pcCopy->masInstructions.Add(&sCopy);
 	}
+	for (ui = 0; CopiesDebugValues() && (ui < pcFrom->masDebugValues.NumElements()); ui++)
+	{
+		psValue = pcFrom->masDebugValues.Get(ui);
+		pcCopy->AddDebugValue(uiFirst + psValue->uiBefore, psValue->uiSlot, CopyValue(psValue->sValue));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a copy keeps the debug value markers: their values are taken
+// through CopyValue, so a copier that makes values as it goes (or copies
+// into another function) doesn't.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRBlockCopier::CopiesDebugValues(void)
+{
+	return true;
 }
 
 

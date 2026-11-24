@@ -520,7 +520,10 @@ void CIRPromotionPasses::FillSuccessorPhis(CIRBlock* pcBlock)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The promoted slots, argaddrs and their loads and stores go.
+// The promoted slots, argaddrs and their loads and stores go.  A slot a
+// debugger is told of (dbg<n>) leaves debug value markers where its value
+// is set (DebuggerFPlan.txt F1): at each of its phis, its stores (their
+// values) and its argaddr (its parameter's value).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRPromotionPasses::RemovePromoted(void)
@@ -529,34 +532,84 @@ void CIRPromotionPasses::RemovePromoted(void)
 	size			uiInstruction;
 	CIRBlock*		pcBlock;
 	SIRInstruction*	psInstruction;
-	bool			bRemove;
+	SIRReference	sAddress;
+	SIRReference	sValue;
+	int32			iPromotion;
+	int32			iDebugSlot;
 
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
+		AddPhiMarkers(pcBlock);
 		for (uiInstruction = pcBlock->masInstructions.NumElements(); uiInstruction > 0; uiInstruction--)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction - 1);
 			switch (psInstruction->uiOpcode)
 			{
 			case IRO_Load:
-				bRemove = PromotionOf(psInstruction->asArguments[0]) >= 0;
+				sAddress = psInstruction->asArguments[0];
 				break;
 			case IRO_Store:
-				bRemove = PromotionOf(psInstruction->asArguments[1]) >= 0;
+				sAddress = psInstruction->asArguments[1];
 				break;
 			case IRO_Slot:
 			case IRO_ArgAddress:
-				bRemove = PromotionOf(psInstruction->sResult) >= 0;
+				sAddress = psInstruction->sResult;
 				break;
 			default:
-				bRemove = false;
+				sAddress = IRNone();
 				break;
 			}
-			if (bRemove)
+			iPromotion = PromotionOf(sAddress);
+			if (iPromotion < 0)
 			{
-				pcBlock->masInstructions.RemoveAt(uiInstruction - 1, true);
+				continue;
 			}
+			iDebugSlot = ((psInstruction->uiOpcode == IRO_Store) || (psInstruction->uiOpcode == IRO_ArgAddress)) ? DebugSlot(sAddress) : -1;
+			sValue = (psInstruction->uiOpcode == IRO_Store) ? psInstruction->asArguments[0] : masPromotions.Get(iPromotion)->sInitial;
+			pcBlock->RemoveInstruction(uiInstruction - 1);
+			if (iDebugSlot >= 0)
+			{
+				pcBlock->AddDebugValue(uiInstruction - 1, (uint32)iDebugSlot, sValue);
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The debug slot (dbg<n>) a promoted slot or argaddr is, if it leaves
+// markers (CIRModule::mbDebugMarkers); -1 if not.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRPromotionPasses::DebugSlot(SIRReference sAddress)
+{
+	return mpcModule->mbDebugMarkers ? mpcFunction->GetDebugSlot(sAddress) : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A debug value marker at the block's start for each phi of a promoted
+// slot a debugger is told of.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRPromotionPasses::AddPhiMarkers(CIRBlock* pcBlock)
+{
+	SIRPhi*		psPhi;
+	int32*		piPromotion;
+	int32		iDebugSlot;
+	size		ui;
+
+	for (ui = 0; ui < pcBlock->masPhis.NumElements(); ui++)
+	{
+		psPhi = pcBlock->masPhis.Get(ui);
+		piPromotion = maiPhiPromotion.SafeGet(psPhi->sResult.Index());
+		iDebugSlot = (piPromotion && (*piPromotion >= 0)) ? DebugSlot(masPromotions.Get(*piPromotion)->sAddress) : -1;
+		if (iDebugSlot >= 0)
+		{
+			pcBlock->AddDebugValue(0, (uint32)iDebugSlot, psPhi->sResult);
 		}
 	}
 }

@@ -145,6 +145,7 @@ public:
 
 	uint32						muiSource;			//The source token + 1 instructions added to the module's blocks now are for (0: none, as the optimiser's).
 	CCPPCompileStatistics*		mpcStatistics;		//What compiling the unit's functions is counted and timed in (SetStatistics), or NULL.
+	bool						mbDebugMarkers;		//Promoting a slot a debugger is told of leaves debug value markers (CCPPCompileOptions).
 
 public:
 	void			Init(void);

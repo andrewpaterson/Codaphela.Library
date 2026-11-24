@@ -70,6 +70,8 @@ public:
 	bool		mbDebuggable;			//The code is for a debugger (DebuggerPlan.txt A2): each named variable, parameters too, has a
 									//frame slot of its own that always holds its value, nothing is inlined and every frame keeps its
 									//shape.  With mbOptimise the rest is optimised (a Debug build); without, nothing is.
+	bool		mbDebugMarkers;			//With a line table, a variable promoted out of its slot leaves debug value markers in the IR
+									//(DebuggerFPlan.txt F1); off, its value isn't described.  Off only to check they change no code.
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);
