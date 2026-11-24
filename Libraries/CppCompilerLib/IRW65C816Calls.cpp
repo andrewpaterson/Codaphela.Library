@@ -66,22 +66,22 @@ void CIRW65C816Calls::CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction,
 		//Pulled into Y, which keeps A and X.
 		for (i = 0; i < iBytes; i += 2)
 		{
-			mpcBackend->Line("ply");
+			mpcBackend->Line(IR816M_Ply);
 		}
 	}
 	else if (iBytes != 0)
 	{
 		if (bResult)
 		{
-			mpcBackend->Line("tay");
+			mpcBackend->Line(IR816M_Tay);
 		}
-		mpcBackend->Line("tsc");
-		mpcBackend->Line("clc");
-		mpcBackend->Line("adc ", iBytes);
-		mpcBackend->Line("tcs");
+		mpcBackend->Line(IR816M_Tsc);
+		mpcBackend->Line(IR816M_Clc);
+		mpcBackend->Line(IR816M_Adc, (int64)(iBytes));
+		mpcBackend->Line(IR816M_Tcs);
 		if (bResult)
 		{
-			mpcBackend->Line("tya");
+			mpcBackend->Line(IR816M_Tya);
 		}
 	}
 	if (bResult)
@@ -171,7 +171,7 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	{
 		iReturn = mpcBackend->NewLabel();
 		iCallee = mpcBackend->mcPlaces.OffsetOf(sCallee);
-		mpcBackend->Line("phk");
+		mpcBackend->Line(IR816M_Phk);
 		sz.Append("per L");
 		sz.Append(iReturn);
 		sz.Append(" - 1");
@@ -182,22 +182,22 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 			//target - 1 written over that byte and the high byte (which the - 1 may have borrowed from): no change of
 			//A's width for the bank's byte.
 			mpcBackend->mcSelector.Frame("pei", iCallee + 1);
-			mpcBackend->Line("phb");
+			mpcBackend->Line(IR816M_Phb);
 			mpcBackend->mcSelector.Frame("lda", iCallee);
-			mpcBackend->Line("dec A");
-			mpcBackend->Line("sta [S + 1]");
+			mpcBackend->Line(IR816M_Dec, "A");
+			mpcBackend->Line(IR816M_Sta, "[S + 1]");
 		}
 		else
 		{
-			mpcBackend->Line("sep m");
+			mpcBackend->Line(IR816M_Sep, "m");
 			mpcBackend->mcSelector.Frame("lda", iCallee + 2);
-			mpcBackend->Line("pha");
-			mpcBackend->Line("rep m");
+			mpcBackend->Line(IR816M_Pha);
+			mpcBackend->Line(IR816M_Rep, "m");
 			mpcBackend->mcSelector.Frame("lda", iCallee);
-			mpcBackend->Line("dec A");
-			mpcBackend->Line("pha");
+			mpcBackend->Line(IR816M_Dec, "A");
+			mpcBackend->Line(IR816M_Pha);
 		}
-		mpcBackend->Line("rtl");
+		mpcBackend->Line(IR816M_Rtl);
 		mpcBackend->Label(iReturn);
 	}
 	sz.Kill();
@@ -218,9 +218,9 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 		if (!mbThrownInCarry)
 		{
 			iThrown = mpcBackend->NewLabel();
-			mpcBackend->Line("ldy 0");
+			mpcBackend->Line(IR816M_Ldy, "0");
 			mpcBackend->Branch("bcc", iThrown);
-			mpcBackend->Line("iny");
+			mpcBackend->Line(IR816M_Iny);
 			mpcBackend->Label(iThrown);
 			mpcBackend->mcSelector.Frame("sty", IR816_SCRATCH_COUNT);
 		}
@@ -409,28 +409,28 @@ void CIRW65C816Calls::LoadRegisters(SIRReference* asValues, int* aiWords, int32*
 	{
 		if ((aiHidden[i] >= 0) && (aiWords[i] == 0))
 		{
-			mpcBackend->Line("tdc");
-			mpcBackend->Line("clc");
-			mpcBackend->Line("adc ", aiHidden[i]);
-			mpcBackend->Line("pha");
+			mpcBackend->Line(IR816M_Tdc);
+			mpcBackend->Line(IR816M_Clc);
+			mpcBackend->Line(IR816M_Adc, (int64)(aiHidden[i]));
+			mpcBackend->Line(IR816M_Pha);
 		}
 		else if (aiHidden[i] >= 0)
 		{
-			mpcBackend->Line("pea 0");
+			mpcBackend->Line(IR816M_Pea, "0");
 		}
 		else
 		{
 			mpcBackend->mcSelector.PushWord(asValues[i], aiWords[i]);
 		}
 	}
-	mpcBackend->Line("pla");
+	mpcBackend->Line(IR816M_Pla);
 	if (iRegisters > 1)
 	{
-		mpcBackend->Line("plx");
+		mpcBackend->Line(IR816M_Plx);
 	}
 	if (iRegisters > 2)
 	{
-		mpcBackend->Line("ply");
+		mpcBackend->Line(IR816M_Ply);
 	}
 }
 
@@ -471,9 +471,9 @@ void CIRW65C816Calls::LoadRegisterWord(int iRegister, SIRReference sValue, int i
 	if ((iHiddenResult >= 0) && (iWord == 0))
 	{
 		//The hidden result pointer is the first argument: its low word is A's.
-		mpcBackend->Line("tdc");
-		mpcBackend->Line("clc");
-		mpcBackend->Line("adc ", iHiddenResult);
+		mpcBackend->Line(IR816M_Tdc);
+		mpcBackend->Line(IR816M_Clc);
+		mpcBackend->Line(IR816M_Adc, (int64)(iHiddenResult));
 	}
 	else if (iHiddenResult >= 0)
 	{
@@ -878,7 +878,7 @@ void CIRW65C816Calls::RegisterStub(CChars* pszBodyLabel)
 	if (bKeepA)
 	{
 		RegisterStubLoad(aiWordOf, 0, 0, 0);
-		mpcBackend->Line("tay");
+		mpcBackend->Line(IR816M_Tay);
 	}
 
 	//The pushed words down to S + 4 on, first first: each goes to a lower place than any still to be read.
@@ -905,7 +905,7 @@ void CIRW65C816Calls::RegisterStub(CChars* pszBodyLabel)
 	//A's word, then on to the body (its label is next).
 	if (bKeepA)
 	{
-		mpcBackend->Line("tya");
+		mpcBackend->Line(IR816M_Tya);
 	}
 	else
 	{
@@ -930,11 +930,11 @@ void CIRW65C816Calls::RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int i
 		StackLine("lda", 4 + 2 * aiWordOf[k] + 2 * iPushed);
 		if (k == 2)
 		{
-			mpcBackend->Line("tay");
+			mpcBackend->Line(IR816M_Tay);
 		}
 		else if (k == 1)
 		{
-			mpcBackend->Line("tax");
+			mpcBackend->Line(IR816M_Tax);
 		}
 	}
 }
@@ -970,7 +970,7 @@ void CIRW65C816Calls::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int 
 			if (psArgument->iRegister < 0)
 			{
 				StackLine("lda", 4 + 2 * iWord + 2 * iPushed);
-				mpcBackend->Line("pha");
+				mpcBackend->Line(IR816M_Pha);
 				iPushed++;
 			}
 		}
@@ -988,22 +988,22 @@ void CIRW65C816Calls::RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int 
 		iThrown = mpcBackend->NewLabel();
 		mpcBackend->Branch("bcs", iThrown);
 	}
-	mpcBackend->Line("tay");
-	mpcBackend->Line("tsc");
-	mpcBackend->Line("clc");
-	mpcBackend->Line("adc ", 2 * iStacked);
-	mpcBackend->Line("tcs");
-	mpcBackend->Line("tya");
-	mpcBackend->Line("rtl");
+	mpcBackend->Line(IR816M_Tay);
+	mpcBackend->Line(IR816M_Tsc);
+	mpcBackend->Line(IR816M_Clc);
+	mpcBackend->Line(IR816M_Adc, (int64)(2 * iStacked));
+	mpcBackend->Line(IR816M_Tcs);
+	mpcBackend->Line(IR816M_Tya);
+	mpcBackend->Line(IR816M_Rtl);
 	if (iThrown >= 0)
 	{
 		mpcBackend->Label(iThrown);
-		mpcBackend->Line("tsc");
-		mpcBackend->Line("clc");
-		mpcBackend->Line("adc ", 2 * iStacked);
-		mpcBackend->Line("tcs");
-		mpcBackend->Line("sec");
-		mpcBackend->Line("rtl");
+		mpcBackend->Line(IR816M_Tsc);
+		mpcBackend->Line(IR816M_Clc);
+		mpcBackend->Line(IR816M_Adc, (int64)(2 * iStacked));
+		mpcBackend->Line(IR816M_Tcs);
+		mpcBackend->Line(IR816M_Sec);
+		mpcBackend->Line(IR816M_Rtl);
 	}
 	sz.Kill();
 }

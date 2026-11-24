@@ -275,6 +275,8 @@ public:
 
 protected:
 	void			Line(const char* szText);
+	void			Line(uint16 uiMnemonic, const char* szOperand = NULL);
+	void			Line(uint16 uiMnemonic, int64 lliOperand);
 	void			Line(const char* szText, int64 lliValue);
 
 	int				ValueBytes(SIRType sType);

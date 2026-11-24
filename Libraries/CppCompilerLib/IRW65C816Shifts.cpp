@@ -53,7 +53,7 @@ void CIRW65C816Selector::Shift(SIRInstruction* psInstruction)
 		//A 16 bit shift by a constant (AllocateX), in A.
 		Operand("lda", psInstruction->asArguments[0], 0);
 		ShiftWordInA(psInstruction->uiOpcode, (int)(mpcBackend->mpcFunction->GetConstant(sAmount)->ulliBits & 63));
-		mpcBackend->Line("tax");
+		mpcBackend->Line(IR816M_Tax);
 		return;
 	}
 	if (BitShift(psInstruction) || ShiftTwoWords(psInstruction) || ShiftCall(psInstruction))
@@ -142,7 +142,7 @@ bool CIRW65C816Selector::ShiftCall(SIRInstruction* psInstruction)
 	{
 		CopyWords(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult), psInstruction->asArguments[0], 4);
 		Operand("lda", psInstruction->asArguments[1], 0);
-		mpcBackend->Line("ldx ", mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->Line(IR816M_Ldx, (int64)(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult)));
 	}
 	szName.Insert(0, "jsl ");
 	mpcBackend->Line(szName.Text());
@@ -190,19 +190,19 @@ bool CIRW65C816Selector::ShiftTwoWords(SIRInstruction* psInstruction)
 		if (psInstruction->uiOpcode == IRO_Shl)
 		{
 			Operand("lda", sValue, 0);
-			mpcBackend->Line("asl A");
+			mpcBackend->Line(IR816M_Asl, "A");
 			Frame("sta", iResult);
 			Operand("lda", sValue, 1);
-			mpcBackend->Line("rol A");
+			mpcBackend->Line(IR816M_Rol, "A");
 			Frame("sta", iResult + 2);
 		}
 		else
 		{
 			Operand("lda", sValue, 1);
-			mpcBackend->Line("lsr A");
+			mpcBackend->Line(IR816M_Lsr, "A");
 			Frame("sta", iResult + 2);
 			Operand("lda", sValue, 0);
-			mpcBackend->Line("ror A");
+			mpcBackend->Line(IR816M_Ror, "A");
 			Frame("sta", iResult);
 		}
 		return true;
@@ -222,13 +222,13 @@ bool CIRW65C816Selector::ShiftTwoWords(SIRInstruction* psInstruction)
 	{
 		if (psInstruction->uiOpcode == IRO_Shl)
 		{
-			mpcBackend->Line("asl A");
+			mpcBackend->Line(IR816M_Asl, "A");
 			Frame("rol", iResult + 2);
 		}
 		else
 		{
 			Frame("lsr", iResult + 2);
-			mpcBackend->Line("ror A");
+			mpcBackend->Line(IR816M_Ror, "A");
 		}
 	}
 	Frame("sta", iResult);
@@ -269,12 +269,12 @@ bool CIRW65C816Selector::BitShift(SIRInstruction* psInstruction)
 	szTable.Append(16 * iWords);
 	mpcBackend->UseRuntime(szTable.Text());
 	Operand("lda", psInstruction->asArguments[1], 0);
-	mpcBackend->Line("and 63");
+	mpcBackend->Line(IR816M_And, "63");
 	for (i = 1; i < 2 * iWords; i *= 2)
 	{
-		mpcBackend->Line("asl A");
+		mpcBackend->Line(IR816M_Asl, "A");
 	}
-	mpcBackend->Line("tax");
+	mpcBackend->Line(IR816M_Tax);
 	for (i = 0; i < iWords; i++)
 	{
 		mpcBackend->mpszOut->Append("\t\tlda [")->Append(szTable);
@@ -321,7 +321,7 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	//The count is tested in A; it waits in X while a word or byte move uses A.
 	iSmall = mpcBackend->NewLabel();
 	Operand("lda", sAmount, 0);
-	mpcBackend->Line("and 63");
+	mpcBackend->Line(IR816M_And, "63");
 	mpcBackend->Branch("beq", iEnd);
 	sz.Init("cmp ");
 	sz.Append(IR816_SHIFT_LOOP_BELOW);
@@ -340,23 +340,23 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	if (iWords == 2)
 	{
 		iBits = mpcBackend->NewLabel();
-		mpcBackend->Line("cmp 16");
+		mpcBackend->Line(IR816M_Cmp, "16");
 		mpcBackend->Branch("bcc", iBits);
-		mpcBackend->Line("tax");
+		mpcBackend->Line(IR816M_Tax);
 		ShiftConstant(uiOpcode, iResult, 2, 16);
-		mpcBackend->Line("txa");
-		mpcBackend->Line("and 15");
+		mpcBackend->Line(IR816M_Txa);
+		mpcBackend->Line(IR816M_And, "15");
 		mpcBackend->Branch("beq", iEnd);
 		mpcBackend->Label(iBits);
 	}
 
 	iBits = mpcBackend->NewLabel();
-	mpcBackend->Line("cmp 8");
+	mpcBackend->Line(IR816M_Cmp, "8");
 	mpcBackend->Branch("bcc", iBits);
-	mpcBackend->Line("tax");
+	mpcBackend->Line(IR816M_Tax);
 	ShiftConstant(uiOpcode, iResult, iWords, 8);
-	mpcBackend->Line("txa");
-	mpcBackend->Line("and 7");
+	mpcBackend->Line(IR816M_Txa);
+	mpcBackend->Line(IR816M_And, "7");
 	mpcBackend->Branch("beq", iEnd);
 	mpcBackend->Label(iBits);
 
@@ -365,8 +365,8 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	{
 		aiSteps[i] = mpcBackend->NewLabel();
 	}
-	mpcBackend->Line("asl A");
-	mpcBackend->Line("tax");
+	mpcBackend->Line(IR816M_Asl, "A");
+	mpcBackend->Line(IR816M_Tax);
 	Frame("lda", iInA);
 	sz.Init("jmp [L");
 	sz.Append(iLoop);
@@ -396,11 +396,11 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	//A few bits: one a time, counted down in X.
 	mpcBackend->Label(iSmall);
 	iSmallLoop = mpcBackend->NewLabel();
-	mpcBackend->Line("tax");
+	mpcBackend->Line(IR816M_Tax);
 	Frame("lda", iInA);
 	mpcBackend->Label(iSmallLoop);
 	ShiftStepInA(uiOpcode, iWords, iOther);
-	mpcBackend->Line("dex");
+	mpcBackend->Line(IR816M_Dex);
 	mpcBackend->Branch("bne", iSmallLoop);
 	Frame("sta", iInA);
 	mpcBackend->Label(iEnd);
@@ -417,16 +417,16 @@ void CIRW65C816Selector::ShiftStepInA(uint16 uiOpcode, int iWords, int32 iOther)
 {
 	if (uiOpcode == IRO_Shl)
 	{
-		mpcBackend->Line("asl A");
+		mpcBackend->Line(IR816M_Asl, "A");
 	}
 	else if (uiOpcode == IRO_LShr)
 	{
-		mpcBackend->Line("lsr A");
+		mpcBackend->Line(IR816M_Lsr, "A");
 	}
 	else
 	{
-		mpcBackend->Line("cmp 0x8000");
-		mpcBackend->Line("ror A");
+		mpcBackend->Line(IR816M_Cmp, "0x8000");
+		mpcBackend->Line(IR816M_Ror, "A");
 	}
 	if (iWords == 2)
 	{
@@ -456,15 +456,15 @@ void CIRW65C816Selector::ShiftWordInA(uint16 uiOpcode, int iAmount)
 	}
 	if (iAmount >= 16)
 	{
-		mpcBackend->Line("lda 0");
+		mpcBackend->Line(IR816M_Lda, "0");
 		return;
 	}
 	if ((uiOpcode == IRO_AShr) && (iAmount < 3))
 	{
 		for (iBits = 0; iBits < iAmount; iBits++)
 		{
-			mpcBackend->Line("cmp 0x8000");
-			mpcBackend->Line("ror A");
+			mpcBackend->Line(IR816M_Cmp, "0x8000");
+			mpcBackend->Line(IR816M_Ror, "A");
 		}
 		return;
 	}
@@ -472,7 +472,7 @@ void CIRW65C816Selector::ShiftWordInA(uint16 uiOpcode, int iAmount)
 	iBits = iAmount;
 	if (iBits >= 8)
 	{
-		mpcBackend->Line("xba");
+		mpcBackend->Line(IR816M_Xba);
 		mpcBackend->Line((uiOpcode == IRO_Shl) ? "and 0xFF00" : "and 0xFF");
 		iBits -= 8;
 	}
@@ -499,7 +499,7 @@ void CIRW65C816Selector::SignExtendInA(int iSignBit)
 
 	snprintf(szLine, sizeof(szLine), "eor 0x%X", 1u << iSignBit);
 	mpcBackend->Line(szLine);
-	mpcBackend->Line("sec");
+	mpcBackend->Line(IR816M_Sec);
 	snprintf(szLine, sizeof(szLine), "sbc 0x%X", 1u << iSignBit);
 	mpcBackend->Line(szLine);
 }
@@ -514,10 +514,10 @@ void CIRW65C816Selector::SignExtendInA(int iSignBit)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Selector::SignWordInA(void)
 {
-	mpcBackend->Line("asl A");
-	mpcBackend->Line("lda 0");
-	mpcBackend->Line("adc 0xFFFF");
-	mpcBackend->Line("eor 0xFFFF");
+	mpcBackend->Line(IR816M_Asl, "A");
+	mpcBackend->Line(IR816M_Lda, "0");
+	mpcBackend->Line(IR816M_Adc, "0xFFFF");
+	mpcBackend->Line(IR816M_Eor, "0xFFFF");
 }
 
 
@@ -539,7 +539,7 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 	int32				iSkip;
 
 	Operand("lda", sAmount, 0);
-	mpcBackend->Line("and 63");
+	mpcBackend->Line(IR816M_And, "63");
 	mpcBackend->Branch("beq", iEnd);
 
 	//The whole value shifted out (64 bits never is: the count is below 64).
@@ -599,8 +599,8 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 		else
 		{
 			Frame("lda", iResult + 2 * (iWords - 1));
-			mpcBackend->Line("cmp 0x8000");
-			mpcBackend->Line("ror A");
+			mpcBackend->Line(IR816M_Cmp, "0x8000");
+			mpcBackend->Line(IR816M_Ror, "A");
 			Frame("sta", iResult + 2 * (iWords - 1));
 		}
 		for (i = iWords - 2; i >= 0; i--)
@@ -703,7 +703,7 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 				Frame("lda", iResult + 2 * i - 1);
 				if (i == 0)
 				{
-					mpcBackend->Line("and 0xFF00");
+					mpcBackend->Line(IR816M_And, "0xFF00");
 				}
 				Frame("sta", iResult + 2 * i);
 			}
@@ -715,7 +715,7 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 				Frame("lda", iResult + 2 * i + 1);
 				if (i == iWords - 1)
 				{
-					mpcBackend->Line("and 0xFF");
+					mpcBackend->Line(IR816M_And, "0xFF");
 					if (uiOpcode == IRO_AShr)
 					{
 						SignExtendInA(7);
@@ -754,13 +754,13 @@ void CIRW65C816Selector::ShiftConstant(uint16 uiOpcode, int32 iResult, int iWord
 		{
 			if (uiOpcode == IRO_Shl)
 			{
-				mpcBackend->Line("asl A");
+				mpcBackend->Line(IR816M_Asl, "A");
 				Frame("rol", iLow + 2);
 			}
 			else
 			{
 				Frame("lsr", iLow + 2);
-				mpcBackend->Line("ror A");
+				mpcBackend->Line(IR816M_Ror, "A");
 			}
 		}
 		Frame("sta", iLow);

@@ -52,7 +52,7 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 			//The constant's sign bit flipped as it is written.
 			Operand("lda", sLeft, i);
 			mpcBackend->Line(szFlip);
-			mpcBackend->Line("cmp ", (int64)((((i < 4) ? (mpcBackend->mpcFunction->GetConstant(sRight)->ulliBits >> (16 * i)) : 0) ^ uiFlip) & 0xFFFF));
+			mpcBackend->Line(IR816M_Cmp, (int64)((int64)((((i < 4) ? (mpcBackend->mpcFunction->GetConstant(sRight)->ulliBits >> (16 * i)) : 0) ^ uiFlip) & 0xFFFF)));
 		}
 		else if (bSigned && (i == iWords - 1) && !sType.Is(IRTK_I1) && !sType.Is(IRTK_I8) && !((iWords == 1) && (mpcBackend->mcPlaces.InX(sLeft) || mpcBackend->mcPlaces.InX(sRight))))
 		{
@@ -73,8 +73,8 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 			mpcBackend->Line(sz.Text());
 			sz.Kill();
 			Operand("lda", sRight, i);
-			mpcBackend->Line("asl A");
-			mpcBackend->Line("lda 1");
+			mpcBackend->Line(IR816M_Asl, "A");
+			mpcBackend->Line(IR816M_Lda, "1");
 			sz.Init("bra L");
 			sz.Append(iDone);
 			mpcBackend->Line(sz.Text());
@@ -129,7 +129,7 @@ void CIRW65C816Selector::SignedLessFlags(SIRReference* psArguments, int iWords, 
 	iNoOverflow = mpcBackend->NewLabel();
 	if (iWords == 1)
 	{
-		mpcBackend->Line("sec");
+		mpcBackend->Line(IR816M_Sec);
 		Operand("lda", psArguments[bSwapped ? 1 : 0], 0);
 		Operand("sbc", psArguments[bSwapped ? 0 : 1], 0);
 	}
@@ -141,7 +141,7 @@ void CIRW65C816Selector::SignedLessFlags(SIRReference* psArguments, int iWords, 
 		Operand("sbc", psArguments[bSwapped ? 0 : 1], 1);
 	}
 	mpcBackend->Branch("bvc", iNoOverflow);
-	mpcBackend->Line("eor 0x8000");
+	mpcBackend->Line(IR816M_Eor, "0x8000");
 	mpcBackend->Label(iNoOverflow);
 }
 
@@ -437,13 +437,13 @@ void CIRW65C816Selector::Compare(SIRInstruction* psInstruction)
 	sz.Append(iFalse);
 	mpcBackend->Line(sz.Text());
 	mpcBackend->Label(iTrue);
-	mpcBackend->Line("lda 1");
+	mpcBackend->Line(IR816M_Lda, "1");
 	sz.Clear();
 	sz.Append("bra L");
 	sz.Append(iEnd);
 	mpcBackend->Line(sz.Text());
 	mpcBackend->Label(iFalse);
-	mpcBackend->Line("lda 0");
+	mpcBackend->Line(IR816M_Lda, "0");
 	mpcBackend->Label(iEnd);
 	Store(psInstruction->sResult, 0);
 	sz.Kill();

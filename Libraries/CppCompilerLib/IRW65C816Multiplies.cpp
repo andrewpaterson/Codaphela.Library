@@ -94,7 +94,7 @@ bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 			for (i = 0; i < 2; i++)
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
-				mpcBackend->Line("and 0xFF");
+				mpcBackend->Line(IR816M_And, "0xFF");
 				SignExtendInA(7);
 				Frame("sta", (i == 0) ? IR816_SCRATCH_ARGUMENT_A : IR816_SCRATCH_ARGUMENT_B);
 			}
@@ -114,7 +114,7 @@ bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 			{
 				Operand("lda", psInstruction->asArguments[i], 0);
 				SignExtendInA(7);
-				mpcBackend->Line("pha");
+				mpcBackend->Line(IR816M_Pha);
 			}
 			else
 			{
@@ -157,13 +157,13 @@ void CIRW65C816Selector::TableProduct(void)
 
 	iHigh = mpcBackend->NewLabel();
 	iGot = mpcBackend->NewLabel();
-	mpcBackend->Line("asl A");
-	mpcBackend->Line("tax");
+	mpcBackend->Line(IR816M_Asl, "A");
+	mpcBackend->Line(IR816M_Tax);
 	mpcBackend->Branch("bcs", iHigh);
-	mpcBackend->Line("lda [MathMult + X]:24");
+	mpcBackend->Line(IR816M_Lda, "[MathMult + X]:24");
 	mpcBackend->Branch("bra", iGot);
 	mpcBackend->Label(iHigh);
-	mpcBackend->Line("lda [MathMult + 0x10000 + X]:24");
+	mpcBackend->Line(IR816M_Lda, "[MathMult + 0x10000 + X]:24");
 	mpcBackend->Label(iGot);
 }
 
@@ -192,20 +192,20 @@ bool CIRW65C816Selector::InlineMultiply16(SIRInstruction* psInstruction)
 	//The high bytes are tested with m at 16 bits, so both labels are reached with it (as every label is, W65C816.txt).
 	iNoHighB = mpcBackend->NewLabel();
 	iDone = mpcBackend->NewLabel();
-	mpcBackend->Line("sep m");
+	mpcBackend->Line(IR816M_Sep, "m");
 	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
-	mpcBackend->Line("xba");
+	mpcBackend->Line(IR816M_Xba);
 	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
-	mpcBackend->Line("rep m");
+	mpcBackend->Line(IR816M_Rep, "m");
 	TableProduct();
 	Frame("sta", IR816_SCRATCH_RESULT);
 	Frame("lda", IR816_SCRATCH_ARGUMENT_B);
-	mpcBackend->Line("and 0xFF00");
+	mpcBackend->Line(IR816M_And, "0xFF00");
 	mpcBackend->Branch("beq", iNoHighB);
 	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_B + 1, IR816_SCRATCH_ARGUMENT_A);
 	mpcBackend->Label(iNoHighB);
 	Frame("lda", IR816_SCRATCH_ARGUMENT_A);
-	mpcBackend->Line("and 0xFF00");
+	mpcBackend->Line(IR816M_And, "0xFF00");
 	mpcBackend->Branch("beq", iDone);
 	InlineCrossProduct(IR816_SCRATCH_ARGUMENT_A + 1, IR816_SCRATCH_ARGUMENT_B);
 	mpcBackend->Label(iDone);
@@ -223,15 +223,15 @@ bool CIRW65C816Selector::InlineMultiply16(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Selector::InlineCrossProduct(int32 iHigh, int32 iLow)
 {
-	mpcBackend->Line("sep m");
+	mpcBackend->Line(IR816M_Sep, "m");
 	Frame("lda", iHigh);
-	mpcBackend->Line("xba");
+	mpcBackend->Line(IR816M_Xba);
 	Frame("lda", iLow);
-	mpcBackend->Line("rep m");
+	mpcBackend->Line(IR816M_Rep, "m");
 	TableProduct();
-	mpcBackend->Line("xba");
-	mpcBackend->Line("and 0xFF00");
-	mpcBackend->Line("clc");
+	mpcBackend->Line(IR816M_Xba);
+	mpcBackend->Line(IR816M_And, "0xFF00");
+	mpcBackend->Line(IR816M_Clc);
 	Frame("adc", IR816_SCRATCH_RESULT);
 	Frame("sta", IR816_SCRATCH_RESULT);
 }
@@ -400,15 +400,15 @@ bool CIRW65C816Selector::TableDivide(SIRInstruction* psInstruction, bool bSigned
 	szName.Append((int)ulliDivisor);
 	mpcBackend->UseRuntime(szName.Text());
 	Operand("lda", psInstruction->asArguments[0], 0);
-	mpcBackend->Line("asl A");
-	mpcBackend->Line("tax");
+	mpcBackend->Line(IR816M_Asl, "A");
+	mpcBackend->Line(IR816M_Tax);
 	mpcBackend->mpszOut->Append("\t\tlda [")->Append(szName)->Append(" + X]:24\n");
 	szName.Kill();
 	if ((psInstruction->uiOpcode == IRO_SRem) || (psInstruction->uiOpcode == IRO_URem))
 	{
-		mpcBackend->Line("xba");
+		mpcBackend->Line(IR816M_Xba);
 	}
-	mpcBackend->Line("and 0xFF");
+	mpcBackend->Line(IR816M_And, "0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
 		Store(psInstruction->sResult, 0);
@@ -432,10 +432,10 @@ bool CIRW65C816Selector::ByteMultiply(SIRInstruction* psInstruction)
 		return false;
 	}
 	Operand("lda", psInstruction->asArguments[1], 0);
-	mpcBackend->Line("xba");
+	mpcBackend->Line(IR816M_Xba);
 	Operand("ora", psInstruction->asArguments[0], 0);
 	TableProduct();
-	mpcBackend->Line("and 0xFF");
+	mpcBackend->Line(IR816M_And, "0xFF");
 	if (!psInstruction->sResult.IsNone())
 	{
 		Store(psInstruction->sResult, 0);

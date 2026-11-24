@@ -119,6 +119,45 @@ void CIRW65C816Backend::Line(const char* szText)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The instruction uiMnemonic with szOperand (NULL for none) added to the
+// code: as fields, never as text (but a listing's source markers are kept
+// with the lines as written: CIRSourceMarkers::AddLine).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand)
+{
+	CChars	sz;
+
+	Flush();
+	mpcCode->AppendInstruction(uiMnemonic, szOperand);
+	if (mbSourceMarkers || mbDebugPlaces)
+	{
+		sz.Init(CIRW65C816Backend::GetScratch());
+		IR816AppendInstruction(&sz, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0);
+		mcMarkers.AddLine(sz.Text(), sz.Length());
+		sz.Kill();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction uiMnemonic with the number lliOperand.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Line(uint16 uiMnemonic, int64 lliOperand)
+{
+	CChars	sz;
+
+	sz.Init(CIRW65C816Backend::GetScratch());
+	sz.Append(lliOperand);
+	Line(uiMnemonic, sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // szText followed by a number.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1382,7 +1421,7 @@ void CIRW65C816Backend::Epilogue(void)
 {
 	EndDebugPlaces();
 	IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
-	Line("rtl");
+	Line(IR816M_Rtl);
 }
 
 
@@ -1408,7 +1447,7 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 			mcSelector.Frame("sta", IR816_SCRATCH_POINTER + 2);
 			for (i = 0; i < iWords; i++)
 			{
-				Line("ldy ", 2 * i);
+				Line(IR816M_Ldy, (int64)(2 * i));
 				mcSelector.Operand("lda", psJump->sArgument, i);
 				mpszOut->Append("\t\tsta [[D + ")->Append(IR816_SCRATCH_POINTER)->Append("]:24 + Y]")->AppendNewLine();
 			}
@@ -1417,7 +1456,7 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 		{
 			//The high word first (CanFuseReturn).
 			mcSelector.Operand("lda", psJump->sArgument, 1);
-			Line("tax");
+			Line(IR816M_Tax);
 			mcSelector.Operand("lda", psJump->sArgument, 0);
 		}
 		else if (!psJump->sArgument.IsTemporary() || IR816OnDirectPage(mcPlaces.OffsetOf(psJump->sArgument) + 2 * iWords))
@@ -1724,11 +1763,11 @@ void CIRW65C816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 	case IRJ_Throw:
 		//The function's exit with no value and the carry set: the caller's thrown (CIRW65C816Calls::Call).
 		IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
-		Line("sec");
-		Line("rtl");
+		Line(IR816M_Sec);
+		Line(IR816M_Rtl);
 		break;
 	default:
-		Line("stp");
+		Line(IR816M_Stp);
 		break;
 	}
 }

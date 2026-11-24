@@ -95,14 +95,14 @@ void CIRW65C816Selector::FrameOperandCall(const char* szName, SIRInstruction* ps
 	bool	bHidden;
 
 	bHidden = mpcBackend->IsHiddenResult(psInstruction->sType);
-	mpcBackend->Line("ldx ", iFirst);
+	mpcBackend->Line(IR816M_Ldx, (int64)(iFirst));
 	if (iSecond >= 0)
 	{
-		mpcBackend->Line("ldy ", iSecond);
+		mpcBackend->Line(IR816M_Ldy, (int64)(iSecond));
 	}
 	if (bHidden)
 	{
-		mpcBackend->Line("lda ", psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult));
+		mpcBackend->Line(IR816M_Lda, (int64)(psInstruction->sResult.IsNone() ? IR816_SCRATCH_RESULT : mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult)));
 	}
 	sz.Init(szName);
 	sz.Append(IR816_FRAME_OPERANDS);
@@ -263,8 +263,8 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 	mpcBackend->AppendSoftFloatName(&szName, psInstruction, sType);
 	if (mpcBackend->mpcOptions->mbSoftFloatInFrame)
 	{
-		mpcBackend->Line("ldx ", FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT));
-		mpcBackend->Line("ldy ", FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A));
+		mpcBackend->Line(IR816M_Ldx, (int64)(FrameOperand(psInstruction->asArguments[0], sType, IR816_SCRATCH_RESULT)));
+		mpcBackend->Line(IR816M_Ldy, (int64)(FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A)));
 		szName.Append(IR816_FRAME_OPERANDS);
 		mpcBackend->UseRuntime(szName.Text());
 		szName.Insert(0, "jsl ");
@@ -281,10 +281,10 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 		Frame("sta", IR816_SCRATCH_RESULT);
 		if (iBytes > 0)
 		{
-			mpcBackend->Line("tsc");
-			mpcBackend->Line("clc");
-			mpcBackend->Line("adc ", iBytes);
-			mpcBackend->Line("tcs");
+			mpcBackend->Line(IR816M_Tsc);
+			mpcBackend->Line(IR816M_Clc);
+			mpcBackend->Line(IR816M_Adc, (int64)(iBytes));
+			mpcBackend->Line(IR816M_Tcs);
 		}
 	}
 
@@ -298,7 +298,7 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 	Frame("lda", IR816_SCRATCH_RESULT);
 	for (i = 0; i < iValues; i++)
 	{
-		mpcBackend->Line("cmp ", aiValues[i] & 0xFFFF);
+		mpcBackend->Line(IR816M_Cmp, (int64)(aiValues[i] & 0xFFFF));
 		sz.Clear();
 		sz.Append("beq L");
 		sz.Append(bNot ? iFalse : iTrue);
@@ -309,13 +309,13 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 	sz.Append(bNot ? iTrue : iFalse);
 	mpcBackend->Line(sz.Text());
 	mpcBackend->Label(iTrue);
-	mpcBackend->Line("lda 1");
+	mpcBackend->Line(IR816M_Lda, "1");
 	sz.Clear();
 	sz.Append("bra L");
 	sz.Append(iEnd);
 	mpcBackend->Line(sz.Text());
 	mpcBackend->Label(iFalse);
-	mpcBackend->Line("lda 0");
+	mpcBackend->Line(IR816M_Lda, "0");
 	mpcBackend->Label(iEnd);
 	Store(psInstruction->sResult, 0);
 	szName.Kill();
@@ -378,7 +378,7 @@ void CIRW65C816Selector::FloatConversion(SIRInstruction* psInstruction)
 			}
 			else
 			{
-				mpcBackend->Line("lda 0");
+				mpcBackend->Line(IR816M_Lda, "0");
 			}
 			Frame("sta", IR816_SCRATCH_RESULT + 2);
 			iFirst = IR816_SCRATCH_RESULT;
@@ -423,9 +423,9 @@ void CIRW65C816Selector::PushInt32(SIRReference sValue, SIRType sType, bool bSig
 	}
 	else
 	{
-		mpcBackend->Line("lda 0");
+		mpcBackend->Line(IR816M_Lda, "0");
 	}
-	mpcBackend->Line("pha");
+	mpcBackend->Line(IR816M_Pha);
 	Frame("lda", IR816_SCRATCH_VALUE);
-	mpcBackend->Line("pha");
+	mpcBackend->Line(IR816M_Pha);
 }
