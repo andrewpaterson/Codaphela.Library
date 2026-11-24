@@ -150,64 +150,8 @@ void IR816AppendFrameExit(CChars* psz, int32 iFrameBytes)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The line starting at szLine (to its new line) is the instruction szText
-// (without its tabs or new line).  Returns the line after it, or NULL.
-//
-//////////////////////////////////////////////////////////////////////////
-static const char* IR816ExitLine(const char* szLine, const char* szText)
-{
-	size	uiText;
-
-	uiText = strlen(szText);
-	if ((szLine[0] != '\t') || (szLine[1] != '\t') || (strncmp(szLine + 2, szText, uiText) != 0) || (szLine[2 + uiText] != '\n'))
-	{
-		return NULL;
-	}
-	return szLine + 2 + uiText + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The line starting at szLine is szMnemonic and a decimal number ("adc 36"),
-// or with szOpen and szClose a number between them ("lda [D + 33]").
-// Returns the line after it, or NULL.
-//
-//////////////////////////////////////////////////////////////////////////
-static const char* IR816ExitNumberLine(const char* szLine, const char* szMnemonic, const char* szOpen, const char* szClose)
-{
-	size	uiMnemonic;
-	size	uiOpen;
-	size	uiClose;
-
-	uiMnemonic = strlen(szMnemonic);
-	uiOpen = strlen(szOpen);
-	uiClose = strlen(szClose);
-	if ((szLine[0] != '\t') || (szLine[1] != '\t') || (strncmp(szLine + 2, szMnemonic, uiMnemonic) != 0) || (strncmp(szLine + 2 + uiMnemonic, szOpen, uiOpen) != 0))
-	{
-		return NULL;
-	}
-	szLine += 2 + uiMnemonic + uiOpen;
-	if ((*szLine < '0') || (*szLine > '9'))
-	{
-		return NULL;
-	}
-	while ((*szLine >= '0') && (*szLine <= '9'))
-	{
-		szLine++;
-	}
-	if ((strncmp(szLine, szClose, uiClose) != 0) || (szLine[uiClose] != '\n'))
-	{
-		return NULL;
-	}
-	return szLine + uiClose + 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The exits of the function in pszCode (after AlignFrame) keep A in Y while
-// S moves back only when they must.  An exit is
+// The exits of the function's code keep A in Y while S moves back only
+// when they must.  An exit is
 //
 //		tay / tdc / clc / adc n / tcs / tya / pld / rtl
 //
@@ -217,87 +161,74 @@ static const char* IR816ExitNumberLine(const char* szLine, const char* szMnemoni
 // direct page word it is an ldy (the word can't be read once S is back: an
 // interrupt may have pushed over it), and the tay goes.  A throw's exit (a
 // sec before the rtl) returns nothing in A whatever the function returns.
+// The lines kept are the code's own (their notes with them).
 //
 //////////////////////////////////////////////////////////////////////////
-void IR816TidyExits(CChars* pszCode, bool bNoResult)
+void IR816TidyExits(CIRW65C816Code* pcCode, bool bNoResult)
 {
-	CChars		sz;
-	const char*	szCode;
-	const char*	szStart;
-	const char*	szAt;
-	const char*	szMove;
-	const char*	szMoved;
-	const char*	szEnd;
-	const char*	szLoad;
-	const char*	szCopied;
-	const char*	szSec;
-	bool		bConstant;
-	bool		bDirect;
-	bool		bAny;
-	bool		bNothing;
+	CIRW65C816Code	cOut;
+	SIRW65C816Line	sLoad;
+	CChars			szLoad;
+	size			uiLines;
+	size			ui;
+	size			uiCopied;
+	size			uiMove;
+	size			uiMoved;
+	size			uiTya;
+	size			uiPld;
+	size			uiRtl;
+	bool			bSec;
+	bool			bNothing;
+	bool			bConstant;
+	bool			bDirect;
+	bool			bAny;
 
-	szStart = pszCode->Text();
-	if (strstr(szStart, "\t\ttay\n") == NULL)
-	{
-		return;
-	}
-	sz.Init(CIRW65C816Backend::GetScratch());
-	szCopied = szStart;
+	uiLines = pcCode->NumLines();
+	cOut.Init();
+	uiCopied = 0;
 	bAny = false;
-	for (szCode = strstr(szStart, "\t\ttay\n"); szCode; szCode = strstr(szCode + 1, "\t\ttay\n"))
+	for (ui = 0; ui < uiLines; ui++)
 	{
-		if ((szCode != szStart) && (szCode[-1] != '\n'))
-		{
-			continue;
-		}
-		if (szCode < szCopied)
+		if ((ui < uiCopied) || !pcCode->IsBare(ui, IR816M_Tay))
 		{
 			continue;
 		}
 
 		//S's move back: tdc / clc / adc n / tcs, or lda [D + n] / tcs.
-		szMove = szCode + 6;
-		szAt = IR816ExitLine(szMove, "tdc");
-		if (szAt)
+		uiMove = ui + 1;
+		if ((uiMove + 2 < uiLines) && pcCode->IsBare(uiMove, IR816M_Tdc) && pcCode->IsBare(uiMove + 1, IR816M_Clc) && pcCode->IsNumberLine(uiMove + 2, IR816M_Adc, "", ""))
 		{
-			szAt = IR816ExitLine(szAt, "clc");
-			szAt = szAt ? IR816ExitNumberLine(szAt, "adc ", "", "") : NULL;
+			uiMoved = uiMove + 3;
+		}
+		else if ((uiMove < uiLines) && pcCode->IsNumberLine(uiMove, IR816M_Lda, "[D + ", "]"))
+		{
+			uiMoved = uiMove + 1;
 		}
 		else
 		{
-			szAt = IR816ExitNumberLine(szMove, "lda ", "[D + ", "]");
+			continue;
 		}
-		szAt = szAt ? IR816ExitLine(szAt, "tcs") : NULL;
-		szMoved = szAt;
-		szAt = szAt ? IR816ExitLine(szAt, "tya") : NULL;
-		szEnd = szAt;
-		szAt = szAt ? IR816ExitLine(szAt, "pld") : NULL;
-		szSec = szAt ? IR816ExitLine(szAt, "sec") : NULL;
-		bNothing = bNoResult || (szSec != NULL);
-		szAt = szSec ? szSec : szAt;
-		szAt = szAt ? IR816ExitLine(szAt, "rtl") : NULL;
-		if (!szAt)
+		uiTya = uiMoved + 1;
+		uiPld = uiTya + 1;
+		if ((uiPld >= uiLines) || !pcCode->IsBare(uiMoved, IR816M_Tcs) || !pcCode->IsBare(uiTya, IR816M_Tya) || !pcCode->IsBare(uiPld, IR816M_Pld))
 		{
 			continue;
 		}
+		bSec = (uiPld + 1 < uiLines) && pcCode->IsBare(uiPld + 1, IR816M_Sec);
+		uiRtl = bSec ? uiPld + 2 : uiPld + 1;
+		if ((uiRtl >= uiLines) || !pcCode->IsBare(uiRtl, IR816M_Rtl))
+		{
+			continue;
+		}
+		bNothing = bNoResult || bSec;
 
 		//The line before the tay.
-		szLoad = NULL;
 		bConstant = false;
 		bDirect = false;
-		if (!bNothing && (szCode - szCopied >= 2))
+		if (!bNothing && (ui > uiCopied))
 		{
-			for (szLoad = szCode - 1; (szLoad > szCopied) && (szLoad[-1] != '\n'); szLoad--)
-			{
-			}
-			if (IR816ExitNumberLine(szLoad, "lda ", "", "") == szCode)
-			{
-				bConstant = true;
-			}
-			else if (IR816ExitNumberLine(szLoad, "lda ", "[D + ", "]") == szCode)
-			{
-				bDirect = true;
-			}
+			bConstant = pcCode->IsNumberLine(ui - 1, IR816M_Lda, "", "");
+			bDirect = !bConstant && pcCode->IsNumberLine(ui - 1, IR816M_Lda, "[D + ", "]");
 		}
 		if (!bNothing && !bConstant && !bDirect)
 		{
@@ -307,31 +238,71 @@ void IR816TidyExits(CChars* pszCode, bool bNoResult)
 		bAny = true;
 		if (bNothing)
 		{
-			sz.Append(szCopied, (size)(szCode - szCopied));
-			sz.Append(szMove, (size)(szMoved - szMove));
+			IR816CopyLines(&cOut, pcCode, uiCopied, ui);
+			IR816CopyLines(&cOut, pcCode, uiMove, uiMoved + 1);
 		}
 		else if (bConstant)
 		{
-			sz.Append(szCopied, (size)(szLoad - szCopied));
-			sz.Append(szMove, (size)(szMoved - szMove));
-			sz.Append(szLoad, (size)(szCode - szLoad));
+			IR816CopyLines(&cOut, pcCode, uiCopied, ui - 1);
+			IR816CopyLines(&cOut, pcCode, uiMove, uiMoved + 1);
+			cOut.AppendLine(pcCode, ui - 1);
 		}
 		else
 		{
-			sz.Append(szCopied, (size)(szLoad - szCopied));
-			sz.Append("\t\tldy ");
-			sz.Append(szLoad + 6, (size)(szCode - (szLoad + 6)));
-			sz.Append(szMove, (size)(szEnd - szMove));
+			IR816CopyLines(&cOut, pcCode, uiCopied, ui - 1);
+			pcCode->Decoded(ui - 1, &sLoad);
+			szLoad.Init(CIRW65C816Backend::GetScratch());
+			szLoad.AppendSubString(sLoad.szOperand, sLoad.uiOperand);
+			cOut.AppendInstruction(IR816M_Ldy, szLoad.Text());
+			szLoad.Kill();
+			IR816CopyLines(&cOut, pcCode, uiMove, uiTya + 1);
 		}
-		szCopied = szEnd;
+		uiCopied = uiTya + 1;
 	}
 	if (bAny)
 	{
-		sz.Append(szCopied);
-		pszCode->Kill();
-		pszCode->Init(sz);
+		IR816CopyLines(&cOut, pcCode, uiCopied, uiLines);
+		pcCode->Take(&cOut);
 	}
-	sz.Kill();
+	cOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// IR816TidyExits over the code in pszCode, as text (the tests').
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816TidyExits(CChars* pszCode, bool bNoResult)
+{
+	CIRW65C816Code	cCode;
+
+	if (strstr(pszCode->Text(), "\t\ttay\n") == NULL)
+	{
+		return;
+	}
+	cCode.Init();
+	cCode.Load(pszCode, 0);
+	IR816TidyExits(&cCode, bNoResult);
+	cCode.Write(pszCode, 0);
+	cCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcFrom's lines from uiFrom up to (not including) uiTo added after
+// pcTo's last.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816CopyLines(CIRW65C816Code* pcTo, CIRW65C816Code* pcFrom, size uiFrom, size uiTo)
+{
+	size	ui;
+
+	for (ui = uiFrom; ui < uiTo; ui++)
+	{
+		pcTo->AppendLine(pcFrom, ui);
+	}
 }
 
 
@@ -615,6 +586,37 @@ void CIRW65C816Backend::DropFrame(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether the line at szLine is one a debugger's markers made: a source
+// marker, a place marker, or the label a place marker became
+// (CCPP65IRFrontEnd::DebugRanges).
+//
+//////////////////////////////////////////////////////////////////////////
+bool IR816IsMarkerLine(const char* szLine)
+{
+	return (strncmp(szLine, IR_SOURCE_MARKER, StrLen(IR_SOURCE_MARKER)) == 0) || (strncmp(szLine, IR_PLACE_MARKER, StrLen(IR_PLACE_MARKER)) == 0) ||
+		   (strncmp(szLine, IR_DEBUG_LABEL, StrLen(IR_DEBUG_LABEL)) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines in szText (each ending with a new line).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 IR816CountLines(const char* szText)
+{
+	int32	iLines;
+
+	for (iLines = 0; *szText != '\0'; szText++)
+	{
+		iLines += (*szText == '\n') ? 1 : 0;
+	}
+	return iLines;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Where an aligned frame keeps S as it was (AlignFrame): in the page
 // (iSavedS) when the frame is past it, else where the caller's D was (the
 // link's first bytes).  The epilogue reads it back, and a debugger
@@ -629,8 +631,8 @@ int32 SIRW65C816Frame::SavedS(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Gives the function in pszCode (as GenerateFunction wrote it, psFrame from
-// GetFrame) D on a page, where its direct page accesses cost a cycle less,
+// Gives the function in pszCode (as GenerateFunction wrote it, and what it
+// kept of it, pcWritten) D on a page, where its direct page accesses cost a cycle less,
 // when it's worth it: estimated, or measured by pcProfile (IRW65C816Backend.h).
 // Never when it may recurse (bRecursive: in a cycle of calls the unit can
 // see; or calling itself), nor when variadic (its arguments are walked past
@@ -644,24 +646,25 @@ int32 SIRW65C816Frame::SavedS(void) const
 // it was aligned.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile)
+bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, CIRW65C816Written* pcWritten, bool bRecursive, CAsm65Profile* pcProfile)
 {
-	CIRW65C816Code				cCode;
+	const SIRW65C816Frame*	psFrame;
+	SIRW65C816Facts*		psFacts;
 	CChars					sz;
-	CChars					szPrologue;
-	CChars					szEpilogue;
 	CChars					szAligned;
 	CChars					szAlignedEpilogue;
-	CChars					szCall;
-	CChars					szBody;
-	const char*				szCode;
-	const char*				szBodyLabel;
+	const char*				szLine;
+	const char*				szEnd;
+	SIRW65C816Exit*			psExit;
 	int32					iRegisterWords;
 	int32					iTop;
 	int32					iWords;
 	int32					iSavedS;
 	int32					iCopied;
+	int32					iLine;
+	int32					iSkip;
 	int32					i;
+	size					uiExit;
 	uint64					ulliCost;
 	SAsm65FunctionProfile*	psProfile;
 	bool					bBig;
@@ -671,11 +674,11 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	bool					abCopy[IR816_DIRECT_PAGE / 2];
 	bool					abCopyRegister[IR816_ARGUMENT_REGISTERS];
 
+	psFrame = &pcWritten->msFrame;
+	psFacts = &pcWritten->msFacts;
 	iTop = psFrame->Top();
 	iWords = (psFrame->iArgumentBytes + 1) / 2;
 	iRegisterWords = psFrame->iRegisterWords;
-	szCode = pszCode->Text();
-	szBodyLabel = NULL;
 	bBig = !IR816OnDirectPage(iTop);
 	if ((psFrame->iFrameBytes == 0) || (bBig && (psFrame->iSavedS < 0)) || psFrame->bVariadic || bRecursive)
 	{
@@ -686,10 +689,8 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	//nor are register words.
 	if (!bBig)
 	{
-		cCode.Init();
-		cCode.Load(pszCode, 0);
-		bAllRead = IR816FindReads(&cCode, 0, abRead);
-		cCode.Kill();
+		bAllRead = psFacts->bAllRead;
+		memcpy(abRead, psFacts->abRead, sizeof(abRead));
 	}
 	else
 	{
@@ -708,30 +709,7 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	}
 
 	//A call of itself is recursion: of its body, for a register function (its stub, before the body, calls it too).
-	szCall.Init("jsl ");
-	szCall.Append(szLabel);
-	if (iRegisterWords > 0)
-	{
-		szBody.Init("\n");
-		szBody.Append(szLabel);
-		szBody.Append('.');
-		szBodyLabel = strstr(szCode, szBody.Text());
-		szBody.Kill();
-		if (szBodyLabel == NULL)
-		{
-			szCall.Kill();
-			return false;
-		}
-		szCall.Append('.');
-		bRecursive = strstr(szBodyLabel, szCall.Text()) != NULL;
-	}
-	else
-	{
-		szCall.AppendNewLine();
-		bRecursive = strstr(szCode, szCall.Text()) != NULL;
-	}
-	szCall.Kill();
-	if (bRecursive)
+	if (((iRegisterWords > 0) && !psFacts->bBody) || psFacts->bCallsItself)
 	{
 		return false;
 	}
@@ -740,14 +718,7 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	if (pcProfile)
 	{
 		//Measured: never seen recursing, and the accesses well past the cost of its calls.
-		psProfile = NULL;
-		if (szBodyLabel)
-		{
-			//The body's label (to the colon).
-			szBody.Init(szBodyLabel + 1, 0, (int)(strchr(szBodyLabel + 1, ':') - (szBodyLabel + 1)));
-			psProfile = pcProfile->Get(szBody.Text());
-			szBody.Kill();
-		}
+		psProfile = (iRegisterWords > 0) ? pcProfile->Get(pcWritten->mszBody.Text()) : NULL;
 		if (psProfile == NULL)
 		{
 			psProfile = pcProfile->Get(szLabel);
@@ -761,30 +732,12 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 		//Estimated: loops, whose accesses are well past the cost of a call.
 		bWorth = psFrame->bLoops && ((uint64)psFrame->iDirectPageWeight >= IR816_ALIGN_GAIN * ulliCost);
 	}
-	if (!bWorth)
+	if (!bWorth || (psFacts->iPrologue < 0))
 	{
 		return false;
 	}
 
 	iSavedS = psFrame->SavedS();
-	szPrologue.Init(CIRW65C816Backend::GetScratch());
-	if (iRegisterWords > 0)
-	{
-		IR816AppendRegisterFrameEntry(&szPrologue, iRegisterWords, psFrame->iFrameBytes);
-	}
-	else
-	{
-		IR816AppendFrameEntry(&szPrologue, psFrame->iFrameBytes);
-	}
-	szEpilogue.Init(CIRW65C816Backend::GetScratch());
-	IR816AppendFrameExit(&szEpilogue, psFrame->iFrameBytes);
-	if (strstr(szCode, szPrologue.Text()) == NULL)
-	{
-		szPrologue.Kill();
-		szEpilogue.Kill();
-		return false;
-	}
-
 	//S goes down before anything is written below where it was (an interrupt pushes there).  A register function's
 	//register words are pushed first, as its prologue pushes them (X is then S below them), and copied to the frame's
 	//top with the arguments.
@@ -868,239 +821,134 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 	}
 	szAligned.Append(iSavedS);
 	szAligned.Append("]\n");
-	szAlignedEpilogue.Init("\t\ttay\n\t\tlda [D + ");
+	szAlignedEpilogue.Init("\t\tlda [D + ");
 	szAlignedEpilogue.Append(iSavedS);
-	szAlignedEpilogue.Append("]\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+	szAlignedEpilogue.Append("]\n");
 
+	//The printed code's lines: the entry replaced, each exit's move of S back a load of S as it was (tidied as it
+	//was), and with exceptions a clc before the exit's rtl (the carry is no longer cleared by the move).
 	sz.Init(CIRW65C816Backend::GetScratch());
-	while (*szCode)
+	iLine = 0;
+	iSkip = 0;
+	for (szLine = pszCode->Text(); *szLine != '\0'; szLine = szEnd, iLine++)
 	{
-		if (strncmp(szCode, szPrologue.Text(), szPrologue.Length()) == 0)
+		szEnd = strchr(szLine, '\n');
+		szEnd = szEnd ? szEnd + 1 : szLine + StrLen(szLine);
+		if (iSkip > 0)
+		{
+			iSkip--;
+			continue;
+		}
+		if (iLine == psFacts->iPrologue)
 		{
 			sz.Append(szAligned);
-			szCode += szPrologue.Length();
+			iSkip = psFacts->iPrologueLines - 1;
+			continue;
 		}
-		else if (strncmp(szCode, szEpilogue.Text(), szEpilogue.Length()) == 0)
+		for (uiExit = 0; uiExit < pcWritten->masExits.NumElements(); uiExit++)
 		{
-			sz.Append(szAlignedEpilogue);
-			szCode += szEpilogue.Length();
+			psExit = pcWritten->masExits.Get(uiExit);
+			if (iLine == psExit->iMove)
+			{
+				sz.Append(szAlignedEpilogue);
+				iSkip = 2;
+				break;
+			}
+			if ((iLine == psExit->iReturn) && psExit->bClearBefore && mpcOptions->mbExceptions)
+			{
+				sz.Append("\t\tclc\n");
+			}
 		}
-		else
+		if ((uiExit == pcWritten->masExits.NumElements()) || (iLine != pcWritten->masExits.Get(uiExit)->iMove))
 		{
-			sz.Append(*szCode);
-			szCode++;
+			sz.AppendSubString(szLine, szEnd);
 		}
 	}
 	pszCode->Kill();
 	pszCode->Init(sz);
 	sz.Kill();
+
+	//A debugger's frame directives go after the aligned entry (its last line stores S as it was).
+	psFacts->bAligned = true;
+	if (psFacts->iDescribeAfter >= 0)
+	{
+		psFacts->iDescribeAfter = psFacts->iPrologue + IR816CountLines(szAligned.Text());
+	}
 	szAligned.Kill();
 	szAlignedEpilogue.Kill();
-	szPrologue.Kill();
-	szEpilogue.Kill();
 	return true;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
-// The first instruction line at or after szLine (labels, directives and
-// comments skipped), NULL if there is none.
-//
-//////////////////////////////////////////////////////////////////////////
-static const char* IR816Instruction(const char* szLine)
-{
-	while (szLine && (*szLine != '\0'))
-	{
-		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] >= 'a') && (szLine[2] <= 'z'))
-		{
-			return szLine;
-		}
-		szLine = strchr(szLine, '\n');
-		if (!szLine)
-		{
-			return NULL;
-		}
-		szLine++;
-	}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-static const char* IR816NextLine(const char* szLine)
-{
-	szLine = strchr(szLine, '\n');
-	return szLine ? szLine + 1 : NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the instruction line is szMnemonic's.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool IR816IsMnemonic(const char* szLine, const char* szMnemonic)
-{
-	size	uiLength;
-
-	uiLength = strlen(szMnemonic);
-	return (strncmp(szLine + 2, szMnemonic, uiLength) == 0) && ((szLine[2 + uiLength] == ' ') || (szLine[2 + uiLength] == '\n'));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Where a register entry's body is in szCode (from its plain label on):
-// after its own label, szLabel and a suffix (_Add__Fii.ax:), past the
-// stub that loads the registers.  MAX_SIZE if it has none.
-//
-//////////////////////////////////////////////////////////////////////////
-static size IR816FindRegisterBody(const char* szCode, const char* szLabel)
-{
-	const char*	szAt;
-	const char*	szEnd;
-	size		uiLength;
-
-	uiLength = strlen(szLabel);
-	for (szAt = szCode; szAt; szAt = IR816NextLine(szAt))
-	{
-		if ((strncmp(szAt, szLabel, uiLength) == 0) && (szAt[uiLength] == '.'))
-		{
-			szEnd = strchr(szAt, '\n');
-			if (szEnd && (szEnd[-1] == ':'))
-			{
-				return (size)(szEnd + 1 - szCode);
-			}
-		}
-		if ((szAt[0] == '\t') && IR816IsMnemonic(szAt, "phd"))
-		{
-			return MAX_SIZE;
-		}
-	}
-	return MAX_SIZE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Where in the aligned prologue from szLine S as it was is stored (st? [D +
-// iPlace]), the line after it; NULL if it isn't.
-//
-//////////////////////////////////////////////////////////////////////////
-static const char* IR816FindSavedS(const char* szLine, int32 iPlace)
-{
-	CChars		szStore;
-	const char*	szAt;
-
-	szStore.Init(CIRW65C816Backend::GetScratch());
-	szStore.Append(" [D + ");
-	szStore.Append(iPlace);
-	szStore.Append("]\n");
-	szAt = strstr(szLine, szStore.Text());
-	if (szAt && ((strncmp(szAt - 5, "\t\tsta", 5) == 0) || (strncmp(szAt - 5, "\t\tstx", 5) == 0)))
-	{
-		szAt += szStore.Length();
-	}
-	else
-	{
-		szAt = NULL;
-	}
-	szStore.Kill();
-	return szAt;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// For a debugger (the frame model, Debugger65C64Plan.txt), read from its
-// finished code: a .dframe where the function's frame is made, its frame
-// address (S before the jsl) found from D: after "tcd" for a frame of its
-// own, D plus what the prologue pushed and subtracted plus phd's and jsl's
-// pushes; after S is kept in an aligned frame (AlignFrame), the S kept
-// there plus those; with the caller's D phd saved (.dsaved).  At the
-// body's start for code with no frame (.dframe none: DropFrame took it
-// away, or it never had one), found by following its code.  Its variables
-// are from D (.dbase).
+// For a debugger: where the function's frame is (.dframe: from D, or
+// where an aligned entry kept S as it was, or none when it has no frame or
+// one this doesn't know: its caller is then found from S), where the
+// caller's D was pushed (.dsaved) and that its variables are from D
+// (.dbase), after its frame's entry (or after its label) as KeepFacts
+// found it, in the lines of the code without its markers.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten)
 {
-	const char*		szCode;
-	const char*		szLine;
-	const char*		szAfter;
-	SIRW65C816Frame	sFrame;
-	CChars			szDirective;
-	size			uiBody;
-	size			uiAt;
-	int32			iBelow;
-	bool			bAligned;
+	CIRW65C816Written*	pcWritten816;
+	SIRW65C816Facts*	psFacts;
+	CChars				szDirective;
+	const char*			szLine;
+	const char*			szEnd;
+	int32				iLine;
+	int32				iAt;
 
-	szCode = pszCode->Text();
-	uiBody = CCPP65DebugWriter::FindAfterLabel(szCode, szLabel);
-	if (uiBody == MAX_SIZE)
+	pcWritten816 = (CIRW65C816Written*)pcWritten;
+	if (!pcWritten816 || (pcWritten816->msFacts.iDescribeBody < 0) || pszCode->Empty())
 	{
+		//Nothing kept of it, or its code was taken out since.
 		return;
 	}
-	uiAt = IR816FindRegisterBody(szCode + uiBody, szLabel);
-	if (uiAt != MAX_SIZE)
-	{
-		uiBody += uiAt;
-	}
-
+	psFacts = &pcWritten816->msFacts;
 	szDirective.Init(CIRW65C816Backend::GetScratch());
-	szAfter = NULL;
-	szLine = IR816Instruction(szCode + uiBody);
-	if (szLine && IR816IsMnemonic(szLine, "phd"))
+	if ((psFacts->iDescribeAfter >= 0) && psFacts->bAligned)
 	{
-		iBelow = 0;
-		bAligned = false;
-		for (szLine = IR816Instruction(IR816NextLine(szLine)); szLine && !IR816IsMnemonic(szLine, "tcd"); szLine = IR816Instruction(IR816NextLine(szLine)))
-		{
-			if (IR816IsMnemonic(szLine, "pha") || IR816IsMnemonic(szLine, "phx") || IR816IsMnemonic(szLine, "phy"))
-			{
-				iBelow += 2;
-			}
-			else if (IR816IsMnemonic(szLine, "sbc"))
-			{
-				iBelow += atoi(szLine + 6);
-			}
-			else if (IR816IsMnemonic(szLine, "and"))
-			{
-				bAligned = true;
-			}
-		}
-		if (szLine && bAligned && pcWritten)
-		{
-			sFrame = ((CIRW65C816Written*)pcWritten)->msFrame;
-			iBelow = sFrame.SavedS();
-			szAfter = IR816FindSavedS(szLine, iBelow);
-			szDirective.Append("\t\t.dframe [D + ")->Append(iBelow)->Append("], ")->Append(IR816_FRAME_FROM_PHD);
-		}
-		else if (szLine && !bAligned)
-		{
-			szAfter = IR816NextLine(szLine);
-			szDirective.Append("\t\t.dframe D, ")->Append(iBelow + IR816_FRAME_FROM_PHD);
-		}
+		szDirective.Append("\t\t.dframe [D + ")->Append(pcWritten816->msFrame.SavedS())->Append("], ")->Append(IR816_FRAME_FROM_PHD);
 		szDirective.AppendNewLine()->Append("\t\t.dsaved D, ")->Append(-IR816_FRAME_FROM_PHD + 1);
+		iAt = psFacts->iDescribeAfter;
 	}
-	if (szAfter)
+	else if (psFacts->iDescribeAfter >= 0)
 	{
-		uiAt = (size)(szAfter - szCode);
+		szDirective.Append("\t\t.dframe D, ")->Append(psFacts->iDescribeBelow + IR816_FRAME_FROM_PHD);
+		szDirective.AppendNewLine()->Append("\t\t.dsaved D, ")->Append(-IR816_FRAME_FROM_PHD + 1);
+		iAt = psFacts->iDescribeAfter;
 	}
 	else
 	{
-		//No frame, or one this doesn't know: its caller is found from S.
-		szDirective.Kill();
-		szDirective.Init(CIRW65C816Backend::GetScratch());
 		szDirective.Append("\t\t.dframe none");
-		uiAt = uiBody;
+		iAt = psFacts->iDescribeBody;
 	}
 	szDirective.AppendNewLine()->Append("\t\t.dbase D")->AppendNewLine();
-	pszCode->Insert(uiAt, &szDirective);
+
+	//The directives go straight after line iAt - 1 of the code as it was printed: the lines a debugger's markers made
+	//since (source markers, and the labels place markers became: CCPP65IRFrontEnd::DebugRanges) aren't counted.
+	iLine = 0;
+	for (szLine = pszCode->Text(); *szLine != '\0'; szLine = szEnd)
+	{
+		szEnd = strchr(szLine, '\n');
+		szEnd = szEnd ? szEnd + 1 : szLine + StrLen(szLine);
+		if (IR816IsMarkerLine(szLine))
+		{
+			continue;
+		}
+		if (iLine == iAt)
+		{
+			break;
+		}
+		iLine++;
+		if (iLine == iAt)
+		{
+			szLine = szEnd;
+			break;
+		}
+	}
+	pszCode->Insert((size)(szLine - pszCode->Text()), &szDirective);
 	szDirective.Kill();
 }

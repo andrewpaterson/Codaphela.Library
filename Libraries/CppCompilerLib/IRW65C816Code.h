@@ -38,6 +38,7 @@ struct SIRW65C816CodeLine
 {
 	CChars		szText;
 	uint8		uiKind;			//IR816CL_.
+	uint8		uiNote;			//A pass's note on the line (IR816CN_), copied with it (AppendLine).
 	bool		bText;			//The line is its text; else an instruction, szText its operand.
 	SIRW65C816Line	sLine;
 	size		uiOperand;		//sLine.szOperand's offset in szText.
@@ -95,6 +96,9 @@ public:
 	void		InsertInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand = NULL);
 	bool		SameLine(size uiLine, CIRW65C816Code* pcOther, size uiOther);
 	bool		LinesAt(size uiLine, CIRW65C816Code* pcLines);
+	void		SetNote(size uiLine, uint8 uiNote);
+	uint8		Note(size uiLine);
+	bool		IsNumberLine(size uiLine, uint16 uiMnemonic, const char* szOpen, const char* szClose);
 
 	void		Set(size uiLine, const char* szText);
 	void		Remove(size uiLine);

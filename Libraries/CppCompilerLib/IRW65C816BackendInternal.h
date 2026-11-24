@@ -185,6 +185,11 @@ enum EIR816Mnemonic
 #define IR816MF_READS_CARRY		0x40000000	//adc, sbc, rol, ror, xce, php, bcc, bcs.
 
 
+//A line's note (CIRW65C816Code::SetNote): the move of S back in one of the frame's exits as Epilogue wrote it (tdc, clc,
+//adc frame), which AlignFrame rewrites.
+#define IR816CN_EXIT_MOVE	1
+
+
 //An instruction line ("\t\tmnemonic operand"), decoded by IR816Decode.
 struct SIRW65C816Line
 {
@@ -223,6 +228,10 @@ void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 void		IR816TidyExits(CChars* pszCode, bool bNoResult);
+int32		IR816CountLines(const char* szText);
+bool		IR816IsMarkerLine(const char* szLine);
+void		IR816TidyExits(CIRW65C816Code* pcCode, bool bNoResult);
+void		IR816CopyLines(CIRW65C816Code* pcTo, CIRW65C816Code* pcFrom, size uiFrom, size uiTo);
 void		IR816ClearExitCarries(CChars* pszCode, size uiStart);
 void		IR816ClearExitCarries(CIRW65C816Code* pcCode);
 

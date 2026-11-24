@@ -65,6 +65,12 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	mpsDivided = NULL;
 	mbMathTables = mpcOptions->mbMathTables;
 	mpcCode = NULL;
+	memset(&msFacts, 0, sizeof(msFacts));
+	msFacts.iPrologue = -1;
+	msFacts.iDescribeBody = -1;
+	msFacts.iDescribeAfter = -1;
+	masExits.Init(CIRW65C816Backend::GetScratch());
+	mszBody.Init(CIRW65C816Backend::GetScratch());
 }
 
 
@@ -74,6 +80,8 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Kill(void)
 {
+	mszBody.Kill();
+	masExits.Kill();
 	masArguments.Kill();
 	mauiPendingArguments.Kill();
 	maiParameters.Kill();
@@ -531,6 +539,12 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	{
 		mcCalls.GenerateForwarder(szLabel, &cJump);
 		cJump.Kill();
+		IR816TidyExits(mpcCode, msFrame.bNoResult);
+		if (mpcOptions->mbExceptions)
+		{
+			IR816ClearExitCarries(mpcCode);
+		}
+		KeepFacts(szLabel);
 		cCode.Write(pszDest, uiStart);
 		cCode.Kill();
 		mpcCode = NULL;
@@ -560,10 +574,19 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	{
 		DropFrame();
 	}
+
 	if (mpcOptions->mbExceptions)
 	{
 		IR816ClearExitCarries(mpcCode);
 	}
+
+	//The exits AlignFrame may rewrite, then the exits as they stay unless it does.  The markers are put back into the
+	//code as printed so far and taken out again first, so the tidying moves them as it did when it was done to the
+	//printed code (in FinishFunction, between taking them out and putting them back).
+	MarkExits();
+	RetakeMarkers();
+	IR816TidyExits(mpcCode, msFrame.bNoResult);
+	KeepFacts(szLabel);
 	cCode.Write(pszDest, uiStart);
 	cCode.Kill();
 	mpcCode = NULL;
@@ -639,10 +662,40 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 	pcWritten->Init();
 	pcWritten->msFrame = msFrame;
 	memcpy(pcWritten->mauiPlaceBytes, mauiPlaceBytes, sizeof(mauiPlaceBytes));
+	pcWritten->msFacts = msFacts;
+	pcWritten->masExits.Copy(&masExits);
+	pcWritten->mszBody.Append(mszBody);
 	AddVariableSlots(pcWritten);
 	return pcWritten;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Written::Init(void)
+{
+	CIRWrittenFunction::Init();
+	memset(&msFacts, 0, sizeof(msFacts));
+	msFacts.iPrologue = -1;
+	msFacts.iDescribeBody = -1;
+	msFacts.iDescribeAfter = -1;
+	masExits.Init();
+	mszBody.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Written::Kill(void)
+{
+	mszBody.Kill();
+	masExits.Kill();
+	CIRWrittenFunction::Kill();
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -692,9 +745,9 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 {
 	CIRSourceMarkers	cMarkers;
 	SIRW65C816Frame		sFrame;
-	CIRW65C816Code		cCode;
 	uint8				abRead[IR816_DIRECT_PAGE];
 	bool				bPlaces;
+	bool				bAligned;
 
 	if (pcWritten)
 	{
@@ -707,25 +760,27 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	bPlaces = pcWritten && (strstr(pszCode->Text(), IR_PLACE_MARKER) != NULL);
 	cMarkers.Init();
 	cMarkers.Take(pszCode, 0);
-	if (!mpcOptions->mbDebuggable)
+	bAligned = false;
+	if (!mpcOptions->mbDebuggable && pcWritten)
 	{
-		AlignFrame(pszCode, szLabel, &sFrame, bRecursive, pcProfile);
-	}
-	IR816TidyExits(pszCode, sFrame.bNoResult);
-	if (mpcOptions->mbExceptions)
-	{
-		//An exit AlignFrame rewrote no longer adds to S, which is what left the carry clear.
-		IR816ClearExitCarries(pszCode, 0);
+		bAligned = AlignFrame(pszCode, szLabel, (CIRW65C816Written*)pcWritten, bRecursive, pcProfile);
 	}
 	if (bPlaces)
 	{
-		cCode.Init();
-		cCode.Load(pszCode, 0);
-		if (IR816FindReads(&cCode, 0, abRead))
+		//What the finished code reads: what the code written read, and the aligned exits' load of S as it was.
+		if (((CIRW65C816Written*)pcWritten)->msFacts.bAllRead)
 		{
 			memset(abRead, 1, sizeof(abRead));
 		}
-		cCode.Kill();
+		else
+		{
+			memcpy(abRead, ((CIRW65C816Written*)pcWritten)->msFacts.abRead, sizeof(abRead));
+		}
+		if (bAligned && (((CIRW65C816Written*)pcWritten)->masExits.NumElements() > 0))
+		{
+			abRead[sFrame.SavedS()] = 1;
+			abRead[sFrame.SavedS() + 1] = 1;
+		}
 	}
 	cMarkers.Put(pszCode, 0);
 	cMarkers.Kill();
@@ -735,6 +790,269 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The markers kept as the code was written put back into the code as it is
+// now (printed), and taken out of that again: the passes after then move
+// them as they would the printed code's (CIRSourceMarkers::Put matches what
+// changed since they were taken out).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::RetakeMarkers(void)
+{
+	CChars	szPrinted;
+
+	if (!mbSourceMarkers && !mbDebugPlaces)
+	{
+		return;
+	}
+	szPrinted.Init(CIRW65C816Backend::GetScratch());
+	mpcCode->Write(&szPrinted, 0);
+	mcMarkers.Put(&szPrinted, 0);
+	mcMarkers.Take(&szPrinted, 0);
+	szPrinted.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The frame's exits as Epilogue wrote them (IR816AddFrameExit) noted at
+// their move of S back (tdc, clc, adc frame), which AlignFrame rewrites
+// and the passes after keep (IR816TidyExits keeps the lines it doesn't
+// take out).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::MarkExits(void)
+{
+	CIRW65C816Code	cExit;
+	size			ui;
+
+	cExit.Init();
+	IR816AddFrameExit(&cExit, msFrame.iFrameBytes);
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
+	{
+		if (mpcCode->LinesAt(ui, &cExit))
+		{
+			mpcCode->SetNote(ui + 1, IR816CN_EXIT_MOVE);
+		}
+	}
+	cExit.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What FinishFunction (AlignFrame) and DescribeFrame look for in the
+// finished code, kept before it is printed (TakeWritten gives it to
+// them): where the frame's entry is, the exits AlignFrame rewrites (their
+// move of S back, MarkExits, and their rtl), the bytes the code reads,
+// whether the function calls itself, a register function's body label,
+// and where a debugger's frame directives go.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::KeepFacts(const char* szLabel)
+{
+	CIRW65C816Code	cPrologue;
+	CChars			szBody;
+	SIRW65C816Exit	sExit;
+	SIRW65C816Line	sLine;
+	const char*		szName;
+	size			uiName;
+	size			uiLabel;
+	size			ui;
+	size			uj;
+	size			uiBody;
+
+	memset(&msFacts, 0, sizeof(msFacts));
+	msFacts.iPrologue = -1;
+	msFacts.iDescribeBody = -1;
+	msFacts.iDescribeAfter = -1;
+	masExits.FakeSetUsedElements(0);
+	mszBody.Clear();
+
+	//The frame's entry.
+	cPrologue.Init();
+	if (msFrame.iRegisterWords > 0)
+	{
+		IR816AddRegisterFrameEntry(&cPrologue, msFrame.iRegisterWords, msFrame.iFrameBytes);
+	}
+	else
+	{
+		IR816AddFrameEntry(&cPrologue, msFrame.iFrameBytes);
+	}
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
+	{
+		if (mpcCode->LinesAt(ui, &cPrologue))
+		{
+			msFacts.iPrologue = (int32)ui;
+			msFacts.iPrologueLines = (int32)cPrologue.NumLines();
+			break;
+		}
+	}
+	cPrologue.Kill();
+
+	//The exits.
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
+	{
+		if (mpcCode->Note(ui) != IR816CN_EXIT_MOVE)
+		{
+			continue;
+		}
+		sExit.iMove = (int32)ui;
+		sExit.iReturn = -1;
+		sExit.bClearBefore = false;
+		for (uj = ui + 3; uj < mpcCode->NumLines(); uj++)
+		{
+			if (mpcCode->IsBare(uj, IR816M_Rtl))
+			{
+				sExit.iReturn = (int32)uj;
+				sExit.bClearBefore = !(mpcCode->IsBare(uj - 1, IR816M_Sec) || mpcCode->IsBare(uj - 1, IR816M_Clc) || mpcCode->IsBare(uj - 1, IR816M_Pha) ||
+									   mpcCode->IsWith(uj - 1, IR816M_Sta, "[S + 1]"));
+				break;
+			}
+		}
+		masExits.Add(&sExit);
+	}
+
+	//What it reads.
+	msFacts.bAllRead = IR816FindReads(mpcCode, 0, msFacts.abRead);
+
+	//Whether it calls itself (a register function its body: its stub calls the body too).
+	uiLabel = StrLen(szLabel);
+	szBody.Init(szLabel);
+	szBody.Append('.');
+	uiBody = MAX_SIZE;
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
+	{
+		szName = mpcCode->LabelName(ui, &uiName);
+		if (szName && (uiName > szBody.Length()) && (strncmp(szName, szBody.Text(), szBody.Length()) == 0))
+		{
+			uiBody = ui;
+			msFacts.bBody = true;
+			mszBody.AppendSubString(szName, uiName);
+			break;
+		}
+	}
+	for (ui = (msFrame.iRegisterWords > 0) ? uiBody : 0; ui < mpcCode->NumLines(); ui++)
+	{
+		if (!mpcCode->IsInstructionLine(ui) || !mpcCode->Decoded(ui, &sLine) || (sLine.uiMnemonic != IR816M_Jsl))
+		{
+			continue;
+		}
+		if ((msFrame.iRegisterWords > 0) ? ((sLine.uiOperand > szBody.Length()) && (strncmp(sLine.szOperand, szBody.Text(), szBody.Length()) == 0)) :
+										   ((sLine.uiOperand == uiLabel) && (strncmp(sLine.szOperand, szLabel, uiLabel) == 0)))
+		{
+			msFacts.bCallsItself = true;
+			break;
+		}
+	}
+	szBody.Kill();
+
+	//Where a debugger's frame directives go.
+	KeepDescribeFacts(szLabel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The first instruction line at or after uiLine (labels, directives and
+// comments skipped), or NumLines.
+//
+//////////////////////////////////////////////////////////////////////////
+static size IR816NextInstructionLine(CIRW65C816Code* pcCode, size uiLine)
+{
+	for (; uiLine < pcCode->NumLines(); uiLine++)
+	{
+		if (pcCode->IsInstructionLine(uiLine) || (pcCode->IsTabbed(uiLine) && (pcCode->Text(uiLine)[2] >= 'a') && (pcCode->Text(uiLine)[2] <= 'z')))
+		{
+			return uiLine;
+		}
+	}
+	return uiLine;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where DescribeFrame puts a debugger's frame directives (KeepFacts): after
+// the function's label, or a register function's body label; after the
+// frame's entry (phd to tcd) when the code starts with one, with the bytes
+// it pushes and moves S down.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::KeepDescribeFacts(const char* szLabel)
+{
+	SIRW65C816Line	sLine;
+	const char*		szName;
+	size			uiName;
+	size			uiLabel;
+	size			ui;
+	int32			iBelow;
+	bool			bAnd;
+
+	uiLabel = StrLen(szLabel);
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
+	{
+		if (mpcCode->IsLabelNamed(ui, szLabel, uiLabel))
+		{
+			msFacts.iDescribeBody = (int32)ui + 1;
+			break;
+		}
+	}
+	if (msFacts.iDescribeBody < 0)
+	{
+		return;
+	}
+
+	//A register function's body label, before any frame's entry.
+	for (ui = (size)msFacts.iDescribeBody; ui < mpcCode->NumLines(); ui++)
+	{
+		szName = mpcCode->LabelName(ui, &uiName);
+		if (szName && (uiName > uiLabel) && (strncmp(szName, szLabel, uiLabel) == 0) && (szName[uiLabel] == '.'))
+		{
+			msFacts.iDescribeBody = (int32)ui + 1;
+			break;
+		}
+		if (mpcCode->IsTabbed(ui) && mpcCode->Decoded(ui, &sLine) && (sLine.uiMnemonic == IR816M_Phd))
+		{
+			break;
+		}
+	}
+
+	ui = IR816NextInstructionLine(mpcCode, (size)msFacts.iDescribeBody);
+	if ((ui >= mpcCode->NumLines()) || !mpcCode->Decoded(ui, &sLine) || (sLine.uiMnemonic != IR816M_Phd))
+	{
+		return;
+	}
+	iBelow = 0;
+	bAnd = false;
+	for (ui = IR816NextInstructionLine(mpcCode, ui + 1); ui < mpcCode->NumLines(); ui = IR816NextInstructionLine(mpcCode, ui + 1))
+	{
+		mpcCode->Decoded(ui, &sLine);
+		if (sLine.uiMnemonic == IR816M_Tcd)
+		{
+			break;
+		}
+		if ((sLine.uiMnemonic == IR816M_Pha) || (sLine.uiMnemonic == IR816M_Phx) || (sLine.uiMnemonic == IR816M_Phy))
+		{
+			iBelow += 2;
+		}
+		else if (sLine.uiMnemonic == IR816M_Sbc)
+		{
+			iBelow += (int32)IR816DecimalNumber(sLine.szOperand, sLine.uiOperand);
+		}
+		else if (sLine.uiMnemonic == IR816M_And)
+		{
+			bAnd = true;
+		}
+	}
+	if ((ui < mpcCode->NumLines()) && !bAnd)
+	{
+		msFacts.iDescribeAfter = (int32)ui + 1;
+		msFacts.iDescribeBelow = iBelow;
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 //

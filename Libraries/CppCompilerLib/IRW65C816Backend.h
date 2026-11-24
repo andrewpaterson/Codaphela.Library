@@ -115,13 +115,50 @@ struct SIRW65C816Frame
 #define IR816_DIRECT_PAGE	256		//The bytes [D + n] reaches (IR816FindReads).
 
 
-//What the W65C816 back end keeps about a function it wrote: its frame, for AlignFrame, and per direct page byte the
-//most bytes a place marker says a value there has (DebugPlace), for FinishFunction.
+//One of a function's frame exits as Epilogue wrote it, in the printed code's lines: where S moves back (tdc, clc, adc
+//frame; AlignFrame's) and its rtl.
+struct SIRW65C816Exit
+{
+	int32	iMove;
+	int32	iReturn;
+	bool	bClearBefore;	//With exceptions a clc goes before the rtl once S's move back is a load (IR816ClearExitCarries).
+};
+
+
+typedef CArrayTemplate<SIRW65C816Exit>	CArrayIRW65C816Exits;
+
+
+//What FinishFunction (AlignFrame) and DescribeFrame look for in a function's code, kept when it is written
+//(KeepFacts) so they needn't read it.  Lines are the printed code's, from its label, without markers.
+struct SIRW65C816Facts
+{
+	int32	iPrologue;			//The frame's entry as Prologue wrote it (not DropFrame's), or -1...
+	int32	iPrologueLines;		//...and its lines.
+	uint8	abRead[IR816_DIRECT_PAGE];	//The direct page bytes the code reads (IR816FindReads)...
+	bool	bAllRead;			//...or any of them.
+	bool	bCallsItself;		//A jsl of the function (of its body, for a register function).
+	bool	bBody;				//A register function's body label was found (the name is CIRW65C816Written's).
+	int32	iDescribeBody;		//The line after the function's label (after its body's, for a register function), or -1...
+	int32	iDescribeAfter;		//...the line after its frame's entry when its code starts with one (phd to tcd), or -1...
+	int32	iDescribeBelow;		//...and the bytes that entry pushes and moves S down.
+	bool	bAligned;			//AlignFrame put the frame on a page (iDescribeAfter is then after S's store).
+};
+
+
+//What the W65C816 back end keeps about a function it wrote: its frame, for AlignFrame, per direct page byte the most
+//bytes a place marker says a value there has (DebugPlace), for FinishFunction, and what FinishFunction and
+//DescribeFrame look for in its code.
 class CIRW65C816Written : public CIRWrittenFunction
 {
 public:
-	SIRW65C816Frame		msFrame;
-	uint8				mauiPlaceBytes[IR816_DIRECT_PAGE];
+	SIRW65C816Frame			msFrame;
+	uint8					mauiPlaceBytes[IR816_DIRECT_PAGE];
+	SIRW65C816Facts			msFacts;
+	CArrayIRW65C816Exits	masExits;
+	CChars					mszBody;		//A register function's body label (its profile's name).
+
+	void	Init(void);
+	void	Kill(void) override;
 };
 
 
@@ -211,6 +248,9 @@ protected:
 	CMallocator*			mpcOldScratch;		//...and what the thread's scratch was before.
 
 	CIRW65C816Code*			mpcCode;			//The function's code as it is written (GenerateFunction).
+	SIRW65C816Facts			msFacts;			//What FinishFunction and DescribeFrame look for in it (KeepFacts)...
+	CArrayIRW65C816Exits	masExits;
+	CChars					mszBody;
 
 	CIRW65C816Places			mcPlaces;
 	CIRW65C816Folds				mcFolds;
@@ -233,8 +273,12 @@ public:
 	void			UnreadPlaces(CChars* pszCode, CIRW65C816Written* pcWritten, uint8* abRead);
 	int32			VariableSlotBytes(SIRInstruction* psSlot);
 	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile) override;
+	void			MarkExits(void);
+	void			RetakeMarkers(void);
+	void			KeepFacts(const char* szLabel);
+	void			KeepDescribeFacts(const char* szLabel);
 	void			DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
-	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile);
+	bool			AlignFrame(CChars* pszCode, const char* szLabel, CIRW65C816Written* pcWritten, bool bRecursive, CAsm65Profile* pcProfile);
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel);

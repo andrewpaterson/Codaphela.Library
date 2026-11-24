@@ -76,6 +76,7 @@ SIRW65C816CodeLine* CIRW65C816Code::AddLine(const char* szText, size uiLength)
 	psCode = masLines.Add();
 	psCode->szText.Init(CIRW65C816Backend::GetScratch());
 	psCode->szText.AppendSubString(szText, uiLength);
+	psCode->uiNote = 0;
 	Decode(psCode);
 	return psCode;
 }
@@ -581,6 +582,7 @@ void CIRW65C816Code::AppendLine(CIRW65C816Code* pcFrom, size uiLine)
 	psFrom = pcFrom->Line(uiLine);
 	psCode = NewLine();
 	psCode->uiKind = psFrom->uiKind;
+	psCode->uiNote = psFrom->uiNote;
 	psCode->bText = psFrom->bText;
 	psCode->sLine = psFrom->sLine;
 	psCode->uiOperand = psFrom->uiOperand;
@@ -657,6 +659,66 @@ bool CIRW65C816Code::LinesAt(size uiLine, CIRW65C816Code* pcLines)
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::SetNote(size uiLine, uint8 uiNote)
+{
+	Line(uiLine)->uiNote = uiNote;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CIRW65C816Code::Note(size uiLine)
+{
+	return Line(uiLine)->uiNote;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is the instruction uiMnemonic (no mark) whose operand is
+// szOpen, a decimal number and szClose ("adc 36" with "" and "", "lda
+// [D + 33]" with "[D + " and "]").
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsNumberLine(size uiLine, uint16 uiMnemonic, const char* szOpen, const char* szClose)
+{
+	SIRW65C816CodeLine*	psCode;
+	const char*			szOperand;
+	size				uiOpen;
+	size				uiClose;
+	size				ui;
+	size				uiLength;
+
+	psCode = Line(uiLine);
+	if (psCode->bText || (psCode->sLine.uiMnemonic != uiMnemonic) || psCode->sLine.bMarked)
+	{
+		return false;
+	}
+	szOperand = psCode->szText.Text();
+	uiLength = psCode->szText.Length();
+	uiOpen = StrLen(szOpen);
+	uiClose = StrLen(szClose);
+	if ((uiLength < uiOpen + 1 + uiClose) || (strncmp(szOperand, szOpen, uiOpen) != 0) || (strncmp(szOperand + uiLength - uiClose, szClose, uiClose) != 0))
+	{
+		return false;
+	}
+	for (ui = uiOpen; ui < uiLength - uiClose; ui++)
+	{
+		if ((szOperand[ui] < '0') || (szOperand[ui] > '9'))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A new line after the last, empty.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -669,6 +731,7 @@ SIRW65C816CodeLine* CIRW65C816Code::NewLine(void)
 	psCode = masLines.Add();
 	psCode->szText.Init(CIRW65C816Backend::GetScratch());
 	psCode->uiKind = IR816CL_OTHER;
+	psCode->uiNote = 0;
 	psCode->bText = true;
 	memset(&psCode->sLine, 0, sizeof(SIRW65C816Line));
 	psCode->uiOperand = 0;
