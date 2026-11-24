@@ -3872,6 +3872,18 @@ void TestCPP65GeneratorSemanticErrors(void)
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65GeneratorFunctionDeclarations(void)
 {
+	//The allocation and deallocation functions' names: new and delete, each with [] and without.
+	AssertTrue(CPPIsNewName(CPP_OPERATOR_NAME(CT_new)));
+	AssertTrue(CPPIsNewName(CPP_ARRAY_OPERATOR_NAME(CT_new)));
+	AssertFalse(CPPIsNewName(CPP_OPERATOR_NAME(CT_delete)));
+	AssertTrue(CPPIsDeleteName(CPP_OPERATOR_NAME(CT_delete)));
+	AssertTrue(CPPIsDeleteName(CPP_ARRAY_OPERATOR_NAME(CT_delete)));
+	AssertFalse(CPPIsDeleteName(CPP_ARRAY_OPERATOR_NAME(CT_new)));
+	AssertTrue(CPPIsAllocationName(CPP_ARRAY_OPERATOR_NAME(CT_new)));
+	AssertFalse(CPPIsAllocationName(CPP_OPERATOR_NAME(CT_Add)));
+	AssertFalse(CPPIsAllocationName(CPP_CONVERSION_NAME));
+	AssertFalse(CPPIsAllocationName(-1));
+
 	AssertCPP65Error("Generated.cpp (1, 1): Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet [operator]\n", "operator int() { return 0; } int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 44): The function is defined in a namespace that doesn't enclose it [A]\n", "namespace A { int f(); } namespace C { int A::f() { return 0; } } int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 5): Only a member function is const [f]\nGenerated.cpp (1, 36): The function has not been declared [f]\n", "int f() const; int main() { return f(); }");
@@ -3881,6 +3893,8 @@ void TestCPP65GeneratorFunctionDeclarations(void)
 	AssertCPP65Error("Generated.cpp (1, 5): operator new's first parameter is a std::size_t [*]\n", "void* operator new(int n); int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 5): operator delete returns void [operator]\n", "int operator delete(void* p); int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 6): operator delete's first parameter is a void* [operator]\n", "void operator delete(int* p); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): operator new's first parameter is a std::size_t [*]\n", "void* operator new[](int n); int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 5): operator delete returns void [operator]\n", "int operator delete[](void* p); int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 5): A literal operator's parameters are one of: const char*; unsigned long long; long double; a character type; a pointer to const characters and a size_t [operator]\n", "int operator \"\" _x(double d) { return 1; } int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 18): An operator function has no default arguments (but operator()) [operator]\n", "struct S {}; int operator+(S a, S b = S()) { return 0; } int main() { return 0; }");
 	AssertCPP65Error("Generated.cpp (1, 16): An operator function has no default arguments (but operator()) [operator]\n", "struct S { int operator+(int b = 1); }; int main() { return 0; }");

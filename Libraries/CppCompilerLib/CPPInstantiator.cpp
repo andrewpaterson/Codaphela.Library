@@ -2828,7 +2828,7 @@ CCPPFunction* CCPPInstantiator::InstanceOfFunction(CCPPTemplate* pcTemplate, CCP
 	pcSpecifiers = pcDefinition ? pcDefinition->mpcSpecifiers : pcTemplate->FunctionSpecifiers();
 	mpcUnit->mcContext.EnterBindings(pcBindings);
 	mpcUnit->mcContext.EnterNamespace(pcTemplate->mpcNamespace);
-	pcFunction = mpcUnit->GetFunctionDeclarer()->Declare(pcSpecifiers, pcDeclarator, pcDefinition != NULL, pcTemplate->mpcClass, false, pcTemplate, pszArguments);
+	pcFunction = mpcUnit->GetFunctionDeclarer()->DeclareInstance(pcSpecifiers, pcDeclarator, pcTemplate, pszArguments, pcDefinition ? CPPDA_Definition : CPPDA_Declaration);
 	mpcUnit->mcContext.LeaveNamespace();
 	mpcUnit->mcContext.LeaveBindings();
 	if (!pcTemplate->mpcClass)

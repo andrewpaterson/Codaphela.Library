@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplate.h"
 #include "CPPSyntaxes.h"
 #include "CPPFunction.h"
+#include "CPPSignature.h"
 
 
 class CCPPUnit;
@@ -65,8 +66,9 @@ public:
 	void					Init(CCPPUnit* pcUnit);
 	void					Kill(void);
 
-	CCPPFunction*			Declare(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate = NULL, CChars* pszArguments = NULL);
-	CCPPFunction*			DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors = NULL);
+	CCPPFunction*			Declare(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPClass* pcClass, ECPPDeclaredAs eAs);
+	CCPPFunction*			DeclareInstance(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPTemplate* pcTemplate, CChars* pszArguments, ECPPDeclaredAs eAs);
+	CCPPFunction*			DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPClass* pcClass, ECPPDeclaredAs eAs, CCPPErrors** ppcErrors = NULL);
 	void					DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
 	CCPPFunction*			AddImplicit(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn, bool bDefined);
 	bool					ResolveReturn(CCPPFunction* pcFunction, CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator);
@@ -82,14 +84,22 @@ public:
 	bool					CheckMemberInitialisers(CCPPFunction* pcFunction);
 
 protected:
-	CCPPFunction*			DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments);
+	CCPPFunction*			Declare(SCPPSignature* psSignature);
+	bool					ReadSignature(SCPPSignature* psSignature);
+	bool					ReadParameters(SCPPSignature* psSignature);
+	bool					CheckSignature(SCPPSignature* psSignature);
+	CCPPFunction*			FindDeclared(SCPPSignature* psSignature);
+	void					Redeclare(CCPPFunction* pcFunction, SCPPSignature* psSignature);
+	CCPPFunction*			AddDeclared(SCPPSignature* psSignature);
+	void					CheckOverloads(SCPPSignature* psSignature);
+	bool					TakesSameParameters(CCPPFunction* pcFunction, SCPPSignature* psSignature);
 	SCPP65Type*				ReturnedType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPSyntaxReturnStatement* pcReturn);
 	void					FindReturns(CCPPSyntax* pcNode, CArraySyntax* papcReturns);
 	SCPP65Type*				ReturnDeclaratorType(SCPP65Type* psReturn, CCPPSyntaxDeclarator* pcDeclarator);
 	bool					IsDefinedWhereDeclared(CCPPSyntaxName* pcName);
-	bool					IsAllocationFunction(int64 lliName);
-	bool					CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode);
-	bool					CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int64 lliName, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPClass* pcClass, CCPPSyntax* pcNode);
+	bool					CheckAllocationFunction(SCPPSignature* psSignature);
+	bool					CheckOperatorSignature(SCPPSignature* psSignature);
+	bool					CheckAbstract(SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode);
 	bool					OperatorError(CCPPClass* pcClass, CCPPSyntax* pcNode, const char* szMessage);
 	bool					CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyntax* pcNode);
 };

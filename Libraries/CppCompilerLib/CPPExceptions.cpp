@@ -329,7 +329,7 @@ void CCPPExceptions::SetDeclaredExceptions(CCPPFunction* pcFunction, CCPPSyntaxD
 		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &pcFunction->mcExceptions);
 		pcFunction->mbExceptionsWritten = true;
 	}
-	else if ((pcFunction->mlliName == mpcUnit->GetOperatorName(CT_delete, false)) || (pcFunction->mlliName == mpcUnit->GetOperatorName(CT_delete, true)))
+	else if (CPPIsDeleteName(pcFunction->mlliName))
 	{
 		pcFunction->mcExceptions.SetNothing();
 		pcFunction->mbExceptionsWritten = true;
@@ -361,7 +361,7 @@ bool CCPPExceptions::CheckRedeclaredExceptions(CCPPFunction* pcFunction, CCPPSyn
 	{
 		DeclaredExceptions(pcFunction, pcDeclarator, pcSpecification, &cDeclared);
 	}
-	else if ((pcFunction->mlliName == mpcUnit->GetOperatorName(CT_delete, false)) || (pcFunction->mlliName == mpcUnit->GetOperatorName(CT_delete, true)))
+	else if (CPPIsDeleteName(pcFunction->mlliName))
 	{
 		cDeclared.SetNothing();
 	}

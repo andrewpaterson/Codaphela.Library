@@ -21,6 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPScope.h"
 #include "CPPClass.h"
 #include "CPPFunction.h"
+#include "CPPSignature.h"
 #include "CPPLambda.h"
 
 
@@ -150,6 +151,87 @@ bool CCPPFunction::TakesParameters(CArrayCPP65Types* papsParameters)
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a declaration with psSignature declares this function again:
+// the same name in the same class or namespace, the same kind, template
+// instance and parameters, and the same const, volatile, & and &&.  What
+// a function returns doesn't tell it from another, but a conversion
+// function's is its name.  [over.load] 2, [dcl.fct] 5, [class.conv.fct] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunction::IsDeclaredBy(SCPPSignature* psSignature)
+{
+	if ((mpcClass != psSignature->pcClass) || (mpcNamespace != psSignature->pcNamespace) || (meKind != psSignature->eKind) || (mpcTemplate != psSignature->pcTemplate) || (mbVariadic != psSignature->bVariadic))
+	{
+		return false;
+	}
+	if (mpcTemplate && !mszArguments.Equals(psSignature->pszArguments))
+	{
+		return false;
+	}
+	if ((IsConversion() && !mpsReturn->Equals(psSignature->psReturn)) || (mbConstThis != psSignature->bConstThis) || (mbVolatileThis != psSignature->bVolatileThis) || (meRefQualifier != psSignature->eRefQualifier))
+	{
+		return false;
+	}
+	return TakesParameters(&psSignature->apsParameters);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function declared first takes what its signature says: its
+// parameters, its qualifiers and what its specifiers make it.  A member
+// operator new or delete is static whether or not it is declared so.
+// [class.free] 1
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPFunction::Adopt(SCPPSignature* psSignature)
+{
+	size	i;
+
+	mpcNamespace = psSignature->pcNamespace;
+	mpcDeclarator = psSignature->pcDeclarator;
+	for (i = 0; i < psSignature->apsParameters.NumElements(); i++)
+	{
+		mapsParameters.Add(psSignature->apsParameters.GetPtr(i));
+		mapcDefaults.Add(psSignature->apcDefaults.GetPtr(i));
+	}
+	mbConstThis = psSignature->bConstThis;
+	mbVolatileThis = psSignature->bVolatileThis;
+	meRefQualifier = psSignature->eRefQualifier;
+	mbVariadic = psSignature->bVariadic;
+	mbStatic = psSignature->Says(CPPDS_STATIC) || (mpcClass && CPPIsAllocationName(mlliName));
+	mbVirtual = psSignature->Says(CPPDS_VIRTUAL);
+	mbPure = psSignature->IsPure();
+	mbInline = psSignature->Says(CPPDS_INLINE | CPPDS_CONSTEXPR);
+	mbConstexpr = psSignature->Says(CPPDS_CONSTEXPR);
+	mpcTemplate = psSignature->pcTemplate;
+	mbCLinkage = psSignature->bCLinkage;
+	mbExplicit = psSignature->Says(CPPDS_EXPLICIT);
+	if (psSignature->pszArguments)
+	{
+		mszArguments.Append(psSignature->pszArguments);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a later declaration adds: virtual, = 0, extern "C", explicit and
+// constexpr said on any declaration are the function's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPFunction::Redeclare(SCPPSignature* psSignature)
+{
+	mbVirtual |= psSignature->Says(CPPDS_VIRTUAL);
+	mbPure |= psSignature->IsPure();
+	mbCLinkage |= psSignature->bCLinkage;
+	mbExplicit |= psSignature->Says(CPPDS_EXPLICIT);
+	mbConstexpr |= psSignature->Says(CPPDS_CONSTEXPR);
 }
 
 

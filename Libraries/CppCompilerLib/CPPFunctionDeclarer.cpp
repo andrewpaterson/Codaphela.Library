@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
 #include "CPPFunctionDeclarer.h"
+#include "CPPSignature.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,17 +52,71 @@ void CCPPFunctionDeclarer::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Records a function's signature (DeclareSignature) and, where its return
-// type is written after it or left to its body (auto), works that out.
+// Declares a function, a member of pcClass if it is not NULL: the one
+// declared before with the same signature, or a new one.  A function may
+// be declared any number of times but defined once; functions with the
+// same name and different parameters are overloads.  Where its return type
+// is written after it or left to its body (auto), that is worked out too.
 // Returns NULL after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPFunctionDeclarer::Declare(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
+CCPPFunction* CCPPFunctionDeclarer::Declare(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPClass* pcClass, ECPPDeclaredAs eAs)
+{
+	SCPPSignature	sSignature;
+	CCPPFunction*	pcFunction;
+
+	sSignature.Init(pcSpecifiers, pcDeclarator, pcClass, eAs);
+	pcFunction = Declare(&sSignature);
+	sSignature.Kill();
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Declares an instance of a function template, a member of the template's
+// class if it has one, with its template arguments mangled in
+// pszArguments.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPFunctionDeclarer::DeclareInstance(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPTemplate* pcTemplate, CChars* pszArguments, ECPPDeclaredAs eAs)
+{
+	SCPPSignature	sSignature;
+	CCPPFunction*	pcFunction;
+
+	sSignature.Init(pcSpecifiers, pcDeclarator, pcTemplate->mpcClass, eAs);
+	sSignature.pcTemplate = pcTemplate;
+	sSignature.pszArguments = pszArguments;
+	pcFunction = Declare(&sSignature);
+	sSignature.Kill();
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The signature read and checked (a template's instance was checked as
+// the template), then the function it declares again or a new one.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPFunctionDeclarer::Declare(SCPPSignature* psSignature)
 {
 	CCPPFunction*	pcFunction;
 
-	pcFunction = DeclareSignature(pcSpecifiers, pcDeclarator, bDefinition, pcClass, bPure, pcTemplate, pszArguments);
-	if (pcFunction && (pcFunction->mpsReturn == &mpcTypes->msUndeduced) && !ResolveReturn(pcFunction, pcSpecifiers, pcDeclarator))
+	if (!ReadSignature(psSignature) || (!psSignature->pcTemplate && !CheckSignature(psSignature)))
+	{
+		return NULL;
+	}
+	pcFunction = FindDeclared(psSignature);
+	if (pcFunction)
+	{
+		Redeclare(pcFunction, psSignature);
+	}
+	else
+	{
+		pcFunction = AddDeclared(psSignature);
+	}
+	if ((pcFunction->mpsReturn == &mpcTypes->msUndeduced) && !ResolveReturn(pcFunction, psSignature->pcSpecifiers, psSignature->pcWritten))
 	{
 		return NULL;
 	}
@@ -71,128 +126,132 @@ CCPPFunction* CCPPFunctionDeclarer::Declare(CCPPSyntaxDeclSpecifiers* pcSpecifie
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Records a function's signature, a member of pcClass if it is not NULL, or an
-// instance of pcTemplate.  A function may be declared any number of times but
-// defined once.  Functions with the same name and different parameters are
-// overloads.  Returns NULL after an error.
+// What a function's declaration says of it: its name and kind, what it
+// returns, its parameters and their defaults, whether it is const,
+// volatile, & or &&, and its namespace.  False after an error.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPFunctionDeclarer::DeclareSignature(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPTemplate* pcTemplate, CChars* pszArguments)
+bool CCPPFunctionDeclarer::ReadSignature(SCPPSignature* psSignature)
 {
-	int64						lliName;
-	CCPPFunction*				pcFunction;
-	CCPPFunction*				pcOther;
-	CCPPSyntaxFunctionSuffix*	pcSuffix;
-	CCPPSyntaxParameter*		pcParameter;
-	CCPPSyntaxName*				pcName;
-	CCPPSyntaxNameComponent*	pcComponent;
-	SCPP65Type*					psType;
-	SCPP65Type*					psReturn;
-	ECPPFunctionKind			eKind;
-	CArrayCPP65Types			apsParameters;
-	CArraySyntax				apcDefaults;
-	CArrayCPPBindingPtrs		apsPacks;
-	CCPPPackElements			cElements;
-	size						i;
-	size						j;
-	size						uiPack;
-	uint32						uiFlags;
-	bool						bConstThis;
-	bool						bVolatileThis;
-	bool						bUndeduced;
-	bool						bSameParameters;
-	SCPP65Type*					psAbstract;
-	ECPPRefQualifier			eRefQualifier;
-	bool						bFriend;
-	CCPPScope*					pcNamespace;
-	CCPPSyntaxDeclSpecifiers*	pcTypeSpecifiers;
+	CCPPSyntaxDeclarator*	pcDeclarator;
+	CCPPSyntaxName*			pcName;
+	CCPPClass*				pcClass;
+	bool					bUndeduced;
+	bool					bFriend;
 
+	pcDeclarator = psSignature->pcWritten;
+	pcClass = psSignature->pcClass;
 	pcName = pcDeclarator->GetName();
-	pcComponent = pcName ? pcName->GetLast() : NULL;
-	if (!pcComponent || ((pcComponent->meKind == CPPNC_Conversion) && !pcClass) || (!pcClass && !pcTemplate && pcName->IsQualifiedByClass()))
+	psSignature->pcName = pcName;
+	psSignature->pcComponent = pcName ? pcName->GetLast() : NULL;
+	if (!psSignature->pcComponent || ((psSignature->pcComponent->meKind == CPPNC_Conversion) && !pcClass) || (!pcClass && !psSignature->pcTemplate && pcName->IsQualifiedByClass()))
 	{
-		mpcDiagnostics->Error(pcDeclarator, "Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, "Conversion functions outside classes and names qualified by what isn't a namespace are not supported by the compiler yet");
 	}
-	lliName = mpcUnit->GetFunctionName(pcComponent);
-	if (lliName == -1)
+	psSignature->lliName = mpcUnit->GetFunctionName(psSignature->pcComponent);
+	if (psSignature->lliName == -1)
 	{
-		mpcDiagnostics->Error(pcDeclarator, "This function name is not supported by the compiler yet");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, "This function name is not supported by the compiler yet");
 	}
-	if (!pcClass && !pcTemplate && bDefinition && !IsDefinedWhereDeclared(pcName))
+	if (!pcClass && !psSignature->pcTemplate && psSignature->IsDefinition() && !IsDefinedWhereDeclared(pcName))
 	{
-		mpcDiagnostics->Error(pcDeclarator, "The function is defined in a namespace that doesn't enclose it");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, "The function is defined in a namespace that doesn't enclose it");
 	}
-	eKind = CPPFK_Function;
-	if (pcComponent->meKind == CPPNC_Destructor)
+	if (psSignature->pcComponent->meKind == CPPNC_Destructor)
 	{
-		eKind = CPPFK_Destructor;
+		psSignature->eKind = CPPFK_Destructor;
 	}
-	else if (pcClass && (lliName == pcClass->mlliName))
+	else if (pcClass && (psSignature->lliName == pcClass->mlliName))
 	{
-		eKind = CPPFK_Constructor;
+		psSignature->eKind = CPPFK_Constructor;
 	}
 
 	//typedef int Binary(int, int); Binary Add; declares a function by the name of its type: the typedef's declarator
 	//has its parameters, and the typedef's specifiers what it returns.  [dcl.fct] 10
-	pcTypeSpecifiers = pcSpecifiers;
-	if (!pcDeclarator->GetFunctionSuffix() && !(pcSpecifiers && pcSpecifiers->NamesFunctionType(&pcTypeSpecifiers, &pcDeclarator)))
+	if (!pcDeclarator->GetFunctionSuffix() && !(psSignature->pcSpecifiers && psSignature->pcSpecifiers->NamesFunctionType(&psSignature->pcTypeSpecifiers, &pcDeclarator)))
 	{
-		mpcDiagnostics->Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
 	}
-	pcSuffix = pcDeclarator->GetFunctionSuffix();
+	psSignature->pcDeclarator = pcDeclarator;
+	psSignature->pcSuffix = pcDeclarator->GetFunctionSuffix();
 	if (!pcDeclarator->mpcNested && (pcDeclarator->macpSuffixes.NumElements() != 1))
 	{
-		mpcDiagnostics->Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, "This function declarator is not supported by the compiler yet");
 	}
-	bUndeduced = mpcDeclarators->IsAuto(pcTypeSpecifiers) || mpcDeclarators->IsDecltypeAuto(pcTypeSpecifiers);
-	if (pcSuffix->mpcTrailingReturn && (!mpcDeclarators->IsAuto(pcTypeSpecifiers) || pcDeclarator->mpcNested || (pcDeclarator->NumPointers() != 0)))
+	bUndeduced = mpcDeclarators->IsAuto(psSignature->pcTypeSpecifiers) || mpcDeclarators->IsDecltypeAuto(psSignature->pcTypeSpecifiers);
+	if (psSignature->pcSuffix->mpcTrailingReturn && (!mpcDeclarators->IsAuto(psSignature->pcTypeSpecifiers) || pcDeclarator->mpcNested || (pcDeclarator->NumPointers() != 0)))
 	{
-		mpcDiagnostics->Error(pcDeclarator, "A function whose return type is written after it is declared auto, and nothing more");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, "A function whose return type is written after it is declared auto, and nothing more");
 	}
 
-	psReturn = &mpcTypes->msVoid;
-	if (lliName == CPP_CONVERSION_NAME)
+	psSignature->psReturn = &mpcTypes->msVoid;
+	if (psSignature->lliName == CPP_CONVERSION_NAME)
 	{
 		//operator T () returns T.
-		psReturn = pcComponent->mpcType ? mpcDeclarators->GetTypeIdType(pcComponent->mpcType) : NULL;
-		if (!psReturn)
+		psSignature->psReturn = psSignature->pcComponent->mpcType ? mpcDeclarators->GetTypeIdType(psSignature->pcComponent->mpcType) : NULL;
+		if (!psSignature->psReturn)
 		{
-			return NULL;
+			return false;
 		}
 	}
-	else if (eKind == CPPFK_Function)
+	else if (psSignature->eKind == CPPFK_Function)
 	{
 		//auto: the type is worked out once the function is known (ResolveReturn).
-		psReturn = bUndeduced ? &mpcTypes->msUndeduced : ReturnDeclaratorType(mpcDeclarators->GetType(pcTypeSpecifiers, NULL, pcDeclarator, NULL), pcDeclarator);
-		if (!psReturn || !mpcDeclarators->IsReturnable(psReturn, pcDeclarator))
+		psSignature->psReturn = bUndeduced ? &mpcTypes->msUndeduced : ReturnDeclaratorType(mpcDeclarators->GetType(psSignature->pcTypeSpecifiers, NULL, pcDeclarator, NULL), pcDeclarator);
+		if (!psSignature->psReturn || !mpcDeclarators->IsReturnable(psSignature->psReturn, pcDeclarator))
 		{
-			return NULL;
+			return false;
 		}
 	}
-	if (!pcClass && (pcSuffix->IsConst() || pcSuffix->IsVolatile()))
+	if (!pcClass && (psSignature->pcSuffix->IsConst() || psSignature->pcSuffix->IsVolatile()))
 	{
 		//[dcl.fct] 6
-		mpcDiagnostics->Error(pcDeclarator, pcSuffix->IsConst() ? "Only a member function is const" : "Only a member function is volatile");
-		return NULL;
+		return mpcDiagnostics->Error(pcDeclarator, psSignature->pcSuffix->IsConst() ? "Only a member function is const" : "Only a member function is volatile");
+	}
+	psSignature->bVariadic = psSignature->pcSuffix->mbVariadic;
+	psSignature->bConstThis = pcClass && psSignature->pcSuffix->IsConst();
+	psSignature->bVolatileThis = pcClass && psSignature->pcSuffix->IsVolatile();
+	psSignature->eRefQualifier = pcClass ? mpcUnit->GetInstantiator()->RefQualifier(psSignature->pcSuffix) : CPPRQ_None;
+	if (!ReadParameters(psSignature))
+	{
+		return false;
 	}
 
-	apsParameters.Init();
-	apcDefaults.Init();
-	bConstThis = pcClass && pcSuffix->IsConst();
-	bVolatileThis = pcClass && pcSuffix->IsVolatile();
-	eRefQualifier = pcClass ? mpcUnit->GetInstantiator()->RefQualifier(pcSuffix) : CPPRQ_None;
-	apsPacks.Init();
-	for (i = 0; i < pcSuffix->macpParameters.NumElements(); i++)
+	psSignature->bCLinkage = mpcContext->IsCLinkage() && !pcClass;
+	if (!pcClass)
 	{
-		pcParameter = (CCPPSyntaxParameter*)pcSuffix->macpParameters.GetPtr(i);
-		//Args... args, and any pack expansion a parameter is declared with (Pair<Count<Ts...>, Ts>... p), is a parameter
-		//for each of its packs' elements.  [temp.variadic] 5
+		//A friend with a simple name is of the namespace its class is in, whatever the name finds.  [namespace.memdef] 3
+		bFriend = pcName->IsSimple() && psSignature->Says(CPPDS_FRIEND);
+		psSignature->pcNamespace = (pcName->mpcSymbol && !bFriend) ? pcName->mpcSymbol->mpcScope->GetNamespace() : mpcContext->GetNamespace();
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameters' types, as the function's type has them (ParameterType),
+// and their defaults.  Args... args, and any pack expansion a parameter is
+// declared with (Pair<Count<Ts...>, Ts>... p), is a parameter for each of
+// its packs' elements.  False after an error.  [temp.variadic] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::ReadParameters(SCPPSignature* psSignature)
+{
+	CCPPSyntaxParameter*	pcParameter;
+	SCPP65Type*				psType;
+	CArrayCPPBindingPtrs	apsPacks;
+	CCPPPackElements		cElements;
+	size					i;
+	size					j;
+	size					uiPack;
+	bool					bResult;
+
+	bResult = true;
+	apsPacks.Init();
+	for (i = 0; bResult && (i < psSignature->pcSuffix->macpParameters.NumElements()); i++)
+	{
+		pcParameter = (CCPPSyntaxParameter*)psSignature->pcSuffix->macpParameters.GetPtr(i);
 		apsPacks.ReInit();
 		uiPack = 1;
 		if (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack && pcParameter->mpcSpecifiers)
@@ -200,10 +259,8 @@ CCPPFunction* CCPPFunctionDeclarer::DeclareSignature(CCPPSyntaxDeclSpecifiers* p
 			mpcUnit->FindPacks(pcParameter->mpcSpecifiers, &apsPacks, NULL);
 			if ((apsPacks.NumElements() > 0) && !mpcUnit->PackExpansionLength(&apsPacks, NULL, pcParameter, &uiPack))
 			{
-				apsPacks.Kill();
-				apcDefaults.Kill();
-				apsParameters.Kill();
-				return NULL;
+				bResult = false;
+				break;
 			}
 		}
 		cElements.Init(&apsPacks);
@@ -214,194 +271,197 @@ CCPPFunction* CCPPFunctionDeclarer::DeclareSignature(CCPPSyntaxDeclSpecifiers* p
 				cElements.Enter(j);
 			}
 			psType = mpcDeclarators->GetType(pcParameter->mpcSpecifiers, pcParameter->mpcDeclarator, pcParameter);
-			if (!psType || (psType->IsVoid() && !mpcDeclarators->IsWholeVoid(pcSuffix, pcParameter)))
+			if (!psType || (psType->IsVoid() && !mpcDeclarators->IsWholeVoid(psSignature->pcSuffix, pcParameter)))
 			{
-				cElements.Kill();
-				apsPacks.Kill();
-				apcDefaults.Kill();
-				apsParameters.Kill();
-				return NULL;
+				bResult = false;
+				break;
 			}
 			if (psType->IsVoid())
 			{
 				break;
 			}
-			apsParameters.Add(ParameterType(psType));
-			apcDefaults.Add(pcParameter->mpcDefault);
+			psSignature->apsParameters.Add(ParameterType(psType));
+			psSignature->apcDefaults.Add(pcParameter->mpcDefault);
 		}
 		cElements.Kill();
 	}
 	apsPacks.Kill();
-	if (!pcTemplate && (!CheckAllocationFunction(lliName, psReturn, &apsParameters, pcDeclarator) || !CheckOperatorSignature(pcName->GetLast(), lliName, &apsParameters, &apcDefaults, pcClass, pcDeclarator)))
-	{
-		apcDefaults.Kill();
-		apsParameters.Kill();
-		return NULL;
-	}
+	return bResult;
+}
 
-	//A declaration of a function declared before.
-	uiFlags = pcSpecifiers ? pcSpecifiers->muiFlags : 0;
-	pcNamespace = NULL;
-	if (!pcClass)
-	{
-		//A friend with a simple name is of the namespace its class is in, whatever the name finds.  [namespace.memdef] 3
-		bFriend = pcName->IsSimple() && (uiFlags & CPPDS_FRIEND);
-		pcNamespace = (pcName->mpcSymbol && !bFriend) ? pcName->mpcSymbol->mpcScope->GetNamespace() : mpcContext->GetNamespace();
-		if (!pcTemplate && ((lliName == mpcUnit->GetOperatorName(CT_new, false)) || (lliName == mpcUnit->GetOperatorName(CT_new, true)) || (lliName == mpcUnit->GetOperatorName(CT_delete, false)) || (lliName == mpcUnit->GetOperatorName(CT_delete, true))))
-		{
-			//An allocation or deallocation function is a class's or the global namespace's, and not static.  [basic.stc.dynamic] 1
-			if (pcNamespace && pcNamespace->mpcParent)
-			{
-				mpcDiagnostics->ReportOnce(pcDeclarator, "An operator new or delete is declared in the global namespace or in a class");
-			}
-			else if (uiFlags & CPPDS_STATIC)
-			{
-				mpcDiagnostics->ReportOnce(pcDeclarator, "An operator new or delete in the global namespace can't be static");
-			}
-		}
-	}
-	for (i = 0; !pcTemplate && (i <= apsParameters.NumElements()); i++)
-	{
-		psAbstract = (i < apsParameters.NumElements()) ? apsParameters.GetPtr(i) : psReturn;
-		if (psAbstract && psAbstract->IsClass() && psAbstract->pcClass->IsComplete() && psAbstract->pcClass->IsAbstract())
-		{
-			//[class.abstract] 3
-			mpcDiagnostics->ReportOnce(pcDeclarator, "An abstract class is no function's parameter or result: no object of it can be made");
-			break;
-		}
-	}
-	for (pcOther = mpcUnit->FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
-	{
-		if ((pcOther->mpcClass != pcClass) || (pcOther->mpcNamespace != pcNamespace) || (pcOther->meKind != eKind) || (pcOther->mapsParameters.NumElements() != apsParameters.NumElements()) || (pcOther->mpcTemplate != pcTemplate) ||
-			(pcOther->mbVariadic != pcSuffix->mbVariadic))
-		{
-			continue;
-		}
-		if (pcTemplate && !pcOther->mszArguments.Equals(pszArguments))
-		{
-			continue;
-		}
-		if ((pcOther->IsConversion() && !pcOther->mpsReturn->Equals(psReturn)) || (pcOther->mbConstThis != bConstThis) || (pcOther->mbVolatileThis != bVolatileThis) || (pcOther->meRefQualifier != eRefQualifier))
-		{
-			continue;
-		}
-		if (!pcOther->TakesParameters(&apsParameters))
-		{
-			continue;
-		}
-		pcFunction = pcOther;
-		if (!pcTemplate && !pcFunction->IsConversion() && !pcFunction->mpsReturn->Same(psReturn) && (pcFunction->mpsReturn != &mpcTypes->msUndeduced) && (psReturn != &mpcTypes->msUndeduced))
-		{
-			//What a function returns doesn't tell it from another: one declared twice returns one type.  [dcl.fct] 5, [over.load] 2
-			mpcDiagnostics->ReportOnce(pcDeclarator, "The function is declared again with another return type");
-		}
-		for (j = 0; j < apcDefaults.NumElements(); j++)
-		{
-			if (apcDefaults.GetPtr(j) && pcFunction->mapcDefaults.GetPtr(j) && (apcDefaults.GetPtr(j) != pcFunction->mapcDefaults.GetPtr(j)) && !pcTemplate)
-			{
-				//[dcl.fct.default] 4
-				mpcDiagnostics->Error(apcDefaults.GetPtr(j), "The parameter's default argument is given once: an earlier declaration has it");
-			}
-			if (apcDefaults.GetPtr(j))
-			{
-				pcFunction->mapcDefaults.SetPtr(j, apcDefaults.GetPtr(j));
-			}
-		}
-		if (!pcTemplate)
-		{
-			CheckDefaultsFollow(pcFunction, pcDeclarator);
-		}
-		apcDefaults.Kill();
-		apsParameters.Kill();
-		pcFunction->mbVirtual |= (uiFlags & CPPDS_VIRTUAL) != 0;
-		pcFunction->mbPure |= bPure;
-		pcFunction->mbCLinkage |= mpcContext->IsCLinkage() && !pcClass;
-		pcFunction->mbExplicit |= (uiFlags & CPPDS_EXPLICIT) != 0;
-		pcFunction->mbConstexpr |= (uiFlags & CPPDS_CONSTEXPR) != 0;
-		mpcUnit->GetExceptions()->CheckRedeclaredExceptions(pcFunction, pcDeclarator);
-		return pcFunction;
-	}
 
-	if (mpcContext->IsCLinkage() && !pcClass && !pcTemplate)
+//////////////////////////////////////////////////////////////////////////
+//
+// What a function's signature may not be, an operator's, an allocation
+// function's and a literal operator's (false after an error), and where an
+// operator new or delete is declared and whether it takes or returns an
+// abstract class (said, and the declaration goes on).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::CheckSignature(SCPPSignature* psSignature)
+{
+	if (!CheckAllocationFunction(psSignature) || !CheckOperatorSignature(psSignature))
 	{
-		for (pcOther = mpcUnit->FirstFunctionOfName(lliName); pcOther; pcOther = pcOther->mpcNextOfName)
+		return false;
+	}
+	if (!psSignature->pcClass && CPPIsAllocationName(psSignature->lliName))
+	{
+		//An allocation or deallocation function is a class's or the global namespace's, and not static.  [basic.stc.dynamic] 1
+		if (psSignature->pcNamespace && psSignature->pcNamespace->mpcParent)
 		{
-			if (!pcOther->mbCLinkage || pcOther->mpcClass)
-			{
-				continue;
-			}
-			bSameParameters = (pcOther->mbVariadic == pcSuffix->mbVariadic) && pcOther->TakesParameters(&apsParameters);
-			if (!bSameParameters)
-			{
-				//Two extern "C" functions of a name are one function, whatever namespace each is in.  [dcl.link] 6
-				mpcDiagnostics->ReportOnce(pcDeclarator, "Two extern \"C\" functions of one name are one function: it can't be overloaded");
-				break;
-			}
+			mpcDiagnostics->ReportOnce(psSignature->pcDeclarator, "An operator new or delete is declared in the global namespace or in a class");
+		}
+		else if (psSignature->Says(CPPDS_STATIC))
+		{
+			mpcDiagnostics->ReportOnce(psSignature->pcDeclarator, "An operator new or delete in the global namespace can't be static");
 		}
 	}
+	CheckAbstract(psSignature->psReturn, &psSignature->apsParameters, psSignature->pcDeclarator);
+	return true;
+}
 
-	for (pcOther = pcClass ? mpcUnit->FirstFunctionOfName(lliName) : NULL; pcOther; pcOther = pcOther->mpcNextOfName)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function declared before that psSignature declares again, NULL for
+// none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPFunctionDeclarer::FindDeclared(SCPPSignature* psSignature)
+{
+	CCPPFunction*	pcFunction;
+
+	for (pcFunction = mpcUnit->FirstFunctionOfName(psSignature->lliName); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if ((pcOther->mpcClass != pcClass) || (pcOther->meKind != eKind) || pcOther->mpcTemplate || pcTemplate || ((pcOther->meRefQualifier == CPPRQ_None) == (eRefQualifier == CPPRQ_None)))
+		if (pcFunction->IsDeclaredBy(psSignature))
+		{
+			return pcFunction;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A declaration of a function declared before: it returns what the others
+// say (what a function returns doesn't tell it from another), it gives
+// each default argument once, and what it says is added.  An instance's
+// declarations are its template's, checked there.  [dcl.fct] 5,
+// [over.load] 2, [dcl.fct.default] 4
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPFunctionDeclarer::Redeclare(CCPPFunction* pcFunction, SCPPSignature* psSignature)
+{
+	CCPPSyntax*	pcDefault;
+	size		i;
+
+	if (!psSignature->pcTemplate && !pcFunction->IsConversion() && !pcFunction->mpsReturn->Same(psSignature->psReturn) && (pcFunction->mpsReturn != &mpcTypes->msUndeduced) && (psSignature->psReturn != &mpcTypes->msUndeduced))
+	{
+		mpcDiagnostics->ReportOnce(psSignature->pcDeclarator, "The function is declared again with another return type");
+	}
+	for (i = 0; i < psSignature->apcDefaults.NumElements(); i++)
+	{
+		pcDefault = psSignature->apcDefaults.GetPtr(i);
+		if (!pcDefault)
 		{
 			continue;
 		}
-		bSameParameters = (pcOther->mbVariadic == pcSuffix->mbVariadic) && pcOther->TakesParameters(&apsParameters);
-		if (bSameParameters)
+		if (pcFunction->mapcDefaults.GetPtr(i) && (pcDefault != pcFunction->mapcDefaults.GetPtr(i)) && !psSignature->pcTemplate)
 		{
-			//Overloads that take the same parameters are all declared & or && or none is.  [over.load] 2
-			mpcDiagnostics->ReportOnce(pcDeclarator, "Where one overload taking these parameters is declared & or &&, each is");
-			break;
+			mpcDiagnostics->Error(pcDefault, "The parameter's default argument is given once: an earlier declaration has it");
 		}
+		pcFunction->mapcDefaults.SetPtr(i, pcDefault);
 	}
+	if (!psSignature->pcTemplate)
+	{
+		CheckDefaultsFollow(pcFunction, psSignature->pcDeclarator);
+	}
+	pcFunction->Redeclare(psSignature);
+	mpcUnit->GetExceptions()->CheckRedeclaredExceptions(pcFunction, psSignature->pcDeclarator);
+}
 
-	pcFunction = mpcUnit->AddFunction(pcClass, lliName, eKind, psReturn);
-	pcFunction->mpcNamespace = pcNamespace;
-	pcFunction->mpcDeclarator = pcDeclarator;
-	for (i = 0; i < apsParameters.NumElements(); i++)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function declared for the first time: it adopts its signature, after
+// what a new overload can't be is said.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPPFunctionDeclarer::AddDeclared(SCPPSignature* psSignature)
+{
+	CCPPFunction*	pcFunction;
+	CCPPClass*		pcClass;
+
+	if (!psSignature->pcTemplate)
 	{
-		pcFunction->mapsParameters.Add(apsParameters.GetPtr(i));
-		pcFunction->mapcDefaults.Add(apcDefaults.GetPtr(i));
+		CheckOverloads(psSignature);
 	}
-	pcFunction->mbConstThis = bConstThis;
-	pcFunction->mbVolatileThis = bVolatileThis;
-	pcFunction->meRefQualifier = eRefQualifier;
-	apcDefaults.Kill();
-	apsParameters.Kill();
-	if (!pcTemplate)
+	pcClass = psSignature->pcClass;
+	pcFunction = mpcUnit->AddFunction(pcClass, psSignature->lliName, psSignature->eKind, psSignature->psReturn);
+	pcFunction->Adopt(psSignature);
+	if (!psSignature->pcTemplate)
 	{
-		CheckDefaultsFollow(pcFunction, pcDeclarator);
+		CheckDefaultsFollow(pcFunction, psSignature->pcDeclarator);
 	}
-	pcFunction->mbVariadic = pcSuffix->mbVariadic;
-	pcFunction->mbStatic = ((uiFlags & CPPDS_STATIC) != 0) || (pcClass && IsAllocationFunction(lliName));
-	pcFunction->mbVirtual = (uiFlags & CPPDS_VIRTUAL) != 0;
-	pcFunction->mbPure = bPure;
-	pcFunction->mbInline = (uiFlags & (CPPDS_INLINE | CPPDS_CONSTEXPR)) != 0;
-	pcFunction->mbConstexpr = (uiFlags & CPPDS_CONSTEXPR) != 0;
-	pcFunction->mpcTemplate = pcTemplate;
-	pcFunction->mbCLinkage = mpcContext->IsCLinkage() && !pcClass;
-	pcFunction->mbExplicit = (uiFlags & CPPDS_EXPLICIT) != 0;
-	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : mpcUnit->FindAttribute(pcDeclarator, "deprecated");
-	mpcUnit->GetExceptions()->SetDeclaredExceptions(pcFunction, pcDeclarator);
-	pcFunction->mbOverride |= mpcUnit->HasVirtSpecifier(pcSuffix, mpcUnit->GetTokeniser()->mlliOverride);
-	pcFunction->mbFinal |= mpcUnit->HasVirtSpecifier(pcSuffix, mpcUnit->GetTokeniser()->mlliFinal);
-	if (pszArguments)
+	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : mpcUnit->FindAttribute(psSignature->pcDeclarator, "deprecated");
+	mpcUnit->GetExceptions()->SetDeclaredExceptions(pcFunction, psSignature->pcDeclarator);
+	pcFunction->mbOverride |= mpcUnit->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliOverride);
+	pcFunction->mbFinal |= mpcUnit->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliFinal);
+	if (psSignature->pcTemplate)
 	{
-		pcFunction->mszArguments.Append(pszArguments);
+		psSignature->pcTemplate->mapcInstances.Add(pcFunction);
 	}
-	if (pcTemplate)
-	{
-		pcTemplate->mapcInstances.Add(pcFunction);
-	}
-	if (eKind == CPPFK_Constructor)
+	if (psSignature->eKind == CPPFK_Constructor)
 	{
 		pcClass->mbConstructors = true;
 	}
-	else if (eKind == CPPFK_Destructor)
+	else if (psSignature->eKind == CPPFK_Destructor)
 	{
 		pcClass->mpcDestructor = pcFunction;
 	}
 	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a new overload can't be: an extern "C" function of a name taken by
+// another with other parameters, in whatever namespace each is
+// ([dcl.link] 6); one declared & or && where another that takes the same
+// parameters isn't, or the other way ([over.load] 2).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPFunctionDeclarer::CheckOverloads(SCPPSignature* psSignature)
+{
+	CCPPFunction*	pcOther;
+
+	for (pcOther = mpcUnit->FirstFunctionOfName(psSignature->lliName); pcOther; pcOther = pcOther->mpcNextOfName)
+	{
+		if (psSignature->bCLinkage && pcOther->mbCLinkage && !pcOther->mpcClass && !TakesSameParameters(pcOther, psSignature))
+		{
+			mpcDiagnostics->ReportOnce(psSignature->pcDeclarator, "Two extern \"C\" functions of one name are one function: it can't be overloaded");
+			break;
+		}
+	}
+	for (pcOther = psSignature->pcClass ? mpcUnit->FirstFunctionOfName(psSignature->lliName) : NULL; pcOther; pcOther = pcOther->mpcNextOfName)
+	{
+		if ((pcOther->mpcClass == psSignature->pcClass) && (pcOther->meKind == psSignature->eKind) && !pcOther->mpcTemplate && ((pcOther->meRefQualifier == CPPRQ_None) != (psSignature->eRefQualifier == CPPRQ_None)) && TakesSameParameters(pcOther, psSignature))
+		{
+			mpcDiagnostics->ReportOnce(psSignature->pcDeclarator, "Where one overload taking these parameters is declared & or &&, each is");
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::TakesSameParameters(CCPPFunction* pcFunction, SCPPSignature* psSignature)
+{
+	return (pcFunction->mbVariadic == psSignature->bVariadic) && pcFunction->TakesParameters(&psSignature->apsParameters);
 }
 
 
@@ -616,7 +676,7 @@ bool CCPPFunctionDeclarer::IsDefinedWhereDeclared(CCPPSyntaxName* pcName)
 // is said now.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPFunctionDeclarer::DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, bool bDefinition, CCPPClass* pcClass, bool bPure, CCPPErrors** ppcErrors)
+CCPPFunction* CCPPFunctionDeclarer::DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator, CCPPClass* pcClass, ECPPDeclaredAs eAs, CCPPErrors** ppcErrors)
 {
 	CCPPFunction*			pcFunction;
 	CCPPErrors*				pcErrors;
@@ -624,7 +684,7 @@ CCPPFunction* CCPPFunctionDeclarer::DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcS
 
 	mpcDiagnostics->BeginQuiet();
 	mpcDiagnostics->BeginKeeping(false);
-	pcFunction = Declare(pcSpecifiers, pcDeclarator, bDefinition, pcClass, bPure);
+	pcFunction = Declare(pcSpecifiers, pcDeclarator, pcClass, eAs);
 	pcErrors = mpcDiagnostics->EndKeeping();
 	mpcDiagnostics->EndQuiet();
 	if (!pcFunction)
@@ -649,7 +709,7 @@ CCPPFunction* CCPPFunctionDeclarer::DeclareQuietly(CCPPSyntaxDeclSpecifiers* pcS
 //////////////////////////////////////////////////////////////////////////
 void CCPPFunctionDeclarer::DeclareBlockFunction(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntaxDeclarator* pcDeclarator)
 {
-	DeclareQuietly(pcSpecifiers, pcDeclarator, false, NULL, false);
+	DeclareQuietly(pcSpecifiers, pcDeclarator, NULL, CPPDA_Declaration);
 }
 
 
@@ -724,19 +784,6 @@ bool CCPPFunctionDeclarer::IsWeak(CCPPFunction* pcFunction)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a function's name is operator new, new[], delete or delete[],
-// which as a class's members are static whether or not they are declared
-// so.  [class.free] 1
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPFunctionDeclarer::IsAllocationFunction(int64 lliName)
-{
-	return (lliName == mpcUnit->GetOperatorName(CT_new, false)) || (lliName == mpcUnit->GetOperatorName(CT_new, true)) || (lliName == mpcUnit->GetOperatorName(CT_delete, false)) || (lliName == mpcUnit->GetOperatorName(CT_delete, true));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // True if the declarator declares an operator new, new[], delete or
 // delete[].
 //
@@ -744,11 +791,9 @@ bool CCPPFunctionDeclarer::IsAllocationFunction(int64 lliName)
 bool CCPPFunctionDeclarer::DeclaresAllocation(CCPPSyntaxDeclarator* pcDeclarator)
 {
 	CCPPSyntaxName*	pcName;
-	int64			lliName;
 
 	pcName = pcDeclarator->GetName();
-	lliName = (pcName && (pcName->GetLast()->meKind == CPPNC_Operator)) ? mpcUnit->GetFunctionName(pcName->GetLast()) : -1;
-	return (lliName != -1) && ((lliName == mpcUnit->GetOperatorName(CT_new, false)) || (lliName == mpcUnit->GetOperatorName(CT_new, true)) || (lliName == mpcUnit->GetOperatorName(CT_delete, false)) || (lliName == mpcUnit->GetOperatorName(CT_delete, true)));
+	return pcName && (pcName->GetLast()->meKind == CPPNC_Operator) && CPPIsAllocationName(mpcUnit->GetFunctionName(pcName->GetLast()));
 }
 
 
@@ -761,14 +806,18 @@ bool CCPPFunctionDeclarer::DeclaresAllocation(CCPPSyntaxDeclarator* pcDeclarator
 // [basic.stc.dynamic.allocation] 1, [basic.stc.dynamic.deallocation] 2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPFunctionDeclarer::CheckAllocationFunction(int64 lliName, SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode)
+bool CCPPFunctionDeclarer::CheckAllocationFunction(SCPPSignature* psSignature)
 {
 	SCPP65Type*	psVoidPointer;
 	SCPP65Type*	psFirst;
+	SCPP65Type*	psReturn;
+	CCPPSyntax*	pcNode;
 
 	psVoidPointer = mpcTypes->Pointer(&mpcTypes->msVoid);
-	psFirst = (papsParameters->NumElements() > 0) ? papsParameters->GetPtr(0)->Unqualified() : NULL;
-	if ((lliName == mpcUnit->GetOperatorName(CT_new, false)) || (lliName == mpcUnit->GetOperatorName(CT_new, true)))
+	psFirst = (psSignature->apsParameters.NumElements() > 0) ? psSignature->apsParameters.GetPtr(0)->Unqualified() : NULL;
+	psReturn = psSignature->psReturn;
+	pcNode = psSignature->pcDeclarator;
+	if (CPPIsNewName(psSignature->lliName))
 	{
 		if (!psReturn->Equals(psVoidPointer))
 		{
@@ -776,7 +825,7 @@ bool CCPPFunctionDeclarer::CheckAllocationFunction(int64 lliName, SCPP65Type* ps
 		}
 		return (psFirst && psFirst->Equals(mpcTypes->Size())) || mpcDiagnostics->Error(pcNode, "operator new's first parameter is a std::size_t");
 	}
-	if ((lliName == mpcUnit->GetOperatorName(CT_delete, false)) || (lliName == mpcUnit->GetOperatorName(CT_delete, true)))
+	if (CPPIsDeleteName(psSignature->lliName))
 	{
 		if (!psReturn->IsVoid())
 		{
@@ -797,14 +846,22 @@ bool CCPPFunctionDeclarer::CheckAllocationFunction(int64 lliName, SCPP65Type* ps
 // (and false) if not.  [over.oper] 6, 8, [over.inc] 1
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPFunctionDeclarer::CheckOperatorSignature(CCPPSyntaxNameComponent* pcComponent, int64 lliName, CArrayCPP65Types* papsParameters, CArraySyntax* papcDefaults, CCPPClass* pcClass, CCPPSyntax* pcNode)
+bool CCPPFunctionDeclarer::CheckOperatorSignature(SCPPSignature* psSignature)
 {
-	SCPP65Type*	psType;
-	SCPP65Type*	psFirst;
-	size		i;
-	bool		bClass;
+	CArrayCPP65Types*	papsParameters;
+	CCPPClass*			pcClass;
+	CCPPSyntax*			pcNode;
+	int64				lliName;
+	SCPP65Type*			psType;
+	SCPP65Type*			psFirst;
+	size				i;
+	bool				bClass;
 
-	if (pcComponent->meKind == CPPNC_Literal)
+	papsParameters = &psSignature->apsParameters;
+	pcClass = psSignature->pcClass;
+	pcNode = psSignature->pcDeclarator;
+	lliName = psSignature->lliName;
+	if (psSignature->pcComponent->meKind == CPPNC_Literal)
 	{
 		psFirst = (papsParameters->NumElements() > 0) ? papsParameters->GetPtr(0)->Unqualified() : NULL;
 		if (papsParameters->NumElements() == 1)
@@ -823,16 +880,15 @@ bool CCPPFunctionDeclarer::CheckOperatorSignature(CCPPSyntaxNameComponent* pcCom
 		}
 		return bClass || mpcDiagnostics->Error(pcNode, "A literal operator's parameters are one of: const char*; unsigned long long; long double; a character type; a pointer to const characters and a size_t");
 	}
-	if ((pcComponent->meKind != CPPNC_Operator) || (lliName == mpcUnit->GetOperatorName(CT_new, false)) || (lliName == mpcUnit->GetOperatorName(CT_new, true)) ||
-		(lliName == mpcUnit->GetOperatorName(CT_delete, false)) || (lliName == mpcUnit->GetOperatorName(CT_delete, true)))
+	if ((psSignature->pcComponent->meKind != CPPNC_Operator) || CPPIsAllocationName(lliName))
 	{
 		return true;
 	}
-	if (lliName != mpcUnit->GetOperatorName(CT_OpenRoundBracket, false))
+	if (lliName != CPP_OPERATOR_NAME(CT_OpenRoundBracket))
 	{
-		for (i = 0; i < papcDefaults->NumElements(); i++)
+		for (i = 0; i < psSignature->apcDefaults.NumElements(); i++)
 		{
-			if (papcDefaults->GetPtr(i))
+			if (psSignature->apcDefaults.GetPtr(i))
 			{
 				return OperatorError(pcClass, pcNode, "An operator function has no default arguments (but operator())");
 			}
@@ -851,7 +907,7 @@ bool CCPPFunctionDeclarer::CheckOperatorSignature(CCPPSyntaxNameComponent* pcCom
 			return mpcDiagnostics->Error(pcNode, "An operator function that is no class's member has a parameter of a class or an enum");
 		}
 	}
-	if (((lliName == mpcUnit->GetOperatorName(CT_Increment, false)) || (lliName == mpcUnit->GetOperatorName(CT_Decrement, false))) && (papsParameters->NumElements() == (pcClass ? 1 : 2)) &&
+	if (((lliName == CPP_OPERATOR_NAME(CT_Increment)) || (lliName == CPP_OPERATOR_NAME(CT_Decrement))) && (papsParameters->NumElements() == (pcClass ? 1 : 2)) &&
 		!papsParameters->GetPtr(papsParameters->NumElements() - 1)->Unqualified()->Equals(&mpcTypes->msInt))
 	{
 		return OperatorError(pcClass, pcNode, "A postfix ++ or --'s second parameter is an int");
@@ -901,18 +957,30 @@ bool CCPPFunctionDeclarer::CheckDefaultsFollow(CCPPFunction* pcFunction, CCPPSyn
 //
 // A function defined or called takes no parameter of an abstract class
 // and returns no object of one (its declaration said so where the class
-// was complete then; DeclareSignature).  An error at pcNode if it does.
-// [class.abstract] 3
+// was complete then; CheckSignature).  An error at pcNode if it does.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunctionDeclarer::CheckAbstractSignature(CCPPFunction* pcFunction, CCPPSyntax* pcNode)
 {
+	return CheckAbstract(pcFunction->mpsReturn, &pcFunction->mapsParameters, pcNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// No parameter's type and no return type is an abstract class that is
+// complete: no object of it can be made.  An error at pcNode (and false)
+// if one is.  [class.abstract] 3
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunctionDeclarer::CheckAbstract(SCPP65Type* psReturn, CArrayCPP65Types* papsParameters, CCPPSyntax* pcNode)
+{
 	SCPP65Type*	psType;
 	size		i;
 
-	for (i = 0; i <= pcFunction->mapsParameters.NumElements(); i++)
+	for (i = 0; i <= papsParameters->NumElements(); i++)
 	{
-		psType = (i < pcFunction->mapsParameters.NumElements()) ? pcFunction->mapsParameters.GetPtr(i) : pcFunction->mpsReturn;
+		psType = (i < papsParameters->NumElements()) ? papsParameters->GetPtr(i) : psReturn;
 		if (psType && psType->IsClass() && psType->pcClass->IsComplete() && psType->pcClass->IsAbstract())
 		{
 			return mpcDiagnostics->ReportOnce(pcNode, "An abstract class is no function's parameter or result: no object of it can be made");

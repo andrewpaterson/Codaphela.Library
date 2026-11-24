@@ -2150,7 +2150,7 @@ bool CCPPUnit::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, CCP
 		pcInit = (CCPPSyntaxInitDeclarator*)pcDeclaration->macpDeclarators.GetPtr(i);
 		if (pcInit->mpcDeclarator->IsFunction() || pcInit->mpcDeclarator->IsFunctionByType(pcSpecifiers))
 		{
-			pcFunction = mcFunctionDeclarer.DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, false, NULL, false, &pcErrors);
+			pcFunction = mcFunctionDeclarer.DeclareQuietly(pcSpecifiers, pcInit->mpcDeclarator, NULL, CPPDA_Declaration, &pcErrors);
 			if (!pcFunction && mcFunctionDeclarer.DeclaresAllocation(pcInit->mpcDeclarator))
 			{
 				//What is wrong with an operator new or delete is said where it is declared: a program replaces the
@@ -2692,11 +2692,11 @@ bool CCPPUnit::Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* p
 	{
 		//A body skipped in a system header: only a declaration.
 		mcDiagnostics.BeginQuiet();
-		mcFunctionDeclarer.Declare(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, false, pcClass, false);
+		mcFunctionDeclarer.Declare(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, pcClass, CPPDA_Declaration);
 		mcDiagnostics.EndQuiet();
 		return true;
 	}
-	pcFunction = mcFunctionDeclarer.Declare(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, true, pcClass, false);
+	pcFunction = mcFunctionDeclarer.Declare(pcDefinition->mpcSpecifiers, pcDefinition->mpcDeclarator, pcClass, CPPDA_Definition);
 	if (!pcFunction)
 	{
 		return false;

@@ -44,6 +44,13 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define CPP_LITERAL_SUFFIX(lliName)		(CPP_DELETING_NAME - 1 - (lliName))
 
 
+//operator new and new[], the allocation functions; operator delete and delete[], the deallocation functions.
+//[basic.stc.dynamic] 2
+inline bool CPPIsNewName(int64 lliName) { return (lliName == CPP_OPERATOR_NAME(CT_new)) || (lliName == CPP_ARRAY_OPERATOR_NAME(CT_new)); }
+inline bool CPPIsDeleteName(int64 lliName) { return (lliName == CPP_OPERATOR_NAME(CT_delete)) || (lliName == CPP_ARRAY_OPERATOR_NAME(CT_delete)); }
+inline bool CPPIsAllocationName(int64 lliName) { return CPPIsNewName(lliName) || CPPIsDeleteName(lliName); }
+
+
 //The object a member function is called on, which chooses between a const or volatile function and one that isn't,
 //and between one declared & and one declared &&: CPPCO_None when there is none to choose by, else CPPCO_Object with
 //what the object is.
@@ -150,6 +157,7 @@ enum ECPPSpecialMember
 class CCPPClass;
 class CCPPTemplate;
 class CCPPTemplateArguments;
+struct SCPPSignature;
 
 
 //A function's signature, from its definition or a declaration, and its definition.  Inline, in class and
@@ -211,6 +219,9 @@ public:
 	bool	TakesArgumentCount(size uiArguments);
 	bool	SameParameters(CCPPFunction* pcOther);
 	bool	TakesParameters(CArrayCPP65Types* papsParameters);
+	bool	IsDeclaredBy(SCPPSignature* psSignature);
+	void	Adopt(SCPPSignature* psSignature);
+	void	Redeclare(SCPPSignature* psSignature);
 	bool	Overrides(CCPPFunction* pcVirtual);
 	bool	TakesObject(ECPPCalledObject eObject);
 	bool	IsCopy(void);
