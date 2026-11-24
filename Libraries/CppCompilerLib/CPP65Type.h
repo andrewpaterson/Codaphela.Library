@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/HashMapPrimitiveTemplate.h"
+#include "BaseLib/HashSetTemplate.h"
 #include "BaseLib/Chars.h"
 #include "CppTokens.h"
 
@@ -100,7 +101,6 @@ struct SCPP65Type
 	bool			bVolatile;		//volatile T: a copy of psUnqualified that loads and stores can't remove or move.
 	SCPP65Type*		psUnqualified;	//The type without const and volatile (itself when it is neither).
 	SCPP65Type*		psNextSameBase;	//The next type made of its kind and base (CCPP65Types::mcByBase), NULL if none.
-	SCPP65Type*		psNextSameSignature;	//A function type: the next made with its signature's hash (CCPP65Types::mcFunctions).
 
 	bool	IsInteger(void) const;
 	bool	IsScalar(void) const;
@@ -163,9 +163,17 @@ struct SCPP65TypeChain
 class CCPP65Types
 {
 protected:
+	//A function type is found by what it is: hashed by HashStructure, compared by SCPP65Type::Equals.
+	struct SHashOfFunction
+	{
+		static uint32		Hash(SCPP65Type* const* ppsType);
+		static HashEquals	Equals(void);
+		static bool			TypesEqual(const void* pvKey, const void* pvEntryKey);
+	};
+
 	CArrayCPP65Types					mapsTypes;
 	CHashMapLongTemplate<SCPP65TypeChain>	mcByBase;		//The types made of a kind and base (Add, MemberPointer).
-	CHashMapLongTemplate<SCPP65TypeChain>	mcFunctions;	//The function types made with a signature's hash (Function).
+	CHashSetTemplate<SCPP65Type*, SHashOfFunction>	mcFunctions;	//The function types (Function), each made once.
 	CHashMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its CCPPClass.
 	CHashMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
 	CHashMapLongTemplate<SCPP65Type*>		mcQualified;	//A type's const and volatile copies, by the unqualified type and the qualifiers (QualifiedKey).
@@ -233,7 +241,6 @@ protected:
 	static int64		GetPointerKey(void* pv);
 	static int64		QualifiedKey(SCPP65Type* psUnqualified, bool bConst, bool bVolatile);
 	static uint64		HashStructure(SCPP65Type* psType);
-	static void			AppendToChain(CHashMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext);
 	static SCPP65Type*	GetMapped(CHashMapLongTemplate<SCPP65Type*>* pcMap, void* pvKey);
 	SCPP65Type*			Add(ECPP65TypeKind eKind, int iBytes, SCPP65Type* psBase, int iCount, bool bRvalue = false);
 };

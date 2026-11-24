@@ -478,6 +478,49 @@ void TestCPP65GeneratorOperatorTypes(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// f(int[1]) to f(int[500]), and each with a char after it: all different,
+// and each the one made first when it is asked for again.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65GeneratorManyFunctionTypes(CCPP65Types* pcTypes)
+{
+	CArrayTemplatePtr<SCPP65Type>	apsParameters;
+	CArrayTemplatePtr<SCPP65Type>	apsFunctions;
+	SCPP65Type*						psFunction;
+	int								i;
+	size							j;
+
+	apsParameters.Init();
+	apsFunctions.Init();
+	for (i = 1; i <= 500; i++)
+	{
+		apsParameters.ReInit();
+		apsParameters.Add(pcTypes->Array(&pcTypes->msInt, i));
+		apsFunctions.Add(pcTypes->Function(&pcTypes->msVoid, &apsParameters, false));
+		apsParameters.Add(&pcTypes->msChar);
+		apsFunctions.Add(pcTypes->Function(&pcTypes->msVoid, &apsParameters, false));
+	}
+	for (j = 1; j < apsFunctions.NumElements(); j++)
+	{
+		AssertTrue(apsFunctions.GetPtr(j) != apsFunctions.GetPtr(j - 1));
+	}
+	for (i = 1; i <= 500; i++)
+	{
+		apsParameters.ReInit();
+		apsParameters.Add(pcTypes->Array(&pcTypes->msInt, i));
+		psFunction = pcTypes->Function(&pcTypes->msVoid, &apsParameters, false);
+		AssertPointer(apsFunctions.GetPtr((size)(i - 1) * 2), psFunction);
+		apsParameters.Add(&pcTypes->msChar);
+		psFunction = pcTypes->Function(&pcTypes->msVoid, &apsParameters, false);
+		AssertPointer(apsFunctions.GetPtr((size)(i - 1) * 2 + 1), psFunction);
+	}
+	apsFunctions.Kill();
+	apsParameters.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A class, enum, volatile, pointer to member or function type asked for
 // again is the one made first, not a copy, and a volatile copy of it
 // isn't found in its place.  Function types differing only by volatile
@@ -574,6 +617,9 @@ void TestCPP65GeneratorTypesFoundAgain(void)
 	AssertString("short(...)", szType.Text());
 	apsNone.Kill();
 	szType.Kill();
+
+	//Many function types, each made once however many are made before and after it.
+	TestCPP65GeneratorManyFunctionTypes(&cTypes);
 
 	apsVolatilePointers.Kill();
 	apsPointers.Kill();

@@ -591,7 +591,6 @@ void CCPP65Types::InitBuiltin(SCPP65Type* psType, ECPP65TypeKind eKind, int iByt
 	psType->bVolatile = false;
 	psType->psUnqualified = psType;
 	psType->psNextSameBase = NULL;
-	psType->psNextSameSignature = NULL;
 }
 
 
@@ -615,40 +614,26 @@ SCPP65Type* CCPP65Types::NewType(ECPP65TypeKind eKind, int iBytes)
 //
 // psType (made with NewType, its kind and base set) is one of the types:
 // it is freed with them, and found by Add after those made before it of
-// its kind and base.
+// its kind and base (last on their chain, linked by psNextSameBase).
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Types::AddType(SCPP65Type* psType)
 {
-	mapsTypes.Add(psType);
-	AppendToChain(&mcByBase, GetBaseKey(psType->eKind, psType->psBase), psType, &SCPP65Type::psNextSameBase);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// psType goes last on the chain of lliKey in pcChains, linked by its
-// ppsNext.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Types::AppendToChain(CHashMapLongTemplate<SCPP65TypeChain>* pcChains, int64 lliKey, SCPP65Type* psType, SCPP65Type* SCPP65Type::* ppsNext)
-{
 	SCPP65TypeChain*	psChain;
-	SCPP65TypeChain		sChain;
+	bool				bAdded;
 
-	psType->*ppsNext = NULL;
-	psChain = pcChains->Get(lliKey);
-	if (psChain)
+	mapsTypes.Add(psType);
+	psType->psNextSameBase = NULL;
+	psChain = mcByBase.FindOrAdd(GetBaseKey(psType->eKind, psType->psBase), &bAdded);
+	if (bAdded)
 	{
-		psChain->psLast->*ppsNext = psType;
-		psChain->psLast = psType;
+		psChain->psFirst = psType;
 	}
 	else
 	{
-		sChain.psFirst = psType;
-		sChain.psLast = psType;
-		pcChains->Put(lliKey, &sChain);
+		psChain->psLast->psNextSameBase = psType;
 	}
+	psChain->psLast = psType;
 }
 
 
@@ -964,11 +949,9 @@ SCPP65Type* CCPP65Types::Array(SCPP65Type* psElement, int iCount)
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65Type>* papsParameters, bool bVariadic, bool bConstFunction, bool bVolatileFunction)
 {
-	SCPP65Type*			psType;
-	SCPP65Type*			psOther;
-	SCPP65TypeChain*	psChain;
-	int64				lliKey;
-	size				i;
+	SCPP65Type*		psType;
+	SCPP65Type**	ppsOther;
+	size			i;
 
 	psType = NewType(CPP65TK_Function, 0);
 	psType->psBase = psReturn;
@@ -982,22 +965,48 @@ SCPP65Type* CCPP65Types::Function(SCPP65Type* psReturn, CArrayTemplatePtr<SCPP65
 		psType->papsParameters->Add(papsParameters->GetPtr(i));
 	}
 
-	//The same function type is shared.  Equal types hash the same, so the first equal one is on its hash's chain.
-	lliKey = (int64)HashStructure(psType);
-	psChain = mcFunctions.Get(lliKey);
-	for (psOther = psChain ? psChain->psFirst : NULL; psOther; psOther = psOther->psNextSameSignature)
+	//The same function type is shared.
+	ppsOther = mcFunctions.Get(&psType);
+	if (ppsOther)
 	{
-		if (psOther->Equals(psType))
-		{
-			psType->papsParameters->Kill();
-			SafeFree(psType->papsParameters);
-			SafeFree(psType);
-			return psOther;
-		}
+		psType->papsParameters->Kill();
+		SafeFree(psType->papsParameters);
+		SafeFree(psType);
+		return *ppsOther;
 	}
 	AddType(psType);
-	AppendToChain(&mcFunctions, lliKey, psType, &SCPP65Type::psNextSameSignature);
+	mcFunctions.Add(&psType);
 	return psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPP65Types::SHashOfFunction::Hash(SCPP65Type* const* ppsType)
+{
+	return HashMix64(HashStructure(*ppsType));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+HashEquals CCPP65Types::SHashOfFunction::Equals(void)
+{
+	return &SHashOfFunction::TypesEqual;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65Types::SHashOfFunction::TypesEqual(const void* pvKey, const void* pvEntryKey)
+{
+	return (*(SCPP65Type* const*)pvKey)->Equals(*(SCPP65Type* const*)pvEntryKey);
 }
 
 
