@@ -148,92 +148,6 @@ void CTableList::RowActivated(int32 iRow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTableField::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szText, CTable* pcTable)
-{
-	PreInit();
-
-	CTextField::Init(pWindow, pTheme, szText);
-	mpcTable = pcTable;
-	AddInputAction(CIC_Enter, this, &CTableField::Commit);
-	AddInputAction(CIC_ClearSelection, this, &CTableField::Cancel);
-	AddInputAction(CIC_Up, this, &CTableField::CommitUp);
-	AddInputAction(CIC_Down, this, &CTableField::CommitDown);
-	AddInputAction(CIC_Tab, this, &CTableField::CommitNext);
-	AddInputAction(CIC_BackTab, this, &CTableField::CommitPrevious);
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTableField::Class(void)
-{
-	CTextField::Class();
-
-	U_Pointer(mpcTable);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTableField::Free(void)
-{
-	CTextField::Free();
-}
-
-
-bool CTableField::WantsEnter(void) { return true; }
-bool CTableField::WantsEscape(void) { return true; }
-bool CTableField::IsTabStop(void) const { return false; }  //It is reached by editing a cell, not by Tab.
-void CTableField::Commit(void) { mpcTable->EndEdit(true); }
-void CTableField::Cancel(void) { mpcTable->EndEdit(false); }
-void CTableField::CommitNext(void) { mpcTable->EditNext(1); }
-void CTableField::CommitPrevious(void) { mpcTable->EditNext(-1); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Focus going elsewhere keeps what was typed, as IntelliJ's table does.
-//
-//////////////////////////////////////////////////////////////////////////
-void CTableField::FocusLost(void)
-{
-	CTextField::FocusLost();
-	mpcTable->EndEdit(true);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTableField::CommitUp(void)
-{
-	mpcTable->EndEdit(true);
-	mpcTable->SelectCell(mpcTable->GetSelectedRow() - 1, mpcTable->GetSelectedColumn());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTableField::CommitDown(void)
-{
-	mpcTable->EndEdit(true);
-	mpcTable->SelectCell(mpcTable->GetSelectedRow() + 1, mpcTable->GetSelectedColumn());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CTableCombo::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, CTable* pcTable)
 {
 	PreInit();
@@ -339,7 +253,8 @@ void CTable::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	mpCellMark = OMalloc<CCanvas>(pWindow, OMalloc<CClearCanvasDraw>(pTheme->GetColour(TC_Accent)));
 	mpCellMark->SetAlignment(CSH_Stretch, CSV_Stretch);
 	CContainer::AddComponent(mpCellMark);
-	mpField = OMalloc<CTableField>(pWindow, pTheme, "", this);
+	mpField = OMalloc<CCellField>(pWindow, pTheme, "");
+	mpField->GetEndedEvent()->Add(this, &CTable::FieldEnded);
 	mpField->SetAlignment(CSH_Stretch, CSV_Stretch);
 	CContainer::AddComponent(mpField);
 	mpCombo = OMalloc<CTableCombo>(pWindow, pTheme, this);
@@ -407,6 +322,10 @@ void CTable::Free(void)
 	if (mpCombo.IsNotNull())
 	{
 		mpCombo->GetSelectionEvent()->Remove(this);
+	}
+	if (mpField.IsNotNull())
+	{
+		mpField->GetEndedEvent()->Remove(this);
 	}
 	mcOrderChanged.Kill();
 	mcSelectionChanged.Kill();
@@ -888,6 +807,36 @@ void CTable::Rebuild(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The edit field's ended event: what was typed is kept (or not), and the
+// selected cell moves as the key that ended it says.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTable::FieldEnded(CCellField* pcField, int32 eEnd)
+{
+	switch (eEnd)
+	{
+	case CFE_Cancel:
+		EndEdit(false);
+		break;
+	case CFE_Next:
+		EditNext(1);
+		break;
+	case CFE_Previous:
+		EditNext(-1);
+		break;
+	default:
+		EndEdit(true);
+		if ((eEnd == CFE_Up) || (eEnd == CFE_Down))
+		{
+			SelectCell(GetSelectedRow() + ((eEnd == CFE_Up) ? -1 : 1), GetSelectedColumn());
+		}
+		break;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The cell made the selected cell.  False if there is no such cell.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -919,7 +868,7 @@ bool CTable::SelectCell(int32 iRow, int32 iColumn)
 int32 CTable::GetSelectedRow(void) { return mpList->GetSelected(); }
 int32 CTable::GetSelectedColumn(void) { return (mpList->GetSelected() >= 0) ? miSelectedColumn : -1; }
 bool CTable::IsEditing(void) const { return miEditRow >= 0; }
-Ptr<CTableField> CTable::GetEditField(void) const { return mpField; }
+Ptr<CCellField> CTable::GetEditField(void) const { return mpField; }
 Ptr<CTableCombo> CTable::GetEditCombo(void) const { return mpCombo; }
 Ptr<CTableList> CTable::GetList(void) const { return mpList; }
 Ptr<CScrollPane> CTable::GetScrollPane(void) const { return mpScroll; }

@@ -26,7 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Container.h"
 #include "ListContainer.h"
 #include "ScrollPane.h"
-#include "TextField.h"
+#include "CellField.h"
 #include "ComboBox.h"
 #include "CheckBox.h"
 #include "Label.h"
@@ -74,32 +74,6 @@ public:
 protected:
 	void	RowSelected(int32 iRow) override;
 	void	RowActivated(int32 iRow) override;
-};
-
-
-//The text field a table's cell is edited in: enter and escape are its own, and end the edit.
-class CTableField : public CTextField
-{
-CONSTRUCTABLE(CTableField);
-DESTRUCTABLE(CTableField);
-protected:
-	CTable*		mpcTable;  //Not held.
-
-public:
-	void	Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, const char* szText, CTable* pcTable);
-	void	Class(void) override;
-	void	Free(void) override;
-
-	bool	WantsEnter(void) override;
-	bool	WantsEscape(void) override;
-	bool	IsTabStop(void) const override;
-	void	FocusLost(void) override;
-	void	Commit(void);
-	void	Cancel(void);
-	void	CommitUp(void);
-	void	CommitDown(void);
-	void	CommitNext(void);
-	void	CommitPrevious(void);
 };
 
 
@@ -159,7 +133,7 @@ protected:
 	Ptr<CScrollPane>		mpScroll;
 	Ptr<CTableList>			mpList;
 	Ptr<CCanvas>			mpCellMark;  //A line under the selected cell.
-	Ptr<CTableField>		mpField;  //Over a text cell while it is edited; it is always there, with no size otherwise.
+	Ptr<CCellField>			mpField;  //Over a text cell while it is edited; it is always there, with no size otherwise.
 	Ptr<CTableCombo>		mpCombo;  //Over a choice cell while it is edited, the same.
 	CArray<CComponent>		maCells;  //What shows each cell (a label or a check box), row by row.
 
@@ -221,7 +195,7 @@ public:
 	bool			BeginEdit(const char* szText);
 	bool			EndEdit(bool bKeep);
 	bool			IsEditing(void) const;
-	Ptr<CTableField>	GetEditField(void) const;
+	Ptr<CCellField>		GetEditField(void) const;
 	Ptr<CTableCombo>	GetEditCombo(void) const;
 	bool			ToggleTick(void);
 	bool			MoveSelectedRow(int32 iBy);
@@ -252,6 +226,7 @@ public:
 	void			Typed(char cPrintable);
 	void			EditNext(int32 iBy);
 	void			ComboChosen(CComboBox* pcCombo);
+	void			FieldEnded(CCellField* pcField, int32 eEnd);
 	void			Scrolled(CScrollPane* pcScroll, SInt32Vec2 sPosition);
 
 protected:

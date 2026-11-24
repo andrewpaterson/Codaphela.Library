@@ -198,6 +198,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonBar.h" />
     <ClInclude Include="ListContainer.h" />
+    <ClInclude Include="CellField.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="BandsCanvasDraw.h" />
     <ClInclude Include="ScrollBarMarks.h" />
@@ -416,6 +417,7 @@
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonBar.cpp" />
     <ClCompile Include="ListContainer.cpp" />
+    <ClCompile Include="CellField.cpp" />
     <ClCompile Include="Table.cpp" />
     <ClCompile Include="BandsCanvasDraw.cpp" />
     <ClCompile Include="ScrollBarMarks.cpp" />
