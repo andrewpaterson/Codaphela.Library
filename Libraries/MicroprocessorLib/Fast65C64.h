@@ -44,6 +44,10 @@ typedef void(*CFast65C64WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiVa
 //Step and Run return, without executing it, when the next instruction is at an enabled breakpoint
 //(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
 //breakpoint is enabled: without one its loop is a copy that doesn't look them up.
+//
+//They also return after an instruction that read or wrote a watched address (GetWatches, IsAtWatch).  While a
+//kind of access is watched its fast path's limit (muiReadLimit, muiWriteLimit) is 0, so every access of that kind
+//looks (WatchesChanged).  Fetches and vectors are read with ReadWord and are never watched.
 struct SFast65C64Op;
 class CFast65C64
 {
@@ -68,6 +72,8 @@ protected:
 	uint32				muiMemorySize;
 	uint32				muiWordLimit;
 	uint32				muiQuadLimit;
+	uint32				muiReadLimit;		//ReadValue's fast path: muiQuadLimit, or 0 while reads are watched.
+	uint32				muiWriteLimit;		//WriteValue's fast path: muiMemorySize, or 0 while writes are watched.
 	uint32				muiHoleStart;		//Addresses in the flat block that go to the callbacks (devices).
 	uint32				muiHoleEnd;
 	CFast65C64ReadWord	mfReadWord;
@@ -77,6 +83,7 @@ protected:
 	CBreakpoints		mcBreakpoints;
 	bool				mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
 	bool				mbRepeating;		//The next instruction is the next step of a block, vector, multiply or divide.
+	CDataWatches		mcWatches;
 
 public:
 	void		Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
@@ -87,6 +94,9 @@ public:
 	bool		Step(void);
 	CBreakpoints*	GetBreakpoints(void);
 	bool			IsAtBreakpoint(void) const;
+	CDataWatches*	GetWatches(void);
+	void			WatchesChanged(void);
+	bool			IsAtWatch(void) const;
 	static void		DecodeAll(void);
 	static size		InstructionLength(uint16 uiOpcode);
 	static size		CallLength(uint16 uiOpcode);

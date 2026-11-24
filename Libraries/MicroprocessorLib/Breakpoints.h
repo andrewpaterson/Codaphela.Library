@@ -63,6 +63,7 @@ public:
 
 	FORCE_INLINE bool	AnyEnabled(void);
 	FORCE_INLINE bool	IsEnabledNext(uint32 uiAddress);
+	bool				AnyEnabledInBank(uint32 uiBank);
 
 protected:
 	SBreakpointBank*	GetBank(uint32 uiAddress);
@@ -94,6 +95,97 @@ FORCE_INLINE bool CBreakpoints::IsEnabledNext(uint32 uiAddress)
 	psBank = mapsBanks[uiAddress >> 16];
 	uiOffset = uiAddress & 0xFFFF;
 	return (psBank != NULL) && ((psBank->auiEnabled[uiOffset >> 3] & (1 << (uiOffset & 7))) != 0);
+}
+
+
+//The addresses a processor stops after reading or writing (a debugger's data breakpoints), and the first access of
+//the last instruction that hit one.  A processor only checks accesses that leave its fast paths: while a set has any
+//enabled, it sends that kind of access to them (WatchesChanged), so watches cost nothing until one is enabled.
+//Instruction fetches are never watched.
+class CDataWatches
+{
+protected:
+	CBreakpoints	mcReads;
+	CBreakpoints	mcWrites;
+	bool			mbHit;
+	bool			mbHitWrite;
+	uint32			muiHitAddress;
+
+public:
+	void				Init(void);
+	void				Kill(void);
+
+	CBreakpoints*		GetReads(void);
+	CBreakpoints*		GetWrites(void);
+	FORCE_INLINE bool	AnyReads(void);
+	FORCE_INLINE bool	AnyWrites(void);
+
+	FORCE_INLINE void	Access(uint32 uiAddress, size uiBytes, bool bWrite);
+	FORCE_INLINE bool	IsHit(void) const;
+	void				ClearHit(void);
+	uint32				GetHitAddress(void) const;
+	bool				IsHitWrite(void) const;
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CDataWatches::AnyReads(void)
+{
+	return mcReads.AnyEnabled();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CDataWatches::AnyWrites(void)
+{
+	return mcWrites.AnyEnabled();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A processor read or wrote uiBytes at uiAddress: the first watched one
+// is the hit (later accesses of the instruction don't replace it).
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE void CDataWatches::Access(uint32 uiAddress, size uiBytes, bool bWrite)
+{
+	CBreakpoints*	pcWatches;
+	size			i;
+
+	pcWatches = bWrite ? &mcWrites : &mcReads;
+	if (mbHit || !pcWatches->AnyEnabled())
+	{
+		return;
+	}
+	for (i = 0; i < uiBytes; i++)
+	{
+		if (pcWatches->IsEnabledNext(uiAddress + (uint32)i))
+		{
+			mbHit = true;
+			mbHitWrite = bWrite;
+			muiHitAddress = uiAddress + (uint32)i;
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last Step or Run stopped after an instruction that read or wrote a
+// watched address (GetHitAddress).
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE bool CDataWatches::IsHit(void) const
+{
+	return mbHit;
 }
 
 

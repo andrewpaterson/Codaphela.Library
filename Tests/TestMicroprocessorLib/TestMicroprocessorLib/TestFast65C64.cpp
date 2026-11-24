@@ -937,6 +937,98 @@ void TestFast65C64Unaligned(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A program that stores 4 bytes of A at 0000:2000, loads 4 from
+// 0000:2004 and stops; the processor reset to run it.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C64WatchBegin(CFast65C64* pcFast, CTest65C64Context* pcContext)
+{
+	pcContext->Init(0x1000);
+	pcContext->SetLong(0x2004, 0xCAFEF00D);
+	pcContext->Op(Op65Wth(R65_A, 4));
+	pcContext->OpLong(Op65RI(C65_CPY, R65_A, 4), 0x11223344);
+	pcContext->OpLong(Op65M(C65_CPY, true, R65_A, OPERAND_MODE_ABSOLUTE, R65_Zero), 0x2000);
+	pcContext->OpLong(Op65M(C65_CPY, false, R65_A, OPERAND_MODE_ABSOLUTE, R65_Zero), 0x2004);
+	pcContext->Op(Op65Stp());
+	pcFast->Init(TestFast65C64ContextReadWord, TestFast65C64ContextWriteByte, pcContext, pcContext->mauiLow, TEST_65C64_LOW_SIZE);
+	pcFast->Reset();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Watches one address for reads or writes (bWrite).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFast65C64Watch(CFast65C64* pcFast, uint32 uiAddress, bool bWrite)
+{
+	CDataWatches*	pcWatches;
+
+	pcWatches = pcFast->GetWatches();
+	(bWrite ? pcWatches->GetWrites() : pcWatches->GetReads())->Add(uiAddress, true);
+	pcFast->WatchesChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Data watches: Run and Step return after the instruction that read or
+// wrote a watched address, having done it.  A 4 byte store hits a watch on
+// its third byte; a load hits a read watch; a write watch on what is only
+// read, and the program's own bytes (fetched), don't hit.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestFast65C64Watches(void)
+{
+	CTest65C64Context*	pcContext;
+	CFast65C64			cFast;
+	CDataWatches*		pcWatches;
+
+	pcContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
+
+	TestFast65C64WatchBegin(&cFast, pcContext);
+	TestFast65C64Watch(&cFast, 0x2002, true);
+	AssertSize(3, cFast.Run(100));
+	pcWatches = cFast.GetWatches();
+	AssertTrue(cFast.IsAtWatch());
+	AssertIntHex(0x2002, pcWatches->GetHitAddress());
+	AssertTrue(pcWatches->IsHitWrite());
+	AssertIntHex(0x11223344, pcContext->GetLong(0x2000));
+	AssertSize(2, cFast.Run(100));
+	AssertFalse(cFast.IsAtWatch());
+	AssertTrue(cFast.IsStopped());
+	cFast.Kill();
+
+	TestFast65C64WatchBegin(&cFast, pcContext);
+	TestFast65C64Watch(&cFast, 0x2006, false);
+	AssertTrue(cFast.Step());
+	AssertTrue(cFast.Step());
+	AssertTrue(cFast.Step());
+	AssertFalse(cFast.Step());
+	AssertTrue(cFast.IsAtWatch());
+	AssertIntHex(0x2006, cFast.GetWatches()->GetHitAddress());
+	AssertFalse(cFast.GetWatches()->IsHitWrite());
+	AssertLongLongIntHex(0xCAFEF00DLL, cFast.GetA());
+	AssertFalse(cFast.Step());
+	AssertFalse(cFast.IsAtWatch());
+	AssertTrue(cFast.IsStopped());
+	cFast.Kill();
+
+	TestFast65C64WatchBegin(&cFast, pcContext);
+	TestFast65C64Watch(&cFast, 0x2004, true);
+	TestFast65C64Watch(&cFast, 0x1002, false);
+	TestFast65C64Watch(&cFast, 0x1002, true);
+	AssertSize(5, cFast.Run(100));
+	AssertFalse(cFast.IsAtWatch());
+	AssertTrue(cFast.IsStopped());
+	cFast.Kill();
+
+	free(pcContext);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestFast65C64(void)
@@ -953,6 +1045,7 @@ void TestFast65C64(void)
 	TestFast65C64Run(false);
 	TestFast65C64Run(true);
 	TestFast65C64BreakpointBlock();
+	TestFast65C64Watches();
 	TestFast65C64RunDevice();
 	TestFast65C64Fuzz(true, 0x6502C64ULL);
 	TestFast65C64Fuzz(false, 0x65C816ULL);

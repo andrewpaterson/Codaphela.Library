@@ -64,6 +64,10 @@ typedef void(*CFastW65C816Signal)(void* pvContext, uint8 uiSignal);
 //Step and Run return, without executing it, when the next instruction is at an enabled breakpoint
 //(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
 //breakpoint is enabled: without one its loop is a copy that doesn't look them up.
+//
+//They also return after an instruction that read or wrote a watched address (GetWatches, IsAtWatch): reads and
+//writes have bank tables of their own (mapuiReadBanks, mapuiWriteBanks), without the banks a watch is in, so only
+//accesses to those banks look (WatchesChanged).  Fetches use mapuiBanks and are never watched.
 class CFastW65C816
 {
 protected:
@@ -90,6 +94,8 @@ protected:
 
 	uint8*					mpuiMemory;
 	uint8*					mapuiBanks[FAST_W65C816_BANKS];	//Each bank in mpuiMemory when all of it is plain memory, else NULL.
+	uint8*					mapuiReadBanks[FAST_W65C816_BANKS];		//mapuiBanks without the banks reads are watched in.
+	uint8*					mapuiWriteBanks[FAST_W65C816_BANKS];	//mapuiBanks without the banks writes are watched in.
 	uint8*					mpuiProgramBank;			//PBR's.
 	uint32					muiMemorySize;
 	uint32					muiHoleStart;
@@ -105,6 +111,7 @@ protected:
 	bool					mbBreakpointsChanged;	//UseBreakpoints was called during Run: it chooses its loop again.
 	bool					mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
 	bool					mbMoving;			//The next instruction is the rest of a block move.
+	CDataWatches			mcWatches;
 
 public:
 	void		Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
@@ -124,6 +131,9 @@ public:
 	CBreakpoints*	GetUsedBreakpoints(void) const;
 	CBreakpoints*	GetMoreUsedBreakpoints(void) const;
 	bool			IsAtBreakpoint(void) const;
+	CDataWatches*	GetWatches(void);
+	void			WatchesChanged(void);
+	bool			IsAtWatch(void) const;
 
 	uint16		GetC(void) const;
 	uint16		GetX(void) const;
@@ -166,6 +176,7 @@ protected:
 	void		Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bool bHardware);
 
 	uint8		Read(uint32 uiAddress);
+	uint8		ReadBus(uint32 uiAddress);
 	void		Write(uint32 uiAddress, uint8 uiValue);
 	uint8		Fetch(void);
 	uint16		Fetch16(void);

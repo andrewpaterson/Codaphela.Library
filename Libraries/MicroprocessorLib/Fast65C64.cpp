@@ -277,6 +277,7 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 	mcBreakpoints.Init();
 	mbAtBreakpoint = false;
 	mbRepeating = false;
+	mcWatches.Init();
 
 	mfReadWord = fReadWord;
 	mfWriteByte = fWriteByte;
@@ -285,6 +286,7 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 	muiMemorySize = puiMemory ? uiMemorySize : 0;
 	muiWordLimit = (muiMemorySize >= 2) ? muiMemorySize - 1 : 0;
 	muiQuadLimit = (muiMemorySize >= 8) ? muiMemorySize - 7 : 0;
+	WatchesChanged();
 	muiHoleStart = 0xFFFFFFFF;
 	muiHoleEnd = 0xFFFFFFFF;
 
@@ -307,6 +309,7 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 void CFast65C64::Kill(void)
 {
 	mcBreakpoints.Kill();
+	mcWatches.Kill();
 	mfReadWord = NULL;
 	mfWriteByte = NULL;
 	mpvContext = NULL;
@@ -390,6 +393,10 @@ FORCE_INLINE bool CFast65C64::Breaks(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFast65C64::Step(void)
 {
+	if (mcWatches.IsHit())
+	{
+		mcWatches.ClearHit();
+	}
 	if (mbStopped)
 	{
 		return false;
@@ -420,7 +427,7 @@ bool CFast65C64::Step(void)
 	{
 		EnterInterrupt();
 	}
-	return true;
+	return !mcWatches.IsHit();
 }
 
 
@@ -432,14 +439,15 @@ bool CFast65C64::Step(void)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE bool CFast65C64::NeedsDeciding(void)
 {
-	return (mbStopped | mbWaiting | (muiPendingEdges != 0) | mbLevelInterrupt) != 0;
+	return (mbStopped | mbWaiting | (muiPendingEdges != 0) | mbLevelInterrupt | mcWatches.IsHit()) != 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Steps until the processor stops or the next instruction is at an enabled breakpoint.  Returns the number of
-// steps, counting the one that stopped but not a breakpoint's (it executes nothing).
+// Steps until the processor stops, the next instruction is at an enabled breakpoint, or one has read or written
+// a watched address (IsAtWatch).  Returns the number of steps, counting the one that stopped and a watch's, but
+// not a breakpoint's (it executes nothing).
 //
 // It does what that many Steps do.  While a Step would only execute its instruction (not NeedsDeciding) the
 // instructions are executed one after another without the rest of Step.  When an instruction changes that
@@ -455,6 +463,10 @@ size CFast65C64::Run(size uiMaxInstructions)
 {
 	size	i;
 
+	if (mcWatches.IsHit())
+	{
+		mcWatches.ClearHit();
+	}
 	i = 0;
 	while (i < uiMaxInstructions)
 	{
@@ -505,6 +517,10 @@ size CFast65C64::Run(size uiMaxInstructions)
 		{
 			EnterInterrupt();
 		}
+		if (mcWatches.IsHit())
+		{
+			return i;
+		}
 	}
 	return i;
 }
@@ -533,6 +549,42 @@ CBreakpoints* CFast65C64::GetBreakpoints(void)
 bool CFast65C64::IsAtBreakpoint(void) const
 {
 	return mbAtBreakpoint;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Change the watches, then call WatchesChanged.
+//
+//////////////////////////////////////////////////////////////////////////
+CDataWatches* CFast65C64::GetWatches(void)
+{
+	return &mcWatches;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After the watches change (GetWatches): a kind of access with a watch
+// enabled leaves its fast path, so ReadValue and WriteValue look.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFast65C64::WatchesChanged(void)
+{
+	muiReadLimit = mcWatches.AnyReads() ? 0 : muiQuadLimit;
+	muiWriteLimit = mcWatches.AnyWrites() ? 0 : muiMemorySize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last Step or Run returned after an instruction that read or wrote a
+// watched address (GetWatches()->GetHitAddress).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFast65C64::IsAtWatch(void) const
+{
+	return mcWatches.IsHit();
 }
 
 
@@ -869,11 +921,12 @@ inline uint64 CFast65C64::ReadValue(uint32 uiAddress, uint8 uiBytes)
 
 	uiWords = CountWords(uiAddress, uiBytes);
 	muiCycles += uiWords;
-	if ((uiAddress < muiQuadLimit) && ((uiAddress + 8 <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
+	if ((uiAddress < muiReadLimit) && ((uiAddress + 8 <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
 	{
 		memcpy(&uiValue, &mpuiMemory[uiAddress], sizeof(uint64));
 		return uiValue & gauiFast65Masks[uiBytes];
 	}
+	mcWatches.Access(uiAddress, uiBytes, false);
 
 	uiValue = 0;
 	for (i = 0; i < uiWords; i++)
@@ -907,11 +960,12 @@ inline void CFast65C64::WriteValue(uint32 uiAddress, uint8 uiBytes, uint64 uiVal
 	uint8	i;
 
 	muiCycles += CountWords(uiAddress, uiBytes);
-	if ((uiAddress < muiMemorySize) && (uiBytes <= muiMemorySize - uiAddress) && ((uiAddress + uiBytes <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
+	if ((uiAddress < muiWriteLimit) && (uiBytes <= muiWriteLimit - uiAddress) && ((uiAddress + uiBytes <= muiHoleStart) || (uiAddress >= muiHoleEnd)))
 	{
 		memcpy(&mpuiMemory[uiAddress], &uiValue, uiBytes);
 		return;
 	}
+	mcWatches.Access(uiAddress, uiBytes, true);
 
 	for (i = 0; i < uiBytes; i++)
 	{

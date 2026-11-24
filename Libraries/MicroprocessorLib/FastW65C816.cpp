@@ -87,6 +87,7 @@ void CFastW65C816::Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fW
 	muiHoleStart = 0;
 	muiHoleSize = 0;
 	muiPBR = 0;
+	mcWatches.Init();
 	SetBanks();
 
 	mcBreakpoints.Init();
@@ -105,6 +106,7 @@ void CFastW65C816::Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fW
 void CFastW65C816::Kill(void)
 {
 	mcBreakpoints.Kill();
+	mcWatches.Kill();
 	mfReadByte = NULL;
 	mfWriteByte = NULL;
 	mpvContext = NULL;
@@ -131,7 +133,7 @@ void CFastW65C816::SetHole(uint32 uiStart, uint32 uiEnd)
 //////////////////////////////////////////////////////////////////////////
 //
 // mapuiBanks: each bank in the flat block if all of it is there and none of it is in the hole (so Read, Write
-// and Fetch use it directly), else NULL.
+// and Fetch use it directly), else NULL.  Then the read and write tables (WatchesChanged).
 //
 //////////////////////////////////////////////////////////////////////////
 void CFastW65C816::SetBanks(void)
@@ -152,6 +154,26 @@ void CFastW65C816::SetBanks(void)
 		}
 	}
 	SetProgramBank(muiPBR);
+	WatchesChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After the watches change (GetWatches): the read and write bank tables
+// are mapuiBanks without the banks with a watch of their kind, so Read and
+// Write look at the watches only for accesses to those banks.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFastW65C816::WatchesChanged(void)
+{
+	uint32	uiBank;
+
+	for (uiBank = 0; uiBank < FAST_W65C816_BANKS; uiBank++)
+	{
+		mapuiReadBanks[uiBank] = mcWatches.GetReads()->AnyEnabledInBank(uiBank) ? NULL : mapuiBanks[uiBank];
+		mapuiWriteBanks[uiBank] = mcWatches.GetWrites()->AnyEnabledInBank(uiBank) ? NULL : mapuiBanks[uiBank];
+	}
 }
 
 
@@ -286,6 +308,10 @@ FORCE_INLINE bool CFastW65C816::Breaks(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFastW65C816::Step(void)
 {
+	if (mcWatches.IsHit())
+	{
+		mcWatches.ClearHit();
+	}
 	if (mbStopped)
 	{
 		return false;
@@ -336,7 +362,7 @@ bool CFastW65C816::Step(void)
 	{
 		Decide();
 	}
-	return true;
+	return !mcWatches.IsHit();
 }
 
 
@@ -348,14 +374,15 @@ bool CFastW65C816::Step(void)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE bool CFastW65C816::NeedsDeciding(void)
 {
-	return (mbStopped | mbWaiting | mbIrq | mbNmiPending) != 0;
+	return (mbStopped | mbWaiting | mbIrq | mbNmiPending | mcWatches.IsHit()) != 0;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Steps until the processor stops or the next instruction is at an enabled breakpoint.  Returns the number of
-// steps, counting the one that stopped but not a breakpoint's (it executes nothing).
+// Steps until the processor stops, the next instruction is at an enabled breakpoint, or one has read or written
+// a watched address (IsAtWatch).  Returns the number of steps, counting the one that stopped and a watch's, but
+// not a breakpoint's (it executes nothing).
 //
 // It does what that many Steps do.  While nothing needs deciding (not stopped or waiting, IRQB and NMIB not
 // low or pending, so Decide would keep muiNext the next instruction) the instructions are executed one after
@@ -373,6 +400,10 @@ size CFastW65C816::Run(size uiMaxInstructions)
 {
 	size	i;
 
+	if (mcWatches.IsHit())
+	{
+		mcWatches.ClearHit();
+	}
 	i = 0;
 	while (i < uiMaxInstructions)
 	{
@@ -431,6 +462,10 @@ size CFastW65C816::Run(size uiMaxInstructions)
 		if (!mbWaiting)
 		{
 			Decide();
+		}
+		if (mcWatches.IsHit())
+		{
+			return i;
 		}
 	}
 	return i;
@@ -532,6 +567,29 @@ bool CFastW65C816::IsAtBreakpoint(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Change the watches, then call WatchesChanged.
+//
+//////////////////////////////////////////////////////////////////////////
+CDataWatches* CFastW65C816::GetWatches(void)
+{
+	return &mcWatches;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The last Step or Run returned after an instruction that read or wrote a
+// watched address (GetWatches()->GetHitAddress).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFastW65C816::IsAtWatch(void) const
+{
+	return mcWatches.IsHit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the next Step does, from the inputs at the end of this one.  NMI before IRQ.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -613,7 +671,8 @@ void CFastW65C816::Interrupt(uint16 uiNativeVector, uint16 uiEmulationVector, bo
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A bus cycle with VDA or VPA high.
+// A bus cycle with VDA or VPA high, for data: a bank without a watched read
+// is read directly, the rest looks at the watches first.
 //
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE uint8 CFastW65C816::Read(uint32 uiAddress)
@@ -621,11 +680,24 @@ FORCE_INLINE uint8 CFastW65C816::Read(uint32 uiAddress)
 	uint8*	puiBank;
 
 	muiCycles++;
-	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_W65C816_BANKS - 1)];
+	puiBank = mapuiReadBanks[(uiAddress >> 16) & (FAST_W65C816_BANKS - 1)];
 	if (puiBank)
 	{
 		return puiBank[uiAddress & 0xFFFF];
 	}
+	mcWatches.Access(uiAddress, 1, false);
+	return ReadBus(uiAddress);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The byte at uiAddress outside the bank tables: the flat block, or the
+// callback.  Not a cycle, and not watched.
+//
+//////////////////////////////////////////////////////////////////////////
+FORCE_INLINE uint8 CFastW65C816::ReadBus(uint32 uiAddress)
+{
 	if ((uiAddress < muiMemorySize) && ((uiAddress - muiHoleStart) >= muiHoleSize))
 	{
 		return mpuiMemory[uiAddress];
@@ -643,12 +715,13 @@ FORCE_INLINE void CFastW65C816::Write(uint32 uiAddress, uint8 uiValue)
 	uint8*	puiBank;
 
 	muiCycles++;
-	puiBank = mapuiBanks[(uiAddress >> 16) & (FAST_W65C816_BANKS - 1)];
+	puiBank = mapuiWriteBanks[(uiAddress >> 16) & (FAST_W65C816_BANKS - 1)];
 	if (puiBank)
 	{
 		puiBank[uiAddress & 0xFFFF] = uiValue;
 		return;
 	}
+	mcWatches.Access(uiAddress, 1, true);
 	if ((uiAddress < muiMemorySize) && ((uiAddress - muiHoleStart) >= muiHoleSize))
 	{
 		mpuiMemory[uiAddress] = uiValue;
@@ -674,7 +747,8 @@ FORCE_INLINE uint8 CFastW65C816::Fetch(void)
 	}
 	else
 	{
-		uiValue = Read(((uint32)muiPBR << 16) | muiPC);
+		muiCycles++;
+		uiValue = ReadBus(((uint32)muiPBR << 16) | muiPC);
 	}
 	muiPC++;
 	return uiValue;

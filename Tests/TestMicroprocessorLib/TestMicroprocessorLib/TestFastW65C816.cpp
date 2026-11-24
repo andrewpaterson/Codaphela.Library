@@ -1644,6 +1644,152 @@ static void TestFastW65C816WDM(void)
 }
 
 
+#define TEST_FAST_W65C816_WATCH_SIZE	0x20000
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A native mode W65C816 with 8 bit A, X and Y over two banks of memory,
+// starting the program at 00:1000.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFastW65C816WatchBegin(CFastW65C816* pcFast, uint8* puiMemory, uint8* auiProgram, size uiLength)
+{
+	memset(puiMemory, 0, TEST_FAST_W65C816_WATCH_SIZE);
+	memcpy(&puiMemory[0x1000], auiProgram, uiLength);
+	pcFast->Init(TestFastW65C816WDMRead, TestFastW65C816WDMWrite, NULL, puiMemory, TEST_FAST_W65C816_WATCH_SIZE);
+	pcFast->TestSetP(STATUS_INTERRUPT_DISABLE | STATUS_ACCUMULATOR_WIDTH | STATUS_INDEX_WIDTH, false);
+	pcFast->TestSetS(0x1FF);
+	pcFast->TestSetProgramCounter(0, 0x1000);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Watches one address for reads or writes (bWrite).
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFastW65C816Watch(CFastW65C816* pcFast, uint32 uiAddress, bool bWrite, bool bEnabled = true)
+{
+	CDataWatches*	pcWatches;
+
+	pcWatches = pcFast->GetWatches();
+	(bWrite ? pcWatches->GetWrites() : pcWatches->GetReads())->Add(uiAddress, bEnabled);
+	pcFast->WatchesChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Data watches: Run and Step return after the instruction that read or
+// wrote a watched address, having done it, and go on from there.  A 16 bit
+// write hits a watch on its second byte, a read-modify-write hits a read
+// watch with its read and a write watch with its write, a watch in another
+// bank, a write beside a watch, a disabled watch and a fetch from a watched
+// address don't hit.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestFastW65C816Watches(void)
+{
+	CFastW65C816	cFast;
+	uint8*			puiMemory;
+	CDataWatches*	pcWatches;
+	static uint8	auiProgram[] = {
+		0xA9, 0x11,			//1000 LDA #$11
+		0x8D, 0x00, 0x20,	//1002 STA $2000
+		0xEA,				//1005 NOP
+		0xAD, 0x01, 0x20,	//1006 LDA $2001
+		0xEE, 0x02, 0x20,	//1009 INC $2002
+		0x8F, 0x00, 0x30, 0x01,	//100C STA $01:3000
+		0xDB };				//1010 STP
+	static uint8	auiWide[] = {
+		0xC2, 0x20,			//1000 REP #$20
+		0xA9, 0x34, 0x12,	//1002 LDA #$1234
+		0x8D, 0x00, 0x20,	//1005 STA $2000
+		0xDB };				//1008 STP
+
+	puiMemory = (uint8*)malloc(TEST_FAST_W65C816_WATCH_SIZE);
+
+	//A write watch: Run returns after the STA, which wrote; the next Run goes on to STP.
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiProgram, sizeof(auiProgram));
+	TestFastW65C816Watch(&cFast, 0x2000, true);
+	AssertSize(2, cFast.Run(100));
+	pcWatches = cFast.GetWatches();
+	AssertTrue(cFast.IsAtWatch());
+	AssertFalse(cFast.IsAtBreakpoint());
+	AssertIntHex(0x2000, pcWatches->GetHitAddress());
+	AssertTrue(pcWatches->IsHitWrite());
+	AssertIntHex(0x11, puiMemory[0x2000]);
+	AssertIntHex(0x1005, cFast.GetProgramAddress());
+	AssertSize(5, cFast.Run(100));
+	AssertFalse(cFast.IsAtWatch());
+	AssertTrue(cFast.IsStopped());
+	cFast.Kill();
+
+	//The same by Step: false for the STA, true again for the NOP.
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiProgram, sizeof(auiProgram));
+	TestFastW65C816Watch(&cFast, 0x2000, true);
+	AssertTrue(cFast.Step());
+	AssertFalse(cFast.Step());
+	AssertTrue(cFast.IsAtWatch());
+	AssertFalse(cFast.IsStopped());
+	AssertTrue(cFast.Step());
+	AssertFalse(cFast.IsAtWatch());
+	cFast.Kill();
+
+	//A read watch hit by LDA, then by INC's read; INC's write hits a write watch.
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiProgram, sizeof(auiProgram));
+	TestFastW65C816Watch(&cFast, 0x2001, false);
+	TestFastW65C816Watch(&cFast, 0x2002, false);
+	AssertSize(4, cFast.Run(100));
+	pcWatches = cFast.GetWatches();
+	AssertIntHex(0x2001, pcWatches->GetHitAddress());
+	AssertFalse(pcWatches->IsHitWrite());
+	AssertSize(1, cFast.Run(100));
+	AssertIntHex(0x2002, pcWatches->GetHitAddress());
+	AssertFalse(pcWatches->IsHitWrite());
+	AssertIntHex(0x01, puiMemory[0x2002]);
+	cFast.Kill();
+
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiProgram, sizeof(auiProgram));
+	TestFastW65C816Watch(&cFast, 0x2002, true);
+	AssertSize(5, cFast.Run(100));
+	AssertTrue(cFast.GetWatches()->IsHitWrite());
+	AssertIntHex(0x100C, cFast.GetProgramAddress());
+	cFast.Kill();
+
+	//A watch in bank 1, written (with LDA $2001's 0) by a long STA.
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiProgram, sizeof(auiProgram));
+	puiMemory[0x13000] = 0xFF;
+	TestFastW65C816Watch(&cFast, 0x13000, true);
+	AssertSize(6, cFast.Run(100));
+	AssertIntHex(0x13000, cFast.GetWatches()->GetHitAddress());
+	AssertIntHex(0x00, puiMemory[0x13000]);
+	cFast.Kill();
+
+	//Beside, disabled, and the program's own bytes (fetched, never read as data): no hit.
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiProgram, sizeof(auiProgram));
+	TestFastW65C816Watch(&cFast, 0x2003, true);
+	TestFastW65C816Watch(&cFast, 0x2000, true, false);
+	TestFastW65C816Watch(&cFast, 0x1003, false);
+	TestFastW65C816Watch(&cFast, 0x1003, true);
+	AssertSize(7, cFast.Run(100));
+	AssertFalse(cFast.IsAtWatch());
+	AssertTrue(cFast.IsStopped());
+	cFast.Kill();
+
+	//A 16 bit STA hits a watch on its second byte.
+	TestFastW65C816WatchBegin(&cFast, puiMemory, auiWide, sizeof(auiWide));
+	TestFastW65C816Watch(&cFast, 0x2001, true);
+	AssertSize(3, cFast.Run(100));
+	AssertIntHex(0x2001, cFast.GetWatches()->GetHitAddress());
+	AssertIntHex(0x12, puiMemory[0x2001]);
+	cFast.Kill();
+
+	free(puiMemory);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1674,6 +1820,7 @@ void TestFastW65C816(void)
 	TestFastW65C816BreakpointBlockMove();
 	TestFastW65C816BreakpointSwitch();
 	TestFastW65C816WDM();
+	TestFastW65C816Watches();
 
 	CW65C816InstructionFactory::GetInstance()->Kill();
 
