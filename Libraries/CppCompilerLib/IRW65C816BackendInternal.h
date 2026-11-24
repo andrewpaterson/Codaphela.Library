@@ -216,6 +216,9 @@ class CIRW65C816Code;
 
 
 //IRW65C816Frames.cpp: a frame's entry and exit, as Prologue and Epilogue write them.
+void		IR816AddFrameEntry(CIRW65C816Code* pcCode, int32 iFrameBytes);
+void		IR816AddRegisterFrameEntry(CIRW65C816Code* pcCode, int32 iRegisterWords, int32 iFrameBytes);
+void		IR816AddFrameExit(CIRW65C816Code* pcCode, int32 iFrameBytes);
 void		IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes);
 void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes);
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);

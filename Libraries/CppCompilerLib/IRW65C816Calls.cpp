@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "IRW65C816BackendInternal.h"
+#include "IRW65C816Code.h"
 
 
 //The W65C816 back end's calls: arguments pushed or loaded into registers (the register rule), the call, and the
@@ -501,9 +502,9 @@ void CIRW65C816Calls::LoadRegisterWord(int iRegister, SIRReference sValue, int i
 // for any other function.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRW65C816Calls::Forwarder(CChars* pszJump)
+bool CIRW65C816Calls::Forwarder(CIRW65C816Code* pcJump)
 {
-	static const char*		aszLoads[IR816_ARGUMENT_REGISTERS] = { "lda", "ldx", "ldy" };
+	static const uint16		auiLoads[IR816_ARGUMENT_REGISTERS] = { IR816M_Lda, IR816M_Ldx, IR816M_Ldy };
 	CIRBlock*				pcBlock;
 	SIRInstruction*			psCall;
 	SIRInstruction*			psArgument;
@@ -517,7 +518,7 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 	size					uiAdjustedFrom;	//The parameter it adds to.
 	uint64					ulliAdjust;
 	size					uiAdjustedArgument;	//The callee's argument it is, or ARRAY_ELEMENT_NOT_FOUND.
-	CChars					szAdjust;
+	CIRW65C816Code			cAdjust;
 	int32					iLabel;
 	SIRRegisterArgument*			psPlaced;
 	SIRRegisterArgument*			psOwn;
@@ -531,7 +532,8 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 	int						i;
 	uint64					ulliBits;
 	bool					bResult;
-	CChars					szLoads;
+	CIRW65C816Code			cLoads;
+	CChars					szCallee;
 
 	if ((mpcBackend->mpcFunction->NumBlocks() != 1) || (mpcBackend->mpcFunction->muiAttributes & IRA_Variadic))
 	{
@@ -683,7 +685,7 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 	bResult = bResult && (uiPushed == aiPushed.NumElements());
 
 	//The register ones: in the same register here, or a constant loaded.
-	szLoads.Init(CIRW65C816Backend::GetScratch());
+	cLoads.Init();
 	for (ui = 0; bResult && (ui < asCallee.NumElements()); ui++)
 	{
 		psPlaced = asCallee.Get(ui);
@@ -697,11 +699,7 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 			ulliBits = mpcBackend->mpcFunction->GetConstant((*apsArguments.Get(ui - uiFirst))->asArguments[0])->ulliBits;
 			for (i = 0; i < psPlaced->iUnits; i++)
 			{
-				szLoads.Append("\t\t");
-				szLoads.Append(aszLoads[psPlaced->iRegister + i]);
-				szLoads.Append(' ');
-				szLoads.Append((int)((ulliBits >> (16 * i)) & 0xFFFF));
-				szLoads.AppendNewLine();
+				cLoads.AppendInstruction(auiLoads[psPlaced->iRegister + i], (int64)((ulliBits >> (16 * i)) & 0xFFFF));
 			}
 			continue;
 		}
@@ -716,7 +714,7 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 
 	//The adjusted argument is in A (and X): the constant, at the argument's width, added to its low word and the
 	//carry into X.  One that would change X otherwise (a pointer moved back) isn't a jump.
-	szAdjust.Init(CIRW65C816Backend::GetScratch());
+	cAdjust.Init();
 	if (bResult && (uiAdjustedArgument != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		psPlaced = asCallee.Get(uiAdjustedArgument);
@@ -724,36 +722,42 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 		bResult = (psPlaced->iRegister == 0) && (psPlaced->iUnits <= 2) && ((ulliAdjust >> 16) == 0);
 		if (bResult && ((ulliAdjust & 0xFFFF) != 0))
 		{
-			szAdjust.Append("\t\tclc\n\t\tadc ");
-			szAdjust.Append((int)(ulliAdjust & 0xFFFF));
-			szAdjust.AppendNewLine();
+			cAdjust.AppendInstruction(IR816M_Clc);
+			cAdjust.AppendInstruction(IR816M_Adc, (int64)(ulliAdjust & 0xFFFF));
 			if (psPlaced->iUnits == 2)
 			{
 				iLabel = mpcBackend->NewLabel();
-				szAdjust.Append("\t\tbcc L");
-				szAdjust.Append(iLabel);
-				szAdjust.Append("\n\t\tinx\nL");
-				szAdjust.Append(iLabel);
-				szAdjust.Append(':');
-				szAdjust.AppendNewLine();
+				szCallee.Init("L");
+				szCallee.Append(iLabel);
+				cAdjust.AppendInstruction(IR816M_Bcc, szCallee.Text());
+				cAdjust.AppendInstruction(IR816M_Inx);
+				szCallee.Append(':');
+				cAdjust.Append(szCallee.Text());
+				szCallee.Kill();
 			}
 		}
 	}
 
 	if (bResult)
 	{
-		pszJump->Append(szAdjust);
-		pszJump->Append(szLoads);
-		pszJump->Append("\t\tjml ");
-		pszJump->Append(mpcBackend->mpcModule->GetSymbolName(sCallee.Index()));
+		for (ui = 0; ui < cAdjust.NumLines(); ui++)
+		{
+			pcJump->AppendLine(&cAdjust, ui);
+		}
+		for (ui = 0; ui < cLoads.NumLines(); ui++)
+		{
+			pcJump->AppendLine(&cLoads, ui);
+		}
+		szCallee.Init(mpcBackend->mpcModule->GetSymbolName(sCallee.Index()));
 		if (iRegisters > 0)
 		{
-			mpcBackend->AppendRegisterSuffix(pszJump, &asCallee, IR816_REGISTER_LETTERS);
+			mpcBackend->AppendRegisterSuffix(&szCallee, &asCallee, IR816_REGISTER_LETTERS);
 		}
-		pszJump->AppendNewLine();
+		pcJump->AppendInstruction(IR816M_Jml, szCallee.Text());
+		szCallee.Kill();
 	}
-	szAdjust.Kill();
-	szLoads.Kill();
+	cAdjust.Kill();
+	cLoads.Kill();
 	aiPushed.Kill();
 	aiSource.Kill();
 	asCallee.Kill();
@@ -764,15 +768,15 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A wrapper (Forwarder): its entry, then the jump (pszJump) instead of a
+// A wrapper (Forwarder): its entry, then the jump (pcJump) instead of a
 // frame and body.  It has no frame (FunctionArguments' empty one, which
 // AlignFrame leaves).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Calls::GenerateForwarder(const char* szLabel, CChars* pszJump)
+void CIRW65C816Calls::GenerateForwarder(const char* szLabel, CIRW65C816Code* pcJump)
 {
 	Entry(szLabel);
-	mpcBackend->mpszOut->Append(*pszJump);
+	mpcBackend->Lines(pcJump);
 }
 
 
@@ -786,12 +790,14 @@ void CIRW65C816Calls::GenerateForwarder(const char* szLabel, CChars* pszJump)
 void CIRW65C816Calls::Entry(const char* szLabel)
 {
 	CChars	szBody;
+	CChars	sz;
 
-	mpcBackend->mpszOut->Append(szLabel);
-	mpcBackend->mpszOut->Append(':');
-	mpcBackend->mpszOut->AppendNewLine();
-	mpcBackend->Line(".width (A, X), 16");
-	mpcBackend->Line(".relax");
+	sz.Init(szLabel);
+	sz.Append(':');
+	mpcBackend->TextLine(sz.Text());
+	sz.Kill();
+	mpcBackend->TextLine("\t\t.width (A, X), 16");
+	mpcBackend->TextLine("\t\t.relax");
 	if (mpcBackend->msFrame.iRegisterWords == 0)
 	{
 		return;
@@ -801,13 +807,13 @@ void CIRW65C816Calls::Entry(const char* szLabel)
 	RegisterStub(&szBody);
 	if (!(mpcBackend->mpcFunction->muiAttributes & IRA_Local) && !mpcBackend->mpcModule->IsLocal(mpcBackend->mpcFunction->muiSymbol))
 	{
-		mpcBackend->mpszOut->Append((mpcBackend->mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-		mpcBackend->mpszOut->Append(szBody);
-		mpcBackend->mpszOut->AppendNewLine();
+		sz.Init((mpcBackend->mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
+		sz.Append(szBody);
+		mpcBackend->TextLine(sz.Text());
+		sz.Kill();
 	}
-	mpcBackend->mpszOut->Append(szBody);
-	mpcBackend->mpszOut->Append(':');
-	mpcBackend->mpszOut->AppendNewLine();
+	szBody.Append(':');
+	mpcBackend->TextLine(szBody.Text());
 	szBody.Kill();
 }
 

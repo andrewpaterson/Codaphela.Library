@@ -380,13 +380,30 @@ bool CIRBackend::Error(const char* szMessage, const char* szDetail)
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::Source(uint32 uiSource)
 {
+	CChars	szMarker;
+
 	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
 	{
 		return;
 	}
 	muiSource = uiSource;
-	mpszOut->Append(IR_SOURCE_MARKER);
-	mpszOut->Append((int64)muiSource);
+	szMarker.Init();
+	szMarker.Append(IR_SOURCE_MARKER);
+	szMarker.Append((int64)muiSource);
+	MarkerLine(szMarker.Text());
+	szMarker.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A marker line (Source's, DebugPlaceMarker's) written before what is
+// written next.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::MarkerLine(const char* szMarker)
+{
+	mpszOut->Append(szMarker);
 	mpszOut->AppendNewLine();
 }
 
@@ -525,8 +542,13 @@ void CIRBackend::DebugPlaceMarker(size uiSlot, const char* szPlace)
 	{
 		return;
 	}
+	CChars	szMarker;
+
 	maszDebugPlaces.Get(uiSlot)->Set(szPlace);
-	mpszOut->Append(IR_PLACE_MARKER)->Append((int64)uiSlot)->Append(' ')->Append(szPlace)->AppendNewLine();
+	szMarker.Init();
+	szMarker.Append(IR_PLACE_MARKER)->Append((int64)uiSlot)->Append(' ')->Append(szPlace);
+	MarkerLine(szMarker.Text());
+	szMarker.Kill();
 }
 
 

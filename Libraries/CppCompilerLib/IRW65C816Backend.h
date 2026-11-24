@@ -210,8 +210,7 @@ protected:
 	CScratchPadAllocator*	mpcArena;			//Init's arena, this thread's scratch (SetScratch) until Kill, or NULL...
 	CMallocator*			mpcOldScratch;		//...and what the thread's scratch was before.
 
-	CIRW65C816Code*			mpcCode;			//The function's code as it is written (GenerateFunction): what is written to
-	CChars					mszWritten;			//mpszOut, this, is added to it a line at a time (Flush).
+	CIRW65C816Code*			mpcCode;			//The function's code as it is written (GenerateFunction).
 
 	CIRW65C816Places			mcPlaces;
 	CIRW65C816Folds				mcFolds;
@@ -239,8 +238,11 @@ public:
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel);
-	void			Flush(void);
-	void			Source(uint32 uiSource);
+	void			MarkerLine(const char* szMarker) override;
+	void			Label(int32 iLabel);
+	void			TextLine(const char* szLine);
+	void			Lines(CIRW65C816Code* pcFrom);
+	void			Added(void);
 	void			KeepSlots(CIRW65C816Code* pcCode);
 	void			DropFrame(size uiStart);
 	bool			ReturnsNothingInA(void);
@@ -274,11 +276,9 @@ public:
 	static void		RemoveUnreadStores(CIRW65C816Code* pcCode);
 
 protected:
-	void			Line(const char* szText);
 	void			Line(uint16 uiMnemonic, const char* szOperand = NULL);
 	void			Line(uint16 uiMnemonic, int64 lliOperand);
 	void			Line(uint16 uiMnemonic, const char* szOperand, bool bMarked);
-	void			Line(const char* szText, int64 lliValue);
 
 	int				ValueBytes(SIRType sType);
 	int				Words(SIRType sType);
@@ -294,6 +294,7 @@ protected:
 
 	void			Prologue(const char* szLabel);
 	void			Epilogue(void);
+	void			FrameExit(void);
 	void			Return(CIRBlock* pcBlock);
 	void			EdgeCopies(CIRBlock* pcFrom, CIRBlock* pcTo);
 	void			AddCopy(SIRPhi* psPhi, SIRPhiArgument* psArgument);

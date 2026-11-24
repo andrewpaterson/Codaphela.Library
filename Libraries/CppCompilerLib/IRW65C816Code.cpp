@@ -124,22 +124,34 @@ void CIRW65C816Code::Load(CChars* pszCode, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::Write(CChars* pszCode, size uiStart)
 {
-	SIRW65C816CodeLine*	psCode;
-	size				ui;
+	size	ui;
 
 	pszCode->SetLength(uiStart);
 	for (ui = 0; ui < maiOrder.NumElements(); ui++)
 	{
-		psCode = Line(ui);
-		if (psCode->bText)
-		{
-			pszCode->Append(psCode->szText);
-		}
-		else
-		{
-			IR816AppendLine(pszCode, psCode->sLine.uiMnemonic, psCode->szText.Text(), psCode->szText.Length(), psCode->sLine.bMarked);
-		}
+		PrintLine(ui, pszCode);
 		pszCode->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line as the printer writes it (without its new line), appended to psz.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::PrintLine(size uiLine, CChars* psz)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	if (psCode->bText)
+	{
+		psz->Append(psCode->szText);
+	}
+	else
+	{
+		IR816AppendLine(psz, psCode->sLine.uiMnemonic, psCode->szText.Text(), psCode->szText.Length(), psCode->sLine.bMarked);
 	}
 }
 
@@ -489,6 +501,23 @@ void CIRW65C816Code::ClearRound(size uiLine)
 void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, const char* szOperand, bool bMarked)
 {
 	MakeInstruction(NewLine(), uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, bMarked);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction uiMnemonic with the number lliOperand added after the
+// last line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, int64 lliOperand)
+{
+	CChars	sz;
+
+	sz.Init(CIRW65C816Backend::GetScratch());
+	sz.Append(lliOperand);
+	AppendInstruction(uiMnemonic, sz.Text());
+	sz.Kill();
 }
 
 

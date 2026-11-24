@@ -65,7 +65,6 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	mpsDivided = NULL;
 	mbMathTables = mpcOptions->mbMathTables;
 	mpcCode = NULL;
-	mszWritten.Init(CIRW65C816Backend::GetScratch());
 }
 
 
@@ -75,7 +74,6 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Kill(void)
 {
-	mszWritten.Kill();
 	masArguments.Kill();
 	mauiPendingArguments.Kill();
 	maiParameters.Kill();
@@ -107,18 +105,6 @@ void CIRW65C816Backend::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Line(const char* szText)
-{
-	mpszOut->Append("\t\t");
-	mpszOut->Append(szText);
-	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The instruction uiMnemonic with szOperand (NULL for none) added to the
 // code: as fields, never as text (but a listing's source markers are kept
 // with the lines as written: CIRSourceMarkers::AddLine).
@@ -138,14 +124,74 @@ void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand, bool bMarked)
 {
+	mpcCode->AppendInstruction(uiMnemonic, szOperand, bMarked);
+	Added();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A label's, directive's or comment's line (szLine, without its new line)
+// added to the code: its text is what it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::TextLine(const char* szLine)
+{
+	mpcCode->Append(szLine);
+	Added();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The local label iLabel's line ("L12:").
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Label(int32 iLabel)
+{
 	CChars	sz;
 
-	Flush();
-	mpcCode->AppendInstruction(uiMnemonic, szOperand, bMarked);
+	sz.Init(CIRW65C816Backend::GetScratch());
+	sz.Append('L');
+	sz.Append(iLabel);
+	sz.Append(':');
+	TextLine(sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines of pcFrom added to the code.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Lines(CIRW65C816Code* pcFrom)
+{
+	size	ui;
+
+	for (ui = 0; ui < pcFrom->NumLines(); ui++)
+	{
+		mpcCode->AppendLine(pcFrom, ui);
+		Added();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code's last line was just added: for a listing or a debugger's
+// place markers it is one of the lines the markers are kept between, as
+// written (CIRSourceMarkers::AddLine, as Take would find it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::Added(void)
+{
+	CChars	sz;
+
 	if (mbSourceMarkers || mbDebugPlaces)
 	{
 		sz.Init(CIRW65C816Backend::GetScratch());
-		IR816AppendLine(&sz, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, bMarked);
+		mpcCode->PrintLine(mpcCode->NumLines() - 1, &sz);
 		mcMarkers.AddLine(sz.Text(), sz.Length());
 		sz.Kill();
 	}
@@ -165,20 +211,6 @@ void CIRW65C816Backend::Line(uint16 uiMnemonic, int64 lliOperand)
 	sz.Append(lliOperand);
 	Line(uiMnemonic, sz.Text());
 	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// szText followed by a number.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Line(const char* szText, int64 lliValue)
-{
-	mpszOut->Append("\t\t");
-	mpszOut->Append(szText);
-	mpszOut->Append(lliValue);
-	mpszOut->AppendNewLine();
 }
 
 
@@ -472,8 +504,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	//The code is written into cCode as it is made, then printed into pszDest.
 	cCode.Init();
 	mpcCode = &cCode;
-	mszWritten.Clear();
-	mpszOut = &mszWritten;
+	mpszOut = NULL;
 	mcMarkers.Begin();
 
 	ExpandMultiplies();
@@ -493,14 +524,13 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	FunctionArguments();
 
 	//A function that only passes its arguments on to another (a wrapper) jumps to it.
-	CChars	szJump;
+	CIRW65C816Code	cJump;
 
-	szJump.Init(CIRW65C816Backend::GetScratch());
-	if (!mpcOptions->mbDebuggable && mcCalls.Forwarder(&szJump))
+	cJump.Init();
+	if (!mpcOptions->mbDebuggable && mcCalls.Forwarder(&cJump))
 	{
-		mcCalls.GenerateForwarder(szLabel, &szJump);
-		szJump.Kill();
-		Flush();
+		mcCalls.GenerateForwarder(szLabel, &cJump);
+		cJump.Kill();
 		cCode.Write(pszDest, uiStart);
 		cCode.Kill();
 		mpcCode = NULL;
@@ -508,7 +538,7 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 		pszDest->AppendNewLine();
 		return mbResult;
 	}
-	szJump.Kill();
+	cJump.Kill();
 
 	mcPlaces.Layout();
 	msFrame.bNoResult = ReturnsNothingInA();
@@ -842,66 +872,15 @@ int CIRW65C816Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The lines written so far (mszWritten) added to the code, and to the
-// source markers' lines (as Take would find them); a line not yet ended
-// waits.
+// A marker line (a listing's source marker, a debugger's place marker)
+// before what is written next: kept apart from the code, as
+// CIRSourceMarkers::Take would take it out, so the passes see the code
+// they would without it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Flush(void)
+void CIRW65C816Backend::MarkerLine(const char* szMarker)
 {
-	const char*	szText;
-	const char*	szLine;
-	const char*	szEnd;
-	size		uiTaken;
-
-	szText = mszWritten.Text();
-	uiTaken = 0;
-	for (szLine = szText; (szEnd = strchr(szLine, '\n')) != NULL; szLine = szEnd + 1)
-	{
-		if (strncmp(szLine, IR_PLACE_MARKER, StrLen(IR_PLACE_MARKER)) == 0)
-		{
-			//A debugger's place marker (CIRBackend::DebugPlaceMarker): kept apart from the code, as Take would.
-			mcMarkers.AddMarker(szLine, (size)(szEnd - szLine));
-		}
-		else
-		{
-			mpcCode->Append(szLine, (size)(szEnd - szLine));
-			if (mbSourceMarkers || mbDebugPlaces)
-			{
-				mcMarkers.AddLine(szLine, (size)(szEnd - szLine));
-			}
-		}
-		uiTaken = (size)(szEnd + 1 - szText);
-	}
-	if (uiTaken > 0)
-	{
-		mszWritten.RemoveFromStart((int)uiTaken);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A source marker before what is written next (for a listing): kept
-// apart from the code, as CIRSourceMarkers::Take would take it out, so
-// the passes see the code they would without it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Source(uint32 uiSource)
-{
-	CChars	szMarker;
-
-	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
-	{
-		return;
-	}
-	muiSource = uiSource;
-	Flush();
-	szMarker.Init(CIRW65C816Backend::GetScratch());
-	szMarker.Append(IR_SOURCE_MARKER);
-	szMarker.Append((int64)muiSource);
-	mcMarkers.AddMarker(szMarker.Text(), szMarker.Length());
-	szMarker.Kill();
+	mcMarkers.AddMarker(szMarker, StrLen(szMarker));
 }
 
 
@@ -937,7 +916,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel)
 	mpcDominators = &mcDominators;
 
 	//Whether the function has place markers is known before anything is written: the lines between markers are
-	//kept from the first (Flush, CIRSourceMarkers::AddLine).
+	//kept from the first (Added, CIRSourceMarkers::AddLine).
 	memset(mauiPlaceBytes, 0, sizeof(mauiPlaceBytes));
 	BeginDebugPlaces(&mcDominators);
 	Prologue(szLabel);
@@ -946,7 +925,6 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel)
 		pcBlock = mpcFunction->GetBlock(ui);
 		pcNext = (ui + 1 < mpcFunction->NumBlocks()) ? mpcFunction->GetBlock(ui + 1) : NULL;
 		miBlock = (int32)ui;
-		Flush();
 		uiBlockStart = mpcCode->NumLines();
 		Label(*maiBlockLabels.Get(ui));
 		mauiPendingArguments.FakeSetUsedElements(0);
@@ -988,13 +966,11 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel)
 			msFrame.bLoops = true;
 		}
 		iWeight = (int32)CIRLoops::Weight(iDepth, IR816_ALIGN_MAX_DEPTH);
-		Flush();
 		msFrame.iDirectPageWeight += iWeight * mpcCode->CountMentions(uiBlockStart, "D + ");
 	}
 	EndDebugPlaces();
 	miBlock = -1;
 	mpcDominators = NULL;
-	Flush();
 
 	//The passes over the code.
 	mpcModule->Begin(CPPCP_CodePasses);
@@ -1410,16 +1386,37 @@ void CIRW65C816Backend::FindSingleUses(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Prologue(const char* szLabel)
 {
+	CIRW65C816Code	cEntry;
+
 	mcCalls.Entry(szLabel);
+	cEntry.Init();
 	if (msFrame.iRegisterWords == 0)
 	{
-		IR816AppendFrameEntry(mpszOut, msFrame.iFrameBytes);
+		IR816AddFrameEntry(&cEntry, msFrame.iFrameBytes);
 	}
 	else
 	{
 		//D saved, the register words pushed into the frame's top (A's lowest), then the rest of the frame below them.
-		IR816AppendRegisterFrameEntry(mpszOut, msFrame.iRegisterWords, msFrame.iFrameBytes);
+		IR816AddRegisterFrameEntry(&cEntry, msFrame.iRegisterWords, msFrame.iFrameBytes);
 	}
+	Lines(&cEntry);
+	cEntry.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The frame's removal (IR816AddFrameExit).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::FrameExit(void)
+{
+	CIRW65C816Code	cExit;
+
+	cExit.Init();
+	IR816AddFrameExit(&cExit, msFrame.iFrameBytes);
+	Lines(&cExit);
+	cExit.Kill();
 }
 
 
@@ -1432,7 +1429,7 @@ void CIRW65C816Backend::Prologue(const char* szLabel)
 void CIRW65C816Backend::Epilogue(void)
 {
 	EndDebugPlaces();
-	IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
+	FrameExit();
 	Line(IR816M_Rtl);
 }
 
@@ -1776,7 +1773,7 @@ void CIRW65C816Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext)
 		break;
 	case IRJ_Throw:
 		//The function's exit with no value and the carry set: the caller's thrown (CIRW65C816Calls::Call).
-		IR816AppendFrameExit(mpszOut, msFrame.iFrameBytes);
+		FrameExit();
 		Line(IR816M_Sec);
 		Line(IR816M_Rtl);
 		break;

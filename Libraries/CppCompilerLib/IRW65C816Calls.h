@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 
 class CIRW65C816Backend;
+class CIRW65C816Code;
 
 
 //A call, for the W65C816: the arguments pushed or loaded into A, X and Y as the function called takes them, the
@@ -51,8 +52,8 @@ public:
 	void			Thrown(SIRInstruction* psInstruction);
 	bool			ResultKeepsCarry(SIRInstruction* psInstruction);
 
-	bool			Forwarder(CChars* pszJump);
-	void			GenerateForwarder(const char* szLabel, CChars* pszJump);
+	bool			Forwarder(CIRW65C816Code* pcJump);
+	void			GenerateForwarder(const char* szLabel, CIRW65C816Code* pcJump);
 	void			Entry(const char* szLabel);
 	void			RegisterStub(CChars* pszBodyLabel);
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);

@@ -163,6 +163,7 @@ protected:
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);
 	bool			Error(const char* szMessage, const char* szDetail = NULL);
 	void			Source(uint32 uiSource);
+	virtual void	MarkerLine(const char* szMarker);
 	int32			NewLabel(void);
 	void			UseRuntime(const char* szName);
 	SIRInstruction*	BranchComparison(CIRBlock* pcBlock);

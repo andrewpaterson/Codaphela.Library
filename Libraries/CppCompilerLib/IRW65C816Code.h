@@ -64,6 +64,7 @@ public:
 	void		Kill(void);
 	void		Load(CChars* pszCode, size uiStart);
 	void		Write(CChars* pszCode, size uiStart);
+	void		PrintLine(size uiLine, CChars* psz);
 
 	size		NumLines(void) const;
 	const char*	Text(size uiLine);
@@ -87,6 +88,7 @@ public:
 	void		SetBranch(size uiLine, uint16 uiMnemonic, const char* szLabel, size uiLabel);
 	void		ClearRound(size uiLine);
 	void		AppendInstruction(uint16 uiMnemonic, const char* szOperand = NULL, bool bMarked = false);
+	void		AppendInstruction(uint16 uiMnemonic, int64 lliOperand);
 	void		AppendInstruction(SIRW65C816Line* psLine, bool bMarked);
 	void		AppendLine(CIRW65C816Code* pcFrom, size uiLine);
 

@@ -36,14 +36,16 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 // The frame's set up as Prologue writes it (after the label and the
 // directives): D saved, S moved down iFrameBytes and D pointed at it.
-// DropFrame and AlignFrame find and replace it by this text.
 //
 //////////////////////////////////////////////////////////////////////////
-void IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes)
+void IR816AddFrameEntry(CIRW65C816Code* pcCode, int32 iFrameBytes)
 {
-	psz->Append("\t\tphd\n\t\ttsc\n\t\tsec\n\t\tsbc ");
-	psz->Append(iFrameBytes);
-	psz->Append("\n\t\ttcs\n\t\ttcd\n");
+	pcCode->AppendInstruction(IR816M_Phd);
+	pcCode->AppendInstruction(IR816M_Tsc);
+	pcCode->AppendInstruction(IR816M_Sec);
+	pcCode->AppendInstruction(IR816M_Sbc, iFrameBytes);
+	pcCode->AppendInstruction(IR816M_Tcs);
+	pcCode->AppendInstruction(IR816M_Tcd);
 }
 
 
@@ -52,43 +54,97 @@ void IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes)
 // A register function's frame set up as Prologue writes it (after its
 // body's label): D saved, the register words pushed (Y's, X's, then A's,
 // so A's is lowest) to be the frame's top, S moved down the rest of the
-// frame and D pointed at it.  AlignFrame finds and replaces it.
+// frame and D pointed at it.
 //
 //////////////////////////////////////////////////////////////////////////
-void IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes)
+void IR816AddRegisterFrameEntry(CIRW65C816Code* pcCode, int32 iRegisterWords, int32 iFrameBytes)
 {
 	int		i;
 	int32	iRest;
 
-	psz->Append("\t\tphd\n");
+	pcCode->AppendInstruction(IR816M_Phd);
 	for (i = iRegisterWords - 1; i >= 0; i--)
 	{
-		psz->Append((i == 2) ? "\t\tphy\n" : ((i == 1) ? "\t\tphx\n" : "\t\tpha\n"));
+		pcCode->AppendInstruction((i == 2) ? IR816M_Phy : ((i == 1) ? IR816M_Phx : IR816M_Pha));
 	}
-	psz->Append("\t\ttsc\n");
+	pcCode->AppendInstruction(IR816M_Tsc);
 	iRest = iFrameBytes - 2 * iRegisterWords;
 	if (iRest > 0)
 	{
-		psz->Append("\t\tsec\n\t\tsbc ");
-		psz->Append(iRest);
-		psz->Append("\n\t\ttcs\n");
+		pcCode->AppendInstruction(IR816M_Sec);
+		pcCode->AppendInstruction(IR816M_Sbc, iRest);
+		pcCode->AppendInstruction(IR816M_Tcs);
 	}
-	psz->Append("\t\ttcd\n");
+	pcCode->AppendInstruction(IR816M_Tcd);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The frame's removal as Epilogue writes it (before the rtl): A kept in Y
-// while S moves back up iFrameBytes, then D restored.  DropFrame and
-// AlignFrame find and replace it by this text.
+// while S moves back up iFrameBytes, then D restored.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816AddFrameExit(CIRW65C816Code* pcCode, int32 iFrameBytes)
+{
+	pcCode->AppendInstruction(IR816M_Tay);
+	pcCode->AppendInstruction(IR816M_Tdc);
+	pcCode->AppendInstruction(IR816M_Clc);
+	pcCode->AppendInstruction(IR816M_Adc, iFrameBytes);
+	pcCode->AppendInstruction(IR816M_Tcs);
+	pcCode->AppendInstruction(IR816M_Tya);
+	pcCode->AppendInstruction(IR816M_Pld);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The frame's set up (IR816AddFrameEntry) as text, for DropFrame and
+// AlignFrame, which find it and replace it.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816AppendFrameEntry(CChars* psz, int32 iFrameBytes)
+{
+	CIRW65C816Code	cCode;
+
+	cCode.Init();
+	IR816AddFrameEntry(&cCode, iFrameBytes);
+	cCode.Write(psz, psz->Length());
+	cCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A register function's frame set up (IR816AddRegisterFrameEntry) as text,
+// for AlignFrame.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFrameBytes)
+{
+	CIRW65C816Code	cCode;
+
+	cCode.Init();
+	IR816AddRegisterFrameEntry(&cCode, iRegisterWords, iFrameBytes);
+	cCode.Write(psz, psz->Length());
+	cCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The frame's removal (IR816AddFrameExit) as text, for DropFrame and
+// AlignFrame.
 //
 //////////////////////////////////////////////////////////////////////////
 void IR816AppendFrameExit(CChars* psz, int32 iFrameBytes)
 {
-	psz->Append("\t\ttay\n\t\ttdc\n\t\tclc\n\t\tadc ");
-	psz->Append(iFrameBytes);
-	psz->Append("\n\t\ttcs\n\t\ttya\n\t\tpld\n");
+	CIRW65C816Code	cCode;
+
+	cCode.Init();
+	IR816AddFrameExit(&cCode, iFrameBytes);
+	cCode.Write(psz, psz->Length());
+	cCode.Kill();
 }
 
 
