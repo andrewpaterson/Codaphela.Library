@@ -10,8 +10,8 @@ This file began as the hash map's plan; it is now the plan for every gap in Base
 deque, CArrayBit's operations, and a union-find.  Their order from here:
 
   1. CQueueTemplate (below): done 2026-11-23, steps 1 to 4.
-  2. CArrayBlock keeps its contents when a grow fails (below): done 2026-11-24, steps 1 to 4 (TestHCP65Lib still to
-     run: see its step 4).
+  2. CArrayBlock keeps its contents when a grow fails (below): done 2026-11-24, steps 1 to 4 (TestHCP65Lib passed
+     over it and everything after it the same day: see the follow-ups).
   3. BinaryHeap.h moved from StandardLib to BaseLib: it needs nothing of StandardLib's.  A move and its test
      (TestBinaryHeap) moved with it; its users' includes changed.  (Done 2026-11-24.)
   4. A survey for hand rolled bit scans (population counts, first set or clear bit, and/or/xor of words over a bit
@@ -601,7 +601,7 @@ BinaryHeap moved to BaseLib, CArrayBit's scans and a union-find (planned 2026-11
 Where it is: all three built and committed 2026-11-24, their users converted.  Proved: TestBaseLib 320,632 run (Release
 x64), 320,641 (Release Win32), 320,644 (Debug x64); TestSupportLib 57,912, 57,924, 57,912; TestWindowLib 23,692 in
 each; TestKicadImporterLib 1,692 in each; TestLogicimLib 18,013 in each; all 0 failed.  LogiCim built in all three.
-Still to run: TestHCP65Lib once, over the CArrayBlock fix and everything after it.
+TestHCP65Lib, over the CArrayBlock fix and everything after it, passed with the follow-ups (below).
 
 The user, 2026-11-23: "Please continue with the plan up to and including step 6.  Clean up and commit as you go,
 ensure there are tests."
@@ -678,8 +678,11 @@ Where it is: steps 1 to 4 built and committed 2026-11-24 (CommonLibraries 6b3aac
 123b4d189, e61f6a11c, 54d05c41d; HCP65 157d798; HCP65-IDE ab794ba).  Proved so far: TestBaseLib and TestStandardLib in
 three configurations, TestBaseLib65 and TestStandardLib65 on both processors, TestAssembler65Lib (Release and Debug
 x64), the IDE's five suites and 58 of its checks, TestCppCompilerLib's touched files (49,188 run), and the listings:
-4,225, old compiler against new, all the same (D:\gameengine\HashMapWork\item5\L1 and L2).  Still to run, both stopped
-for low memory: the whole of TestCppCompilerLib (RunParallel.py -jobs 2) and TestHCP65Lib alone; and TestLibc65.
+4,225, old compiler against new, all the same (D:\gameengine\HashMapWork\item5\L1 and L2).  Then, one at a time
+(the first tries were stopped for low memory): the whole of TestCppCompilerLib in Release x64 (RunParallel.py -jobs 1,
+15 minutes) 274,853 run; TestHCP65Lib alone (39 minutes) 2,796; TestLibc65 154,878; all 0 failed.  TestHCP65Lib first
+stopped at TestKernalPutExe, whose debug file for \OS\INIT.EXE went in Output/OS, which doesn't exist (from d53cdb1,
+the debugger's stack walk): named after the program's file alone since HCP65 76ce8af.  So the plan is finished.
 
 What the survey of 2026-11-24 found, beyond item 5's list: four text maps whose value isn't used, so they are sets of
 text that keep a value for nothing (CASCIIIndex's mcNames, "The value isn't used"; IDECodeModel's mcProblems and
