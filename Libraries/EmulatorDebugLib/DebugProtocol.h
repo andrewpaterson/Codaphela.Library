@@ -56,7 +56,12 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //debugger of those loaded when it says hello, and of each one loaded (DM_ModuleLoaded: its file, where it is and how
 //big).  A module loaded while running stops it (DS_Module) before the module's code runs, so the debugger can put
 //breakpoints in it first.  When the computer resets they are gone (DM_ModulesCleared): it loads them again.
-#define DEBUG_PROTOCOL_VERSION		7
+//
+//An emulator that can watch memory (DEBUG_CAN_WATCH) takes data breakpoints: a breakpoint whose uiKind is
+//DBK_Write or DBK_ReadWrite watches uiBytes from its address in its space (and process), and the processor stops
+//after the instruction that wrote (or read) one of them (DS_DataBreakpoint, with the address and whether it was a
+//write).  Only the processor's own accesses are watched, not a device's.  Instruction fetches never are.
+#define DEBUG_PROTOCOL_VERSION		8
 #define DEBUG_PROCESSOR_NAME_SIZE	32
 #define DEBUG_MAX_REGISTERS			16
 #define DEBUG_MAX_MEMORY			0x8000		//The most bytes a Load, WriteMemory or Memory message carries.
@@ -123,6 +128,7 @@ enum EDebugStop
 	DS_Reset,
 	DS_Process,		//A process was started (DM_ProcessStarted): it hasn't run yet.
 	DS_Module,		//A module was loaded (DM_ModuleLoaded): it hasn't run yet.
+	DS_DataBreakpoint,	//An instruction read or wrote a data breakpoint's address (SDebugStopped::uiDataAddress); it has run.
 };
 
 
@@ -130,6 +136,7 @@ enum EDebugStop
 #define DEBUG_CAN_DECODE			0x0001		//It decodes instructions: DM_Disassemble, and calls are stepped over.
 #define DEBUG_CAN_PROCESSES			0x0002		//It runs processes: DM_ProcessStarted, DM_ProcessEnded, and breakpoints in one.
 #define DEBUG_CAN_MODULES			0x0004		//It loads modules: DM_ModuleLoaded, DM_ModulesCleared.
+#define DEBUG_CAN_WATCH				0x0008		//It takes data breakpoints (DBK_Write, DBK_ReadWrite).
 
 
 //Before every message's struct.
@@ -171,12 +178,28 @@ struct SDebugFlag
 };
 
 
+//What a breakpoint stops on.
+enum EDebugBreakpointKind
+{
+	DBK_Execute,		//Before the instruction at its address.
+	DBK_Write,			//After an instruction that writes one of its bytes.
+	DBK_ReadWrite,		//After an instruction that reads or writes one of its bytes.
+};
+
+#define DEBUG_MAX_WATCH_BYTES	8
+
 struct SDebugBreakpoint
 {
 	uint32	uiAddress;
 	uint32	uiEnabled;
 	uint32	uiSpace;	//DEBUG_SPACE_ANY or a space's index plus one.
 	uint32	uiProcess;	//DEBUG_PROCESS_ANY or the process it stops in.
+	uint32	uiKind;		//EDebugBreakpointKind.
+	uint32	uiBytes;	//A data breakpoint's, 1 to DEBUG_MAX_WATCH_BYTES; 0 for DBK_Execute.
+
+	void	Init(uint32 uiAddress, bool bEnabled, uint32 uiSpace = DEBUG_SPACE_ANY, uint32 uiProcess = DEBUG_PROCESS_ANY, EDebugBreakpointKind eKind = DBK_Execute, uint32 uiBytes = 0);
+	bool	IsData(void) const;
+	bool	SameAs(SDebugBreakpoint* psOther) const;
 };
 
 
@@ -276,6 +299,11 @@ struct SDebugStopped
 	uint32	uiProcess;		//The process it is in, DEBUG_PROCESS_ANY if none is kept apart there (a kernel's code).
 	uint32	uiUserProcess;	//Whose memory user mode's is now: the process it is in, or the one whose call or interrupt a
 							//kernel is in; DEBUG_PROCESS_ANY if none.
+	uint32	uiDataAddress;	//DS_DataBreakpoint's: the watched address read or written,
+	uint32	uiDataWrite;	//1 if it was written,
+	uint32	uiDataBreakpoint;	//the data breakpoint's address,
+	uint32	uiDataBytes;	//and its bytes, as they are now:
+	uint8	auiData[DEBUG_MAX_WATCH_BYTES];
 };
 
 

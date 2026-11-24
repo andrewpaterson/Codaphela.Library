@@ -51,6 +51,10 @@ void CDebugClient::Init(CProcessChannel* pcChannel)
 	muiStopSpace = DEBUG_SPACE_ANY;
 	muiStopProcess = DEBUG_PROCESS_ANY;
 	muiStopUserProcess = DEBUG_PROCESS_ANY;
+	muiStopDataAddress = 0;
+	mbStopDataWrite = false;
+	muiStopDataBreakpoint = 0;
+	muiStopDataBytes = 0;
 	memset(mauiValues, 0, sizeof(mauiValues));
 	muiNumStops = 0;
 	muiNumRegisterReplies = 0;
@@ -121,7 +125,7 @@ uint32 CDebugClient::SetBreakpoints(SDebugBreakpoint* asBreakpoints, size uiCoun
 		uiRequest = SetBreakpoints(asBreakpoints, DEBUG_MAX_LIST);
 		for (i = DEBUG_MAX_LIST; (i < uiCount) && (uiRequest != 0); i++)
 		{
-			uiRequest = AddBreakpoint(asBreakpoints[i].uiAddress, asBreakpoints[i].uiEnabled != 0);
+			uiRequest = ChangeBreakpoint(DM_AddBreakpoint, &asBreakpoints[i]);
 		}
 		return uiRequest;
 	}
@@ -145,11 +149,8 @@ uint32 CDebugClient::AddBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpa
 {
 	SDebugBreakpoint	sBreakpoint;
 
-	sBreakpoint.uiAddress = uiAddress;
-	sBreakpoint.uiEnabled = bEnabled;
-	sBreakpoint.uiSpace = uiSpace;
-	sBreakpoint.uiProcess = uiProcess;
-	return Send(DM_AddBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
+	sBreakpoint.Init(uiAddress, bEnabled, uiSpace, uiProcess);
+	return ChangeBreakpoint(DM_AddBreakpoint, &sBreakpoint);
 }
 
 
@@ -161,11 +162,8 @@ uint32 CDebugClient::RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace, uint32 u
 {
 	SDebugBreakpoint	sBreakpoint;
 
-	sBreakpoint.uiAddress = uiAddress;
-	sBreakpoint.uiEnabled = false;
-	sBreakpoint.uiSpace = uiSpace;
-	sBreakpoint.uiProcess = uiProcess;
-	return Send(DM_RemoveBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
+	sBreakpoint.Init(uiAddress, false, uiSpace, uiProcess);
+	return ChangeBreakpoint(DM_RemoveBreakpoint, &sBreakpoint);
 }
 
 
@@ -177,11 +175,20 @@ uint32 CDebugClient::EnableBreakpoint(uint32 uiAddress, bool bEnabled, uint32 ui
 {
 	SDebugBreakpoint	sBreakpoint;
 
-	sBreakpoint.uiAddress = uiAddress;
-	sBreakpoint.uiEnabled = bEnabled;
-	sBreakpoint.uiSpace = uiSpace;
-	sBreakpoint.uiProcess = uiProcess;
-	return Send(DM_EnableBreakpoint, &sBreakpoint, sizeof(sBreakpoint));
+	sBreakpoint.Init(uiAddress, bEnabled, uiSpace, uiProcess);
+	return ChangeBreakpoint(DM_EnableBreakpoint, &sBreakpoint);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Any breakpoint, a data breakpoint too: uiType is DM_AddBreakpoint,
+// DM_RemoveBreakpoint or DM_EnableBreakpoint.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CDebugClient::ChangeBreakpoint(uint32 uiType, SDebugBreakpoint* psBreakpoint)
+{
+	return Send(uiType, psBreakpoint, sizeof(SDebugBreakpoint));
 }
 
 
@@ -654,6 +661,11 @@ void CDebugClient::Stopped(uint32 uiRequest, void* pvData, size uiSize)
 	muiStopSpace = psStopped->uiSpace;
 	muiStopProcess = psStopped->uiProcess;
 	muiStopUserProcess = psStopped->uiUserProcess;
+	muiStopDataAddress = psStopped->uiDataAddress;
+	mbStopDataWrite = psStopped->uiDataWrite != 0;
+	muiStopDataBreakpoint = psStopped->uiDataBreakpoint;
+	muiStopDataBytes = (psStopped->uiDataBytes <= DEBUG_MAX_WATCH_BYTES) ? psStopped->uiDataBytes : 0;
+	memcpy(mauiStopData, psStopped->auiData, muiStopDataBytes);
 	ForgetMemory();
 	memcpy(mauiValues, &psStopped[1], uiNumRegisters * sizeof(uint64));
 	muiNumStops++;
@@ -951,6 +963,7 @@ size CDebugClient::NumProcesses(void) const					{ return masProcesses.NumElement
 SDebugProcess* CDebugClient::GetProcess(size uiIndex)	{ return masProcesses.SafeGet(uiIndex); }
 size CDebugClient::NumProcessEvents(void)				{ return masProcessEvents.NumElements(); }
 bool CDebugClient::HasModules(void) const						{ return (msWelcome.uiCapabilities & DEBUG_CAN_MODULES) != 0; }
+bool CDebugClient::CanWatch(void) const						{ return (msWelcome.uiCapabilities & DEBUG_CAN_WATCH) != 0; }
 size CDebugClient::NumModules(void) const						{ return masModules.NumElements(); }
 SDebugModule* CDebugClient::GetModule(size uiIndex)		{ return masModules.SafeGet(uiIndex); }
 size CDebugClient::NumModuleChanges(void)				{ return muiModuleChanges; }
@@ -1003,6 +1016,9 @@ uint32 CDebugClient::GetStopAddress(void) const				{ return muiStopAddress; }
 uint32 CDebugClient::GetStopSpace(void) const					{ return muiStopSpace; }
 uint32 CDebugClient::GetStopProcess(void) const				{ return muiStopProcess; }
 uint32 CDebugClient::GetStopUserProcess(void) const			{ return muiStopUserProcess; }
+uint32 CDebugClient::GetStopDataAddress(void) const			{ return muiStopDataAddress; }
+bool CDebugClient::IsStopDataWrite(void) const				{ return mbStopDataWrite; }
+uint32 CDebugClient::GetStopDataBreakpoint(void) const			{ return muiStopDataBreakpoint; }
 size CDebugClient::NumStops(void)						{ return muiNumStops; }
 size CDebugClient::NumRegisterReplies(void)				{ return muiNumRegisterReplies; }
 size CDebugClient::NumMemoryReplies(void)				{ return muiNumMemoryReplies; }
@@ -1013,6 +1029,20 @@ const char* CDebugClient::GetError(void) const				{ return mszError.Text(); }
 uint32 CDebugClient::GetErrorType(void) const					{ return muiErrorType; }
 uint32 CDebugClient::GetErrorRequest(void) const				{ return muiErrorRequest; }
 size CDebugClient::NumErrors(void)						{ return muiNumErrors; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A DS_DataBreakpoint's breakpoint's bytes as they were at the stop, up to
+// uiBytes.  Returns how many there were.
+//
+//////////////////////////////////////////////////////////////////////////
+size CDebugClient::GetStopData(void* pvDest, size uiBytes) const
+{
+	uiBytes = (uiBytes < muiStopDataBytes) ? uiBytes : muiStopDataBytes;
+	memcpy(pvDest, mauiStopData, uiBytes);
+	return uiBytes;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

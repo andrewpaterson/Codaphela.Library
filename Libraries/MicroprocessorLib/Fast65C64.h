@@ -84,6 +84,7 @@ protected:
 	bool				mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
 	bool				mbRepeating;		//The next instruction is the next step of a block, vector, multiply or divide.
 	CDataWatches		mcWatches;
+	SDataWatchHit		msWatchHit;
 
 public:
 	void		Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
@@ -94,9 +95,10 @@ public:
 	bool		Step(void);
 	CBreakpoints*	GetBreakpoints(void);
 	bool			IsAtBreakpoint(void) const;
-	CDataWatches*	GetWatches(void);
-	void			WatchesChanged(void);
-	bool			IsAtWatch(void) const;
+	CDataWatches*			GetWatches(void);
+	void					WatchesChanged(void);
+	bool					IsAtWatch(void) const;
+	const SDataWatchHit*	GetWatchHit(void) const;
 	static void		DecodeAll(void);
 	static size		InstructionLength(uint16 uiOpcode);
 	static size		CallLength(uint16 uiOpcode);

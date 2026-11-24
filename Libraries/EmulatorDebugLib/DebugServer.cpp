@@ -40,6 +40,7 @@ void CDebugServer::Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget, bool
 	muiRequest = 0;
 	muiMotionRequest = 0;
 	masRanges.Init();
+	masDataBreakpoints.Init();
 	mbOver = false;
 	mbOut = false;
 	muiDepth = 0;
@@ -53,6 +54,7 @@ void CDebugServer::Init(CProcessChannel* pcChannel, CDebugTarget* pcTarget, bool
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Kill(void)
 {
+	masDataBreakpoints.Kill();
 	masRanges.Kill();
 	free(mpuiMessage);
 	mpuiMessage = NULL;
@@ -226,7 +228,7 @@ void CDebugServer::HandleBody(uint32 uiType, void* pvData, size uiSize)
 			break;
 		}
 		psFlag = (SDebugFlag*)pvData;
-		mpcTarget->EnableAllBreakpoints(psFlag->uiFlag != 0);
+		EnableAllBreakpoints(psFlag->uiFlag != 0);
 		break;
 
 	case DM_Continue:
@@ -376,7 +378,7 @@ void CDebugServer::SetBreakpoints(void* pvData, size uiSize)
 		return;
 	}
 
-	mpcTarget->ClearBreakpoints();
+	ClearBreakpoints();
 	asBreakpoint = (SDebugBreakpoint*)&psBreakpoints[1];
 	for (i = 0; i < psBreakpoints->uiCount; i++)
 	{
@@ -407,6 +409,11 @@ void CDebugServer::ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpo
 	if (psBreakpoint->uiSpace > mpcTarget->NumBreakpointSpaces())
 	{
 		Error(uiType, "No such breakpoint space.");
+		return;
+	}
+	if (psBreakpoint->IsData())
+	{
+		ChangeDataBreakpoint(uiChange, psBreakpoint, uiType);
 		return;
 	}
 
@@ -443,6 +450,260 @@ void CDebugServer::ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpo
 	{
 		Error(uiType, "No breakpoint there.");
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// ChangeBreakpoint's for a data breakpoint: in the server's list, then
+// the target's watches filled again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::ChangeDataBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpoint, uint32 uiType)
+{
+	SDebugBreakpoint*	psFound;
+	size				i;
+
+	if (!mpcTarget->CanWatch())
+	{
+		Error(uiType, "The emulator can't watch memory.");
+		return;
+	}
+	if ((psBreakpoint->uiKind > DBK_ReadWrite) || (psBreakpoint->uiBytes == 0) || (psBreakpoint->uiBytes > DEBUG_MAX_WATCH_BYTES))
+	{
+		Error(uiType, "A data breakpoint watches 1 to 8 bytes.");
+		return;
+	}
+
+	psFound = NULL;
+	for (i = 0; (i < masDataBreakpoints.NumElements()) && (psFound == NULL); i++)
+	{
+		if (masDataBreakpoints.Get(i)->SameAs(psBreakpoint))
+		{
+			psFound = masDataBreakpoints.Get(i);
+		}
+	}
+	if (uiChange == DM_AddBreakpoint)
+	{
+		if (psFound == NULL)
+		{
+			psFound = masDataBreakpoints.Add(psBreakpoint);
+		}
+		psFound->uiEnabled = psBreakpoint->uiEnabled != 0;
+	}
+	else if (psFound == NULL)
+	{
+		Error(uiType, "No breakpoint there.");
+		return;
+	}
+	else if (uiChange == DM_EnableBreakpoint)
+	{
+		psFound->uiEnabled = psBreakpoint->uiEnabled != 0;
+	}
+	else
+	{
+		masDataBreakpoints.Remove(psFound);
+	}
+	FillWatches();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every breakpoint, data breakpoints too.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::ClearBreakpoints(void)
+{
+	mpcTarget->ClearBreakpoints();
+	masDataBreakpoints.RemoveAll();
+	FillWatches();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::EnableAllBreakpoints(bool bEnabled)
+{
+	size	i;
+
+	mpcTarget->EnableAllBreakpoints(bEnabled);
+	for (i = 0; i < masDataBreakpoints.NumElements(); i++)
+	{
+		masDataBreakpoints.Get(i)->uiEnabled = bEnabled;
+	}
+	FillWatches();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The target's watches, from the enabled data breakpoints: each byte in
+// its space (every space for DEBUG_SPACE_ANY) and wherever another space
+// sees it (GetWatchAlias).
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::FillWatches(void)
+{
+	SDebugBreakpoint*	psBreakpoint;
+	CDataWatches*		pcWatches;
+	size				uiSpaces;
+	size				uiSpace;
+	size				uiAliasSpace;
+	uint32				uiAlias;
+	uint32				uiAddress;
+	size				i;
+	size				j;
+	bool				bReads;
+
+	if (!mpcTarget->CanWatch())
+	{
+		return;
+	}
+	uiSpaces = mpcTarget->NumBreakpointSpaces();
+	for (uiSpace = 0; uiSpace < uiSpaces; uiSpace++)
+	{
+		pcWatches = mpcTarget->GetSpaceWatches(uiSpace);
+		if (pcWatches)
+		{
+			pcWatches->Clear();
+		}
+	}
+
+	for (i = 0; i < masDataBreakpoints.NumElements(); i++)
+	{
+		psBreakpoint = masDataBreakpoints.Get(i);
+		if (!psBreakpoint->uiEnabled)
+		{
+			continue;
+		}
+		bReads = psBreakpoint->uiKind == DBK_ReadWrite;
+		for (uiSpace = 0; uiSpace < uiSpaces; uiSpace++)
+		{
+			if ((psBreakpoint->uiSpace != DEBUG_SPACE_ANY) && (psBreakpoint->uiSpace != uiSpace + 1))
+			{
+				continue;
+			}
+			for (j = 0; j < psBreakpoint->uiBytes; j++)
+			{
+				uiAddress = psBreakpoint->uiAddress + (uint32)j;
+				Watch(uiSpace, uiAddress, bReads);
+				if (mpcTarget->GetWatchAlias(uiSpace, psBreakpoint->uiProcess, uiAddress, &uiAliasSpace, &uiAlias))
+				{
+					Watch(uiAliasSpace, uiAlias, bReads);
+				}
+			}
+		}
+	}
+	mpcTarget->WatchesChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// One address watched in a space: for writes, and reads too if bReads.
+//
+//////////////////////////////////////////////////////////////////////////
+void CDebugServer::Watch(size uiSpace, uint32 uiAddress, bool bReads)
+{
+	CDataWatches*	pcWatches;
+
+	pcWatches = mpcTarget->GetSpaceWatches(uiSpace);
+	if (pcWatches == NULL)
+	{
+		return;
+	}
+	pcWatches->GetWrites()->Add(uiAddress, true);
+	if (bReads)
+	{
+		pcWatches->GetReads()->Add(uiAddress, true);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the target's last watched access is one of the data
+// breakpoints' (FindDataBreakpointHit).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugServer::IsDataBreakpointHit(void)
+{
+	return FindDataBreakpointHit() != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The data breakpoint the target's last watched access is: of its kind,
+// in the space and process the target is in (or seen there through an
+// alias).  NULL if none: the target may watch more widely than that.
+//
+//////////////////////////////////////////////////////////////////////////
+SDebugBreakpoint* CDebugServer::FindDataBreakpointHit(void)
+{
+	const SDataWatchHit*	psHit;
+	SDebugBreakpoint*		psBreakpoint;
+	size					uiSpace;
+	uint32					uiProcess;
+	size					i;
+
+	if (!mpcTarget->IsAtWatch())
+	{
+		return NULL;
+	}
+	psHit = mpcTarget->GetWatchHit();
+	uiSpace = (mpcTarget->GetCurrentSpace() == DEBUG_SPACE_ANY) ? 0 : (size)(mpcTarget->GetCurrentSpace() - 1);
+	uiProcess = mpcTarget->GetCurrentProcess();
+	for (i = 0; i < masDataBreakpoints.NumElements(); i++)
+	{
+		psBreakpoint = masDataBreakpoints.Get(i);
+		if (psBreakpoint->uiEnabled && (psHit->bWrite || (psBreakpoint->uiKind == DBK_ReadWrite)) && Covers(psBreakpoint, uiSpace, uiProcess, psHit->uiAddress))
+		{
+			return psBreakpoint;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a data breakpoint watches uiAddress as uiProcess sees it in the
+// space uiSpace (an index): its own bytes in its space and process, or an
+// alias of them there.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugServer::Covers(SDebugBreakpoint* psBreakpoint, size uiSpace, uint32 uiProcess, uint32 uiAddress)
+{
+	size	uiOwnSpace;
+	size	uiAliasSpace;
+	uint32	uiAlias;
+	size	j;
+
+	for (uiOwnSpace = 0; uiOwnSpace < mpcTarget->NumBreakpointSpaces(); uiOwnSpace++)
+	{
+		if ((psBreakpoint->uiSpace != DEBUG_SPACE_ANY) && (psBreakpoint->uiSpace != uiOwnSpace + 1))
+		{
+			continue;
+		}
+		for (j = 0; j < psBreakpoint->uiBytes; j++)
+		{
+			if ((uiOwnSpace == uiSpace) && (psBreakpoint->uiAddress + (uint32)j == uiAddress) &&
+				((psBreakpoint->uiProcess == DEBUG_PROCESS_ANY) || (psBreakpoint->uiProcess == uiProcess)))
+			{
+				return true;
+			}
+			if (mpcTarget->GetWatchAlias(uiOwnSpace, psBreakpoint->uiProcess, psBreakpoint->uiAddress + (uint32)j, &uiAliasSpace, &uiAlias) &&
+				(uiAliasSpace == uiSpace) && (uiAlias == uiAddress))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 
@@ -722,17 +983,10 @@ bool CDebugServer::StepOutStep(bool bForce)
 	{
 		sInstruction.uiKind = DI_Other;
 	}
-	bStepped = bForce ? ForceStep() : mpcTarget->Step();
+	bStepped = bForce ? ForceStep() : TargetStep();
 	if (!bStepped)
 	{
-		if (mpcTarget->IsAtBreakpoint())
-		{
-			Stop(DS_Breakpoint);
-		}
-		else
-		{
-			StopAfterStep();
-		}
+		Stop(StopReason(DS_Step));
 		return false;
 	}
 
@@ -790,9 +1044,9 @@ void CDebugServer::StepRange(size uiMaxSteps)
 			return;
 		}
 
-		if (!mpcTarget->Step())
+		if (!TargetStep())
 		{
-			Stop(mpcTarget->IsAtBreakpoint() ? DS_Breakpoint : DS_Stopped);
+			Stop(StopReason(DS_Stopped));
 			return;
 		}
 	}
@@ -1011,7 +1265,7 @@ void CDebugServer::Disassemble(void* pvData, size uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Detach(void)
 {
-	mpcTarget->ClearBreakpoints();
+	ClearBreakpoints();
 	mpcTarget->WatchEvents(false);
 	mbClosed = true;
 	mbConnected = false;
@@ -1028,19 +1282,36 @@ void CDebugServer::Detach(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A step that the target refused at a breakpoint is executed anyway.
-// False if the processor stopped.
+// One step of the target's: false at a breakpoint, if the processor
+// stopped, or after a data breakpoint's access (a watched access that
+// isn't one, IsDataBreakpointHit, is a step like any other).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDebugServer::ForceStep(void)
+bool CDebugServer::TargetStep(void)
 {
 	if (mpcTarget->Step())
 	{
 		return true;
 	}
+	return mpcTarget->IsAtWatch() && !IsDataBreakpointHit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A step that the target refused at a breakpoint is executed anyway.
+// False if the processor stopped, or a data breakpoint stopped it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CDebugServer::ForceStep(void)
+{
+	if (TargetStep())
+	{
+		return true;
+	}
 	if (mpcTarget->IsAtBreakpoint())
 	{
-		return mpcTarget->Step();
+		return TargetStep();
 	}
 	return false;
 }
@@ -1048,18 +1319,43 @@ bool CDebugServer::ForceStep(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// After the target ran: whether it stopped at a breakpoint or by itself.
+// Why the target stopped a step or a run: at a breakpoint, by itself or
+// after a data breakpoint's access; eOtherwise if none of those.
+//
+//////////////////////////////////////////////////////////////////////////
+EDebugStop CDebugServer::StopReason(EDebugStop eOtherwise)
+{
+	if (mpcTarget->IsAtBreakpoint())
+	{
+		return DS_Breakpoint;
+	}
+	if (mpcTarget->IsStopped())
+	{
+		return DS_Stopped;
+	}
+	if (IsDataBreakpointHit())
+	{
+		return DS_DataBreakpoint;
+	}
+	return eOtherwise;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After the target ran: whether it stopped at a breakpoint, by itself or
+// after a data breakpoint's access.  A watched access that isn't one only
+// ended the run early: the next Tick runs on.
 //
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::CheckRun(void)
 {
-	if (mpcTarget->IsAtBreakpoint())
+	EDebugStop	eReason;
+
+	eReason = StopReason(DS_Step);
+	if (eReason != DS_Step)
 	{
-		Stop(DS_Breakpoint);
-	}
-	else if (mpcTarget->IsStopped())
-	{
-		Stop(DS_Stopped);
+		Stop(eReason);
 	}
 }
 
@@ -1070,7 +1366,14 @@ void CDebugServer::CheckRun(void)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::StopAfterStep(void)
 {
-	Stop(mpcTarget->IsStopped() ? DS_Stopped : DS_Step);
+	if (mpcTarget->IsStopped())
+	{
+		Stop(DS_Stopped);
+	}
+	else
+	{
+		Stop(IsDataBreakpointHit() ? DS_DataBreakpoint : DS_Step);
+	}
 }
 
 
@@ -1082,7 +1385,8 @@ void CDebugServer::StopAfterStep(void)
 //////////////////////////////////////////////////////////////////////////
 void CDebugServer::Stop(EDebugStop eReason)
 {
-	SDebugStopped*	psStopped;
+	SDebugStopped*		psStopped;
+	SDebugBreakpoint*	psBreakpoint;
 
 	meState = DSS_Stopped;
 	mbStepped = eReason == DS_Step;
@@ -1098,6 +1402,14 @@ void CDebugServer::Stop(EDebugStop eReason)
 	psStopped->uiSpace = mpcTarget->GetCurrentSpace();
 	psStopped->uiProcess = mpcTarget->GetCurrentProcess();
 	psStopped->uiUserProcess = mpcTarget->GetUserProcess();
+	psBreakpoint = (eReason == DS_DataBreakpoint) ? FindDataBreakpointHit() : NULL;
+	if (psBreakpoint)
+	{
+		psStopped->uiDataAddress = mpcTarget->GetWatchHit()->uiAddress;
+		psStopped->uiDataWrite = mpcTarget->GetWatchHit()->bWrite;
+		psStopped->uiDataBreakpoint = psBreakpoint->uiAddress;
+		psStopped->uiDataBytes = (uint32)mpcTarget->PeekIn(psBreakpoint->uiSpace, psBreakpoint->uiAddress, psStopped->auiData, psBreakpoint->uiBytes);
+	}
 	psStopped->uiNumRegisters = (uint32)AppendRegisters((uint64*)&psStopped[1]);
 	Send(DM_Stopped, muiMotionRequest, sizeof(SDebugStopped) + psStopped->uiNumRegisters * sizeof(uint64));
 }
@@ -1144,7 +1456,7 @@ void CDebugServer::SendWelcome(void)
 	psWelcome->uiAddressBits = (uint32)mpcTarget->NumAddressBits();
 	psWelcome->uiAddressFormat = (uint32)mpcTarget->GetAddressFormat();
 	psWelcome->uiCapabilities = ((mpcTarget->GetDecoder() != NULL) ? DEBUG_CAN_DECODE : 0) | (mpcTarget->HasProcesses() ? DEBUG_CAN_PROCESSES : 0) |
-								 (mpcTarget->HasModules() ? DEBUG_CAN_MODULES : 0);
+								 (mpcTarget->HasModules() ? DEBUG_CAN_MODULES : 0) | (mpcTarget->CanWatch() ? DEBUG_CAN_WATCH : 0);
 	psWelcome->uiNumRegisters = (uint32)uiNumRegisters;
 	strncpy(psWelcome->szProcessor, mpcTarget->GetProcessorName(), DEBUG_PROCESSOR_NAME_SIZE - 1);
 	psWelcome->uiNumSpaces = (uint32)mpcTarget->NumBreakpointSpaces();

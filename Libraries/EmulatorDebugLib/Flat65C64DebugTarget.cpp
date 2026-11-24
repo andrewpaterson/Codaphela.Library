@@ -82,6 +82,9 @@ void CFlat65C64DebugTarget::SetProgramAddress(uint32 uiAddress)	{ mcMPU.TestSetP
 uint32 CFlat65C64DebugTarget::GetStackPointer(void) const	{ return mcMPU.GetS(); }
 CBreakpoints* CFlat65C64DebugTarget::GetBreakpoints(void)	{ return mcMPU.GetBreakpoints(); }
 bool CFlat65C64DebugTarget::IsAtBreakpoint(void) const	{ return mcMPU.IsAtBreakpoint(); }
+CDataWatches* CFlat65C64DebugTarget::GetSpaceWatches(size uiSpace)	{ return (uiSpace == 0) ? mcMPU.GetWatches() : NULL; }
+void CFlat65C64DebugTarget::WatchesChanged(void)		{ mcMPU.WatchesChanged(); }
+const SDataWatchHit* CFlat65C64DebugTarget::GetWatchHit(void) const	{ return mcMPU.GetWatchHit(); }
 bool CFlat65C64DebugTarget::IsStopped(void) const			{ return mcMPU.IsStopped(); }
 void CFlat65C64DebugTarget::Run(uint64 uiBudget)	{ mcMPU.Run((size)uiBudget); }
 bool CFlat65C64DebugTarget::Step(void)				{ return mcMPU.Step(); }

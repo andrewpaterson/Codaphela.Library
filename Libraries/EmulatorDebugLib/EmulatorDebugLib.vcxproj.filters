@@ -15,6 +15,9 @@
     <ClCompile Include="DebugFormat.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="DebugProtocol.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Fast65C64DebugDecoder.cpp">
       <Filter>Source</Filter>
     </ClCompile>

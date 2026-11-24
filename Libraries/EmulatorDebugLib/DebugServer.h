@@ -37,7 +37,8 @@ enum EDebugServerState
 };
 
 
-typedef CArrayTemplate<SDebugRange>	CArrayDebugRanges;
+typedef CArrayTemplate<SDebugRange>			CArrayDebugRanges;
+typedef CArrayTemplate<SDebugBreakpoint>	CArrayDebugBreakpoints;
 
 
 //The emulator's end of a debugging connection: it does what the debugger's messages ask to a CDebugTarget and
@@ -50,6 +51,10 @@ typedef CArrayTemplate<SDebugRange>	CArrayDebugRanges;
 //
 //If the debugger detaches or its channel closes the breakpoints are cleared and the target runs on; another
 //channel can then be attached.
+//
+//Data breakpoints are the server's (masDataBreakpoints): it fills the target's watches from them, and a watched
+//access stops only if one of them is for the space and process the target is in, so the target can watch
+//addresses more widely (one set for a mode's every process).
 class CDebugServer
 {
 protected:
@@ -65,6 +70,7 @@ protected:
 	uint32				muiMotionRequest;	//The ID of the last request that moved the processor: its state messages have it.
 
 	CArrayDebugRanges	masRanges;		//A DM_StepRange's.
+	CArrayDebugBreakpoints	masDataBreakpoints;
 	bool				mbOver;
 	bool				mbOut;			//A DM_StepOut: steps until a return of its own takes the stack above muiDepth.
 	uint32				muiDepth;		//The stack pointer at the last instruction in a range, or where a step out started.
@@ -90,6 +96,14 @@ protected:
 	void				Hello(void* pvData, size uiSize);
 	void				SetBreakpoints(void* pvData, size uiSize);
 	void				ChangeBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpoint, uint32 uiType);
+	void				ChangeDataBreakpoint(uint32 uiChange, SDebugBreakpoint* psBreakpoint, uint32 uiType);
+	void				ClearBreakpoints(void);
+	void				EnableAllBreakpoints(bool bEnabled);
+	void				FillWatches(void);
+	void				Watch(size uiSpace, uint32 uiAddress, bool bReads);
+	bool				IsDataBreakpointHit(void);
+	SDebugBreakpoint*	FindDataBreakpointHit(void);
+	bool				Covers(SDebugBreakpoint* psBreakpoint, size uiSpace, uint32 uiProcess, uint32 uiAddress);
 	void				SendProcess(uint32 uiType, SDebugProcess* psProcess);
 	void				SendModule(SDebugModule* psModule);
 	void				SendEvents(void);
@@ -110,7 +124,9 @@ protected:
 	void				Disassemble(void* pvData, size uiSize);
 	void				Detach(void);
 
+	bool				TargetStep(void);
 	bool				ForceStep(void);
+	EDebugStop			StopReason(EDebugStop eOtherwise);
 	void				CheckRun(void);
 	void				Stop(EDebugStop eReason);
 	void				StopAfterStep(void);

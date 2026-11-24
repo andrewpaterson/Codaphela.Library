@@ -147,6 +147,11 @@ enum EDebugModuleEvent
 //A target with more than one breakpoint space (a computer whose modes see different memory at the same address)
 //keeps a CBreakpoints for each and stops only at those of the mode it is in.  GetBreakpoints is the first space's.
 //
+//A target that can watch memory (GetSpaceWatches isn't NULL) takes data breakpoints: the server fills each space's
+//watches and calls WatchesChanged; Run and Step then return after an instruction that read or wrote a watched address
+//(GetWatchHit).  The same byte may be seen at another address in another space (a kernel's view of a process's
+//memory, GetWatchAlias), so a data breakpoint in one is watched in the other too.
+//
 //A target that runs processes (HasProcesses) tells of each one started and ended while events are watched
 //(WatchEvents), and can keep breakpoints of a space for one process (GetProcessBreakpoints): they stop only while that
 //process runs.  Its processes' breakpoints go when the process ends (its ID may be given to another).  A target that
@@ -174,6 +179,13 @@ public:
 	virtual void				ClearBreakpoints(void);
 	virtual void				EnableAllBreakpoints(bool bEnabled);
 
+	virtual CDataWatches*			GetSpaceWatches(size uiSpace);
+	virtual void					WatchesChanged(void);
+	virtual const SDataWatchHit*	GetWatchHit(void) const;
+	virtual bool					GetWatchAlias(size uiSpace, uint32 uiProcess, uint32 uiAddress, size* puiAliasSpace, uint32* puiAlias);
+	bool							CanWatch(void);
+	bool							IsAtWatch(void) const;
+
 	virtual bool				HasProcesses(void) const;
 	virtual size				NumProcesses(void) const;
 	virtual bool				GetProcess(size uiIndex, SDebugProcess* psDest);
@@ -191,7 +203,8 @@ public:
 
 	//uiBudget is the target's own unit: instructions for a bare processor, cycles for a computer that keeps time.
 	virtual void				Run(uint64 uiBudget) =0;
-	//One instruction (or one step of one, or a cycle waiting).  False at a breakpoint or if the processor stopped.
+	//One instruction (or one step of one, or a cycle waiting).  False at a breakpoint, after a watched access
+	//(IsAtWatch) or if the processor stopped.
 	virtual bool				Step(void) =0;
 	virtual void				Reset(void) =0;
 

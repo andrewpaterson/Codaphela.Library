@@ -65,9 +65,9 @@ typedef void(*CFastW65C816Signal)(void* pvContext, uint8 uiSignal);
 //(GetBreakpoints, IsAtBreakpoint).  The next Step or Run executes it.  Run only checks addresses while a
 //breakpoint is enabled: without one its loop is a copy that doesn't look them up.
 //
-//They also return after an instruction that read or wrote a watched address (GetWatches, IsAtWatch): reads and
-//writes have bank tables of their own (mapuiReadBanks, mapuiWriteBanks), without the banks a watch is in, so only
-//accesses to those banks look (WatchesChanged).  Fetches use mapuiBanks and are never watched.
+//They also return after an instruction that read or wrote a watched address (GetWatches, UseWatches, IsAtWatch):
+//reads and writes have bank tables of their own (mapuiReadBanks, mapuiWriteBanks), without the banks a watch is in,
+//so only accesses to those banks look (WatchesChanged).  Fetches use mapuiBanks and are never watched.
 class CFastW65C816
 {
 protected:
@@ -112,6 +112,8 @@ protected:
 	bool					mbAtBreakpoint;		//Step or Run returned at a breakpoint; the next executes it.
 	bool					mbMoving;			//The next instruction is the rest of a block move.
 	CDataWatches			mcWatches;
+	CDataWatches*			mpcWatches;			//The ones looked at: mcWatches unless UseWatches chose others.
+	SDataWatchHit			msWatchHit;
 
 public:
 	void		Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
@@ -131,9 +133,12 @@ public:
 	CBreakpoints*	GetUsedBreakpoints(void) const;
 	CBreakpoints*	GetMoreUsedBreakpoints(void) const;
 	bool			IsAtBreakpoint(void) const;
-	CDataWatches*	GetWatches(void);
-	void			WatchesChanged(void);
-	bool			IsAtWatch(void) const;
+	CDataWatches*			GetWatches(void);
+	void					UseWatches(CDataWatches* pcWatches);
+	CDataWatches*			GetUsedWatches(void) const;
+	void					WatchesChanged(void);
+	bool					IsAtWatch(void) const;
+	const SDataWatchHit*	GetWatchHit(void) const;
 
 	uint16		GetC(void) const;
 	uint16		GetX(void) const;

@@ -982,17 +982,15 @@ void TestFast65C64Watches(void)
 {
 	CTest65C64Context*	pcContext;
 	CFast65C64			cFast;
-	CDataWatches*		pcWatches;
 
 	pcContext = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
 
 	TestFast65C64WatchBegin(&cFast, pcContext);
 	TestFast65C64Watch(&cFast, 0x2002, true);
 	AssertSize(3, cFast.Run(100));
-	pcWatches = cFast.GetWatches();
 	AssertTrue(cFast.IsAtWatch());
-	AssertIntHex(0x2002, pcWatches->GetHitAddress());
-	AssertTrue(pcWatches->IsHitWrite());
+	AssertIntHex(0x2002, cFast.GetWatchHit()->uiAddress);
+	AssertTrue(cFast.GetWatchHit()->bWrite);
 	AssertIntHex(0x11223344, pcContext->GetLong(0x2000));
 	AssertSize(2, cFast.Run(100));
 	AssertFalse(cFast.IsAtWatch());
@@ -1006,8 +1004,8 @@ void TestFast65C64Watches(void)
 	AssertTrue(cFast.Step());
 	AssertFalse(cFast.Step());
 	AssertTrue(cFast.IsAtWatch());
-	AssertIntHex(0x2006, cFast.GetWatches()->GetHitAddress());
-	AssertFalse(cFast.GetWatches()->IsHitWrite());
+	AssertIntHex(0x2006, cFast.GetWatchHit()->uiAddress);
+	AssertFalse(cFast.GetWatchHit()->bWrite);
 	AssertLongLongIntHex(0xCAFEF00DLL, cFast.GetA());
 	AssertFalse(cFast.Step());
 	AssertFalse(cFast.IsAtWatch());

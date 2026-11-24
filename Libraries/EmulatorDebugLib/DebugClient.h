@@ -75,6 +75,11 @@ protected:
 	uint32				muiStopSpace;		//DEBUG_SPACE_ANY or the space's index plus one.
 	uint32				muiStopProcess;
 	uint32				muiStopUserProcess;
+	uint32				muiStopDataAddress;
+	bool				mbStopDataWrite;
+	uint32				muiStopDataBreakpoint;
+	uint32				muiStopDataBytes;
+	uint8				mauiStopData[DEBUG_MAX_WATCH_BYTES];
 	uint64				mauiValues[DEBUG_MAX_REGISTERS];	//At the last stop, or the last DM_Registers.
 	size				muiNumStops;
 	size				muiNumRegisterReplies;
@@ -108,6 +113,7 @@ public:
 	uint32				RemoveBreakpoint(uint32 uiAddress, uint32 uiSpace = DEBUG_SPACE_ANY, uint32 uiProcess = DEBUG_PROCESS_ANY);
 	uint32				EnableBreakpoint(uint32 uiAddress, bool bEnabled, uint32 uiSpace = DEBUG_SPACE_ANY, uint32 uiProcess = DEBUG_PROCESS_ANY);
 	uint32				EnableAllBreakpoints(bool bEnabled);
+	uint32				ChangeBreakpoint(uint32 uiType, SDebugBreakpoint* psBreakpoint);
 	uint32				Continue(void);
 	uint32				Pause(void);
 	uint32				Step(uint32 uiInstructions);
@@ -138,6 +144,7 @@ public:
 	size				NumAddressBits(void) const;
 	EDebugAddressFormat	GetAddressFormat(void) const;
 	bool				CanDecode(void);
+	bool				CanWatch(void) const;
 	size				NumBreakpointSpaces(void) const;
 	const char*			GetBreakpointSpaceName(size uiIndex);
 	bool				FindBreakpointSpace(const char* szName, uint32* puiSpace);
@@ -162,6 +169,10 @@ public:
 	uint32				GetStopSpace(void) const;
 	uint32				GetStopProcess(void) const;
 	uint32				GetStopUserProcess(void) const;
+	uint32				GetStopDataAddress(void) const;
+	bool				IsStopDataWrite(void) const;
+	uint32				GetStopDataBreakpoint(void) const;
+	size				GetStopData(void* pvDest, size uiBytes) const;
 	size				NumStops(void);
 	size				NumRegisterReplies(void);
 

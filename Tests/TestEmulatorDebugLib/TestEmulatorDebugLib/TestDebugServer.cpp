@@ -500,10 +500,7 @@ static void TestDebugServerW65C816(ETestDebugTransport eTransport)
 	AssertSize(0, pcClient->NumProcesses());
 
 	//The breakpoints replaced by one at $1000.
-	sBreakpoint.uiAddress = 0x1000;
-	sBreakpoint.uiEnabled = true;
-	sBreakpoint.uiSpace = DEBUG_SPACE_ANY;
-	sBreakpoint.uiProcess = DEBUG_PROCESS_ANY;
+	sBreakpoint.Init(0x1000, true);
 	AssertTrue(pcClient->SetBreakpoints(&sBreakpoint, 1));
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, 0x1000);
@@ -565,6 +562,7 @@ static void TestDebugServer65C64(ETestDebugTransport eTransport)
 	uint32					uiAddY;
 	uint32					uiFunctionEnd;
 	CChars					sz;
+	SDebugBreakpoint		sWatch;
 
 	pcProgram = (CTest65C64Context*)malloc(sizeof(CTest65C64Context));
 	pcProgram->Init(0x1000);
@@ -657,6 +655,16 @@ static void TestDebugServer65C64(ETestDebugTransport eTransport)
 	AssertTrue(pcClient->Continue());
 	TestDebugWaitForStop(psLink, DS_Breakpoint, uiAddY);
 	AssertTrue(cTarget.GetBreakpoints()->Contains(0xFFFF0000));
+	AssertSize(0, pcClient->NumErrors());
+
+	//A data breakpoint on the stack: the jsr's push writes it, and it stops in the function.
+	AssertTrue(pcClient->SetBreakpoints(NULL, 0));
+	AssertTrue(pcClient->CanWatch());
+	sWatch.Init(0x1FFFE, true, DEBUG_SPACE_ANY, DEBUG_PROCESS_ANY, DBK_Write, 1);
+	AssertTrue(pcClient->ChangeBreakpoint(DM_AddBreakpoint, &sWatch));
+	AssertTrue(pcClient->Continue());
+	TestDebugWaitForStop(psLink, DS_DataBreakpoint, 0x1100);
+	AssertIntHex(0x1FFFE, pcClient->GetStopDataAddress());
 	AssertSize(0, pcClient->NumErrors());
 
 	AssertTrue(pcClient->Quit());
@@ -876,6 +884,121 @@ static void TestDebugServerResetTarget(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Runs on for a few Ticks, then pauses: the stop must be the pause's.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestDebugRunThenPause(STestDebugLink* psLink)
+{
+	int		i;
+
+	TestDebugWaitForRunning(psLink);
+	for (i = 0; i < 10; i++)
+	{
+		psLink->cServer.Tick(TEST_DEBUG_BUDGET);
+	}
+	AssertTrue(psLink->cClient.Pause());
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumStops, psLink->cClient.NumStops() + 1));
+	AssertInt(DS_Pause, psLink->cClient.GetStopReason());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Data breakpoints (protocol 8) on a W65C816 in emulation mode:
+//
+//	$1000	INX
+//	$1001	STX $3000
+//	$1004	LDA $3001
+//	$1007	BRA $1000
+//
+// A write breakpoint stops after the STX, a read-write one after the LDA,
+// a step stops at one; a disabled one, one for another process and one
+// cleared with the rest don't stop; a bad one is refused.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestDebugServerDataBreakpoints(void)
+{
+	CFlatW65C816DebugTarget	cTarget;
+	STestDebugLink			sLink;
+	STestDebugLink*			psLink;
+	CDebugClient*			pcClient;
+	SDebugBreakpoint		sWrite;
+	SDebugBreakpoint		sRead;
+	SDebugBreakpoint		sOther;
+	SDebugBreakpoint		sBad;
+	uint8					auiData[DEBUG_MAX_WATCH_BYTES];
+	static uint8			auiLoop[] = { 0xE8, 0x8E, 0x00, 0x30, 0xAD, 0x01, 0x30, 0x80, 0xF7 };
+
+	cTarget.Init(TEST_DEBUG_W65C816_MEMORY);
+	psLink = &sLink;
+	AssertTrue(TestDebugLinkInit(psLink, TDT_SharedMemory, &cTarget));
+	pcClient = &psLink->cClient;
+	AssertTrue(pcClient->Hello());
+	TestDebugWaitForStop(psLink, DS_Start, 0);
+	AssertTrue(pcClient->CanWatch());
+	AssertTrue(pcClient->Load(0x1000, auiLoop, sizeof(auiLoop)));
+	AssertTrue(pcClient->SetProgramAddress(0x1000));
+
+	//After the STX, each time round.
+	sWrite.Init(0x3000, true, DEBUG_SPACE_ANY, DEBUG_PROCESS_ANY, DBK_Write, 1);
+	AssertTrue(pcClient->ChangeBreakpoint(DM_AddBreakpoint, &sWrite));
+	AssertTrue(pcClient->Continue());
+	TestDebugWaitForStop(psLink, DS_DataBreakpoint, 0x1004);
+	AssertIntHex(0x3000, pcClient->GetStopDataAddress());
+	AssertTrue(pcClient->IsStopDataWrite());
+	AssertIntHex(0x3000, pcClient->GetStopDataBreakpoint());
+	AssertSize(1, pcClient->GetStopData(auiData, sizeof(auiData)));
+	AssertInt(1, auiData[0]);
+	AssertLongLongIntHex(1, pcClient->GetRegisterValue(DW65C816R_X));
+	AssertTrue(pcClient->Continue());
+	TestDebugWaitForStop(psLink, DS_DataBreakpoint, 0x1004);
+	AssertLongLongIntHex(2, pcClient->GetRegisterValue(DW65C816R_X));
+
+	//A read of two bytes' second, after the LDA; then a step stops at it.
+	AssertTrue(pcClient->ChangeBreakpoint(DM_RemoveBreakpoint, &sWrite));
+	sRead.Init(0x3000, true, DEBUG_SPACE_ANY, DEBUG_PROCESS_ANY, DBK_ReadWrite, 2);
+	AssertTrue(pcClient->ChangeBreakpoint(DM_AddBreakpoint, &sRead));
+	AssertTrue(pcClient->Continue());
+	TestDebugWaitForStop(psLink, DS_DataBreakpoint, 0x1007);
+	AssertIntHex(0x3001, pcClient->GetStopDataAddress());
+	AssertFalse(pcClient->IsStopDataWrite());
+	AssertTrue(pcClient->Step(5));
+	TestDebugWaitForStop(psLink, DS_DataBreakpoint, 0x1004);
+	AssertIntHex(0x3000, pcClient->GetStopDataAddress());
+	AssertTrue(pcClient->IsStopDataWrite());
+
+	//Disabled, and for a process the target never runs: watched, but no stop.
+	sRead.uiEnabled = false;
+	AssertTrue(pcClient->ChangeBreakpoint(DM_EnableBreakpoint, &sRead));
+	sOther.Init(0x3000, true, DEBUG_SPACE_ANY, 5, DBK_Write, 1);
+	AssertTrue(pcClient->ChangeBreakpoint(DM_AddBreakpoint, &sOther));
+	AssertTrue(pcClient->Continue());
+	TestDebugRunThenPause(psLink);
+	AssertTrue(cTarget.GetSpaceWatches(0)->AnyWrites());
+	AssertFalse(cTarget.GetSpaceWatches(0)->AnyReads());
+
+	//Refused: no bytes, too many, and one that isn't there.
+	sBad.Init(0x3000, true, DEBUG_SPACE_ANY, DEBUG_PROCESS_ANY, DBK_Write, 0);
+	AssertTrue(pcClient->ChangeBreakpoint(DM_AddBreakpoint, &sBad));
+	sBad.uiBytes = 9;
+	AssertTrue(pcClient->ChangeBreakpoint(DM_AddBreakpoint, &sBad));
+	sBad.uiBytes = 4;
+	AssertTrue(pcClient->ChangeBreakpoint(DM_RemoveBreakpoint, &sBad));
+	AssertTrue(TestDebugWait(psLink, &CDebugClient::NumErrors, 3));
+	AssertString("No breakpoint there.", pcClient->GetError());
+
+	//Replacing the breakpoints clears the data ones too.
+	AssertTrue(pcClient->SetBreakpoints(NULL, 0));
+	TestDebugSync(psLink);
+	AssertFalse(cTarget.GetSpaceWatches(0)->Any());
+
+	TestDebugLinkKill(psLink, TDT_SharedMemory);
+	cTarget.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestDebugServer(void)
@@ -889,6 +1012,7 @@ void TestDebugServer(void)
 	TestDebugServer65C64(TDT_Network);
 	TestDebugServerAttach();
 	TestDebugServerResetTarget();
+	TestDebugServerDataBreakpoints();
 
 	TestStatistics();
 }

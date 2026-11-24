@@ -60,6 +60,10 @@ public:
 	bool			IsAtBreakpoint(void) const override;
 	bool			IsStopped(void) const override;
 
+	CDataWatches*			GetSpaceWatches(size uiSpace) override;
+	void					WatchesChanged(void) override;
+	const SDataWatchHit*	GetWatchHit(void) const override;
+
 	void			Run(uint64 uiBudget) override;
 	bool			Step(void) override;
 	void			Reset(void) override;

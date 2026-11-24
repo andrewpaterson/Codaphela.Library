@@ -190,6 +190,7 @@
     <ClCompile Include="DebugClient.cpp" />
     <ClCompile Include="DebugMemoryCache.cpp" />
     <ClCompile Include="DebugFormat.cpp" />
+    <ClCompile Include="DebugProtocol.cpp" />
     <ClCompile Include="Fast65C64DebugDecoder.cpp" />
     <ClCompile Include="EmulatorDebugger.cpp" />
     <ClCompile Include="DebugServer.cpp" />

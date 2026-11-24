@@ -88,6 +88,8 @@ void CFastW65C816::Init(CFastW65C816ReadByte fReadByte, CFastW65C816WriteByte fW
 	muiHoleSize = 0;
 	muiPBR = 0;
 	mcWatches.Init();
+	mpcWatches = &mcWatches;
+	msWatchHit.Clear();
 	SetBanks();
 
 	mcBreakpoints.Init();
@@ -160,7 +162,7 @@ void CFastW65C816::SetBanks(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// After the watches change (GetWatches): the read and write bank tables
+// After the watches looked at change (GetWatches, UseWatches): the read and write bank tables
 // are mapuiBanks without the banks with a watch of their kind, so Read and
 // Write look at the watches only for accesses to those banks.
 //
@@ -171,8 +173,8 @@ void CFastW65C816::WatchesChanged(void)
 
 	for (uiBank = 0; uiBank < FAST_W65C816_BANKS; uiBank++)
 	{
-		mapuiReadBanks[uiBank] = mcWatches.GetReads()->AnyEnabledInBank(uiBank) ? NULL : mapuiBanks[uiBank];
-		mapuiWriteBanks[uiBank] = mcWatches.GetWrites()->AnyEnabledInBank(uiBank) ? NULL : mapuiBanks[uiBank];
+		mapuiReadBanks[uiBank] = mpcWatches->GetReads()->AnyEnabledInBank(uiBank) ? NULL : mapuiBanks[uiBank];
+		mapuiWriteBanks[uiBank] = mpcWatches->GetWrites()->AnyEnabledInBank(uiBank) ? NULL : mapuiBanks[uiBank];
 	}
 }
 
@@ -308,9 +310,9 @@ FORCE_INLINE bool CFastW65C816::Breaks(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFastW65C816::Step(void)
 {
-	if (mcWatches.IsHit())
+	if (msWatchHit.bHit)
 	{
-		mcWatches.ClearHit();
+		msWatchHit.Clear();
 	}
 	if (mbStopped)
 	{
@@ -362,7 +364,7 @@ bool CFastW65C816::Step(void)
 	{
 		Decide();
 	}
-	return !mcWatches.IsHit();
+	return !msWatchHit.bHit;
 }
 
 
@@ -374,7 +376,7 @@ bool CFastW65C816::Step(void)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE bool CFastW65C816::NeedsDeciding(void)
 {
-	return (mbStopped | mbWaiting | mbIrq | mbNmiPending | mcWatches.IsHit()) != 0;
+	return (mbStopped | mbWaiting | mbIrq | mbNmiPending | msWatchHit.bHit) != 0;
 }
 
 
@@ -400,9 +402,9 @@ size CFastW65C816::Run(size uiMaxInstructions)
 {
 	size	i;
 
-	if (mcWatches.IsHit())
+	if (msWatchHit.bHit)
 	{
-		mcWatches.ClearHit();
+		msWatchHit.Clear();
 	}
 	i = 0;
 	while (i < uiMaxInstructions)
@@ -463,7 +465,7 @@ size CFastW65C816::Run(size uiMaxInstructions)
 		{
 			Decide();
 		}
-		if (mcWatches.IsHit())
+		if (msWatchHit.bHit)
 		{
 			return i;
 		}
@@ -567,7 +569,7 @@ bool CFastW65C816::IsAtBreakpoint(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Change the watches, then call WatchesChanged.
+// The processor's own watches.  Change them, then call WatchesChanged.
 //
 //////////////////////////////////////////////////////////////////////////
 CDataWatches* CFastW65C816::GetWatches(void)
@@ -578,13 +580,54 @@ CDataWatches* CFastW65C816::GetWatches(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The watches looked at from now: pcWatches (kept by the caller, as a
+// machine with a set for each of its modes does), or its own for NULL.
+// Also from a callback, during an instruction.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFastW65C816::UseWatches(CDataWatches* pcWatches)
+{
+	CDataWatches*	pcOld;
+
+	pcWatches = pcWatches ? pcWatches : &mcWatches;
+	pcOld = mpcWatches;
+	mpcWatches = pcWatches;
+	if ((pcWatches != pcOld) && (pcOld->Any() || pcWatches->Any()))
+	{
+		WatchesChanged();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CDataWatches* CFastW65C816::GetUsedWatches(void) const
+{
+	return mpcWatches;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The last Step or Run returned after an instruction that read or wrote a
-// watched address (GetWatches()->GetHitAddress).
+// watched address (GetWatchHit).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFastW65C816::IsAtWatch(void) const
 {
-	return mcWatches.IsHit();
+	return msWatchHit.bHit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const SDataWatchHit* CFastW65C816::GetWatchHit(void) const
+{
+	return &msWatchHit;
 }
 
 
@@ -685,7 +728,7 @@ FORCE_INLINE uint8 CFastW65C816::Read(uint32 uiAddress)
 	{
 		return puiBank[uiAddress & 0xFFFF];
 	}
-	mcWatches.Access(uiAddress, 1, false);
+	mpcWatches->Access(uiAddress, 1, false, &msWatchHit);
 	return ReadBus(uiAddress);
 }
 
@@ -721,7 +764,7 @@ FORCE_INLINE void CFastW65C816::Write(uint32 uiAddress, uint8 uiValue)
 		puiBank[uiAddress & 0xFFFF] = uiValue;
 		return;
 	}
-	mcWatches.Access(uiAddress, 1, true);
+	mpcWatches->Access(uiAddress, 1, true, &msWatchHit);
 	if ((uiAddress < muiMemorySize) && ((uiAddress - muiHoleStart) >= muiHoleSize))
 	{
 		mpuiMemory[uiAddress] = uiValue;

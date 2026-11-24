@@ -278,6 +278,7 @@ void CFast65C64::Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteBy
 	mbAtBreakpoint = false;
 	mbRepeating = false;
 	mcWatches.Init();
+	msWatchHit.Clear();
 
 	mfReadWord = fReadWord;
 	mfWriteByte = fWriteByte;
@@ -393,9 +394,9 @@ FORCE_INLINE bool CFast65C64::Breaks(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFast65C64::Step(void)
 {
-	if (mcWatches.IsHit())
+	if (msWatchHit.bHit)
 	{
-		mcWatches.ClearHit();
+		msWatchHit.Clear();
 	}
 	if (mbStopped)
 	{
@@ -427,7 +428,7 @@ bool CFast65C64::Step(void)
 	{
 		EnterInterrupt();
 	}
-	return !mcWatches.IsHit();
+	return !msWatchHit.bHit;
 }
 
 
@@ -439,7 +440,7 @@ bool CFast65C64::Step(void)
 //////////////////////////////////////////////////////////////////////////
 FORCE_INLINE bool CFast65C64::NeedsDeciding(void)
 {
-	return (mbStopped | mbWaiting | (muiPendingEdges != 0) | mbLevelInterrupt | mcWatches.IsHit()) != 0;
+	return (mbStopped | mbWaiting | (muiPendingEdges != 0) | mbLevelInterrupt | msWatchHit.bHit) != 0;
 }
 
 
@@ -463,9 +464,9 @@ size CFast65C64::Run(size uiMaxInstructions)
 {
 	size	i;
 
-	if (mcWatches.IsHit())
+	if (msWatchHit.bHit)
 	{
-		mcWatches.ClearHit();
+		msWatchHit.Clear();
 	}
 	i = 0;
 	while (i < uiMaxInstructions)
@@ -517,7 +518,7 @@ size CFast65C64::Run(size uiMaxInstructions)
 		{
 			EnterInterrupt();
 		}
-		if (mcWatches.IsHit())
+		if (msWatchHit.bHit)
 		{
 			return i;
 		}
@@ -579,12 +580,22 @@ void CFast65C64::WatchesChanged(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The last Step or Run returned after an instruction that read or wrote a
-// watched address (GetWatches()->GetHitAddress).
+// watched address (GetWatchHit).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CFast65C64::IsAtWatch(void) const
 {
-	return mcWatches.IsHit();
+	return msWatchHit.bHit;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const SDataWatchHit* CFast65C64::GetWatchHit(void) const
+{
+	return &msWatchHit;
 }
 
 
@@ -926,7 +937,7 @@ inline uint64 CFast65C64::ReadValue(uint32 uiAddress, uint8 uiBytes)
 		memcpy(&uiValue, &mpuiMemory[uiAddress], sizeof(uint64));
 		return uiValue & gauiFast65Masks[uiBytes];
 	}
-	mcWatches.Access(uiAddress, uiBytes, false);
+	mcWatches.Access(uiAddress, uiBytes, false, &msWatchHit);
 
 	uiValue = 0;
 	for (i = 0; i < uiWords; i++)
@@ -965,7 +976,7 @@ inline void CFast65C64::WriteValue(uint32 uiAddress, uint8 uiBytes, uint64 uiVal
 		memcpy(&mpuiMemory[uiAddress], &uiValue, uiBytes);
 		return;
 	}
-	mcWatches.Access(uiAddress, uiBytes, true);
+	mcWatches.Access(uiAddress, uiBytes, true, &msWatchHit);
 
 	for (i = 0; i < uiBytes; i++)
 	{
