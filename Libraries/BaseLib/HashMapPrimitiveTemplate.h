@@ -43,7 +43,10 @@ public:
 };
 
 
-//The drop in for CMapLongTemplate<V>: int64 keys.
+//The drop ins for CMapIntTemplate<V> and CMapLongTemplate<V>: int32 and int64 keys.
+template<class V>
+class CHashMapIntTemplate : public CHashMapPrimitiveTemplate<int32, V> {};
+
 template<class V>
 class CHashMapLongTemplate : public CHashMapPrimitiveTemplate<int64, V> {};
 

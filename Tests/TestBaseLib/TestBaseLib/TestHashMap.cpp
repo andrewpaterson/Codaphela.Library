@@ -2,6 +2,8 @@
 #include "BaseLib/HashMapTemplate.h"
 #include "BaseLib/HashSetTemplate.h"
 #include "BaseLib/HashMapString.h"
+#include "BaseLib/HashSetString.h"
+#include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/MemoryFile.h"
 #include "TestLib/Assert.h"
@@ -690,6 +692,177 @@ void TestHashMapString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void TestHashMapStringIgnoreCase(void)
+{
+	CHashMapString<int32, SArrayNaturalSize, SHashOfTextIgnoreCase>	cMap;
+	int32															i;
+	int32*															pi;
+	bool															bAdded;
+
+	cMap.Init();
+	i = 1;
+	AssertTrue(cMap.Put("Main.cpp", &i));
+	AssertInt(1, *cMap.Get("main.cpp"));
+	AssertInt(1, *cMap.Get("MAIN.CPP"));
+	AssertNull(cMap.Get("Main.cp"));
+	AssertNull(cMap.Get("Main_cpp"));
+
+	//The text kept is the first spelling.
+	pi = cMap.FindOrAdd("MAIN.cpp", 8, &bAdded);
+	AssertFalse(bAdded);
+	AssertInt(1, *pi);
+	AssertSize(1, cMap.NumElements());
+	AssertString("Main.cpp", cMap.GetKey(0));
+
+	//Only ASCII letters are folded: '@' (just before 'A') and '[' (just after 'Z') are themselves.
+	i = 2;
+	AssertTrue(cMap.Put("@[", &i));
+	AssertNull(cMap.Get("`{"));
+	AssertInt(2, *cMap.Get("@["));
+	AssertTrue(cMap.Remove("main.CPP"));
+	AssertFalse(cMap.HasKey("Main.cpp"));
+	AssertSize(1, cMap.NumElements());
+
+	//The hash is of the folded text, so names differing only in case are found however many there are.
+	cMap.ReInit();
+	AssertTrue(cMap.Put("ABCDEFGHIJKLMNOPQRSTUVWXYZ", &i));
+	AssertInt(2, *cMap.Get("abcdefghijklmnopqrstuvwxyz"));
+	AssertInt(2, *cMap.Get("aBcDeFgHiJkLmNoPqRsTuVwXyZ"));
+
+	cMap.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHashMapStringFileName(void)
+{
+	CHashMapString<int32, SArrayNaturalSize, SHashOfFileName>	cMap;
+	int32														i;
+
+	cMap.Init();
+	i = 3;
+	AssertTrue(cMap.Put("D:\\Source\\Main.cpp", &i));
+	AssertInt(3, *cMap.Get("d:/source/main.cpp"));
+	AssertInt(3, *cMap.Get("D:\\SOURCE/Main.CPP"));
+	AssertNull(cMap.Get("D:\\Source\\Main.cpp\\"));
+	AssertNull(cMap.Get("D:|Source|Main.cpp"));
+	AssertString("D:\\Source\\Main.cpp", cMap.GetKey(0));
+	cMap.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHashSetString(void)
+{
+	CHashSetString<>	cSet;
+	char				sz[32];
+	size				i;
+	bool				bAdded;
+	const char*			szText = "SymbolTable";
+
+	cSet.Init();
+	AssertTrue(cSet.IsEmpty());
+	for (i = 0; i < 1000; i++)
+	{
+		sprintf(sz, "Key%i", (int)i);
+		AssertSize(i, cSet.FindOrAddIndex(sz, &bAdded));
+		AssertTrue(bAdded);
+	}
+
+	//Each is its index, found again without being added, and the set has its own copies of the text.
+	strcpy(sz, "Overwritten");
+	for (i = 0; i < 1000; i++)
+	{
+		sprintf(sz, "Key%i", (int)i);
+		AssertSize(i, cSet.FindOrAddIndex(sz, &bAdded));
+		AssertFalse(bAdded);
+		AssertSize(i, cSet.Find(sz));
+	}
+	AssertSize(1000, cSet.NumElements());
+	AssertString("Key0", cSet.GetKey(0));
+	AssertString("Key999", cSet.GetKey(999));
+	AssertSize(6, cSet.GetKeyLength(999));
+	AssertSize(ARRAY_ELEMENT_NOT_FOUND, cSet.Find("Key"));
+	AssertFalse(cSet.HasKey("Key1000"));
+
+	//Text that isn't NULL terminated.
+	AssertSize(1000, cSet.FindOrAddIndex(szText, 6, &bAdded));
+	AssertTrue(bAdded);
+	AssertTrue(cSet.HasKey("Symbol"));
+	AssertFalse(cSet.HasKey(szText));
+	AssertString("Symbol", cSet.GetKey(1000));
+	AssertSize(1000, cSet.Find(szText, 6));
+
+	//The last takes the place of one removed.
+	AssertTrue(cSet.Remove("Key5"));
+	AssertFalse(cSet.Remove("Key5"));
+	AssertString("Symbol", cSet.GetKey(5));
+	AssertSize(5, cSet.Find("Symbol"));
+	AssertSize(1000, cSet.NumElements());
+
+	cSet.ReInit();
+	AssertSize(0, cSet.NumElements());
+	AssertFalse(cSet.HasKey("Key6"));
+	AssertSize(0, cSet.FindOrAddIndex("Key6"));
+	cSet.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHashSetStringFileName(void)
+{
+	CHashSetString<SArrayLargeSize, SHashOfFileName>	cSet;
+
+	cSet.Init();
+	AssertLSize(0, cSet.FindOrAddIndex("Libraries/BaseLib/Chars.h"));
+	AssertLSize(1, cSet.FindOrAddIndex("Libraries/BaseLib/Chars.cpp"));
+	AssertLSize(0, cSet.FindOrAddIndex("libraries\\baselib\\CHARS.H"));
+	AssertLSize(2, cSet.NumElements());
+	AssertString("Libraries/BaseLib/Chars.h", cSet.GetKey(0));
+	cSet.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void TestHashMapInt(void)
+{
+	CHashMapIntTemplate<size>	cMap;
+	size						ui;
+	int32						i;
+
+	cMap.Init();
+	for (i = -500; i < 500; i++)
+	{
+		ui = (size)(i + 500);
+		AssertTrue(cMap.Put(i * 3, &ui));
+	}
+	AssertSize(1000, cMap.NumElements());
+	AssertSize(0, *cMap.Get(-1500));
+	AssertSize(500, *cMap.Get(0));
+	AssertSize(999, *cMap.Get(1497));
+	AssertNull(cMap.Get(1));
+	AssertTrue(cMap.Remove(0));
+	AssertNull(cMap.Get(0));
+	cMap.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void TestHashMap(void)
 {
 	BeginTests();
@@ -707,6 +880,11 @@ void TestHashMap(void)
 	TestHashMapFull();
 	TestHashSet();
 	TestHashMapString();
+	TestHashMapStringIgnoreCase();
+	TestHashMapStringFileName();
+	TestHashSetString();
+	TestHashSetStringFileName();
+	TestHashMapInt();
 
 	TestStatistics();
 }

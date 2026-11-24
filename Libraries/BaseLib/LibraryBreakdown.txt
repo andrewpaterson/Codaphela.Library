@@ -16,9 +16,10 @@ Collections
   Indexes: memory index trees, accessors, data orderers
   Maps: block, primitive and string maps (sorted)
   Hash maps and sets: CHashBlockBase (HashBlock.h, compiled once) under CHashMapTemplate, CHashMapPrimitiveTemplate
-    (keys by value; CHashMapLongTemplate), CHashSetTemplate and CHashMapString (its own copy of each key's text);
-    hashes and keys in HashOf.h (SHashOf, HashMix32/64, HashBytes) and HashText.h (SHashText).  The order added;
-    see HashMapPlan.txt
+    (keys by value; CHashMapIntTemplate and CHashMapLongTemplate), CHashSetTemplate, and CHashMapString and
+    CHashSetString (their own copy of each key's text, on CHashStringBase); hashes and keys in HashOf.h (SHashOf,
+    HashMix32/64, HashBytes) and HashText.h (SHashText; SHashOfText, SHashOfTextIgnoreCase, SHashOfFileName).  The
+    order added; see HashMapPlan.txt
   Queues: CQueueTemplate (QueueTemplate.h), a CArrayTemplate with a front index: pushed at the back, taken at the
     front, cut from the back
   Binary heap: BinaryHeapPush and BinaryHeapPop (BinaryHeap.h), a min-heap kept in a CArrayTemplate

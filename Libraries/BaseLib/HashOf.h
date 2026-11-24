@@ -46,12 +46,16 @@ inline uint32 HashMix64(uint64 ulli)
 }
 
 
+//An FNV-1a hash made ready for the table: its high bits mixed into the low ones.
+inline uint32 HashFNVFinish(uint32 uiHash)
+{
+	return uiHash ^ (uiHash >> 15);
+}
+
+
 inline uint32 HashBytes(const void* pv, size uiLength)
 {
-	uint32	uiHash;
-
-	uiHash = FNVHash32(pv, uiLength);
-	return uiHash ^ (uiHash >> 15);
+	return HashFNVFinish(FNVHash32(pv, uiLength));
 }
 
 

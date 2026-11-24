@@ -44,6 +44,40 @@ struct SHashOfText
 };
 
 
+//How SHashOfFoldedText sees a character: SFoldCase sees an ASCII letter in either case as the same (as
+//StringInsensitiveCompare does), SFoldFileName that and either slash as the same.
+struct SFoldCase
+{
+	static char Fold(char c)
+	{
+		return ((c >= 'A') && (c <= 'Z')) ? (char)(c + 'a' - 'A') : c;
+	}
+};
+
+
+struct SFoldFileName
+{
+	static char Fold(char c)
+	{
+		return (c == '\\') ? '/' : SFoldCase::Fold(c);
+	}
+};
+
+
+//SHashText's HASH with each character seen as FOLD folds it: texts are equal when their folded characters are.
+template<class FOLD>
+struct SHashOfFoldedText
+{
+	static uint32		Hash(const SHashText* psKey);
+	static HashEquals	Equals(void);
+	static bool			TextEquals(const void* pvKey, const void* pvEntryKey);
+};
+
+
+typedef SHashOfFoldedText<SFoldCase>		SHashOfTextIgnoreCase;
+typedef SHashOfFoldedText<SFoldFileName>	SHashOfFileName;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -98,6 +132,65 @@ inline bool SHashOfText::TextEquals(const void* pvKey, const void* pvEntryKey)
 	psKey = (const SHashText*)pvKey;
 	psEntryKey = (const SHashText*)pvEntryKey;
 	return (psKey->uiLength == psEntryKey->uiLength) && (memcmp(psKey->sz, psEntryKey->sz, psKey->uiLength) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// FNV-1a of the folded characters.
+//
+//////////////////////////////////////////////////////////////////////////
+template<class FOLD>
+uint32 SHashOfFoldedText<FOLD>::Hash(const SHashText* psKey)
+{
+	uint32	uiHash;
+	size	i;
+
+	uiHash = FNV_HASH32_START;
+	for (i = 0; i < psKey->uiLength; i++)
+	{
+		uiHash = (uiHash ^ (uint8)FOLD::Fold(psKey->sz[i])) * FNV_HASH32_PRIME;
+	}
+	return HashFNVFinish(uiHash);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class FOLD>
+HashEquals SHashOfFoldedText<FOLD>::Equals(void)
+{
+	return &SHashOfFoldedText<FOLD>::TextEquals;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class FOLD>
+bool SHashOfFoldedText<FOLD>::TextEquals(const void* pvKey, const void* pvEntryKey)
+{
+	const SHashText*	psKey;
+	const SHashText*	psEntryKey;
+	size				i;
+
+	psKey = (const SHashText*)pvKey;
+	psEntryKey = (const SHashText*)pvEntryKey;
+	if (psKey->uiLength != psEntryKey->uiLength)
+	{
+		return false;
+	}
+	for (i = 0; i < psKey->uiLength; i++)
+	{
+		if (FOLD::Fold(psKey->sz[i]) != FOLD::Fold(psEntryKey->sz[i]))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 

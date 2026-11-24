@@ -20,53 +20,28 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __HASH_MAP_STRING_H__
 #define __HASH_MAP_STRING_H__
-#include "MemoryStackExtended.h"
-#include "HashText.h"
 #include "HashMapTemplate.h"
+#include "HashStringBase.h"
 
 
-#define HASH_MAP_STRING_CHUNK	2048
-
-
-//A map from text to V by a hash of the text, which keeps its own copy of each key (NULL terminated, so GetKey gives a
-//C string).  A key's text lasts until the map is killed or re-initialised, even after the key is removed.  Otherwise
-//as CHashMapTemplate: the order added, pointers to values lasting until the next Put or Remove.
-template<class V, class SIZE = SArrayNaturalSize>
-class CHashMapString
+//A map from text to V by a hash of the text (HASH: SHashOfText, or SHashOfTextIgnoreCase or SHashOfFileName), which
+//keeps its own copy of each key (see CHashStringBase).  Otherwise as CHashMapTemplate: the order added, pointers to
+//values lasting until the next Put or Remove.
+template<class V, class SIZE = SArrayNaturalSize, class HASH = SHashOfText>
+class CHashMapString : public CHashStringBase<CHashMapTemplate<SHashText, V, HASH, SIZE>, SIZE>
 {
 public:
-	typedef typename SIZE::Count	Count;
+	typedef CHashStringBase<CHashMapTemplate<SHashText, V, HASH, SIZE>, SIZE>	CBase;
+	typedef typename SIZE::Count												Count;
 
-protected:
-	CHashMapTemplate<SHashText, V, SHashOfText, SIZE>	mcMap;
-	CMemoryStackExtended								mcText;
+	V*		Get(const char* szKey);
+	V*		Get(const char* szKey, size uiLength);
+	V*		Put(const char* szKey);
+	V*		FindOrAdd(const char* szKey, size uiLength, bool* pbAdded = NULL);
+	bool	Put(const char* szKey, const V* pValue);
+	V*		GetValue(Count uiIndex);
 
-public:
-	void		Init(void);
-	void		Init(CMallocator* pcMalloc, lsize uiTextChunkSize = HASH_MAP_STRING_CHUNK);
-	void		Kill(void);
-	void		ReInit(void);
-
-	V*			Get(const char* szKey);
-	V*			Get(const char* szKey, size uiLength);
-	V*			Put(const char* szKey);
-	V*			FindOrAdd(const char* szKey, size uiLength, bool* pbAdded = NULL);
-	bool		Put(const char* szKey, const V* pValue);
-	bool		HasKey(const char* szKey);
-	bool		HasKey(const char* szKey, size uiLength);
-	bool		Remove(const char* szKey);
-	bool		Remove(const char* szKey, size uiLength);
-	void		RemoveAt(Count uiIndex);
-	Count		Find(const char* szKey, size uiLength);
-	bool		Reserve(Count uiNumElements);
-
-	Count		NumElements(void) const;
-	bool		IsEmpty(void) const;
-	const char*	GetKey(Count uiIndex);
-	size		GetKeyLength(Count uiIndex);
-	V*			GetValue(Count uiIndex);
-
-	void		SetDataFreeCallback(CDataFree* pcDataFree);
+	void	SetDataFreeCallback(CDataFree* pcDataFree);
 };
 
 
@@ -74,60 +49,10 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-void CHashMapString<V, SIZE>::Init(void)
+template<class V, class SIZE, class HASH>
+V* CHashMapString<V, SIZE, HASH>::Get(const char* szKey)
 {
-	Init(&gcSystemAllocator);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-void CHashMapString<V, SIZE>::Init(CMallocator* pcMalloc, lsize uiTextChunkSize)
-{
-	mcMap.Init(pcMalloc);
-	mcText.Init(uiTextChunkSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-void CHashMapString<V, SIZE>::Kill(void)
-{
-	mcMap.Kill();
-	mcText.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-void CHashMapString<V, SIZE>::ReInit(void)
-{
-	mcMap.ReInit();
-	mcText.Clear();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-V* CHashMapString<V, SIZE>::Get(const char* szKey)
-{
-	SHashText	sKey;
-
-	sKey.Init(szKey);
-	return mcMap.Get(&sKey);
+	return Get(szKey, (size)strlen(szKey));
 }
 
 
@@ -136,13 +61,13 @@ V* CHashMapString<V, SIZE>::Get(const char* szKey)
 // szKey needn't be NULL terminated.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-V* CHashMapString<V, SIZE>::Get(const char* szKey, size uiLength)
+template<class V, class SIZE, class HASH>
+V* CHashMapString<V, SIZE, HASH>::Get(const char* szKey, size uiLength)
 {
 	SHashText	sKey;
 
 	sKey.Init(szKey, uiLength);
-	return mcMap.Get(&sKey);
+	return CBase::mcMap.Get(&sKey);
 }
 
 
@@ -150,8 +75,8 @@ V* CHashMapString<V, SIZE>::Get(const char* szKey, size uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-V* CHashMapString<V, SIZE>::Put(const char* szKey)
+template<class V, class SIZE, class HASH>
+V* CHashMapString<V, SIZE, HASH>::Put(const char* szKey)
 {
 	return FindOrAdd(szKey, (size)strlen(szKey), NULL);
 }
@@ -163,39 +88,13 @@ V* CHashMapString<V, SIZE>::Put(const char* szKey)
 // text copied) if there isn't one.  NULL if there is no memory for it.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-V* CHashMapString<V, SIZE>::FindOrAdd(const char* szKey, size uiLength, bool* pbAdded)
+template<class V, class SIZE, class HASH>
+V* CHashMapString<V, SIZE, HASH>::FindOrAdd(const char* szKey, size uiLength, bool* pbAdded)
 {
-	SHashText	sKey;
-	Count		uiIndex;
-	bool		bAdded;
-	char*		szCopy;
-	SHashText*	psKept;
+	Count	uiIndex;
 
-	sKey.Init(szKey, uiLength);
-	uiIndex = mcMap.FindOrAddIndex(&sKey, &bAdded);
-	if (pbAdded)
-	{
-		*pbAdded = bAdded;
-	}
-	if (uiIndex == SIZE::NotFound)
-	{
-		return NULL;
-	}
-	if (bAdded)
-	{
-		szCopy = (char*)mcText.Add((lsize)uiLength + 1);
-		if (szCopy == NULL)
-		{
-			mcMap.RemoveAt(uiIndex);
-			return NULL;
-		}
-		memcpy(szCopy, szKey, uiLength);
-		szCopy[uiLength] = '\0';
-		psKept = mcMap.GetKey(uiIndex);
-		psKept->sz = szCopy;
-	}
-	return mcMap.GetValue(uiIndex);
+	uiIndex = CBase::FindOrAddIndex(szKey, uiLength, pbAdded);
+	return (uiIndex == SIZE::NotFound) ? NULL : CBase::mcMap.GetValue(uiIndex);
 }
 
 
@@ -204,12 +103,12 @@ V* CHashMapString<V, SIZE>::FindOrAdd(const char* szKey, size uiLength, bool* pb
 // szKey's value is a copy of *pValue, whether it had one or not.
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::Put(const char* szKey, const V* pValue)
+template<class V, class SIZE, class HASH>
+bool CHashMapString<V, SIZE, HASH>::Put(const char* szKey, const V* pValue)
 {
 	V*	pDest;
 
-	pDest = FindOrAdd(szKey, (size)strlen(szKey), NULL);
+	pDest = Put(szKey);
 	if (pDest == NULL)
 	{
 		return false;
@@ -223,13 +122,10 @@ bool CHashMapString<V, SIZE>::Put(const char* szKey, const V* pValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::HasKey(const char* szKey)
+template<class V, class SIZE, class HASH>
+V* CHashMapString<V, SIZE, HASH>::GetValue(Count uiIndex)
 {
-	SHashText	sKey;
-
-	sKey.Init(szKey);
-	return mcMap.HasKey(&sKey);
+	return CBase::mcMap.GetValue(uiIndex);
 }
 
 
@@ -237,146 +133,11 @@ bool CHashMapString<V, SIZE>::HasKey(const char* szKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::HasKey(const char* szKey, size uiLength)
+template<class V, class SIZE, class HASH>
+void CHashMapString<V, SIZE, HASH>::SetDataFreeCallback(CDataFree* pcDataFree)
 {
-	SHashText	sKey;
-
-	sKey.Init(szKey, uiLength);
-	return mcMap.HasKey(&sKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::Remove(const char* szKey)
-{
-	SHashText	sKey;
-
-	sKey.Init(szKey);
-	return mcMap.Remove(&sKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::Remove(const char* szKey, size uiLength)
-{
-	SHashText	sKey;
-
-	sKey.Init(szKey, uiLength);
-	return mcMap.Remove(&sKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The last entry takes uiIndex.
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-void CHashMapString<V, SIZE>::RemoveAt(Count uiIndex)
-{
-	mcMap.RemoveAt(uiIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-typename SIZE::Count CHashMapString<V, SIZE>::Find(const char* szKey, size uiLength)
-{
-	SHashText	sKey;
-
-	sKey.Init(szKey, uiLength);
-	return mcMap.Find(&sKey);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::Reserve(Count uiNumElements)
-{
-	return mcMap.Reserve(uiNumElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-typename SIZE::Count CHashMapString<V, SIZE>::NumElements(void) const
-{
-	return mcMap.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-bool CHashMapString<V, SIZE>::IsEmpty(void) const
-{
-	return mcMap.IsEmpty();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-const char* CHashMapString<V, SIZE>::GetKey(Count uiIndex)
-{
-	return mcMap.GetKey(uiIndex)->sz;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-size CHashMapString<V, SIZE>::GetKeyLength(Count uiIndex)
-{
-	return mcMap.GetKey(uiIndex)->uiLength;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-V* CHashMapString<V, SIZE>::GetValue(Count uiIndex)
-{
-	return mcMap.GetValue(uiIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-template<class V, class SIZE>
-void CHashMapString<V, SIZE>::SetDataFreeCallback(CDataFree* pcDataFree)
-{
-	mcMap.SetDataFreeCallback(pcDataFree);
+	CBase::mcMap.SetDataFreeCallback(pcDataFree);
 }
 
 
 #endif // __HASH_MAP_STRING_H__
-
