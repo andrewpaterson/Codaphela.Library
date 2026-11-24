@@ -1136,7 +1136,7 @@ bool CCPP65IRFrontEnd::ReferredPlace(CCPPSyntax* pcExpression, SCPP65Type* psRef
 	CCPPSyntaxIdExpression*	pcName;
 	SCPP65IRValue			sAddress;
 
-	pcName = psReference->psBase->IsFunction() ? mpcUnit->FunctionNameOf(pcExpression) : NULL;
+	pcName = psReference->psBase->IsFunction() ? mpcUnit->GetBinder()->FunctionNameOf(pcExpression) : NULL;
 	if (!pcName || !pcName->mpcName->mpcSymbol)
 	{
 		return Place(pcExpression, psPlace);

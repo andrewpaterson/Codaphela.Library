@@ -108,7 +108,7 @@ bool CCPP65IRFrontEnd::OverloadAddress(CCPPSyntax* pcExpression, SCPP65Type* psT
 {
 	CCPPSyntaxIdExpression*	pcName;
 
-	pcName = mpcUnit->FunctionNameFor(pcExpression, psTo);
+	pcName = mpcUnit->GetBinder()->FunctionNameFor(pcExpression, psTo);
 	*pbAddress = pcName != NULL;
 	if (pcName)
 	{
@@ -119,7 +119,7 @@ bool CCPP65IRFrontEnd::OverloadAddress(CCPPSyntax* pcExpression, SCPP65Type* psT
 		psValue->psType = psTo;
 		return true;
 	}
-	pcName = mpcUnit->MemberFunctionNameFor(pcExpression, psTo);
+	pcName = mpcUnit->GetBinder()->MemberFunctionNameFor(pcExpression, psTo);
 	if (pcName && MemberAddress(pcName, psTo->psBase, psValue, pbAddress))
 	{
 		//A member of a base is converted to a member of the class psTo is for.
@@ -723,7 +723,7 @@ bool CCPP65IRFrontEnd::FunctionName(CCPPSyntaxIdExpression* pcId, SCPP65IRValue*
 	CChars	szName;
 
 	szName.Init();
-	if (!mpcUnit->FunctionNameText(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &szName))
+	if (!mpcUnit->GetStrings()->FunctionNameText(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &szName))
 	{
 		szName.Kill();
 		return Unsupported(__FILE__, __LINE__);
@@ -1691,7 +1691,7 @@ bool CCPP65IRFrontEnd::ArrayValue(CCPPSyntax* pcArray, SCPP65IRValue* psPointer,
 	case CPPS_IdExpression:
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcArray)->mpcName->mpcSymbol;
 		bPlace = pcSymbol && ((pcSymbol->meKind == CPPSK_Variable) || (pcSymbol->meKind == CPPSK_Field) || (pcSymbol->meKind == CPPSK_Parameter)) &&
-				 !mpcUnit->IsFunctionName((CCPPSyntaxIdExpression*)pcArray);
+				 !mpcUnit->GetStrings()->IsFunctionName((CCPPSyntaxIdExpression*)pcArray);
 		break;
 	default:
 		bPlace = false;

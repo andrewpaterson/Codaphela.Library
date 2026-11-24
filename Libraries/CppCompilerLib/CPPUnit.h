@@ -378,12 +378,6 @@ public:
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
 
 
-	bool					FunctionNameText(int64 lliName, CChars* pszText);
-	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
-	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
-	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
-	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
-	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
 	bool					NamesFunction(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
@@ -397,7 +391,6 @@ public:
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 
 	//Objects and copies.  CPPUnitObjects.cpp
-	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
 
 	//Check only.  CPPUnitCheck.cpp
 	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);

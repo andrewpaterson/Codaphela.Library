@@ -863,7 +863,7 @@ CCPPFunction* CCPPOverloads::FindFunction(CCPPClass* pcClass, int64 lliName, ECP
 		//An overloaded function's name and a list in braces have no type of their own (NULL): RankArguments
 		//matches the name to a parameter that points to one of its overloads, and the list to what it can make.
 		apsArguments[i] = mpcUnit->GetTypeChecker()->TypeOf(papcArguments->GetPtr(i));
-		if (!apsArguments[i] && !mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)) && (papcArguments->GetPtr(i)->GetKind() != CPPS_InitializerList))
+		if (!apsArguments[i] && !mpcUnit->GetBinder()->FunctionNameOf(papcArguments->GetPtr(i)) && (papcArguments->GetPtr(i)->GetKind() != CPPS_InitializerList))
 		{
 			//Its errors.
 			mpcUnit->GetTypeChecker()->Value(papcArguments->GetPtr(i));
@@ -1153,7 +1153,7 @@ void CCPPOverloads::AddArgumentNamespaces(CArraySyntax* papcArguments, CCPPOverl
 
 	for (i = 0; papcArguments && (i < papcArguments->NumElements()); i++)
 	{
-		pcFunctionName = mpcUnit->FunctionNameOf(papcArguments->GetPtr(i));
+		pcFunctionName = mpcUnit->GetBinder()->FunctionNameOf(papcArguments->GetPtr(i));
 		if (pcFunctionName)
 		{
 			AddOverloadSetNamespaces(pcFunctionName->mpcName, papcNamespaces);
@@ -1740,7 +1740,7 @@ bool CCPPOverloads::RankArguments(CCPPFunction* pcFunction, SCPP65Type** apsArgu
 		if (!apsArguments[i])
 		{
 			//An overloaded function's name (FindFunction) is an exact match for a pointer to one of its overloads.
-			aiRanks[i] = ((i < pcFunction->mapsParameters.NumElements()) && HasOverloadOfType(mpcUnit->FunctionNameOf(papcArguments->GetPtr(i)), pcFunction->mapsParameters.GetPtr(i))) ? CPPCR_Exact : CPPCR_None;
+			aiRanks[i] = ((i < pcFunction->mapsParameters.NumElements()) && HasOverloadOfType(mpcUnit->GetBinder()->FunctionNameOf(papcArguments->GetPtr(i)), pcFunction->mapsParameters.GetPtr(i))) ? CPPCR_Exact : CPPCR_None;
 			if (aiRanks[i] == CPPCR_None)
 			{
 				return false;

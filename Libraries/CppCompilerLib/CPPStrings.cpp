@@ -163,7 +163,7 @@ bool CCPPStrings::DecodeString(CCPPSyntax* pcString, CArrayUint8* pauiBytes)
 				mpcUnit->mcMangler.AppendFunctionLabel(&szName, mpcUnit->mcContext.GetFunction());
 			}
 		}
-		else if (!szIdentifier || !mpcUnit->FunctionNameText(((CCTIdentifier*)pcToken)->miIdentifier, &szName))
+		else if (!szIdentifier || !FunctionNameText(((CCTIdentifier*)pcToken)->miIdentifier, &szName))
 		{
 			szName.Kill();
 			return mpcUnit->mcDiagnostics.Error(pcString, "This part of a string literal is not supported by the compiler yet");
@@ -383,3 +383,67 @@ bool CCPPStrings::DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, in
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// __func__ and __FUNCTION__ are the function's name.  __PRETTY_FUNCTION__ and
+// __FUNCSIG__ are its class and name ("CClass::Name"), not the whole signature.
+// Returns false if lliName is not one of them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPStrings::FunctionNameText(int64 lliName, CChars* pszText)
+{
+	char*	szName;
+	int		iLength;
+	bool	bPretty;
+
+	bPretty = (lliName == mpcUnit->GetTokeniser()->mlliPrettyFunction) || (lliName == mpcUnit->GetTokeniser()->mlliFuncSig);
+	if (!bPretty && (lliName != mpcUnit->GetTokeniser()->mlliFunc) && (lliName != mpcUnit->GetTokeniser()->mlliFunction))
+	{
+		return false;
+	}
+
+	if (mpcUnit->GetContext()->GetFunction())
+	{
+		if (bPretty && mpcUnit->GetContext()->GetFunction()->mpcClass)
+		{
+			szName = mpcUnit->GetTokeniser()->GetIdentifier(mpcUnit->GetContext()->GetFunction()->mpcClass->mlliName, &iLength);
+			pszText->Append(szName, iLength);
+			pszText->Append("::");
+		}
+		if (!mpcUnit->GetContext()->GetFunction()->IsOperator())
+		{
+			szName = mpcUnit->GetTokeniser()->GetIdentifier(mpcUnit->GetContext()->GetFunction()->mlliName, &iLength);
+			pszText->Append(szName, iLength);
+		}
+		else
+		{
+			pszText->Append("operator");
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True for __func__ and the other names of the enclosing function, which the parser
+// declares as globals.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPStrings::IsFunctionName(CCPPSyntaxIdExpression* pcId)
+{
+	CCPPSymbol*	pcSymbol;
+	CChars		szName;
+	bool		bName;
+
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	if ((pcId->mpcName->macpComponents.NumElements() != 1) || (pcSymbol && ((pcSymbol->meKind != CPPSK_Variable) || mpcUnit->GetVariable(pcSymbol))))
+	{
+		return false;
+	}
+	szName.Init();
+	bName = FunctionNameText(mpcUnit->GetComponentName(pcId->mpcName->GetLast()), &szName);
+	szName.Kill();
+	return bName;
+}

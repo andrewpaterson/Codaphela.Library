@@ -49,6 +49,9 @@ public:
 	uint32					StringElement(CArrayUint8* pauiBytes, int iElementBytes, size uiElement);
 	void					DecodeRawStringToken(CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
 	bool					DecodeStringToken(CCPPSyntax* pcString, CCTString* pcToken, int iElementBytes, CArrayUint8* pauiBytes);
+
+	bool					FunctionNameText(int64 lliName, CChars* pszText);
+	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
 };
 
 

@@ -671,7 +671,7 @@ bool CCPPExceptions::PointerExceptions(CCPPSyntax* pcCallee, CCPPExceptionSpec* 
 		return false;
 	}
 	pcDest->SetAnything();
-	pcSpecification = WrittenSpecification(mpcUnit->PointedFunctionSuffix(pcDeclarator));
+	pcSpecification = WrittenSpecification(PointedFunctionSuffix(pcDeclarator));
 	if (pcSpecification)
 	{
 		WrittenExceptions(pcSpecification, pcDest);
@@ -697,7 +697,7 @@ bool CCPPExceptions::CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit)
 	SCPP65Type*							psType;
 	bool								bAllowed;
 
-	pcSpecification = WrittenSpecification(mpcUnit->PointedFunctionSuffix(pcInit->mpcDeclarator));
+	pcSpecification = WrittenSpecification(PointedFunctionSuffix(pcInit->mpcDeclarator));
 	pcValue = pcInit->mpcInitializer;
 	if (!pcSpecification || !pcValue || !pcInit->mpcParent || (pcInit->mpcParent->GetKind() != CPPS_SimpleDeclaration))
 	{
@@ -778,7 +778,7 @@ bool CCPPExceptions::ValueAllowsOnly(CCPPSyntax* pcValue, SCPP65Type* psPointer,
 	{
 		psPointer = mpcUnit->mcTypes.Pointer(psPointer->psBase);
 	}
-	pcName = mpcUnit->FunctionNameFor(pcValue, psPointer);
+	pcName = mpcUnit->GetBinder()->FunctionNameFor(pcValue, psPointer);
 	if (pcName)
 	{
 		pcFunction = mpcUnit->mcBinder.FindAddressedFunction(pcName->mpcName, pcName->mpcName->mpcSymbol->mlliName, psPointer->psBase, pcName, &bOverloaded);
@@ -1226,4 +1226,32 @@ bool CCPPExceptions::WriteThrownDestroyers(void)
 	}
 	CCPPUnitData::KillRoutines(&masThrownDestroyers);
 	return bWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function suffix of the function a declarator's pointer or reference
+// is to: void (*p)() noexcept's "() noexcept".  NULL for a declarator of
+// anything else.  The specification is the pointer's, not its type's
+// ([except.spec] 13), so it is read from where the pointer is declared.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxFunctionSuffix* CCPPExceptions::PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator)
+{
+	CCPPSyntax*	pcSuffix;
+
+	while (pcDeclarator)
+	{
+		if (pcDeclarator->mpcNested && !pcDeclarator->GetFunctionSuffix() && (pcDeclarator->macpSuffixes.NumElements() > 0))
+		{
+			pcSuffix = pcDeclarator->macpSuffixes.GetPtr(0);
+			if (pcSuffix->GetKind() == CPPS_FunctionSuffix)
+			{
+				return (CCPPSyntaxFunctionSuffix*)pcSuffix;
+			}
+		}
+		pcDeclarator = pcDeclarator->mpcNested;
+	}
+	return NULL;
 }

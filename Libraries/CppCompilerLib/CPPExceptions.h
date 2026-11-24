@@ -77,6 +77,8 @@ public:
 	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
 	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
 	bool					WriteThrownDestroyers(void);
+
+	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
 };
 
 

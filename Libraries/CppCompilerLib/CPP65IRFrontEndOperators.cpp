@@ -77,7 +77,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 	case CT_BitwiseAnd:
 		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
 		bMember = false;
-		if (mpcUnit->MemberPointerName(pcUnary) && MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
+		if (mpcUnit->GetBinder()->MemberPointerName(pcUnary) && MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
 		{
 			return true;
 		}

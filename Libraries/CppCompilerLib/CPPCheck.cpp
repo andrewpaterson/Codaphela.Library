@@ -512,7 +512,7 @@ void CCPPCheck::CheckNode(CCPPSyntax* pcNode)
 		pcValue = ((CCPPSyntaxReturnStatement*)pcNode)->mpcValue;
 		psValue = (pcValue && mpcUnit->mcContext.GetFunction() && mpcUnit->mcContext.GetFunction()->mpsReturn) ? mpcUnit->mcContext.GetFunction()->mpsReturn : NULL;
 		psValue = (psValue && psValue->IsReference() && psValue->psBase->IsFunction()) ? mpcUnit->mcTypes.Pointer(psValue->psBase) : psValue;
-		if (psValue && mpcUnit->FunctionNameFor(pcValue, psValue))
+		if (psValue && mpcUnit->GetBinder()->FunctionNameFor(pcValue, psValue))
 		{
 			mpcUnit->mcTypeChecker.ValueFor(pcValue, psValue, false);
 			return;

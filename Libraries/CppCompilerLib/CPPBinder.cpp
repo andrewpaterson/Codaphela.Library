@@ -1793,7 +1793,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 		pcBound->meWhat = CPPBN_EnclosingConstant;
 		return;
 	}
-	if (mpcUnit->IsFunctionName(pcId))
+	if (mpcUnit->GetStrings()->IsFunctionName(pcId))
 	{
 		pcBound->meWhat = CPPBN_FunctionName;
 		return;
@@ -2798,3 +2798,94 @@ bool CCPPBinder::IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName
 	return pcScope && pcScope->mpcOwner && IsNamed(lliName, szName) && IsNamed(pcScope->mpcOwner->mlliName, "std") && (!pcScope->mpcParent || !pcScope->mpcParent->mpcOwner);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// f or &f (a function's name) when the value is for psTo, a pointer to a
+// function: its address is the overload of f with psTo's function type.  NULL
+// for any other expression or type.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPBinder::FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+{
+	if (!pcExpression || !psTo || !psTo->IsPointer() || !psTo->psBase || !psTo->psBase->IsFunction() || psTo->IsMemberPointer())
+	{
+		return NULL;
+	}
+	return FunctionNameOf(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// &Class::f when the value is for psTo, a pointer to a member function:
+// the member is the overload of f with psTo's function type.  NULL for any
+// other expression or type.  [over.over] 1
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPBinder::MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
+{
+	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	if (!pcExpression || !psTo || !psTo->IsMemberPointer() || !psTo->psBase->IsFunction() || (pcExpression->GetKind() != CPPS_UnaryExpression) || (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_BitwiseAnd))
+	{
+		return NULL;
+	}
+	return MemberPointerName((CCPPSyntaxUnaryExpression*)pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The name &Class::member forms a pointer to a member from, or NULL: the
+// operand of & as it is written, a name a class qualifies with no brackets
+// about it (&(Class::member) is the member's own address, where it has
+// one).  [expr.unary.op] 4
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPBinder::MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress)
+{
+	CCPPSyntax*	pcOperand;
+
+	pcOperand = pcAddress->mpcOperand;
+	if (!pcOperand || (pcOperand->GetKind() != CPPS_IdExpression) || !((CCPPSyntaxIdExpression*)pcOperand)->mpcName->IsQualifiedByClass())
+	{
+		return NULL;
+	}
+	return (CCPPSyntaxIdExpression*)pcOperand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// f or &f: the name of a function (overloaded or not), else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxIdExpression* CCPPBinder::FunctionNameOf(CCPPSyntax* pcExpression)
+{
+	CCPPSyntax*				pcFunction;
+	CCPPSyntaxIdExpression*	pcId;
+	CCPPSymbol*				pcSymbol;
+
+	pcFunction = mpcUnit->SkipParentheses(pcExpression);
+	if (pcFunction && (pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
+	{
+		pcFunction = mpcUnit->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
+	}
+	if (!pcFunction || (pcFunction->GetKind() != CPPS_IdExpression))
+	{
+		return NULL;
+	}
+	pcId = (CCPPSyntaxIdExpression*)pcFunction;
+	pcSymbol = pcId->mpcName->mpcSymbol;
+	if (pcSymbol && (pcSymbol->meKind == CPPSK_FunctionTemplate) && !pcId->mpcName->GetLast()->mbTemplateArguments)
+	{
+		//A function template's name without template arguments is an overload set too, its instances' arguments
+		//deduced from the type wanted.  [over.over] 2
+		return pcId;
+	}
+	if (!pcSymbol || (pcSymbol->meKind != CPPSK_Function))
+	{
+		return NULL;
+	}
+	return pcId;
+}

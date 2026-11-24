@@ -432,12 +432,12 @@ SCPP65Type* CCPP65TypeChecker::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* ps
 		//{} is zero and {value} the value, not narrowed.  [dcl.init.list] 3
 		return Construct(psTo, NULL, pcExpression, pcExpression) ? psTo : NULL;
 	}
-	pcFunctionName = mpcUnit->FunctionNameFor(pcExpression, psTo);
+	pcFunctionName = mpcUnit->GetBinder()->FunctionNameFor(pcExpression, psTo);
 	if (pcFunctionName)
 	{
 		return FunctionAddress(pcFunctionName, pcFunctionName->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
 	}
-	pcFunctionName = mpcUnit->MemberFunctionNameFor(pcExpression, psTo);
+	pcFunctionName = mpcUnit->GetBinder()->MemberFunctionNameFor(pcExpression, psTo);
 	if (pcFunctionName && MemberAddress(pcFunctionName, psTo->psBase, &psMember))
 	{
 		return psMember;
@@ -1217,11 +1217,11 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		{
 			pcId = (CCPPSyntaxIdExpression*)pcOperand;
 			pcSymbol = pcId->mpcName->mpcSymbol;
-			if (mpcUnit->MemberPointerName(pcUnary) && MemberAddress(pcId, NULL, &psType))
+			if (mpcUnit->GetBinder()->MemberPointerName(pcUnary) && MemberAddress(pcId, NULL, &psType))
 			{
 				return psType;
 			}
-			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->GetClosures()->ThisClass() && QualifiedFieldType(pcId))
+			if (!mpcUnit->GetBinder()->MemberPointerName(pcUnary) && !mpcUnit->GetClosures()->ThisClass() && QualifiedFieldType(pcId))
 			{
 				//&(Class::field), which is no pointer to a member, where there is no object for the field to be in.
 				Error(pcUnary, "A pointer to a member is &Class::member, with no brackets about the name");
@@ -3107,7 +3107,7 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 		return ReferenceCast(psTo, pcOperand, pcNode);
 	}
 
-	pcFunction = mpcUnit->FunctionNameFor(pcOperand, psTo);
+	pcFunction = mpcUnit->GetBinder()->FunctionNameFor(pcOperand, psTo);
 	if (pcFunction && !pcFunction->mpcName->IsQualifiedByClass())
 	{
 		return FunctionAddress(pcFunction, pcFunction->mpcName->mpcSymbol->mlliName, psTo->psBase) ? psTo : NULL;
@@ -4145,7 +4145,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 
 	if (psType->IsReference())
 	{
-		pcFunctionName = psType->psBase->IsFunction() ? mpcUnit->FunctionNameOf(pcInitialiser) : NULL;
+		pcFunctionName = psType->psBase->IsFunction() ? mpcUnit->GetBinder()->FunctionNameOf(pcInitialiser) : NULL;
 		if (pcFunctionName && pcFunctionName->mpcName->mpcSymbol)
 		{
 			//int (&f)(int) = F; binds to the overload of F of the type.  [over.over] 1
@@ -4856,7 +4856,7 @@ bool CCPP65TypeChecker::KeepsQualifiers(CCPPSyntax* pcValue, SCPP65Type* psTo)
 		return BindsCategory(psTo, pcValue, pcValue) && (mpcUnit->GetBinder()->BindsToTemporary(psTo, pcValue) || CanBind(psTo, psValue, pcValue));
 	}
 	psValue = psValue->IsArray() ? mpcTypes->Pointer(psValue->psBase) : psValue;
-	if (!mpcUnit->FunctionNameFor(pcValue, psTo) && !ConvertsPointer(psValue, psTo, pcValue, pcValue))
+	if (!mpcUnit->GetBinder()->FunctionNameFor(pcValue, psTo) && !ConvertsPointer(psValue, psTo, pcValue, pcValue))
 	{
 		//(A function's name for a pointer to a function is the overload of that type, whatever type it is alone.)
 		return false;

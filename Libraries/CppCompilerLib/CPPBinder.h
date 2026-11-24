@@ -259,6 +259,11 @@ public:
 	bool					IsOperatorOperand(CCPPSyntax* pcExpression, ECppTokens eOperator);
 	bool					IsNamed(int64 lliName, const char* szName);
 	bool					IsStdName(int64 lliName, CCPPScope* pcScope, const char* szName);
+
+	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
+	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
+	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
 protected:
 	ECPPCalledObject	CalledObject(CCPPSyntax* pcObject, bool bArrow);
 	bool	IsNamedObject(CCPPSyntax* pcObject);
