@@ -83,24 +83,14 @@ size TestCPP65NumWritten(void)
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the 65C64's programs are built with their debug records and
-// their stacks walked at every step as they run (TestCPP65Run), each walk
-// checked against the calls being run (CAsm65C64FrameCheck): set
-// TEST_CPP65_WALK to sweep every program (Debugger65C64Plan.txt B5).  Off
-// by default, as a walk at every step is slow.
+// szSource compiled for the 65C64 (a program with its start up if
+// bProgram).  A program a test runs has a line table (bLineTable), so its
+// stack is walked at every step as it runs (TestCPP65RunWalking); a test
+// comparing the code has none, the code as a program without debug info
+// is.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP65Walking(void)
-{
-	return getenv("TEST_CPP65_WALK") != NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSource, bool bProgram, CArrayChars* paszExternals)
+bool TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSource, bool bProgram, CArrayChars* paszExternals, bool bLineTable)
 {
 	CCPP65Builder			cBuilder;
 	CCPPCompileStatistics	cStatistics;
@@ -109,7 +99,7 @@ bool TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSou
 	cBuilder.Init();
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	cStatistics.Init();
-	bResult = CCPP65Builder::Generate(pszAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, bProgram, paszExternals, CPPT_65C64, NULL, NULL, false, TestCPP65Walking(), false, true, &gcTestCPP65Options, &cStatistics);
+	bResult = CCPP65Builder::Generate(pszAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, bProgram, paszExternals, CPPT_65C64, NULL, NULL, false, bLineTable, false, true, &gcTestCPP65Options, &cStatistics);
 	guiTestCPP65Written += (size)cStatistics.GetCount(CPPCC_Functions);
 	cStatistics.Kill();
 	cBuilder.Kill();
@@ -130,7 +120,7 @@ bool TestCPP65Begin(STestCPP65Run* psRun, const char* szSource)
 
 	szAssembly.Init();
 	szErrors.Init();
-	bResult = TestCPP65Generate(&szAssembly, &szErrors, szSource, true);
+	bResult = TestCPP65Generate(&szAssembly, &szErrors, szSource, true, NULL, true);
 	AssertString("", szErrors.Text());
 	bResult &= TestCPP65BeginAssembly(psRun, szAssembly.Text());
 	szErrors.Kill();
@@ -166,10 +156,11 @@ bool TestCPP65BeginBuilt(STestCPP65Run* psRun, CCPP65Builder* pcBuilder)
 		psRun->pcContext->SetDrive(psRun->pcDrive);
 	}
 
-	//A copy of its records (the builder's go with it), to walk its stack: written and read back, which names the
-	//arrays' mallocators (the system's, only while it is copied).
+	//A copy of its records (the builder's go with it), to walk its stack at every step (TestCPP65RunWalking): written and
+	//read back, which names the arrays' mallocators (the system's, only while it is copied).  A program built without
+	//a line table has none.
 	psRun->pcDebugInfo = NULL;
-	if (TestCPP65Walking())
+	if (pcBuilder->GetDebugInfo()->GetRecords()->NumFunctions() > 0)
 	{
 		gcMallocators.InitSystem();
 		pcBytes = MemoryFile();
@@ -258,39 +249,17 @@ size TestCPP65RunWalking(STestCPP65Run* psRun, size uiMaxInstructions)
 {
 	CAsm65C64FrameCheck		cCheck;
 	CAsm65StackWalker*		pcWalker;
-	CAsm65DebugRecords*		pcRecords;
-	CArrayAsm65StackFrames	asFrames;
-	SAsm65StackRegisters	sRegisters;
 	CChars					szWrong;
 	size					uiSteps;
-	size					uiWrong;
-	size					uiFrame;
 
-	pcRecords = psRun->pcDebugInfo->GetRecords();
-	pcRecords->SetProcessor(ADP_65C64);
+	psRun->pcDebugInfo->GetRecords()->SetProcessor(ADP_65C64);
 	cCheck.Init(psRun->pcContext, &psRun->cMPU);
 	pcWalker = Asm65NewStackWalker(ADP_65C64, psRun->pcContext);
-	pcWalker->AddRecords(pcRecords, ASS_Kernel);
-	asFrames.Init();
+	pcWalker->AddRecords(psRun->pcDebugInfo->GetRecords(), ASS_Kernel);
 	szWrong.Init();
-	uiWrong = 0;
-	for (uiSteps = 0; (uiSteps < uiMaxInstructions) && !cCheck.IsStopped(); uiSteps++)
-	{
-		if (pcRecords->FindFunction(psRun->cMPU.GetProgramCounter()))
-		{
-			sRegisters.Init(&psRun->cMPU, ASS_Kernel);
-			pcWalker->Walk(&sRegisters, &asFrames, 64);
-			uiFrame = cCheck.WrongFrame(&asFrames);
-			if ((uiFrame != 0) && (uiWrong++ < 4))
-			{
-				szWrong.Append("0x")->AppendHexHiLo(&sRegisters.uiPC, 4)->Append(" in ")->Append(asFrames.Get(0)->psFunction->szName)->Append(": frame ")->Append((int)uiFrame)->AppendNewLine();
-			}
-		}
-		cCheck.Run(1);
-	}
+	uiSteps = cCheck.RunWalking(uiMaxInstructions, pcWalker, &szWrong);
 	AssertString("", szWrong.Text());
 	szWrong.Kill();
-	asFrames.Kill();
 	SafeKill(pcWalker);
 	cCheck.Kill();
 	return uiSteps;
@@ -550,7 +519,7 @@ bool TestCPP65BeginProject(STestCPP65Run* psRun, const char** aszUnits, const ch
 
 	cBuilder.Init();
 	TestCPP65AddIncludeDirectories(&cBuilder);
-	cBuilder.SetLineTable(TestCPP65Walking());
+	cBuilder.SetLineTable(true);
 	if (bLazy)
 	{
 		cBuilder.SetLazy(TEST_CPP65_SECTOR_SIZE, TEST_CPP65_FIRST_SECTOR);
@@ -693,17 +662,33 @@ int32 TestCPP65MainFloat(const char* szSource)
 //
 // Runs a W65C816 program (pcFast reset on pcMemory) up to uiMaxSteps
 // instructions, as CFastW65C816::Run, checking that no function writes its
-// caller's frame through the direct page (CAsmW65C816FrameCheck).  Returns
-// the steps run.
+// caller's frame through the direct page (CAsmW65C816FrameCheck), and,
+// given the program's records, that its stack walks right at every step
+// (CAsm65FrameCheck::RunWalking).  Returns the steps run.
 //
 //////////////////////////////////////////////////////////////////////////
-size TestCPP816RunChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps)
+size TestCPP816RunChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps, CAsm65DebugRecords* pcRecords)
 {
 	CAsmW65C816FrameCheck	cCheck;
-	size				uiSteps;
+	CAsm65StackWalker*		pcWalker;
+	CChars					szWrong;
+	size					uiSteps;
 
 	cCheck.Init(pcMemory, pcFast);
-	uiSteps = cCheck.Run(uiMaxSteps);
+	if (pcRecords && (pcRecords->NumFunctions() > 0))
+	{
+		pcWalker = Asm65NewStackWalker(ADP_W65C816, pcMemory);
+		pcWalker->AddRecords(pcRecords, ASS_Kernel);
+		szWrong.Init();
+		uiSteps = cCheck.RunWalking(uiMaxSteps, pcWalker, &szWrong);
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		SafeKill(pcWalker);
+	}
+	else
+	{
+		uiSteps = cCheck.Run(uiMaxSteps);
+	}
 	AssertString("", cCheck.GetWrites());
 	cCheck.Kill();
 	return uiSteps;

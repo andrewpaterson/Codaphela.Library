@@ -27,14 +27,14 @@ struct STestCPP65Run
 	CFast65C64		cMPU;
 	size			uiInstructions;
 	size			uiUnits;
-	CAsm65DebugInfo*	pcDebugInfo;	//Its records, when its stack is walked at every step (TestCPP65Walking).
+	CAsm65DebugInfo*	pcDebugInfo;	//Its records, its stack walked at every step (TestCPP65RunWalking); NULL without a line table.
 };
 
 
 void		TestCPP65AddIncludeDirectories(CCPP65Builder* pcBuilder);
 CCPPCompileOptions*	TestCPP65Options(void);
 size		TestCPP65NumWritten(void);
-bool		TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSource, bool bProgram = false, CArrayChars* paszExternals = NULL);
+bool		TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSource, bool bProgram = false, CArrayChars* paszExternals = NULL, bool bLineTable = false);
 int			TestCPP65Assemble(const char* szSource, bool bProgram = true);
 int			TestCPP65AssembleLibraryFile(const char* szFilename);
 bool		TestCPP65Begin(STestCPP65Run* psRun, const char* szSource);
@@ -71,7 +71,7 @@ extern const char* gszTestCPP65StaticConstMembers;
 extern const char* gszTestCPP65NestedQualifiers;
 extern const char* gszTestCPP65LateMemberDefinitions;
 size		TestCPP65CompileLibrary(const char* szLibrary, CChars* pszErrors);
-size		TestCPP816RunChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps);
+size		TestCPP816RunChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps, CAsm65DebugRecords* pcRecords = NULL);
 size		TestCPP816RunLockstepChecked(CAsm65Memory* pcMemory, CFastW65C816* pcFast, size uiMaxSteps);
 
 

@@ -200,6 +200,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 	cBuilder.Init();
 	*cBuilder.GetOptions() = gcTestCPP816Options;
 	cBuilder.SetTarget(CPPT_W65C816);
+	cBuilder.SetLineTable(true);
 	if (bBaseLib)
 	{
 		//All of BaseLib is compiled on the hardware's threads (it builds the same as one at a time), as the *65 suites'
@@ -266,7 +267,7 @@ int32 TestCPP816RunProject(const char** aszUnits, const char* szStubs, const cha
 		}
 		else
 		{
-			uiSteps = TestCPP816RunChecked(&cMemory, &cFast, uiMaxSteps);
+			uiSteps = TestCPP816RunChecked(&cMemory, &cFast, uiMaxSteps, cBuilder.GetDebugInfo()->GetRecords());
 		}
 		AssertTrue(uiSteps < uiMaxSteps);
 		if (getenv("CPP816_STEPS"))
@@ -1788,6 +1789,7 @@ void TestCPP816IndexedWords(void)
 		"\treturn 1;\n"
 		"}\n"));
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////

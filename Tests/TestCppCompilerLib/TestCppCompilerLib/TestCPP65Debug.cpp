@@ -3,7 +3,6 @@
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPP65DebugWatch.h"
 #include "Assembler65Lib/AsmW65C816StackWalker.h"
-#include "Assembler65Lib/AsmW65C816Disassembler.h"
 #include "Assembler65Lib/AsmW65C816FrameCheck.h"
 #include "Assembler65Lib/Asm65C64FrameCheck.h"
 #include "TestLib/Assert.h"
@@ -547,44 +546,6 @@ void TestCPP65DebugVariables(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Walks the stack and appends to pszWrong where the walk isn't the calls
-// the W65C816 is in (CAsmW65C816FrameCheck::WrongFrame).
-//
-//////////////////////////////////////////////////////////////////////////
-static void TestCPP65DebugCheckWalk(STestCPP65Debug* psDebug, CChars* pszWrong)
-{
-	SAsm65StackFrame*	psFrame;
-	SAsmW65C816Widths	sWidths;
-	size				uiWrong;
-
-	TestCPP65DebugWalk(psDebug);
-	uiWrong = psDebug->pcCheck->WrongFrame(&psDebug->asFrames);
-	if (uiWrong != 0)
-	{
-		psFrame = psDebug->asFrames.Get(0);
-		pszWrong->Append("$");
-		pszWrong->AppendHexHiLo(&psFrame->uiPC, 3);
-		pszWrong->Append(" in ");
-		pszWrong->Append(psFrame->psFunction->szName);
-		if (psDebug->pcCheck == &psDebug->cCheckW65C816)
-		{
-			pszWrong->Append(" (");
-			sWidths.bMemory8 = (psDebug->cFastW65C816.GetP() & 0x20) != 0;
-			sWidths.bIndex8 = (psDebug->cFastW65C816.GetP() & 0x10) != 0;
-			AsmW65C816Disassemble(psFrame->uiPC, psDebug->cMemory.Byte(psFrame->uiPC), 4, &sWidths, pszWrong);
-			pszWrong->Append(")");
-		}
-		pszWrong->Append(": frame ");
-		pszWrong->Append((int)uiWrong);
-		pszWrong->Append(" of ");
-		pszWrong->Append((int)psDebug->pcCheck->NumCalls() + 1);
-		pszWrong->AppendNewLine();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Runs the loaded program to its end, a step at a time, its stack walked
 // at each step in a function the records describe (the first few walks
 // that are wrong in pszWrong).  Returns main's int, -1000000 if it didn't
@@ -593,21 +554,7 @@ static void TestCPP65DebugCheckWalk(STestCPP65Debug* psDebug, CChars* pszWrong)
 //////////////////////////////////////////////////////////////////////////
 static int32 TestCPP65DebugRunWalking(STestCPP65Debug* psDebug, CChars* pszWrong)
 {
-	size	uiSteps;
-	size	uiWrong;
-	size	uiLength;
-
-	uiWrong = 0;
-	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->pcCheck->IsStopped(); uiSteps++)
-	{
-		if ((uiWrong < 8) && psDebug->pcRecords->FindFunction(TestCPP65DebugPC(psDebug)))
-		{
-			uiLength = pszWrong->Length();
-			TestCPP65DebugCheckWalk(psDebug, pszWrong);
-			uiWrong += (pszWrong->Length() > uiLength) ? 1 : 0;
-		}
-		TestCPP65DebugStep(psDebug);
-	}
+	psDebug->pcCheck->RunWalking(20000000, psDebug->pcWalker, pszWrong);
 	AssertInt(0, (int)psDebug->cMemory.NumBadAccesses());
 	AssertTrue(psDebug->pcCheck->IsStopped());
 	if (!psDebug->pcCheck->IsStopped())

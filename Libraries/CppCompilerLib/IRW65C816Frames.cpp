@@ -513,6 +513,20 @@ void CIRW65C816Backend::DropFrame(size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Where an aligned frame keeps S as it was (AlignFrame): in the page
+// (iSavedS) when the frame is past it, else where the caller's D was (the
+// link's first bytes).  The epilogue reads it back, and a debugger
+// (DescribeFrame's [D + SavedS] rule).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 SIRW65C816Frame::SavedS(void) const
+{
+	return IR816OnDirectPage(Top()) ? Link() : iSavedS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Gives the function in pszCode (as GenerateFunction wrote it, psFrame from
 // GetFrame) D on a page, where its direct page accesses cost a cycle less,
 // when it's worth it: estimated, or measured by pcProfile (IRW65C816Backend.h).
@@ -650,7 +664,7 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, const S
 		return false;
 	}
 
-	iSavedS = bBig ? psFrame->iSavedS : psFrame->Link();
+	iSavedS = psFrame->SavedS();
 	szPrologue.Init(CIRW65C816Backend::GetScratch());
 	if (iRegisterWords > 0)
 	{
@@ -961,7 +975,7 @@ void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRW
 		if (szLine && bAligned && pcWritten)
 		{
 			sFrame = ((CIRW65C816Written*)pcWritten)->msFrame;
-			iBelow = (sFrame.iSavedS >= 0) ? sFrame.iSavedS : sFrame.Link();
+			iBelow = sFrame.SavedS();
 			szAfter = IR816FindSavedS(szLine, iBelow);
 			szDirective.Append("\t\t.dframe [D + ")->Append(iBelow)->Append("], ")->Append(IR816_FRAME_FROM_PHD);
 		}

@@ -106,6 +106,7 @@ struct SIRW65C816Frame
 	int32	Link(void) const { return iFrameBytes + 1; }
 	int32	Arguments(void) const { return Link() + IR816_LINK_BYTES; }
 	int32	Top(void) const { return Arguments() + iArgumentBytes - 1; }
+	int32	SavedS(void) const;
 	int32	RegisterWord(int32 iWord) const { return iRegisterBase + 2 * iWord; }
 	int32	ArgumentWord(int32 iWord) const { return Arguments() + 2 * iWord; }
 };
