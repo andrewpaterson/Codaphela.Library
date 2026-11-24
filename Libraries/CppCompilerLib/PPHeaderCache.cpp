@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/FNVHash.h"
 #include "BaseLib/Numbers.h"
 #include "PPHeaderCache.h"
 
@@ -276,28 +275,27 @@ void CPPHeaderCache::Unlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CPPHeaderCache::Key(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext)
+void SPPHeaderCacheKey::Init(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext)
 {
-	uint64	uiKey;
-
-	uiKey = FNVMix64(uiContext, (uint64)(size)pcFile);
-	uiKey = FNVMix64(uiKey, (uint64)(size)pcHeaderNameMap);
-	return (int64)uiKey;
+	this->pcFile = pcFile;
+	this->pcHeaderNameMap = pcHeaderNameMap;
+	this->uiContext = uiContext;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The first header kept for pcFile found in pcHeaderNameMap in the context
-// (the rest follow psNext, and may be another file's with the same key:
-// compare them).  Only while locked.
+// The newest header kept for pcFile found in pcHeaderNameMap in the
+// context (the older follow psNext).  Only while locked.
 //
 //////////////////////////////////////////////////////////////////////////
 SPPCachedHeader* CPPHeaderCache::Get(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext)
 {
+	SPPHeaderCacheKey	sKey;
 	SPPCachedHeader**	ppsHeader;
 
-	ppsHeader = mcHeaders.Get(Key(pcFile, pcHeaderNameMap, uiContext));
+	sKey.Init(pcFile, pcHeaderNameMap, uiContext);
+	ppsHeader = mcHeaders.Get(&sKey);
 	return ppsHeader ? *ppsHeader : NULL;
 }
 
@@ -324,13 +322,13 @@ SPPCachedHeader* CPPHeaderCache::New(CSourceFile* pcFile, CHeaderFiles* pcHeader
 //////////////////////////////////////////////////////////////////////////
 void CPPHeaderCache::Publish(SPPCachedHeader* psHeader)
 {
-	int64	lliKey;
+	SPPHeaderCacheKey	sKey;
 
-	lliKey = Key(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
+	sKey.Init(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
 	psHeader->NoteFiles();
 	mcMutex.Lock();
 	psHeader->psNext = Get(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
-	mcHeaders.Put(lliKey, &psHeader);
+	mcHeaders.Put(&sKey, &psHeader);
 	mapsHeaders.Add(psHeader);
 	mcMutex.Unlock();
 }
@@ -453,12 +451,12 @@ void CPPHeaderCache::Forget(CArrayPPHeaderFiles* papcFiles)
 //////////////////////////////////////////////////////////////////////////
 void CPPHeaderCache::Unlink(SPPCachedHeader* psHeader)
 {
-	int64				lliKey;
+	SPPHeaderCacheKey	sKey;
 	SPPCachedHeader**	ppsFirst;
 	SPPCachedHeader*	psPrevious;
 
-	lliKey = Key(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
-	ppsFirst = mcHeaders.Get(lliKey);
+	sKey.Init(psHeader->pcFile, psHeader->pcHeaderNameMap, psHeader->uiContext);
+	ppsFirst = mcHeaders.Get(&sKey);
 	if (ppsFirst == NULL)
 	{
 		return;
@@ -471,7 +469,7 @@ void CPPHeaderCache::Unlink(SPPCachedHeader* psHeader)
 		}
 		else
 		{
-			mcHeaders.Remove(lliKey);
+			mcHeaders.Remove(&sKey);
 		}
 		return;
 	}

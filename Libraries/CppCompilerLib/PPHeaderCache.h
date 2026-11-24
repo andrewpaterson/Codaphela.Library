@@ -23,8 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/MemoryStackExtended.h"
-#include "BaseLib/MapLongTemplate.h"
-#include "BaseLib/HashMapPrimitiveTemplate.h"
+#include "BaseLib/HashMapTemplate.h"
 #include "BaseLib/Mutex.h"
 #include "PreprocessedTokens.h"
 #include "PPDirective.h"
@@ -144,7 +143,7 @@ struct SPPCachedHeader
 	size							uiTotalTokens;			//With its children's.
 	CMemoryStackExtended			mcStrings;
 
-	SPPCachedHeader*				psNext;					//Another with the same file and context.
+	SPPCachedHeader*				psNext;					//Another kept with the same key (SPPHeaderCacheKey), older.
 	CArrayPPHeaderFiles				apcFiles;				//The files its own records refer to, each once (NoteFiles).
 	bool							bForget;				//Depends on the file being forgotten (CPPHeaderCache::Forget).
 
@@ -157,13 +156,25 @@ struct SPPCachedHeader
 };
 
 
+//Where a header kept is found again: the header, where it was found and the context.  (No padding: two pointers then
+//a uint64.)
+struct SPPHeaderCacheKey
+{
+	CSourceFile*	pcFile;
+	CHeaderFiles*	pcHeaderNameMap;
+	uint64			uiContext;
+
+	void	Init(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);
+};
+
+
 //Headers' preprocessed output (SPPCachedHeader) kept by the builder for all its units, by the header and context.
 //Units preprocessed at the same time share it: Get, and following psNext, only while it is locked (Lock).  A header
 //is made whole before it is added (Publish), and doesn't change after.  They are freed by Kill.
 class CPPHeaderCache
 {
 protected:
-	CHashMapLongTemplate<SPPCachedHeader*>	mcHeaders;
+	CHashMapTemplate<SPPHeaderCacheKey, SPPCachedHeader*>	mcHeaders;	//The newest kept with a key; the rest follow psNext.
 	CArrayTemplatePtr<SPPCachedHeader>	mapsHeaders;
 	CMutex								mcMutex;
 	size								muiHits;
@@ -190,7 +201,6 @@ public:
 	size				NumReplayedTokens(void) const;
 
 protected:
-	static int64		Key(CSourceFile* pcFile, CHeaderFiles* pcHeaderNameMap, uint64 uiContext);
 	void				Unlink(SPPCachedHeader* psHeader);
 };
 

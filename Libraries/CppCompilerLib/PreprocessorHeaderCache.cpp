@@ -136,10 +136,6 @@ bool CCPPPreprocessor::ReplayCachedHeader(CHeaderFile* pcFile, CHeaderFiles* pcH
 	uiCandidates = 0;
 	for (; psHeader && (uiCandidates < PP_HEADER_CACHE_CANDIDATES); psHeader = psHeader->psNext)
 	{
-		if ((psHeader->pcFile != pcFile) || (psHeader->pcHeaderNameMap != pcHeaderNameMap) || (psHeader->uiContext != uiContext))
-		{
-			continue;
-		}
 		uiCandidates++;
 		if (CachedHeaderMatches(psHeader))
 		{
