@@ -64,6 +64,8 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 	mpsWritten = NULL;
 	mpsDivided = NULL;
 	mbMathTables = mpcOptions->mbMathTables;
+	mpcCode = NULL;
+	mszWritten.Init(CIRW65C816Backend::GetScratch());
 }
 
 
@@ -73,6 +75,7 @@ void CIRW65C816Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllo
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Kill(void)
 {
+	mszWritten.Kill();
 	masArguments.Kill();
 	mauiPendingArguments.Kill();
 	maiParameters.Kill();
@@ -406,14 +409,21 @@ int32 CIRW65C816Backend::ArgumentPlace(SIRRegisterArgument* psArgument, int32* p
 //////////////////////////////////////////////////////////////////////////
 bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors)
 {
-	size		uiStart;
+	size			uiStart;
+	CIRW65C816Code	cCode;
 
 	mpcFunction = pcFunction;
-	mpszOut = pszDest;
 	mpcErrors = pcErrors;
 	mbResult = true;
 	uiStart = pszDest->Length();
 	muiSource = 0;
+
+	//The code is written into cCode as it is made, then printed into pszDest.
+	cCode.Init();
+	mpcCode = &cCode;
+	mszWritten.Clear();
+	mpszOut = &mszWritten;
+	mcMarkers.Begin();
 
 	ExpandMultiplies();
 	CopyAddressedParameters();
@@ -439,6 +449,11 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	{
 		mcCalls.GenerateForwarder(szLabel, &szJump);
 		szJump.Kill();
+		Flush();
+		cCode.Write(pszDest, uiStart);
+		cCode.Kill();
+		mpcCode = NULL;
+		mpszOut = pszDest;
 		pszDest->AppendNewLine();
 		return mbResult;
 	}
@@ -454,9 +469,16 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 		szBytes.Append(msFrame.iFrameBytes);
 		Error("The frame is too big for the W65C816's stack (bytes)", szBytes.Text());
 		szBytes.Kill();
+		cCode.Kill();
+		mpcCode = NULL;
+		mpszOut = pszDest;
 		return false;
 	}
-	GenerateBody(szLabel, uiStart);
+	GenerateBody(szLabel);
+	cCode.Write(pszDest, uiStart);
+	cCode.Kill();
+	mpcCode = NULL;
+	mpszOut = pszDest;
 	if (!mpcOptions->mbDebuggable)
 	{
 		DropFrame(uiStart);
@@ -769,32 +791,78 @@ int CIRW65C816Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The direct page operands ([D + n]) in szCode.
+// The lines written so far (mszWritten) added to the code, and to the
+// source markers' lines (as Take would find them); a line not yet ended
+// waits.
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 IR816CountDirectPage(const char* szCode)
+void CIRW65C816Backend::Flush(void)
 {
-	int32	iCount;
+	const char*	szText;
+	const char*	szLine;
+	const char*	szEnd;
+	size		uiTaken;
 
-	iCount = 0;
-	for (szCode = strstr(szCode, "D + "); szCode; szCode = strstr(szCode + 4, "D + "))
+	szText = mszWritten.Text();
+	uiTaken = 0;
+	for (szLine = szText; (szEnd = strchr(szLine, '\n')) != NULL; szLine = szEnd + 1)
 	{
-		iCount++;
+		if (strncmp(szLine, IR_PLACE_MARKER, StrLen(IR_PLACE_MARKER)) == 0)
+		{
+			//A debugger's place marker (CIRBackend::DebugPlaceMarker): kept apart from the code, as Take would.
+			mcMarkers.AddMarker(szLine, (size)(szEnd - szLine));
+		}
+		else
+		{
+			mpcCode->Append(szLine, (size)(szEnd - szLine));
+			if (mbSourceMarkers || mbDebugPlaces)
+			{
+				mcMarkers.AddLine(szLine, (size)(szEnd - szLine));
+			}
+		}
+		uiTaken = (size)(szEnd + 1 - szText);
 	}
-	return iCount;
+	if (uiTaken > 0)
+	{
+		mszWritten.RemoveFromStart((int)uiTaken);
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The function's code after Layout: the prologue, each block's
-// instructions (those CanFuse finds read by the next as it goes) and jump,
-// then Peephole from uiStart.
+// A source marker before what is written next (for a listing): kept
+// apart from the code, as CIRSourceMarkers::Take would take it out, so
+// the passes see the code they would without it.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
+void CIRW65C816Backend::Source(uint32 uiSource)
 {
-	CIRW65C816Code		cCode;
+	CChars	szMarker;
+
+	if (!mbSourceMarkers || (uiSource == 0) || (uiSource == muiSource))
+	{
+		return;
+	}
+	muiSource = uiSource;
+	Flush();
+	szMarker.Init(CIRW65C816Backend::GetScratch());
+	szMarker.Append(IR_SOURCE_MARKER);
+	szMarker.Append((int64)muiSource);
+	mcMarkers.AddMarker(szMarker.Text(), szMarker.Length());
+	szMarker.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's code after Layout, into mpcCode: the prologue, each
+// block's instructions (those CanFuse finds read by the next as it goes)
+// and jump, then the passes over it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Backend::GenerateBody(const char* szLabel)
+{
 	size			ui;
 	size			uiInstruction;
 	CIRBlock*		pcBlock;
@@ -816,15 +884,19 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 	FindZeroWords();
 	FindLowByteUses();
 	mpcDominators = &mcDominators;
-	Prologue(szLabel);
+
+	//Whether the function has place markers is known before anything is written: the lines between markers are
+	//kept from the first (Flush, CIRSourceMarkers::AddLine).
 	memset(mauiPlaceBytes, 0, sizeof(mauiPlaceBytes));
 	BeginDebugPlaces(&mcDominators);
+	Prologue(szLabel);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);
 		pcNext = (ui + 1 < mpcFunction->NumBlocks()) ? mpcFunction->GetBlock(ui + 1) : NULL;
 		miBlock = (int32)ui;
-		uiBlockStart = mpszOut->Length();
+		Flush();
+		uiBlockStart = mpcCode->NumLines();
 		Label(*maiBlockLabels.Get(ui));
 		mauiPendingArguments.FakeSetUsedElements(0);
 		miFused = 0;
@@ -865,39 +937,36 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 			msFrame.bLoops = true;
 		}
 		iWeight = (int32)CIRLoops::Weight(iDepth, IR816_ALIGN_MAX_DEPTH);
-		msFrame.iDirectPageWeight += iWeight * IR816CountDirectPage(mpszOut->Text() + uiBlockStart);
+		Flush();
+		msFrame.iDirectPageWeight += iWeight * mpcCode->CountMentions(uiBlockStart, "D + ");
 	}
 	EndDebugPlaces();
 	miBlock = -1;
 	mpcDominators = NULL;
-	TakeMarkers(mpszOut, uiStart);
+	Flush();
 
-	//The passes over the code, decoded once (CIRW65C816Code).
+	//The passes over the code.
 	mpcModule->Begin(CPPCP_CodePasses);
-	cCode.Init();
-	cCode.Load(mpszOut, uiStart);
-	KeepSlots(&cCode);
-	Peephole(&cCode);
-	PeepholeMasks(&cCode);
-	PeepholeStores(&cCode);
-	PeepholeTransfers(&cCode);
-	PeepholeBranches(&cCode);
-	PeepholeRegisters(&cCode);
-	RemoveUnreadStores(&cCode);
+	KeepSlots(mpcCode);
+	Peephole(mpcCode);
+	PeepholeMasks(mpcCode);
+	PeepholeStores(mpcCode);
+	PeepholeTransfers(mpcCode);
+	PeepholeBranches(mpcCode);
+	PeepholeRegisters(mpcCode);
+	RemoveUnreadStores(mpcCode);
 
 	//The passes after Peephole leave stores and loads it would have taken out.
-	RemoveDeadStores(&cCode);
+	RemoveDeadStores(mpcCode);
 
 	//Then those dead on every way on from them (the lda that fed one may be loaded over unread now).
-	if (RemoveFlowDeadStores(&cCode))
+	if (RemoveFlowDeadStores(mpcCode))
 	{
-		RemoveDeadStores(&cCode);
+		RemoveDeadStores(mpcCode);
 	}
 
 	//The loads of what a register holds, known across labels.
-	PeepholeFlowRegisters(&cCode);
-	cCode.Write(mpszOut, uiStart);
-	cCode.Kill();
+	PeepholeFlowRegisters(mpcCode);
 	mpcModule->End(CPPCP_CodePasses);
 }
 

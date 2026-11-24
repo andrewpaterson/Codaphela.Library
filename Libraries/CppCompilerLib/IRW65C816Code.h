@@ -81,6 +81,7 @@ public:
 	bool		IsLabelNamed(size uiLine, const char* szLabel, size uiLength);
 	int64		LocalLabelNumber(size uiLine);
 	const char*	Mentions(size uiLine, size* puiLength);
+	int32		CountMentions(size uiFrom, const char* szText);
 
 	void		SetInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand = NULL);
 	void		SetBranch(size uiLine, uint16 uiMnemonic, const char* szLabel, size uiLabel);

@@ -45,6 +45,10 @@ public:
 	void	Take(CChars* pszCode, size uiStart);
 	void	Put(CChars* pszCode, size uiStart);
 
+	void	Begin(void);
+	void	AddLine(const char* szLine, size uiLength);
+	void	AddMarker(const char* szMarker, size uiLength);
+
 protected:
 	bool	IsMarker(const char* szLine);
 	void	Match(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound);

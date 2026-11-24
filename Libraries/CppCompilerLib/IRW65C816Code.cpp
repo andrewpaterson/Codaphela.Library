@@ -401,6 +401,39 @@ const char* CIRW65C816Code::Mentions(size uiLine, size* puiLength)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many times szText is in the lines from uiFrom on (in what they
+// mention: Mentions).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRW65C816Code::CountMentions(size uiFrom, const char* szText)
+{
+	const char*	szLine;
+	size		uiLength;
+	size		uiText;
+	size		ui;
+	size		uj;
+	int32		iCount;
+
+	uiText = StrLen(szText);
+	iCount = 0;
+	for (ui = uiFrom; ui < NumLines(); ui++)
+	{
+		szLine = Mentions(ui, &uiLength);
+		for (uj = 0; uj + uiText <= uiLength; uj++)
+		{
+			if (strncmp(szLine + uj, szText, uiText) == 0)
+			{
+				iCount++;
+				uj += uiText - 1;
+			}
+		}
+	}
+	return iCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A line made the instruction uiMnemonic with szOperand (NULL for none).
 //
 //////////////////////////////////////////////////////////////////////////

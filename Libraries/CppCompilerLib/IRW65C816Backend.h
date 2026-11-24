@@ -210,6 +210,9 @@ protected:
 	CScratchPadAllocator*	mpcArena;			//Init's arena, this thread's scratch (SetScratch) until Kill, or NULL...
 	CMallocator*			mpcOldScratch;		//...and what the thread's scratch was before.
 
+	CIRW65C816Code*			mpcCode;			//The function's code as it is written (GenerateFunction): what is written to
+	CChars					mszWritten;			//mpszOut, this, is added to it a line at a time (Flush).
+
 	CIRW65C816Places			mcPlaces;
 	CIRW65C816Folds				mcFolds;
 	CIRW65C816Fusion			mcFusion;
@@ -235,7 +238,9 @@ public:
 	static bool		AlignFrame(CChars* pszCode, const char* szLabel, const SIRW65C816Frame* psFrame, bool bRecursive, CAsm65Profile* pcProfile);
 	void			Kill(void) override;
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
-	void			GenerateBody(const char* szLabel, size uiStart);
+	void			GenerateBody(const char* szLabel);
+	void			Flush(void);
+	void			Source(uint32 uiSource);
 	void			KeepSlots(CIRW65C816Code* pcCode);
 	void			DropFrame(size uiStart);
 	bool			ReturnsNothingInA(void);

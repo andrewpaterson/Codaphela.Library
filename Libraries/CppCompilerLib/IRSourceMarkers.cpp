@@ -113,6 +113,46 @@ bool CIRSourceMarkers::IsMarker(const char* szLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Nothing taken yet: the lines and markers are then given as they are
+// written (AddLine, AddMarker), as Take would have found them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRSourceMarkers::Begin(void)
+{
+	maszLines.ReInit();
+	maiBefore.ReInit();
+	maszMarkers.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line of the code (not a marker), as it is written.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRSourceMarkers::AddLine(const char* szLine, size uiLength)
+{
+	maszLines.Add(szLine, 0, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A marker, before the line written next.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRSourceMarkers::AddMarker(const char* szMarker, size uiLength)
+{
+	int32	iBefore;
+
+	iBefore = (int32)maszLines.NumElements();
+	maiBefore.Add(&iBefore);
+	maszMarkers.Add(szMarker, 0, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Puts the markers Take took out back into the code from uiStart: the
 // passes mostly keep the order of the lines they leave, so the lines from
 // before are found as the longest run of them in order (Match), then the
