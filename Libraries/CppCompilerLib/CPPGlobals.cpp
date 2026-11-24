@@ -266,7 +266,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 		mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable);
 		bConstantData = (pcSpecifiers->muiFlags & CPPDS_CONSTEXPR) != 0;
 		bBss = !bConstantData && IsBss(pcInitialiser, psType);
-		szOptions = pcDefining ? ", comdat" : (mpcUnit->HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
+		szOptions = pcDefining ? ", comdat" : (mpcUnit->GetAttributes()->HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
 		szBound.Init();
 		eBound = psType->IsReference() ? BoundTemporary(psType, pcInitialiser, &szLabel, !pcVariable->mbInternal, szOptions, &szBound, &iBound) : CPPBT_None;
 		if (eBound == CPPBT_Error)

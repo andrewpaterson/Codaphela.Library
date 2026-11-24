@@ -993,7 +993,7 @@ SCPP65Type* CCPP65TypeChecker::IdExpression(CCPPSyntaxIdExpression* pcId)
 		return NULL;
 	}
 	mpcUnit->GetBinder()->BindName(pcId, &cBound);
-	mpcUnit->WarnDeprecatedSymbol(cBound.mpcSymbol, pcId);
+	mpcUnit->GetAttributes()->WarnDeprecatedSymbol(cBound.mpcSymbol, pcId);
 	switch (cBound.meWhat)
 	{
 	case CPPBN_FunctionName:
@@ -2146,7 +2146,7 @@ SCPP65Type* CCPP65TypeChecker::Call(CCPPFunction* pcFunction, CArraySyntax* papc
 	if (pcFunction->miDeprecated != -1)
 	{
 		//[[deprecated]]: it can still be called, and the program is told.  [dcl.attr.deprecated] 4
-		mpcUnit->WarnDeprecated(pcNode, "function", pcFunction->miDeprecated);
+		mpcUnit->GetAttributes()->WarnDeprecated(pcNode, "function", pcFunction->miDeprecated);
 	}
 	if (pcFunction->mpcTemplate && !pcFunction->mpcDefinition && pcFunction->mpcTemplate->mbMemberTemplate && !mpcUnit->GetContext()->IsUnevaluated())
 	{
@@ -2605,7 +2605,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPlace(CCPPSyntaxMemberExpression* pcMember)
 		return NULL;
 	}
 	mpcUnit->GetCheck()->Resolved(pcMember->mpcName, cBound.mpcSymbol);
-	mpcUnit->WarnDeprecatedSymbol(cBound.mpcSymbol, pcMember->mpcName);
+	mpcUnit->GetAttributes()->WarnDeprecatedSymbol(cBound.mpcSymbol, pcMember->mpcName);
 	return (cBound.meWhat == CPPBN_Field) ? FieldType(cBound.mpsField, psType->bConst, psType->bVolatile) : cBound.mpcVariable->mpsType;
 }
 

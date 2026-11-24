@@ -58,6 +58,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPGlobals.h"
 #include "CPPClasses.h"
 #include "CPPEnums.h"
+#include "CPPAttributes.h"
 #include "CPPDeduction.h"
 #include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
@@ -181,7 +182,6 @@ protected:
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
-	int						miSaysDeprecated;	//Whether the source says deprecated anywhere (SaysDeprecated): 1, 0, or -1 until it is asked.
 	bool					mbValueArgumentRefused;	//A template argument's value wasn't one of its parameter's type (ValueArgumentFits), since it was cleared.
 	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
@@ -196,6 +196,7 @@ protected:
 	CCPPBinder				mcBinder;			//What each call, name and member is, worked out in one place.
 	CCPPDeclarators			mcDeclarators;
 	CCPPFunctionDeclarer	mcFunctionDeclarer;	//Declares the functions.
+	CCPPAttributes			mcAttributes;		//The attributes declarations are written with.
 	CCPPEnums				mcEnums;			//The enums: their types and their enumerators' values.
 	CCPPClasses				mcClasses;			//The classes: made, laid out and checked.
 	CCPPGlobals				mcGlobals;			//The data of static storage, and what makes and destroys it.
@@ -249,6 +250,7 @@ public:
 	CCPPGlobals*			GetGlobals(void);
 	CCPPClasses*			GetClasses(void);
 	CCPPEnums*				GetEnums(void);
+	CCPPAttributes*			GetAttributes(void);
 	CArrayCPPVariables*		GetGlobalVariables(void);
 	CCPP65IRFrontEnd*		GetIRFrontEnd(void) const;
 	CCPPMangler*			GetMangler(void);
@@ -310,8 +312,6 @@ public:
 	void					GetLayouts(CArrayChars* paszLines);
 
 	//Declarations, functions and statements.  CPPUnit.cpp
-	void					WarnDeprecated(CCPPSyntax* pcNode, const char* szWhat, int32 iAttribute);
-	void					WarnDeprecatedSymbol(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 
 	CChars*					Line(const char* szText);
 	void					AppendName(CChars* psz, int64 lliName);
@@ -355,12 +355,6 @@ public:
 	bool					BeginRuntime(const char* szName) override;
 	CChars*					GetRuntimeCode(void) override;
 	void					RuntimeError(const char* szMessage) override;
-	bool					HasUsedAttribute(CCPPSyntaxDeclarator* pcDeclarator);
-	bool					HasAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
-	int32					FindAttribute(CCPPSyntaxDeclarator* pcDeclarator, const char* szName);
-	int32					FindAttribute(CArraySyntax* papcAttributes, const char* szName);
-	int32					DeprecatedAttribute(CCPPSymbol* pcSymbol);
-	bool					SaysDeprecated(void);
 	bool					IsRestrictPointer(CCPPSyntaxDeclarator* pcDeclarator);
 	SCPP65Type*				QualifiedPointer(SCPP65Type* psType, CCPPSyntaxPointerOperator* pcPointer);
 	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);

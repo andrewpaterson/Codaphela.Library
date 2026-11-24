@@ -404,7 +404,7 @@ CCPPFunction* CCPPFunctionDeclarer::AddDeclared(SCPPSignature* psSignature)
 	{
 		CheckDefaultsFollow(pcFunction, psSignature->pcDeclarator);
 	}
-	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : mpcUnit->FindAttribute(psSignature->pcDeclarator, "deprecated");
+	pcFunction->miDeprecated = (pcFunction->miDeprecated != -1) ? pcFunction->miDeprecated : mpcUnit->GetAttributes()->FindAttribute(psSignature->pcDeclarator, "deprecated");
 	mpcUnit->GetExceptions()->SetDeclaredExceptions(pcFunction, psSignature->pcDeclarator);
 	pcFunction->mbOverride |= mpcUnit->GetClasses()->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliOverride);
 	pcFunction->mbFinal |= mpcUnit->GetClasses()->HasVirtSpecifier(psSignature->pcSuffix, mpcUnit->GetTokeniser()->mlliFinal);
@@ -778,7 +778,7 @@ SCPP65Type* CCPPFunctionDeclarer::ParameterType(SCPP65Type* psType)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunctionDeclarer::IsWeak(CCPPFunction* pcFunction)
 {
-	return mpcUnit->HasAttribute(pcFunction->mpcDeclarator, "weak") || (pcFunction->mpcDefinition && mpcUnit->HasAttribute(pcFunction->mpcDefinition->mpcDeclarator, "weak"));
+	return mpcUnit->GetAttributes()->HasAttribute(pcFunction->mpcDeclarator, "weak") || (pcFunction->mpcDefinition && mpcUnit->GetAttributes()->HasAttribute(pcFunction->mpcDefinition->mpcDeclarator, "weak"));
 }
 
 
