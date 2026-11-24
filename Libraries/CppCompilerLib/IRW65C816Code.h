@@ -31,12 +31,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR816CL_TABBED		2	//Starts with a tab and has a mnemonic's room: an instruction, a directive or a comment.
 
 
-//A line of the code: its text and, when tabbed, its decoding (IR816Decode), the operand kept as an offset into the
-//text so the line can move.
+//A line of the code.  An instruction is its fields: sLine's mnemonic, flags and mark, and its operand, which is all of
+//szText.  Any other line (a label, a directive, a comment, or a line not as the printer would write it) is its text,
+//szText, and when tabbed its decoding (IR816Decode), the operand kept as an offset into the text so the line can move.
 struct SIRW65C816CodeLine
 {
 	CChars		szText;
 	uint8		uiKind;			//IR816CL_.
+	bool		bText;			//The line is its text; else an instruction, szText its operand.
 	SIRW65C816Line	sLine;
 	size		uiOperand;		//sLine.szOperand's offset in szText.
 };
@@ -64,7 +66,6 @@ public:
 	void		Write(CChars* pszCode, size uiStart);
 
 	size		NumLines(void) const;
-	CChars*		GetText(size uiLine);
 	const char*	Text(size uiLine);
 	bool		IsLabel(size uiLine);
 	bool		IsTabbed(size uiLine);
@@ -106,7 +107,9 @@ protected:
 	void			Clear(void);
 	SIRW65C816CodeLine*	Line(size uiLine);
 	SIRW65C816CodeLine*	AddLine(const char* szText, size uiLength);
+	SIRW65C816CodeLine*	NewLine(void);
 	void			Decode(SIRW65C816CodeLine* psCode);
+	void			MakeInstruction(SIRW65C816CodeLine* psCode, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked);
 };
 
 

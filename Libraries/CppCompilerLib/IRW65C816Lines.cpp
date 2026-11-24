@@ -426,6 +426,62 @@ void IR816AppendInstruction(CChars* psz, uint16 uiMnemonic, const char* szOperan
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An instruction's line as the printer writes it (IR816AppendInstruction,
+// then the IR816_KEEP_IN_A mark if bMarked), appended to psz.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816AppendLine(CChars* psz, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked)
+{
+	IR816AppendInstruction(psz, uiMnemonic, szOperand, uiOperand);
+	if (bMarked)
+	{
+		psz->Append(IR816_KEEP_IN_A);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line's text (psz, decoded as psLine with its operand at
+// uiOperand) is exactly the line the printer writes from its fields.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IR816IsPrinted(CChars* psz, SIRW65C816Line* psLine, size uiOperand)
+{
+	CChars	sz;
+	bool	bPrinted;
+
+	sz.Init(CIRW65C816Backend::GetScratch());
+	IR816AppendLine(&sz, psLine->uiMnemonic, psz->Text() + uiOperand, psLine->uiOperand, psLine->bMarked);
+	bPrinted = sz.Equals(psz->Text());
+	sz.Kill();
+	return bPrinted;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The fields of the instruction uiMnemonic with szOperand (uiOperand long)
+// and the IR816_KEEP_IN_A mark or not, as IR816Decode makes them from its
+// line.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816MakeLine(SIRW65C816Line* psLine, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked)
+{
+	memset(psLine, 0, sizeof(SIRW65C816Line));
+	StrCpySafe(psLine->szMnemonic, gasIR816Mnemonics[uiMnemonic].szName, sizeof(psLine->szMnemonic));
+	psLine->uiMnemonic = uiMnemonic;
+	psLine->uiFlags = gasIR816Mnemonics[uiMnemonic].uiFlags;
+	psLine->szOperand = szOperand;
+	psLine->uiOperand = uiOperand;
+	psLine->bMarked = bMarked;
+	psLine->iOffset = 0;
+	psLine->bDirect = IR816IsDirect(szOperand, uiOperand, &psLine->iOffset);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The number of a local label's name ("L12", uiLength long), else -1.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -124,12 +124,21 @@ void CIRW65C816Code::Load(CChars* pszCode, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::Write(CChars* pszCode, size uiStart)
 {
-	size	ui;
+	SIRW65C816CodeLine*	psCode;
+	size				ui;
 
 	pszCode->SetLength(uiStart);
 	for (ui = 0; ui < maiOrder.NumElements(); ui++)
 	{
-		pszCode->Append(Line(ui)->szText);
+		psCode = Line(ui);
+		if (psCode->bText)
+		{
+			pszCode->Append(psCode->szText);
+		}
+		else
+		{
+			IR816AppendLine(pszCode, psCode->sLine.uiMnemonic, psCode->szText.Text(), psCode->szText.Length(), psCode->sLine.bMarked);
+		}
 		pszCode->AppendNewLine();
 	}
 }
@@ -147,17 +156,8 @@ size CIRW65C816Code::NumLines(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A line's text, to read (change it with Set).
-//
-//////////////////////////////////////////////////////////////////////////
-CChars* CIRW65C816Code::GetText(size uiLine)
-{
-	return &Line(uiLine)->szText;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
+// A label's, directive's or comment's text (an instruction's is its
+// fields: Decoded).
 //
 //////////////////////////////////////////////////////////////////////////
 const char* CIRW65C816Code::Text(size uiLine)
@@ -236,6 +236,10 @@ bool CIRW65C816Code::Instruction(size uiLine, SIRW65C816Line* psLine)
 	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
+	if (!psCode->bText)
+	{
+		return Decoded(uiLine, psLine);
+	}
 	if (!IR816IsInstruction(psCode->szText.Text()))
 	{
 		return false;
@@ -290,7 +294,7 @@ bool CIRW65C816Code::IsDirective(size uiLine)
 	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
-	return (psCode->uiKind == IR816CL_TABBED) && (psCode->szText.Text()[2] == '.');
+	return psCode->bText && (psCode->uiKind == IR816CL_TABBED) && (psCode->szText.Text()[2] == '.');
 }
 
 
@@ -304,7 +308,7 @@ bool CIRW65C816Code::IsComment(size uiLine)
 	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
-	return (psCode->uiKind == IR816CL_TABBED) && (psCode->szText.Text()[2] == ';');
+	return psCode->bText && (psCode->uiKind == IR816CL_TABBED) && (psCode->szText.Text()[2] == ';');
 }
 
 
@@ -402,12 +406,7 @@ const char* CIRW65C816Code::Mentions(size uiLine, size* puiLength)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::SetInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand)
 {
-	SIRW65C816CodeLine*	psCode;
-
-	psCode = Line(uiLine);
-	psCode->szText.Clear();
-	IR816AppendInstruction(&psCode->szText, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0);
-	Decode(psCode);
+	MakeInstruction(Line(uiLine), uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, false);
 }
 
 
@@ -418,12 +417,7 @@ void CIRW65C816Code::SetInstruction(size uiLine, uint16 uiMnemonic, const char* 
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::SetBranch(size uiLine, uint16 uiMnemonic, const char* szLabel, size uiLabel)
 {
-	SIRW65C816CodeLine*	psCode;
-
-	psCode = Line(uiLine);
-	psCode->szText.Clear();
-	IR816AppendInstruction(&psCode->szText, uiMnemonic, szLabel, uiLabel);
-	Decode(psCode);
+	MakeInstruction(Line(uiLine), uiMnemonic, szLabel, uiLabel, false);
 }
 
 
@@ -437,10 +431,18 @@ void CIRW65C816Code::ClearRound(size uiLine)
 	SIRW65C816CodeLine*	psCode;
 
 	psCode = Line(uiLine);
-	if (psCode->szText.EndsWith(IR816_ROUND))
+	if (!psCode->szText.EndsWith(IR816_ROUND))
 	{
-		psCode->szText.SetLength(psCode->szText.Length() - StrLen(IR816_ROUND));
+		return;
+	}
+	psCode->szText.SetLength(psCode->szText.Length() - StrLen(IR816_ROUND));
+	if (psCode->bText)
+	{
 		Decode(psCode);
+	}
+	else
+	{
+		IR816MakeLine(&psCode->sLine, psCode->sLine.uiMnemonic, psCode->szText.Text(), psCode->szText.Length(), psCode->sLine.bMarked);
 	}
 }
 
@@ -453,15 +455,7 @@ void CIRW65C816Code::ClearRound(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, const char* szOperand)
 {
-	SIRW65C816CodeLine*	psCode;
-	size				uiIndex;
-
-	uiIndex = masLines.NumElements();
-	psCode = masLines.Add();
-	psCode->szText.Init(CIRW65C816Backend::GetScratch());
-	IR816AppendInstruction(&psCode->szText, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0);
-	Decode(psCode);
-	*maiOrder.Add() = uiIndex;
+	MakeInstruction(NewLine(), uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0, false);
 }
 
 
@@ -474,24 +468,29 @@ void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, const char* szOperand)
 void CIRW65C816Code::AppendInstruction(SIRW65C816Line* psLine, bool bMarked)
 {
 	SIRW65C816CodeLine*	psCode;
-	size				uiIndex;
+	CChars				sz;
 
-	uiIndex = masLines.NumElements();
-	psCode = masLines.Add();
-	psCode->szText.Init(CIRW65C816Backend::GetScratch());
-	psCode->szText.Append("\t\t");
-	psCode->szText.Append(psLine->szMnemonic);
+	psCode = NewLine();
+	if (psLine->uiMnemonic != IR816M_Unknown)
+	{
+		MakeInstruction(psCode, psLine->uiMnemonic, psLine->szOperand, psLine->uiOperand, bMarked);
+		return;
+	}
+	sz.Init(CIRW65C816Backend::GetScratch());
+	sz.Append("\t\t");
+	sz.Append(psLine->szMnemonic);
 	if (psLine->uiOperand > 0)
 	{
-		psCode->szText.Append(' ');
-		psCode->szText.AppendSubString(psLine->szOperand, psLine->uiOperand);
+		sz.Append(' ');
+		sz.AppendSubString(psLine->szOperand, psLine->uiOperand);
 	}
 	if (bMarked)
 	{
-		psCode->szText.Append(IR816_KEEP_IN_A);
+		sz.Append(IR816_KEEP_IN_A);
 	}
+	psCode->szText.Append(sz);
 	Decode(psCode);
-	*maiOrder.Add() = uiIndex;
+	sz.Kill();
 }
 
 
@@ -502,10 +501,62 @@ void CIRW65C816Code::AppendInstruction(SIRW65C816Line* psLine, bool bMarked)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::AppendLine(CIRW65C816Code* pcFrom, size uiLine)
 {
-	CChars*	psz;
+	SIRW65C816CodeLine*	psFrom;
+	SIRW65C816CodeLine*	psCode;
 
-	psz = pcFrom->GetText(uiLine);
-	Append(psz->Text(), psz->Length());
+	psFrom = pcFrom->Line(uiLine);
+	psCode = NewLine();
+	psCode->uiKind = psFrom->uiKind;
+	psCode->bText = psFrom->bText;
+	psCode->sLine = psFrom->sLine;
+	psCode->uiOperand = psFrom->uiOperand;
+	psCode->szText.Append(psFrom->szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new line after the last, empty.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRW65C816CodeLine* CIRW65C816Code::NewLine(void)
+{
+	SIRW65C816CodeLine*	psCode;
+	size				uiIndex;
+
+	uiIndex = masLines.NumElements();
+	psCode = masLines.Add();
+	psCode->szText.Init(CIRW65C816Backend::GetScratch());
+	psCode->uiKind = IR816CL_OTHER;
+	psCode->bText = true;
+	memset(&psCode->sLine, 0, sizeof(SIRW65C816Line));
+	psCode->uiOperand = 0;
+	*maiOrder.Add() = uiIndex;
+	return psCode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line made the instruction uiMnemonic with szOperand (uiOperand long)
+// and the IR816_KEEP_IN_A mark or not.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::MakeInstruction(SIRW65C816CodeLine* psCode, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked)
+{
+	CChars	szOperandCopy;
+
+	//The operand may be the line's own.
+	szOperandCopy.Init(CIRW65C816Backend::GetScratch());
+	szOperandCopy.AppendSubString(szOperand, uiOperand);
+	psCode->szText.Clear();
+	psCode->szText.Append(szOperandCopy);
+	szOperandCopy.Kill();
+	psCode->uiKind = IR816CL_TABBED;
+	psCode->bText = false;
+	psCode->uiOperand = 0;
+	IR816MakeLine(&psCode->sLine, uiMnemonic, psCode->szText.Text(), psCode->szText.Length(), bMarked);
+	psCode->sLine.szOperand = NULL;
 }
 
 
@@ -669,6 +720,7 @@ void CIRW65C816Code::Decode(SIRW65C816CodeLine* psCode)
 	psz = &psCode->szText;
 	memset(&psCode->sLine, 0, sizeof(SIRW65C816Line));
 	psCode->uiOperand = 0;
+	psCode->bText = true;
 	if ((psz->Length() > 1) && (psz->Text()[0] != '\t') && (psz->Text()[psz->Length() - 1] == ':'))
 	{
 		psCode->uiKind = IR816CL_LABEL;
@@ -679,6 +731,14 @@ void CIRW65C816Code::Decode(SIRW65C816CodeLine* psCode)
 		IR816Decode(psz->Text(), &psCode->sLine);
 		psCode->uiOperand = (size)(psCode->sLine.szOperand - psz->Text());
 		psCode->sLine.szOperand = NULL;
+		if (IR816IsInstruction(psz->Text()) && (psCode->sLine.uiMnemonic != IR816M_Unknown) && IR816IsPrinted(psz, &psCode->sLine, psCode->uiOperand))
+		{
+			//As the printer writes it: the line is its fields.
+			psz->RemoveFromStart((int)psCode->uiOperand);
+			psz->SetLength(psCode->sLine.uiOperand);
+			psCode->uiOperand = 0;
+			psCode->bText = false;
+		}
 	}
 	else
 	{
