@@ -29,6 +29,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/HashMapPrimitiveTemplate.h"
 #include "BaseLib/ArrayUint8.h"
+#include "BaseLib/ArrayInt32.h"
 #include "IRModule.h"
 #include "IRBackend.h"
 #include "IRInliner.h"
@@ -184,6 +185,17 @@ struct SCPP65IRWritten
 };
 
 
+//The calls inlined into a function that its code is in as its source markers go by (SourceComments): the inlines
+//(of the IR function, CIRFunction::masInlines) it is in now, outermost first, each with the label it is in from, and
+//per inline the .dinspan lines of its code so far.
+struct SCPP65IRInlineSpans
+{
+	CArrayInt32	aiOpen;
+	CArrayChars	aszFrom;
+	CArrayChars	aszSpans;
+};
+
+
 //A loop round an index (BeginCountedLoop to EndCountedLoop): its test's block, which holds the index's phi, and the
 //block after it.
 struct SCPP65IRCountedLoop
@@ -314,7 +326,10 @@ public:
 	void			SetUnsupported(const char* szFile, int iLine, const char* szReason);
 	void			AppendUnsupported(CChars* psz);
 	void			ClearUnsupported(void);
-	void			SourceComments(CChars* pszCode, CIRFunction* pcFunction, bool bComments, bool bLines);
+	void			SourceComments(CChars* pszCode, CIRFunction* pcFunction, bool bComments, bool bLines, bool bInlines = false);
+	void			InlineSpans(SCPP65IRInlineSpans* psSpans, CIRFunction* pcFunction, uint32 uiLocation, CChars* pszOut);
+	void			DescribeInlines(SCPP65IRInlineSpans* psSpans, CIRFunction* pcFunction, CChars* pszOut);
+	void			DebugLabel(CChars* pszLabel, CChars* pszOut);
 	void			DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* paszRanges);
 	uint32			Fingerprint(CIRFunction* pcFunction);
 	uint64			CallCount(CIRFunction* pcCaller, SIRInstruction* psCall);

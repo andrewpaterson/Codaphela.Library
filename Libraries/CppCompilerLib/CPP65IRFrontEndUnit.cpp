@@ -165,6 +165,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 	CChars				szCode;
 	CArrayChars			aszRanges;
 	SCPP65IRWritten*	psWritten;
+	bool				bDescribed;
 	size				ui;
 
 	//In its turn the unit has found what it would have, as if the units were compiled one after another, unless a
@@ -209,17 +210,19 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		}
 		aszRanges.Init();
 		DebugRanges(&szCode, mpcUnit->HasLineTable(), &aszRanges);
+		bDescribed = false;
 		if (mpcBackend && mpcUnit->HasLineTable())
 		{
 			mpcBackend->DescribeFrame(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend);
-			if (CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult, psWritten->pcBackend))
+			bDescribed = CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult, psWritten->pcBackend);
+			if (bDescribed)
 			{
 				DescribeVariables(&szCode, psWritten, &aszRanges);
 			}
 		}
 		aszRanges.Kill();
 		FreeWritten(psWritten);
-		SourceComments(&szCode, psWritten->pcFunction, mpcUnit->HasListing(), mpcUnit->HasLineTable());
+		SourceComments(&szCode, psWritten->pcFunction, mpcUnit->HasListing(), mpcUnit->HasLineTable(), bDescribed);
 		if (mpcUnit->HasLineTable())
 		{
 			szCode.Append("\t\t.fingerprint \"");

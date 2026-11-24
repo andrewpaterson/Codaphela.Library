@@ -1706,10 +1706,7 @@ void CCPP65IRFrontEnd::DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* p
 		//The markers before one line share its label.
 		if (szLabel.Empty())
 		{
-			szLabel.Set(IR_DEBUG_LABEL);
-			szLabel.Append(miDebugLabels);
-			miDebugLabels++;
-			szOut.Append(szLabel)->Append(':')->AppendNewLine();
+			DebugLabel(&szLabel, &szOut);
 		}
 		if (!aszPlaces.Get(uiSlot)->Empty())
 		{
@@ -1739,14 +1736,16 @@ void CCPP65IRFrontEnd::DebugRanges(CChars* pszCode, bool bRanges, CArrayChars* p
 // The back ends (and CIRPrinter) write a marker line (IR_SOURCE_MARKER and
 // the instructions' location: the source token + 1, or an inline location
 // of pcFunction, CIRFunction::SourceToken) where the instructions' source
-// changes.  Where it
+// changes.  With bInlines (the function is described for a debugger) the
+// code of the calls inlined into it is told too (InlineSpans,
+// DescribeInlines).  Where it
 // is another line than the last's, with bComments (a listing) it becomes a
 // comment with the file, line and text of the line, and with bLines a
 // .line directive with the file's full name (the linker's line table);
 // otherwise they go.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, bool bComments, bool bLines)
+void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, bool bComments, bool bLines, bool bInlines)
 {
 	CChars				szOut;
 	const char*			szText;
@@ -1758,12 +1757,20 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, 
 	int					iLine;
 	size				uiMarker;
 	uint32				uiSource;
+	SCPP65IRInlineSpans	sSpans;
 
 	if (!pszCode->Contains(IR_SOURCE_MARKER))
 	{
 		return;
 	}
 
+	bInlines = bInlines && pcFunction && (pcFunction->masInlines.NumElements() > 0);
+	if (bInlines)
+	{
+		sSpans.aiOpen.Init();
+		sSpans.aszFrom.Init();
+		sSpans.aszSpans.Init();
+	}
 	uiMarker = strlen(IR_SOURCE_MARKER);
 	szOut.Init();
 	pcLastFile = NULL;
@@ -1781,6 +1788,10 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, 
 			continue;
 		}
 		uiSource = (uint32)strtoul(szText + uiMarker, NULL, 10);
+		if (bInlines)
+		{
+			InlineSpans(&sSpans, pcFunction, uiSource, &szOut);
+		}
 		uiSource = pcFunction ? pcFunction->SourceToken(uiSource) : uiSource;
 		if ((!bComments && !bLines) || (uiSource == 0) || (uiSource & IR_INLINE_LOCATION) || !SourceLine((int)uiSource - 1, &pcFile, &iLine))
 		{
@@ -1824,9 +1835,178 @@ void CCPP65IRFrontEnd::SourceComments(CChars* pszCode, CIRFunction* pcFunction, 
 		}
 		szOut.AppendNewLine();
 	}
+	if (bInlines)
+	{
+		DescribeInlines(&sSpans, pcFunction, &szOut);
+		sSpans.aszSpans.Kill();
+		sSpans.aszFrom.Kill();
+		sSpans.aiOpen.Kill();
+	}
 	pszCode->Kill();
 	pszCode->Init(&szOut);
 	szOut.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A source marker at uiLocation: where the inlines the code is in change,
+// a label (DebugLabel) ends the spans of those it left and starts those
+// of the ones it entered.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::InlineSpans(SCPP65IRInlineSpans* psSpans, CIRFunction* pcFunction, uint32 uiLocation, CChars* pszOut)
+{
+	CArrayInt32			aiChain;		//The inlines at uiLocation, innermost first.
+	SIRInlineLocation*	psLocation;
+	CChars				szLabel;
+	size				uiCommon;
+	size				ui;
+	int32				iInline;
+
+	aiChain.Init();
+	for (psLocation = pcFunction->GetInlineLocation(uiLocation); psLocation && (aiChain.NumElements() <= pcFunction->masInlines.NumElements()); psLocation = pcFunction->GetInlineLocation(pcFunction->masInlines.Get(psLocation->uiInline)->uiCall))
+	{
+		iInline = (int32)psLocation->uiInline;
+		aiChain.Add(iInline);
+	}
+	for (uiCommon = 0; (uiCommon < psSpans->aiOpen.NumElements()) && (uiCommon < aiChain.NumElements()); uiCommon++)
+	{
+		if (psSpans->aiOpen.GetValue(uiCommon) != aiChain.GetValue(aiChain.NumElements() - 1 - uiCommon))
+		{
+			break;
+		}
+	}
+	if ((uiCommon == psSpans->aiOpen.NumElements()) && (uiCommon == aiChain.NumElements()))
+	{
+		aiChain.Kill();
+		return;
+	}
+
+	szLabel.Init();
+	DebugLabel(&szLabel, pszOut);
+	while (psSpans->aszSpans.NumElements() < pcFunction->masInlines.NumElements())
+	{
+		psSpans->aszSpans.Add("");
+	}
+	for (ui = psSpans->aiOpen.NumElements(); ui > uiCommon; ui--)
+	{
+		psSpans->aszSpans.Get((size)psSpans->aiOpen.GetValue(ui - 1))->Append("\t\t.dinspan ")->Append(psSpans->aszFrom.GetText(ui - 1))->Append(", ")->Append(szLabel)->AppendNewLine();
+		psSpans->aiOpen.RemoveTail();
+		psSpans->aszFrom.RemoveTail();
+	}
+	for (ui = uiCommon; ui < aiChain.NumElements(); ui++)
+	{
+		psSpans->aiOpen.Add(aiChain.GetValue(aiChain.NumElements() - 1 - ui));
+		psSpans->aszFrom.Add(szLabel.Text());
+	}
+	szLabel.Kill();
+	aiChain.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// After the function's code: the inlines still open end, then a .dinline
+// for each with code (and each it is in), parents first, each with its
+// spans: its callee's C++ name (the function the unit wrote; another
+// unit's by its label) and its call's file and line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DescribeInlines(SCPP65IRInlineSpans* psSpans, CIRFunction* pcFunction, CChars* pszOut)
+{
+	CArrayInt32			aiIndex;		//Per inline of the function: its index among those described, -1 if not.
+	SIRInline*			psInline;
+	SIRInlineLocation*	psCall;
+	SCPP65IRWritten*	psWritten;
+	CSourceFile*		pcFile;
+	const char*			szLabel;
+	const char*			szName;
+	size				ui;
+	size				uj;
+	int32				iDescribed;
+	int					iLine;
+	uint32				uiToken;
+
+	InlineSpans(psSpans, pcFunction, 0, pszOut);
+	aiIndex.Init();
+	for (ui = 0; ui < pcFunction->masInlines.NumElements(); ui++)
+	{
+		aiIndex.Add(-1);
+	}
+	for (ui = pcFunction->masInlines.NumElements(); ui > 0; ui--)
+	{
+		if ((ui - 1 < psSpans->aszSpans.NumElements()) && !psSpans->aszSpans.Get(ui - 1)->Empty())
+		{
+			//It and each inline it is in are described.
+			uj = ui - 1;
+			do
+			{
+				aiIndex.SetValue(uj, 0);
+				psCall = pcFunction->GetInlineLocation(pcFunction->masInlines.Get(uj)->uiCall);
+				uj = psCall ? psCall->uiInline : uj;
+			}
+			while (psCall);
+		}
+	}
+
+	iDescribed = 0;
+	for (ui = 0; ui < pcFunction->masInlines.NumElements(); ui++)
+	{
+		if (aiIndex.GetValue(ui) < 0)
+		{
+			continue;
+		}
+		aiIndex.SetValue(ui, iDescribed);
+		iDescribed++;
+		psInline = pcFunction->masInlines.Get(ui);
+		psCall = pcFunction->GetInlineLocation(psInline->uiCall);
+		szLabel = mcModule.GetSymbolName(psInline->uiCallee);
+		szName = szLabel;
+		for (uj = 0; uj < masWritten.NumElements(); uj++)
+		{
+			psWritten = masWritten.Get(uj);
+			if (psWritten->szLabel.Equals(szLabel))
+			{
+				szName = psWritten->szName.Text();
+				break;
+			}
+		}
+		pszOut->Append("\t\t.dinline ")->Append(psCall ? aiIndex.GetValue(psCall->uiInline) : -1)->Append(", ");
+		CCPP65DebugWriter::AppendString(pszOut, szName);
+		pszOut->Append(", ");
+		iLine = -1;
+		uiToken = pcFunction->SourceToken(psInline->uiCall);
+		if ((uiToken != 0) && SourceLine((int)uiToken - 1, &pcFile, &iLine))
+		{
+			CCPP65DebugWriter::AppendString(pszOut, pcFile->FullName());
+		}
+		else
+		{
+			CCPP65DebugWriter::AppendString(pszOut, "");
+		}
+		pszOut->Append(", ")->Append(iLine + 1)->AppendNewLine();
+		if (ui < psSpans->aszSpans.NumElements())
+		{
+			pszOut->Append(*psSpans->aszSpans.Get(ui));
+		}
+	}
+	aiIndex.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new debug label (IR_DEBUG_LABEL and the unit's next number) into
+// pszLabel, and its line into pszOut.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DebugLabel(CChars* pszLabel, CChars* pszOut)
+{
+	pszLabel->Set(IR_DEBUG_LABEL);
+	pszLabel->Append(miDebugLabels);
+	miDebugLabels++;
+	pszOut->Append(*pszLabel)->Append(':')->AppendNewLine();
 }
 
 
