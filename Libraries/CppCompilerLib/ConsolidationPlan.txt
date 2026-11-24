@@ -502,7 +502,7 @@ Stage 7.  The back ends are the same parts.  (L; done 2026-11-24)
    its prologue as the W65C816's do; and the two W65C816 entries (Prologue, GenerateForwarder) written by one
    function, CIRW65C816Calls::Entry.  IRW65C816Backend.cpp is now 1,545 lines and IR65Backend.cpp 1,482.
 
-Stage 8.  The back ends' code is instructions.  (L-XL; not started; in full, in two halves: the user, 2026-11-24)
+Stage 8.  The back ends' code is instructions.  (L-XL; in full, in two halves: the user, 2026-11-24; 8a done 2026-11-25)
 
    What it is, as written: the selector adds instructions (mnemonic, operand, source position) to the back
    end's code instead of text; the passes are classes over the instructions, run from a list; nothing is
@@ -606,6 +606,23 @@ Stage 8.  The back ends' code is instructions.  (L-XL; not started; in full, in 
       GenerateBody's passes as entries of a list that runs and times each, in the order they run now.
    The steps of 8b are the same over CIR65Code, and then CIRSourceMarkers goes; they are written out when 8a is
    done, from what it found.
+
+   8a done 2026-11-25 (Progress has the record).  The steps were done in another order than written: 4 first
+   (the passes read and change the code by its fields while the text was still what the code was, so each change
+   was proved on its own), then 1, 2 and 3 (the selector's lines into the code, then its callers by mnemonic),
+   5 and 6 together (tidying the exits moved into GenerateFunction, so AlignFrame's rewrite of them had to change
+   with it), then 7.  What went otherwise than written:
+   - The source markers are not each instruction's source position.  They are kept as the code is written, as
+     CIRSourceMarkers::Take found them (Begin, AddLine, AddMarker), and Put puts them back as before; before the
+     exits are tidied they are put back and taken out again (RetakeMarkers), as FinishFunction did, so the
+     listings' comments are where they were.  Their becoming fields is 8b's, when CIRSourceMarkers goes.
+   - IR816Decode stays, as the reader of assembly text the tests of the passes give their text to
+     (CIRW65C816Code::Load): hundreds of cases are written as text.  Nothing in a compile reaches it.
+   - The debugger session's place markers (DebuggerFPlan.txt F1) came in the middle of it (a pull of 2026-11-24
+     that stopped in this work's commits): both kinds of marker go through CIRBackend::MarkerLine, and
+     DescribeFrame counts the printed lines past the markers and the labels DebugRanges makes of place markers.
+   - What FinishFunction and DescribeFrame look for is kept in CIRW65C816Written (SIRW65C816Facts, the exits),
+     and they change the printed code's lines by number.
 
 Stage 9.  The builder is four classes.  (M; not started)
 
@@ -1233,6 +1250,31 @@ of the same project, 134 s): GenerateBody 20.6% with its passes; of the passes' 
 the work: CIRW65C816Code::Load and its decoding 2.4%, CIRW65C816Code::Append (each line a pass rebuilds, decoded
 again) 3.7%, CIR816BranchCode::Init 2.3%, Write 0.3%, and AlignFrame's load in FinishFunction 1.4%.  The source
 markers cost nothing here (they are only written for a listing or a line table).
+
+Stage 8a, 2026-11-24 and 25.  Each commit changes only how the W65C816's code is held: its listings (4,245 of the
+three *65 suites' projects on both processors, comments and all) are the same as those of the build before it on
+the same sources (the build before each kept, CompilerProof.py's COMPILER_PROOF_BUILD), and TestCppCompilerLib
+passes (278,327 run, 0 failed, at the end; it walks every program's stack at every step against DescribeFrame).
+  - e3a838fbf, 3862f807f  step 4: the passes read and change the code by its fields (IsBare, IsWith, LabelName,
+               SetInstruction, AppendLine ...), not by building and comparing line text.
+  - 923415165  step 1: an instruction line is its fields and its operand; the printer writes it.
+  - 9f25c0441, f6759ae1c, f09604ea8, 51d65cbbf, eb1a6a845  steps 2 and 3: the function goes into the code as it is
+               written, never as text (Line(uiMnemonic, ...), Frame and Operand by mnemonic, the frame's entry and
+               exit and the forwarder's jump as lines).
+  - 677ae4176  step 5, first part: DropFrame and IR816ClearExitCarries over the code.
+  - 98f55cbe7  steps 5 and 6: the exits tidied over the code; FinishFunction (AlignFrame) and DescribeFrame from
+               what was kept, without reading the code.
+  - 4383de015  step 7: labels and directives by their parts; the pass list (gasIR816Passes).
+  - 391208a73  what nothing called after it.
+After, the same measure as before (391208a73): code passes 11,849 ms on the 65C64 and 19,353 on the W65C816 (26,643
+before), back end 5,413 and 13,901 (7,107 before): the W65C816's lines are made as instructions as they are written
+where they were decoded after, so back end and code passes together are 33.3 s against 33.8 s, about as before;
+assemble 18,337 (18,477).  Each machine pass from the list (runs, the runs that changed their function's lines,
+milliseconds): Peephole 89,466 48,920 3,356; PeepholeMasks 93 79; PeepholeStores 422 1,825; PeepholeTransfers
+2,595 101; PeepholeBranches 89,466 7,251 (it takes out labels nothing names in every function); PeepholeRegisters
+29,332 408; RemoveUnreadStores 8,536 231; RemoveDeadStores 504 555; RemoveFlowDeadStores 20,812 1,653;
+RemoveDeadStores after it 82 160 (of 20,812 runs); PeepholeFlowRegisters 8,881 2,522.  PeepholeBranches is now
+the passes' biggest cost (it builds a CIR816BranchCode up to eight times a function): stage 11b's.
 
 The numbers of 2026-11-11.
 
