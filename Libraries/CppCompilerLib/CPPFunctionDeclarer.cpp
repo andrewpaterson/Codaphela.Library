@@ -1160,4 +1160,3 @@ void CCPPFunctionDeclarer::ReportFailed(int64 lliName)
 	}
 }
 
-

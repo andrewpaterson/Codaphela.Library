@@ -1612,6 +1612,19 @@ static const SConformanceCase gasConformanceStage6[] =
 		"int main() { return W<X>::Type::N * 10 + W<X>::In::M; }\n"
 	},
 	{
+		//A qualifier of three components is walked from the first: Type is W<C>'s typedef, whatever W's T is.
+		"TypedefOfInstanceCall", 3,
+		"template<class T> struct W { typedef T Type; };\n"
+		"struct C { static int F() { return 3; } };\n"
+		"int main() { return W<C>::Type::F(); }\n"
+	},
+	{
+		//A member class named through an instance is that instance's own.  [temp.mem.class]
+		"InstanceMemberClassCall", 4,
+		"template<class T> struct Outer { struct Inner { static int Count() { return sizeof(T); } }; };\n"
+		"int main() { return Outer<long>::Inner::Count(); }\n"
+	},
+	{
 		"VariadicClass", 3,
 		"template<class... T> struct Tuple;\n"
 		"template<> struct Tuple<> { enum { N = 0 }; };\n"

@@ -79,11 +79,15 @@ CCPPClass* CCPPNames::GetNameClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The class a qualified name's last qualifier names (GetComponentClass).
-// One the parser couldn't resolve is found in the class before it
-// (TEXT::SizePolicy::Copy(...)), and so is a member class named through a
-// class template's instance, which is that instance's own
-// (Outer<char>::Inner::Count()): QualifiersClass.
+// The class a qualified name's qualifiers name.  Of a name of two
+// components, it is the class the parser found its qualifier to be, if it
+// found one (GetComponentClass).  Of three or more, the qualifiers are
+// walked from the first, each found in the class before it
+// (QualifiersClass): in W<int>::Type::N the parser found W's Type,
+// whatever W's T is, where W<int>'s is meant, and a member class named
+// through an instance is that instance's own (Outer<char>::Inner::Count()).
+// A qualifier the parser couldn't resolve is walked to as well
+// (TEXT::SizePolicy::Copy(...)).  [class.qual] 1, [temp.mem.class]
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPNames::NameQualifierClass(CCPPSyntaxName* pcName, CCPPSyntax* pcNode)
@@ -91,7 +95,7 @@ CCPPClass* CCPPNames::NameQualifierClass(CCPPSyntaxName* pcName, CCPPSyntax* pcN
 	CCPPSyntaxNameComponent*	pcQualifier;
 
 	pcQualifier = pcName->GetQualifier();
-	if (pcQualifier->mpcSymbol && !((pcQualifier->mpcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance()))
+	if (pcQualifier->mpcSymbol && (pcName->macpComponents.NumElements() == 2))
 	{
 		return GetComponentClass(pcQualifier, NULL, pcNode);
 	}
@@ -444,8 +448,8 @@ CCPPClass* CCPPNames::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent
 //
 // The member of the kind eKind Class::Name names, where Class is a class, an instance of a class template, a typedef of
 // one or a template parameter, and in ppsClass the class that declares it: a member of an instance can depend on its
-// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.  A qualifier after a
-// class is found in that class (QualifiersClass): TEMPLATE::SizePolicy::NotFound and W<int>::Type::N.
+// template arguments, so it is worked out with that class's bindings.  NULL if it isn't one.  The class is the
+// qualifiers' (NameQualifierClass): TEMPLATE::SizePolicy::NotFound and W<int>::Type::N.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPSymbol* CCPPNames::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass)
@@ -483,7 +487,7 @@ CCPPSymbol* CCPPNames::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eK
 	}
 
 	mpcDiagnostics->BeginSilent();
-	pcClass = (pcQualifier->mpcSymbol && (pcName->macpComponents.NumElements() == 2)) ? GetComponentClass(pcQualifier, NULL, pcNode) : QualifiersClass(pcName, pcNode);
+	pcClass = NameQualifierClass(pcName, pcNode);
 	pcSymbol = (pcClass && mpcUnit->CompleteClass(pcClass, pcNode)) ? pcClass->FindMemberSymbol(mpcUnit->GetComponentName(pcName->GetLast()), eKind, ppcClass) : NULL;
 	bAmbiguous = pcSymbol && (pcClass->macBases.NumElements() > 1) && IsAmbiguousInBases(pcClass, mpcUnit->GetComponentName(pcName->GetLast()));
 	mpcDiagnostics->EndSilent();
