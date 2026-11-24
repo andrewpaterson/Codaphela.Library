@@ -2036,6 +2036,59 @@ void TestCPP65DebugFramelessParameters(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Debug function's local read at each instruction from its last line to
+// its return (DebuggerFixesPlan.txt G3), on both processors: its epilogue
+// gives the caller's D or V back before it returns, and the local is still
+// read from its own frame (its base from its frame address).
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugEpilogueVariables(void)
+{
+	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	STestCPP65Debug			sDebug;
+	CChars					szWrong;
+	size					uiTarget;
+	size					uiSteps;
+
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug,
+			"int Twice(int i)\n"
+			"{\n"
+			"	int	iDouble = i * 2;\n"
+			"	return iDouble + 1;\n"
+			"}\n"
+			"int main(void)\n"
+			"{\n"
+			"	int	iMain = 99;\n"
+			"	return Twice(20) + iMain;\n"
+			"}\n", TCB_Debug, aeTargets[uiTarget]);
+		TestCPP65DebugLoad(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 4));
+		for (uiSteps = 0; uiSteps < 100; uiSteps++)
+		{
+			TestCPP65DebugWalk(&sDebug);
+			if (StringCompare(TestCPP65DebugFrameName(&sDebug, 0), "Twice") != 0)
+			{
+				break;
+			}
+			AssertInt(40, TestCPP65DebugLocal(&sDebug, 0, "iDouble"));
+			AssertInt(99, TestCPP65DebugLocal(&sDebug, 1, "iMain"));
+			TestCPP65DebugStep(&sDebug);
+		}
+		AssertTrue(uiSteps > 3);
+		AssertString("main", TestCPP65DebugFrameName(&sDebug, 0));
+		szWrong.Init();
+		AssertInt(41 + 99, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65Debug(void)
@@ -2056,6 +2109,7 @@ void TestCPP65Debug(void)
 	TestCPP65DebugRegisterVariables();
 	TestCPP65DebugReleaseThis();
 	TestCPP65DebugFramelessParameters();
+	TestCPP65DebugEpilogueVariables();
 
 	TestStatistics();
 }
