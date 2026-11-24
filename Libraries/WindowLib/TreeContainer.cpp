@@ -50,6 +50,12 @@ void CTreeContainer::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme)
 	maRangeFonts.Init();
 	maiRowNodes.Init();
 	maiTopNodes.Init();
+	muiNumColumns = 0;
+	maszCells.Init();
+	maCellFonts.Init();
+	maiColumnLefts.Init();
+	maiColumnWidths.Init();
+	miNameWidth = 0;
 	maRows.Init();
 	msRowsOrigin.Init(0, 0);
 	miRowsWidth = 0;
@@ -85,6 +91,12 @@ void CTreeContainer::Class(void)
 	M_Embedded(maRangeFonts);
 	U_Unknown(CArrayInt, maiRowNodes);
 	U_Unknown(CArrayInt, maiTopNodes);
+	U_Size(muiNumColumns);
+	U_Unknown(CArrayChars, maszCells);
+	M_Embedded(maCellFonts);
+	U_Unknown(CArrayInt, maiColumnLefts);
+	U_Unknown(CArrayInt, maiColumnWidths);
+	U_Int32(miNameWidth);
 	M_Embedded(maRows);
 	U_2Int32(msRowsOrigin);
 	U_Int32(miRowsWidth);
@@ -105,6 +117,9 @@ void CTreeContainer::Class(void)
 void CTreeContainer::Free(void)
 {
 	mcExpanded.Kill();
+	maiColumnWidths.Kill();
+	maiColumnLefts.Kill();
+	maszCells.Kill();
 	maiTopNodes.Kill();
 	maiRowNodes.Kill();
 	masRanges.Kill();
@@ -146,6 +161,7 @@ int32 CTreeContainer::AddNode(int32 iParent, const char* szText, Ptr<CImageCel> 
 	STreeNode*	psNode;
 	STreeNode*	psParent;
 	int32		iNode;
+	size		uiColumn;
 
 	if ((iParent != TREE_NO_NODE) && ((iParent < 0) || (iParent >= NumNodes())))
 	{
@@ -168,6 +184,11 @@ int32 CTreeContainer::AddNode(int32 iParent, const char* szText, Ptr<CImageCel> 
 	mszTexts.Append(szText);
 	maIcons.Add(pIcon);
 	maFonts.Add(NULL);
+	for (uiColumn = 0; uiColumn < muiNumColumns; uiColumn++)
+	{
+		maszCells.Add("");
+		maCellFonts.Add(NULL);
+	}
 
 	if (iParent == TREE_NO_NODE)
 	{
@@ -208,6 +229,8 @@ void CTreeContainer::RemoveAllNodes(void)
 	mszTexts.Clear();
 	maIcons.RemoveAll();
 	maFonts.RemoveAll();
+	maszCells.ReInit();
+	maCellFonts.RemoveAll();
 	masRanges.ReInit();
 	maRangeFonts.RemoveAll();
 	maiTopNodes.ReInit();
@@ -807,6 +830,7 @@ void CTreeContainer::LayoutRows(SInt32Vec2 sOrigin, SInt32Vec2 sArea)
 				BindRow(pRow, iNode);
 			}
 			sRowPosition.Init(sOrigin.x, sOrigin.y + iRow * miRowHeight);
+			pRow->SetColumns(miNameWidth, &maiColumnLefts, &maiColumnWidths);
 			pRow->Layout(sRowPosition, sRowSize);
 		}
 		else
@@ -832,6 +856,7 @@ void CTreeContainer::BindRow(Ptr<CTreeRow> pRow, int32 iNode)
 	Ptr<CImageCel>	pChevron;
 	CChars			szPiece;
 	size			uiNumLabels;
+	size			uiColumn;
 
 	psNode = masNodes.Get(iNode);
 	pRow->SetNode(iNode, psNode->iDepth * miIndent);
@@ -853,6 +878,129 @@ void CTreeContainer::BindRow(Ptr<CTreeRow> pRow, int32 iNode)
 		uiNumLabels++;
 	}
 	pRow->SetNumLabels(uiNumLabels);
+
+	for (uiColumn = 0; uiColumn < muiNumColumns; uiColumn++)
+	{
+		pRow->SetCell(uiColumn, GetCellFont(iNode, uiColumn), GetCellText(iNode, uiColumn));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The tree's nodes have uiNumColumns cells each after their names.  False
+// once nodes have been added.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTreeContainer::SetNumColumns(size uiNumColumns)
+{
+	if (NumNodes() != 0)
+	{
+		return false;
+	}
+	muiNumColumns = uiNumColumns;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the columns are across each row, from its left (paiLefts and
+// paiWidths, a column each), and where the name is cut off.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::SetColumnBounds(int32 iNameWidth, CArrayInt* paiLefts, CArrayInt* paiWidths)
+{
+	miNameWidth = iNameWidth;
+	maiColumnLefts.ReInit();
+	maiColumnLefts.Copy(paiLefts);
+	maiColumnWidths.ReInit();
+	maiColumnWidths.Copy(paiWidths);
+	LayoutChanged();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::SetCellText(int32 iNode, size uiColumn, const char* szText)
+{
+	CChars*	psz;
+
+	if ((iNode < 0) || (iNode >= NumNodes()) || (uiColumn >= muiNumColumns))
+	{
+		return;
+	}
+	psz = maszCells.Get(iNode * muiNumColumns + uiColumn);
+	if (!psz->Equals(szText))
+	{
+		psz->Set(szText);
+		CellChanged(iNode);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "" for no such cell.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CTreeContainer::GetCellText(int32 iNode, size uiColumn)
+{
+	if ((iNode < 0) || (iNode >= NumNodes()) || (uiColumn >= muiNumColumns))
+	{
+		return "";
+	}
+	return maszCells.Get(iNode * muiNumColumns + uiColumn)->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL for the theme's font (as a changed value is drawn red, say).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::SetCellFont(int32 iNode, size uiColumn, Ptr<CFont> pFont)
+{
+	if ((iNode < 0) || (iNode >= NumNodes()) || (uiColumn >= muiNumColumns) || (maCellFonts.Get(iNode * muiNumColumns + uiColumn) == pFont))
+	{
+		return;
+	}
+	maCellFonts.Set(iNode * muiNumColumns + uiColumn, pFont);
+	CellChanged(iNode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The cell's font, the theme's when it hasn't one of its own.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CFont> CTreeContainer::GetCellFont(int32 iNode, size uiColumn)
+{
+	Ptr<CFont>	pFont;
+
+	if ((iNode >= 0) && (iNode < NumNodes()) && (uiColumn < muiNumColumns))
+	{
+		pFont = maCellFonts.Get(iNode * muiNumColumns + uiColumn);
+	}
+	return pFont.IsNotNull() ? pFont : mpTheme->GetFont();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A node's cell changed: its row, if it is in view, shows it as it is now.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeContainer::CellChanged(int32 iNode)
+{
+	if (IsNodeVisible(iNode))
+	{
+		mbRowsBound = false;
+		LayoutChanged();
+	}
 }
 
 
@@ -1095,7 +1243,7 @@ SInt32Vec2 CTreeContainer::GetDesiredSize(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// As wide as the widest row and as tall as all of them, whether they are
+// As wide as the widest row (or its columns) and as tall as all of them, whether they are
 // in view or not.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1103,6 +1251,10 @@ void CTreeContainer::SetRequiredSize(void)
 {
 	UpdateRows();
 	msRequiredSize.Init(miRowsWidth, NumRows() * miRowHeight);
+	if (maiColumnLefts.NumElements() > 0)
+	{
+		msRequiredSize.x = maiColumnLefts.GetValue(maiColumnLefts.NumElements() - 1) + maiColumnWidths.GetValue(maiColumnWidths.NumElements() - 1);
+	}
 	AddInsets(&msRequiredSize);
 }
 
@@ -1197,6 +1349,7 @@ Ptr<CTreeRow> CTreeContainer::GetRowComponent(int32 iRow)
 void STreeNodePiece::Init(void) { uiStart = 0; uiLength = 0; uiFont = TREE_NODE_FONT; uiNextRange = 0; }
 size CTreeContainer::NumRowComponents(void) { return maRows.NumElements(); }  //How many components the tree has for its rows in view.
 int32 CTreeContainer::NumNodes(void) const { return (int32)masNodes.NumElements(); }
+size CTreeContainer::NumColumns(void) const { return muiNumColumns; }  //After the name.
 int64 CTreeContainer::GetNodeData(int32 iNode) { return masNodes.Get(iNode)->iData; }
 int32 CTreeContainer::GetNodeParent(int32 iNode) { return masNodes.Get(iNode)->iParent; }
 int32 CTreeContainer::GetNodeDepth(int32 iNode) { return masNodes.Get(iNode)->iDepth; }

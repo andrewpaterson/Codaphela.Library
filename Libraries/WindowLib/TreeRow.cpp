@@ -38,6 +38,10 @@ void CTreeRow::Init(Ptr<CWindow> pWindow, int32 iChevronWidth, int32 iIconWidth,
 	CContainer::Init(pWindow);
 	maLabels.Init();
 	muiNumLabels = 0;
+	maCells.Init();
+	maiCellLefts.Init();
+	maiCellWidths.Init();
+	miNameWidth = 0;
 	miNode = TREE_NO_NODE;
 	miIndent = 0;
 	miChevronWidth = iChevronWidth;
@@ -68,6 +72,10 @@ void CTreeRow::Class(void)
 	M_Pointer(mpIcon);
 	M_Embedded(maLabels);
 	U_Size(muiNumLabels);
+	M_Embedded(maCells);
+	U_Unknown(CArrayInt, maiCellLefts);
+	U_Unknown(CArrayInt, maiCellWidths);
+	U_Int32(miNameWidth);
 	U_Int32(miNode);
 	U_Int32(miIndent);
 	U_Int32(miChevronWidth);
@@ -75,6 +83,18 @@ void CTreeRow::Class(void)
 	U_Int32(miRowHeight);
 	U_Bool(mbChevron);
 	U_Bool(mbIcon);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeRow::Free(void)
+{
+	maiCellWidths.Kill();
+	maiCellLefts.Kill();
+	CContainer::Free();
 }
 
 
@@ -150,11 +170,67 @@ void CTreeRow::SetIcon(Ptr<CImageCel> pCel)
 //////////////////////////////////////////////////////////////////////////
 void CTreeRow::SetLabel(size uiIndex, Ptr<CFont> pFont, const char* szText)
 {
+	SetLabelIn(&maLabels, uiIndex, pFont, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The node's uiIndex'th cell, after its name: in its column, a label made
+// the first time it is set.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeRow::SetCell(size uiIndex, Ptr<CFont> pFont, const char* szText)
+{
+	while (maCells.NumElements() < uiIndex)
+	{
+		SetLabelIn(&maCells, maCells.NumElements(), pFont, "");
+	}
+	SetLabelIn(&maCells, uiIndex, pFont, szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// NULL if the row has no such cell.
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CLabel> CTreeRow::GetCell(size uiIndex)
+{
+	return (uiIndex < maCells.NumElements()) ? maCells.Get(uiIndex) : Ptr<CLabel>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the columns are, from the row's left: the name is cut off at
+// iNameWidth (0: it isn't), and each cell is at its left, as wide as its
+// width.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeRow::SetColumns(int32 iNameWidth, CArrayInt* paiLefts, CArrayInt* paiWidths)
+{
+	miNameWidth = iNameWidth;
+	maiCellLefts.ReInit();
+	maiCellLefts.Copy(paiLefts);
+	maiCellWidths.ReInit();
+	maiCellWidths.Copy(paiWidths);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The uiIndex'th of paLabels shows szText in pFont: the label the row has
+// already, changed only where it differs, or one added.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeRow::SetLabelIn(CArray<CLabel>* paLabels, size uiIndex, Ptr<CFont> pFont, const char* szText)
+{
 	Ptr<CLabel>		pLabel;
 
-	if (uiIndex < maLabels.NumElements())
+	if (uiIndex < paLabels->NumElements())
 	{
-		pLabel = maLabels.Get(uiIndex);
+		pLabel = paLabels->Get(uiIndex);
 		if (pLabel->GetFont() != pFont)
 		{
 			pLabel->SetFontAndText(pFont, szText);
@@ -164,11 +240,11 @@ void CTreeRow::SetLabel(size uiIndex, Ptr<CFont> pFont, const char* szText)
 			pLabel->SetText(szText);
 		}
 	}
-	else if (uiIndex == maLabels.NumElements())
+	else if (uiIndex == paLabels->NumElements())
 	{
 		pLabel = OMalloc<CLabel>(mpWindow, pFont, szText);
 		pLabel->SetAlignment(CSH_Left, CSV_Center);
-		maLabels.Add(pLabel);
+		paLabels->Add(pLabel);
 		CContainer::AddComponent(pLabel);
 	}
 }
@@ -215,6 +291,10 @@ void CTreeRow::SetRequiredSize(void)
 	{
 		msRequiredSize.x += maLabels.Get(i)->GetDesiredSize().x;
 	}
+	if (maiCellLefts.NumElements() > 0)
+	{
+		msRequiredSize.x = maiCellLefts.GetValue(maiCellLefts.NumElements() - 1) + maiCellWidths.GetValue(maiCellWidths.NumElements() - 1);
+	}
 	AddInsets(&msRequiredSize);
 }
 
@@ -256,11 +336,33 @@ void CTreeRow::Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize)
 	{
 		pLabel = maLabels.Get(i);
 		sCellSize.x = pLabel->GetDesiredSize().x;
-		LayoutComponentInArea(pLabel, sCellPosition, sCellSize);
+		LayoutLabel(pLabel, sCellPosition, sArea.y, (miNameWidth > 0) ? sOrigin.x + miNameWidth - sCellPosition.x : sCellSize.x);
 		sCellPosition.x += sCellSize.x;
 	}
 
+	for (i = 0; (i < maCells.NumElements()) && (i < maiCellLefts.NumElements()); i++)
+	{
+		LayoutLabel(maCells.Get(i), SInt32Vec2(sOrigin.x + maiCellLefts.GetValue(i), sOrigin.y), sArea.y, maiCellWidths.GetValue(i));
+	}
+
 	SetActualBounds(sPosition, sAreaSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A label at sPosition across the row's middle, as wide as its text but
+// cut off at iMostWidth.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTreeRow::LayoutLabel(Ptr<CLabel> pLabel, SInt32Vec2 sPosition, int32 iHeight, int32 iMostWidth)
+{
+	SInt32Vec2	sSize;
+
+	sSize = pLabel->GetDesiredSize();
+	sSize.x = (sSize.x < iMostWidth) ? sSize.x : ((iMostWidth > 0) ? iMostWidth : 0);
+	sPosition.y += (iHeight - sSize.y) / 2;
+	pLabel->Layout(sPosition, sSize);
 }
 
 
@@ -296,6 +398,13 @@ bool CTreeRow::IsChildDrawn(Ptr<CComponent> pChild)
 	for (i = 0; i < muiNumLabels; i++)
 	{
 		if (pChild == maLabels.Get(i))
+		{
+			return true;
+		}
+	}
+	for (i = 0; (i < maCells.NumElements()) && (i < maiCellLefts.NumElements()); i++)
+	{
+		if (pChild == maCells.Get(i))
 		{
 			return true;
 		}

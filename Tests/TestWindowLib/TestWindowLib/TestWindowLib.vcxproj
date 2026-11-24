@@ -263,6 +263,7 @@
     <ClCompile Include="TestList.cpp" />
     <ClCompile Include="TestTable.cpp" />
     <ClCompile Include="TestTree.cpp" />
+    <ClCompile Include="TestTreeTable.cpp" />
     <ClCompile Include="TestComponentInput.cpp" />
     <ClCompile Include="TestComponentInputDevices.cpp" />
     <ClCompile Include="TestInputAction.cpp" />

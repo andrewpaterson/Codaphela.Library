@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TREE_CONTAINER_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayInt.h"
+#include "BaseLib/ArrayChars.h"
 #include "SupportLib/ImageCel.h"
 #include "ListContainer.h"
 #include "TreeRow.h"
@@ -91,6 +92,10 @@ typedef CArrayTemplate<STreeNodeRange>	CArrayTreeNodeRange;
 //components (CTreeRow) for the rows in view, as many as the scroll pane it is in shows, and as it is scrolled each is
 //given the node that came into view (LayoutRows).  A tree of a hundred thousand open nodes has as few components as
 //one of a hundred.  How wide the tree is comes from its nodes' texts and fonts, kept for each node (GetNodeWidth).
+//
+//A tree can have columns after its nodes' names (SetNumColumns, before any node is added), as a tree table's Value and
+//Type: each node has a cell in each, text in a font of its own if it is given one (SetCellFont).  Where the columns
+//are is its owner's (SetColumnBounds); the name is cut off at the first's left, and the tree is as wide as its columns.
 class CTreeContainer : public CListContainer
 {
 CONSTRUCTABLE(CTreeContainer);
@@ -105,6 +110,12 @@ protected:
 	CArray<CFont>		maRangeFonts;	//The ranges' fonts, each once.
 	CArrayInt			maiRowNodes;	//The node of each row.
 	CArrayInt			maiTopNodes;	//The nodes at the top, in order.
+	size				muiNumColumns;	//After the name.
+	CArrayChars			maszCells;		//Each node's cells, node by node.
+	CArray<CFont>		maCellFonts;	//The same, NULL for the theme's font.
+	CArrayInt			maiColumnLefts;	//Each column's left and width, from a row's left.
+	CArrayInt			maiColumnWidths;
+	int32				miNameWidth;	//Where the name is cut off, 0 when it isn't (there are no columns).
 	CArray<CTreeRow>	maRows;			//The rows in view's components: row i's is the one at i modulo how many there are.
 	SInt32Vec2			msRowsOrigin;	//Where the first row was laid out, in window client space.
 	int32				miRowsWidth;	//What the widest row needs across.
@@ -142,6 +153,14 @@ public:
 	int32			GetNextSibling(int32 iNode);
 	bool			HasChildren(int32 iNode);
 	int32			FindNode(int32 iParent, const char* szText);
+
+	bool			SetNumColumns(size uiNumColumns);
+	size			NumColumns(void) const;
+	void			SetColumnBounds(int32 iNameWidth, CArrayInt* paiLefts, CArrayInt* paiWidths);
+	void			SetCellText(int32 iNode, size uiColumn, const char* szText);
+	const char*		GetCellText(int32 iNode, size uiColumn);
+	void			SetCellFont(int32 iNode, size uiColumn, Ptr<CFont> pFont);
+	Ptr<CFont>		GetCellFont(int32 iNode, size uiColumn);
 
 	void			SetExpanded(int32 iNode, bool bExpanded);
 	bool			IsExpanded(int32 iNode);
@@ -181,6 +200,7 @@ protected:
 	void			GetRowsInView(SInt32Vec2 sOrigin, SInt32Vec2 sArea, int32* piFirst, int32* piNum);
 	void			LayoutRows(SInt32Vec2 sOrigin, SInt32Vec2 sArea);
 	void			BindRow(Ptr<CTreeRow> pRow, int32 iNode);
+	void			CellChanged(int32 iNode);
 };
 
 

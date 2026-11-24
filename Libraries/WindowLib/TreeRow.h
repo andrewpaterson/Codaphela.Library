@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TREE_ROW_H__
 #define __TREE_ROW_H__
+#include "BaseLib/ArrayInt.h"
 #include "StandardLib/Array.h"
 #include "SupportLib/ImageCel.h"
 #include "Container.h"
@@ -37,6 +38,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //A tree only has rows for the nodes in view (see CTreeContainer::LayoutRows), and gives each another node to show as
 //it is scrolled: the row keeps its components, and only what differs from the node it showed is changed.  A row
 //showing no node isn't drawn.
+//
+//A tree with columns (CTreeContainer::SetNumColumns) has a label for each of the node's cells too, each at its
+//column's place in the row and cut off at its width, as the name is at the name column's (SetColumns).
 class CTreeRow : public CContainer
 {
 CONSTRUCTABLE(CTreeRow);
@@ -46,6 +50,10 @@ protected:
 	Ptr<CIconComponent>	mpIcon;
 	CArray<CLabel>		maLabels;		//As many as any node shown has needed: the first muiNumLabels are the node's.
 	size				muiNumLabels;
+	CArray<CLabel>		maCells;		//As many as the tree has columns after the name.
+	CArrayInt			maiCellLefts;	//Each cell's place in the row and its width.
+	CArrayInt			maiCellWidths;
+	int32				miNameWidth;	//0 when the name isn't cut off.
 	int32				miNode;			//The node shown, TREE_NO_NODE for none.
 	int32				miIndent;		//How far in the chevron is.
 	int32				miChevronWidth;
@@ -57,6 +65,7 @@ protected:
 public:
 	void			Init(Ptr<CWindow> pWindow, int32 iChevronWidth, int32 iIconWidth, int32 iRowHeight);
 	void			Class(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
@@ -69,6 +78,9 @@ public:
 	void			SetNumLabels(size uiNumLabels);
 	size			NumLabels(void) const;
 	Ptr<CLabel>		GetLabel(size uiIndex);
+	void			SetCell(size uiIndex, Ptr<CFont> pFont, const char* szText);
+	Ptr<CLabel>		GetCell(size uiIndex);
+	void			SetColumns(int32 iNameWidth, CArrayInt* paiLefts, CArrayInt* paiWidths);
 	bool			HasChevron(void) const;
 	bool			HasIcon(void) const;
 
@@ -76,6 +88,10 @@ public:
 	void			Layout(SInt32Vec2 sPosition, SInt32Vec2 sAreaSize) override;
 	bool			IsDrawn(void) const override;
 	bool			IsChildDrawn(Ptr<CComponent> pChild) override;
+
+protected:
+	void			SetLabelIn(CArray<CLabel>* paLabels, size uiIndex, Ptr<CFont> pFont, const char* szText);
+	void			LayoutLabel(Ptr<CLabel> pLabel, SInt32Vec2 sPosition, int32 iHeight, int32 iMostWidth);
 };
 
 
