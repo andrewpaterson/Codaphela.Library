@@ -997,7 +997,10 @@ bool CCPPFunctionDeclarer::CheckAbstract(SCPP65Type* psReturn, CArrayCPP65Types*
 // its own class (a copy or a move), a destructor, or an operator= that
 // takes its own class; and it has no default argument.  = delete is where
 // the function is first declared.  An error (and false) if not; true for
-// any other definition.  [dcl.fct.def.default] 1, [dcl.fct.def.delete] 4
+// any other definition.  What the declaration alone tells (a function
+// that is none of those, a default argument) the parser has said
+// (CCPPParser::CheckDefaulted), so it is false without a word.
+// [dcl.fct.def.default] 1, [dcl.fct.def.delete] 4
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCPPSyntaxFunctionDefinition* pcDefinition)
@@ -1005,6 +1008,7 @@ bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCP
 	SCPP65Type*	psParameter;
 	size		i;
 	bool		bOwnClass;
+	bool		bAssignment;
 
 	if (pcDefinition->meBody == CPPFB_Delete)
 	{
@@ -1014,10 +1018,14 @@ bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCP
 	{
 		return true;
 	}
+	bAssignment = pcFunction->mlliName == CPP_OPERATOR_NAME(CT_Assignment);
+	if ((pcFunction->meKind == CPPFK_Function) && !bAssignment)
+	{
+		return false;
+	}
 	psParameter = (pcFunction->mapsParameters.NumElements() == 1) ? pcFunction->mapsParameters.GetPtr(0)->WithoutReference() : NULL;
 	bOwnClass = psParameter && psParameter->IsClass() && (psParameter->pcClass == pcFunction->mpcClass);
-	if (!pcFunction->mpcClass || ((pcFunction->meKind == CPPFK_Constructor) && (pcFunction->mapsParameters.NumElements() != 0) && !bOwnClass) ||
-		((pcFunction->meKind == CPPFK_Function) && !((pcFunction->mlliName == CPP_OPERATOR_NAME(CT_Assignment)) && bOwnClass)))
+	if (!pcFunction->mpcClass || ((pcFunction->meKind == CPPFK_Constructor) && (pcFunction->mapsParameters.NumElements() != 0) && !bOwnClass) || (bAssignment && !bOwnClass))
 	{
 		return mpcDiagnostics->ReportError(pcDefinition, "Only a constructor that takes nothing or its own class, a destructor or an operator= that takes its own class is = default");
 	}
@@ -1025,7 +1033,7 @@ bool CCPPFunctionDeclarer::CheckDefaultedOrDeleted(CCPPFunction* pcFunction, CCP
 	{
 		if (pcFunction->mapcDefaults.GetPtr(i))
 		{
-			return mpcDiagnostics->ReportError(pcDefinition, "A function that is = default has no default argument");
+			return false;
 		}
 	}
 	return true;
