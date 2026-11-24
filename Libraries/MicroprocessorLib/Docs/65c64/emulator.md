@@ -5,14 +5,14 @@ in MicroprocessorLib: there is no stand alone emulator program yet.
 
 | Class | Simulates | Speed |
 |---|---|---|
-| `C65C64` | Every bus cycle: the pins, the address and data buses and the clock | The reference |
-| `CFast65C64` | An instruction at a time | About 50 times faster |
+| [`C65C64`] | Every bus cycle: the pins, the address and data buses and the clock | The reference |
+| [`CFast65C64`] | An instruction at a time | About 50 times faster |
 
 ## The cycle level simulator
 
-`C65C64` is the reference.  It models the processor as the [bus](bus.md) sees it: each
+[`C65C64`] is the reference.  It models the processor as the [bus](bus.md) sees it: each
 instruction is a list of bus cycles, and each cycle puts an address and the control signals on
-the pins on one clock edge and takes or gives data on the next.  `C65C64Meta` owns the pins as
+the pins on one clock edge and takes or gives data on the next.  [`C65C64Meta`] owns the pins as
 traces, so a logic level system can be built around the processor, and calls the memory back on
 each edge of the clock.
 
@@ -20,7 +20,7 @@ It follows the structure of the library's W65C816S simulator.
 
 ## The instruction level simulator
 
-`CFast65C64` does what the reference does an instruction at a time, without pins, bus cycles
+[`CFast65C64`] does what the reference does an instruction at a time, without pins, bus cycles
 or a timeline.  It decodes with the same decoder, makes the same memory accesses in the same
 order, counts the same clock cycles and takes interrupts at the same instruction boundaries.
 
@@ -37,12 +37,12 @@ A change to an instruction is made in both simulators, and tests hold them toget
 
 - A fuzz test runs every opcode from random state on both and compares everything after
   each step.
-- Lockstep tests (`CAsm65C64Lockstep`) run whole programs on both side by side, comparing the
+- Lockstep tests ([`CAsm65C64Lockstep`]) run whole programs on both side by side, comparing the
   registers after every step and memory every so often.
 
 ## Memory and devices
 
-`CAsm65Memory` (Assembler65Lib) is a flat memory for either simulator:
+[`CAsm65Memory`] (Assembler65Lib) is a flat memory for either simulator:
 
 | Address | What |
 |---|---|
@@ -62,7 +62,7 @@ to read, 2 to write).  The [lazy loader](linking.md#lazy-loading) uses it.
 The console's input comes from a string or a callback (`SetConsoleInput`); with neither, the input
 has ended.  Taking a byte is a write, so reading the registers (as a debugger does) changes nothing.
 The X65C64 Emulator gives a program its standard input, showing what the program has written
-first, so a prompt appears before it waits.  Libc65's `stdin` reads it on both processors.
+first, so a prompt appears before it waits.  Libc65's [`stdin`] reads it on both processors.
 
 ## Running a program
 

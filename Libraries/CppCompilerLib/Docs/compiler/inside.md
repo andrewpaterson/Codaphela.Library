@@ -5,16 +5,16 @@ for both processors.
 
 | Stage | Classes | Does |
 |---|---|---|
-| Preprocess | `CPreprocessor`, `CPPHeaderCache` | Includes, macros and conditional compilation, to a token stream. |
-| Tokenise and parse | `CCPPTokeniser`, `CCPPParser` | C++ tokens to a syntax tree (`CCPPSyntaxTree`), with names resolved to scopes and symbols. |
-| Declarations and types | `CCPPUnit`, `CCPP65TypeChecker` | Classes laid out, templates instantiated, overloads chosen, each expression's type worked out. |
-| IR front end | `CCPP65IRFrontEnd` | Each function body written as [IR](ir.md), already in SSA form. |
-| Inline and optimise | `CIRInliner`, `CIROptimiser`, `CIRInterprocedural` | The IR made smaller and faster, the same for both processors. |
-| Back end | `CIRW65C816Backend`, `CIR65Backend` | IR to the processor's assembly text, with its own passes over the code. |
-| Assemble | `CAsmW65C816Assembler`, `CAsm65C64Assembler` | Assembly text to an object, in memory. |
-| Link | `CAsm65Linker` | Every unit's object, Libc65 and the runtime, to the output file. |
+| Preprocess | `CPreprocessor`, [`CPPHeaderCache`] | Includes, macros and conditional compilation, to a token stream. |
+| Tokenise and parse | [`CCPPTokeniser`], [`CCPPParser`] | C++ tokens to a syntax tree ([`CCPPSyntaxTree`]), with names resolved to scopes and symbols. |
+| Declarations and types | [`CCPPUnit`], [`CCPP65TypeChecker`] | Classes laid out, templates instantiated, overloads chosen, each expression's type worked out. |
+| IR front end | [`CCPP65IRFrontEnd`] | Each function body written as [IR](ir.md), already in SSA form. |
+| Inline and optimise | [`CIRInliner`], [`CIROptimiser`], [`CIRInterprocedural`] | The IR made smaller and faster, the same for both processors. |
+| Back end | [`CIRW65C816Backend`], [`CIR65Backend`] | IR to the processor's assembly text, with its own passes over the code. |
+| Assemble | [`CAsmW65C816Assembler`], [`CAsm65C64Assembler`] | Assembly text to an object, in memory. |
+| Link | [`CAsm65Linker`] | Every unit's object, Libc65 and the runtime, to the output file. |
 
-`CCPP65Builder` runs these for every unit of a program, on several threads (one unit a thread),
+[`CCPP65Builder`] runs these for every unit of a program, on several threads (one unit a thread),
 then links them.
 
 ## Preprocessor
@@ -42,7 +42,7 @@ code.
 
 ## Generator and type checker
 
-`CCPPUnit` does the C++: it lays out classes, writes vtables and their thunks, instantiates
+[`CCPPUnit`] does the C++: it lays out classes, writes vtables and their thunks, instantiates
 templates, chooses overloads and conversions, and decides which temporaries need destroying.  It
 works the way a C++ compiler does, doing only what is used:
 
@@ -66,7 +66,7 @@ works the way a C++ compiler does, doing only what is used:
 So a header like `BaseLib/ArrayTemplate.h`, with all it includes, compiles as long as what the
 program uses is supported.
 
-`CCPP65TypeChecker` works out each expression's type for overload resolution and the IR front
+[`CCPP65TypeChecker`] works out each expression's type for overload resolution and the IR front
 end, and reports the errors in expressions.
 
 ### Names
@@ -100,7 +100,7 @@ naming where each argument word is (`_Sum__FPKij.axy`): see
 
 ## IR front end
 
-`CCPP65IRFrontEnd` writes each function body as IR: every local as a stack slot, every
+[`CCPP65IRFrontEnd`] writes each function body as IR: every local as a stack slot, every
 expression's value as a temporary, objects' constructors and destructors as calls.  It writes
 global constructors (`R_Initialise<n>`) and destructors (`R_Finalise<n>`) the same way.  A function
 using C++ it can't write is an error that names the compiler's own source line, which shows which
@@ -131,7 +131,7 @@ it is also written out as a `.lst` file with each C++ line as a comment.
 
 ## What gets measured
 
-`CCPPCompileStatistics` counts and times each unit's compile: the phases (preprocess, tokenise,
+[`CCPPCompileStatistics`] counts and times each unit's compile: the phases (preprocess, tokenise,
 parse, declarations, types, front end, inline, optimise, back end, code passes, assemble, link),
 each optimiser pass's runs and changes, and the things the compiler is being reshaped to remove.
 The test suites print them with `TEST_PROJECT65_COMPILE_STATS`, and

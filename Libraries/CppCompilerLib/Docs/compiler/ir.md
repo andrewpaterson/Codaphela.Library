@@ -20,7 +20,7 @@ It is a variant of [QBE](https://c9x.me/compile/)'s, with an LLVM like text form
 | `i1` | A condition: made by comparisons, used by `brif` and `phi`.  Never in memory. |
 | `i8`, `i16`, `i32`, `i64` | Integers.  Signed or unsigned is in the operation, not the type. |
 | `f32`, `f64` | IEEE floats (`long double` is `f64`). |
-| `ptr`, `ptr.space` | A pointer in the module's first address space, or a named one. |
+| `#!text ptr`, `ptr.space` | A pointer in the module's first address space, or a named one. |
 
 `i8` and `i16` are values in their own right because the W65C816 works in 16 bits.  Loads and
 stores have no alignment: neither processor faults on an unaligned access.
@@ -113,13 +113,13 @@ when a pass asks for them and kept until a pass changes the function.
 | `ReduceMultiplies` | A multiply of a loop's counter by an invariant becomes an add each time round. |
 | `ReplaceExitValues` | A value's final value after a loop, worked out without the loop. |
 | `DeleteDeadLoops` | Removes a loop whose results nothing uses. |
-| `ReduceStrength` | `p + i * size` in a loop becomes a pointer stepped by `size`. |
+| `ReduceStrength` | `p + i * size` in a loop becomes a pointer stepped by `#!text size`. |
 | `SplitLoopAddresses` | `p + (a + i)` with `p` and `a` invariant becomes `(p + a) + i`, hoisted. |
 | `HoistInvariants` | Moves work the loop doesn't change out of it. |
 | `SinkLoads` | Moves a load down to the block that uses it. |
 | `HoistCommon` | Work both ways of a branch do is done once before it. |
 | `UnswitchLoops` | A loop with a branch on an invariant becomes two loops. |
-| `ReplaceLoopIdioms` | Byte loops become calls of `memset`, `memmove`, `strlen`, `memcmp`, `memchr` and `strchr`. |
+| `ReplaceLoopIdioms` | Byte loops become calls of [`memset`], [`memmove`], [`strlen`], [`memcmp`], [`memchr`] and [`strchr`]. |
 | `RemoveDeadCode` | Removes what nothing uses. |
 | `SinkComparisons` | A comparison only a later branch reads moves next to it. |
 | `NarrowMultiplies` | A multiply whose product fits 16 bits is done in 16 bits.  After the rounds. |
@@ -131,9 +131,9 @@ The 65C64 leaves out `DivisibilityTests`, `ConstantDivisions`, `MergeAddressPhis
 
 Besides the per function passes:
 
-- **The inliner** (`CIRInliner`) puts small functions into their callers, within a unit and, on the
+- **The inliner** ([`CIRInliner`]) puts small functions into their callers, within a unit and, on the
   W65C816, across units.
-- **Interprocedural passes** (`CIRInterprocedural`) work over a unit's functions together.
+- **Interprocedural passes** ([`CIRInterprocedural`]) work over a unit's functions together.
 - **Indirect calls through known data** (a vtable entry of a known class, a constant table) become
   direct calls.
 

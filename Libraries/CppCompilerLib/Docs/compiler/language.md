@@ -23,8 +23,8 @@ The preprocessor defines `__cplusplus` as `201402L`.
 | `wchar_t`, `char16_t` | 2 bytes | 2 bytes | Unsigned.  `L'x'` is a `wchar_t`, `u'x'` a `char16_t`. |
 | `char32_t` | 4 bytes | 4 bytes | Unsigned.  `U'x'` is one. |
 | Pointers, references | 4 bytes | 4 bytes | On the W65C816 a 24 bit address with a zero top byte. |
-| `size_t` | **2 bytes** | 4 bytes | `unsigned int` on both, so `sizeof`'s type, `size_t` and BaseLib's `size` are one type.  On the W65C816 `memcpy`, `malloc` and the others take 16 bit counts; `memcpy32`, `malloc32` and the other 32 suffixed functions take longer ones (see [Libc65](libc65.md)). |
-| `ptrdiff_t` | 4 bytes | 4 bytes | A pointer wide: `int` on the 65C64, `long` on the W65C816, so a difference of pointers into a block of more than 32KB isn't cut. |
+| [`size_t`] | **2 bytes** | 4 bytes | `unsigned int` on both, so `sizeof`'s type, [`size_t`] and BaseLib's [`size`] are one type.  On the W65C816 [`memcpy`], [`malloc`] and the others take 16 bit counts; [`memcpy32`], [`malloc32`] and the other 32 suffixed functions take longer ones (see [Libc65](libc65.md)). |
+| [`ptrdiff_t`] | 4 bytes | 4 bytes | A pointer wide: `int` on the 65C64, `long` on the W65C816, so a difference of pointers into a block of more than 32KB isn't cut. |
 | Pointers to data members | 4 bytes | 4 bytes | The field's offset plus one; the null one is 0. |
 | Pointers to member functions | 8 bytes | 8 bytes | The function's address, then what the object's address is moved by for the function's `this`: 0 unless the pointer was converted to one of a class the function's class is further on in.  The null one is 0. |
 | `std::nullptr_t` | 4 bytes | 4 bytes | `nullptr`'s type, a type of its own: it becomes any pointer or pointer to a member, a `bool` only where it is tested or directly initialises one, and nothing else. |
@@ -34,8 +34,8 @@ on the 65C64 though both are 32 bits, as are `short` and `int` on the W65C816, a
 `signed char` and `unsigned char` everywhere.  They overload, specialise templates and are
 labelled apart, and promotions and the usual arithmetic conversions go by the standard's ranks
 (`long + unsigned int` is `unsigned long` on the 65C64, `long` on the W65C816).  Libc65's fixed
-width types are `int` where `int` is that wide: `int16_t` and `uint16_t` are `int` and
-`unsigned int` on the W65C816, `int32_t` and `uint32_t` on the 65C64 (and `long` and
+width types are `int` where `int` is that wide: [`int16_t`] and [`uint16_t`] are `int` and
+`unsigned int` on the W65C816, [`int32_t`] and [`uint32_t`] on the 65C64 (and `long` and
 `unsigned long` on the W65C816).
 
 An enum's underlying type follows the standard: `int`, then `unsigned int`, `long`,
@@ -74,18 +74,18 @@ members at multiples of 4 and 2 byte ones at multiples of 2.
 
 ### A 16 bit `int`
 
-On the W65C816 `int` is 16 bits; to get 32 bits, declare a `long` or an `int32_t`.  There is no
+On the W65C816 `int` is 16 bits; to get 32 bits, declare a `long` or an [`int32_t`].  There is no
 option to make `int` 32 bits.  Code written for a 32 bit `int` meets these traps, all silent:
 
 - An `int` passed to an overload set with a 16 bit and a 32 bit member picks the 16 bit one.
-  BaseLib's own overloads (`AssertInt`, `IntToString`, `WriteInt32` ...) have a 16 bit family
+  BaseLib's own overloads (`AssertInt`, [`IntToString`], `WriteInt32` ...) have a 16 bit family
   under `__W65C816__`.
 - `*(int*)` and `sizeof(int)` used for 4 byte data.
-- `uint16_t` is `unsigned int`, so `u16 - 1` is 65535, not -1.
+- [`uint16_t`] is `unsigned int`, so `u16 - 1` is 65535, not -1.
 - `uint8_t << 16` and seeds, counts and sizes cast to `int`.
 - Multi character literals (`'\0MAN'`) are `long`, and `NULL` passed to a variadic function
   must be pointer sized (`0L`).
-- A virtual function's override that takes an `int` where the base class's takes an `int32` is
+- A virtual function's override that takes an `int` where the base class's takes an [`int32`] is
   a different function, which calls through the base class never reach.  Declare it `override`
   and the compiler says so (below).
 
@@ -106,22 +106,22 @@ is checked by the first unit that needs it whole (one that makes an object of it
 or defines one), not by every unit that includes the header; so is a class nested in another
 class or in a function.  A header's class that a program names and never uses is not checked.
 
-### BaseLib's `size` and `lsize`
+### BaseLib's [`size`] and [`lsize`]
 
-BaseLib counts and measures with its own `size` and `lsize` types (`BaseLib/PrimitiveTypes.h`).
-`size` is `size_t`; `lsize` is for what can pass 64KB.  A call doesn't say which function it wants:
-on the W65C816 `memcpy`, `memmove`, `memset`, `memcmp`, `memchr`, `malloc`, `calloc`, `realloc`,
-`fread` and `fwrite` called with an `lsize` count (or a `long`, or a constant made with `KB` or
-`MB`) are Libc65's `memcpy32`, `malloc32`, `fread32` and the others, chosen by the count's type
-by overloads in `PrimitiveTypes.h`; with a `size`, a `size_t` or a `sizeof` they are the C
+BaseLib counts and measures with its own [`size`] and [`lsize`] types (`BaseLib/PrimitiveTypes.h`).
+[`size`] is [`size_t`]; [`lsize`] is for what can pass 64KB.  A call doesn't say which function it wants:
+on the W65C816 [`memcpy`], [`memmove`], [`memset`], [`memcmp`], [`memchr`], [`malloc`], [`calloc`], [`realloc`],
+[`fread`] and [`fwrite`] called with an [`lsize`] count (or a `long`, or a constant made with `KB` or
+`MB`) are Libc65's [`memcpy32`], [`malloc32`], [`fread32`] and the others, chosen by the count's type
+by overloads in `PrimitiveTypes.h`; with a [`size`], a [`size_t`] or a `sizeof` they are the C
 library's own.
 `Memory32.h` has the 32 suffixed names on every target for the few places that name them, and
-`strlen32`, a string's whole length:
+[`strlen32`], a string's whole length:
 
 | Type | W65C816 | 65C64 | Notes |
 |---|---|---|---|
-| `size` | **2 bytes** | 4 bytes | `size_t` on every target: the W65C816's natural width there. |
-| `lsize` | 4 bytes | 4 bytes | `uint32` on the W65C816, for counts and lengths that can pass 64KB; `size` elsewhere. |
+| [`size`] | **2 bytes** | 4 bytes | [`size_t`] on every target: the W65C816's natural width there. |
+| [`lsize`] | 4 bytes | 4 bytes | [`uint32`] on the W65C816, for counts and lengths that can pass 64KB; [`size`] elsewhere. |
 
 The two are different types only on the W65C816, so only there can a function be overloaded on
 both.  A host build checks the W65C816's size model with `g++ -m32 -DBASELIB_SIZE16
@@ -208,10 +208,10 @@ two templates the more specialised is chosen; where none is best the call is amb
 `-exceptions`; see [Building](building.md)).  The option is off by default: without it they are
 errors, and not a byte of any program pays for them.  With it, all of C++14's exceptions are there:
 handlers by value, by reference and `(...)`, `throw;`, function-try-blocks, `noexcept` and
-`throw(...)` lists with `std::unexpected`, what is half made undone (a constructor's members and
+`throw(...)` lists with [`std::unexpected`], what is half made undone (a constructor's members and
 bases, an array's elements, `new`'s memory, a static local's guard), and what the language throws:
-`std::bad_alloc` from `new`, `std::bad_array_new_length`, `std::bad_cast` and `std::bad_typeid`.
-Libc65's `<exception>` has `std::exception_ptr` and `std::nested_exception`.
+[`std::bad_alloc`] from `new`, [`std::bad_array_new_length`], [`std::bad_cast`] and [`std::bad_typeid`].
+Libc65's `<exception>` has [`std::exception_ptr`] and [`std::nested_exception`].
 
 A function that throws returns as it always does, with the carry flag set, and its caller tests the
 flag after the call.  So nothing walks the stack and no tables are written, a throw is fast, and the
@@ -239,10 +239,10 @@ What a program built with exceptions must do:
   (*"f is assembly and is called by C++ that tests for an exception: declare it noexcept"*).
   Libc65's, BaseLib's and the kernal's are.
 - Not let an exception leave an interrupt handler or a kernal call: nothing catches it there, and it
-  is `std::terminate`.
+  is [`std::terminate`].
 
 Not there yet: `std::throw_with_nested` takes a class and doesn't tell a `final` one, or one that is
-already a `std::nested_exception`, from the others; `std::rethrow_if_nested` takes a polymorphic
+already a [`std::nested_exception`], from the others; `std::rethrow_if_nested` takes a polymorphic
 class.
 
 ## Floating point

@@ -4,7 +4,7 @@
 
 A listing is a unit's assembly with each C++ line as a comment above its code.  `hcp65build`
 writes one for each unit into the listing directory (`-listings`, or `Listing/` beside a
-solution); from C++ it is `CCPP65Builder::SetListingDirectory`.  Compiling without linking is the
+solution); from C++ it is [`CCPP65Builder::SetListingDirectory`].  Compiling without linking is the
 quickest way to see what the compiler does with a piece of C++:
 
 ```text
@@ -68,8 +68,8 @@ variables:
 
 ## Profiling
 
-`CAsm65Profile` runs a program on either processor's emulator (the W65C816 or the 65C64, through
-`CAsm65ProfiledCore`) and counts the cycles in each function and each source line, through the line
+[`CAsm65Profile`] runs a program on either processor's emulator (the W65C816 or the 65C64, through
+[`CAsm65ProfiledCore`]) and counts the cycles in each function and each source line, through the line
 table; its report also gives each line's *call sites*, the cycles
 inside the calls made from that line with everything they called.  The same profile, saved, guides
 the W65C816's [aligned frames](w65c816.md#aligned-frames).
