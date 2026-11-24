@@ -409,17 +409,6 @@ bool IR816OperandsHave(const char* szText, size uiLength, const char* szFind)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A mnemonic's name ("lda").
-//
-//////////////////////////////////////////////////////////////////////////
-const char* IR816MnemonicName(uint16 uiMnemonic)
-{
-	return gasIR816Mnemonics[uiMnemonic].szName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // An instruction's line, two tabs then "mnemonic operand" (szOperand uiOperand long,
 // none when 0), appended to psz.
 //

@@ -49,9 +49,9 @@ typedef CArrayLargeTemplate<SIRW65C816CodeLine>	CArrayIR816CodeLines;
 typedef CArrayLargeTemplate<size>				CArrayIR816LineOrder;
 
 
-//A W65C816 function's code as the back end wrote it (from its label on), a line at a time with each line decoded,
-//for the passes over the text.  Lines are changed (Set), removed and inserted through it so their decoding is kept
-//with them.  The lines stay where they are made (masLines) and the code is their order (maiOrder), so taking lines
+//A W65C816 function's code, a line at a time: the back end writes its instructions into it (CIRW65C816Backend::Line)
+//and its passes change them by mnemonic and operand; Write prints it.  Load reads assembly text into it, for the
+//tests of the passes (they give them text).  The lines stay where they are made (masLines) and the code is their order (maiOrder), so taking lines
 //out and putting them in moves only the order.  As the 65C64's CIR65Code.
 class CIRW65C816Code
 {
@@ -102,11 +102,9 @@ public:
 	uint8		Note(size uiLine);
 	bool		IsNumberLine(size uiLine, uint16 uiMnemonic, const char* szOpen, const char* szClose);
 
-	void		Set(size uiLine, const char* szText);
 	void		Remove(size uiLine);
 	void		RemoveMarked(CArrayTemplate<uint8>* pabRemove);
 	void		RemoveMarked(CArrayTemplate<bool>* pabRemove);
-	void		Insert(size uiLine, const char* szText);
 	void		Append(const char* szText, size uiLength);
 	void		Append(const char* szText);
 	void		Truncate(size uiLines);

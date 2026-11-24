@@ -810,22 +810,6 @@ void CIRW65C816Code::MakeInstruction(SIRW65C816CodeLine* psCode, uint16 uiMnemon
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A line's text replaced, and decoded again.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Code::Set(size uiLine, const char* szText)
-{
-	SIRW65C816CodeLine*	psCode;
-
-	psCode = Line(uiLine);
-	psCode->szText.Clear();
-	psCode->szText.Append(szText);
-	Decode(psCode);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A line taken out of the code (its text stays until the code is cleared,
 // as lines don't move).
 //
@@ -879,21 +863,6 @@ void CIRW65C816Code::RemoveMarked(CArrayTemplate<bool>* pabRemove)
 	}
 	maiOrder.FakeSetUsedElements(uiKept);
 }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A line inserted before line uiLine (after the last for NumLines).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Code::Insert(size uiLine, const char* szText)
-{
-	size	uiIndex;
-
-	uiIndex = masLines.NumElements();
-	AddLine(szText, StrLen(szText));
-	*maiOrder.InsertAt(uiLine) = uiIndex;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //
