@@ -52,14 +52,11 @@ void CASCIIIndex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIIIndex::Add(const char* sz, const char* szLastCharInclusive)
 {
+	lsize	uiIndex;
 	bool	bAdded;
 
-	mcNames.FindOrAdd(sz, (size)Length(sz, szLastCharInclusive), &bAdded);
-	if (!bAdded)
-	{
-		return -1;
-	}
-	return (int64)mcNames.NumElements() - 1;
+	uiIndex = mcNames.FindOrAddIndex(sz, (size)Length(sz, szLastCharInclusive), &bAdded);
+	return (bAdded && (uiIndex != SArrayLargeSize::NotFound)) ? (int64)uiIndex : -1;
 }
 
 

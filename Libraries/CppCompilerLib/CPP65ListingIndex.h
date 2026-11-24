@@ -21,8 +21,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #ifndef __C_P_P_65_LISTING_INDEX_H__
 #define __C_P_P_65_LISTING_INDEX_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "BaseLib/ArrayChars.h"
-#include "BaseLib/MapStringTemplate.h"
+#include "BaseLib/HashSetString.h"
 #include "BaseLib/Chars.h"
 
 
@@ -76,10 +75,8 @@ class CCPP65ListingIndex
 {
 protected:
 	CArrayCPP65Listings			masListings;
-	CArrayChars					maszFiles;
-	CMapStringTemplate<size>	mcFileIndices;	//By normalised name.
-	CArrayChars					maszFunctions;
-	CMapStringTemplate<size>	mcFunctionIndices;
+	CHashSetString<SArrayNaturalSize, SHashOfFileName>	mcFiles;	//Found whatever their case and slashes.
+	CHashSetString<>			mcFunctions;
 	CArrayCPP65ListingRanges	masRanges;
 	bool						mbSorted;
 
@@ -99,8 +96,8 @@ public:
 	char*				GetListingName(size uiListing);
 	size				NumListingLines(size uiListing);
 	size				NumFiles(void) const;
-	char*				GetFile(size uiFile);
-	char*				GetFunction(size uiFunction);
+	const char*			GetFile(size uiFile);
+	const char*			GetFunction(size uiFunction);
 	size				NumRanges(void) const;
 	SCPP65ListingRange*	GetRange(size uiRange);
 
@@ -112,7 +109,6 @@ protected:
 	size				AddFunction(const char* szFunction, size uiLength);
 	void				EndRange(SCPP65ListingRange* psRange, bool bInRange);
 	void				Sort(void);
-	void				NormaliseFile(CChars* pszFile);
 	bool				ReadLineDirective(const char* szLine, const char* szEnd, CChars* pszFile, size* puiLine);
 	bool				StartsWith(const char* szText, const char* szEnd, const char* szPrefix);
 };

@@ -25,9 +25,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "BaseLib/MapStringInt.h"
-#include "BaseLib/MapLongTemplate.h"
 #include "BaseLib/HashMapPrimitiveTemplate.h"
+#include "BaseLib/HashSetString.h"
 #include "CPPSymbolKey.h"
 #include "CPPSemanticPass.h"
 
@@ -149,17 +148,15 @@ class CCPPIndexUnit
 {
 public:
 	CArrayIndexEntries	masEntries;
-	CArrayChars			maszKeys;		//The different keys.
-	CMapStringInt		mcKeys;			//Key to index in maszKeys.
+	CHashSetString<>	mcKeys;			//The different keys, each by its index.
 	CArrayInt			maiKinds;		//Each key's ECPPSymbolKind.
-	CArrayChars			maszFiles;
-	CMapStringInt		mcFiles;		//File name to index in maszFiles.
+	CHashSetString<>	mcFiles;		//The files' names, each by its index.
 	int32				miContainer;	//The key of the class or function the names added are in, -1 for neither.
-	CArrayInt			maiBaseLinks;	//Triples: a class's key, one of its base classes' key and the file (in maszFiles) saying so.
+	CArrayInt			maiBaseLinks;	//Triples: a class's key, one of its base classes' key and the file (in mcFiles) saying so.
 	CArrayInt			maiVirtuals;	//Pairs: the key of a member function declared virtual, override or final, and the file.
 	CHashMapLongTemplate<int32>	mcCachedKeys;	//A symbol's (or a function declarator's) key, by its address: -1 if it has none.
 	CSourceFile*		mpcLastFile;	//The file the last name added was in,
-	int					miLastFile;		//and its index in maszFiles.
+	int					miLastFile;		//and its index in mcFiles.
 
 	void	Init(void);
 	void	Kill(void);
@@ -237,10 +234,9 @@ friend class CCPPIndexContainerChildren;
 friend class CCPPIndexHierarchyChildren;
 friend class CCPPIndexUsageChildren;
 protected:
-	CArrayChars				maszFiles;
-	CMapStringInt			mcFiles;		//File name to index in maszFiles.
+	CHashSetString<>		mcFiles;		//The files' names, each by its index (SCPPIndexLocation's uiFile).
 	CArrayIndexSymbols		mapcSymbols;
-	CMapStringInt			mcKeys;			//Key to index in mapcSymbols.
+	CHashSetString<>		mcKeys;			//The symbols' keys, each by its symbol's index in mapcSymbols.
 	CHashMapLongTemplate<int32>	mcLocations;	//A name's place (LocationKey) to its symbol's index.
 	CArrayIndexBaseLinks	masBaseLinks;	//Each class's base classes, by the files saying so; the symbols' maiBases and
 	CArrayIndexVirtuals		masVirtuals;	//maiDerived and mbVirtual are made from these.
@@ -262,7 +258,7 @@ public:
 	bool				FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest);
 	size				FindFamily(CCPPIndexSymbol* pcSymbol, CArrayInt* paiDest, SCPPIndexLocation* psWhere = NULL);
 	size				NumFiles(void) const;
-	char*				GetFileName(size uiFile);
+	const char*			GetFileName(size uiFile);
 	char*				Print(CChars* pszDest);
 
 protected:

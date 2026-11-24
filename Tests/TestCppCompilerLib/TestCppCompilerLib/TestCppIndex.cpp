@@ -1889,11 +1889,11 @@ static void IndexUnitWithHeaders(CCPPIndex* pcIndex, CTestIndexedFiles* pcIndexe
 	cGathered.Init();
 	CCPPIndex::Gather(&cTokeniser, &cTree, &cGathered, &cPass, pcIndexed);
 	pcIndex->Merge(&cGathered);
-	for (i = 0; i < cGathered.maszFiles.NumElements(); i++)
+	for (i = 0; i < cGathered.mcFiles.NumElements(); i++)
 	{
-		if (!pcIndexed->maszFiles.Contains(cGathered.maszFiles.GetText(i)))
+		if (!pcIndexed->maszFiles.Contains(cGathered.mcFiles.GetKey(i)))
 		{
-			pcIndexed->maszFiles.Add(cGathered.maszFiles.GetText(i));
+			pcIndexed->maszFiles.Add(cGathered.mcFiles.GetKey(i));
 		}
 	}
 	cGathered.Kill();

@@ -54,6 +54,20 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The index of sz in pcSet, -1 if it isn't there.
+//
+//////////////////////////////////////////////////////////////////////////
+static int FindCPPIndexText(CHashSetString<>* pcSet, const char* sz)
+{
+	size	uiIndex;
+
+	uiIndex = pcSet->Find(sz);
+	return (uiIndex == ARRAY_ELEMENT_NOT_FOUND) ? -1 : (int)uiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A place in a file as one number: 20 bits of file, 24 of line and 20
 // of column.
 //
@@ -144,7 +158,6 @@ SCPPIndexLocation* CCPPIndexSymbol::GetLocation(size uiIndex) { return masLocati
 //////////////////////////////////////////////////////////////////////////
 void CCPPIndex::Init(void)
 {
-	maszFiles.Init();
 	mcFiles.Init();
 	mapcSymbols.Init();
 	mcKeys.Init();
@@ -176,7 +189,6 @@ void CCPPIndex::Kill(void)
 	}
 	mapcSymbols.Kill();
 	mcFiles.Kill();
-	maszFiles.Kill();
 }
 
 
@@ -187,10 +199,8 @@ void CCPPIndex::Kill(void)
 void CCPPIndexUnit::Init(void)
 {
 	masEntries.Init();
-	maszKeys.Init();
 	mcKeys.Init();
 	maiKinds.Init();
-	maszFiles.Init();
 	mcFiles.Init();
 	miContainer = -1;
 	maiBaseLinks.Init();
@@ -211,10 +221,8 @@ void CCPPIndexUnit::Kill(void)
 	maiVirtuals.Kill();
 	maiBaseLinks.Kill();
 	mcFiles.Kill();
-	maszFiles.Kill();
 	maiKinds.Kill();
 	mcKeys.Kill();
-	maszKeys.Kill();
 	masEntries.Kill();
 }
 
@@ -262,17 +270,15 @@ void CCPPIndexUnit::AddEntry(int iKey, SPreprocessedToken* psSource, ECPPIndexRo
 //////////////////////////////////////////////////////////////////////////
 int CCPPIndexUnit::AddKey(const char* szKey, ECPPSymbolKind eKind)
 {
-	int	iKey;
+	size	uiKey;
+	bool	bAdded;
 
-	iKey = mcKeys.Get(szKey, -1);
-	if (iKey < 0)
+	uiKey = mcKeys.FindOrAddIndex(szKey, &bAdded);
+	if (bAdded)
 	{
-		iKey = (int)maszKeys.NumElements();
-		maszKeys.Add(szKey);
 		maiKinds.Add((int)eKind);
-		mcKeys.Put(szKey, iKey);
 	}
-	return iKey;
+	return (int)uiKey;
 }
 
 
@@ -323,24 +329,12 @@ void CCPPIndexUnit::AddVirtual(const char* szFunction, ECPPSymbolKind eKind, CSo
 //////////////////////////////////////////////////////////////////////////
 int CCPPIndexUnit::AddFile(CSourceFile* pcFile)
 {
-	int		iFile;
-	char*	szFileName;
-
-	if (pcFile == mpcLastFile)
+	if (pcFile != mpcLastFile)
 	{
-		return miLastFile;
+		mpcLastFile = pcFile;
+		miLastFile = (int)mcFiles.FindOrAddIndex(pcFile->FullName());
 	}
-	szFileName = pcFile->FullName();
-	iFile = mcFiles.Get(szFileName, -1);
-	if (iFile < 0)
-	{
-		iFile = (int)maszFiles.NumElements();
-		maszFiles.Add(szFileName);
-		mcFiles.Put(szFileName, iFile);
-	}
-	mpcLastFile = pcFile;
-	miLastFile = iFile;
-	return iFile;
+	return miLastFile;
 }
 
 
@@ -518,14 +512,14 @@ void CCPPIndex::Merge(CCPPIndexUnit* pcUnit)
 	int					iBase;
 
 	aiSymbols.Init();
-	for (i = 0; i < pcUnit->maszKeys.NumElements(); i++)
+	for (i = 0; i < pcUnit->mcKeys.NumElements(); i++)
 	{
-		aiSymbols.Add(GetSymbolIndex(pcUnit->maszKeys.GetText(i), (ECPPSymbolKind)pcUnit->maiKinds.GetValue(i)));
+		aiSymbols.Add(GetSymbolIndex(pcUnit->mcKeys.GetKey(i), (ECPPSymbolKind)pcUnit->maiKinds.GetValue(i)));
 	}
 	aiFiles.Init();
-	for (i = 0; i < pcUnit->maszFiles.NumElements(); i++)
+	for (i = 0; i < pcUnit->mcFiles.NumElements(); i++)
 	{
-		aiFiles.Add((int)GetFileIndex(pcUnit->maszFiles.GetText(i)));
+		aiFiles.Add((int)GetFileIndex(pcUnit->mcFiles.GetKey(i)));
 	}
 
 	for (i = 0; i < pcUnit->masEntries.NumElements(); i++)
@@ -921,7 +915,7 @@ void CCPPIndex::RemoveFile(const char* szFileName)
 	CCPPIndexSymbol*	pcSymbol;
 	SCPPIndexLocation*	psLocation;
 
-	iFile = mcFiles.Get(szFileName, -1);
+	iFile = FindCPPIndexText(&mcFiles, szFileName);
 	if (iFile < 0)
 	{
 		return;
@@ -1602,20 +1596,18 @@ void CCPPIndex::GatherReferenceToOverload(CCPPSymbolKey* pcKeys, CCPPSymbol* pcS
 //////////////////////////////////////////////////////////////////////////
 int CCPPIndex::GetSymbolIndex(const char* szKey, ECPPSymbolKind eKind)
 {
-	int					iIndex;
+	size				uiIndex;
+	bool				bAdded;
 	CCPPIndexSymbol*	pcSymbol;
 
-	iIndex = mcKeys.Get(szKey, -1);
-	if (iIndex >= 0)
+	uiIndex = mcKeys.FindOrAddIndex(szKey, &bAdded);
+	if (bAdded)
 	{
-		return iIndex;
+		pcSymbol = NewMalloc<CCPPIndexSymbol>();
+		pcSymbol->Init(szKey, eKind);
+		mapcSymbols.Add(pcSymbol);
 	}
-	pcSymbol = NewMalloc<CCPPIndexSymbol>();
-	pcSymbol->Init(szKey, eKind);
-	iIndex = (int)mapcSymbols.NumElements();
-	mapcSymbols.Add(pcSymbol);
-	mcKeys.Put(szKey, iIndex);
-	return iIndex;
+	return (int)uiIndex;
 }
 
 
@@ -1625,17 +1617,7 @@ int CCPPIndex::GetSymbolIndex(const char* szKey, ECPPSymbolKind eKind)
 //////////////////////////////////////////////////////////////////////////
 uint32 CCPPIndex::GetFileIndex(const char* szFileName)
 {
-	int	iIndex;
-
-	iIndex = mcFiles.Get(szFileName, -1);
-	if (iIndex >= 0)
-	{
-		return (uint32)iIndex;
-	}
-	iIndex = (int)maszFiles.NumElements();
-	maszFiles.Add(szFileName);
-	mcFiles.Put(szFileName, iIndex);
-	return (uint32)iIndex;
+	return (uint32)mcFiles.FindOrAddIndex(szFileName);
 }
 
 
@@ -1827,7 +1809,7 @@ bool CCPPIndex::FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest)
 	}
 	szScope.Init();
 	szScope.AppendSubString(szKey, 0, uiName - 2);
-	iClass = mcKeys.Get(szScope.Text(), -1);
+	iClass = FindCPPIndexText(&mcKeys, szScope.Text());
 	szScope.Kill();
 	if (iClass < 0)
 	{
@@ -1844,7 +1826,7 @@ bool CCPPIndex::FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest)
 		pcClass = mapcSymbols.GetPtr((size)aiAncestors.GetValue(i));
 		szMember.Init(pcClass->mszKey);
 		szMember.Append(&szKey[uiName - 2]);
-		if (mcKeys.Get(szMember.Text(), -1) >= 0)
+		if (mcKeys.HasKey(szMember.Text()))
 		{
 			aiTops.Add(aiAncestors.GetValue(i));
 		}
@@ -1863,7 +1845,7 @@ bool CCPPIndex::FindOverrides(CCPPIndexSymbol* pcFunction, CArrayInt* paiDest)
 		pcClass = mapcSymbols.GetPtr((size)aiFamily.GetValue(i));
 		szMember.Init(pcClass->mszKey);
 		szMember.Append(&szKey[uiName - 2]);
-		iMember = mcKeys.Get(szMember.Text(), -1);
+		iMember = FindCPPIndexText(&mcKeys, szMember.Text());
 		if (iMember >= 0)
 		{
 			aiFound.Add(iMember);
@@ -1937,7 +1919,7 @@ CCPPIndexSymbol* CCPPIndex::FindSymbolAt(const char* szFileName, int iLine, int 
 	SCPPIndexLocation*	psLocation;
 	size				i;
 
-	iFile = mcFiles.Get(szFileName, -1);
+	iFile = FindCPPIndexText(&mcFiles, szFileName);
 	if (iFile < 0)
 	{
 		return NULL;
@@ -1987,7 +1969,7 @@ char* CCPPIndex::Print(CChars* pszDest)
 		{
 			psLocation = pcSymbol->masLocations.Get(j);
 			szFile.Init();
-			cFileUtil.GetFileName(&szFile, maszFiles.GetText(psLocation->uiFile));
+			cFileUtil.GetFileName(&szFile, mcFiles.GetKey(psLocation->uiFile));
 			pszDest->Append("  ");
 			pszDest->Append(szFile);
 			pszDest->Append(':');
@@ -2027,13 +2009,13 @@ CCPPIndexSymbol* CCPPIndex::FindSymbol(const char* szKey)
 {
 	int	iIndex;
 
-	iIndex = mcKeys.Get(szKey, -1);
+	iIndex = FindCPPIndexText(&mcKeys, szKey);
 	return (iIndex >= 0) ? mapcSymbols.GetPtr((size)iIndex) : NULL;
 }
 
 
 size CCPPIndex::NumSymbols(void) const { return mapcSymbols.NumElements(); }
 CCPPIndexSymbol* CCPPIndex::GetSymbol(size uiIndex) { return mapcSymbols.GetPtr(uiIndex); }
-size CCPPIndex::NumFiles(void) const { return maszFiles.NumElements(); }
-char* CCPPIndex::GetFileName(size uiFile) { return maszFiles.GetText(uiFile); }
+size CCPPIndex::NumFiles(void) const { return mcFiles.NumElements(); }
+const char* CCPPIndex::GetFileName(size uiFile) { return mcFiles.GetKey(uiFile); }
 

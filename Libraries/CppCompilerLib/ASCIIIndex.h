@@ -20,17 +20,17 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __ASCII_INDEX_H__
 #define __ASCII_INDEX_H__
-#include "BaseLib/HashMapString.h"
+#include "BaseLib/HashSetString.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/Numbers.h"
 
 
-//Names given IDs (0, 1, 2... in the order they are added): each name's index in a hash map of them, which keeps
-//their text.
+//Names given IDs (0, 1, 2... in the order they are added): each name's index in a set of them, which keeps their
+//text.
 class CASCIIIndex
 {
 protected:
-	CHashMapString<uint8, SArrayLargeSize>	mcNames;	//The value isn't used.
+	CHashSetString<SArrayLargeSize>	mcNames;
 
 public:
 	void	Init(void);

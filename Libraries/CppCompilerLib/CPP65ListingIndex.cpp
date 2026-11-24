@@ -75,10 +75,8 @@ static int CompareCPP65ListingRange(const void* pvLeft, const void* pvRight)
 void CCPP65ListingIndex::Init(void)
 {
 	masListings.Init();
-	maszFiles.Init();
-	mcFileIndices.Init(false);
-	maszFunctions.Init();
-	mcFunctionIndices.Init();
+	mcFiles.Init();
+	mcFunctions.Init();
 	masRanges.Init();
 	mbSorted = true;
 }
@@ -94,10 +92,8 @@ void CCPP65ListingIndex::Kill(void)
 	SCPP65Listing*	psListing;
 
 	masRanges.Kill();
-	mcFunctionIndices.Kill();
-	maszFunctions.Kill();
-	mcFileIndices.Kill();
-	maszFiles.Kill();
+	mcFunctions.Kill();
+	mcFiles.Kill();
 	for (i = 0; i < masListings.NumElements(); i++)
 	{
 		psListing = masListings.Get(i);
@@ -444,14 +440,10 @@ void CCPP65ListingIndex::GetLines(const char* szSourceFile, CArrayCPP65ListingLi
 //////////////////////////////////////////////////////////////////////////
 size CCPP65ListingIndex::FindFile(const char* szSourceFile)
 {
-	CChars	szFile;
-	size*	puiFile;
+	size	uiFile;
 
-	szFile.Init(szSourceFile);
-	NormaliseFile(&szFile);
-	puiFile = mcFileIndices.Get(szFile.Text());
-	szFile.Kill();
-	return puiFile ? *puiFile : MAX_SIZE;
+	uiFile = mcFiles.Find(szSourceFile);
+	return (uiFile == ARRAY_ELEMENT_NOT_FOUND) ? MAX_SIZE : uiFile;
 }
 
 
@@ -528,25 +520,7 @@ void CCPP65ListingIndex::AppendRange(SCPP65ListingRange* psRange, CChars* pszDes
 //////////////////////////////////////////////////////////////////////////
 size CCPP65ListingIndex::AddFile(const char* szFile)
 {
-	CChars	szKey;
-	size*	puiIndex;
-	size	uiIndex;
-
-	szKey.Init(szFile);
-	NormaliseFile(&szKey);
-	puiIndex = mcFileIndices.Get(szKey.Text());
-	if (puiIndex)
-	{
-		uiIndex = *puiIndex;
-	}
-	else
-	{
-		uiIndex = maszFiles.NumElements();
-		maszFiles.Add(szFile);
-		mcFileIndices.Put(szKey.Text(), &uiIndex);
-	}
-	szKey.Kill();
-	return uiIndex;
+	return mcFiles.FindOrAddIndex(szFile);
 }
 
 
@@ -557,25 +531,7 @@ size CCPP65ListingIndex::AddFile(const char* szFile)
 //////////////////////////////////////////////////////////////////////////
 size CCPP65ListingIndex::AddFunction(const char* szFunction, size uiLength)
 {
-	CChars	szName;
-	size*	puiIndex;
-	size	uiIndex;
-
-	szName.Init();
-	szName.Append(szFunction, uiLength);
-	puiIndex = mcFunctionIndices.Get(szName.Text());
-	if (puiIndex)
-	{
-		uiIndex = *puiIndex;
-	}
-	else
-	{
-		uiIndex = maszFunctions.NumElements();
-		maszFunctions.Add(szName.Text());
-		mcFunctionIndices.Put(szName.Text(), &uiIndex);
-	}
-	szName.Kill();
-	return uiIndex;
+	return mcFunctions.FindOrAddIndex(szFunction, uiLength);
 }
 
 
@@ -595,25 +551,12 @@ void CCPP65ListingIndex::Sort(void)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// A file name as it is looked up: either slash is the file separator.
-// (The map ignores case.)
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65ListingIndex::NormaliseFile(CChars* pszFile)
-{
-	pszFile->Replace('/', FILE_SEPARATOR[0]);
-	pszFile->Replace('\\', FILE_SEPARATOR[0]);
-}
-
-
 size CCPP65ListingIndex::NumListings(void) const { return masListings.NumElements(); }
 char* CCPP65ListingIndex::GetListingName(size uiListing) { return masListings.Get(uiListing)->szName.Text(); }
 size CCPP65ListingIndex::NumListingLines(size uiListing) { return masListings.Get(uiListing)->auiLineStarts.NumElements(); }
-size CCPP65ListingIndex::NumFiles(void) const { return maszFiles.NumElements(); }
-char* CCPP65ListingIndex::GetFile(size uiFile) { return maszFiles.GetText(uiFile); }
-char* CCPP65ListingIndex::GetFunction(size uiFunction) { return maszFunctions.GetText(uiFunction); }
+size CCPP65ListingIndex::NumFiles(void) const { return mcFiles.NumElements(); }
+const char* CCPP65ListingIndex::GetFile(size uiFile) { return mcFiles.GetKey(uiFile); }
+const char* CCPP65ListingIndex::GetFunction(size uiFunction) { return mcFunctions.GetKey(uiFunction); }
 size CCPP65ListingIndex::NumRanges(void) const { return masRanges.NumElements(); }
 SCPP65ListingRange* CCPP65ListingIndex::GetRange(size uiRange) { Sort(); return masRanges.Get(uiRange); }
 
