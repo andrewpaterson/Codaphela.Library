@@ -70,24 +70,25 @@ SpillStore; CPP65Type's mcFunctions and the header caches still key by a hash wi
 maps); a real key for each is still to do.
 
 
-Working beside the compiler's session (2026-11-23)
---------------------------------------------------
+Working beside the compiler's session (2026-11-23, the conversions' rule changed 2026-11-24)
+------------------------------------------------------------------------------------------
 
-Another session (C++ Compiler Smells) is running the semantic layer plan, stages 15e, 15f and 16 still to go, and
-asked:
+Another session (C++ Compiler Smells) is running the semantic layer plan (SemanticLayerPlan.txt): its first part
+(stages 0 to 16) is done, and part two (stages 17 to 25) is under way, 17 done on 2026-11-24.  It asked:
   - CppCompilerLib is off limits until it says its plan is finished: every stage rewrites call sites across most of
     the library.  So step 4's a, b, d, e, f and step 6's a (but ComponentSpriteCache) and b wait for it.
   - Build in Debug x64 while developing.  Its proofs (about 45 minutes each, back to back) build Release x64 and
     include BaseLib's sources: ask it before any Release x64 build, and before changing BaseLib.vcxproj, which it
     compiles mid-proof.  The machine has 7.9 GB.
-  - Its proofs re-baseline every generated listing of TestBaseLib65, TestSupportLib65 and TestStandardLib65, so the
-    new BaseLib files go into the projects just after one of its proofs, and it takes a fresh baseline.
-    StandardLib, SupportLib and LogiCim conversions wait until its plan is finished (their sources are in its
-    *65 suites and its timing).  So does HCP65's Assembler65Lib: all four of its proof solutions include it
-    (found 2026-11-23, after an edit of it sat on disk for ten minutes; the edit is kept as a patch,
-    D:\gameengine\HashMapWork\asm-hashmap.patch (git apply in HCP65), and is described in step 6d).
-  - Until then the new files are compiled and tested from a scratch folder (BaseLib and TestLib built Debug x64
-    into it, HashBlock.cpp and TestHashMap.cpp with cl beside them).
+  - Its proofs compare every generated listing of TestBaseLib65, TestSupportLib65 and TestStandardLib65 with the
+    stage before's, so the new BaseLib files go into the projects between two of its stages, and it takes a fresh
+    baseline.
+  - The StandardLib, SupportLib and LogiCim conversions, and HCP65's Assembler65Lib's (all four of its proof
+    solutions include it; the edit is kept as a patch, D:\gameengine\HashMapWork\asm-hashmap.patch (git apply
+    in HCP65), and is described in step 6d), may land between part two's stages (the user, 2026-11-24,
+    SemanticLayerPlan.txt question 11: they waited until its plan was finished).  Each goes in whole between two
+    of its stages, never while a stage's proof runs, and the stage after it takes a fresh listings baseline and
+    says so in its record.  Their sources are in its *65 suites and its timing, so it is told before one lands.
 
 
 Why
