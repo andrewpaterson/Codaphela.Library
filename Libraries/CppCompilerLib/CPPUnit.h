@@ -322,8 +322,6 @@ public:
 	void					PushFunctionScope(void);
 	void					PopFunctionScope(void);
 	CCPPFunction*			AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunctionKind eKind, SCPP65Type* psReturn);
-	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
-	bool					CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser);
 	CCPPFunction*			FirstFunctionOfName(int64 lliName);
 	void					RequireFunction(CCPPFunction* pcFunction);
 	bool					Emit(CChars* pszLabel);
@@ -333,7 +331,6 @@ public:
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
 	CCPPVariable*			GetVariable(CCPPSymbol* pcSymbol);
-	CCPPSyntax*				StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement);
 
 	bool					Function(CCPPSyntaxFunctionDefinition* pcDefinition, CCPPClass* pcClass);
 	void					GenerateFunction(CCPPFunction* pcFunction);
@@ -342,6 +339,7 @@ public:
 	bool					WriteBody(CCPPFunction* pcFunction);
 	void					AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator = NULL);
 	void					AppendUnsupported(CChars* psz);
+	bool					Supported(SCPP65Type* psType, CCPPSyntax* pcNode);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
 	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
@@ -360,36 +358,10 @@ public:
 	SCPP65Type*				ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParameter* pcParameter);
 
 
-	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
-	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
-
-	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
+	//The names of a function's and a name's components.  CPPUnitLabels.cpp
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);
-
-
-	//Literals, constants, warnings and TypeOf.  CPPUnitExpressions.cpp
-
-
-	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
-
-
-	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
-	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
-
-
-	bool					Supported(SCPP65Type* psType, CCPPSyntax* pcNode);
-
-
-	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
-
-	//Objects and copies.  CPPUnitObjects.cpp
-
-	//Check only.  CPPUnitCheck.cpp
-	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);
-
-	//Floating point.  CPPUnitFloat.cpp
 };
 
 

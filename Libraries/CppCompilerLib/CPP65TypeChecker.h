@@ -205,6 +205,14 @@ public:
 	bool					IsStandardLayoutType(SCPP65Type* psType);
 	bool					IsNullPointerConstant(CCPPSyntax* pcExpression);
 	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
+
+	bool					NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode);
+	bool					CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser);
+	CCPPSyntax*				StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement);
+	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
+	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
+	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
+	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);

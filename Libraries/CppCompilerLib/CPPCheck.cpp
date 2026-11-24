@@ -1350,7 +1350,7 @@ void CCPPCheck::CheckLocal(CCPPSyntaxInitDeclarator* pcInit)
 		mpcUnit->GetClasses()->AlignasAlignment(&pcDeclaration->mpcSpecifiers->macpSpecifiers);
 	}
 	mpcUnit->GetClasses()->AlignasAlignment(&pcInit->mpcDeclarator->macpAttributes);
-	if (pcVariable && mpcUnit->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
+	if (pcVariable && mpcUnit->GetTypeChecker()->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
 	{
 		return;
 	}

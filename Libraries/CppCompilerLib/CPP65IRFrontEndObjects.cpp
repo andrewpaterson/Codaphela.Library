@@ -1189,7 +1189,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 		sField.psType = psField->psType;
 		sField.psBitField = psField->IsBitField() ? psField : NULL;
 		pcValue = (ui < papcArguments->NumElements()) ? papcArguments->GetPtr(ui) : NULL;
-		if (pcValue && (psField->psType->IsInteger() || psField->psType->IsFloat()) && (pcValue->GetKind() != CPPS_InitializerList) && !mpcUnit->CheckBracedValue(pcValue, psField->psType))
+		if (pcValue && (psField->psType->IsInteger() || psField->psType->IsFloat()) && (pcValue->GetKind() != CPPS_InitializerList) && !mpcUnit->GetTypeChecker()->CheckBracedValue(pcValue, psField->psType))
 		{
 			//A list's value isn't narrowed to its field.  [dcl.init.aggr] 12, [dcl.init.list] 7
 			return false;
@@ -1562,7 +1562,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 
 	//The elements a list in braces gives (or the characters of the string it holds, as an array's are: new
 	//char[n]{"abc"}, [dcl.init.string]), then the rest.
-	pcString = mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType);
+	pcString = mpcUnit->GetTypeChecker()->StringInitialiser(pcNew->mpcInitializer, psType);
 	papcElements = pcNew->mpcInitializer ? mpcUnit->GetInstantiator()->ListElements(pcNew->mpcInitializer) : NULL;
 	bValue = pcNew->mpcInitializer != NULL;
 	uiFirst = papcElements ? papcElements->NumElements() : 0;

@@ -82,6 +82,9 @@ public:
 	bool					TokenFloat(CCPPToken* pcToken, double* pdValue, SCPP65Type** ppsType);
 	bool					FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue, SCPP65Type** ppsType);
 	int64					FloatBits(SCPP65Type* psType, double dValue);
+
+	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
+	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
 };
 
 

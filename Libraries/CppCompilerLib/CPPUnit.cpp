@@ -989,88 +989,6 @@ void CCPPUnit::PopFunctionScope(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// What a variable's declaration must be, wherever it is (a local, a static
-// local, a global; the semantic pass's check too): initialised where its
-// type needs it to be (NeedsNoInitialiser), not copy-initialised through an
-// explicit constructor (CopyInitialises), and what its initialiser, or none,
-// can make (the type checker's Initialise: the one place that says so, of
-// an object, a reference, a number and an array alike).  Its errors are
-// reported, where it is quiet too.  [dcl.init]
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser)
-{
-	SCPP65Type*						psElement;
-	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
-	bool							bExtern;
-	bool							bResult;
-
-	if (!pcInitialiser && !NeedsNoInitialiser(psType, pcInit))
-	{
-		return false;
-	}
-	if (psType->IsClass() && !mcBinder.CopyInitialises(psType->pcClass, pcInit))
-	{
-		return false;
-	}
-	psElement = psType->InnermostElement();
-	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
-	bExtern = pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN);
-	if (psElement->IsClass() && !bExtern && mcClasses.CompleteClass(psElement->pcClass, pcInit) && !mcBinder.ReachesDestructor(psElement->pcClass, pcInit))
-	{
-		//The object is destroyed where it ends.  [class.dtor] 11
-		return false;
-	}
-	mcDiagnostics.BeginLoud();
-	bResult = mcTypeChecker.Initialise(psType, pcInitialiser, pcInit);
-	mcDiagnostics.EndLoud();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether a variable of psType may be defined with no initialiser: not a
-// reference, which must be bound to something, and not a const object (or
-// an array of them) that nothing would ever give a value: a number or a
-// pointer, or an object of a class with fields and no constructor to fill
-// them.  An error at pcNode (and false) if not.  [dcl.ref] 5, [dcl.init] 7
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
-{
-	SCPP65Type*	psElement;
-	CCPPClass*	pcClass;
-
-	if (psType->IsReference())
-	{
-		return mcDiagnostics.ReportError(pcNode, "A reference must be initialised");
-	}
-	psElement = psType->InnermostElement();
-	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && psElement->pcClass->HasFieldNeedingValue())
-	{
-		//[class.ctor] 4
-		return mcDiagnostics.ReportError(pcNode, "The class's default constructor is deleted: a reference or const member of it has no initialiser");
-	}
-	if (!psElement->bConst)
-	{
-		return true;
-	}
-	if (!psElement->IsClass())
-	{
-		return mcDiagnostics.ReportError(pcNode, "A const object must be initialised");
-	}
-	pcClass = psElement->pcClass;
-	if (!pcClass->mbConstructors && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
-	{
-		return mcDiagnostics.ReportError(pcNode, "A const object of a class with no constructor must be initialised");
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A new function, a member of pcClass if there is one, and the last of the
 // functions of its name (FirstFunctionOfName).
 //
@@ -1268,28 +1186,6 @@ SCPP65Type* CCPPUnit::ParameterVariableType(SCPP65Type* psType, CCPPSyntaxParame
 	}
 	uiFlags = pcParameter->mpcSpecifiers ? pcParameter->mpcSpecifiers->muiFlags : 0;
 	return mcTypes.Qualified(psType, (uiFlags & CPPDS_CONST) != 0, (uiFlags & CPPDS_VOLATILE) != 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// char a[] = { "string" } is char a[] = "string": the string, when the initialiser of an array of psElement is a
-// list of just a string and the elements are characters.  Otherwise pcInitialiser.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement)
-{
-	CArraySyntax*	papcElements;
-
-	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
-	{
-		papcElements = mcInstantiator.ListElements(pcInitialiser);
-		if ((papcElements->NumElements() == 1) && mcTypeChecker.IsStringLiteral(papcElements->GetPtr(0)) && (mcStrings.StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
-		{
-			return papcElements->GetPtr(0);
-		}
-	}
-	return pcInitialiser;
 }
 
 
@@ -1590,6 +1486,22 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 	{
 		GetFunctionPacks()->AddAll(&psLambda->cFunctionPacks);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the compiler can do a value of psType: an error at pcNode (and
+// false) for an integer wider than 64 bits.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::Supported(SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	if (psType->IsScalar() && (psType->iBytes > 8))
+	{
+		return mcDiagnostics.Error(pcNode, "Integers wider than 64 bits are not supported by the compiler");
+	}
+	return true;
 }
 
 

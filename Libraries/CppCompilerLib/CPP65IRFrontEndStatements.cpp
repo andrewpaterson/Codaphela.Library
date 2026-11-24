@@ -441,7 +441,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if ((pcVariable->meStorage != CPPVS_Global) && !mpcUnit->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
+		if ((pcVariable->meStorage != CPPVS_Global) && !mpcUnit->GetTypeChecker()->CheckDeclared(pcVariable->mpsType, pcInit, pcInit->mpcInitializer))
 		{
 			//(An extern declaration in a function only names a global.)
 			return false;
@@ -467,7 +467,7 @@ bool CCPP65IRFrontEnd::Declaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, C
 		{
 			*ppcLast = pcVariable;
 		}
-		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcUnit->CheckConstexprLocal(pcVariable, pcInit))
+		if (pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_CONSTEXPR) && !mpcUnit->GetTypeChecker()->CheckConstexprLocal(pcVariable, pcInit))
 		{
 			return false;
 		}
@@ -648,7 +648,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	{
 		return ArrayInitialiser(psPlace, pcInitialiser);
 	}
-	if ((pcInitialiser->GetKind() != CPPS_InitializerList) && !mpcUnit->CheckInitialiser(pcInitialiser, psPlace->psType))
+	if ((pcInitialiser->GetKind() != CPPS_InitializerList) && !mpcUnit->GetTypeChecker()->CheckInitialiser(pcInitialiser, psPlace->psType))
 	{
 		return false;
 	}
@@ -669,7 +669,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 			return mpcDiagnostics->ReportOnce(pcInitialiser, "A number or a pointer is initialised by one value");
 		}
 		pcInitialiser = papcElements->GetPtr(0);
-		if (!mpcUnit->CheckBracedValue(pcInitialiser, psPlace->psType))
+		if (!mpcUnit->GetTypeChecker()->CheckBracedValue(pcInitialiser, psPlace->psType))
 		{
 			return false;
 		}
@@ -742,7 +742,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	SCPP65IRValue	sValue;
 
 	psElement = psPlace->psType->psBase;
-	pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psElement);
+	pcInitialiser = mpcUnit->GetTypeChecker()->StringInitialiser(pcInitialiser, psElement);
 	if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
@@ -846,7 +846,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 			}
 			pcElement = papcOne->GetPtr(0);
 		}
-		if ((psElement->IsInteger() || psElement->IsFloat()) && !mpcUnit->CheckBracedValue(pcElement, psElement))
+		if ((psElement->IsInteger() || psElement->IsFloat()) && !mpcUnit->GetTypeChecker()->CheckBracedValue(pcElement, psElement))
 		{
 			//A list's value isn't narrowed to its element.  [dcl.init.aggr] 12, [dcl.init.list] 7
 			return false;
@@ -1542,7 +1542,7 @@ bool CCPP65IRFrontEnd::ReturnStatement(CCPPSyntaxReturnStatement* pcReturn)
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (!mpcUnit->CheckInitialiser(pcReturn->mpcValue, psReturn))
+	if (!mpcUnit->GetTypeChecker()->CheckInitialiser(pcReturn->mpcValue, psReturn))
 	{
 		return false;
 	}

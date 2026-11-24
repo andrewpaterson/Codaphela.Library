@@ -296,7 +296,6 @@
     <ClCompile Include="CPPUnit.cpp" />
     <ClCompile Include="CPPClassesBases.cpp" />
     <ClCompile Include="CPPUnitLabels.cpp" />
-    <ClCompile Include="CPPUnitExpressions.cpp" />
     <ClCompile Include="CPPInstantiatorPacks.cpp" />
     <ClCompile Include="CPP65Type.cpp" />
     <ClCompile Include="CPPClass.cpp" />

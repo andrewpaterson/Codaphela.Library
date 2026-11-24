@@ -134,7 +134,7 @@ SCPP65Type* CCPPEnums::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcS
 		for (i = 0; i < pcSpecifier->macpEnumerators.NumElements(); i++)
 		{
 			pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i);
-			if (pcEnumerator->mpcValue && !mpcUnit->QuietConstant(pcEnumerator->mpcValue, &lliValue))
+			if (pcEnumerator->mpcValue && !mpcUnit->GetFolder()->QuietConstant(pcEnumerator->mpcValue, &lliValue))
 			{
 				//One that can't be worked out here (sizeof(T) in a class template's enum, with no T) leaves it an int:
 				//what is wrong with it is said where it is checked (CheckEnumerators).

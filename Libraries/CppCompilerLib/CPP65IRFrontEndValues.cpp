@@ -697,7 +697,7 @@ bool CCPP65IRFrontEnd::ScalarConstruct(CCPPSyntaxConstructExpression* pcConstruc
 	CArraySyntax*	papcElements;
 	SCPP65Type*		psType;
 
-	papcElements = mpcUnit->ConstructElements(pcConstruct);
+	papcElements = mpcUnit->GetTypeChecker()->ConstructElements(pcConstruct);
 	if (papcElements && (papcElements->NumElements() == 1))
 	{
 		return CastExpression(pcConstruct, pcConstruct->mpcType, papcElements->GetPtr(0), psValue);

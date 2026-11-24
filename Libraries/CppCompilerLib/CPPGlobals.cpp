@@ -251,7 +251,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 		pcVariable->mbDefined = true;
 		pcVariable->mpsType = psType;
 		CompleteDeclaredArrays(pcVariable);
-		if (!mpcUnit->CheckDeclared(psType, pcInit, pcInitialiser))
+		if (!mpcUnit->GetTypeChecker()->CheckDeclared(psType, pcInit, pcInitialiser))
 		{
 			bResult = false;
 			continue;
@@ -369,7 +369,7 @@ bool CCPPGlobals::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialise
 	{
 		papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
-		if (pcInitialiser && !mpcUnit->CheckBracedValue(pcInitialiser, psType))
+		if (pcInitialiser && !mpcUnit->GetTypeChecker()->CheckBracedValue(pcInitialiser, psType))
 		{
 			return false;
 		}
@@ -378,7 +378,7 @@ bool CCPPGlobals::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialise
 	if (psType->IsArray())
 	{
 		bResult = true;
-		pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psType->psBase);
+		pcInitialiser = mpcUnit->GetTypeChecker()->StringInitialiser(pcInitialiser, psType->psBase);
 		if (!pcInitialiser)
 		{
 			i = 0;

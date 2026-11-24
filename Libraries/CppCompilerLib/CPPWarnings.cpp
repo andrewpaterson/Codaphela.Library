@@ -86,7 +86,7 @@ void CCPPWarnings::ConversionOverflow(CCPPSyntax* pcExpression, SCPP65Type* psTo
 	}
 
 	//Most expressions aren't constant; looking must not leave an error.
-	bConstant = mpcUnit->QuietConstant(pcExpression, &lliValue);
+	bConstant = mpcUnit->GetFolder()->QuietConstant(pcExpression, &lliValue);
 	if (!bConstant)
 	{
 		WideningArithmetic(pcExpression, psFrom, psTo);
@@ -145,7 +145,7 @@ void CCPPWarnings::WideningArithmetic(CCPPSyntax* pcExpression, SCPP65Type* psFr
 		return;
 	}
 
-	bConstant = mpcUnit->QuietConstant(pcBinary, &lliValue);
+	bConstant = mpcUnit->GetFolder()->QuietConstant(pcBinary, &lliValue);
 	if (bConstant)
 	{
 		return;
@@ -178,7 +178,7 @@ void CCPPWarnings::ShiftCount(CCPPSyntaxBinaryExpression* pcBinary, int iBits)
 	{
 		return;
 	}
-	bConstant = mpcUnit->QuietConstant(pcBinary->mpcRight, &lliCount);
+	bConstant = mpcUnit->GetFolder()->QuietConstant(pcBinary->mpcRight, &lliCount);
 	if (!bConstant || (lliCount < iBits))
 	{
 		return;

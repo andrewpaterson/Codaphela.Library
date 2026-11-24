@@ -3224,7 +3224,7 @@ SCPP65Type* CCPP65TypeChecker::ConstructExpression(CCPPSyntaxConstructExpression
 	{
 		return mpcUnit->GetClasses()->CompleteObjectClass(psType->pcClass, pcConstruct) ? TemporaryObject(psType, pcConstruct->mpcInitializer, pcConstruct) : NULL;
 	}
-	papcElements = mpcUnit->ConstructElements(pcConstruct);
+	papcElements = ConstructElements(pcConstruct);
 	if (psType && papcElements && (papcElements->NumElements() == 0) && (psType->IsScalar() || psType->IsVoid()))
 	{
 		return psType;
@@ -3494,7 +3494,7 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 		Error(pcNew, "A new array of arrays with a list of initialisers is not supported by the compiler yet");
 		return NULL;
 	}
-	if (IsStringLiteral(mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType)))
+	if (IsStringLiteral(StringInitialiser(pcNew->mpcInitializer, psType)))
 	{
 		//new char[n]{"abc"}: the string's characters, as an array of them is initialised.  [dcl.init.string]
 		papcElements = NULL;
@@ -4092,7 +4092,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	if (psType->IsArray())
 	{
 		//char a[] = { "abc" } is char a[] = "abc".  [dcl.init.string]
-		pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psType->psBase);
+		pcInitialiser = StringInitialiser(pcInitialiser, psType->psBase);
 	}
 
 	//T x(value) and T x{value} initialise directly: a std::nullptr_t may make a bool so.  [conv.bool]
@@ -6198,4 +6198,198 @@ SCPP65Type* CCPP65TypeChecker::QualifiedFieldType(CCPPSyntax* pcExpression)
 	pcClass = mpcUnit->GetNames()->NameQualifierClass(pcName, pcExpression);
 	psField = (pcClass && mpcUnit->GetClasses()->CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
 	return psField ? psField->psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a variable's declaration must be, wherever it is (a local, a static
+// local, a global; the semantic pass's check too): initialised where its
+// type needs it to be (NeedsNoInitialiser), not copy-initialised through an
+// explicit constructor (CopyInitialises), and what its initialiser, or none,
+// can make (the type checker's Initialise: the one place that says so, of
+// an object, a reference, a number and an array alike).  Its errors are
+// reported, where it is quiet too.  [dcl.init]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CheckDeclared(SCPP65Type* psType, CCPPSyntaxInitDeclarator* pcInit, CCPPSyntax* pcInitialiser)
+{
+	SCPP65Type*						psElement;
+	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
+	bool							bExtern;
+	bool							bResult;
+
+	if (!pcInitialiser && !NeedsNoInitialiser(psType, pcInit))
+	{
+		return false;
+	}
+	if (psType->IsClass() && !mpcUnit->GetBinder()->CopyInitialises(psType->pcClass, pcInit))
+	{
+		return false;
+	}
+	psElement = psType->InnermostElement();
+	pcDeclaration = (CCPPSyntaxSimpleDeclaration*)pcInit->mpcParent;
+	bExtern = pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && pcDeclaration->mpcSpecifiers && (pcDeclaration->mpcSpecifiers->muiFlags & CPPDS_EXTERN);
+	if (psElement->IsClass() && !bExtern && mpcUnit->GetClasses()->CompleteClass(psElement->pcClass, pcInit) && !mpcUnit->GetBinder()->ReachesDestructor(psElement->pcClass, pcInit))
+	{
+		//The object is destroyed where it ends.  [class.dtor] 11
+		return false;
+	}
+	mpcDiagnostics->BeginLoud();
+	bResult = Initialise(psType, pcInitialiser, pcInit);
+	mpcDiagnostics->EndLoud();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a variable of psType may be defined with no initialiser: not a
+// reference, which must be bound to something, and not a const object (or
+// an array of them) that nothing would ever give a value: a number or a
+// pointer, or an object of a class with fields and no constructor to fill
+// them.  An error at pcNode (and false) if not.  [dcl.ref] 5, [dcl.init] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::NeedsNoInitialiser(SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	SCPP65Type*	psElement;
+	CCPPClass*	pcClass;
+
+	if (psType->IsReference())
+	{
+		return mpcDiagnostics->ReportError(pcNode, "A reference must be initialised");
+	}
+	psElement = psType->InnermostElement();
+	if (psElement->IsClass() && !psElement->pcClass->mbConstructors && psElement->pcClass->HasFieldNeedingValue())
+	{
+		//[class.ctor] 4
+		return mpcDiagnostics->ReportError(pcNode, "The class's default constructor is deleted: a reference or const member of it has no initialiser");
+	}
+	if (!psElement->bConst)
+	{
+		return true;
+	}
+	if (!psElement->IsClass())
+	{
+		return mpcDiagnostics->ReportError(pcNode, "A const object must be initialised");
+	}
+	pcClass = psElement->pcClass;
+	if (!pcClass->mbConstructors && !pcClass->NeedsConstructor() && (pcClass->macFields.NumElements() > 0))
+	{
+		return mpcDiagnostics->ReportError(pcNode, "A const object of a class with no constructor must be initialised");
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcValue can initialise a psTo without losing const or volatile
+// (CCPP65TypeChecker::KeepsQualifiers), for the IR front end's initialisers
+// and returns.  It is an error where it is, in quiet mode too, as ReportTypeOf's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo)
+{
+	bool	bKept;
+
+	mpcDiagnostics->BeginLoud();
+	bKept = KeepsQualifiers(pcValue, psTo);
+	mpcDiagnostics->EndLoud();
+	return bKept;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcValue, the one value in braces that initialises a psTo, is not
+// narrowed by its conversion (CCPP65TypeChecker::NotNarrowed), for the
+// variables' initialisers the unit converts itself.  An error
+// where it is, as CheckInitialiser's.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo)
+{
+	bool	bNotNarrowed;
+
+	mpcDiagnostics->BeginLoud();
+	bNotNarrowed = NotNarrowed(pcValue, psTo);
+	mpcDiagnostics->EndLoud();
+	return bNotNarrowed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A local declared constexpr is initialised with a constant expression:
+// one of an integer type is worked out here, and any other as a global's is
+// (CCPPConstants::CheckLocal), and is an error (and false) where it has no
+// value.  The local is still made when the function runs.
+// [dcl.constexpr] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit)
+{
+	CChars	szError;
+	int64	lliValue;
+
+	if (!pcInit->mpcInitializer)
+	{
+		return mpcDiagnostics->ReportError(pcInit, "A constexpr variable needs an initialiser");
+	}
+	if (!pcVariable->mpsType->IsInteger())
+	{
+		return mpcUnit->GetConstants()->CheckLocal(pcVariable, pcInit);
+	}
+	if (mpcUnit->GetFolder()->Constant(pcInit->mpcInitializer, &lliValue))
+	{
+		return true;
+	}
+	szError.Init();
+	mpcUnit->GetFolder()->ConstantMessage("A constexpr variable's initialiser must be a constant", &szError);
+	mpcDiagnostics->ReportError(pcInit, szError.Text());
+	szError.Kill();
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is in the brackets or braces of Type(arguments) or Type{arguments}, or
+// NULL if it isn't either.
+//
+//////////////////////////////////////////////////////////////////////////
+CArraySyntax* CCPP65TypeChecker::ConstructElements(CCPPSyntaxConstructExpression* pcConstruct)
+{
+	CCPPSyntax*	pcInitialiser;
+
+	pcInitialiser = pcConstruct->mpcInitializer;
+	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))
+	{
+		return mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// char a[] = { "string" } is char a[] = "string": the string, when the initialiser of an array of psElement is a
+// list of just a string and the elements are characters.  Otherwise pcInitialiser.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPP65TypeChecker::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* psElement)
+{
+	CArraySyntax*	papcElements;
+
+	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
+	{
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
+		if ((papcElements->NumElements() == 1) && IsStringLiteral(papcElements->GetPtr(0)) && (mpcUnit->GetStrings()->StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
+		{
+			return papcElements->GetPtr(0);
+		}
+	}
+	return pcInitialiser;
 }

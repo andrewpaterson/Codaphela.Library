@@ -101,7 +101,7 @@ SCPP65Type* CCPPDeclarators::CompletedArray(SCPP65Type* psType, CCPPSyntax* pcIn
 	{
 		return psType;
 	}
-	lliCount = GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType->psBase), psType->psBase);
+	lliCount = GetInitialiserCount(mpcUnit->GetTypeChecker()->StringInitialiser(pcInitialiser, psType->psBase), psType->psBase);
 	if (lliCount <= 0)
 	{
 		return psType;
@@ -222,7 +222,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		}
 		else if (!pcArray->mpcSize)
 		{
-			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) : 0;
+			lliCount = ((i == 1) && !pcDeclarator->mpcNested) ? GetInitialiserCount(mpcUnit->GetTypeChecker()->StringInitialiser(pcInitialiser, psType), psType) : 0;
 			if (lliCount <= 0)
 			{
 				mpcDiagnostics->Error(pcNode, "An array needs a size or an initialiser");
@@ -243,8 +243,8 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		{
 			return NULL;
 		}
-		if (pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && psType->IsInteger() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->StringInitialiser(pcInitialiser, psType)) &&
-			(GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
+		if (pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && psType->IsInteger() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->GetTypeChecker()->StringInitialiser(pcInitialiser, psType)) &&
+			(GetInitialiserCount(mpcUnit->GetTypeChecker()->StringInitialiser(pcInitialiser, psType), psType) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
 		{
 			//char a[3] = "abc" has no room for the string's end (which C lets go).  [dcl.init.string] 2
 			mpcDiagnostics->Error(pcNode, "The string has more characters, with its end, than the array has elements");
