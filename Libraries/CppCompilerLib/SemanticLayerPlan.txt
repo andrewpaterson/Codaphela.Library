@@ -10,8 +10,8 @@ Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for wh
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
 2026-11-23) is what it left; its questions (6 to 10) are answered.  It was checked against the code on
 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes, and
-questions 11 and 12 were asked and answered as assumed.  Stages 17 to 21 and 22a are done (2026-11-24,
-their records at the end); 22b is next.  The user on 2026-11-22: "Finish and commit,
+questions 11 and 12 were asked and answered as assumed.  Stages 17 to 22 are done (2026-11-24, their
+records at the end); 23 is next.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -1553,31 +1553,31 @@ Stage 19 (2026-11-24): static data, start-up and exit.  Three commits, each prov
 Stage 20 (2026-11-24): the unit's classes.  Three commits, each proved alone.  The class is CCPPClasses, not the
 CCPPClassBuilder this plan named: it holds the unit's list of classes as well as making and laying them out.
 
-	8d58cf8f9  CCPPClasses (CPPClasses.h and .cpp), the unit's mcClasses (GetClasses): the list of classes
+	770f184ab  CCPPClasses (CPPClasses.h and .cpp), the unit's mcClasses (GetClasses): the list of classes
 	           (GetClassList, which the mangler and the instantiator read) and twenty-nine functions moved as they
 	           were, with stage 18's GetClass, GetUnnamedClass and FindClass and stage 17's CheckVirtSpecifiers;
 	           the layouts record is the classes' (the unit's SetLayouts and GetLayouts pass to it); the unit says
 	           whether it was compiled before (IsCompiledBefore).  Not a friend.  The same.
-	f95794495  The member specialisations, the definitions written outside a class template and a member class
+	3e7ce56e2  The member specialisations, the definitions written outside a class template and a member class
 	           defined outside it are CCPPInstantiator's, with the list of them (SCPPOutsideDefinition is
 	           CPPInstantiator.h's); IsDefinedBefore, a question of classes', is CCPPClasses'; GetComponentName is
 	           beside GetFunctionName; CPPUnitClasses.cpp is gone.  The same.
-	35dceb61a  Stage 17's find: a class's own operator=(...) = default, the implicit copy assignment, takes its own
+	7d601de1b  Stage 17's find: a class's own operator=(...) = default, the implicit copy assignment, takes its own
 	           class (CCPPFunctionDeclarer::CheckDefaultedAssignment); TakesOwnClass and DefaultedError are the
 	           test and the error once.  The listings and every conformance case's diagnostics the same: no case
 	           has one; TestCPP65GeneratorFunctionDeclarations has it and a copy assignment that is.
 
 Stage 21 (2026-11-24): bases, this and packs.  Two commits, each proved alone.
 
-	d9f5e1ac3  A class's bases are CCPPClasses' (CPPUnitOverloads.cpp is CPPClassesBases.cpp), beside the
+	1a6dfbe18  A class's bases are CCPPClasses' (CPPUnitOverloads.cpp is CPPClassesBases.cpp), beside the
 	           ResolveBases they ask.  What this is in the function being written (ThisFunction, IsConstThis,
 	           IsVolatileThis, ThisType, and IsConstObject) is the type checker's: not CCPPContext's, as this
 	           plan said, which knows where the compiler is but not the closures or the types they ask.
-	60ed95119  The packs are CCPPInstantiator's (CPPUnitPacks.cpp is CPPInstantiatorPacks.cpp), with their state
+	4947847c6  The packs are CCPPInstantiator's (CPPUnitPacks.cpp is CPPInstantiatorPacks.cpp), with their state
 	           (the packs' types, values and symbols, their elements, the lists expanded) and its freeing;
 	           ListElements goes with ExpandArguments; the pack finder holds the instantiator.  The same.
 
-Stage 22a (2026-11-24): 6a6bbd1f1, the type traits (with their table, which was CPPUnitExpressions.cpp's), the
+Stage 22a (2026-11-24): ef3eb3ee7, the type traits (with their table, which was CPPUnitExpressions.cpp's), the
 new-expression's and the literals' types, IsNullPointerConstant and QualifiedFieldType are the type checker's.
 The same.
 
@@ -1588,5 +1588,41 @@ The same.
 	the end of stage 22 with a build from before stage 19 (the same sources, one compiler each), which covers
 	stage 19's comparison as well: the listings of 9fea344e5's compiler (27eae532d after the rebase) are taken.
 
-	The unit: 241 functions at stage 20's start, 157 after stage 22a.  The hashes of stages 18 and 19 are the
+	The unit: 241 functions at stage 20's start, 157 after stage 22a.  These hashes too are the commits' after the
+	user's pull rebased them (onto fe0f0bf21, the debugger's).  The hashes of stages 18 and 19 are the
 	commits' after the user's pull rebased them again (2026-11-24, under HashMapPlan's last commit).
+
+
+Stage 22 (2026-11-24), the rest: b to f, each proved alone.  The other sessions' commits (the debugger's, and
+ConsolidationPlan's stages 7 and 8 in the back ends) came in between them with the user's pulls, so each step's
+listings were compared with a baseline taken at the HEAD it was made on (question 11); a pull while a proof's
+listings were being made meant they were made again.  The stages 20 to 22a rebased onto the debugger's fe0f0bf21
+were proved against it from worktrees (CompilerProof.py's COMPILER_PROOF_BUILD, 07f960cf6): listings and
+diagnostics the same.
+
+	1ba1f6ce3  CCPPEnums (CPPEnums.h and .cpp), the unit's mcEnums: ten functions, with the five the C++14 work
+	           added that day (GivenEnumeratorValue, FoldEnumeratorValue, IsOutsideTemplates,
+	           SetEnumeratorBodyType, ForgetEnumeratorBodyTypes) and the values and types they keep.  The enum
+	           record is the observer's, which the unit only passed on: its RecordEnumCast and IsRecordedEnum are
+	           gone, not moved to CCPPCheck as this plan said.
+	d4f9e133d  CCPPAttributes (CPPAttributes.h and .cpp), the unit's mcAttributes: seven functions (the two
+	           FindAttributes), with whether the source says deprecated anywhere.
+	2a05deac6  __func__'s text is CCPPStrings', the function a name means for a target type the binder's (not
+	           CCPPNames', which is classes and members), a pointer's exception specification CCPPExceptions'.
+	c23e54f77  The syntax's questions are CCPPSyntax's methods (IsMemberPointerOperator, NamesFunction,
+	           IsDecltypeOperand, IsInUnevaluatedOperand, DefaultArgumentOf); SkipParentheses, asked from fifty
+	           places, is CPPSkipParentheses beside the node's own WithoutParentheses.
+	293772e6b  The initialisers' and variables' checks are the type checker's, QuietConstant and
+	           VariableTemplateValue the folder's, Supported beside AppendUnsupported; CPPUnitExpressions.cpp is
+	           gone, and the unit's header has no section left for a file that isn't there.
+
+	The debugger's code.  The comparison of TestBaseLib65's W65C816 listings in debug mode
+	(TEST_PROJECT65_DEBUG=1) with the compiler before stage 19 couldn't be made: the compiler of today's HEAD
+	crashes compiling them (CCPP65IRFrontEnd::Parameters, a parameter described for the debugger), and so does
+	the debugger's fe0f0bf21 alone, with or without this plan's stages, so it is the debugger's to put right
+	(reported to the user).  A compiler of before stage 19 also can't compile today's sources.  The debugger's
+	records are TestCPPW65C816Debug's, which passed in every proof.  When the crash is put right the comparison is
+	of stage 22's end with stage 18's, both at the debugger's fixed HEAD, which other work has since moved.
+
+	The unit: 157 functions after stage 22a, 122 at stage 22's end: CPPUnit.cpp, CPPUnitData.cpp,
+	CPPUnitLabels.cpp and CPPUnitObserver.cpp are what is left of its files.
