@@ -257,7 +257,6 @@ protected:
 	bool					mbPureVirtual;
 	bool					mbBadCast;			//A dynamic_cast to a reference calls R_BadCast (UseBadCast).
 	bool					mbRecursiveInit;	//A guarded static local calls R_RecursiveInit if it is reached again while being made.
-	CArrayCPPUnitRoutines	masThrownDestroyers;	//The functions that destroy thrown objects, still to write (ThrownDestroyer).
 
 	CCPPUnitData			mcData;				//What the unit has other than code: globals, the init and fini tables, strings.
 	CCPP65DebugWriter		mcDebugWriter;		//With a line table: its debug directives' types and its globals.
@@ -413,15 +412,12 @@ public:
 	void					AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcDeclarator = NULL);
 	void					AppendUnsupported(CChars* psz);
 	bool					AllocateLocals(CCPPSyntax* pcNode);
-	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
-	bool					IsSharedFunction(CCPPFunction* pcFunction);
 	bool					CheckTypedefs(CCPPSyntaxSimpleDeclaration* pcDeclaration);
 	bool					AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					StaticAssert(CCPPSyntaxStaticAssert* pcAssert);
 	bool					ClassStaticAsserts(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
-	bool					WriteThrownDestroyers(void);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }
@@ -566,9 +562,6 @@ public:
 
 	//Objects and copies.  CPPUnitObjects.cpp
 	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);
-	SCPP65Type*				HandlerType(CCPPSyntaxCatchHandler* pcHandler);
-	CCPPSyntax*				TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop);
-	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
 
 	//Check only.  CPPUnitCheck.cpp
 	CArraySyntax*			ConstructElements(CCPPSyntaxConstructExpression* pcConstruct);

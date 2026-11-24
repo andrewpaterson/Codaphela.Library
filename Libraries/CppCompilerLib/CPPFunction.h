@@ -227,6 +227,7 @@ public:
 	bool	IsCopy(void);
 	int		QualifiersAdded(ECPPCalledObject eObject);
 	bool	IsUnitFunction(void) const;
+	bool	IsShared(void) const;
 	void	SetDefinition(CCPPSyntaxFunctionDefinition* pcDefinition);
 };
 

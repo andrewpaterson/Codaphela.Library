@@ -87,6 +87,7 @@ static CCPPSyntaxDeclarator* DeclaratorOfDeclaration(CCPPSyntax* pcDeclaration)
 void CCPPExceptions::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
+	masThrownDestroyers.Init();
 }
 
 
@@ -96,6 +97,8 @@ void CCPPExceptions::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPExceptions::Kill(void)
 {
+	CCPPUnitData::KillRoutines(&masThrownDestroyers);
+	masThrownDestroyers.Kill();
 	mpcUnit = NULL;
 }
 
@@ -166,7 +169,7 @@ bool CCPPExceptions::CollectTryJumps(CCPPSyntax* pcNode, CCPPSyntax* pcBody, CAr
 		for (pcSwitch = pcNode->mpcParent; pcSwitch && (pcSwitch->GetKind() != CPPS_SwitchStatement) && (pcSwitch != pcBody); pcSwitch = pcSwitch->mpcParent)
 		{
 		}
-		if (pcSwitch && (pcSwitch->GetKind() == CPPS_SwitchStatement) && mpcUnit->TryRegionOf(pcNode, pcSwitch))
+		if (pcSwitch && (pcSwitch->GetKind() == CPPS_SwitchStatement) && TryRegionOf(pcNode, pcSwitch))
 		{
 			bResult = mpcUnit->mcDiagnostics.Error(pcNode, "A switch can't jump into a try block or a handler");
 		}
@@ -219,7 +222,7 @@ bool CCPPExceptions::CheckTryJumps(CCPPSyntax* pcBody)
 			{
 				continue;
 			}
-			pcRegion = mpcUnit->TryRegionOf(pcLabel, pcBody);
+			pcRegion = TryRegionOf(pcLabel, pcBody);
 			for (pcParent = pcGoto; pcRegion && pcParent && (pcParent != pcRegion); pcParent = pcParent->mpcParent)
 			{
 			}
@@ -1072,3 +1075,155 @@ bool CCPPExceptions::MayThrow(CCPPSyntax* pcExpression)
 	return cFinder.mbThrows;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The innermost try block or handler pcNode is in, looking no further out
+// than pcStop: the block's or the handler's node, or NULL for none.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPPExceptions::TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = pcNode->mpcParent; pcParent && (pcNode != pcStop); pcNode = pcParent, pcParent = pcParent->mpcParent)
+	{
+		if (pcParent->GetKind() == CPPS_CatchHandler)
+		{
+			return pcParent;
+		}
+		if ((pcParent->GetKind() == CPPS_TryStatement) && (((CCPPSyntaxTryStatement*)pcParent)->mpcBlock == pcNode))
+		{
+			return pcNode;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type a handler is written with (catch (const E& e): const E&); NULL,
+// with the error said, if it can't be worked out.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPPExceptions::HandlerType(CCPPSyntaxCatchHandler* pcHandler)
+{
+	if (!pcHandler->mpcParameter)
+	{
+		return NULL;
+	}
+	return mpcUnit->GetDeclarators()->GetType(pcHandler->mpcParameter->mpcSpecifiers, pcHandler->mpcParameter->mpcDeclarator, pcHandler->mpcParameter, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A handler's parameter is a local variable of the function the handler is
+// in.  Its type can't be an rvalue reference, or an incomplete or abstract
+// class (a pointer or reference to an incomplete one neither, but void's).
+// [except.handle] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPExceptions::HandlerLocal(CCPPSyntaxCatchHandler* pcHandler)
+{
+	CCPPSyntaxTryStatement*	pcTry;
+	SCPP65Type*				psType;
+	SCPP65Type*				psObject;
+
+	if (!pcHandler->mpcParameter)
+	{
+		//catch (...) is its try's last handler.  [except.handle] 5
+		pcTry = (pcHandler->mpcParent && (pcHandler->mpcParent->GetKind() == CPPS_TryStatement)) ? (CCPPSyntaxTryStatement*)pcHandler->mpcParent : NULL;
+		if (pcTry && (pcTry->macpHandlers.NumElements() > 0) && (pcTry->macpHandlers.GetPtr(pcTry->macpHandlers.NumElements() - 1) != pcHandler))
+		{
+			return mpcUnit->GetDiagnostics()->Error(pcHandler, "catch (...) must be the last handler of its try");
+		}
+		return true;
+	}
+	psType = HandlerType(pcHandler);
+	if (!psType)
+	{
+		return false;
+	}
+	if (psType->IsReference() && psType->bRvalue)
+	{
+		return mpcUnit->GetDiagnostics()->Error(pcHandler->mpcParameter, "A handler's parameter can't be an rvalue reference");
+	}
+	psObject = psType->WithoutReference()->Unqualified();
+	if (psObject->IsArray() || psObject->IsFunction())
+	{
+		return mpcUnit->GetDiagnostics()->Error(pcHandler->mpcParameter, "A handler of an array or a function is not supported by the compiler yet");
+	}
+	if (psObject->IsClass() && !mpcUnit->CompleteObjectClass(psObject->pcClass, pcHandler->mpcParameter))
+	{
+		return false;
+	}
+	if (pcHandler->mpcParameter->mpcSymbol)
+	{
+		mpcUnit->AddVariable(mpcUnit->GetLocals(), pcHandler->mpcParameter->mpcSymbol, psType, CPPVS_Local, 0);
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The label of the function that destroys a thrown object of psType (a
+// class with a destructor), for the runtime to call when the exception's
+// last handler is left; the function is written with the unit's others
+// (WriteThrownDestroyers), in a COMDAT section, once.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPExceptions::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
+{
+	CChars	szLabel;
+	size	i;
+
+	szLabel.Init();
+	mpcUnit->GetMangler()->AppendThrownDestroyerLabel(&szLabel, psType);
+	pszLabel->Append(&szLabel);
+	for (i = 0; i < masThrownDestroyers.NumElements(); i++)
+	{
+		if (szLabel.Equals(masThrownDestroyers.Get(i)->szLabel.Text()))
+		{
+			szLabel.Kill();
+			return;
+		}
+	}
+	if (mpcUnit->Emit(&szLabel))
+	{
+		CCPPUnitData::AddRoutine(&masThrownDestroyers, szLabel.Text(), psType, true);
+	}
+	szLabel.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Once the unit's functions are written: the functions that destroy the
+// thrown objects of the classes they throw (ThrownDestroyer).  True if it
+// wrote any (which may queue destructors to generate).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPExceptions::WriteThrownDestroyers(void)
+{
+	CChars	szLabel;
+	size	i;
+	bool	bWritten;
+
+	bWritten = false;
+	for (i = 0; i < masThrownDestroyers.NumElements(); i++)
+	{
+		szLabel.Init(masThrownDestroyers.Get(i)->szLabel.Text());
+		CCPPUnitData::AppendRoutineSection(mpcUnit->GetCode(), &szLabel, true);
+		if (!mpcUnit->GetIRFrontEnd()->ThrownDestroyerRoutine(szLabel.Text(), masThrownDestroyers.Get(i)->psType))
+		{
+			mpcUnit->GetDiagnostics()->ErrorAt(-1, "This thrown object's destruction uses C++ the IR front end doesn't support yet");
+		}
+		szLabel.Kill();
+		bWritten = true;
+	}
+	CCPPUnitData::KillRoutines(&masThrownDestroyers);
+	return bWritten;
+}

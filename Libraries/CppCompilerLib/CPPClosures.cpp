@@ -136,7 +136,7 @@ void CCPPClosures::NameLambda(SCPPLambda* psLambda)
 	size	uiNumber;
 
 	uiNumber = 0;
-	if (!mpcUnit->IsSharedFunction(psLambda->pcEnclosing) || !psLambda->pcEnclosing->mpcDefinition || !LambdaNumber(psLambda->pcEnclosing->mpcDefinition, psLambda->pcSyntax, &uiNumber))
+	if (!(psLambda->pcEnclosing && psLambda->pcEnclosing->IsShared()) || !psLambda->pcEnclosing->mpcDefinition || !LambdaNumber(psLambda->pcEnclosing->mpcDefinition, psLambda->pcSyntax, &uiNumber))
 	{
 		return;
 	}

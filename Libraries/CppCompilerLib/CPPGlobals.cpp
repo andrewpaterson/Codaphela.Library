@@ -903,7 +903,7 @@ bool CCPPGlobals::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSp
 	}
 
 	//In a function every unit may write it is one object: labelled for the function and its number there, its data COMDAT.
-	pcShared = mpcUnit->IsSharedFunction(mpcContext->GetFunction()) ? mpcContext->GetFunction() : NULL;
+	pcShared = (mpcContext->GetFunction() && mpcContext->GetFunction()->IsShared()) ? mpcContext->GetFunction() : NULL;
 	iNumber = miStatics;
 	if (pcShared)
 	{
@@ -983,12 +983,6 @@ bool CCPPGlobals::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSp
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Once the unit's functions are written: the functions that destroy the
-// thrown objects of the classes they throw (ThrownDestroyer).  True if it
-// wrote any (which may queue destructors to generate).
-//
 //////////////////////////////////////////////////////////////////////////
 //
 // The bytes of an exit list node: the next node and the routine that

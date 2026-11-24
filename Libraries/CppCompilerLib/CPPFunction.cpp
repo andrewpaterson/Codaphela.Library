@@ -315,6 +315,20 @@ int CCPPFunction::QualifiersAdded(ECPPCalledObject eObject)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// True if every unit that needs the function writes it, each in a COMDAT
+// section the linker keeps one of (inline, a template's instance, or
+// implicit), so what is in it is one thing in every unit: its lambdas'
+// closures and its static locals.  [basic.def.odr] 6, [dcl.fct.spec] 4
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPFunction::IsShared(void) const
+{
+	return !IsUnitFunction() && (mbInline || mbImplicit || mpcTemplate);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A static function, a member of a class without a name, or what is in a
 // namespace without a name is the unit's own: its label is local to the object.
 //

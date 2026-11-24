@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPSyntaxes.h"
 #include "CPPExceptionSpec.h"
 #include "CPPFunction.h"
+#include "CPPUnitData.h"
 
 
 class CCPPUnit;
@@ -39,6 +40,7 @@ class CCPPExceptions
 {
 protected:
 	CCPPUnit*				mpcUnit;
+	CArrayCPPUnitRoutines	masThrownDestroyers;	//The functions that destroy thrown objects, still to write (ThrownDestroyer).
 
 public:
 	void					Init(CCPPUnit* pcUnit);
@@ -69,6 +71,12 @@ public:
 	bool					NewMayThrow(CCPPSyntaxNewExpression* pcNew);
 	bool					DeleteMayThrow(CCPPSyntaxDeleteExpression* pcDelete);
 	bool					MayThrow(CCPPSyntax* pcExpression);
+
+	CCPPSyntax*				TryRegionOf(CCPPSyntax* pcNode, CCPPSyntax* pcStop);
+	SCPP65Type*				HandlerType(CCPPSyntaxCatchHandler* pcHandler);
+	bool					HandlerLocal(CCPPSyntaxCatchHandler* pcHandler);
+	void					ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel);
+	bool					WriteThrownDestroyers(void);
 };
 
 

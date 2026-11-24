@@ -991,7 +991,7 @@ bool CCPP65IRFrontEnd::ThrowExpression(CCPPSyntaxThrowExpression* pcThrow, SCPP6
 	if (psType->IsClass() && psType->pcClass->mpcDestructor)
 	{
 		szDestroyer.Init();
-		mpcUnit->ThrownDestroyer(psType, &szDestroyer);
+		mpcUnit->GetExceptions()->ThrownDestroyer(psType, &szDestroyer);
 		asArguments[2] = mcModule.Symbol(szDestroyer.Text());
 		szDestroyer.Kill();
 	}
@@ -1105,7 +1105,7 @@ bool CCPP65IRFrontEnd::TryHandlers(CCPPSyntaxTryStatement* pcTry, CIRBlock* pcDi
 		}
 		else
 		{
-			psHandled = mpcUnit->HandlerType(pcHandler);
+			psHandled = mpcUnit->GetExceptions()->HandlerType(pcHandler);
 			if (!psHandled)
 			{
 				return Unsupported(__FILE__, __LINE__);
@@ -1284,7 +1284,7 @@ bool CCPP65IRFrontEnd::HandlerParameter(CCPPSyntaxCatchHandler* pcHandler, SIRRe
 	if (!pcHandler->mpcParameter->mpcSymbol)
 	{
 		//With no name: an object is made all the same (its copy constructor and destructor run), in a place of its own.
-		sPlace.psType = mpcUnit->HandlerType(pcHandler);
+		sPlace.psType = mpcUnit->GetExceptions()->HandlerType(pcHandler);
 		if (!sPlace.psType || !sPlace.psType->IsClass())
 		{
 			return sPlace.psType != NULL;
