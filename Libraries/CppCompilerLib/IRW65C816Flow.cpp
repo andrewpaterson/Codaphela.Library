@@ -44,8 +44,9 @@ struct SIR816LiveBytes
 //A line of the code RemoveFlowDeadStores works on.
 struct SIR816FlowLine
 {
-	const char*	szLine;
-	const char*	szEnd;
+	const char*	szLabel;	//A label's name, uiLabel long.
+	size		uiLabel;
+	bool		bDirective;
 	SIRW65C816Line	sLine;
 	int			iKind;		//IR816FL_.
 	int			iBytes;		//A direct page store's bytes: 2, 1, or 0 when the width isn't known here.
@@ -583,8 +584,6 @@ static bool IR816ReadFlowLines(CIRW65C816Code* pcCode, bool bStores, CArrayTempl
 	SIR816FlowLine*		psLine;
 	SIR816FlowLine*		psBefore;
 	SIR816FlowWidths	sWidths;
-	const char*			szLine;
-	const char*			szEnd;
 	size				uiLine;
 	int					iBefore;	//The instruction before's line, with no label between, or -1.
 
@@ -594,18 +593,15 @@ static bool IR816ReadFlowLines(CIRW65C816Code* pcCode, bool bStores, CArrayTempl
 	iBefore = -1;
 	for (uiLine = 0; uiLine < pcCode->NumLines(); uiLine++)
 	{
-		szLine = pcCode->Text(uiLine);
-		szEnd = szLine + pcCode->GetText(uiLine)->Length();
 		psLine = pasLines->Add();
 		if (!psLine)
 		{
 			return false;
 		}
 		memset(psLine, 0, sizeof(SIR816FlowLine));
-		psLine->szLine = szLine;
-		psLine->szEnd = szEnd;
 		psLine->iKind = IR816FL_OTHER;
-		if ((szLine[0] != '\t') && (szEnd > szLine + 1) && (szEnd[-1] == ':'))
+		psLine->szLabel = pcCode->LabelName(uiLine, &psLine->uiLabel);
+		if (psLine->szLabel)
 		{
 			psLine->iKind = IR816FL_LABEL;
 			sWidths.iA = 0;
@@ -613,17 +609,17 @@ static bool IR816ReadFlowLines(CIRW65C816Code* pcCode, bool bStores, CArrayTempl
 			iBefore = -1;
 			continue;
 		}
-		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] == '.'))
+		if (pcCode->IsDirective(uiLine))
 		{
-			IR816DirectiveWidths(szLine, &sWidths);
+			psLine->bDirective = true;
+			IR816DirectiveWidths(pcCode->Text(uiLine), &sWidths);
 			continue;
 		}
-		if (!IR816IsInstruction(szLine) || (szLine[2] == ';') || (szEnd - szLine < 3))
+		if (!pcCode->IsTabbed(uiLine) || pcCode->IsComment(uiLine) || !pcCode->Instruction(uiLine, &psLine->sLine))
 		{
 			continue;
 		}
 		psLine->iKind = IR816FL_INSTRUCTION;
-		IR816Decode(szLine, &psLine->sLine);
 		if ((psLine->sLine.uiMnemonic == IR816M_Unknown) || (psLine->sLine.uiFlags & IR816MF_INTERRUPT))
 		{
 			return false;
@@ -709,8 +705,8 @@ static void IR816AddFlowLabels(CArrayTemplate<SIR816FlowLine>* pasLines, CArrayT
 		if (psLine->iKind == IR816FL_LABEL)
 		{
 			psLabel = pasLabels->Add();
-			psLabel->szLabel = psLine->szLine;
-			psLabel->uiLength = (size)(psLine->szEnd - psLine->szLine) - 1;
+			psLabel->szLabel = psLine->szLabel;
+			psLabel->uiLength = psLine->uiLabel;
 			psLabel->iLine = (int)ui;
 		}
 	}
@@ -746,7 +742,7 @@ static void IR816AddFlowBlocks(CArrayTemplate<SIR816FlowLine>* pasLines, CArrayT
 			psBlock->uiFirst = ui;
 			psBlock->aiNext[0] = -1;
 			psBlock->aiNext[1] = -1;
-			psBlock->bEntered = (ui == 0) || ((psLine->iKind == IR816FL_LABEL) && !((psLine->szLine[0] == 'L') && (psLine->szLine[1] >= '0') && (psLine->szLine[1] <= '9')));
+			psBlock->bEntered = (ui == 0) || ((psLine->iKind == IR816FL_LABEL) && !((psLine->szLabel[0] == 'L') && (psLine->uiLabel > 1) && (psLine->szLabel[1] >= '0') && (psLine->szLabel[1] <= '9')));
 		}
 		iBlock = (int)pasBlocks->NumElements() - 1;
 		paiBlockOf->Add(&iBlock);
@@ -1122,7 +1118,7 @@ static void IR816FlowHeld(SIR816FlowLine* psLine, SIRW65C816Held* asHeld)
 			IR816UpdateHeld(asHeld, &psLine->sLine);
 		}
 	}
-	else if ((psLine->iKind == IR816FL_LABEL) || ((psLine->szLine[0] == '\t') && (psLine->szLine[1] == '\t') && (psLine->szLine[2] == '.')))
+	else if ((psLine->iKind == IR816FL_LABEL) || psLine->bDirective)
 	{
 		IR816ForgetHeld(asHeld, 0, 2);
 	}

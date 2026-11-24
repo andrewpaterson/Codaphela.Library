@@ -54,7 +54,7 @@ static bool IR816OperandIsA(SIRW65C816Line* psLine)
 //////////////////////////////////////////////////////////////////////////
 static size IR816SkipLabels(CIRW65C816Code* pcCode, size uiLine)
 {
-	while ((uiLine + 1 < pcCode->NumLines()) && (pcCode->Text(uiLine + 1)[0] != '\t'))
+	while ((uiLine + 1 < pcCode->NumLines()) && !pcCode->IsTabbed(uiLine + 1))
 	{
 		uiLine++;
 	}
@@ -89,12 +89,9 @@ static bool IR816BranchesOnZN(CIRW65C816Code* pcCode, size uiLine)
 //////////////////////////////////////////////////////////////////////////
 static size IR816NextInstruction(CIRW65C816Code* pcCode, size uiLine)
 {
-	const char*	szLine;
-
 	for (; uiLine < pcCode->NumLines(); uiLine++)
 	{
-		szLine = pcCode->Text(uiLine);
-		if ((szLine[0] == '\t') && (szLine[1] == '\t') && (szLine[2] != '.') && (szLine[2] != '\0'))
+		if (pcCode->IsTabbed(uiLine) && !pcCode->IsDirective(uiLine))
 		{
 			return uiLine;
 		}
@@ -116,7 +113,7 @@ static bool IR816CarryReadAt(CIRW65C816Code* pcCode, size uiLine)
 
 	for (uiLine = IR816NextInstruction(pcCode, uiLine); uiLine != IR816_NO_LINE; uiLine = IR816NextInstruction(pcCode, uiLine + 1))
 	{
-		IR816Decode(pcCode->Text(uiLine), &sLine);
+		pcCode->Decoded(uiLine, &sLine);
 		if (sLine.uiFlags & IR816MF_BRANCH_C)
 		{
 			return true;
@@ -141,10 +138,8 @@ static bool IR816CarryReadAt(CIRW65C816Code* pcCode, size uiLine)
 static bool IR816CarryReadAfterBranch(CIRW65C816Code* pcCode, size uiLine)
 {
 	size		uiBranch;
-	size		uiLabel;
 	size		ui;
-	const char*	szLabel;
-	CChars*		psz;
+	SIRW65C816Line	sBranch;
 
 	uiBranch = IR816SkipLabels(pcCode, uiLine) + 1;
 	if ((uiBranch >= pcCode->NumLines()) || IR816CarryReadAt(pcCode, uiBranch + 1))
@@ -152,22 +147,14 @@ static bool IR816CarryReadAfterBranch(CIRW65C816Code* pcCode, size uiLine)
 		return true;
 	}
 
-	//"\t\tbne L63": the label's line is "L63:".
-	psz = pcCode->GetText(uiBranch);
-	if (psz->Length() <= 6)
-	{
-		return true;
-	}
-	szLabel = psz->Text() + 6;
-	uiLabel = psz->Length() - 6;
-	if (uiLabel + 3 > 40)
+	//bne L63: the label's line is L63.
+	if (!pcCode->Decoded(uiBranch, &sBranch) || (sBranch.uiOperand == 0) || (sBranch.uiOperand + 3 > 40))
 	{
 		return true;
 	}
 	for (ui = 1; ui < pcCode->NumLines(); ui++)
 	{
-		psz = pcCode->GetText(ui);
-		if ((psz->Length() == uiLabel + 1) && (strncmp(psz->Text(), szLabel, uiLabel) == 0) && (psz->Text()[uiLabel] == ':'))
+		if (pcCode->IsLabelNamed(ui, sBranch.szOperand, sBranch.uiOperand))
 		{
 			return IR816CarryReadAt(pcCode, ui + 1);
 		}
@@ -364,6 +351,7 @@ void CIRW65C816Backend::PeepholeStores(CIRW65C816Code* pcCode)
 {
 	CIRW65C816Code	cOut;
 	SIRW65C816Line	sLine;
+	SIRW65C816Line	sNext;
 	size		ui;
 	size		uiNext;
 	size		uiAfter;
@@ -382,10 +370,11 @@ void CIRW65C816Backend::PeepholeStores(CIRW65C816Code* pcCode)
 		if ((uiNext != IR816_NO_LINE) && (IR816LineIs(pcCode, uiNext, IR816M_Dec, sLine.szOperand, sLine.uiOperand) || IR816LineIs(pcCode, uiNext, IR816M_Inc, sLine.szOperand, sLine.uiOperand)) &&
 			IR816LineIs(pcCode, uiNext + 1, IR816M_Lda, sLine.szOperand, sLine.uiOperand))
 		{
-			cOut.Append((pcCode->Text(uiNext)[2] == 'd') ? "\t\tdec A" : "\t\tinc A");
+			pcCode->Decoded(uiNext, &sNext);
+			cOut.AppendInstruction(sNext.uiMnemonic, "A");
 			if ((uiNext + 2 >= pcCode->NumLines()) || !IR816DeadStore(pcCode, uiNext + 2, sLine.szOperand, sLine.uiOperand))
 			{
-				cOut.Append(pcCode->Text(ui));
+				cOut.AppendLine(pcCode, ui);
 			}
 			ui = uiNext + 1;
 			continue;
@@ -396,12 +385,12 @@ void CIRW65C816Backend::PeepholeStores(CIRW65C816Code* pcCode)
 			//sta w ... ldy w (Y and w untouched between): tay at once.
 			if ((uiAfter + 1 >= pcCode->NumLines()) || !IR816DeadStore(pcCode, uiAfter + 1, sLine.szOperand, sLine.uiOperand))
 			{
-				cOut.Append(pcCode->Text(ui));
+				cOut.AppendLine(pcCode, ui);
 			}
-			cOut.Append("\t\ttay");
+			cOut.AppendInstruction(IR816M_Tay);
 			for (uj = ui + 1; uj != uiAfter; uj++)
 			{
-				cOut.Append(pcCode->Text(uj));
+				cOut.AppendLine(pcCode, uj);
 			}
 			ui = uiAfter;
 			continue;
@@ -410,13 +399,14 @@ void CIRW65C816Backend::PeepholeStores(CIRW65C816Code* pcCode)
 		{
 			if ((uiNext + 1 >= pcCode->NumLines()) || !IR816DeadStore(pcCode, uiNext + 1, sLine.szOperand, sLine.uiOperand))
 			{
-				cOut.Append(pcCode->Text(ui));
+				cOut.AppendLine(pcCode, ui);
 			}
-			cOut.Append((pcCode->Text(uiNext)[4] == 'y') ? "\t\ttay" : "\t\ttax");
+			pcCode->Decoded(uiNext, &sNext);
+			cOut.AppendInstruction((sNext.uiMnemonic == IR816M_Ldy) ? IR816M_Tay : IR816M_Tax);
 			ui = uiNext;
 			continue;
 		}
-		cOut.Append(pcCode->Text(ui));
+		cOut.AppendLine(pcCode, ui);
 	}
 	pcCode->Take(&cOut);
 	cOut.Kill();
@@ -513,7 +503,7 @@ void CIRW65C816Backend::PeepholeTransfers(CIRW65C816Code* pcCode)
 			uiTransfer = IR816_NO_LINE;
 			continue;
 		}
-		if ((uiTransfer == IR816_NO_LINE) && pcCode->GetText(ui)->Equals("\t\ttax"))
+		if ((uiTransfer == IR816_NO_LINE) && pcCode->IsBare(ui, IR816M_Tax))
 		{
 			for (uiScan = ui + 1; uiScan < pcCode->NumLines(); uiScan++)
 			{
@@ -538,7 +528,7 @@ void CIRW65C816Backend::PeepholeTransfers(CIRW65C816Code* pcCode)
 			if (uiTransfer != IR816_NO_LINE)
 			{
 				//The lines looked at after this one are all after it: changing it changes nothing they see.
-				pcCode->Set(ui, "\t\ttay");
+				pcCode->SetInstruction(ui, IR816M_Tay);
 			}
 		}
 	}
@@ -591,7 +581,7 @@ void CIRW65C816Backend::PeepholeRegisters(CIRW65C816Code* pcCode)
 		{
 			IR816ForgetHeld(asHeld, 0, 2);
 		}
-		else if (pcCode->Text(ui)[2] != ';')
+		else if (!pcCode->IsComment(ui))
 		{
 			iRegister = (sLine.uiMnemonic == IR816M_Lda) ? 0 : (sLine.uiMnemonic == IR816M_Ldx) ? 1 : (sLine.uiMnemonic == IR816M_Ldy) ? 2 : -1;
 			if ((iRegister >= 0) && IR816Holds(asHeld, iRegister, &sLine) && !IR816ZNReadAfter(pcCode, ui))
@@ -639,7 +629,7 @@ void CIRW65C816Backend::PeepholeMasks(CIRW65C816Code* pcCode)
 	abRemove.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		if (pcCode->GetText(ui)->Equals("\t\tand 0xFF") && IR816MaskRedone(pcCode, ui + 1))
+		if (pcCode->IsWith(ui, IR816M_And, "0xFF") && IR816MaskRedone(pcCode, ui + 1))
 		{
 			*abRemove.Get(ui) = 1;
 		}
@@ -719,15 +709,14 @@ static bool IR816SwapsInA(CIRW65C816Code* pcCode, size uiFrom, const char* szWor
 	size		uiLoad;
 	const char*	szSemicolon;
 
-	for (ui = uiFrom; (ui < pcCode->NumLines()) && (pcCode->GetText(ui)->Equals("\t\tclc") || pcCode->GetText(ui)->Equals("\t\tsec")); ui++)
+	for (ui = uiFrom; (ui < pcCode->NumLines()) && (pcCode->IsBare(ui, IR816M_Clc) || pcCode->IsBare(ui, IR816M_Sec)); ui++)
 	{
 	}
-	if ((ui >= pcCode->NumLines()) || (strncmp(pcCode->Text(ui), "\t\tlda ", 6) != 0))
+	if ((ui >= pcCode->NumLines()) || !pcCode->Decoded(ui, &sLine) || (sLine.uiMnemonic != IR816M_Lda) || (sLine.uiOperand == 0))
 	{
 		return false;
 	}
 	uiLoad = ui;
-	IR816Decode(pcCode->Text(ui), &sLine);
 	if (IR816OperandMentions(&sLine, szWord, uiWord))
 	{
 		return false;
@@ -738,11 +727,10 @@ static bool IR816SwapsInA(CIRW65C816Code* pcCode, size uiFrom, const char* szWor
 		return false;
 	}
 	ui++;
-	if ((ui >= pcCode->NumLines()) || (pcCode->Text(ui)[0] != '\t') || (pcCode->Text(ui)[1] != '\t'))
+	if ((ui >= pcCode->NumLines()) || !pcCode->Decoded(ui, &sLine))
 	{
 		return false;
 	}
-	IR816Decode(pcCode->Text(ui), &sLine);
 	if ((!(sLine.uiFlags & IR816MF_LOGIC) && (sLine.uiMnemonic != IR816M_Adc)) || !IR816OperandIs(&sLine, szWord, uiWord))
 	{
 		return false;
@@ -827,7 +815,6 @@ void CIRW65C816Backend::Peephole(CChars* pszDest, size uiStart)
 void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 {
 	CIRW65C816Code	cOut;
-	CChars*		psz;
 	SIRW65C816Line	sLine;
 	char		szA[32];		//The direct page operand A holds ("[D + 12]"), or empty.
 	char		szKept[32];		//The word whose store was left out, its value kept in A for its next lda, or empty.
@@ -836,14 +823,12 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 	char		szSwapped[64];
 	char		szY[32];		//The constant Y holds, or empty.
 	size		ui;
-	size		uiLength;
 	size		uiDeadLoad;		//cOut's last line if it is an lda of a direct page word or a constant, else IR816_NO_LINE.
 	bool		bClearCarry;
 	bool		bZNFromA;		//The last instruction kept set N and Z from A.
 	bool		bZNFromX;		//...from X...
 	bool		bZNFromY;		//...from Y.
 	bool		bKeep;
-	CChars		sz;
 
 	cOut.Init();
 	szA[0] = '\0';
@@ -858,12 +843,10 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 	uiDeadLoad = IR816_NO_LINE;
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		psz = pcCode->GetText(ui);
-		uiLength = psz->Length();
 		bKeep = true;
 
 		//A label, or a directive: nothing is known after it.
-		if ((uiLength < 3) || !pcCode->Instruction(ui, &sLine))
+		if (!pcCode->IsTabbed(ui) || !pcCode->Instruction(ui, &sLine))
 		{
 			szA[0] = '\0';
 			szY[0] = '\0';
@@ -872,14 +855,8 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 			bZNFromX = false;
 			bZNFromY = false;
 			uiDeadLoad = IR816_NO_LINE;
-			cOut.Append(psz->Text(), uiLength);
+			cOut.AppendLine(pcCode, ui);
 			continue;
-		}
-
-		//The mnemonic and the operand.
-		if (sLine.bMarked)
-		{
-			uiLength -= StrLen(IR816_KEEP_IN_A);
 		}
 
 		//A value kept in A instead of its store and load, or as the first operand of a commutative instruction.
@@ -903,13 +880,7 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 		}
 		if (ui == uiSwapUse)
 		{
-			sz.Init(CIRW65C816Backend::GetScratch());
-			sz.Append("\t\t");
-			sz.Append(sLine.szMnemonic);
-			sz.Append(" ");
-			sz.Append(szSwapped);
-			cOut.Append(sz.Text());
-			sz.Kill();
+			cOut.AppendInstruction(sLine.uiMnemonic, szSwapped);
 			uiSwapUse = IR816_NO_LINE;
 			szA[0] = '\0';
 			bClearCarry = false;
@@ -924,7 +895,7 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 			szKept[0] = '\0';
 			if (sLine.uiMnemonic == IR816M_Pei)
 			{
-				cOut.Append("\t\tpha");
+				cOut.AppendInstruction(IR816M_Pha);
 				uiDeadLoad = IR816_NO_LINE;
 			}
 			continue;
@@ -932,7 +903,7 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 		if ((sLine.uiMnemonic == IR816M_Pei) && IR816OperandIs(&sLine, szA, StrLen(szA)))
 		{
 			//A holds the word: pha pushes it for less.
-			cOut.Append("\t\tpha");
+			cOut.AppendInstruction(IR816M_Pha);
 			uiDeadLoad = IR816_NO_LINE;
 			continue;
 		}
@@ -975,7 +946,15 @@ void CIRW65C816Backend::Peephole(CIRW65C816Code* pcCode)
 			cOut.Truncate(uiDeadLoad);
 		}
 		uiDeadLoad = ((sLine.uiMnemonic == IR816M_Lda) && (sLine.bDirect || IR816IsDecimal(sLine.szOperand))) ? cOut.NumLines() : IR816_NO_LINE;
-		cOut.Append(psz->Text(), uiLength);
+		if (sLine.bMarked)
+		{
+			//The mark is the passes' own: it goes once this one has looked at it.
+			cOut.AppendInstruction(&sLine, false);
+		}
+		else
+		{
+			cOut.AppendLine(pcCode, ui);
+		}
 		if (!(sLine.uiFlags & IR816MF_STORE) && (sLine.uiMnemonic != IR816M_Pha))
 		{
 			//Stores change neither A nor the flags.

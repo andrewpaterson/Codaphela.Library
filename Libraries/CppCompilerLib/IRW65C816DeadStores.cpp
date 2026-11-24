@@ -195,7 +195,7 @@ bool IR816FindReads(CIRW65C816Code* pcCode, size uiFrom, uint8* abRead)
 	memset(abRead, 0, IR816_DIRECT_PAGE);
 	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
 	{
-		if (!pcCode->Instruction(ui, &sLine) || (pcCode->Text(ui)[2] == ';'))
+		if (!pcCode->Instruction(ui, &sLine) || pcCode->IsComment(ui))
 		{
 			continue;
 		}
@@ -296,7 +296,7 @@ void CIRW65C816Backend::RemoveUnreadStores(CIRW65C816Code* pcCode)
 	abRemove.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		if (pcCode->Instruction(ui, &sLine) && (pcCode->Text(ui)[2] != ';'))
+		if (pcCode->Instruction(ui, &sLine) && !pcCode->IsComment(ui))
 		{
 			if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && (sLine.iOffset < IR816_DIRECT_PAGE - 1) && !abRead[sLine.iOffset] && !abRead[sLine.iOffset + 1])
 			{
@@ -354,7 +354,7 @@ void CIRW65C816Backend::RemoveDeadStores(CIRW65C816Code* pcCode)
 		for (ui = 0; ui < pcCode->NumLines(); ui++)
 		{
 			*abRemove.Get(ui) = 0;
-			if ((pcCode->GetText(ui)->Length() >= 3) && pcCode->Instruction(ui, &sLine))
+			if (pcCode->IsTabbed(ui) && pcCode->Instruction(ui, &sLine))
 			{
 				if (sLine.bDirect && (sLine.uiFlags & IR816MF_STORE) && !pcCode->IsKept(sLine.iOffset, 2) && IR816DeadStore(pcCode, ui + 1, sLine.szOperand, sLine.uiOperand))
 				{
