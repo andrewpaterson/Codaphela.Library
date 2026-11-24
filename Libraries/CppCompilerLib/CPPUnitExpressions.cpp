@@ -995,21 +995,80 @@ bool CCPPUnit::IsStandardLayoutType(SCPP65Type* psType)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// An enumerator's type: its enum's (an unnamed enum's is its underlying type).
+// An enumerator's type: its enum's (an unnamed enum's is its underlying
+// type).  While EnumType is working the enum's out, the one its value has
+// (SetEnumeratorBodyType), as before the enum's closing brace.
+// [dcl.enum] 5
 //
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPUnit::EnumeratorType(CCPPSymbol* pcSymbol)
 {
 	CCPPSyntax*					pcEnumerator;
 	CCPPSyntaxEnumSpecifier*	pcSpecifier;
+	SCPP65Type**				ppsBodyType;
 
 	pcEnumerator = pcSymbol->mpcDeclaration;
 	if (!pcEnumerator || !pcEnumerator->mpcParent || (pcEnumerator->mpcParent->GetKind() != CPPS_EnumSpecifier))
 	{
 		return &mcTypes.msInt;
 	}
+	ppsBodyType = mcEnumeratorBodyTypes.Get((CCPPSyntaxEnumerator*)pcEnumerator);
+	if (ppsBodyType)
+	{
+		return *ppsBodyType;
+	}
 	pcSpecifier = (CCPPSyntaxEnumSpecifier*)pcEnumerator->mpcParent;
 	return EnumType(pcSpecifier->mpcSymbol, pcSpecifier);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Enumerator uiEnumerator of pcSpecifier (its value, if it has one, just
+// folded) has its type until the enum's is made: psFixed (the underlying
+// type given), else its value's, else the one before it's (int for the
+// first).  The enumerators after it, whose values may name it, then type
+// it without working out the enum's type within the enum's type.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::SetEnumeratorBodyType(CCPPSyntaxEnumSpecifier* pcSpecifier, size uiEnumerator, SCPP65Type* psFixed)
+{
+	CCPPSyntaxEnumerator*	pcEnumerator;
+	SCPP65Type**			ppsBefore;
+	SCPP65Type*				psType;
+
+	pcEnumerator = (CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(uiEnumerator);
+	psType = psFixed;
+	if (!psType && pcEnumerator->mpcValue)
+	{
+		psType = mcFolder.ConstantTypeOf(pcEnumerator->mpcValue);
+	}
+	if (!psType && (uiEnumerator > 0))
+	{
+		ppsBefore = mcEnumeratorBodyTypes.Get((CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(uiEnumerator - 1));
+		psType = ppsBefore ? *ppsBefore : NULL;
+	}
+	if (!psType)
+	{
+		psType = &mcTypes.msInt;
+	}
+	mcEnumeratorBodyTypes.Put((CCPPSyntaxEnumerator*)pcEnumerator, &psType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// pcSpecifier's enumerators have its type again (EnumType has made it).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnit::ForgetEnumeratorBodyTypes(CCPPSyntaxEnumSpecifier* pcSpecifier)
+{
+	size	i;
+
+	for (i = 0; i < pcSpecifier->macpEnumerators.NumElements(); i++)
+	{
+		mcEnumeratorBodyTypes.Remove((CCPPSyntaxEnumerator*)pcSpecifier->macpEnumerators.GetPtr(i));
+	}
 }
 
 
@@ -1084,7 +1143,9 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 			{
 				CheckEnumeratorFits(pcSpecifier, pcEnumerator, lliValue);
 			}
+			SetEnumeratorBodyType(pcSpecifier, i, psBase);
 		}
+		ForgetEnumeratorBodyTypes(pcSpecifier);
 	}
 	else if (pcSpecifier && !pcSpecifier->mbScoped)
 	{
@@ -1101,10 +1162,12 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 				//what is wrong with it is said where it is checked (CheckEnumerators).
 				break;
 			}
+			SetEnumeratorBodyType(pcSpecifier, i, NULL);
 			lliMin = (lliValue < lliMin) ? lliValue : lliMin;
 			lliMax = (lliValue > lliMax) ? lliValue : lliMax;
 			lliValue++;
 		}
+		ForgetEnumeratorBodyTypes(pcSpecifier);
 		bNonNegative = (i == pcSpecifier->macpEnumerators.NumElements()) && (lliMin >= 0);
 
 		if ((lliMin >= mcTypes.msInt.Least()) && (lliMax <= mcTypes.msInt.Most()))
@@ -1146,9 +1209,10 @@ SCPP65Type* CCPPUnit::EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSp
 // An enumerator is one more than the one before it unless it is given a
 // value: the nearest one at or before it that is given a value (or the
 // first, 0) plus how far before it that one is.  Only that value is worked
-// out.  Working out every value before it, each of which can name the one
-// before it (urlmon.h's BINDSTATUS_CONNECTING = (BINDSTATUS_FINDINGRESOURCE
-// + 1) and so on 78 times), doubled the work with each enumerator.
+// out (GivenEnumeratorValue).  Working out every value before it, each of
+// which can name the one before it (urlmon.h's BINDSTATUS_CONNECTING =
+// (BINDSTATUS_FINDINGRESOURCE + 1) and so on 78 times), doubled the work
+// with each enumerator.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
@@ -1190,16 +1254,102 @@ bool CCPPUnit::EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue)
 		pcOther = (CCPPSyntaxEnumerator*)pcEnum->macpEnumerators.GetPtr(i - 1);
 		if (pcOther->mpcValue)
 		{
-			if (!mcFolder.Constant(pcOther->mpcValue, &lliValue))
+			uiValued = i - 1;
+			if (!GivenEnumeratorValue(pcEnum, uiValued, &lliValue))
 			{
 				return false;
 			}
-			CheckEnumeratorFits(pcEnum, pcOther, lliValue);
-			uiValued = i - 1;
 			break;
 		}
 	}
 	*plliValue = lliValue + (int64)(uiIndex - uiValued);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value enumerator uiEnumerator of pcEnum is given (it has one).  In an
+// enum outside every template its value doesn't depend on the bindings it
+// is asked in, so it is folded once and kept, and the values given before
+// it are folded first, in order: one that names the enumerator before it
+// then finds that value kept.  Folded within each other instead, urlmon.h's
+// 78 BINDSTATUS_s (each the one before + 1) went 78 folds deep, which ran
+// Debug's stack out.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::GivenEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, size uiEnumerator, int64* plliValue)
+{
+	CCPPSyntaxEnumerator*	pcEnumerator;
+	CCPPSyntaxEnumerator*	pcBefore;
+	int64*					plliKept;
+	int64					lliBefore;
+	size					i;
+
+	pcEnumerator = (CCPPSyntaxEnumerator*)pcEnum->macpEnumerators.GetPtr(uiEnumerator);
+	if (!IsOutsideTemplates(pcEnum))
+	{
+		return FoldEnumeratorValue(pcEnum, pcEnumerator, plliValue);
+	}
+
+	plliKept = mcEnumeratorValues.Get(pcEnumerator);
+	if (plliKept)
+	{
+		*plliValue = *plliKept;
+		return true;
+	}
+	for (i = 0; i < uiEnumerator; i++)
+	{
+		pcBefore = (CCPPSyntaxEnumerator*)pcEnum->macpEnumerators.GetPtr(i);
+		if (pcBefore->mpcValue && !mcEnumeratorValues.HasKey(pcBefore) && FoldEnumeratorValue(pcEnum, pcBefore, &lliBefore))
+		{
+			mcEnumeratorValues.Put(pcBefore, &lliBefore);
+		}
+	}
+	if (!FoldEnumeratorValue(pcEnum, pcEnumerator, plliValue))
+	{
+		return false;
+	}
+	mcEnumeratorValues.Put(pcEnumerator, plliValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value pcEnumerator (of pcEnum) is given, folded, and checked against
+// the enum's fixed type.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::FoldEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64* plliValue)
+{
+	if (!mcFolder.Constant(pcEnumerator->mpcValue, plliValue))
+	{
+		return false;
+	}
+	CheckEnumeratorFits(pcEnum, pcEnumerator, *plliValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether pcNode is in no template declaration and no lambda (a generic
+// lambda is a template too): what it means can't depend on bindings.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPUnit::IsOutsideTemplates(CCPPSyntax* pcNode)
+{
+	ECPPSyntax	eKind;
+
+	for (; pcNode; pcNode = pcNode->mpcParent)
+	{
+		eKind = pcNode->GetKind();
+		if ((eKind == CPPS_TemplateDeclaration) || (eKind == CPPS_LambdaExpression))
+		{
+			return false;
+		}
+	}
 	return true;
 }
 

@@ -1186,6 +1186,7 @@ void TestCPP65IRNamespaceRuns(void)
 
 
 void TestCppEnumeratorChainSource(CChars* pszDest, const char* szMain);
+void TestCppChainedEnumerators(CChars* pszDest, const char* szPrefix, int iCount);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1210,6 +1211,17 @@ void TestCPP65IREnumeratorChain(void)
 	szSource.Kill();
 
 	AssertInt(134, TestCPP65Main("enum E { A, B, C = 3, D };\nint main() { return A * 1000 + B * 100 + C * 10 + D; }"));
+
+	//A thousand, each the one before + 1: the last is folded one level deep.
+	szSource.Init();
+	szSource.Append("enum ELong\n{\n");
+	TestCppChainedEnumerators(&szSource, "LONG_", 1000);
+	szSource.Append("};\nint main() { return LONG_999 + LONG_0; }\n");
+	AssertInt(1001, TestCPP65Main(szSource.Text()));
+	szSource.Kill();
+
+	//An enum in a template is folded with each instance's bindings, not kept from the first.
+	AssertInt(25, TestCPP65Main("template<class T> struct S { enum { A = sizeof(T), B = A + 1 }; };\nint main() { return S<char>::B * 10 + S<long>::B; }"));
 }
 
 

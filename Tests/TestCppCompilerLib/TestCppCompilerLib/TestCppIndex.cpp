@@ -693,6 +693,32 @@ void Use(char* sz, char* szOther)\n\
 
 //////////////////////////////////////////////////////////////////////////
 //
+// iCount enumerators named szPrefix0, szPrefix1 ..., the first 1 and each
+// after it the one before plus one, as urlmon.h's tagBINDSTATUS's are.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCppChainedEnumerators(CChars* pszDest, const char* szPrefix, int iCount)
+{
+	int	i;
+
+	pszDest->Append("\t");
+	pszDest->Append(szPrefix);
+	pszDest->Append("0 = 1,\n");
+	for (i = 1; i < iCount; i++)
+	{
+		pszDest->Append("\t");
+		pszDest->Append(szPrefix);
+		pszDest->Append(i);
+		pszDest->Append(" = ( ");
+		pszDest->Append(szPrefix);
+		pszDest->Append(i - 1);
+		pszDest->Append(" + 1 ) ,\n");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The source of an enum whose 78 enumerators are each the one before plus
 // one, as urlmon.h's tagBINDSTATUS's are, and of a function with a
 // parameter of it (declaring it works out the enum's underlying type).
@@ -701,17 +727,8 @@ void Use(char* sz, char* szOther)\n\
 //////////////////////////////////////////////////////////////////////////
 void TestCppEnumeratorChainSource(CChars* pszDest, const char* szMain)
 {
-	int	i;
-
-	pszDest->Append("typedef enum tagSTATUS\n{\n\tSTATUS_0 = 1,\n");
-	for (i = 1; i < 78; i++)
-	{
-		pszDest->Append("\tSTATUS_");
-		pszDest->Append(i);
-		pszDest->Append(" = ( STATUS_");
-		pszDest->Append(i - 1);
-		pszDest->Append(" + 1 ) ,\n");
-	}
+	pszDest->Append("typedef enum tagSTATUS\n{\n");
+	TestCppChainedEnumerators(pszDest, "STATUS_", 78);
 	pszDest->Append("} STATUS;\n");
 	pszDest->Append("enum EMixed { MIXED_A = 5, MIXED_B, MIXED_C = MIXED_B + 10, MIXED_D };\n");
 	pszDest->Append("int Status(STATUS eStatus) { return eStatus; }\n");
@@ -732,6 +749,14 @@ void TestCppSemanticPassEnumeratorChain(void)
 
 	szSource.Init();
 	TestCppEnumeratorChainSource(&szSource, "inline int Last(void) { return Status(STATUS_77); }\n");
+	AssertTrue(TestCppSemanticPassCheck(szSource.Text()));
+	szSource.Kill();
+
+	//Each value given is folded once, and the chain one fold deep, however long it is.
+	szSource.Init();
+	szSource.Append("enum ELong\n{\n");
+	TestCppChainedEnumerators(&szSource, "LONG_", 1000);
+	szSource.Append("};\ninline int Last(void) { return LONG_999; }\n");
 	AssertTrue(TestCppSemanticPassCheck(szSource.Text()));
 	szSource.Kill();
 }

@@ -368,6 +368,8 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
 	mcExplicitInstances.Init();
+	mcEnumeratorValues.Init();
+	mcEnumeratorBodyTypes.Init();
 	mpcInitializerList = NULL;
 	mpcTypeInfo = NULL;
 	mcClosures.Init(this);
@@ -489,6 +491,8 @@ void CCPPUnit::Kill(void)
 	}
 	mapcHiddenSymbols.Kill();
 	mcExplicitInstances.Kill();
+	mcEnumeratorValues.Kill();
+	mcEnumeratorBodyTypes.Kill();
 	mcClosures.Kill();
 	mcDesugarings.Kill();
 	masOutsideDefinitions.Kill();

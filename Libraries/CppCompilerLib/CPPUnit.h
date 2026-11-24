@@ -245,6 +245,8 @@ protected:
 	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CHashMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
+	CHashMapPrimitiveTemplate<CCPPSyntaxEnumerator*, int64>	mcEnumeratorValues;	//The values enumerators are given, folded once (GivenEnumeratorValue).
+	CHashMapPrimitiveTemplate<CCPPSyntaxEnumerator*, SCPP65Type*>	mcEnumeratorBodyTypes;	//While EnumType works out an enum's type, each of its enumerators' so far: its value's.  [dcl.enum] 5
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
@@ -448,6 +450,11 @@ public:
 	int						VariableAlignment(CCPPVariable* pcVariable, int* piAlignas);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
 	void					CheckEnumeratorFits(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64 lliValue);
+	bool					GivenEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, size uiEnumerator, int64* plliValue);
+	bool					FoldEnumeratorValue(CCPPSyntaxEnumSpecifier* pcEnum, CCPPSyntaxEnumerator* pcEnumerator, int64* plliValue);
+	static bool				IsOutsideTemplates(CCPPSyntax* pcNode);
+	void					SetEnumeratorBodyType(CCPPSyntaxEnumSpecifier* pcSpecifier, size uiEnumerator, SCPP65Type* psFixed);
+	void					ForgetEnumeratorBodyTypes(CCPPSyntaxEnumSpecifier* pcSpecifier);
 	CArrayCPP65Types*		NewPack(void);
 	CArrayInt64*			NewValuePack(void);
 	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks);
