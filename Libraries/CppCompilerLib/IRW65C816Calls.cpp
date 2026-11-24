@@ -766,13 +766,26 @@ bool CIRW65C816Calls::Forwarder(CChars* pszJump)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A wrapper (Forwarder): its label, a register function's stub and body
-// label as Prologue writes them, then the jump (pszJump) instead of a
+// A wrapper (Forwarder): its entry, then the jump (pszJump) instead of a
 // frame and body.  It has no frame (FunctionArguments' empty one, which
 // AlignFrame leaves).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Calls::GenerateForwarder(const char* szLabel, CChars* pszJump)
+{
+	Entry(szLabel);
+	mpcBackend->mpszOut->Append(*pszJump);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function's label and widths.  A register function's plain label is
+// the stub for callers that push everything (RegisterStub), then comes the
+// body's own label (visible to other objects when the plain one is).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Calls::Entry(const char* szLabel)
 {
 	CChars	szBody;
 
@@ -781,23 +794,23 @@ void CIRW65C816Calls::GenerateForwarder(const char* szLabel, CChars* pszJump)
 	mpcBackend->mpszOut->AppendNewLine();
 	mpcBackend->Line(".width (A, X), 16");
 	mpcBackend->Line(".relax");
-	if (mpcBackend->msFrame.iRegisterWords > 0)
+	if (mpcBackend->msFrame.iRegisterWords == 0)
 	{
-		szBody.Init(szLabel);
-		mpcBackend->AppendRegisterSuffix(&szBody, &mpcBackend->masArguments, IR816_REGISTER_LETTERS);
-		RegisterStub(&szBody);
-		if (!(mpcBackend->mpcFunction->muiAttributes & IRA_Local) && !mpcBackend->mpcModule->IsLocal(mpcBackend->mpcFunction->muiSymbol))
-		{
-			mpcBackend->mpszOut->Append((mpcBackend->mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-			mpcBackend->mpszOut->Append(szBody);
-			mpcBackend->mpszOut->AppendNewLine();
-		}
-		mpcBackend->mpszOut->Append(szBody);
-		mpcBackend->mpszOut->Append(':');
-		mpcBackend->mpszOut->AppendNewLine();
-		szBody.Kill();
+		return;
 	}
-	mpcBackend->mpszOut->Append(*pszJump);
+	szBody.Init(szLabel);
+	mpcBackend->AppendRegisterSuffix(&szBody, &mpcBackend->masArguments, IR816_REGISTER_LETTERS);
+	RegisterStub(&szBody);
+	if (!(mpcBackend->mpcFunction->muiAttributes & IRA_Local) && !mpcBackend->mpcModule->IsLocal(mpcBackend->mpcFunction->muiSymbol))
+	{
+		mpcBackend->mpszOut->Append((mpcBackend->mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
+		mpcBackend->mpszOut->Append(szBody);
+		mpcBackend->mpszOut->AppendNewLine();
+	}
+	mpcBackend->mpszOut->Append(szBody);
+	mpcBackend->mpszOut->Append(':');
+	mpcBackend->mpszOut->AppendNewLine();
+	szBody.Kill();
 }
 
 

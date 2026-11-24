@@ -1171,37 +1171,16 @@ void CIRW65C816Backend::FindSingleUses(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Prologue(const char* szLabel)
 {
-	CChars	szBody;
-
-	mpszOut->Append(szLabel);
-	mpszOut->Append(':');
-	mpszOut->AppendNewLine();
-	Line(".width (A, X), 16");
-	Line(".relax");
+	mcCalls.Entry(szLabel);
 	if (msFrame.iRegisterWords == 0)
 	{
 		IR816AppendFrameEntry(mpszOut, msFrame.iFrameBytes);
-		return;
 	}
-
-	//A register function: the plain label is the stub for callers that push everything, then the body's own label
-	//(visible to other objects when the plain one is).
-	szBody.Init(szLabel);
-	AppendRegisterSuffix(&szBody, &masArguments, IR816_REGISTER_LETTERS);
-	mcCalls.RegisterStub(&szBody);
-	if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
+	else
 	{
-		mpszOut->Append((mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-		mpszOut->Append(szBody);
-		mpszOut->AppendNewLine();
+		//D saved, the register words pushed into the frame's top (A's lowest), then the rest of the frame below them.
+		IR816AppendRegisterFrameEntry(mpszOut, msFrame.iRegisterWords, msFrame.iFrameBytes);
 	}
-	mpszOut->Append(szBody);
-	mpszOut->Append(':');
-	mpszOut->AppendNewLine();
-	szBody.Kill();
-
-	//D saved, the register words pushed into the frame's top (A's lowest), then the rest of the frame below them.
-	IR816AppendRegisterFrameEntry(mpszOut, msFrame.iRegisterWords, msFrame.iFrameBytes);
 }
 
 

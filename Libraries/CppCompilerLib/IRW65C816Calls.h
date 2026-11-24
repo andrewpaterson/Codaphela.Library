@@ -53,6 +53,7 @@ public:
 
 	bool			Forwarder(CChars* pszJump);
 	void			GenerateForwarder(const char* szLabel, CChars* pszJump);
+	void			Entry(const char* szLabel);
 	void			RegisterStub(CChars* pszBodyLabel);
 	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
 	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
