@@ -1035,7 +1035,7 @@ bool CCPP65IRFrontEnd::ReferenceCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefe
 	psPlace->psType = psReference->psBase;
 	psPlace->psBitField = NULL;
 	if (!IsReinterpretCast(pcCast) && sOperand.psType->IsClass() && psReference->psBase->IsClass() && (sOperand.psType->pcClass != psReference->psBase->pcClass) &&
-		mpcUnit->IsDerived(psReference->psBase->pcClass, sOperand.psType->pcClass, NULL))
+		mpcUnit->GetClasses()->IsDerived(psReference->psBase->pcClass, sOperand.psType->pcClass, NULL))
 	{
 		psPlace->sAddress = sOperand.sAddress;
 		return DerivedAddress(&psPlace->sAddress, sOperand.psType->pcClass, psReference->psBase->pcClass, false, pcCast);
@@ -1075,7 +1075,7 @@ bool CCPP65IRFrontEnd::DynamicCastPlace(CCPPSyntax* pcCast, SCPP65Type* psRefere
 	}
 	psPlace->psType = psReference->psBase;
 	psPlace->psBitField = NULL;
-	if (mpcUnit->IsDerived(pcFrom, pcTo, NULL))
+	if (mpcUnit->GetClasses()->IsDerived(pcFrom, pcTo, NULL))
 	{
 		return ReferenceAddress(&sOperand, psReference, &psPlace->sAddress);
 	}

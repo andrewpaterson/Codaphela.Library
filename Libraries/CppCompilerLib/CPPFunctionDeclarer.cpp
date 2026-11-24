@@ -1143,7 +1143,7 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 				return mpcDiagnostics->Error(pcMember, "A constructor that names its own class in its member initialisers has no other");
 			}
 		}
-		else if (!(pcNamed && mpcUnit->IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(lliName, &iOffset))
+		else if (!(pcNamed && mpcUnit->GetClasses()->IsDerived(pcClass, pcNamed, NULL)) && !pcClass->FindField(lliName, &iOffset))
 		{
 			return mpcDiagnostics->Error(pcMember, "The member initialiser names no member or base of the class");
 		}

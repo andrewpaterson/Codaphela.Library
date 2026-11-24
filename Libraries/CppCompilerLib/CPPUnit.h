@@ -433,21 +433,6 @@ public:
 	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
 
 	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
-	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
-	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
-	bool					IsConstObject(CCPPSyntax* pcExpression);
-	CCPPFunction*			ThisFunction(void);
-	bool					IsConstThis(void);
-	bool					IsVolatileThis(void);
-	SCPP65Type*				ThisType(CCPPClass* pcClass);
-	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
-	size					CountBases(CCPPClass* pcClass, CCPPClass* pcBase);
-	void					CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual);
-	CArrayCPPBasePaths*		BasePaths(CCPPClass* pcClass);
-	void					ResolveAllBases(CCPPClass* pcClass);
-	size					CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase);
-	SCPPVirtualBase*		VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow);
-	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
 	int64					GetOperatorName(ECppTokens eToken, bool bArray);
 	int64					GetComponentName(CCPPSyntaxNameComponent* pcComponent);

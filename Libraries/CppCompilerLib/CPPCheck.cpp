@@ -1213,7 +1213,7 @@ bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement*
 		psValue = mpcUnit->GetTypeChecker()->TypeOf(pcReturn->mpcValue);
 		mpcUnit->mcDiagnostics.EndQuiet();
 		psValue = psValue ? psValue->WithoutReference() : NULL;
-		if (!psValue || (psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))
+		if (!psValue || (psValue->IsClass() && mpcUnit->GetClasses()->IsDerived(psValue->pcClass, psReturn->pcClass, NULL)))
 		{
 			apcValue.Kill();
 			return true;

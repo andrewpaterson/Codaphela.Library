@@ -576,7 +576,7 @@ bool CCPPDesugarings::InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue
 	mpcUnit->mcDiagnostics.BeginQuiet();
 	psValue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcValue);
 	mpcUnit->mcDiagnostics.EndQuiet();
-	return psValue && psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, psMember->pcClass, NULL);
+	return psValue && psValue->IsClass() && mpcUnit->GetClasses()->IsDerived(psValue->pcClass, psMember->pcClass, NULL);
 }
 
 

@@ -144,7 +144,7 @@
     <ClCompile Include="CPPUnit.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitOverloads.cpp">
+    <ClCompile Include="CPPClassesBases.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPPUnitLabels.cpp">

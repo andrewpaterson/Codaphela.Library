@@ -75,6 +75,17 @@ public:
 	CCPPVariable*			FindStatic(CCPPClass* pcClass, int64 lliName);
 	bool					IsConstantMember(CCPPVariable* pcVariable);
 	bool					IsDefinedBefore(CCPPClass* pcClass, CCPPSyntax* pcNode);
+
+	bool					IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
+	bool					IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase);
+	bool					IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
+	size					CountBases(CCPPClass* pcClass, CCPPClass* pcBase);
+	void					CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual);
+	CArrayCPPBasePaths*		BasePaths(CCPPClass* pcClass);
+	void					ResolveAllBases(CCPPClass* pcClass);
+	size					CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase);
+	SCPPVirtualBase*		VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow);
+	bool					CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset);
 	SCPP65Type*				ArrowType(CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 
 protected:

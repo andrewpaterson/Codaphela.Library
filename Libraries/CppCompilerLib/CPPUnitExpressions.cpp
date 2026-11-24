@@ -903,7 +903,7 @@ bool CCPPUnit::TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes)
 	case CPP65TT_LiteralType:			return mpcConstants->IsLiteralType(psType);
 	case CPP65TT_BaseOf:
 		//A class is its own base here.  [meta.rel] Table 49
-		return pcClass && psOther->IsClass() && ((pcClass == psOther->pcClass) || IsDerived(psOther->pcClass, pcClass, NULL));
+		return pcClass && psOther->IsClass() && ((pcClass == psOther->pcClass) || mcClasses.IsDerived(psOther->pcClass, pcClass, NULL));
 	case CPP65TT_ConvertibleTo:
 		return mcBinder.IsConvertible(psOther, psType);
 	case CPP65TT_Constructible:

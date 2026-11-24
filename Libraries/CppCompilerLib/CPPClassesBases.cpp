@@ -19,65 +19,11 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include "CPPUnit.h"
+#include "CPPClasses.h"
 
 
-//What this is in a member function, and a class's bases: whether one class is derived from another, how many times, at what
-//offset and through which virtual base.  (Choosing a function is CCPPOverloads'.)
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether an expression is an object that is const.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsConstObject(CCPPSyntax* pcExpression)
-{
-	SCPP65Type*	psType;
-
-	psType = mcTypeChecker.ValueTypeOf(pcExpression);
-	return psType && psType->bConst;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The function whose this the function being generated has: itself, or in
-// a lambda's body the member function the lambda is in.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPFunction* CCPPUnit::ThisFunction(void)
-{
-	CCPPFunction*	pcFunction;
-
-	pcFunction = mcContext.GetFunction();
-	while (mcClosures.BodyLambda(pcFunction))
-	{
-		pcFunction = mcClosures.BodyLambda(pcFunction)->pcEnclosing;
-	}
-	return pcFunction;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether the function being generated is a const, or a volatile, member
-// function: its this points to an object that is.  [class.this] 1
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsConstThis(void) { return !mcContext.GetObject() && ThisFunction() && ThisFunction()->mbConstThis; }
-bool CCPPUnit::IsVolatileThis(void) { return !mcContext.GetObject() && ThisFunction() && ThisFunction()->mbVolatileThis; }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The type of this in the function being generated, for an object of
-// pcClass: a pointer to it, const or volatile as the function is.
-//
-//////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::ThisType(CCPPClass* pcClass)
-{
-	return mcTypes.Pointer(mcTypes.Qualified(pcClass->mpsType, IsConstThis(), IsVolatileThis()));
-}
+//A class's bases (CCPPClasses): whether one class is derived from another, how many times, at what offset and through
+//which virtual base.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,13 +32,13 @@ SCPP65Type* CCPPUnit::ThisType(CCPPClass* pcClass)
 // where psBase is in pcClass.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+bool CCPPClasses::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 {
 	CArrayCPPBasePaths*	pasPaths;
 	SCPPBasePath*		psPath;
 	size				i;
 
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	if (pcClass == pcBase)
 	{
 		if (piOffset)
@@ -126,13 +72,13 @@ bool CCPPUnit::IsDerived(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 // their offsets need the class laid out.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayCPPBasePaths* CCPPUnit::BasePaths(CCPPClass* pcClass)
+CArrayCPPBasePaths* CCPPClasses::BasePaths(CCPPClass* pcClass)
 {
 	if (!pcClass->IsComplete())
 	{
-		mcDiagnostics.BeginQuiet();
+		mpcDiagnostics->BeginQuiet();
 		ResolveAllBases(pcClass);
-		mcDiagnostics.EndQuiet();
+		mpcDiagnostics->EndQuiet();
 	}
 	return pcClass->BasePaths();
 }
@@ -143,7 +89,7 @@ CArrayCPPBasePaths* CCPPUnit::BasePaths(CCPPClass* pcClass)
 // Resolves the bases of pcClass, and of each of them, that are not known.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::ResolveAllBases(CCPPClass* pcClass)
+void CCPPClasses::ResolveAllBases(CCPPClass* pcClass)
 {
 	size	i;
 
@@ -151,7 +97,7 @@ void CCPPUnit::ResolveAllBases(CCPPClass* pcClass)
 	{
 		return;
 	}
-	mcClasses.ResolveBases(pcClass, NULL);
+	ResolveBases(pcClass, NULL);
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		ResolveAllBases(pcClass->macBases.Get(i)->pcClass);
@@ -166,7 +112,7 @@ void CCPPUnit::ResolveAllBases(CCPPClass* pcClass)
 // most one pcClass object, *piOffset bytes into it.  (pcClass itself isn't.)
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+bool CCPPClasses::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 {
 	CArrayCPPBasePaths*	pasPaths;
 	SCPPBasePath*		psPath;
@@ -178,7 +124,7 @@ bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOff
 	{
 		return false;
 	}
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	pasPaths = pcClass->BasePaths();
 	psOne = NULL;
 	for (i = 1; i < pasPaths->NumElements(); i++)
@@ -207,7 +153,7 @@ bool CCPPUnit::IsOnePublicBase(CCPPClass* pcClass, CCPPClass* pcBase, int* piOff
 // path at least (a virtual base has many).  [class.access.base] 4
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
+bool CCPPClasses::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
 {
 	CArrayCPPBasePaths*	pasPaths;
 	size				i;
@@ -233,13 +179,13 @@ bool CCPPUnit::IsPublicBase(CCPPClass* pcClass, CCPPClass* pcBase)
 // pcClass doesn't become a pcBase.  [class.mi] 4, [conv.ptr] 3
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPUnit::CountBases(CCPPClass* pcClass, CCPPClass* pcBase)
+size CCPPClasses::CountBases(CCPPClass* pcClass, CCPPClass* pcBase)
 {
 	CArrayCPPClasses	apcVirtual;
 	size				uiCount;
 	size				i;
 
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	if (!IsDerived(pcClass, pcBase, NULL))
 	{
 		return 0;
@@ -262,13 +208,13 @@ size CCPPUnit::CountBases(CCPPClass* pcClass, CCPPClass* pcBase)
 // laid out has them in macVirtualBases; this asks only for its bases.)
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual)
+void CCPPClasses::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVirtual)
 {
 	CArrayCPPBasePaths*	pasPaths;
 	SCPPBasePath*		psPath;
 	size				i;
 
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	pasPaths = pcClass->BasePaths();
 	for (i = 1; i < pasPaths->NumElements(); i++)
 	{
@@ -287,13 +233,13 @@ void CCPPUnit::CollectVirtualBases(CCPPClass* pcClass, CArrayCPPClasses* papcVir
 // itself, or those of its bases that aren't virtual.
 //
 //////////////////////////////////////////////////////////////////////////
-size CCPPUnit::CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase)
+size CCPPClasses::CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase)
 {
 	CArrayCPPBasePaths*	pasPaths;
 	size				uiCount;
 	size				i;
 
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	pasPaths = pcClass->BasePaths();
 	uiCount = 0;
 	for (i = 0; i < pasPaths->NumElements(); i++)
@@ -311,13 +257,13 @@ size CCPPUnit::CountFixedBases(CCPPClass* pcClass, CCPPClass* pcBase)
 // no virtual base of pcClass leads to pcBase.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPVirtualBase* CCPPUnit::VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow)
+SCPPVirtualBase* CCPPClasses::VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, int* piBelow)
 {
 	SCPPVirtualBase*	psVirtual;
 	size				i;
 	int					iOffset;
 
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
 		psVirtual = pcClass->macVirtualBases.Get(i);
@@ -338,12 +284,12 @@ SCPPVirtualBase* CCPPUnit::VirtualBaseOf(CCPPClass* pcClass, CCPPClass* pcBase, 
 // pcBase isn't a base of pcClass.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
+bool CCPPClasses::CompleteOffset(CCPPClass* pcClass, CCPPClass* pcBase, int* piOffset)
 {
 	SCPPVirtualBase*	psVirtual;
 	int					iBelow;
 
-	mpcStatistics->Count(CPPCC_BaseWalks);
+	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
 	if (!IsDerived(pcClass, pcBase, piOffset))
 	{
 		return false;

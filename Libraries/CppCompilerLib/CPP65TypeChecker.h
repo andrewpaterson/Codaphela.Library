@@ -182,6 +182,12 @@ public:
 	CCPPClass*				TypeInfoClass(void);
 	bool					IsTypeInfoMember(CCPPFunction* pcFunction);
 	SCPP65Type*				TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, bool* pbDynamic);
+	bool					IsConstObject(CCPPSyntax* pcExpression);
+	CCPPFunction*			ThisFunction(void);
+	bool					IsConstThis(void);
+	bool					IsVolatileThis(void);
+	SCPP65Type*				ThisType(CCPPClass* pcClass);
+
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);
@@ -263,6 +269,7 @@ protected:
 	SCPP65Type*		ObjectType(CCPPSyntax* pcExpression);
 
 	bool			Error(CCPPSyntax* pcNode, const char* szMessage);
+
 };
 
 

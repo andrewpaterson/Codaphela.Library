@@ -76,7 +76,7 @@ bool CCPP65IRFrontEnd::CastExpression(CCPPSyntax* pcCast, CCPPSyntaxTypeId* pcTy
 
 	//A base's pointer cast to a derived class's (but by reinterpret_cast) points at the derived object.
 	if (!IsReinterpretCast(pcCast) && psTo->IsPointer() && psValue->psType && psValue->psType->IsPointer() && psTo->psBase->IsClass() && psValue->psType->psBase->IsClass() &&
-		(psTo->psBase->pcClass != psValue->psType->psBase->pcClass) && mpcUnit->IsDerived(psTo->psBase->pcClass, psValue->psType->psBase->pcClass, NULL))
+		(psTo->psBase->pcClass != psValue->psType->psBase->pcClass) && mpcUnit->GetClasses()->IsDerived(psTo->psBase->pcClass, psValue->psType->psBase->pcClass, NULL))
 	{
 		if (!DerivedAddress(&psValue->sValue, psValue->psType->psBase->pcClass, psTo->psBase->pcClass, true, pcCast))
 		{
@@ -102,7 +102,7 @@ bool CCPP65IRFrontEnd::DerivedAddress(SIRReference* psAddress, CCPPClass* pcFrom
 {
 	int		iOffset;
 
-	if (!mpcUnit->GetClasses()->CompleteClass(pcTo, NULL) || !mpcUnit->IsDerived(pcTo, pcFrom, &iOffset))
+	if (!mpcUnit->GetClasses()->CompleteClass(pcTo, NULL) || !mpcUnit->GetClasses()->IsDerived(pcTo, pcFrom, &iOffset))
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
@@ -181,7 +181,7 @@ bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCa
 		{
 			return Unsupported(__FILE__, __LINE__);
 		}
-		if (mpcUnit->IsDerived(pcFrom, pcTarget, NULL))
+		if (mpcUnit->GetClasses()->IsDerived(pcFrom, pcTarget, NULL))
 		{
 			return Convert(psValue, psTo);
 		}
@@ -226,7 +226,7 @@ SIRReference CCPP65IRFrontEnd::DynamicCast(SIRReference sAddress, CCPPClass* pcF
 	asArguments[0] = sAddress;
 	asArguments[1] = TypeInfoSymbol(pcFrom);
 	asArguments[2] = TypeInfoSymbol(pcTo);
-	asArguments[3] = mpcFunction->AddInteger(asTypes[3], mpcUnit->IsOnePublicBase(pcTo, pcFrom, &iDown) ? iDown : CPP65_DYNAMIC_CAST_NO_PLACE);
+	asArguments[3] = mpcFunction->AddInteger(asTypes[3], mpcUnit->GetClasses()->IsOnePublicBase(pcTo, pcFrom, &iDown) ? iDown : CPP65_DYNAMIC_CAST_NO_PLACE);
 	mpcUnit->GetGlobals()->UseDynamicCast();
 	return CallNoThrow(CPP65_DYNAMIC_CAST, IRType(IRTK_Pointer), asTypes, asArguments, 4);
 }
@@ -613,8 +613,8 @@ bool CCPP65IRFrontEnd::Convert(SCPP65IRValue* psValue, SCPP65Type* psTo)
 	//A pointer to a derived class points at its base, which may be further on (a null pointer stays null).  The
 	//derived class is laid out to know where its base is, even if nothing else has needed it whole yet.
 	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) &&
-		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcUnit->GetClasses()->CompleteClass(psFrom->psBase->pcClass, NULL) &&
-		mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
+		mpcUnit->GetClasses()->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL) && mpcUnit->GetClasses()->CompleteClass(psFrom->psBase->pcClass, NULL) &&
+		mpcUnit->GetClasses()->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, &iOffset) && (iOffset != 0))
 	{
 		psValue->sValue = BaseAddress(psValue->sValue, psFrom->psBase->pcClass, psTo->psBase->pcClass, true);
 		psValue->psType = psTo;
@@ -761,7 +761,7 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, CCPPClass* pcF
 	int					iOffset;
 	int					iBelow;
 
-	if (!pcFrom || !pcTo || (pcFrom == pcTo) || !mpcUnit->GetClasses()->CompleteClass(pcFrom, NULL) || !mpcUnit->IsDerived(pcFrom, pcTo, &iOffset))
+	if (!pcFrom || !pcTo || (pcFrom == pcTo) || !mpcUnit->GetClasses()->CompleteClass(pcFrom, NULL) || !mpcUnit->GetClasses()->IsDerived(pcFrom, pcTo, &iOffset))
 	{
 		return sAddress;
 	}
@@ -769,7 +769,7 @@ SIRReference CCPP65IRFrontEnd::BaseAddress(SIRReference sAddress, CCPPClass* pcF
 	{
 		return (bNull && (iOffset != 0)) ? BaseAddress(sAddress, iOffset) : AddressAt(sAddress, iOffset);
 	}
-	psVirtual = mpcUnit->VirtualBaseOf(pcFrom, pcTo, &iBelow);
+	psVirtual = mpcUnit->GetClasses()->VirtualBaseOf(pcFrom, pcTo, &iBelow);
 	if (!psVirtual)
 	{
 		Unsupported(__FILE__, __LINE__);

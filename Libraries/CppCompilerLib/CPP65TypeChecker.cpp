@@ -1158,7 +1158,7 @@ SCPP65Type* CCPP65TypeChecker::ThisExpression(CCPPSyntax* pcThis)
 		Error(pcThis, mpcUnit->GetClosures()->WritingLambda() ? "The lambda doesn't capture this" : "this is only in member functions");
 		return NULL;
 	}
-	return mpcUnit->ThisType(pcClass);
+	return ThisType(pcClass);
 }
 
 
@@ -2661,7 +2661,7 @@ SCPP65Type* CCPP65TypeChecker::MemberPointerObject(CCPPSyntaxBinaryExpression* p
 		{
 			return NULL;
 		}
-		if (!mpcUnit->IsDerived(pcClass, psMember->pcClass, NULL))
+		if (!mpcUnit->GetClasses()->IsDerived(pcClass, psMember->pcClass, NULL))
 		{
 			Error(pcBinary, "The object isn't of the class the pointer to a member is of, or of a class derived from it");
 			return NULL;
@@ -2849,7 +2849,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 			Error(pcExpression, "A field needs an object");
 			return NULL;
 		}
-		return FieldType(cBound.mpsField, mpcUnit->IsConstThis(), mpcUnit->IsVolatileThis());
+		return FieldType(cBound.mpsField, IsConstThis(), IsVolatileThis());
 
 	case CPPS_MemberExpression:
 		return MemberPlace((CCPPSyntaxMemberExpression*)pcExpression);
@@ -3055,7 +3055,7 @@ SCPP65Type* CCPP65TypeChecker::ReferenceCast(SCPP65Type* psTo, CCPPSyntax* pcOpe
 	{
 		return psTo;
 	}
-	if (psReferred->IsClass() && psPlace->IsClass() && (mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL) || mpcUnit->IsDerived(psReferred->pcClass, psPlace->pcClass, NULL)))
+	if (psReferred->IsClass() && psPlace->IsClass() && (mpcUnit->GetClasses()->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL) || mpcUnit->GetClasses()->IsDerived(psReferred->pcClass, psPlace->pcClass, NULL)))
 	{
 		return CastReachesBase(psPlace, psReferred, pcNode) ? psTo : NULL;
 	}
@@ -3176,8 +3176,8 @@ bool CCPP65TypeChecker::CastReachesBase(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	{
 		return true;
 	}
-	pcDerived = mpcUnit->IsDerived(pcFrom, pcTo, NULL) ? pcFrom : pcTo;
-	if ((pcDerived == pcTo) && !psFrom->IsMemberPointer() && !(pcNamed && (pcNamed->meCast == CT_dynamic_cast)) && mpcUnit->GetClasses()->CompleteClass(pcTo, pcNode) && mpcUnit->IsDerived(pcTo, pcFrom, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
+	pcDerived = mpcUnit->GetClasses()->IsDerived(pcFrom, pcTo, NULL) ? pcFrom : pcTo;
+	if ((pcDerived == pcTo) && !psFrom->IsMemberPointer() && !(pcNamed && (pcNamed->meCast == CT_dynamic_cast)) && mpcUnit->GetClasses()->CompleteClass(pcTo, pcNode) && mpcUnit->GetClasses()->IsDerived(pcTo, pcFrom, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
 	{
 		//A virtual base is nowhere fixed in the class: only dynamic_cast goes from it to the derived class.
 		//[expr.static.cast] 2, 11
@@ -3849,7 +3849,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	if (!pcInitialiser && (papcArguments->NumElements() == 1) && !mpcUnit->GetBinder()->CopiesByConstructor(pcClass, papcArguments->GetPtr(0)))
 	{
 		psSource = ObjectType(papcArguments->GetPtr(0));
-		if (psSource && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
+		if (psSource && mpcUnit->GetClasses()->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
 			pcInitialiser = papcArguments->GetPtr(0);
 		}
@@ -3870,7 +3870,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 
 		//= object copies it (or is the object, made in place), = value calls a constructor that takes it.
 		psSource = ObjectType(pcInitialiser);
-		if (psSource && mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
+		if (psSource && mpcUnit->GetClasses()->IsDerived(psSource->pcClass, pcClass, NULL))
 		{
 			bResult = IsMadeObject(pcInitialiser, pcClass) ? (Value(pcInitialiser) != NULL) : CopyConstruct(pcClass, pcInitialiser, pcNode);
 			apcArguments.Kill();
@@ -4026,7 +4026,7 @@ bool CCPP65TypeChecker::CopyObject(CCPPClass* pcClass, CCPPSyntax* pcSource, CCP
 	{
 		return false;
 	}
-	if (!psSource->IsClass() || !mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
+	if (!psSource->IsClass() || !mpcUnit->GetClasses()->IsDerived(psSource->pcClass, pcClass, NULL))
 	{
 		return Error(pcNode, "The object cannot be copied to that class");
 	}
@@ -4237,7 +4237,7 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 	}
 
 	//A pointer to a derived class points at its base, which may be further on: the derived class is laid out.
-	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
+	if (psFrom->IsPointer() && psTo->IsPointer() && psFrom->psBase->IsClass() && psTo->psBase->IsClass() && (psFrom->psBase->pcClass != psTo->psBase->pcClass) && mpcUnit->GetClasses()->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
 	{
 		mpcUnit->GetClasses()->CompleteClass(psFrom->psBase->pcClass, pcNode);
 		return true;
@@ -4246,7 +4246,7 @@ bool CCPP65TypeChecker::Convert(SCPP65Type* psFrom, SCPP65Type* psTo, CCPPSyntax
 	//A pointer to a member of a base is a pointer to a member of a class derived from it, but not of a virtual base,
 	//whose members are nowhere fixed in the class.  [conv.mem] 2
 	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->pcClass && psTo->pcClass && (psFrom->pcClass != psTo->pcClass) && mpcUnit->GetClasses()->CompleteClass(psTo->pcClass, pcNode) &&
-		mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
+		mpcUnit->GetClasses()->IsDerived(psTo->pcClass, psFrom->pcClass, &iOffset) && (iOffset == CPP_VIRTUAL_PATH))
 	{
 		return Error(pcNode, "A pointer to a member of a virtual base can't be converted to a pointer to a member of a class derived from it");
 	}
@@ -4403,7 +4403,7 @@ bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 		{
 			return true;
 		}
-		if (psFrom->psBase->IsClass() && psTo->psBase->IsClass() && mpcUnit->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
+		if (psFrom->psBase->IsClass() && psTo->psBase->IsClass() && mpcUnit->GetClasses()->IsDerived(psFrom->psBase->pcClass, psTo->psBase->pcClass, NULL))
 		{
 			return mpcUnit->GetBinder()->ReachesBase(psFrom->psBase->pcClass, psTo->psBase->pcClass, pcNode);
 		}
@@ -4414,7 +4414,7 @@ bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 		}
 		return ConversionError(pcNode, psFrom, psTo);
 	}
-	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsDerived(psTo->pcClass, psFrom->pcClass, NULL))
+	if (psFrom->IsMemberPointer() && psTo->IsMemberPointer() && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->GetClasses()->IsDerived(psTo->pcClass, psFrom->pcClass, NULL))
 	{
 		return mpcUnit->GetBinder()->ReachesBase(psTo->pcClass, psFrom->pcClass, pcNode);
 	}
@@ -4548,7 +4548,7 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 		//[expr.dynamic.cast] 1, 2
 		return false;
 	}
-	if (psFrom->IsClass() && !(psTo->IsClass() && ((psTo->pcClass == psFrom->pcClass) || mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))) && !psFrom->pcClass->IsPolymorphic())
+	if (psFrom->IsClass() && !(psTo->IsClass() && ((psTo->pcClass == psFrom->pcClass) || mpcUnit->GetClasses()->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))) && !psFrom->pcClass->IsPolymorphic())
 	{
 		//Anything but a cast to a base looks the object up by its vtable.  [expr.dynamic.cast] 6
 		return mpcDiagnostics->ErrorOnce(pcCast, "The operand of dynamic_cast is not polymorphic");
@@ -4557,7 +4557,7 @@ bool CCPP65TypeChecker::DynamicCastAllowed(CCPPSyntaxNamedCastExpression* pcCast
 	{
 		return Error(pcCast, "dynamic_cast doesn't take const away: const_cast does");
 	}
-	if (psFrom->IsClass() && psTo->IsClass() && mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))
+	if (psFrom->IsClass() && psTo->IsClass() && mpcUnit->GetClasses()->IsDerived(psFrom->pcClass, psTo->pcClass, NULL))
 	{
 		return mpcUnit->GetBinder()->ReachesBase(psFrom->pcClass, psTo->pcClass, pcCast);
 	}
@@ -4793,7 +4793,7 @@ bool CCPP65TypeChecker::CanBind(SCPP65Type* psReference, SCPP65Type* psPlace, CC
 	{
 		return Error(pcNode, "An array cannot be bound to a reference to a pointer that isn't const");
 	}
-	if (psPlace->IsClass() && !(psReferred->IsClass() && mpcUnit->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL)))
+	if (psPlace->IsClass() && !(psReferred->IsClass() && mpcUnit->GetClasses()->IsDerived(psPlace->pcClass, psReferred->pcClass, NULL)))
 	{
 		mpcUnit->GetBinder()->BindObjectConversion(psPlace->pcClass, psReference, false, pcNode, &cBound);
 		return cBound.mpcFunction || TypesError(pcNode, "A reference to ", psReferred, " doesn't bind to ", psPlace, "");
@@ -4946,7 +4946,7 @@ SCPP65Type* CCPP65TypeChecker::CompositePointerType(SCPP65Type* psLeft, SCPP65Ty
 	if (psLeft->IsMemberPointer() && psRight->IsMemberPointer())
 	{
 		//A pointer to a base's member is one to the derived class's.  [conv.mem] 2
-		pcDerived = mpcUnit->IsDerived(psLeft->pcClass, psRight->pcClass, NULL) ? psLeft->pcClass : (mpcUnit->IsDerived(psRight->pcClass, psLeft->pcClass, NULL) ? psRight->pcClass : NULL);
+		pcDerived = mpcUnit->GetClasses()->IsDerived(psLeft->pcClass, psRight->pcClass, NULL) ? psLeft->pcClass : (mpcUnit->GetClasses()->IsDerived(psRight->pcClass, psLeft->pcClass, NULL) ? psRight->pcClass : NULL);
 		psPointee = CompositePointee(psLeft->psBase, psRight->psBase, false);
 		return (pcDerived && psPointee) ? mpcUnit->mcTypes.MemberPointer(pcDerived, psPointee) : NULL;
 	}
@@ -5001,11 +5001,11 @@ CCPPClass* CCPP65TypeChecker::ConditionalClass(SCPP65Type* psTrue, SCPP65Type* p
 	{
 		return NULL;
 	}
-	if (mpcUnit->IsDerived(psTrue->pcClass, psFalse->pcClass, NULL))
+	if (mpcUnit->GetClasses()->IsDerived(psTrue->pcClass, psFalse->pcClass, NULL))
 	{
 		return psFalse->pcClass;
 	}
-	return mpcUnit->IsDerived(psFalse->pcClass, psTrue->pcClass, NULL) ? psTrue->pcClass : NULL;
+	return mpcUnit->GetClasses()->IsDerived(psFalse->pcClass, psTrue->pcClass, NULL) ? psTrue->pcClass : NULL;
 }
 
 
@@ -5587,3 +5587,59 @@ SCPP65Type* CCPP65TypeChecker::TypeidType(CCPPSyntaxTypeidExpression* pcTypeid, 
 	return psType ? psType->Unqualified() : NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression is an object that is const.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsConstObject(CCPPSyntax* pcExpression)
+{
+	SCPP65Type*	psType;
+
+	psType = ValueTypeOf(pcExpression);
+	return psType && psType->bConst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function whose this the function being generated has: itself, or in
+// a lambda's body the member function the lambda is in.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPFunction* CCPP65TypeChecker::ThisFunction(void)
+{
+	CCPPFunction*	pcFunction;
+
+	pcFunction = mpcUnit->GetContext()->GetFunction();
+	while (mpcUnit->GetClosures()->BodyLambda(pcFunction))
+	{
+		pcFunction = mpcUnit->GetClosures()->BodyLambda(pcFunction)->pcEnclosing;
+	}
+	return pcFunction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the function being generated is a const, or a volatile, member
+// function: its this points to an object that is.  [class.this] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsConstThis(void) { return !mpcUnit->GetContext()->GetObject() && ThisFunction() && ThisFunction()->mbConstThis; }
+
+
+bool CCPP65TypeChecker::IsVolatileThis(void) { return !mpcUnit->GetContext()->GetObject() && ThisFunction() && ThisFunction()->mbVolatileThis; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of this in the function being generated, for an object of
+// pcClass: a pointer to it, const or volatile as the function is.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::ThisType(CCPPClass* pcClass)
+{
+	return mpcTypes->Pointer(mpcTypes->Qualified(pcClass->mpsType, IsConstThis(), IsVolatileThis()));
+}

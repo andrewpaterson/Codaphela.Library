@@ -625,7 +625,7 @@ bool CCPPExceptions::AllowsOnlyWhat(CCPPExceptionSpec* pcTighter, CCPPExceptionS
 				psType = psType->psBase->Unqualified();
 				psAllowed = psAllowed->psBase->Unqualified();
 			}
-			bAllowed = psType->IsClass() && psAllowed->IsClass() && mpcUnit->IsDerived(psType->pcClass, psAllowed->pcClass, &iOffset);
+			bAllowed = psType->IsClass() && psAllowed->IsClass() && mpcUnit->GetClasses()->IsDerived(psType->pcClass, psAllowed->pcClass, &iOffset);
 			psType = pcTighter->mapsTypes.GetPtr(i);
 		}
 		if (!bAllowed)
@@ -856,7 +856,7 @@ bool CCPPExceptions::ArgumentMayThrow(CCPPSyntax* pcArgument, SCPP65Type* psPara
 	psFrom = (psFrom->IsReference() ? psFrom->psBase : psFrom)->Unqualified();
 	if (psTo->IsClass())
 	{
-		if (psFrom->IsClass() && ((psFrom->pcClass == psTo->pcClass) || mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, &iOffset)))
+		if (psFrom->IsClass() && ((psFrom->pcClass == psTo->pcClass) || mpcUnit->GetClasses()->IsDerived(psFrom->pcClass, psTo->pcClass, &iOffset)))
 		{
 			//The object itself for a reference; a copy of it, which the function destroys, by value.
 			return !psParameter->IsReference() && (ClassMayThrow(psTo->pcClass, CPPSM_Copy) || ClassMayThrow(psTo->pcClass, CPPSM_Destroy));

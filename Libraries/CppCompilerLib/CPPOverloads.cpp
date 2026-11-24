@@ -235,7 +235,7 @@ CCPPFunction* CCPPOverloads::FindContextualConversion(CCPPClass* pcClass, ECPPCo
 	}
 	for (pcFunction = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (pcFunction->mpcTemplate || pcFunction->mbExplicit || !mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL))
+		if (pcFunction->mpcTemplate || pcFunction->mbExplicit || !mpcUnit->GetClasses()->IsDerived(pcClass, pcFunction->mpcClass, NULL))
 		{
 			continue;
 		}
@@ -288,7 +288,7 @@ CCPPFunction* CCPPOverloads::FindConversion(CCPPClass* pcClass, SCPP65Type* psTo
 	mbAmbiguousConversion = false;
 	for (pcFunction = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcFunction; pcFunction = pcFunction->mpcNextOfName)
 	{
-		if (pcFunction->mpcTemplate || (pcFunction->mbExplicit && !bExplicit) || !mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL))
+		if (pcFunction->mpcTemplate || (pcFunction->mbExplicit && !bExplicit) || !mpcUnit->GetClasses()->IsDerived(pcClass, pcFunction->mpcClass, NULL))
 		{
 			continue;
 		}
@@ -1652,7 +1652,7 @@ CCPPFunction* CCPPOverloads::FindSurrogate(CCPPClass* pcClass, CCPPFunction* pcM
 	pcBest = NULL;
 	for (pcConversion = mpcUnit->FirstFunctionOfName(CPP_CONVERSION_NAME); pcConversion; pcConversion = pcConversion->mpcNextOfName)
 	{
-		if (pcConversion->mpcTemplate || pcConversion->mbExplicit || !pcConversion->mpcClass || !mpcUnit->IsDerived(pcClass, pcConversion->mpcClass, NULL) ||
+		if (pcConversion->mpcTemplate || pcConversion->mbExplicit || !pcConversion->mpcClass || !mpcUnit->GetClasses()->IsDerived(pcClass, pcConversion->mpcClass, NULL) ||
 			!SurrogateType(pcConversion) || !RankFunctionType(SurrogateType(pcConversion), papcArguments, aiRanks))
 		{
 			continue;
@@ -1926,7 +1926,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	if (psParameter->IsPointer() && psArgument->IsPointer())
 	{
 		if (psParameter->psBase->HasQualifiersOf(psArgument->psBase) &&
-			(psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && mpcUnit->IsDerived(psArgument->psBase->pcClass, psParameter->psBase->pcClass, NULL))))
+			(psParameter->psBase->IsVoid() || (psParameter->psBase->IsClass() && psArgument->psBase->IsClass() && mpcUnit->GetClasses()->IsDerived(psArgument->psBase->pcClass, psParameter->psBase->pcClass, NULL))))
 		{
 			return CPPCR_Conversion;
 		}
@@ -1936,7 +1936,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	{
 		//A pointer to a member of a base converts to a pointer to the same member of a derived class (not through a
 		//virtual base).  [conv.mem] 2
-		if (psParameter->pcClass && psArgument->pcClass && psParameter->psBase->Equals(psArgument->psBase) && mpcUnit->IsDerived(psParameter->pcClass, psArgument->pcClass, &iOffset) &&
+		if (psParameter->pcClass && psArgument->pcClass && psParameter->psBase->Equals(psArgument->psBase) && mpcUnit->GetClasses()->IsDerived(psParameter->pcClass, psArgument->pcClass, &iOffset) &&
 			(iOffset != CPP_VIRTUAL_PATH))
 		{
 			return CPPCR_Conversion;
@@ -1951,7 +1951,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	{
 		return CPPCR_Boolean;
 	}
-	if (psParameter->IsClass() && psArgument->IsClass() && mpcUnit->IsDerived(psArgument->pcClass, psParameter->pcClass, NULL))
+	if (psParameter->IsClass() && psArgument->IsClass() && mpcUnit->GetClasses()->IsDerived(psArgument->pcClass, psParameter->pcClass, NULL))
 	{
 		return (!bReference || psParameter->HasQualifiersOf(psArgument)) ? CPPCR_Conversion : CPPCR_None;
 	}
@@ -1975,7 +1975,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		//which is all a reference that isn't const takes.  [over.match.copy], [over.match.ref]
 		pcConversion = FindConversion(psArgument->pcClass, psParameter->Unqualified(), false, pcArgument);
 		psResult = pcConversion ? pcConversion->mpsReturn->WithoutReference() : NULL;
-		if (psResult && psResult->IsClass() && mpcUnit->IsDerived(psResult->pcClass, psParameter->pcClass, NULL) && (!bReference || psParameter->bConst || RefersTo(pcConversion->mpsReturn, psParameter)))
+		if (psResult && psResult->IsClass() && mpcUnit->GetClasses()->IsDerived(psResult->pcClass, psParameter->pcClass, NULL) && (!bReference || psParameter->bConst || RefersTo(pcConversion->mpsReturn, psParameter)))
 		{
 			return CPPCR_UserDefinedExact;
 		}
@@ -2288,7 +2288,7 @@ int CCPPOverloads::CompareArgument(CCPPFunction* pcFirst, CCPPFunction* pcSecond
 		{
 			if (psFirst->psBase->bConst != psSecond->psBase->bConst)
 			{
-				bConstBetter = psFirst->IsReference() && ((psFirst->psBase->IsClass() && IsTemporary(pcArgument, psFirst->psBase->pcClass)) || mpcUnit->IsConstObject(pcArgument));
+				bConstBetter = psFirst->IsReference() && ((psFirst->psBase->IsClass() && IsTemporary(pcArgument, psFirst->psBase->pcClass)) || mpcUnit->GetTypeChecker()->IsConstObject(pcArgument));
 				return (psFirst->psBase->bConst == bConstBetter) ? 1 : -1;
 			}
 			if (psFirst->psBase->bVolatile != psSecond->psBase->bVolatile)
@@ -2308,11 +2308,11 @@ int CCPPOverloads::CompareArgument(CCPPFunction* pcFirst, CCPPFunction* pcSecond
 	else if (psFirst->IsMemberPointer() && psSecond->IsMemberPointer() && psFirst->pcClass && psSecond->pcClass && (psFirst->pcClass != psSecond->pcClass))
 	{
 		//int A::* to int B::* is better than to int C::* where C is derived from B.
-		if (mpcUnit->IsDerived(psSecond->pcClass, psFirst->pcClass, NULL))
+		if (mpcUnit->GetClasses()->IsDerived(psSecond->pcClass, psFirst->pcClass, NULL))
 		{
 			return 1;
 		}
-		return mpcUnit->IsDerived(psFirst->pcClass, psSecond->pcClass, NULL) ? -1 : 0;
+		return mpcUnit->GetClasses()->IsDerived(psFirst->pcClass, psSecond->pcClass, NULL) ? -1 : 0;
 	}
 	else
 	{
@@ -2331,11 +2331,11 @@ int CCPPOverloads::CompareArgument(CCPPFunction* pcFirst, CCPPFunction* pcSecond
 	{
 		return 0;
 	}
-	if (mpcUnit->IsDerived(psFirstBase->pcClass, psSecondBase->pcClass, NULL))
+	if (mpcUnit->GetClasses()->IsDerived(psFirstBase->pcClass, psSecondBase->pcClass, NULL))
 	{
 		return 1;
 	}
-	return mpcUnit->IsDerived(psSecondBase->pcClass, psFirstBase->pcClass, NULL) ? -1 : 0;
+	return mpcUnit->GetClasses()->IsDerived(psSecondBase->pcClass, psFirstBase->pcClass, NULL) ? -1 : 0;
 }
 
 

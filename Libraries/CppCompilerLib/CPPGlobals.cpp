@@ -662,7 +662,7 @@ ECPPBoundTemporary CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSynt
 	*piOffset = 0;
 	if (bClass && (psType->pcClass != psReference->psBase->pcClass))
 	{
-		mpcUnit->CompleteOffset(psType->pcClass, psReference->psBase->pcClass, piOffset);
+		mpcUnit->GetClasses()->CompleteOffset(psType->pcClass, psReference->psBase->pcClass, piOffset);
 	}
 	mpcUnit->GetMangler()->AppendBoundLabel(pszBound, pszLabel->Text());
 	mpcData->BeginData(pszBound, DataAlignment(psType, bClass), bGlobal, szOptions, false);

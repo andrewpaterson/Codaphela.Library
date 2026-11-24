@@ -917,7 +917,7 @@ bool CCPPClasses::InjectedNameReached(CCPPClass* pcClass, CCPPSyntaxDeclSpecifie
 		return true;
 	}
 	pcNamed = psType->pcClass;
-	if ((pcNamed == pcClass) || (mpcUnit->GetComponentName(pcName->GetLast()) != pcNamed->mlliName) || !mpcUnit->IsDerived(pcClass, pcNamed, NULL))
+	if ((pcNamed == pcClass) || (mpcUnit->GetComponentName(pcName->GetLast()) != pcNamed->mlliName) || !IsDerived(pcClass, pcNamed, NULL))
 	{
 		return true;
 	}
@@ -1175,7 +1175,7 @@ bool CCPPClasses::ReturnsCovariant(CCPPFunction* pcOverrider, CCPPFunction* pcOv
 	{
 		return false;
 	}
-	return (psFrom->pcClass == psTo->pcClass) || mpcUnit->IsDerived(psFrom->pcClass, psTo->pcClass, NULL);
+	return (psFrom->pcClass == psTo->pcClass) || IsDerived(psFrom->pcClass, psTo->pcClass, NULL);
 }
 
 

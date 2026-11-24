@@ -193,7 +193,7 @@ CCPPClass* CCPPNames::MemberClass(CCPPClass* pcClass, CCPPSyntaxNameComponent* p
 		//[class.qual] 1, [temp.local] 1
 		pcMember = pcComponent->mpcSymbol;
 		pcBase = (pcMember && ((pcMember->meKind == CPPSK_Class) || (pcMember->meKind == CPPSK_ClassTemplate))) ? GetComponentClass(pcComponent, NULL, pcNode) : NULL;
-		return (pcBase && mpcUnit->IsDerived(pcClass, pcBase, NULL)) ? pcBase : NULL;
+		return (pcBase && mpcUnit->GetClasses()->IsDerived(pcClass, pcBase, NULL)) ? pcBase : NULL;
 	}
 	mpcContext->EnterBindings(pcDeclaring->mpcBindings);
 	if (pcMember->meKind == CPPSK_Typedef)
@@ -435,7 +435,7 @@ CCPPClass* CCPPNames::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent
 		pcSymbol = (lliName != -1) ? pcClass->mpcSymbol->mpcMembers->FindMember(lliName, CPPL_Type) : NULL;
 	}
 	pcQualifier = GetComponentClass(pcComponent, pcSymbol, pcNode, pcClass);
-	if (!pcQualifier || !mpcUnit->IsDerived(pcClass, pcQualifier, NULL))
+	if (!pcQualifier || !mpcUnit->GetClasses()->IsDerived(pcClass, pcQualifier, NULL))
 	{
 		mpcDiagnostics->Error(pcNode, "The qualifier is not the object's class or one of its bases");
 		return NULL;

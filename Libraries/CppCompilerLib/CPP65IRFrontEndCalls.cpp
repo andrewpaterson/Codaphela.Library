@@ -866,7 +866,7 @@ bool CCPP65IRFrontEnd::ParameterArguments(CArraySyntax* papcArguments, CArrayCPP
 			}
 			sPlace.sAddress = sArgument.sValue;
 			sPlace.psType = sArgument.psType->WithoutReference();
-			if (!sPlace.psType->IsClass() || !mpcUnit->IsDerived(sPlace.psType->pcClass, psParameter->pcClass, NULL) || !ReferenceAddress(&sPlace, mpcTypes->Pointer(psParameter), &sArgument.sValue))
+			if (!sPlace.psType->IsClass() || !mpcUnit->GetClasses()->IsDerived(sPlace.psType->pcClass, psParameter->pcClass, NULL) || !ReferenceAddress(&sPlace, mpcTypes->Pointer(psParameter), &sArgument.sValue))
 			{
 				return Unsupported(__FILE__, __LINE__);
 			}

@@ -724,7 +724,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 		}
 		return;
 	}
-	if (!pcObject && !pcFunction->mbStatic && (!pcIn || !pcIn->mpcClass || !mpcUnit->IsDerived(pcIn->mpcClass, pcFunction->mpcClass, NULL)))
+	if (!pcObject && !pcFunction->mbStatic && (!pcIn || !pcIn->mpcClass || !mpcUnit->GetClasses()->IsDerived(pcIn->mpcClass, pcFunction->mpcClass, NULL)))
 	{
 		mpcDiagnostics->Error(pcCallee, "A member function needs an object");
 		return;
@@ -740,7 +740,7 @@ void CCPPBinder::ResolveMember(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* 
 	{
 		return;
 	}
-	if (!pcObject && pcThis && (pcLookup != pcThis) && mpcUnit->IsDerived(pcThis, pcLookup, NULL))
+	if (!pcObject && pcThis && (pcLookup != pcThis) && mpcUnit->GetClasses()->IsDerived(pcThis, pcLookup, NULL))
 	{
 		//C::f() on this, in a member function of a class derived from C.
 		pcBound->mpcQualifier = pcLookup;
@@ -1264,7 +1264,7 @@ CCPPFunction* CCPPBinder::FindDeallocation(CCPPClass* pcClass, bool bArray, bool
 		{
 			continue;
 		}
-		if (bMember ? (pcFunction->mpcClass && mpcUnit->IsDerived(pcClass, pcFunction->mpcClass, NULL) && IsNearerDeallocation(pcFunction, pcFound)) : IsGlobalSizedDeallocation(pcFunction))
+		if (bMember ? (pcFunction->mpcClass && mpcUnit->GetClasses()->IsDerived(pcClass, pcFunction->mpcClass, NULL) && IsNearerDeallocation(pcFunction, pcFound)) : IsGlobalSizedDeallocation(pcFunction))
 		{
 			pcFound = pcFunction;
 		}
@@ -1361,7 +1361,7 @@ bool CCPPBinder::IsNearerDeallocation(CCPPFunction* pcFunction, CCPPFunction* pc
 	{
 		return pcFunction->mapsParameters.NumElements() == 1;
 	}
-	return mpcUnit->IsDerived(pcFunction->mpcClass, pcFound->mpcClass, NULL);
+	return mpcUnit->GetClasses()->IsDerived(pcFunction->mpcClass, pcFound->mpcClass, NULL);
 }
 
 
@@ -1387,7 +1387,7 @@ CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSo
 
 	psSource = mpcUnit->GetTypeChecker()->TypeOf(pcSource);
 	psSource = psSource ? psSource->WithoutReference() : NULL;
-	if (!psSource || !psSource->IsClass() || mpcUnit->IsDerived(psSource->pcClass, pcClass, NULL))
+	if (!psSource || !psSource->IsClass() || mpcUnit->GetClasses()->IsDerived(psSource->pcClass, pcClass, NULL))
 	{
 		return NULL;
 	}
@@ -1398,7 +1398,7 @@ CCPPFunction* CCPPBinder::ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSo
 	}
 	pcFunction = mcOverloads.FindConversion(psSource->pcClass, pcClass->mpsType, false, pcNode);
 	psResult = pcFunction ? pcFunction->mpsReturn->WithoutReference() : NULL;
-	if (!psResult || !psResult->IsClass() || !mpcUnit->IsDerived(psResult->pcClass, pcClass, NULL))
+	if (!psResult || !psResult->IsClass() || !mpcUnit->GetClasses()->IsDerived(psResult->pcClass, pcClass, NULL))
 	{
 		return NULL;
 	}
@@ -1543,7 +1543,7 @@ bool CCPPBinder::IsConstructible(SCPP65Type* psType, CArrayCPP65Types* papsArgum
 		{
 			return true;
 		}
-		return (papsArguments->NumElements() == 1) && papsArguments->GetPtr(0)->WithoutReference()->IsClass() && mpcUnit->IsDerived(papsArguments->GetPtr(0)->WithoutReference()->pcClass, pcClass, NULL) && !pcClass->IsCopyDeleted();
+		return (papsArguments->NumElements() == 1) && papsArguments->GetPtr(0)->WithoutReference()->IsClass() && mpcUnit->GetClasses()->IsDerived(papsArguments->GetPtr(0)->WithoutReference()->pcClass, pcClass, NULL) && !pcClass->IsCopyDeleted();
 	}
 	for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 	{
@@ -1617,7 +1617,7 @@ bool CCPPBinder::IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom)
 			return true;
 		}
 	}
-	return !bOwn && !pcClass->IsAssignmentDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
+	return !bOwn && !pcClass->IsAssignmentDeleted() && psFrom->WithoutReference()->IsClass() && mpcUnit->GetClasses()->IsDerived(psFrom->WithoutReference()->pcClass, pcClass, NULL);
 }
 
 
@@ -1703,7 +1703,7 @@ ECPPCalledObject CCPPBinder::CalledObject(CCPPSyntax* pcObject, bool bArrow)
 
 	if (!pcObject)
 	{
-		return CPPCalledObject(mpcUnit->IsConstThis(), mpcUnit->IsVolatileThis());
+		return CPPCalledObject(mpcUnit->GetTypeChecker()->IsConstThis(), mpcUnit->GetTypeChecker()->IsVolatileThis());
 	}
 	psType = mpcUnit->GetTypeChecker()->ValueTypeOf(pcObject);
 	if (bArrow)
@@ -1883,7 +1883,7 @@ void CCPPBinder::ResolveName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBoun
 	if (pcSymbol && (pcSymbol->meKind == CPPSK_Field) && pcClass)
 	{
 		pcLookup = pcId->mpcName->IsQualifiedByClass() ? mcNames.GetComponentClass(pcId->mpcName->GetQualifier(), NULL, pcId, pcClass) : NULL;
-		if (pcLookup && (pcLookup != pcClass) && mpcUnit->IsDerived(pcClass, pcLookup, NULL))
+		if (pcLookup && (pcLookup != pcClass) && mpcUnit->GetClasses()->IsDerived(pcClass, pcLookup, NULL))
 		{
 			pcBound->mpcQualifier = pcLookup;
 		}
@@ -1933,7 +1933,7 @@ bool CCPPBinder::InDependentBase(CCPPClass* pcClass, CCPPClass* pcDeclaring)
 	for (i = 0; i < pcClass->macBases.NumElements(); i++)
 	{
 		pcBase = pcClass->macBases.Get(i)->pcClass;
-		if ((pcBase != pcDeclaring) && !mpcUnit->IsDerived(pcBase, pcDeclaring, NULL))
+		if ((pcBase != pcDeclaring) && !mpcUnit->GetClasses()->IsDerived(pcBase, pcDeclaring, NULL))
 		{
 			continue;
 		}
@@ -2041,7 +2041,7 @@ bool CCPPBinder::BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSynt
 //////////////////////////////////////////////////////////////////////////
 bool CCPPBinder::HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode)
 {
-	return (mpcUnit->CountBases(pcClass, pcBase) <= 1) || mpcDiagnostics->ReportOnce(pcNode, "The base class is in the class more than once: say which is meant with a qualified name or a cast to a class between");
+	return (mpcUnit->GetClasses()->CountBases(pcClass, pcBase) <= 1) || mpcDiagnostics->ReportOnce(pcNode, "The base class is in the class more than once: say which is meant with a qualified name or a cast to a class between");
 }
 
 
@@ -2286,7 +2286,7 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 		//= an object of the class, which no constructor of its own copies: it is copied as its parts or bytes are.
 		psValue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcInit->mpcInitializer);
 		psValue = psValue ? psValue->WithoutReference() : NULL;
-		if (psValue && psValue->IsClass() && mpcUnit->IsDerived(psValue->pcClass, pcClass, NULL))
+		if (psValue && psValue->IsClass() && mpcUnit->GetClasses()->IsDerived(psValue->pcClass, pcClass, NULL))
 		{
 			apcValue.Kill();
 			return true;
@@ -2640,7 +2640,7 @@ CCPPSyntax* CCPPBinder::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pc
 	mpcUnit->mcDiagnostics.EndQuiet();
 	psElement = psElement ? psElement->WithoutReference()->Unqualified() : NULL;
 	psReferred = psReference->psBase->Unqualified();
-	if (psElement && (psElement->Equals(psReferred) || (psElement->IsClass() && psReferred->IsClass() && mpcUnit->IsDerived(psElement->pcClass, psReferred->pcClass, NULL))))
+	if (psElement && (psElement->Equals(psReferred) || (psElement->IsClass() && psReferred->IsClass() && mpcUnit->GetClasses()->IsDerived(psElement->pcClass, psReferred->pcClass, NULL))))
 	{
 		return pcElement;
 	}
@@ -2676,7 +2676,7 @@ bool CCPPBinder::BindsToTemporary(SCPP65Type* psReference, CCPPSyntax* pcArgumen
 	if (psReference->psBase->IsClass())
 	{
 		psValue = mpcUnit->mcTypeChecker.ValueTypeOf(pcArgument);
-		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || mpcUnit->IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
+		return psValue && !(psValue->IsClass() && ((psValue->pcClass == psReference->psBase->pcClass) || mpcUnit->GetClasses()->IsDerived(psValue->pcClass, psReference->psBase->pcClass, NULL)));
 	}
 	psValue = mpcUnit->mcTypeChecker.ValueTypeOf(pcArgument);
 	if (psValue && psValue->IsClass() && !psReference->bRvalue)

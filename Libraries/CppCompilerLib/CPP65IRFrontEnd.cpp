@@ -1097,7 +1097,7 @@ bool CCPP65IRFrontEnd::ReferenceAddress(SCPP65IRPlace* psPlace, SCPP65Type* psRe
 	SCPP65IRValue	sPointer;
 	SCPP65IRValue	sValue;
 
-	if (psPlace->psType->IsClass() && !(psReference->psBase->IsClass() && mpcUnit->IsDerived(psPlace->psType->pcClass, psReference->psBase->pcClass, NULL)))
+	if (psPlace->psType->IsClass() && !(psReference->psBase->IsClass() && mpcUnit->GetClasses()->IsDerived(psPlace->psType->pcClass, psReference->psBase->pcClass, NULL)))
 	{
 		return ConvertedAddress(psPlace, psReference, psAddress);
 	}
@@ -2392,7 +2392,7 @@ int CCPP65IRFrontEnd::BaseOffset(CCPPClass* pcDerived, CCPPClass* pcBase)
 {
 	int	iOffset;
 
-	if (!pcDerived || !pcBase || (pcDerived == pcBase) || !mpcUnit->GetClasses()->CompleteClass(pcDerived, NULL) || !mpcUnit->IsDerived(pcDerived, pcBase, &iOffset))
+	if (!pcDerived || !pcBase || (pcDerived == pcBase) || !mpcUnit->GetClasses()->CompleteClass(pcDerived, NULL) || !mpcUnit->GetClasses()->IsDerived(pcDerived, pcBase, &iOffset))
 	{
 		return 0;
 	}

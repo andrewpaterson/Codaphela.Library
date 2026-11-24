@@ -404,7 +404,7 @@ void CCPPClassData::EnsureTypeInfo(CCPPClass* pcClass)
 	for (i = 0; i < pcClass->macVirtualBases.NumElements(); i++)
 	{
 		pcVirtual = pcClass->macVirtualBases.Get(i)->pcClass;
-		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (mpcUnit->IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0),
+		AppendTypeInfoBases(pcVirtual, pcClass->macVirtualBases.Get(i)->iOffset, CPP65_TYPE_INFO_VIRTUAL | (mpcUnit->GetClasses()->IsPublicBase(pcClass, pcVirtual) ? CPP65_TYPE_INFO_PUBLIC : 0),
 							((uint32)pcClass->GetVirtualBaseIndex(pcVirtual) + 1) << CPP65_TYPE_INFO_IN_VIRTUAL_SHIFT);
 	}
 	mpcUnit->mcData.GetText()->Append("\t\t.long 0");
