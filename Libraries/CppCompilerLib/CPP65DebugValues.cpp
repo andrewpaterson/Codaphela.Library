@@ -188,18 +188,26 @@ void CCPP65DebugValues::SetHexadecimal(bool bHexadecimal)
 //////////////////////////////////////////////////////////////////////////
 //
 // psVariable, one of psFrame's function's, where it is while psFrame
-// runs (CAsm65StackWalker::Locate).  False if it isn't kept anywhere.
+// runs (CAsm65StackWalker::Locate): in memory, or in a register, whose
+// value it is.  False if it isn't kept anywhere then.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65DebugValues::Variable(CAsm65StackWalker* pcWalker, SAsm65StackFrame* psFrame, SAsm65DebugVariable* psVariable, SCPP65DebugValue* psValue)
 {
-	uint32	uiAddress;
+	SAsm65StackPlace	sPlace;
 
-	if (!pcWalker->Locate(psFrame, psVariable, &uiAddress))
+	if (!pcWalker->Locate(psFrame, psVariable, &sPlace))
 	{
 		return false;
 	}
-	psValue->Init(psFrame->pcRecords, psVariable->uiType, (EAsm65StackSpace)psFrame->uiSpace, uiAddress);
+	if (sPlace.bAddress)
+	{
+		psValue->Init(psFrame->pcRecords, psVariable->uiType, (EAsm65StackSpace)psFrame->uiSpace, sPlace.uiAddress);
+	}
+	else
+	{
+		psValue->Init(psFrame->pcRecords, psVariable->uiType, sPlace.uiValue);
+	}
 	return true;
 }
 

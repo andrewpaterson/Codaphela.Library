@@ -1355,7 +1355,7 @@ static uint32 TestCPP65DebugFrameLine(STestCPP65Debug* psDebug, size uiFrame)
 {
 	SAsm65LineEntry*	psLine;
 
-	psLine = psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLine(psDebug->asFrames.Get(uiFrame)->GetLineAddress(uiFrame == 0));
+	psLine = psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLine(psDebug->asFrames.Get(uiFrame)->GetLineAddress());
 	return psLine ? psLine->uiLine : 0;
 }
 
