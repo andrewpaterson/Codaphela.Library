@@ -472,7 +472,7 @@ Stages 7 to 11, planned again from the code (2026-11-24)
    stage's code is, and what of it is done, was read from the tree at fe0f0bf21.  The order they are done in
    is at the end ("The order from here"), with the user's decisions on it.
 
-Stage 7.  The back ends are the same parts.  (L; mostly done, what is left is S-M)
+Stage 7.  The back ends are the same parts.  (L; done 2026-11-24)
 
    Done 2026-11-14 (60db5a798, 047eb8cb1, 303fa97e9, 7458f271c, a9bae8b2b).  On the W65C816 each temporary is
    one record (SIRW65C816Temporary, masTemporaries), and CIRW65C816Places, CIRW65C816Folds, CIRW65C816Fusion,
@@ -495,6 +495,12 @@ Stage 7.  The back ends are the same parts.  (L; mostly done, what is left is S-
    Ends when: the listings are the same (take the baseline after d66d0bc7a's register work, not 2026-11-11's);
    compile CPU is within the spread; IRW65C816Backend.cpp (2,094 lines) and IR65Backend.cpp (1,563) keep only
    what is the function's as a whole.
+
+   Done 2026-11-24 (a41d913a4, c8993286e, e2c544c42, de211d60a, 94ab4a3d3; Progress has the record).  a as
+   written; b became CallRuntime moving into CIR65Calls, as the 65C64 has no runtime of its own to write and
+   CallRuntime was the whole of it; c and d as written, the 65C64's arrived register parameters staying with
+   its prologue as the W65C816's do; and the two W65C816 entries (Prologue, GenerateForwarder) written by one
+   function, CIRW65C816Calls::Entry.  IRW65C816Backend.cpp is now 1,545 lines and IR65Backend.cpp 1,482.
 
 Stage 8.  The back ends' code is instructions.  (L-XL; not started; in full, in two halves: the user, 2026-11-24)
 
@@ -1159,6 +1165,21 @@ units), and on the W65C816 TestBaseLib65's from 18.43G to 16.91G.  So the listin
 compares with are those after d66d0bc7a, not those of 2026-11-11.  That note also says which of the passes
 stage 11 would try on the 65C64 are already measured, and that stage 8's count of the functions CIR65Code
 refuses should be taken again (the 65C64's code now has V and W as operands).
+
+Stage 7's rest, 2026-11-24.  Each commit only moves code, and the listings show it: against a baseline taken on
+master just before (84830fe29), all 4,225 listings of the three *65 suites' projects on both processors are the
+same after 7a, and again after the four commits that follow it.  TestCppCompilerLib passes after 7a (277,986) and
+after the last (277,962, twice; RunParallel split the run into 17 processes instead of 25, and each process's
+setup asserts 3).
+  - a41d913a4  7a: the 65C64's temporaries are one record each, SIR65Temporary (its place, its place as Layout
+               left it, the next in its class and its leader, its uses, whether it is a narrow load only
+               compared), in place of six arrays.  CIRMost stays the optimiser's own.
+  - c8993286e  7c, W65C816: Forwarder, GenerateForwarder, RegisterStub, RegisterStubLoad, RegisterStubCall and
+               StackLine are CIRW65C816Calls'.
+  - e2c544c42  7b and 7c, 65C64: CallRuntime and RegisterStub are CIR65Calls'.  There is no CIR65Runtime.
+  - de211d60a  7d: IR65Folds.cpp holds CIR65Folds' functions.
+  - 94ab4a3d3  CIRW65C816Calls::Entry writes a function's entry for both Prologue and GenerateForwarder.
+Not measured: compile CPU (moving functions between classes changes no work done).  Next: stage 8a's measures.
 
 The numbers of 2026-11-11.
 
