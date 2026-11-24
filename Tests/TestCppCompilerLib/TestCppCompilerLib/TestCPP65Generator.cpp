@@ -2380,6 +2380,40 @@ static void AssertCPP65Transcendentals(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A floating point constant the tree can't fold (a constexpr function's
+// result) is run, as an integer one is: a global it initialises is data,
+// not code run when the program starts.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorFloatConstexpr(void)
+{
+	CChars	szAssembly;
+	CChars	szErrors;
+
+	szAssembly.Init();
+	szErrors.Init();
+	AssertTrue(TestCPP65Generate(&szAssembly, &szErrors,
+		"constexpr float Twice(float f) { return f * 2; }\n"
+		"constexpr double Half(double d) { return d / 2; }\n"
+		"float gk = Twice(1.25f);\n"
+		"double gh = Half(5.0);\n"));
+	AssertString("", szErrors.Text());
+	AssertTrue(strstr(szAssembly.Text(), "_gk:\n\t\t.long 1075838976\n") != NULL);			//2.5f
+	AssertTrue(strstr(szAssembly.Text(), "_gh:\n\t\t.quad 4612811918334230528\n") != NULL);	//2.5
+	AssertTrue(strstr(szAssembly.Text(), "init.") == NULL);
+	szErrors.Kill();
+	szAssembly.Kill();
+
+	AssertInt(1, TestCPP65MainFloat(
+		"constexpr float Twice(float f) { return f * 2; }\n"
+		"constexpr double Half(double d) { return d / 2; }\n"
+		"float gk = Twice(1.25f); double gh = Half(5.0); constexpr float kc = Twice(0.1f);\n"
+		"int main() { float x = 0.1f; x = x * 2; return gk == 2.5f && gh == 2.5 && kc == x; }"));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // float and double, worked out by Libc65's soft float runtime.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4379,6 +4413,7 @@ void TestCPP65Generator(void)
 	TEST_PART(TestCPP65GeneratorLateMemberDefinitions());
 	TEST_PART(TestCPP65GeneratorExternTemplateProject());
 	TEST_PART(TestCPP65GeneratorFloat());
+	TEST_PART(TestCPP65GeneratorFloatConstexpr());
 	TEST_PART(TestCPP65GeneratorBaseLib());
 	TEST_PART(TestCPP65GeneratorAllBaseLib());
 	TEST_PART(TestCPP65GeneratorAllStandardLib());

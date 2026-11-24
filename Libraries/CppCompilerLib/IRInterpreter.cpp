@@ -681,7 +681,7 @@ bool CIRInterpreter::Integer(CIRModule* pcModule, CIRFunction* pcFunction, SIRIn
 // double.
 //
 //////////////////////////////////////////////////////////////////////////
-static double IRInterpreterFloat(SIRType sType, uint64 ulliBits)
+double IRInterpreterFloat(SIRType sType, uint64 ulliBits)
 {
 	float	fValue;
 	double	dValue;

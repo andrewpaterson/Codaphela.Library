@@ -154,12 +154,13 @@ void CCPPConstants::EndWriting(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value of an expression of psType (an integer's) that the tree's
-// folder couldn't give, if it has one: the expression is written as a
-// function that returns it, and that is run.  GetReason says why not.
+// The value of an expression of psType (an integer's or a floating point
+// number's) that the tree's folder couldn't give, if it has one: the
+// expression is written as a function that returns it, and that is run.
+// GetReason says why not.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue)
+bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, SCPPConstant* psValue)
 {
 	CCPP65IRFrontEnd*	pcFrontEnd;
 	CIRFunction*		pcIR;
@@ -208,7 +209,33 @@ bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* p
 		mszReason.Append("It is an address, which is no number until the program is linked");
 		return false;
 	}
-	*plliValue = mpcUnit->GetFolder()->ConstantOfType(psType, (int64)sResult.ulliBits);
+	if (psType->IsFloat())
+	{
+		psValue->SetFloat(psType, IRInterpreterFloat(IRType((psType->iBytes == 8) ? IRTK_F64 : IRTK_F32), sResult.ulliBits));
+	}
+	else
+	{
+		psValue->SetInteger(mpcUnit->GetFolder()->ConstantOfType(psType, (int64)sResult.ulliBits));
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The value of an expression of an integer type that the tree's folder
+// couldn't give, if it has one (Value).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstants::Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue)
+{
+	SCPPConstant	sValue;
+
+	if (!Value(pcExpression, psType, &sValue))
+	{
+		return false;
+	}
+	*plliValue = sValue.lliValue;
 	return true;
 }
 

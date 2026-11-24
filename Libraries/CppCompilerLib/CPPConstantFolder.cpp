@@ -66,8 +66,8 @@ void CCPPConstantFolder::Kill(void)
 //
 // The value of a constant expression, of an integer or a floating point
 // type: what the syntax tree folds to (Fold), or else, where Fold says
-// running may give it, what running it gives (RunConstant), which is an
-// integer's.  False if it isn't a constant.
+// running may give it, what running it gives (RunConstant).  False if it
+// isn't a constant.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPConstantFolder::Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValue)
@@ -83,7 +83,7 @@ bool CCPPConstantFolder::Evaluate(CCPPSyntax* pcExpression, SCPPConstant* psValu
 		return true;
 	}
 	psValue->psFloat = NULL;
-	if ((eFold == CPPFO_Run) && RunConstant(pcExpression, &psValue->lliValue))
+	if ((eFold == CPPFO_Run) && RunConstant(pcExpression, psValue))
 	{
 		mpcUnit->mpcStatistics->Count(CPPCC_ConstantsRun);
 		return true;
@@ -116,7 +116,8 @@ bool CCPPConstantFolder::Constant(CCPPSyntax* pcExpression, int64* plliValue)
 // The value of a constant expression of a floating point type, worked out
 // as the target would: each float result is rounded to float.  Rounding
 // a double result of float operands to float rounds correctly, as a
-// double has more than twice a float's precision.  False if it isn't a
+// double has more than twice a float's precision.  What the tree can't
+// fold is run, as an integer's is (Evaluate).  False if it isn't a
 // constant, or is an integer one.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -125,7 +126,7 @@ bool CCPPConstantFolder::FloatConstant(CCPPSyntax* pcExpression, double* pdValue
 	SCPPConstant	sValue;
 
 	mpcUnit->mpcStatistics->Count(CPPCC_FloatConstants);
-	if ((Fold(pcExpression, &sValue) != CPPFO_Folded) || !sValue.psFloat)
+	if (!Evaluate(pcExpression, &sValue) || !sValue.psFloat)
 	{
 		return false;
 	}
@@ -215,7 +216,7 @@ bool CCPPConstantFolder::FoldTree(CCPPSyntax* pcExpression, SCPPConstant* psValu
 		{
 			//12_km and "abc"_len are their literal operators' calls.  [lex.ext] 2
 			psCall = mpcUnit->GetDesugarings()->GetLiteralCall(pcExpression);
-			return psCall && ConstexprResult(psCall->pcFunction, pcExpression, &psValue->lliValue);
+			return psCall && ConstexprResult(psCall->pcFunction, pcExpression, psValue);
 		}
 		if (pcExpression->GetKind() == CPPS_StringExpression)
 		{
@@ -328,7 +329,7 @@ bool CCPPConstantFolder::FoldTree(CCPPSyntax* pcExpression, SCPPConstant* psValu
 			psValue->dValue = dValue;
 			return true;
 		}
-		return ConstexprCall((CCPPSyntaxCallExpression*)pcExpression, &psValue->lliValue);
+		return ConstexprCall((CCPPSyntaxCallExpression*)pcExpression, psValue);
 
 	case CPPS_SizeofExpression:
 		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
@@ -692,6 +693,18 @@ void CCPPConstantFolder::ConstantMessage(const char* szMessage, CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a constant of the type can be run (CCPPConstants::Value): an
+// integer, a bool or a floating point number.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPConstantFolder::IsRunnableType(SCPP65Type* psType)
+{
+	return psType->IsInteger() || (psType->eKind == CPP65TK_Bool) || psType->IsFloat();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What the tree folder can't give: a member or an element of a constant
 // object, what a pointer or reference to one is, a cast of a floating
 // point constant, a comparison or a difference of two that aren't integers
@@ -699,10 +712,11 @@ void CCPPConstantFolder::ConstantMessage(const char* szMessage, CChars* pszDest)
 // wanted, which is what its constexpr conversion function gives
 // (ObjectConstantType).  It is asked only of what Fold says may be run
 // (CPPFO_Run), and only an expression that needs running (NamesConstexpr)
-// is run; its value is the interpreter's.
+// is run; its value is the interpreter's, an integer's or a floating
+// point number's.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
+bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 {
 	SCPP65Type*	psType;
 
@@ -714,7 +728,7 @@ bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	psType = ObjectConstantType(pcExpression);
 	if (psType)
 	{
-		return mpcUnit->mpcConstants->Value(pcExpression, psType, plliValue);
+		return mpcUnit->mpcConstants->Value(pcExpression, psType, psValue);
 	}
 	if (!NamesConstexpr(pcExpression))
 	{
@@ -728,11 +742,11 @@ bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 	}
 	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	mpcUnit->mcContext.LeaveWorking();
-	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
+	if (!psType || !IsRunnableType(psType))
 	{
 		return false;
 	}
-	return mpcUnit->mpcConstants->Value(pcExpression, psType, plliValue);
+	return mpcUnit->mpcConstants->Value(pcExpression, psType, psValue);
 }
 
 
@@ -823,12 +837,13 @@ SCPP65Type* CCPPConstantFolder::ConstantTypeOf(CCPPSyntax* pcExpression)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The value of a call of a constexpr function that gives an integer, if
-// it has one: worked out by running it (CCPPConstants).  A call of any
+// The value of a call of a constexpr function that gives an integer or a
+// floating point number, if it has one: worked out by running it
+// (CCPPConstants).  A call of any
 // other function is no constant, and isn't looked at.  [expr.const] 2.2
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPConstantFolder::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue)
+bool CCPPConstantFolder::ConstexprCall(CCPPSyntaxCallExpression* pcCall, SCPPConstant* psValue)
 {
 	CCPPBoundCall	cBound;
 	bool			bBound;
@@ -836,18 +851,19 @@ bool CCPPConstantFolder::ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* 
 	mpcUnit->mcDiagnostics.BeginSilent();
 	bBound = mpcUnit->mcBinder.Bind(pcCall, &cBound, false);
 	mpcUnit->mcDiagnostics.EndSilent();
-	return bBound && ConstexprResult(cBound.mpcFunction, pcCall, plliValue);
+	return bBound && ConstexprResult(cBound.mpcFunction, pcCall, psValue);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The integer an expression that is a call of pcFunction gives (a call, or
-// a literal with a suffix, which is its literal operator's), if the
-// function is constexpr: the call is run.  False if it isn't a constant.
+// The integer or floating point number an expression that is a call of
+// pcFunction gives (a call, or a literal with a suffix, which is its
+// literal operator's), if the function is constexpr: the call is run.
+// False if it isn't a constant.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPConstantFolder::ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, int64* plliValue)
+bool CCPPConstantFolder::ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, SCPPConstant* psValue)
 {
 	CCPPSyntaxFunctionDefinition*	pcDefinition;
 	SCPP65Type*						psType;
@@ -858,11 +874,11 @@ bool CCPPConstantFolder::ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* p
 		return false;
 	}
 	psType = mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
-	if (!psType || !(psType->IsInteger() || (psType->eKind == CPP65TK_Bool)))
+	if (!psType || !IsRunnableType(psType))
 	{
 		return false;
 	}
-	return mpcUnit->mpcConstants->Value(pcExpression, psType, plliValue);
+	return mpcUnit->mpcConstants->Value(pcExpression, psType, psValue);
 }
 
 

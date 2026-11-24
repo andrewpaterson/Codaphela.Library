@@ -77,13 +77,14 @@ public:
 	bool					UnaryConstant(CCPPSyntaxUnaryExpression* pcUnary, int64 lliOperand, int64* plliValue);
 	bool					ConstantError(CCPPSyntax* pcNode, const char* szMessage);
 	void					ConstantMessage(const char* szMessage, CChars* pszDest);
-	bool					RunConstant(CCPPSyntax* pcExpression, int64* plliValue);
+	bool					RunConstant(CCPPSyntax* pcExpression, SCPPConstant* psValue);
+	bool					IsRunnableType(SCPP65Type* psType);
 	bool					FoldTree(CCPPSyntax* pcExpression, SCPPConstant* psValue, bool* pbRunnable);
 	SCPP65Type*				ObjectConstantType(CCPPSyntax* pcExpression);
 	bool					NamesConstexpr(CCPPSyntax* pcNode);
 	SCPP65Type*				ConstantTypeOf(CCPPSyntax* pcExpression);
-	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, int64* plliValue);
-	bool					ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, int64* plliValue);
+	bool					ConstexprCall(CCPPSyntaxCallExpression* pcCall, SCPPConstant* psValue);
+	bool					ConstexprResult(CCPPFunction* pcFunction, CCPPSyntax* pcExpression, SCPPConstant* psValue);
 	int64					ConstantOfType(SCPP65Type* psType, int64 lliValue);
 	bool					BinaryConstant(CCPPSyntaxBinaryExpression* pcBinary, int64 lliLeft, int64 lliRight, int64* plliValue);
 	bool					IsSignedOverflow(ECppTokens eOperator, int iBits, int64 lliLeft, int64 lliRight, int64 lliResult);

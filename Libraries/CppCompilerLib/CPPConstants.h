@@ -29,6 +29,7 @@ class CCPPUnit;
 class CCPPDiagnostics;
 class CCPPUnitData;
 class CCPP65IRFrontEnd;
+struct SCPPConstant;
 
 
 //A function the IR of a constant names: the C++ function, and its IR once it has been asked for.
@@ -82,6 +83,7 @@ public:
 	void			Init(CCPPUnit* pcUnit);
 	void			Kill(void);
 
+	bool			Value(CCPPSyntax* pcExpression, SCPP65Type* psType, SCPPConstant* psValue);
 	bool			Value(CCPPSyntax* pcExpression, SCPP65Type* psType, int64* plliValue);
 	const char*		GetReason(void) const;
 	void			ClearReason(void);

@@ -49,6 +49,10 @@ struct SIRValue
 };
 
 
+//A float's value from its bits, as an SIRValue holds them (an IRTK_F32's or an IRTK_F64's).
+double	IRInterpreterFloat(SIRType sType, uint64 ulliBits);
+
+
 enum EIRObjectKind
 {
 	IROB_Slot,			//A function's local, until it returns.
