@@ -1980,4 +1980,41 @@
       <Filter>Source\Generator65</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{c053bc83-5c5b-4358-a025-7aaf84af02e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\65c64">
+      <UniqueIdentifier>{bf135001-a6a5-44de-945e-c30d9eb82ba5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\compiler">
+      <UniqueIdentifier>{0b0bd5ee-2c7e-44a0-8833-2231a20859d1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\compiler\index.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\compiler\language.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\compiler\inside.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\compiler\ir.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\compiler\w65c816.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\compiler\65c64.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\compiler\testing.md">
+      <Filter>Docs\compiler</Filter>
+    </None>
+    <None Include="Docs\65c64\calling-convention.md">
+      <Filter>Docs\65c64</Filter>
+    </None>
+  </ItemGroup>
 </Project>

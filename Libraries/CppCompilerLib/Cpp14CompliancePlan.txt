@@ -603,5 +603,5 @@ Where things are
   ConstexprPlan.txt      constant expressions by running the IR
   Size16Plan.txt        the W65C816's 16 bit size_t and its heap by banks (done; Libc65's sources cite it)
   W65C816.txt, IR.txt, CPP65Generator.txt    the back ends and the IR
-  HCP65/Website/docs/compiler/language.md    what the compiler does and doesn't, for its users: keep its "What
+  CppCompilerLib/Docs/compiler/language.md    what the compiler does and doesn't, for its users: keep its "What
                          isn't supported yet" table in step with B above

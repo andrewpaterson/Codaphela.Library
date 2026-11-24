@@ -815,6 +815,16 @@
   <ItemGroup>
     <Text Include="CPP65Generator.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\compiler\index.md" />
+    <None Include="Docs\compiler\language.md" />
+    <None Include="Docs\compiler\inside.md" />
+    <None Include="Docs\compiler\ir.md" />
+    <None Include="Docs\compiler\w65c816.md" />
+    <None Include="Docs\compiler\65c64.md" />
+    <None Include="Docs\compiler\testing.md" />
+    <None Include="Docs\65c64\calling-convention.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
