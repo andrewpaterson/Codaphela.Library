@@ -275,12 +275,6 @@ protected:
 	void			BranchWhen(CIRBlock* pcBlock, bool bWhen, int32 iLabel);
 	void			FunctionArguments(void);
 	void			CopyAddressedParameters(void);
-	void			RegisterStub(CChars* pszBodyLabel);
-	bool			Forwarder(CChars* pszJump);
-	void			GenerateForwarder(const char* szLabel, CChars* pszJump);
-	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
-	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
-	void			StackLine(const char* szInstruction, int iOffset);
 
 	void			Prologue(const char* szLabel);
 	void			Epilogue(void);

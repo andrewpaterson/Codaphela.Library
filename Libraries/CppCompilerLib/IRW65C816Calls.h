@@ -27,7 +27,9 @@ class CIRW65C816Backend;
 
 
 //A call, for the W65C816: the arguments pushed or loaded into A, X and Y as the function called takes them, the
-//call itself, and the stack put right after it.
+//call itself, and the stack put right after it.  And the callee's side of the register rule: a register function's
+//plain label is a stub that loads the registers from the stack (RegisterStub), and a function that only passes its
+//arguments on to another is a jump to it (Forwarder).
 class CIRW65C816Calls
 {
 protected:
@@ -48,6 +50,13 @@ public:
 	void			CallerCleanUp(int32 iBytes, SIRInstruction* psInstruction, bool bKeepCarry = false);
 	void			Thrown(SIRInstruction* psInstruction);
 	bool			ResultKeepsCarry(SIRInstruction* psInstruction);
+
+	bool			Forwarder(CChars* pszJump);
+	void			GenerateForwarder(const char* szLabel, CChars* pszJump);
+	void			RegisterStub(CChars* pszBodyLabel);
+	void			RegisterStubLoad(int* aiWordOf, int iHigh, int iLow, int iPushed);
+	void			RegisterStubCall(CChars* pszBodyLabel, int* aiWordOf, int iWords, int iStacked);
+	void			StackLine(const char* szInstruction, int iOffset);
 };
 
 
