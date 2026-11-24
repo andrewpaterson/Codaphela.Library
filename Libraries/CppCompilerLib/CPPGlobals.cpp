@@ -54,7 +54,7 @@ void CCPPGlobals::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPGlobals::Kill(void)
 {
-	mpcUnit->KillUnitRoutines(&masExitFinalisers);
+	CCPPUnitData::KillRoutines(&masExitFinalisers);
 	masExitFinalisers.Kill();
 	mpcUnit->FreeVariables(&mapcStaticLocals);
 	mapcStaticLocals.Kill();
@@ -110,6 +110,9 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 	const char*					szOptions;
 	CChars						szBound;
 	int							iBound;
+	ECPPBoundTemporary			eBound;
+	bool						bThread;
+	bool						bDestroyed;
 
 	pcSpecifiers = pcDeclaration->mpcSpecifiers;
 	if (pcSpecifiers && !mpcUnit->CheckEnumerators(pcSpecifiers->mpcType))
@@ -185,9 +188,9 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 			mpcDiagnostics->BeginQuiet();
 			psType = mpcDeclarators->GetType(pcSpecifiers, pcInit->mpcDeclarator, pcInit, pcInit->mpcInitializer);
 			mpcDiagnostics->EndQuiet();
-			if (psType && pcVariable && !SameVariableType(pcVariable->mpsType, psType))
+			if (psType && pcVariable && !CheckRedeclaredType(pcVariable->mpsType, psType, pcInit))
 			{
-				bResult &= mpcDiagnostics->Error(pcInit, "The variable is declared again with another type");
+				bResult = false;
 				continue;
 			}
 			if (psType && !pcVariable)
@@ -229,9 +232,9 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 			continue;
 		}
 
-		if (pcVariable && !pcVariable->mpcClass && !SameVariableType(pcVariable->mpsType, psType))
+		if (pcVariable && !pcVariable->mpcClass && !CheckRedeclaredType(pcVariable->mpsType, psType, pcInit))
 		{
-			bResult &= mpcDiagnostics->Error(pcInit, "The variable is declared again with another type");
+			bResult = false;
 			continue;
 		}
 		if (!pcVariable)
@@ -265,12 +268,15 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 		bBss = !bConstantData && IsBss(pcInitialiser, psType);
 		szOptions = pcDefining ? ", comdat" : (mpcUnit->HasUsedAttribute(pcInit->mpcDeclarator) ? ", keep" : NULL);
 		szBound.Init();
-		if (psType->IsReference() && !BoundTemporary(psType, pcInitialiser, &szLabel, !pcVariable->mbInternal, szOptions, &szBound, &iBound, &bResult))
+		eBound = psType->IsReference() ? BoundTemporary(psType, pcInitialiser, &szLabel, !pcVariable->mbInternal, szOptions, &szBound, &iBound) : CPPBT_None;
+		if (eBound == CPPBT_Error)
 		{
+			bResult = false;
 			szBound.Kill();
 			szLabel.Kill();
 			continue;
 		}
+		bResult &= eBound != CPPBT_BoundWithError;
 		mpcData->BeginData(&szLabel, VariableDataAlignment(pcVariable, psElement->IsClass()), !pcVariable->mbInternal, szOptions, bBss);
 		if (mpcUnit->HasLineTable())
 		{
@@ -279,12 +285,14 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 
 		//GlobalInitialiser writes the constant data.  What isn't constant is worked out by the global's own R_Initialise,
 		//and an object is destroyed by its R_Finalise: the IR front end writes them (GlobalStartUpRoutines).
+		bThread = (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0;
+		bDestroyed = psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL);
 		mpcContext->EnterNoThis();
 		if (bConstantData && mpcUnit->GetConstants()->AppendData(pcVariable, mpcData))
 		{
 			//A constexpr variable's value, worked out when it was defined: its data, with nothing to run.
 		}
-		else if (szBound.Length() > 0)
+		else if (eBound != CPPBT_None)
 		{
 			//A reference to the temporary it is bound to (BoundTemporary).
 			mpcData->AppendAddress(&szBound, iBound, psType->iBytes);
@@ -292,14 +300,14 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 		else if (bBss)
 		{
 			mpcData->AppendSpace(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, psElement->IsClass(), bDestroyed, bThread);
 		}
 		else if (!psElement->IsClass() && !psType->IsReference())
 		{
 			bInitialise = false;
 			iDataLength = mpcData->GetText()->Length();
 			bResult &= GlobalInitialiser(psType, pcInitialiser, pcInit, &bInitialise);
-			if (bInitialise && bResult && !(pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) && psElement->IsPointer())
+			if (bInitialise && bResult && !bThread && psElement->IsPointer())
 			{
 				//A pointer to an object of static storage, or a table of them, is a constant the interpreter works out.
 				szWritten.Init();
@@ -314,16 +322,16 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 			}
 			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, bInitialise, false, false);
 		}
-		else if (!(pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) && mpcUnit->GetConstants()->AppendConstantInitialisation(pcVariable, mpcData))
+		else if (!bThread && mpcUnit->GetConstants()->AppendConstantInitialisation(pcVariable, mpcData))
 		{
 			//An object made by a constexpr constructor from constants, or a reference bound to an object of static
 			//storage: initialised before anything runs, as data, though not constexpr.  [basic.start.init] 2
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, false, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), false);
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, false, bDestroyed, false);
 		}
 		else
 		{
 			mpcData->AppendZeros(psType->iBytes);
-			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, psElement->IsClass() && (psElement->pcClass->mpcDestructor != NULL), (pcSpecifiers->muiFlags & CPPDS_THREAD_LOCAL) != 0);
+			bResult &= GlobalStartUpRoutines(psType, pcInitialiser, &szLabel, true, bDestroyed, bThread);
 		}
 		mpcContext->LeaveNoThis();
 		mpcData->NextStartUp();
@@ -549,6 +557,18 @@ CCPPVariable* CCPPGlobals::RedeclaredVariable(CCPPSymbol* pcSymbol)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A variable declared again is declared with its type (SameVariableType):
+// an error at pcNode (and false) if not.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPGlobals::CheckRedeclaredType(SCPP65Type* psDeclared, SCPP65Type* psType, CCPPSyntax* pcNode)
+{
+	return SameVariableType(psDeclared, psType) || mpcDiagnostics->Error(pcNode, "The variable is declared again with another type");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether two declarations of a variable give it one type: the same, but
 // for an array's bound, which one may leave out.  [basic.link] 10
 //
@@ -602,15 +622,17 @@ void CCPPGlobals::CompleteDeclaredArrays(CCPPVariable* pcDefined)
 // own, pszBound (pszLabel and __Bound), made from the initialiser and
 // destroyed as a global of its type is.  Its data goes before the
 // reference's, which is its address, or its base's *piOffset into it.
-// pszBound is left empty for any other initialiser.  False (and *pbResult cleared) after an error.
-// [class.temporary] 6
+// What it did (ECPPBoundTemporary): nothing, for any other initialiser;
+// bound it, whose start-up routines may have said an error; or nothing,
+// after an error.  [class.temporary] 6
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult)
+ECPPBoundTemporary CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset)
 {
 	SCPP65Type*	psType;
 	CCPPSyntax*	pcValue;
 	bool		bClass;
+	bool		bRoutines;
 
 	pcValue = pcInitialiser;
 	if (pcValue && (pcValue->GetKind() == CPPS_ParenthesisedInitializer) && (mpcUnit->ListElements(pcValue)->NumElements() == 1))
@@ -619,7 +641,7 @@ bool CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitiali
 	}
 	if (!pcValue || (pcValue->GetKind() == CPPS_InitializerList))
 	{
-		return true;
+		return CPPBT_None;
 	}
 	psType = psReference->psBase->Unqualified();
 	if (!mpcUnit->GetBinder()->BindsToTemporary(psReference, pcValue))
@@ -628,15 +650,14 @@ bool CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitiali
 		psType = mpcUnit->GetTypeChecker()->TypeOf(pcValue);
 		if (!psReference->psBase->IsClass() || !psType || !psType->IsClass() || mpcUnit->GetTypeChecker()->IsObjectLvalue(pcValue))
 		{
-			return true;
+			return CPPBT_None;
 		}
 	}
 
 	bClass = psType->IsClass();
 	if (bClass && !mpcUnit->CompleteObjectClass(psType->pcClass, pcInitialiser))
 	{
-		*pbResult = false;
-		return false;
+		return CPPBT_Error;
 	}
 	*piOffset = 0;
 	if (bClass && (psType->pcClass != psReference->psBase->pcClass))
@@ -646,9 +667,9 @@ bool CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitiali
 	mpcUnit->GetMangler()->AppendBoundLabel(pszBound, pszLabel->Text());
 	mpcData->BeginData(pszBound, DataAlignment(psType, bClass), bGlobal, szOptions, false);
 	mpcData->AppendZeros(psType->iBytes);
-	*pbResult &= GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL), false);
+	bRoutines = GlobalStartUpRoutines(psType, pcInitialiser, pszBound, true, bClass && (psType->pcClass->mpcDestructor != NULL), false);
 	mpcData->NextStartUp();
-	return true;
+	return bRoutines ? CPPBT_Bound : CPPBT_BoundWithError;
 }
 
 
@@ -796,11 +817,11 @@ bool CCPPGlobals::ExternLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSp
 	{
 		return false;
 	}
+	//It names the variable of the namespace it is in, which has one type.  [basic.link] 6, 10
 	pcGlobal = NamespaceVariable(pcInit->mpcSymbol);
-	if (pcGlobal && !SameVariableType(pcGlobal->mpsType, psType))
+	if (pcGlobal && !CheckRedeclaredType(pcGlobal->mpsType, psType, pcInit))
 	{
-		//It names the variable of the namespace it is in, which has one type.  [basic.link] 6, 10
-		return mpcDiagnostics->Error(pcInit, "The variable is declared again with another type");
+		return false;
 	}
 	mpcUnit->AddVariable(mpcUnit->GetLocals(), pcInit->mpcSymbol, psType, CPPVS_Global, 0);
 	return true;
@@ -944,7 +965,7 @@ bool CCPPGlobals::StaticLocal(CCPPSyntaxInitDeclarator* pcInit, CCPPSyntaxDeclSp
 		mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcVariable);
 		if (bFirst)
 		{
-			mpcUnit->AddUnitRoutine(&masExitFinalisers, szLabel.Text(), psType, pcShared != NULL);
+			CCPPUnitData::AddRoutine(&masExitFinalisers, szLabel.Text(), psType, pcShared != NULL);
 		}
 		szNode.Init();
 		mpcUnit->GetMangler()->AppendExitNodeLabel(&szNode, szLabel.Text());
@@ -1003,11 +1024,7 @@ bool CCPPGlobals::WriteExitRoutines(void)
 		psRoutine = masExitFinalisers.Get(i);
 		szFinaliser.Init();
 		mpcUnit->GetMangler()->AppendStartUpLabel(&szFinaliser, true, psRoutine->szLabel.Text());
-		CCPPUnitData::AppendSection(mpcUnit->GetCode(), "text", &szFinaliser, psRoutine->bShared ? ", comdat" : NULL);
-		if (psRoutine->bShared)
-		{
-			CCPPUnitData::AppendGlobal(mpcUnit->GetCode(), &szFinaliser);
-		}
+		CCPPUnitData::AppendRoutineSection(mpcUnit->GetCode(), &szFinaliser, psRoutine->bShared);
 		if (!mpcUnit->GetIRFrontEnd()->GlobalRoutine(szFinaliser.Text(), psRoutine->szLabel.Text(), psRoutine->psType, NULL, true, NULL, NULL, false, !psRoutine->bShared))
 		{
 			mpcDiagnostics->ErrorAt(-1, "This static local's destruction uses C++ the IR front end doesn't support yet");
@@ -1015,7 +1032,7 @@ bool CCPPGlobals::WriteExitRoutines(void)
 		szFinaliser.Kill();
 		bWritten = true;
 	}
-	mpcUnit->KillUnitRoutines(&masExitFinalisers);
+	CCPPUnitData::KillRoutines(&masExitFinalisers);
 
 	if (mbExitLists && !mbExitListsWritten)
 	{
@@ -1023,8 +1040,7 @@ bool CCPPGlobals::WriteExitRoutines(void)
 		szLabel.Init("R_RunExitLists");
 		if (mpcUnit->Emit(&szLabel))
 		{
-			CCPPUnitData::AppendSection(mpcUnit->GetCode(), "text", &szLabel, ", comdat");
-			CCPPUnitData::AppendGlobal(mpcUnit->GetCode(), &szLabel);
+			CCPPUnitData::AppendRoutineSection(mpcUnit->GetCode(), &szLabel, true);
 			mpcUnit->GetIRFrontEnd()->ExitListsRoutine(szLabel.Text());
 			bWritten = true;
 		}
@@ -1054,8 +1070,7 @@ bool CCPPGlobals::WriteDynamicCast(void)
 	szLabel.Init(CPP65_DYNAMIC_CAST);
 	if (mpcUnit->Emit(&szLabel))
 	{
-		CCPPUnitData::AppendSection(mpcUnit->GetCode(), "text", &szLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(mpcUnit->GetCode(), &szLabel);
+		CCPPUnitData::AppendRoutineSection(mpcUnit->GetCode(), &szLabel, true);
 		mpcUnit->GetIRFrontEnd()->DynamicCastRoutine(szLabel.Text());
 		bWritten = true;
 	}

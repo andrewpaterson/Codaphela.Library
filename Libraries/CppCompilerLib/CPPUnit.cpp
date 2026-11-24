@@ -500,7 +500,7 @@ void CCPPUnit::Kill(void)
 	mapcGlobals.Kill();
 
 	mcDiagnostics.Kill();
-	KillUnitRoutines(&masThrownDestroyers);
+	CCPPUnitData::KillRoutines(&masThrownDestroyers);
 	masThrownDestroyers.Kill();
 	maszRuntime.Kill();
 	maszLayouts.Kill();
@@ -779,7 +779,7 @@ void CCPPUnit::ThrownDestroyer(SCPP65Type* psType, CChars* pszLabel)
 	}
 	if (Emit(&szLabel))
 	{
-		AddUnitRoutine(&masThrownDestroyers, szLabel.Text(), psType, true);
+		CCPPUnitData::AddRoutine(&masThrownDestroyers, szLabel.Text(), psType, true);
 	}
 	szLabel.Kill();
 }
@@ -796,8 +796,7 @@ bool CCPPUnit::WriteThrownDestroyers(void)
 	for (i = 0; i < masThrownDestroyers.NumElements(); i++)
 	{
 		szLabel.Init(masThrownDestroyers.Get(i)->szLabel.Text());
-		CCPPUnitData::AppendSection(&mszCode, "text", &szLabel, ", comdat");
-		CCPPUnitData::AppendGlobal(&mszCode, &szLabel);
+		CCPPUnitData::AppendRoutineSection(&mszCode, &szLabel, true);
 		if (!mpcIRFrontEnd->ThrownDestroyerRoutine(szLabel.Text(), masThrownDestroyers.Get(i)->psType))
 		{
 			mcDiagnostics.ErrorAt(-1, "This thrown object's destruction uses C++ the IR front end doesn't support yet");
@@ -805,41 +804,8 @@ bool CCPPUnit::WriteThrownDestroyers(void)
 		szLabel.Kill();
 		bWritten = true;
 	}
-	KillUnitRoutines(&masThrownDestroyers);
+	CCPPUnitData::KillRoutines(&masThrownDestroyers);
 	return bWritten;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A routine to write once the unit's functions are (SCPPUnitRoutine).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::AddUnitRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared)
-{
-	SCPPUnitRoutine*	psRoutine;
-
-	psRoutine = pasRoutines->Add();
-	psRoutine->szLabel.Init(szLabel);
-	psRoutine->psType = psType;
-	psRoutine->bShared = bShared;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Empties a list of routines to write (AddUnitRoutine).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPPUnit::KillUnitRoutines(CArrayCPPUnitRoutines* pasRoutines)
-{
-	size	i;
-
-	for (i = 0; i < pasRoutines->NumElements(); i++)
-	{
-		pasRoutines->Get(i)->szLabel.Kill();
-	}
-	pasRoutines->ReInit();
 }
 
 

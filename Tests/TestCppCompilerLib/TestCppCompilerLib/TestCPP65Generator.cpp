@@ -3936,6 +3936,40 @@ void TestCPP65GeneratorFunctionDeclarations(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What a variable of static storage may not be, each error with its text
+// and where it is said (CCPPGlobals): its initialiser, a declaration
+// again with another type, a definition twice, extern in a block, and an
+// anonymous union's members; and what it may be: a reference bound to a
+// temporary, a static local that is destroyed, extern in a block, an
+// array whose bound a later declaration gives.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorGlobals(void)
+{
+	AssertCPP65Error("Generated.cpp (1, 12): An array needs a list of initialisers [5]\n", "int a[2] = 5; int main() { return a[0]; }");
+	AssertCPP65Error("Generated.cpp (1, 25): An extern variable declared in a block can't be initialised there [k]\n", "int main() { extern int k = 1; return k; }");
+	AssertCPP65Error("Generated.cpp (1, 31): The qualified name is of nothing its namespace or class declares [w]\nGenerated.cpp (1, 28): Only variables with simple names are supported by the compiler yet [N]\n", "namespace N { int v; } int N::w = 1; int main() { return 0; }");
+	AssertCPP65Error("Generated.cpp (1, 6): The string has more characters, with its end, than the array has elements [s]\nGenerated.cpp (1, 40): Only variables are supported by the compiler here yet [s]\n", "char s[2] = \"abc\"; int main() { return s[0]; }");
+	AssertCPP65Error("Generated.cpp (1, 20): The variable is declared again with another type [v]\n", "extern int v; long v = 1; int main() { return (int)v; }");
+	AssertCPP65Error("Generated.cpp (1, 24): The variable is declared again with another type [v]\n", "int v = 1; extern long v; int main() { return v; }");
+	AssertCPP65Error("Generated.cpp (1, 30): The variable is declared again with another type [v]\n", "int v; int f() { extern long v; return (int)v; } int main() { return f(); }");
+	AssertCPP65Error("Generated.cpp (1, 16): The variable is defined twice [v]\n", "int v = 1; int v = 2; int main() { return v; }");
+	AssertCPP65Error("Generated.cpp (1, 12): More initialisers than the array's elements take [{]\n", "int a[1] = { 1, 2 }; int main() { return a[0]; }");
+	AssertCPP65Error("Generated.cpp (1, 23): An anonymous union has only public data members that aren't static [struct]\nGenerated.cpp (1, 8): This anonymous union's member is not supported by the compiler yet [union]\n", "static union { int a; struct { int b; }; }; int main() { return a; }");
+
+	//And what they may be.
+	AssertCPP65Generates("const long& r = 7; int main() { return (int)r; }");
+	AssertCPP65Generates("struct S { int v; S() : v(3) {} ~S() {} }; const S& r = S(); int main() { return r.v; }");
+	AssertCPP65Generates("struct B { int v; B() : v(2) {} ~B() {} }; struct D : B { int w; D() : w(1) {} }; const B& r = D(); int main() { return r.v; }");
+	AssertCPP65Generates("struct S { int v; S() : v(4) {} ~S() {} }; int f() { static S s; return s.v; } int main() { return f(); }");
+	AssertCPP65Generates("int v = 5; int f() { extern int v; return v; } int main() { return f(); }");
+	AssertCPP65Generates("extern int a[]; int a[3] = { 1, 2, 3 }; int main() { return a[2]; }");
+	AssertCPP65Generates("static union { int a; long b; }; int main() { a = 1; return a; }");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // BaseLib projects (one with soft float) run on CFast65C64 and C65C64 in lockstep.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4302,6 +4336,7 @@ void TestCPP65Generator(void)
 	TEST_PART(TestCPP65GeneratorErrors());
 	TEST_PART(TestCPP65GeneratorSemanticErrors());
 	TEST_PART(TestCPP65GeneratorFunctionDeclarations());
+	TEST_PART(TestCPP65GeneratorGlobals());
 	TEST_PART(TestCPP65GeneratorListing());
 	TEST_PART(TestCPP65GeneratorLayoutsFile());
 	TEST_PART(TestCPP65GeneratorEnumClass());

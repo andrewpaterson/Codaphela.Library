@@ -74,6 +74,55 @@ void CCPPUnitData::AppendSection(CChars* psz, const char* szKind, CChars* pszNam
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A routine's text section: a shared one's (bShared) is a COMDAT section,
+// of which the linker keeps one, and its label is global.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnitData::AppendRoutineSection(CChars* psz, CChars* pszLabel, bool bShared)
+{
+	AppendSection(psz, "text", pszLabel, bShared ? ", comdat" : NULL);
+	if (bShared)
+	{
+		AppendGlobal(psz, pszLabel);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A routine to write once the unit's functions are (SCPPUnitRoutine).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnitData::AddRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared)
+{
+	SCPPUnitRoutine*	psRoutine;
+
+	psRoutine = pasRoutines->Add();
+	psRoutine->szLabel.Init(szLabel);
+	psRoutine->psType = psType;
+	psRoutine->bShared = bShared;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Empties a list of routines to write (AddRoutine).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPUnitData::KillRoutines(CArrayCPPUnitRoutines* pasRoutines)
+{
+	size	i;
+
+	for (i = 0; i < pasRoutines->NumElements(); i++)
+	{
+		pasRoutines->Get(i)->szLabel.Kill();
+	}
+	pasRoutines->ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The label is visible to the other objects.
 //
 //////////////////////////////////////////////////////////////////////////

@@ -422,8 +422,6 @@ public:
 	bool					CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier);
 	bool					CheckEnumerators(CCPPSyntax* pcType);
 	bool					WriteThrownDestroyers(void);
-	void					AddUnitRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared);
-	void					KillUnitRoutines(CArrayCPPUnitRoutines* pasRoutines);
 	bool					IsCLinkage(CCPPSyntaxLinkageSpecification* pcLinkage);
 	void					AppendRuntime(void);
 	void					UseBadCast(void) { mbBadCast = true; }

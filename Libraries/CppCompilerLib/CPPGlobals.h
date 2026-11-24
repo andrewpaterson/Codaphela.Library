@@ -36,6 +36,16 @@ class CCPP65Types;
 struct SCPP65Type;
 
 
+//What BoundTemporary did with a global reference's initialiser.
+enum ECPPBoundTemporary
+{
+	CPPBT_None,				//Nothing: it binds no temporary.
+	CPPBT_Bound,			//Made the temporary it binds, a global of its own.
+	CPPBT_BoundWithError,	//Made it, and its R_Initialise or R_Finalise said an error.
+	CPPBT_Error,			//Nothing, after an error.
+};
+
+
 //The unit's data of static storage (CCPPUnit::GetGlobals): global variables, static data members and static locals,
 //as data with their constant values and the R_Initialise and R_Finalise that make and destroy what isn't constant;
 //references bound to temporaries; the exit lists objects are destroyed from at the end; and the routines written once
@@ -77,8 +87,9 @@ protected:
 	CCPPVariable*			RedeclaredVariable(CCPPSymbol* pcSymbol);
 	CCPPVariable*			NamespaceVariable(CCPPSymbol* pcSymbol);
 	bool					SameVariableType(SCPP65Type* psFirst, SCPP65Type* psSecond);
+	bool					CheckRedeclaredType(SCPP65Type* psDeclared, SCPP65Type* psType, CCPPSyntax* pcNode);
 	void					CompleteDeclaredArrays(CCPPVariable* pcDefined);
-	bool					BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset, bool* pbResult);
+	ECPPBoundTemporary		BoundTemporary(SCPP65Type* psReference, CCPPSyntax* pcInitialiser, CChars* pszLabel, bool bGlobal, const char* szOptions, CChars* pszBound, int* piOffset);
 	bool					GlobalStartUpRoutines(SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, bool bConstruct, bool bDestroy, bool bThread);
 	bool					StartUpRoutine(bool bFinalise, SCPP65Type* psType, CCPPSyntax* pcInitialiser, CChars* pszData, CChars* pszNode, CChars* pszFinaliser, bool bEntry, bool bThread);
 	bool					IsBss(CCPPSyntax* pcInitialiser, SCPP65Type* psType);

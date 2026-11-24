@@ -82,6 +82,9 @@ public:
 
 	static void	AppendSection(CChars* psz, const char* szKind, CChars* pszName, const char* szOptions);
 	static void	AppendGlobal(CChars* psz, CChars* pszLabel);
+	static void	AppendRoutineSection(CChars* psz, CChars* pszLabel, bool bShared);
+	static void	AddRoutine(CArrayCPPUnitRoutines* pasRoutines, const char* szLabel, SCPP65Type* psType, bool bShared);
+	static void	KillRoutines(CArrayCPPUnitRoutines* pasRoutines);
 };
 
 
