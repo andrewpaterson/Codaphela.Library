@@ -470,7 +470,7 @@ Stages 7 to 11, planned again from the code (2026-11-24)
 
    The stages below were written again from what the code is now, not what it was on 2026-11-11.  What each
    stage's code is, and what of it is done, was read from the tree at fe0f0bf21.  The order they are done in
-   is at the end ("The order from here"), and what the user is still to decide is there too.
+   is at the end ("The order from here"), with the user's decisions on it.
 
 Stage 7.  The back ends are the same parts.  (L; mostly done, what is left is S-M)
 
@@ -496,7 +496,7 @@ Stage 7.  The back ends are the same parts.  (L; mostly done, what is left is S-
    compile CPU is within the spread; IRW65C816Backend.cpp (2,094 lines) and IR65Backend.cpp (1,563) keep only
    what is the function's as a whole.
 
-Stage 8.  The back ends' code is instructions.  (L-XL; not started; waits for the user)
+Stage 8.  The back ends' code is instructions.  (L-XL; not started; in full, in two halves: the user, 2026-11-24)
 
    What it is, as written: the selector adds instructions (mnemonic, operand, source position) to the back
    end's code instead of text; the passes are classes over the instructions, run from a list; nothing is
@@ -521,28 +521,42 @@ Stage 8.  The back ends' code is instructions.  (L-XL; not started; waits for th
    - CIRBranchCode (IRBranchPasses.h:45) is the only machine pass code the two processors share: four passes,
      with CIR65Code and CIR816BranchCode under it.
 
-   Two ways to do it, for the user to choose between (or neither: stop at stage 7):
-   - 8 in full, as written.  Instructions for both processors; the 400 or so places that write text add
-     instructions; the passes written again over them (about 4,800 lines on the W65C816: Peephole, Flow,
-     DeadStores, Branches, Lines, Code, Frames; about 3,650 on the 65C64: IR65Code, Flags, Widths, Peephole,
-     BackendPeephole); a list that runs them; a source position as an instruction's field in place of
-     CIRSourceMarkers; AlignFrame, TidyExits and ClearExitCarries over instructions; one printer.  The
-     W65C816 first, the 65C64 after if the user wants its half.  The 65C64's refusals were 34 functions, so
-     what its half wins is the compile's time, not faster code.
-   - 8 lite: the text is decoded once for each function and the decoded code is shared by every pass.  The
-     65C64's Flags, Widths and Peephole run over one CIR65Code; the W65C816's AlignFrame, Flow and Peephole
-     use the code GenerateBody loaded instead of decoding again; the markers are taken off once and put back
-     once.  Most of the decoding's time for a small part of the work; it doesn't give passes shared between
-     the processors, and the selectors still write text.  CodeGenerationHandoff.txt says not to unify
-     CIR65Code and CIRW65C816Code before this ruling; 8 lite doesn't unify them.
-   Measure before either: the time spent decoding and writing (IR816Decode, CIRW65C816Code's and CIR65Code's
+   Two ways to do it were put to the user, or neither (stop at stage 7): 8 in full, as written, or 8 lite,
+   where the text is decoded once for each function and shared by every pass, the selectors still writing
+   text.  The user, 2026-11-24: "Stage 8: do it in full", and split in two, the 65C64's half done as well.
+   The 65C64's refusals were 34 functions, so its half doesn't make its code faster; it is done so that the
+   two back ends hold their code one way and not two (the 65C64's way being text decoded about three times a
+   function), and because 11b's passes shared between the processors need both.
+
+   8a.  The W65C816, and the parts both use.
+   - The parts first, made for both processors though only the W65C816 uses them yet: what every
+     instruction has (mnemonic, operand, a source position as a field), the list that runs the machine passes
+     and times each, and the printer that writes the text once at the end.  CIRBranchCode is how a pass over
+     both is written.
+   - The selector adds instructions: CIRW65C816Backend::Line (IRW65C816Backend.cpp:108) and its 240 or so
+     callers, and the 67 appends to mpszOut.
+   - The passes written again over the instructions, as classes in the list: Peephole, Flow, DeadStores,
+     Branches, Lines, Code and Frames, about 4,800 lines.  AlignFrame, TidyExits and ClearExitCarries over
+     instructions; FinishFunction's second trip (IRW65C816Backend.cpp:590-614) and AlignFrame's own load go.
+   - IR816Decode and SIRW65C816Line's operand into the text go.  CIRSourceMarkers stays only while the 65C64
+     needs it.
+
+   8b.  The 65C64.
+   - The selector adds instructions: CIR65Backend::Line (IR65Backend.cpp:913), its 160 or so callers and the
+     30 appends.
+   - CIR65Flags, CIR65Widths, CIR65Peephole, CIR65Backend::Peephole and IR65PseudoWithoutW (about 3,650 lines
+     with IR65Code and BackendPeephole) are passes in the list over the instructions; CIR65Code's Decode and
+     DecodeLine go, and with them its refusals.
+   - CIRSourceMarkers (438 lines) goes.  CIRBranchCode's four passes run over the instructions of both.
+
+   Measure before 8a: the time spent decoding and writing (IR816Decode, CIRW65C816Code's and CIR65Code's
    Load and Write, CIRSourceMarkers' Take and Put), how many times a function's code makes the trip on each
    processor, and how many 65C64 functions CIR65Code refuses now that its code has V and W as operands
    (CodeGenerationHandoff.txt asks for it to be counted again).
-   Measure after: that time; each machine pass's time; the suites' cycles and sizes on each processor; the
-   listings read where they differ.
-   Ends when (in full): no text is decoded; the suites pass; cycles and size on each processor are no worse.
-   Ends when (lite): each function's code is decoded once; the listings are the same.
+   Measure after each half: that time; each machine pass's time, from the list; the suites' cycles and sizes
+   on each processor; the listings read where they differ.
+   Ends when (each half): its processor's code is never decoded; the suites pass; cycles and size on each
+   processor are no worse.  After 8b no text is decoded anywhere and CIRSourceMarkers is gone.
 
 Stage 9.  The builder is four classes.  (M; not started)
 
@@ -631,38 +645,50 @@ Stage 11.  Faster code, with what has been built.  (as long as it is worth it; n
 
    Not reshaping: this is where "ideally faster" is spent, and each change is one commit with its cycles and
    sizes.  CIRPipeline::SetStandard (IRPipeline.cpp:96) still runs every pass "in the order they have always
-   run"; OptimiserPlan.txt (finished 2026-11-22) reshaped the passes' code but not their order.
+   run"; OptimiserPlan.txt (finished 2026-11-22) reshaped the passes' code but not their order.  Split in two
+   (the user, 2026-11-24), and done after every stage that only moves code: those prove themselves by the
+   listings staying the same, and a change to the code between them would move their baseline each time.
+
+   11a.  The IR's passes, and what doesn't need stage 8.
    - The passes' table taken again first: the one in Progress (cf550eee6) is from before OptimiserPlan.txt.
+     By then stage 8's list times the machine passes as well, so the table has every pass.
    - Then the pipeline's order, for each target: a pass that only tidies after another runs straight after
      it; passes that never change anything dropped or moved (on cf550eee6's table ReplaceExitValues never did,
      and ReplaceLoopCounters, ShareDivisions, BoundDivisions and DivisibilityTests hardly ever); DeleteDeadLoops'
      and MergeAddressPhis' cost against what they change, and SimplifyCFG's third of the W65C816's pass time;
      fewer rounds if the later ones do little.
-   - The W65C816's passes tried on the 65C64 and the other way (constant divisions, narrowed counters and
-     multiplies, biased indices, and stage 8's machine passes if it is built).  Three are already measured for
-     the 65C64 (CodeGenerationHandoff.txt).
+   - The W65C816's IR passes tried on the 65C64 and the other way: the 65C64's pipeline leaves out
+     DivisibilityTests, ConstantDivisions, MergeAddressPhis, NarrowCounters, NarrowMultiplies and
+     BiasSignedIndices.  ReduceDivisions is measured (+0.76% on the 65C64, left out), and
+     CodeGenerationHandoff.txt's "Measured and not built" isn't tried again without a new idea.
    - What the suites' profiles (TEST_PROJECT65_PROFILE_REPORT) show is hot and badly written.
-   - The rest of the places that trade speed for size given to the option.
+   - The rest of the places that trade speed for size given to the option (ECPPPrefer decides only the
+     inline limits and memcpy in place today).
    - Two left by OptimiserPlan.txt: the suites' cycles and bytes under ConstantDivisions' cost rule, never
      measured (the run was stopped for want of memory); and x / 255 of an x under 65536 as
      (x + (x >> 8) + 1) >> 8, which is the user's to ask for.
+
+   11b.  The machine passes.
+   - A machine pass that does one job on both processors written once over what their instructions share,
+     as CIRBranchCode's are; each processor's machine passes tried on the other.
+   - The machine passes' order in the list, from 11a's table.
+
    Measure: the suites' cycles and sizes on both processors and the soft float count, before and after each
    change, preferring speed and preferring size, and the compile's time, as a pass costs time for every
-   function.
+   function.  The suites take about 10 minutes each and can't overlap on this machine (7.9 GB): 11a and 11b
+   are one campaign of measuring with one baseline.
    Ends when the user says it does.
 
 The order from here (2026-11-24)
 
-   1. Stage 7's rest (a to d): small, and it leaves both back ends the same shape before anything touches them.
-   2. Stage 9, then 10b, then 10a.  They don't touch the back ends and only move code.  The parser is last: it
-      is the biggest, and the IDE's highlighter and index read its tree.
-   3. Stage 8's measures, then the user's choice: 8 in full, 8 lite, or stop at stage 7.
-   4. Stage 11, for as long as it is worth it.
-
-   For the user:
-   - Stage 8: in full, lite, or not at all; and in full, whether the 65C64 gets its half.
-   - Whether stage 11's pipeline order comes earlier.  It changes the code and nothing else depends on it, so
-     it can go anywhere in the order.
+   1. Stage 7's rest (a to d): small, and in the same files as stage 8.
+   2. Stage 8a, then 8b (the user, 2026-11-24: in full, both halves), its measures first.  The back ends are
+      also the furthest from the front end, where another session's SemanticLayerPlan.txt part two works.
+   3. Stage 9, then 10b, then 10a.  They only move code, against a baseline taken after stage 8.  The parser
+      is last: it is the biggest, and the IDE's highlighter and index read its tree.
+   4. Stage 11a, then 11b, for as long as it is worth it.
+   Agreed by the user, 2026-11-24.  The one cost is that faster code comes last; moving 11a to straight after
+   8b would cost one more baseline for stages 9 and 10.
 
 
 How a stage is proved
