@@ -220,6 +220,14 @@ struct SIR65Frame
 //pushed last first at their own size and the caller removes them, this in X for a thiscall, the result in A (all 8
 //bytes of a 64 bit one).  Labels are L and a number from the generator's
 //counter; the soft float routines called are added to its runtime list.
+//What the 65C64 back end keeps of a function it wrote (CIRBackend::TakeWritten): its frame, for a debugger.
+class CIR65Written : public CIRWrittenFunction
+{
+public:
+	SIR65Frame	msFrame;
+};
+
+
 class CIR65Backend : public CIRBackend
 {
 friend class CIR65Selector;
@@ -261,6 +269,7 @@ protected:
 	SIRReference			msAvailable;		//What A holds as the current instruction starts.
 	CArrayIR65Fused			masFused;			//The instructions the next one written writes (CanFuse), in order.
 	CChars					mszDeferred;		//The memory operand of the IR65FU_Deferred load among them.
+	CChars					mszBodyLabel;		//A register function's body's label (after its stub), "" for none.
 	SIRInstruction*			mpsFlags;			//The last integer comparison a block (mpcFlags) jumped on: the flags its successors start with.
 	CIRBlock*				mpcFlags;
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
@@ -281,6 +290,9 @@ public:
 	void				Kill(void) override;
 
 	bool				GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
+	CIRWrittenFunction*	TakeWritten(void) override;
+	void				DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
+	static void			AppendFramePrologue(CChars* pszDest, SIR65Frame* psFrame);
 	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
 
 protected:
@@ -291,6 +303,7 @@ protected:
 	void				Peephole(size uiStart);
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
+	int32				KeptSlotPlace(SIRReference sSlot) override;
 	void				Epilogue(void);
 	void				ReturnCode(bool bThrow = false);
 	int					ReturnInstructions(void);

@@ -21,7 +21,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/StringHelper.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/IntegerHelper.h"
+#include "BaseLib/ConstructorCall.h"
 #include "IR65BackendInternal.h"
+#include "CPP65DebugWriter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,6 +63,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	msAvailable = IRNone();
 	masFused.Init();
 	mszDeferred.Init();
+	mszBodyLabel.Init();
 	mpsFlags = NULL;
 	mpcFlags = NULL;
 	mbFlagsKnown = false;
@@ -88,6 +91,7 @@ void CIR65Backend::Kill(void)
 {
 	size	ui;
 
+	mszBodyLabel.Kill();
 	mcSelector.Kill();
 	mcCalls.Kill();
 	mcFusion.Kill();
@@ -424,7 +428,6 @@ void CIR65Backend::CountLoaded(bool bLoaded)
 void CIR65Backend::Prologue(const char* szLabel)
 {
 	size			ui;
-	int32			iUnit;
 	SIRReference	sParameter;
 	SIRType			sType;
 	SIR65Place*		psPlace;
@@ -435,6 +438,7 @@ void CIR65Backend::Prologue(const char* szLabel)
 	mpszOut->Append(szLabel);
 	mpszOut->Append(':');
 	mpszOut->AppendNewLine();
+	mszBodyLabel.Clear();
 	if (miRegisterArguments > 0)
 	{
 		//A register function: the plain label is the stub for callers that push everything, then the body's own label
@@ -452,28 +456,10 @@ void CIR65Backend::Prologue(const char* szLabel)
 		mpszOut->Append(szBody);
 		mpszOut->Append(':');
 		mpszOut->AppendNewLine();
+		mszBodyLabel.Set(szBody);
 		szBody.Kill();
 	}
-	if (msFrame.bHomeV)
-	{
-		Line("psh V")->AppendNewLine();
-	}
-	if (!msFrame.bFrameless)
-	{
-		Line("psh V")->AppendNewLine();
-		if (msFrame.iFrameBytes > 0)
-		{
-			Line("sub S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
-		}
-		Line("cpy V, S")->AppendNewLine();
-	}
-	for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
-	{
-		if (msFrame.uiSaved & (1u << iUnit))
-		{
-			Line("psh [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
-		}
-	}
+	AppendFramePrologue(mpszOut, &msFrame);
 
 	//The parameters that came in registers first (the pushed ones are read through A).
 	StoreRegisterParameters();
@@ -710,6 +696,145 @@ void CIR65Backend::RegisterStub(const char* szBody)
 			Line("ret")->AppendNewLine();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The prologue's instructions that make psFrame: V saved (a home), or V
+// saved and the frame made from S, then the [$80 + W] units it keeps.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::AppendFramePrologue(CChars* pszDest, SIR65Frame* psFrame)
+{
+	int32	iUnit;
+
+	if (psFrame->bHomeV)
+	{
+		pszDest->Append("\t\tpsh V")->AppendNewLine();
+	}
+	if (!psFrame->bFrameless)
+	{
+		pszDest->Append("\t\tpsh V")->AppendNewLine();
+		if (psFrame->iFrameBytes > 0)
+		{
+			pszDest->Append("\t\tsub S, ")->Append(psFrame->iFrameBytes)->AppendNewLine();
+		}
+		pszDest->Append("\t\tcpy V, S")->AppendNewLine();
+	}
+	for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
+	{
+		if (psFrame->uiSaved & (1u << iUnit))
+		{
+			pszDest->Append("\t\tpsh [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's frame for a debugger, its kept slots' places, and a
+// register function's body as an entry of its own (its stub may call it
+// after pushing what it was given).
+//
+//////////////////////////////////////////////////////////////////////////
+CIRWrittenFunction* CIR65Backend::TakeWritten(void)
+{
+	CIR65Written*	pcWritten;
+
+	pcWritten = NewMalloc<CIR65Written>();
+	pcWritten->Init();
+	pcWritten->msFrame = msFrame;
+	AddKeptSlots(pcWritten);
+	if (!mszBodyLabel.Empty())
+	{
+		pcWritten->AddEntry(mszBodyLabel.Text());
+	}
+	return pcWritten;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A kept slot is at [1 + its offset + V].
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR65Backend::KeptSlotPlace(SIRReference sSlot)
+{
+	return 1 + masPlaces.Get(sSlot.Index())->iOffset;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// For a debugger (the frame model, Debugger65C64Plan.txt), after the
+// prologue (AppendFramePrologue, at its body's label): the frame address
+// (S before the jsr pushed its 4 byte return address) is V plus what is
+// below it (a frame of its own: .dframe V, its variables from V too), or
+// found by following its code (frameless, V a home or untouched); what it
+// pushed is saved there (.dsaved): the caller's V, and each [$80 + W]
+// unit it keeps.  A prologue not as it was written is described by
+// following it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten)
+{
+	SIR65Frame*	psFrame;
+	CChars		szPrologue;
+	CChars		szDirectives;
+	size		uiAt;
+	int32		iBelow;
+	int32		iUnit;
+
+	if (!pcWritten)
+	{
+		return;
+	}
+	psFrame = &((CIR65Written*)pcWritten)->msFrame;
+	uiAt = CCPP65DebugWriter::FindAfterLabel(pszCode->Text(), (pcWritten->NumEntries() > 0) ? pcWritten->GetEntry(0) : szLabel);
+	if (uiAt == MAX_SIZE)
+	{
+		return;
+	}
+	szPrologue.Init();
+	AppendFramePrologue(&szPrologue, psFrame);
+	szDirectives.Init();
+	if (strncmp(pszCode->Text() + uiAt, szPrologue.Text(), szPrologue.Length()) != 0)
+	{
+		szDirectives.Append("\t\t.dframe none")->AppendNewLine();
+	}
+	else
+	{
+		uiAt += szPrologue.Length();
+		iBelow = 4;
+		if (psFrame->bHomeV || !psFrame->bFrameless)
+		{
+			iBelow += 4;
+			szDirectives.Append("\t\t.dsaved V, ")->Append(1 - iBelow)->AppendNewLine();
+		}
+		if (psFrame->bFrameless)
+		{
+			szDirectives.Append("\t\t.dframe none")->AppendNewLine();
+		}
+		else
+		{
+			iBelow += psFrame->iFrameBytes;
+			szDirectives.Append("\t\t.dframe V, ")->Append(iBelow)->AppendNewLine();
+			szDirectives.Append("\t\t.dbase V")->AppendNewLine();
+		}
+		for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
+		{
+			if (psFrame->uiSaved & (1u << iUnit))
+			{
+				iBelow += 4;
+				szDirectives.Append("\t\t.dsaved [")->Append(IR65_SAVED_UNIT(iUnit))->Append("], 4, ")->Append(1 - iBelow)->AppendNewLine();
+			}
+		}
+	}
+	pszCode->Insert(uiAt, &szDirectives);
+	szDirectives.Kill();
+	szPrologue.Kill();
 }
 
 

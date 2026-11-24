@@ -544,34 +544,12 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each named kept slot's place (D + offset) in what is kept about the
-// function, for a debugger.
+// A kept slot is at D + its slot.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::AddKeptSlots(CIRWrittenFunction* pcWritten)
+int32 CIRW65C816Backend::KeptSlotPlace(SIRReference sSlot)
 {
-	size			uiBlock;
-	size			uiInstruction;
-	CIRBlock*		pcBlock;
-	SIRInstruction*	psInstruction;
-	char*			szName;
-
-	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
-	{
-		pcBlock = mpcFunction->GetBlock(uiBlock);
-		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
-		{
-			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile))
-			{
-				szName = mpcFunction->GetTemporaryName(psInstruction->sResult);
-				if (szName)
-				{
-					pcWritten->AddSlot(szName, masTemporaries.Get(psInstruction->sResult.Index())->iSlot);
-				}
-			}
-		}
-	}
+	return masTemporaries.Get(sSlot.Index())->iSlot;
 }
 
 

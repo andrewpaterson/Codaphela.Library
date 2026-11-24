@@ -499,6 +499,56 @@ void CIRBackend::AppendRegisterSuffix(CChars* psz, CArrayIRRegisterArguments* pa
 
 //////////////////////////////////////////////////////////////////////////
 //
+// szLabel, a label in the function's code, is where it is entered too, as
+// a function of its own for a debugger (.dfunction): a register function's
+// body, which its stub may call.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRWrittenFunction::AddEntry(const char* szLabel)
+{
+	maszEntries.Add(szLabel);
+}
+
+
+size CIRWrittenFunction::NumEntries(void) const { return maszEntries.NumElements(); }
+const char* CIRWrittenFunction::GetEntry(size uiIndex) { return maszEntries.GetText(uiIndex); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each named kept slot's place (from the frame register, KeptSlotPlace) in
+// what is kept about the function, for a debugger.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::AddKeptSlots(CIRWrittenFunction* pcWritten)
+{
+	size			uiBlock;
+	size			uiInstruction;
+	CIRBlock*		pcBlock;
+	SIRInstruction*	psInstruction;
+	char*			szName;
+
+	for (uiBlock = 0; uiBlock < mpcFunction->NumBlocks(); uiBlock++)
+	{
+		pcBlock = mpcFunction->GetBlock(uiBlock);
+		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
+		{
+			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
+			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile))
+			{
+				szName = mpcFunction->GetTemporaryName(psInstruction->sResult);
+				if (szName)
+				{
+					pcWritten->AddSlot(szName, KeptSlotPlace(psInstruction->sResult));
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // What FinishFunction needs of the function GenerateFunction just wrote: a
 // new record the caller kills and frees, or NULL when the back end keeps
 // nothing.
@@ -549,6 +599,7 @@ void CIRWrittenFunction::Init(void)
 {
 	maszSlots.Init();
 	maiSlotOffsets.Init();
+	maszEntries.Init();
 }
 
 
@@ -558,6 +609,7 @@ void CIRWrittenFunction::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRWrittenFunction::Kill(void)
 {
+	maszEntries.Kill();
 	maiSlotOffsets.Kill();
 	maszSlots.Kill();
 }
@@ -565,8 +617,8 @@ void CIRWrittenFunction::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The named kept slot szName is at iOffset in the function's frame (a
-// back end's own measure: the W65C816's is from D).
+// The named kept slot szName is at iOffset from the function's frame
+// register (D on the W65C816, V on the 65C64).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRWrittenFunction::AddSlot(const char* szName, int32 iOffset)

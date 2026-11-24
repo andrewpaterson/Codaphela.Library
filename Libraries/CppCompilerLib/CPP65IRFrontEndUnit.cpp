@@ -209,7 +209,7 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		if (mpcBackend && mpcUnit->HasLineTable())
 		{
 			mpcBackend->DescribeFrame(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend);
-			CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult);
+			CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult, psWritten->pcBackend);
 		}
 		FreeWritten(psWritten);
 		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());

@@ -41,34 +41,38 @@ struct STestCPP816Debug
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Builds szSource with its debug info, as the IDE does, eBuild's way, with
-// Libc65's string routines (the optimiser makes loops calls of them) and
-// soft float.
+// Builds szSource with its debug info, as the IDE does, eBuild's way, for
+// eTarget (the W65C816 or the 65C64), with Libc65's string routines (the
+// optimiser makes loops calls of them) and soft float.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource, ETestCPP816Build eBuild = TCB_Release)
+static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource, ETestCPP816Build eBuild = TCB_Release, ECPPTarget eTarget = CPPT_W65C816)
 {
-	static const char*	aszUnits[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", NULL };
+	static const char*	aszW65C816Units[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", NULL };
+	static const char*	asz65C64Units[] = { "Libc65/string.asm", "Libc65/softfloat.cpp", "Libc65/softfloat.asm", NULL };
 	CChars				szProject;
 	CFileUtil			cFileUtil;
 	bool				bResult;
 
 	psDebug->bLoaded = false;
 	psDebug->cBuilder.Init();
-	*psDebug->cBuilder.GetOptions() = *TestCPP816Options();
+	*psDebug->cBuilder.GetOptions() = (eTarget == CPPT_W65C816) ? *TestCPP816Options() : *TestCPP65Options();
 	psDebug->cBuilder.GetOptions()->mbInline = false;
 	psDebug->cBuilder.GetOptions()->mbDebuggable = (eBuild != TCB_Release);
 	psDebug->cBuilder.GetOptions()->mbOptimise = (eBuild != TCB_Unoptimised);
-	psDebug->cBuilder.SetTarget(CPPT_W65C816);
+	psDebug->cBuilder.SetTarget(eTarget);
 	psDebug->cBuilder.SetLineTable(true);
 	TestCPP65AddIncludeDirectories(&psDebug->cBuilder);
 	AssertTrue(psDebug->cBuilder.AddStartUp());
-	szProject.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
-	cFileUtil.FullPath(&szProject);
-	psDebug->cBuilder.AddMathTables(szProject.Text());
-	szProject.Kill();
+	if (eTarget == CPPT_W65C816)
+	{
+		szProject.Init(".." _FS_ ".." _FS_ ".." _FS_ ".." _FS_ "HCP65" _FS_ "Libraries" _FS_ "Libc65");
+		cFileUtil.FullPath(&szProject);
+		psDebug->cBuilder.AddMathTables(szProject.Text());
+		szProject.Kill();
+	}
 	AssertTrue(psDebug->cBuilder.AddSource("Test.cpp", szSource));
-	TestCPP65AddUnits(&psDebug->cBuilder, aszUnits, false);
+	TestCPP65AddUnits(&psDebug->cBuilder, (eTarget == CPPT_W65C816) ? aszW65C816Units : asz65C64Units, false);
 	bResult = psDebug->cBuilder.Link();
 	AssertTrue(bResult);
 	AssertString("", psDebug->cBuilder.GetErrors());
@@ -1233,6 +1237,118 @@ void TestCPP816DebugWindows(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The uiNth (from 0) function named szName is described as szExpected
+// says: how its frame address is found ("follow", "V + 12" or
+// "[D + 6] + 5"), what its variables are from (", base V") and each thing
+// it saved (", saved V -7", ", saved [128] -11"), in its processor's
+// registers' names.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertCPP65DebugDescribed(STestCPP816Debug* psDebug, const char* szName, size uiNth, const char* szExpected)
+{
+	CAsm65DebugRecords*		pcRecords;
+	SAsm65DebugFunction*	psFunction;
+	SAsm65DebugSaved*		psSaved;
+	EAsm65DebugProcessor	eProcessor;
+	CChars					sz;
+	size					ui;
+
+	pcRecords = psDebug->pcRecords;
+	eProcessor = pcRecords->GetProcessor();
+	psFunction = NULL;
+	for (ui = 0; ui < pcRecords->NumFunctions(); ui++)
+	{
+		if (pcRecords->GetFunction(ui)->szName.Equals(szName) && (uiNth-- == 0))
+		{
+			psFunction = pcRecords->GetFunction(ui);
+			break;
+		}
+	}
+	AssertTrue(psFunction != NULL);
+	if (!psFunction)
+	{
+		return;
+	}
+	sz.Init();
+	switch (psFunction->uiFrame)
+	{
+	case ADF_Register:
+		sz.Append(Asm65DebugRegisterName(eProcessor, psFunction->uiFrameRegister))->Append(" + ")->Append(psFunction->iFrameOffset);
+		break;
+	case ADF_Memory:
+		sz.Append('[')->Append(Asm65DebugRegisterName(eProcessor, psFunction->uiFrameRegister))->Append(" + ")->Append(psFunction->iFrameOffset)->Append("] + ")->Append(psFunction->iFrameAdjust);
+		break;
+	default:
+		sz.Append("follow");
+		break;
+	}
+	if (psFunction->uiBase != ASM65_DEBUG_FRAME)
+	{
+		sz.Append(", base ")->Append(Asm65DebugRegisterName(eProcessor, psFunction->uiBase));
+	}
+	for (ui = 0; ui < psFunction->uiNumSaved; ui++)
+	{
+		psSaved = pcRecords->GetSaved(psFunction, ui);
+		sz.Append(", saved ");
+		if (psSaved->bMemory)
+		{
+			sz.Append('[')->Append((int32)psSaved->uiWhat)->Append(']');
+		}
+		else
+		{
+			sz.Append(Asm65DebugRegisterName(eProcessor, psSaved->uiWhat));
+		}
+		sz.Append(' ')->Append(psSaved->iOffset);
+	}
+	AssertString(szExpected, sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The 65C64's functions are described by the frame model too: a frame of
+// its own from V (the caller's V saved below the jsr's 4 byte return, its
+// variables from V); with V a home the caller's V saved and the rest found
+// by following its code; with no frame, following its code; a register
+// function's body an entry of its own after its stub.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65C64DebugFrames(void)
+{
+	static const char*	szSource =
+		"int Twice(int i) { return i + i; }\n"
+		"int One(int a)\n"
+		"{\n"
+		"	int x = Twice(a);\n"
+		"	return x + Twice(x);\n"
+		"}\n"
+		"int main(void)\n"
+		"{\n"
+		"	int ai[4] = { 1, 2, 3, 4 };\n"
+		"	return One(ai[2]);\n"
+		"}\n";
+	STestCPP816Debug	sDebug;
+
+	//Debug: every function with variables has a frame, its variables in it.
+	TestCPP816DebugBuild(&sDebug, szSource, TCB_Debug, CPPT_65C64);
+	AssertInt(ADP_65C64, sDebug.pcRecords->GetProcessor());
+	AssertCPP65DebugDescribed(&sDebug, "Twice", 0, "follow");
+	AssertCPP65DebugDescribed(&sDebug, "Twice", 1, "V + 12, base V, saved V -7");
+	AssertInt(1, (int)TestCPP816DebugFunction(&sDebug, "_main")->uiNumVariables);
+	AssertCPP65DebugDescribed(&sDebug, "main", 0, "V + 24, base V, saved V -7");
+	TestCPP816DebugKill(&sDebug);
+
+	//Release: Twice has no frame; One keeps x in V across its calls.
+	TestCPP816DebugBuild(&sDebug, szSource, TCB_Release, CPPT_65C64);
+	AssertCPP65DebugDescribed(&sDebug, "Twice", 1, "follow");
+	AssertCPP65DebugDescribed(&sDebug, "One", 1, "follow, saved V -7");
+	TestCPP816DebugKill(&sDebug);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP816Debug(void)
@@ -1245,6 +1361,7 @@ void TestCPP816Debug(void)
 	TestCPP816DebugStack();
 	TestCPP816DebugValues();
 	TestCPP816DebugWindows();
+	TestCPP65C64DebugFrames();
 
 	TestStatistics();
 }

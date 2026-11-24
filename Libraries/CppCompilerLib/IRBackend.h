@@ -68,6 +68,7 @@ class CIRWrittenFunction
 protected:
 	CArrayChars				maszSlots;
 	CArrayTemplate<int32>	maiSlotOffsets;
+	CArrayChars				maszEntries;	//Labels in its code that are entries of their own (a register body).
 
 public:
 	void			Init(void);
@@ -75,6 +76,9 @@ public:
 
 	void			AddSlot(const char* szName, int32 iOffset);
 	bool			FindSlot(const char* szName, int32* piOffset);
+	void			AddEntry(const char* szLabel);
+	size			NumEntries(void) const;
+	const char*		GetEntry(size uiIndex);
 };
 
 
@@ -138,6 +142,8 @@ public:
 	static void		AppendRegisterSuffix(CChars* psz, CArrayIRRegisterArguments* pasArguments, const char* szLetters);
 
 protected:
+	void			AddKeptSlots(CIRWrittenFunction* pcWritten);
+	virtual int32	KeptSlotPlace(SIRReference sSlot) = 0;
 	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
 
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);

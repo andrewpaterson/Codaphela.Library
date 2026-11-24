@@ -50,6 +50,9 @@ struct SCPP65DebugType
 typedef CArrayTemplate<SCPP65DebugType>	CArrayCPP65DebugTypes;
 
 
+class CIRWrittenFunction;
+
+
 //Writes the debug directives a unit's assembly describes itself with for a debugger (Assembler65Lib's
 //CAsm65DebugRecords, the .d* directives): what the front end knows of a function (its name and its variables) and the
 //types they have.  A unit's types are described once each, at the unit's end (AppendTypes), every one the variables
@@ -73,7 +76,7 @@ public:
 	void			AppendTypes(CChars* pszDest);
 
 	static void		AppendString(CChars* pszDest, const char* szText);
-	static bool		DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName, int32 iResult);
+	static bool		DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName, int32 iResult, CIRWrittenFunction* pcWritten);
 	static size		FindAfterLabel(const char* szCode, const char* szLabel);
 
 protected:

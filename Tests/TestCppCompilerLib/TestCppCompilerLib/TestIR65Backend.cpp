@@ -1,4 +1,6 @@
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/ConstructorCall.h"
+#include "BaseLib/PointerFunctions.h"
 #include "CppCompilerLib/CPPCompileOptions.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
@@ -2176,6 +2178,88 @@ void TestIR65BackendMnemonics(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// DescribeFrame on a function _F whose code is its prologue as
+// AppendFramePrologue writes it for a frame of iFrameBytes (none when
+// bFrameless; V a home with bHomeV) keeping the units uiSaved, after
+// szStub (a register function's stub, its body _F.a an entry of its own),
+// then ret.  The code it leaves is szExpected.
+//
+//////////////////////////////////////////////////////////////////////////
+static void AssertIR65DescribedFrame(const char* szExpected, bool bHomeV, bool bFrameless, int32 iFrameBytes, uint32 uiSaved, const char* szStub = NULL)
+{
+	CIR65Backend	cBackend;
+	CIR65Written*	pcWritten;
+	CChars			szCode;
+
+	pcWritten = NewMalloc<CIR65Written>();
+	pcWritten->Init();
+	pcWritten->msFrame.Init();
+	pcWritten->msFrame.bHomeV = bHomeV;
+	pcWritten->msFrame.iFrameBytes = iFrameBytes;
+	pcWritten->msFrame.uiSaved = uiSaved;
+	pcWritten->msFrame.SetFrameless(bFrameless);
+	szCode.Init("_F:\n");
+	if (szStub)
+	{
+		szCode.Append(szStub)->Append("_F.a:\n");
+		pcWritten->AddEntry("_F.a");
+	}
+	CIR65Backend::AppendFramePrologue(&szCode, &pcWritten->msFrame);
+	szCode.Append("\t\tret\n");
+	cBackend.DescribeFrame(&szCode, "_F", pcWritten);
+	AssertString(szExpected, szCode.Text());
+	szCode.Kill();
+	SafeKill(pcWritten);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The frame model's records (Debugger65C64Plan.txt) for each shape of
+// frame: the frame address (S before jsr pushed its 4 bytes) from V, or by
+// following the code; what the prologue pushed saved below it.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIR65BackendDescribeFrame(void)
+{
+	CIR65Backend	cBackend;
+	CIR65Written*	pcWritten;
+	CChars			szCode;
+
+	//A frame of its own: V saved, 8 frame bytes below it, the variables from V.
+	AssertIR65DescribedFrame("_F:\n\t\tpsh V\n\t\tsub S, 8\n\t\tcpy V, S\n\t\t.dsaved V, -7\n\t\t.dframe V, 16\n\t\t.dbase V\n\t\tret\n", false, false, 8, 0);
+
+	//An empty frame keeping two units: they are below V.
+	AssertIR65DescribedFrame("_F:\n\t\tpsh V\n\t\tcpy V, S\n\t\tpsh [128 + W]\n\t\tpsh [136 + W]\n"
+							 "\t\t.dsaved V, -7\n\t\t.dframe V, 8\n\t\t.dbase V\n\t\t.dsaved [128], 4, -11\n\t\t.dsaved [136], 4, -15\n\t\tret\n", false, false, 0, 0x5);
+
+	//V a home: the caller's V saved, the rest found by following the code.
+	AssertIR65DescribedFrame("_F:\n\t\tpsh V\n\t\tpsh [128 + W]\n\t\t.dsaved V, -7\n\t\t.dframe none\n\t\t.dsaved [128], 4, -11\n\t\tret\n", true, true, 0, 0x1);
+
+	//No frame and V left alone: a unit kept just below the return address.
+	AssertIR65DescribedFrame("_F:\n\t\tpsh [132 + W]\n\t\t.dframe none\n\t\t.dsaved [132], 4, -7\n\t\tret\n", false, true, 0, 0x2);
+
+	//A register function: its body's prologue, after its stub.
+	AssertIR65DescribedFrame("_F:\n\t\tlda A, [5 + S]\n_F.a:\n\t\tpsh V\n\t\tsub S, 4\n\t\tcpy V, S\n\t\t.dsaved V, -7\n\t\t.dframe V, 12\n\t\t.dbase V\n\t\tret\n",
+							 false, false, 4, 0, "\t\tlda A, [5 + S]\n");
+
+	//Code that isn't its prologue as written is described by following it; with nothing kept, nothing is described.
+	pcWritten = NewMalloc<CIR65Written>();
+	pcWritten->Init();
+	pcWritten->msFrame.Init();
+	pcWritten->msFrame.iFrameBytes = 8;
+	szCode.Init("_F:\n\t\tnop\n");
+	cBackend.DescribeFrame(&szCode, "_F", pcWritten);
+	AssertString("_F:\n\t\t.dframe none\n\t\tnop\n", szCode.Text());
+	cBackend.DescribeFrame(&szCode, "_G", NULL);
+	AssertString("_F:\n\t\t.dframe none\n\t\tnop\n", szCode.Text());
+	szCode.Kill();
+	SafeKill(pcWritten);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestIR65Backend(void)
@@ -2187,6 +2271,7 @@ void TestIR65Backend(void)
 	C65C64InstructionFactory::GetInstance()->Init();
 
 	TestIR65BackendMnemonics();
+	TestIR65BackendDescribeFrame();
 	TestIR65BackendUnits();
 	TestIR65BackendReturn();
 	TestIR65BackendLoop();

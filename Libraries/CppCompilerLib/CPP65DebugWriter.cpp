@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppTokeniser.h"
 #include "CPPUnit.h"
 #include "CPPTypeWriter.h"
+#include "IRBackend.h"
 #include "CPP65DebugWriter.h"
 
 
@@ -449,20 +450,19 @@ void CCPP65DebugWriter::AppendString(CChars* pszDest, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 //
 // .dfunction "szName" after the function's label in its code: it starts
-// there, and returns the unit's type iResult (-1 for void, left out).
-// False if the code has no such label.
+// there, and returns the unit's type iResult (-1 for void, left out).  So
+// too after each label the back end says is an entry of its own
+// (pcWritten's, a register function's body).  False if the code has no
+// such label.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65DebugWriter::DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName, int32 iResult)
+bool CCPP65DebugWriter::DescribeFunction(CChars* pszCode, const char* szLabel, const char* szName, int32 iResult, CIRWrittenFunction* pcWritten)
 {
 	CChars	szDirective;
 	size	uiAfter;
+	size	ui;
+	bool	bResult;
 
-	uiAfter = FindAfterLabel(pszCode->Text(), szLabel);
-	if (uiAfter == MAX_SIZE)
-	{
-		return false;
-	}
 	szDirective.Init("\t\t.dfunction ");
 	AppendString(&szDirective, szName);
 	if (iResult >= 0)
@@ -470,9 +470,22 @@ bool CCPP65DebugWriter::DescribeFunction(CChars* pszCode, const char* szLabel, c
 		szDirective.Append(", long, ")->Append(iResult);
 	}
 	szDirective.AppendNewLine();
-	pszCode->Insert(uiAfter, &szDirective);
+	uiAfter = FindAfterLabel(pszCode->Text(), szLabel);
+	bResult = uiAfter != MAX_SIZE;
+	if (bResult)
+	{
+		pszCode->Insert(uiAfter, &szDirective);
+	}
+	for (ui = 0; pcWritten && (ui < pcWritten->NumEntries()); ui++)
+	{
+		uiAfter = FindAfterLabel(pszCode->Text(), pcWritten->GetEntry(ui));
+		if (uiAfter != MAX_SIZE)
+		{
+			pszCode->Insert(uiAfter, &szDirective);
+		}
+	}
 	szDirective.Kill();
-	return true;
+	return bResult;
 }
 
 
