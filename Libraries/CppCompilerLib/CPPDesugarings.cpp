@@ -571,7 +571,7 @@ bool CCPPDesugarings::InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue
 
 	if (psMember->IsArray())
 	{
-		return psMember->psBase->IsInteger() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcValue));
+		return psMember->psBase->IsInteger() && mpcUnit->GetTypeChecker()->IsStringLiteral(CPPSkipParentheses(pcValue));
 	}
 	mpcUnit->mcDiagnostics.BeginQuiet();
 	psValue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcValue);

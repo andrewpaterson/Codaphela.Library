@@ -159,7 +159,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 	CCPPToken*						pcToken;
 	double							dValue;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
 		return false;
@@ -667,7 +667,7 @@ bool CCPPConstantFolder::RunConstant(CCPPSyntax* pcExpression, int64* plliValue)
 {
 	SCPP65Type*	psType;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
 		return false;
@@ -1147,7 +1147,7 @@ bool CCPPConstantFolder::FloatBuiltin(CCPPSyntax* pcExpression, double* pdValue,
 	bool						bFloat;
 
 	pcCall = (CCPPSyntaxCallExpression*)pcExpression;
-	pcCallee = mpcUnit->SkipParentheses(pcCall->mpcCallee);
+	pcCallee = CPPSkipParentheses(pcCall->mpcCallee);
 	if (!pcCallee || (pcCallee->GetKind() != CPPS_IdExpression))
 	{
 		return false;

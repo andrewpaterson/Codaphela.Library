@@ -178,7 +178,7 @@ void CCPPBinder::Resolve(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBoun
 		ResolveMember(pcCall, pcBound);
 		return;
 	}
-	if (mpcUnit->IsMemberPointerOperator(pcCallee))
+	if (pcCallee->IsMemberPointerOperator())
 	{
 		pcBound->meHow = CPPBC_MemberPointer;
 		return;
@@ -2586,7 +2586,7 @@ SCPPField* CCPPBinder::BitFieldOf(CCPPSyntax* pcExpression)
 	CCPPBoundName						cBound;
 	SCPPField*							psField;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	cBound.meWhat = CPPBN_Nothing;
 	if (pcExpression->GetKind() == CPPS_ConditionalExpression)
 	{
@@ -2710,7 +2710,7 @@ bool CCPPBinder::IsUncapturedConstant(CCPPSyntax* pcExpression)
 {
 	CCPPBoundName	cBound;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression || (pcExpression->GetKind() != CPPS_IdExpression))
 	{
 		return false;
@@ -2825,7 +2825,7 @@ CCPPSyntaxIdExpression* CCPPBinder::FunctionNameFor(CCPPSyntax* pcExpression, SC
 //////////////////////////////////////////////////////////////////////////
 CCPPSyntaxIdExpression* CCPPBinder::MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo)
 {
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression || !psTo || !psTo->IsMemberPointer() || !psTo->psBase->IsFunction() || (pcExpression->GetKind() != CPPS_UnaryExpression) || (((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator != CT_BitwiseAnd))
 	{
 		return NULL;
@@ -2866,10 +2866,10 @@ CCPPSyntaxIdExpression* CCPPBinder::FunctionNameOf(CCPPSyntax* pcExpression)
 	CCPPSyntaxIdExpression*	pcId;
 	CCPPSymbol*				pcSymbol;
 
-	pcFunction = mpcUnit->SkipParentheses(pcExpression);
+	pcFunction = CPPSkipParentheses(pcExpression);
 	if (pcFunction && (pcFunction->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcFunction)->meOperator == CT_BitwiseAnd))
 	{
-		pcFunction = mpcUnit->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
+		pcFunction = CPPSkipParentheses(((CCPPSyntaxUnaryExpression*)pcFunction)->mpcOperand);
 	}
 	if (!pcFunction || (pcFunction->GetKind() != CPPS_IdExpression))
 	{

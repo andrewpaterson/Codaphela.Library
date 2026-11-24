@@ -148,7 +148,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	ECppTokens					eOperator;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_CallExpression:
@@ -159,7 +159,7 @@ bool CCPP65IRFrontEnd::IsObjectCall(CCPPSyntax* pcExpression)
 		return mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression) != NULL;
 	case CPPS_BinaryExpression:
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		return !IsCPPAssignment(pcBinary->meOperator) && !mpcUnit->IsMemberPointerOperator(pcExpression) && ((pcBinary->meOperator != CT_Comma) || mpcUnit->GetBinder()->IsOverloadedComma(pcBinary));
+		return !IsCPPAssignment(pcBinary->meOperator) && !pcExpression->IsMemberPointerOperator() && ((pcBinary->meOperator != CT_Comma) || mpcUnit->GetBinder()->IsOverloadedComma(pcBinary));
 	case CPPS_UnaryExpression:
 		eOperator = ((CCPPSyntaxUnaryExpression*)pcExpression)->meOperator;
 		return (eOperator == CT_Subtract) || (eOperator == CT_Add) || (eOperator == CT_BitwiseNot);
@@ -976,10 +976,10 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 			}
 		}
 		psSource = mpcUnit->GetTypeChecker()->TypeOf(pcInitialiser);
-		if (psSource && (psSource == psType) && (mpcUnit->SkipParentheses(pcInitialiser)->GetKind() == CPPS_ConditionalExpression))
+		if (psSource && (psSource == psType) && (CPPSkipParentheses(pcInitialiser)->GetKind() == CPPS_ConditionalExpression))
 		{
 			//= c ? x : y makes the object here from whichever is worked out.
-			return ObjectConditional((CCPPSyntaxConditionalExpression*)mpcUnit->SkipParentheses(pcInitialiser), psPlace, &sMade);
+			return ObjectConditional((CCPPSyntaxConditionalExpression*)CPPSkipParentheses(pcInitialiser), psPlace, &sMade);
 		}
 		if (psSource && psSource->IsClass() && (psSource->pcClass == pcClass) && IsObjectCall(pcInitialiser) && !(mpcUnit->GetTypeChecker()->DeclaredTypeOf(pcInitialiser)->IsReference() && pcClass->HasCopyConstructor()))
 		{

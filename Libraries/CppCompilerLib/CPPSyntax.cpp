@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/SystemAllocator.h"
 #include "CPPSyntaxes.h"
+#include "CPPSymbol.h"
 
 
 //The name of each kind of node, indexed by ECPPSyntax, for TypePrint.
@@ -398,3 +399,133 @@ void CCPPSyntax::PrintSubStatement(CChars* pszDest, CCPPSyntax* pcStatement, int
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this is object.*member or pointer->*member.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntax::IsMemberPointerOperator(void)
+{
+	ECppTokens	eOperator;
+
+	if (GetKind() != CPPS_BinaryExpression)
+	{
+		return false;
+	}
+	eOperator = ((CCPPSyntaxBinaryExpression*)this)->meOperator;
+	return (eOperator == CT_MemberFunctionPointerIndirection) || (eOperator == CT_MemberByPointerFunctionPointerIndirection);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this is a function's name: the function itself, an lvalue,
+// where it isn't converted to a pointer to it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntax::NamesFunction(void)
+{
+	CCPPSymbol*	pcSymbol;
+
+	if (GetKind() != CPPS_IdExpression)
+	{
+		return false;
+	}
+	pcSymbol = ((CCPPSyntaxIdExpression*)this)->mpcName->mpcSymbol;
+	return pcSymbol && (pcSymbol->meKind == CPPSK_Function);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this is the operand of a decltype, or the right of a comma that
+// is (in brackets or not): what decltype asks only the type of, so a call
+// there makes no temporary.  [expr.call] 11, [dcl.type.simple] 5
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntax::IsDecltypeOperand(void)
+{
+	CCPPSyntax*	pcNode;
+	CCPPSyntax*	pcParent;
+
+	pcNode = this;
+	for (pcParent = mpcParent; pcParent; pcNode = pcParent, pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_DecltypeSpecifier:
+			return ((CCPPSyntaxDecltypeSpecifier*)pcParent)->mpcOperand == pcNode;
+		case CPPS_ParenthesisedExpression:
+			break;
+		case CPPS_BinaryExpression:
+			if ((((CCPPSyntaxBinaryExpression*)pcParent)->meOperator != CT_Comma) || (((CCPPSyntaxBinaryExpression*)pcParent)->mpcRight != pcNode))
+			{
+				return false;
+			}
+			break;
+		default:
+			return false;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether this is written in an operand that isn't evaluated, of sizeof,
+// decltype, noexcept or typeid, in the function (or lambda) it is in.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPSyntax::IsInUnevaluatedOperand(void)
+{
+	CCPPSyntax*	pcParent;
+
+	for (pcParent = mpcParent; pcParent; pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_SizeofExpression:
+		case CPPS_DecltypeSpecifier:
+		case CPPS_NoexceptExpression:
+		case CPPS_TypeidExpression:
+			return true;
+		case CPPS_FunctionDefinition:
+		case CPPS_LambdaExpression:
+			return false;
+		default:
+			break;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The parameter whose default argument this is written in (not in the
+// body of a lambda written there, which is a function of its own), or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntaxParameter* CCPPSyntax::DefaultArgumentOf(void)
+{
+	CCPPSyntax*	pcNode;
+	CCPPSyntax*	pcParent;
+
+	pcNode = this;
+	for (pcParent = mpcParent; pcParent; pcNode = pcParent, pcParent = pcParent->mpcParent)
+	{
+		switch (pcParent->GetKind())
+		{
+		case CPPS_Parameter:
+			return (((CCPPSyntaxParameter*)pcParent)->mpcDefault == pcNode) ? (CCPPSyntaxParameter*)pcParent : NULL;
+		case CPPS_FunctionDefinition:
+		case CPPS_LambdaExpression:
+			return NULL;
+		default:
+			break;
+		}
+	}
+	return NULL;
+}

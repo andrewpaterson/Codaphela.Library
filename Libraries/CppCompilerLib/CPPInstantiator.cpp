@@ -1958,11 +1958,11 @@ bool CCPPInstantiator::BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* 
 	CCPPClass*		pcClass;
 	bool			bAddress;
 
-	pcEntity = psArgument->bExpanded ? NULL : mpcUnit->SkipParentheses(psArgument->pcArgument);
+	pcEntity = psArgument->bExpanded ? NULL : CPPSkipParentheses(psArgument->pcArgument);
 	bAddress = pcEntity && (pcEntity->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcEntity)->meOperator == CT_BitwiseAnd);
 	if (bAddress)
 	{
-		pcEntity = mpcUnit->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcEntity)->mpcOperand);
+		pcEntity = CPPSkipParentheses(((CCPPSyntaxUnaryExpression*)pcEntity)->mpcOperand);
 	}
 	pcSymbol = (pcEntity && (pcEntity->GetKind() == CPPS_IdExpression)) ? ((CCPPSyntaxIdExpression*)pcEntity)->mpcName->mpcSymbol : NULL;
 	if (bAddress && pcSymbol && (pcSymbol->meKind == CPPSK_Field) && ((CCPPSyntaxIdExpression*)pcEntity)->mpcName->IsQualifiedByClass())

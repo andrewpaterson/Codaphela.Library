@@ -502,7 +502,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		{
 			psType = pcTypes->Pointer(psType->ElementType());
 		}
-		else if (psType && psType->IsPointer() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcInitialiser)))
+		else if (psType && psType->IsPointer() && mpcUnit->GetTypeChecker()->IsStringLiteral(CPPSkipParentheses(pcInitialiser)))
 		{
 			//A string literal's characters are const.
 			psType = pcTypes->Pointer(pcTypes->Qualified(psType->psBase, true, false));
@@ -612,7 +612,7 @@ SCPP65Type* CCPPDeclarators::OperandType(CCPPSyntax* pcOperand)
 	{
 		return mpcUnit->GetTypes()->Reference(psPlace);
 	}
-	if (psPlace && (mpcUnit->SkipParentheses(pcOperand)->GetKind() == CPPS_MemberExpression))
+	if (psPlace && (CPPSkipParentheses(pcOperand)->GetKind() == CPPS_MemberExpression))
 	{
 		//Make().m: a field of an object that is going, an xvalue.
 		return mpcUnit->GetTypes()->Reference(psPlace, true);
@@ -645,7 +645,7 @@ SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
 		{
 			return psType;
 		}
-		if (mpcUnit->NamesFunction(pcOperand))
+		if (pcOperand->NamesFunction())
 		{
 			psType = mpcUnit->GetTypeChecker()->TypeOf(pcOperand);
 			return (psType && psType->IsPointer()) ? psType->psBase : NULL;

@@ -32,6 +32,7 @@ class CCPPSyntaxTree;
 class CCPPSyntaxVisitor;
 class CCPPScope;
 class CCPPSymbol;
+class CCPPSyntaxParameter;
 
 
 typedef CArrayTemplatePtr<CCPPSyntax>	CArraySyntax;
@@ -120,6 +121,11 @@ public:
 			CCPPSyntax*	GetChild(size iIndex);
 
 			char*		GetType(void);
+			bool		IsMemberPointerOperator(void);
+			bool		NamesFunction(void);
+			bool		IsDecltypeOperand(void);
+			bool		IsInUnevaluatedOperand(void);
+	CCPPSyntaxParameter*	DefaultArgumentOf(void);
 			void		SetTokens(int iFirstToken, int iLastToken);
 			void		Dump(void);
 
@@ -136,6 +142,10 @@ protected:
 			void		PrintCondition(CChars* pszDest, CCPPSyntax* pcCondition, int iDepth);
 			void		PrintSubStatement(CChars* pszDest, CCPPSyntax* pcStatement, int iDepth);
 };
+
+
+//What an expression is without the parentheses round it; NULL for none.
+inline CCPPSyntax* CPPSkipParentheses(CCPPSyntax* pcExpression) { return pcExpression ? pcExpression->WithoutParentheses() : NULL; }
 
 
 #endif // __C_P_P_SYNTAX_H__

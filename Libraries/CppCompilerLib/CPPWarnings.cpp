@@ -208,7 +208,7 @@ CCPPSyntaxBinaryExpression* CCPPWarnings::NarrowMultiply(CCPPSyntax* pcExpressio
 	SCPP65Type*					psSide;
 	int							i;
 
-	pcInner = mpcUnit->SkipParentheses(pcExpression);
+	pcInner = CPPSkipParentheses(pcExpression);
 	if (!pcInner || (pcInner->GetKind() != CPPS_BinaryExpression))
 	{
 		return NULL;
@@ -284,7 +284,7 @@ void CCPPWarnings::LoopCounters(CCPPSyntax* pcIncrement, CArrayVoidPtr* papcCoun
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	CCPPSymbol*					pcSymbol;
 
-	pcInner = mpcUnit->SkipParentheses(pcIncrement);
+	pcInner = CPPSkipParentheses(pcIncrement);
 	if (!pcInner)
 	{
 		return;
@@ -338,7 +338,7 @@ void CCPPWarnings::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr
 	CChars						szMessage;
 	ECppTokens					eOperator;
 
-	pcInner = mpcUnit->SkipParentheses(pcCondition);
+	pcInner = CPPSkipParentheses(pcCondition);
 	if (!pcInner || (pcInner->GetKind() != CPPS_BinaryExpression))
 	{
 		return;
@@ -385,7 +385,7 @@ void CCPPWarnings::LoopCounterComparisons(CCPPSyntax* pcCondition, CArrayVoidPtr
 
 	//A constant bound is ComparisonRange's, and a choice of constants (b ? 7 : 3) is two of them.
 	mpcUnit->mcDiagnostics.BeginTrial();
-	pcInner = mpcUnit->SkipParentheses(pcBound);
+	pcInner = CPPSkipParentheses(pcBound);
 	if (pcInner && (pcInner->GetKind() == CPPS_ConditionalExpression))
 	{
 		bConstant = mpcUnit->mcFolder.Constant(((CCPPSyntaxConditionalExpression*)pcInner)->mpcTrue, &lliValue) &&
@@ -419,7 +419,7 @@ CCPPSymbol* CCPPWarnings::LoopCounterSymbol(CCPPSyntax* pcExpression)
 	CCPPSyntax*				pcInner;
 	CCPPSyntaxIdExpression*	pcId;
 
-	pcInner = mpcUnit->SkipParentheses(pcExpression);
+	pcInner = CPPSkipParentheses(pcExpression);
 	if (!pcInner || (pcInner->GetKind() != CPPS_IdExpression))
 	{
 		return NULL;

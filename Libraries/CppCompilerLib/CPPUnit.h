@@ -362,9 +362,6 @@ public:
 
 	//Classes, templates, virtual functions, this and a class's bases, and the names of functions.  CPPUnitClasses.cpp,
 	//CPPUnitTemplates.cpp, CPPUnitVtables.cpp, CPPUnitOverloads.cpp and CPPUnitLabels.cpp
-	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
-	CCPPSyntaxParameter*	DefaultArgumentOf(CCPPSyntax* pcNode);
-	bool					IsDecltypeOperand(CCPPSyntax* pcNode);
 
 	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
@@ -378,8 +375,6 @@ public:
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
 
 
-	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
-	bool					NamesFunction(CCPPSyntax* pcExpression);
 	bool					CheckInitialiser(CCPPSyntax* pcValue, SCPP65Type* psTo);
 	bool					CheckBracedValue(CCPPSyntax* pcValue, SCPP65Type* psTo);
 
@@ -388,7 +383,6 @@ public:
 
 
 	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
-	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
 
 	//Objects and copies.  CPPUnitObjects.cpp
 

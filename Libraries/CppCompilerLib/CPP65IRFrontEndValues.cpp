@@ -142,7 +142,7 @@ bool CCPP65IRFrontEnd::Value(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 	SCPP65IRPlace					sPlace;
 	CCPPSyntaxNamedCastExpression*	pcNamedCast;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression || mbUnsupported)
 	{
 		return Unsupported(__FILE__, __LINE__);
@@ -1192,7 +1192,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 
 	psPlace->psBitField = NULL;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_IdExpression:
@@ -1376,7 +1376,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		return true;
 
 	case CPPS_BinaryExpression:
-		if (mpcUnit->IsMemberPointerOperator(pcExpression))
+		if (pcExpression->IsMemberPointerOperator())
 		{
 			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression, psPlace);
 		}
@@ -1679,7 +1679,7 @@ bool CCPP65IRFrontEnd::ArrayValue(CCPPSyntax* pcArray, SCPP65IRValue* psPointer,
 	bool			bPlace;
 
 	*ppsArray = NULL;
-	pcArray = mpcUnit->SkipParentheses(pcArray);
+	pcArray = CPPSkipParentheses(pcArray);
 	switch (pcArray->GetKind())
 	{
 	case CPPS_MemberExpression:

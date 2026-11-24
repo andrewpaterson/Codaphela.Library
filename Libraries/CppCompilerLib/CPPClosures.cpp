@@ -236,7 +236,7 @@ bool CCPPClosures::LambdaCaptures(SCPPLambda* psLambda)
 		bResult &= AddCapture(psLambda, pcSymbol, pcCapture->mpcName, pcCapture->meKind == CPPLC_Reference, false, pcCapture);
 	}
 	bResult = bResult && UsedCaptures(psLambda, psLambda->pcSyntax->mpcDefinition->mpcBody);
-	if (bResult && (psLambda->asCaptures.NumElements() > 0) && mpcUnit->DefaultArgumentOf(psLambda->pcSyntax))
+	if (bResult && (psLambda->asCaptures.NumElements() > 0) && psLambda->pcSyntax->DefaultArgumentOf())
 	{
 		//[expr.prim.lambda] 13
 		return mpcUnit->mcDiagnostics.ReportOnce(psLambda->pcSyntax, "A lambda in a default argument can't capture anything");

@@ -1861,7 +1861,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		//A value with no name only binds to a const reference or T&&.
 		return CPPCR_None;
 	}
-	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcArgument)))
+	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && mpcUnit->GetTypeChecker()->IsStringLiteral(CPPSkipParentheses(pcArgument)))
 	{
 		//A string literal's characters are const: char* p = "x" is allowed, but const char* is the better match.
 		return psParameter->psBase->bConst ? CPPCR_Exact : CPPCR_Qualification;

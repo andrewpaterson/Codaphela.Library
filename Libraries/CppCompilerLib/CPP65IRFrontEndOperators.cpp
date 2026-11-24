@@ -75,7 +75,7 @@ bool CCPP65IRFrontEnd::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnary, SCPP6
 		}
 		return Load(&sPlace, psValue);
 	case CT_BitwiseAnd:
-		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
+		pcOperand = CPPSkipParentheses(pcUnary->mpcOperand);
 		bMember = false;
 		if (mpcUnit->GetBinder()->MemberPointerName(pcUnary) && MemberAddress((CCPPSyntaxIdExpression*)pcOperand, NULL, psValue, &bMember))
 		{
@@ -453,7 +453,7 @@ bool CCPP65IRFrontEnd::AssignedObject(CCPPSyntax* pcRight, SCPP65Type* psClass, 
 	SCPP65IRPlace	sTemporary;
 	SCPP65IRMade	sMade;
 
-	if ((mpcUnit->SkipParentheses(pcRight)->GetKind() != CPPS_InitializerList) && (mpcUnit->GetTypeChecker()->IsObject(pcRight) || !psClass->IsClass() || !mpcUnit->GetBinder()->ConvertsByConstructor(psClass->pcClass, pcRight)))
+	if ((CPPSkipParentheses(pcRight)->GetKind() != CPPS_InitializerList) && (mpcUnit->GetTypeChecker()->IsObject(pcRight) || !psClass->IsClass() || !mpcUnit->GetBinder()->ConvertsByConstructor(psClass->pcClass, pcRight)))
 	{
 		return Value(pcRight, psValue);
 	}
@@ -946,7 +946,7 @@ bool CCPP65IRFrontEnd::Condition(CCPPSyntax* pcExpression, CIRBlock* pcTrue, CIR
 	CCPPVariable*				pcVariable;
 	SCPP65IRPlace				sPlace;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
 		return Unsupported(__FILE__, __LINE__);

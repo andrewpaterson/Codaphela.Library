@@ -228,7 +228,7 @@ ECPPValueCategory CCPP65TypeChecker::WorkOutCategory(CCPPSyntax* pcExpression)
 	ECPPValueCategory					eObject;
 	SCPP65Type*							psType;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
 		return CPPVC_Prvalue;
@@ -287,7 +287,7 @@ ECPPValueCategory CCPP65TypeChecker::WorkOutCategory(CCPPSyntax* pcExpression)
 		{
 			return Category(pcBinary->mpcRight);
 		}
-		if (mpcUnit->IsMemberPointerOperator(pcExpression))
+		if (pcExpression->IsMemberPointerOperator())
 		{
 			//p->*m is an lvalue, o.*m o's (an object on the left is no operator's operand); of a member function,
 			//the call it is made for.  [expr.mptr.oper] 6
@@ -653,7 +653,7 @@ void CCPP65TypeChecker::VisitThisExpression(CCPPSyntaxThisExpression* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65TypeChecker::VisitLambdaExpression(CCPPSyntaxLambdaExpression* pcNode)
 {
-	if (mpcUnit->IsInUnevaluatedOperand(pcNode))
+	if (pcNode->IsInUnevaluatedOperand())
 	{
 		//[expr.prim.lambda] 2
 		Error(pcNode, "A lambda can't be written in the operand of sizeof, decltype, noexcept or typeid");
@@ -913,7 +913,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 	double			dValue;
 	size			uiErrors;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (pcExpression->GetKind() == CPPS_IdExpression)
 	{
 		pcSymbol = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName->mpcSymbol;
@@ -1207,7 +1207,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 		}
 		return Load(Place(pcUnary), pcUnary);
 	case CT_BitwiseAnd:
-		pcOperand = mpcUnit->SkipParentheses(pcUnary->mpcOperand);
+		pcOperand = CPPSkipParentheses(pcUnary->mpcOperand);
 		mpcUnit->GetCheck()->Changed(pcOperand, CPPPC_ADDRESS);
 		if (IsObject(pcOperand) && mpcUnit->GetNames()->HasMember(ObjectClass(pcOperand), mpcUnit->GetOperatorName(CT_BitwiseAnd, false)))
 		{
@@ -1454,7 +1454,7 @@ SCPP65Type* CCPP65TypeChecker::Assignment(CCPPSyntaxBinaryExpression* pcBinary)
 			Error(pcBinary, "The object cannot be assigned: its class has a const or reference member, or declares a move and no copy");
 			return NULL;
 		}
-		if (mpcUnit->SkipParentheses(pcBinary->mpcRight)->GetKind() == CPPS_InitializerList)
+		if (CPPSkipParentheses(pcBinary->mpcRight)->GetKind() == CPPS_InitializerList)
 		{
 			//x = {1, 2} is x = X{1, 2}: a temporary made from the list.  [expr.ass] 9
 			return TemporaryObject(psPlace->Unqualified(), pcBinary->mpcRight, pcBinary) ? psPlace : NULL;
@@ -1840,7 +1840,7 @@ bool CCPP65TypeChecker::ConditionalResultsFit(CCPPSyntaxConditionalExpression* p
 
 	if (psTrue->IsVoid() != psFalse->IsVoid())
 	{
-		pcOther = mpcUnit->SkipParentheses(psTrue->IsVoid() ? pcConditional->mpcTrue : pcConditional->mpcFalse);
+		pcOther = CPPSkipParentheses(psTrue->IsVoid() ? pcConditional->mpcTrue : pcConditional->mpcFalse);
 		return pcOther->GetKind() == CPPS_ThrowExpression;
 	}
 	if ((psTrue->IsPointer() || psTrue->IsMemberPointer()) && psFalse->IsInteger())
@@ -1946,7 +1946,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 	SCPP65Type*					psRight;
 	CCPPBoundConversion		cBound;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
 	{
 		return false;
@@ -2228,7 +2228,7 @@ bool CCPP65TypeChecker::Arguments(CArrayCPP65Types* papsParameters, CArraySyntax
 	{
 		return false;
 	}
-	return !(psReturn && psReturn->IsClass()) || mpcUnit->IsDecltypeOperand(pcNode) || mpcUnit->GetClasses()->CompleteClass(psReturn->pcClass, pcNode);
+	return !(psReturn && psReturn->IsClass()) || pcNode->IsDecltypeOperand() || mpcUnit->GetClasses()->CompleteClass(psReturn->pcClass, pcNode);
 }
 
 
@@ -2768,7 +2768,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 
 	psType = PlaceType(pcExpression);
 	mpcUnit->GetCheck()->PlaceTyped(pcExpression, psType);
-	mpcUnit->GetCheck()->PlaceTyped(mpcUnit->SkipParentheses(pcExpression), psType);
+	mpcUnit->GetCheck()->PlaceTyped(CPPSkipParentheses(pcExpression), psType);
 	return psType;
 }
 
@@ -2787,7 +2787,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 	SCPP65Type*					psType;
 	CCPPSyntax*					pcLeft;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_IdExpression:
@@ -2801,7 +2801,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		mpcUnit->GetBinder()->BindName(pcId, &cBound);
 		if (cBound.meWhat == CPPBN_Variable)
 		{
-			if ((cBound.mpcVariable->meStorage != CPPVS_Global) && !mpcUnit->GetContext()->IsUnevaluated() && mpcUnit->DefaultArgumentOf(pcId))
+			if ((cBound.mpcVariable->meStorage != CPPVS_Global) && !mpcUnit->GetContext()->IsUnevaluated() && pcId->DefaultArgumentOf())
 			{
 				//A default argument is worked out where the function is called.  [dcl.fct.default] 7, 9
 				mpcDiagnostics->ReportOnce(pcId, "A default argument can't use a variable or a parameter of a function");
@@ -2908,12 +2908,12 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 		return ResultPlace(Result(pcExpression), pcExpression);
 
 	case CPPS_BinaryExpression:
-		if (mpcUnit->IsMemberPointerOperator(pcExpression))
+		if (pcExpression->IsMemberPointerOperator())
 		{
 			return MemberPointerPlace((CCPPSyntaxBinaryExpression*)pcExpression);
 		}
 		pcBinary = (CCPPSyntaxBinaryExpression*)pcExpression;
-		pcLeft = mpcUnit->SkipParentheses(pcBinary->mpcLeft);
+		pcLeft = CPPSkipParentheses(pcBinary->mpcLeft);
 		if (IsCPPAssignment(pcBinary->meOperator) && !IsObject(pcLeft))
 		{
 			//(x = y) and (x op= y) are x, once it is assigned.  [expr.ass] 1
@@ -3294,7 +3294,7 @@ void CCPP65TypeChecker::SizeofError(CCPPSyntax* pcSizeof)
 		Error(pcSizeof, "This sizeof or type trait is not supported by the compiler yet");
 		return;
 	}
-	if (pcExpression->mpcOperand && (mpcUnit->SkipParentheses(pcExpression->mpcOperand)->GetKind() == CPPS_LambdaExpression))
+	if (pcExpression->mpcOperand && (CPPSkipParentheses(pcExpression->mpcOperand)->GetKind() == CPPS_LambdaExpression))
 	{
 		Error(pcSizeof, "A lambda can't be the operand of sizeof or alignof, which isn't worked out");
 		return;
@@ -3351,7 +3351,7 @@ SCPP65Type* CCPP65TypeChecker::CheckedSizeofType(CCPPSyntax* pcSizeof)
 		{
 			return mpcTypes->Size();
 		}
-		if (pcExpression->mpcOperand && (mpcUnit->SkipParentheses(pcExpression->mpcOperand)->GetKind() == CPPS_LambdaExpression))
+		if (pcExpression->mpcOperand && (CPPSkipParentheses(pcExpression->mpcOperand)->GetKind() == CPPS_LambdaExpression))
 		{
 			Error(pcSizeof, "A lambda can't be the operand of sizeof or alignof, which isn't worked out");
 			return NULL;
@@ -4706,7 +4706,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 		return true;
 	}
 	bKept = !LosesPointerQualifiers(psFrom, psTo);
-	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && IsStringLiteral(mpcUnit->SkipParentheses(pcNode)))
+	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && IsStringLiteral(CPPSkipParentheses(pcNode)))
 	{
 		//char* p = "abc": a string literal's characters are const, and the conversion that let that be forgotten went
 		//with C++11.  It is still made, as code written before is full of it, and is warned about when that is asked
@@ -4744,7 +4744,7 @@ bool CCPP65TypeChecker::IsBitField(CCPPSyntax* pcExpression)
 {
 	CCPPSymbol*	pcSymbol;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	switch (pcExpression->GetKind())
 	{
 	case CPPS_IdExpression:
@@ -5245,7 +5245,7 @@ SCPP65Type* CCPP65TypeChecker::UnevaluatedTypeOf(CCPPSyntax* pcExpression)
 	SCPP65Type*	psType;
 
 	mpcUnit->mcContext.EnterUnevaluated();
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	psType = mpcUnit->mcDeclarators.EntityType(pcExpression);
 	if (!psType)
 	{
@@ -5341,7 +5341,7 @@ bool CCPP65TypeChecker::IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClas
 {
 	SCPP65Type*	psType;
 
-	pcExpression = mpcUnit->SkipParentheses(pcExpression);
+	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression || !MakesObject(pcExpression))
 	{
 		return false;
@@ -5406,7 +5406,7 @@ CCPPSyntax* CCPP65TypeChecker::CommaResult(CCPPSyntax* pcExpression)
 
 	for (;;)
 	{
-		pcExpression = mpcUnit->SkipParentheses(pcExpression);
+		pcExpression = CPPSkipParentheses(pcExpression);
 		pcBinary = (pcExpression->GetKind() == CPPS_BinaryExpression) ? (CCPPSyntaxBinaryExpression*)pcExpression : NULL;
 		if (!pcBinary || (pcBinary->meOperator != CT_Comma) || mpcUnit->GetBinder()->IsOverloadedComma(pcBinary))
 		{

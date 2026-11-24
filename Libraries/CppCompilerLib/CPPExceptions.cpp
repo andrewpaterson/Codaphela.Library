@@ -651,10 +651,10 @@ bool CCPPExceptions::PointerExceptions(CCPPSyntax* pcCallee, CCPPExceptionSpec* 
 	CCPPSyntaxDeclarator*				pcDeclarator;
 	CCPPSymbol*							pcSymbol;
 
-	pcCallee = mpcUnit->SkipParentheses(pcCallee);
+	pcCallee = CPPSkipParentheses(pcCallee);
 	while (pcCallee && (pcCallee->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcCallee)->meOperator == CT_Multiply))
 	{
-		pcCallee = mpcUnit->SkipParentheses(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
+		pcCallee = CPPSkipParentheses(((CCPPSyntaxUnaryExpression*)pcCallee)->mpcOperand);
 	}
 	pcSymbol = NULL;
 	if (pcCallee && (pcCallee->GetKind() == CPPS_IdExpression))

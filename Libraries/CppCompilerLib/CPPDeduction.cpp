@@ -565,7 +565,7 @@ SCPP65Type* CCPPDeduction::ForwardedType(SCPP65Type* psArgument, CCPPSyntax* pcA
 	{
 		return psArgument;
 	}
-	if (mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcArgument)))
+	if (mpcUnit->GetTypeChecker()->IsStringLiteral(CPPSkipParentheses(pcArgument)))
 	{
 		return pcTypes->Qualified(pcTypes->Pointer(pcTypes->Qualified(psArgument->psBase, true, false)), true, false);
 	}
@@ -966,7 +966,7 @@ CCPPSymbol* CCPPDeduction::GetArgumentSymbol(CCPPSyntax* pcArgument)
 	CCPPSyntaxTypeId*			pcTypeId;
 	CCPPSyntaxTypeSpecifier*	pcType;
 
-	pcArgument = mpcUnit->SkipParentheses(pcArgument);
+	pcArgument = CPPSkipParentheses(pcArgument);
 	if (pcArgument->GetKind() == CPPS_IdExpression)
 	{
 		return ((CCPPSyntaxIdExpression*)pcArgument)->mpcName->mpcSymbol;
@@ -1358,7 +1358,7 @@ bool CCPPPatternMatch::MatchBound(CCPPSyntax* pcSize, int iCount)
 	{
 		return false;
 	}
-	pcSize = mpcUnit->SkipParentheses(pcSize);
+	pcSize = CPPSkipParentheses(pcSize);
 	pcSymbol = (pcSize->GetKind() == CPPS_IdExpression) ? ((CCPPSyntaxIdExpression*)pcSize)->mpcName->mpcSymbol : NULL;
 	psBinding = pcSymbol ? mpcDeduced->FindOwn(pcSymbol) : NULL;
 	if (psBinding)
