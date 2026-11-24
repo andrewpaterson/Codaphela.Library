@@ -47,8 +47,8 @@ struct SCPP65WatchPosition
 
 
 //Evaluates a watch expression (DebuggerPlan.txt C3) in a stopped program's frame, as Visual Studio's Watch window
-//does, with the program's types as its debug records describe them (an int is 16 bits on the W65C816), not the
-//host's.  Names are the frame's locals in scope at its line, then this's members, then the program's statics and
+//does, with the program's types as its debug records describe them (an int is 16 bits on the W65C816, 32 on the
+//65C64), not the host's.  Names are the frame's locals in scope at its line, then this's members, then the program's statics and
 //globals; then . -> [] unary * & - + ! ~, casts to a type the records have ((CSquare*)pcShape, its pointers added),
 //sizeof, * / % + - << >> < > <= >= == != & ^ | && || on integers, floats and pointers.  Nothing is called or
 //assigned (decision 3).  A format suffix shows the result as Visual Studio's do: ,x hexadecimal, ,d decimal, ,s a
@@ -96,6 +96,7 @@ protected:
 	bool		Number(SCPP65DebugValue* psValue, int64* piValue, double* pdValue, bool* pbFloat);
 	uint32		IntegerType(size uiBytes, bool bSigned);
 	uint32		BuiltIn(const char* szName, EAsm65DebugType eKind, uint8 uiFlags, uint32 uiBytes);
+	uint32		BuiltInBytes(const struct SCPP65WatchBuiltIn* psBuiltIn);
 	uint32		PointerTo(uint32 uiType);
 	uint32		FindTypeNamed(const char* szName);
 	SAsm65DebugType*	GetType(SCPP65DebugValue* psValue);

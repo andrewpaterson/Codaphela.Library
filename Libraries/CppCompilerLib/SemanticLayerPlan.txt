@@ -81,7 +81,7 @@ How a stage is proved
     the declarations, types and front end phases, TypeOf's calls and those worked out, quiet trials and those
     that failed, and stage 0's new counts.  TestCPP65Declarations' asserted counts stay as they are.  A stage
     that makes the compiler slower says so and why.
-  - The debugger's records (new 2026-11-24): TestCPPW65C816Debug passes (it is in TestCppCompilerLib), and at
+  - The debugger's records (new 2026-11-24): TestCPP65Debug (TestCPPW65C816Debug until 2026-11-24) passes (it is in TestCppCompilerLib), and at
     stages 19, 22 and 24 and at the end TestBaseLib65's project is compiled for the W65C816 with
     TEST_PROJECT65_DEBUG=1 and its listings, .dglobal and .dtype directives included, compared with the stage
     before's: those stages move what the debug writer reads.

@@ -68,7 +68,14 @@ struct SCPP65DebugWrite
 };
 
 
-//Shows values as Visual Studio's Locals and Watch windows do, read from a stopped W65C816's memory (C1), and turns
+//What a processor's program has, as the debugger reads it: an address's bits (24 on the W65C816, 32 on the 65C64), the
+//hexadecimal digits it is shown in, and an int's bytes (CCPPTarget::GetIntBytes).
+uint32	CPP65DebugAddressMask(CAsm65DebugRecords* pcRecords);
+int		CPP65DebugAddressDigits(CAsm65DebugRecords* pcRecords);
+uint32	CPP65DebugIntBytes(CAsm65DebugRecords* pcRecords);
+
+
+//Shows values as Visual Studio's Locals and Watch windows do, read from a stopped processor's memory (C1), and turns
 //what is typed into one's Value into the bytes to write (C2).  Integers are decimal, or hexadecimal (SetHexadecimal);
 //a char also as its character, a bool true or false, an enum by its enumerator (or A | B), a pointer as its address
 //(and a char*'s string), an array or a class as {...} with its elements or members as children.  A class with a
@@ -105,10 +112,10 @@ public:
 protected:
 	SAsm65DebugType*	GetType(SCPP65DebugValue* psValue);
 	bool	ReadBytes(SCPP65DebugValue* psValue, uint32 uiOffset, void* pvDest, size uiBytes);
-	bool	ReadLong(EAsm65StackSpace eSpace, uint32 uiAddress, uint32* puiLong);
+	bool	ReadLong(CAsm65DebugRecords* pcRecords, EAsm65StackSpace eSpace, uint32 uiAddress, uint32* puiLong);
 	void	AppendInteger(SCPP65DebugValue* psValue, SAsm65DebugType* psType, uint64 uiValue, CChars* pszDest);
 	void	AppendEnum(SCPP65DebugValue* psValue, SAsm65DebugType* psType, uint64 uiValue, CChars* pszDest);
-	bool	AppendString(EAsm65StackSpace eSpace, uint32 uiAddress, size uiMost, CChars* pszDest, char cQuote = '"');
+	bool	AppendString(CAsm65DebugRecords* pcRecords, EAsm65StackSpace eSpace, uint32 uiAddress, size uiMost, CChars* pszDest, char cQuote = '"');
 	bool	ClassOf(SCPP65DebugValue* psValue, SCPP65DebugValue* psClass);
 	bool	Element(SCPP65DebugValue* psValue, size uiIndex, SCPP65DebugValue* psElement);
 	void	MemberValue(SCPP65DebugValue* psValue, SAsm65DebugMember* psRecord, SCPP65DebugValue* psMember);

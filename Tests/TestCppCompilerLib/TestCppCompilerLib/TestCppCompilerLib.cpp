@@ -25,7 +25,7 @@ void TestCPP816Assembly(void);
 void TestCPP816Interprocedural(void);
 void TestCPP65ListingIndex(void);
 void TestCPP816Volatile(void);
-void TestCPP816Debug(void);
+void TestCPP65Debug(void);
 void TestCPP65ForwardingReferences(void);
 void TestCPPConformance(void);
 void TestCPP65IR(void);
@@ -80,7 +80,7 @@ static const STestCppCompilerLibFile gasTestFiles[] =
 	{ TestCPP65ListingIndex, "TestCPP65ListingIndex", false },
 	{ TestCPP816, "TestCPPW65C816", true },
 	{ TestCPP816Volatile, "TestCPPW65C816Volatile", false },
-	{ TestCPP816Debug, "TestCPPW65C816Debug", false },
+	{ TestCPP65Debug, "TestCPP65Debug", false },
 	{ TestCPP65ForwardingReferences, "TestCPP65ForwardingReferences", false },
 	{ TestCPP65Generator, "TestCPP65Generator", true },
 	{ TestCPP65IR, "TestCPP65IR", false },

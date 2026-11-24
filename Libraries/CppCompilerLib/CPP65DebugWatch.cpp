@@ -39,8 +39,8 @@ static const SCPP65WatchOperator gasCPP65WatchOperators[] =
 };
 
 
-//The fundamental types as the W65C816 has them (an int is 16 bits), for a cast to one, or a result the records have
-//no type for: their names are their keys (CCPP65DebugWriter's).
+//The fundamental types, for a cast to one, or a result the records have no type for: their names are their keys
+//(CCPP65DebugWriter's).  An int's bytes (0 here) are the processor's (CPP65DebugIntBytes).
 struct SCPP65WatchBuiltIn
 {
 	const char*	szName;
@@ -53,7 +53,7 @@ struct SCPP65WatchBuiltIn
 static const SCPP65WatchBuiltIn gasCPP65WatchBuiltIns[] =
 {
 	{ "bool", ADT_Bool, 0, 1 }, { "char", ADT_Integer, ADTF_Signed | ADTF_Character, 1 }, { "signed char", ADT_Integer, ADTF_Signed | ADTF_Character, 1 },
-	{ "unsigned char", ADT_Integer, ADTF_Character, 1 }, { "int", ADT_Integer, ADTF_Signed, 2 }, { "unsigned int", ADT_Integer, 0, 2 },
+	{ "unsigned char", ADT_Integer, ADTF_Character, 1 }, { "int", ADT_Integer, ADTF_Signed, 0 }, { "unsigned int", ADT_Integer, 0, 0 },
 	{ "short", ADT_Integer, ADTF_Signed, 2 }, { "unsigned short", ADT_Integer, 0, 2 }, { "long", ADT_Integer, ADTF_Signed, 4 },
 	{ "unsigned long", ADT_Integer, 0, 4 }, { "long long", ADT_Integer, ADTF_Signed, 8 }, { "unsigned long long", ADT_Integer, 0, 8 },
 	{ "float", ADT_Float, 0, 4 }, { "double", ADT_Float, 0, 8 }, { "void", ADT_Void, 0, 0 }, { NULL, 0, 0, 0 }
@@ -367,7 +367,7 @@ bool CCPP65DebugWatch::Unary(SCPP65DebugValue* psValue)
 			uiCount = (psValue->uiArrayCount != 0) ? psValue->uiArrayCount : 1;
 		}
 		psType = mpcRecords->GetType(uiType);
-		psValue->Init(mpcRecords, IntegerType(2, false), (uint64)(psType ? psType->uiBytes : 0) * uiCount);
+		psValue->Init(mpcRecords, IntegerType(CPP65DebugIntBytes(mpcRecords), false), (uint64)(psType ? psType->uiBytes : 0) * uiCount);
 		return true;
 	}
 	if (Is("("))
@@ -812,6 +812,7 @@ bool CCPP65DebugWatch::Binary(const char* szOperator, SCPP65DebugValue* psLeft, 
 			{
 				return Error("Pointers can't be added");
 			}
+			//ptrdiff_t: as wide as a pointer (Libc65's stddef.h), long on the W65C816 and int on the 65C64.
 			psLeft->Init(mpcRecords, IntegerType(4, true), (uint64)((iLeft - iRight) / (int64)uiSize));
 			psLeft->uiSpace = mpsFrame->uiSpace;
 			return true;
@@ -819,7 +820,7 @@ bool CCPP65DebugWatch::Binary(const char* szOperator, SCPP65DebugValue* psLeft, 
 		if (psLeftType->uiKind == ADT_Pointer)
 		{
 			iResult = iLeft + ((c == '+') ? iRight : -iRight) * (int64)uiSize;
-			psLeft->Init(mpcRecords, psLeft->uiType, (uint64)iResult & 0xFFFFFF);
+			psLeft->Init(mpcRecords, psLeft->uiType, (uint64)iResult & CPP65DebugAddressMask(mpcRecords));
 		}
 		else
 		{
@@ -827,7 +828,7 @@ bool CCPP65DebugWatch::Binary(const char* szOperator, SCPP65DebugValue* psLeft, 
 			{
 				return Error("A pointer can't be taken from a number");
 			}
-			psLeft->Init(mpcRecords, psRight->uiType, (uint64)(iRight + iLeft * (int64)uiSize) & 0xFFFFFF);
+			psLeft->Init(mpcRecords, psRight->uiType, (uint64)(iRight + iLeft * (int64)uiSize) & CPP65DebugAddressMask(mpcRecords));
 		}
 		psLeft->uiSpace = mpsFrame->uiSpace;
 		return true;
@@ -852,7 +853,7 @@ bool CCPP65DebugWatch::Binary(const char* szOperator, SCPP65DebugValue* psLeft, 
 	}
 
 	//Integers: as wide as the wider, at least an int (a bit field narrower than one is an int); unsigned if the widest is.
-	uiBytes = 2;
+	uiBytes = CPP65DebugIntBytes(mpcRecords);
 	bSigned = true;
 	apsIntegers[0] = (psLeftType->uiKind == ADT_Enum) ? mpcRecords->GetType(psLeftType->uiTarget) : psLeftType;
 	apsIntegers[1] = (psRightType->uiKind == ADT_Enum) ? mpcRecords->GetType(psRightType->uiTarget) : psRightType;
@@ -861,7 +862,7 @@ bool CCPP65DebugWatch::Binary(const char* szOperator, SCPP65DebugValue* psLeft, 
 		psInteger = apsIntegers[ui];
 		if (psInteger && (psInteger->uiKind == ADT_Integer) && (psInteger->uiBytes >= uiBytes) && (((ui == 0) ? psLeft->uiBits : psRight->uiBits) == 0))
 		{
-			bSigned = (psInteger->uiBytes > uiBytes) ? ((psInteger->uiFlags & ADTF_Signed) != 0) : (bSigned && ((psInteger->uiFlags & ADTF_Signed) || (psInteger->uiBytes < 2)));
+			bSigned = (psInteger->uiBytes > uiBytes) ? ((psInteger->uiFlags & ADTF_Signed) != 0) : (bSigned && ((psInteger->uiFlags & ADTF_Signed) || (psInteger->uiBytes < CPP65DebugIntBytes(mpcRecords))));
 			uiBytes = psInteger->uiBytes;
 		}
 	}
@@ -1010,7 +1011,7 @@ bool CCPP65DebugWatch::Index(SCPP65DebugValue* psValue, SCPP65DebugValue* psInde
 	{
 		return Error("What it points at has no size");
 	}
-	psValue->Init(mpcRecords, psType->uiTarget, (EAsm65StackSpace)mpsFrame->uiSpace, (uint32)(iAddress + iIndex * (int64)psPointee->uiBytes) & 0xFFFFFF);
+	psValue->Init(mpcRecords, psType->uiTarget, (EAsm65StackSpace)mpsFrame->uiSpace, (uint32)(iAddress + iIndex * (int64)psPointee->uiBytes) & CPP65DebugAddressMask(mpcRecords));
 	return true;
 }
 
@@ -1113,7 +1114,7 @@ bool CCPP65DebugWatch::Number(SCPP65DebugValue* psValue, int64* piValue, double*
 	*piValue = (int64)uiValue;
 	if (psType->uiKind == ADT_Pointer)
 	{
-		*piValue = (int64)(uiValue & 0xFFFFFF);
+		*piValue = (int64)(uiValue & CPP65DebugAddressMask(mpcRecords));
 	}
 	else if (*pbFloat && (psType->uiBytes == sizeof(float)))
 	{
@@ -1140,12 +1141,23 @@ uint32 CCPP65DebugWatch::IntegerType(size uiBytes, bool bSigned)
 
 	for (psBuiltIn = gasCPP65WatchBuiltIns; psBuiltIn->szName; psBuiltIn++)
 	{
-		if ((psBuiltIn->uiKind == ADT_Integer) && (psBuiltIn->uiBytes == uiBytes) && (((psBuiltIn->uiFlags & ADTF_Signed) != 0) == bSigned) && !(psBuiltIn->uiFlags & ADTF_Character))
+		if ((psBuiltIn->uiKind == ADT_Integer) && (BuiltInBytes(psBuiltIn) == uiBytes) && (((psBuiltIn->uiFlags & ADTF_Signed) != 0) == bSigned) && !(psBuiltIn->uiFlags & ADTF_Character))
 		{
-			return BuiltIn(psBuiltIn->szName, (EAsm65DebugType)psBuiltIn->uiKind, psBuiltIn->uiFlags, psBuiltIn->uiBytes);
+			return BuiltIn(psBuiltIn->szName, (EAsm65DebugType)psBuiltIn->uiKind, psBuiltIn->uiFlags, BuiltInBytes(psBuiltIn));
 		}
 	}
 	return ASM65_DEBUG_NONE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A fundamental type's bytes on the records' processor.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CCPP65DebugWatch::BuiltInBytes(const SCPP65WatchBuiltIn* psBuiltIn)
+{
+	return (psBuiltIn->uiBytes != 0) ? psBuiltIn->uiBytes : CPP65DebugIntBytes(mpcRecords);
 }
 
 
@@ -1221,7 +1233,7 @@ uint32 CCPP65DebugWatch::FindTypeNamed(const char* szName)
 	{
 		if (strcmp(psBuiltIn->szName, szName) == 0)
 		{
-			uiFound = BuiltIn(psBuiltIn->szName, (EAsm65DebugType)psBuiltIn->uiKind, psBuiltIn->uiFlags, psBuiltIn->uiBytes);
+			uiFound = BuiltIn(psBuiltIn->szName, (EAsm65DebugType)psBuiltIn->uiKind, psBuiltIn->uiFlags, BuiltInBytes(psBuiltIn));
 		}
 	}
 	return uiFound;

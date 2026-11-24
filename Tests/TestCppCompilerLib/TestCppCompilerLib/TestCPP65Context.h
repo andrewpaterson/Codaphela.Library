@@ -7,6 +7,7 @@
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/MemoryDrive.h"
 #include "Assembler65Lib/Asm65Memory.h"
+#include "Assembler65Lib/Asm65DebugInfo.h"
 #include "CppCompilerLib/CPPUnit.h"
 #include "CppCompilerLib/CPP65Builder.h"
 
@@ -26,6 +27,7 @@ struct STestCPP65Run
 	CFast65C64		cMPU;
 	size			uiInstructions;
 	size			uiUnits;
+	CAsm65DebugInfo*	pcDebugInfo;	//Its records, when its stack is walked at every step (TestCPP65Walking).
 };
 
 
@@ -39,6 +41,7 @@ bool		TestCPP65Begin(STestCPP65Run* psRun, const char* szSource);
 bool		TestCPP65BeginAssembly(STestCPP65Run* psRun, const char* szAssembly);
 bool		TestCPP65BeginBuilt(STestCPP65Run* psRun, CCPP65Builder* pcBuilder);
 size		TestCPP65Run(STestCPP65Run* psRun, size uiMaxInstructions);
+size		TestCPP65RunWalking(STestCPP65Run* psRun, size uiMaxInstructions);
 CFast65C64*	TestCPP65MPU(STestCPP65Run* psRun);
 void		TestCPP65End(STestCPP65Run* psRun);
 int32		TestCPP65Main(const char* szSource);

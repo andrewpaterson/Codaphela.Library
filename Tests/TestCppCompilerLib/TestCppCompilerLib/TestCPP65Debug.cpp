@@ -5,6 +5,7 @@
 #include "Assembler65Lib/AsmW65C816StackWalker.h"
 #include "Assembler65Lib/AsmW65C816Disassembler.h"
 #include "Assembler65Lib/AsmW65C816FrameCheck.h"
+#include "Assembler65Lib/Asm65C64FrameCheck.h"
 #include "TestLib/Assert.h"
 #include "TestCPP65Context.h"
 
@@ -14,7 +15,7 @@ CCPPCompileOptions*	TestCPP816Options(void);	//TestCPPW65C816.cpp
 
 //How a program is built: for speed (Release, though without inlining so each function is a function of its own), for
 //a debugger (Debug) or for one and not optimised (an Unoptimised project).
-enum ETestCPP816Build
+enum ETestCPP65Build
 {
 	TCB_Release,
 	TCB_Debug,
@@ -22,16 +23,33 @@ enum ETestCPP816Build
 };
 
 
-//A program built for the W65C816 with its debug info (CCPP65Builder::SetLineTable), and as a debugger runs it
-//(TestCPP816DebugLoad): a step at a time, its calls checked (CAsmW65C816FrameCheck) and its stack walked.
-struct STestCPP816Debug
+//A processor and a way to build for a debugger.
+struct STestCPP65DebugBuild
+{
+	ECPPTarget			eTarget;
+	ETestCPP65Build	eBuild;
+};
+
+
+//The builds the debugger's windows are tested on: each processor's Debug and Unoptimised.
+static const STestCPP65DebugBuild	gasTestCPP65DebugBuilds[] = { { CPPT_W65C816, TCB_Debug }, { CPPT_W65C816, TCB_Unoptimised }, { CPPT_65C64, TCB_Debug }, { CPPT_65C64, TCB_Unoptimised } };
+#define TEST_CPP65_DEBUG_BUILDS	(sizeof(gasTestCPP65DebugBuilds) / sizeof(gasTestCPP65DebugBuilds[0]))
+
+
+//A program built for the W65C816 or the 65C64 with its debug info (CCPP65Builder::SetLineTable), and as a debugger runs
+//it (TestCPP65DebugLoad): a step at a time, its calls checked (CAsm65FrameCheck, the processor's) and its stack walked
+//(the records' processor's walker).
+struct STestCPP65Debug
 {
 	CCPP65Builder			cBuilder;
 	CAsm65DebugRecords*		pcRecords;
 	CAsm65Memory			cMemory;
-	CFastW65C816			cFast;
-	CAsmW65C816FrameCheck	cCheck;
-	CAsmW65C816StackWalker	cWalker;
+	CFastW65C816			cFastW65C816;
+	CFast65C64				cFast65C64;
+	CAsmW65C816FrameCheck	cCheckW65C816;
+	CAsm65C64FrameCheck		cCheck65C64;
+	CAsm65FrameCheck*		pcCheck;
+	CAsm65StackWalker*		pcWalker;
 	CArrayAsm65StackFrames	asFrames;
 	CCPP65DebugValues		cValues;
 	CCPP65DebugWatch		cWatch;
@@ -46,7 +64,7 @@ struct STestCPP816Debug
 // optimiser makes loops calls of them) and soft float.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource, ETestCPP816Build eBuild = TCB_Release, ECPPTarget eTarget = CPPT_W65C816)
+static bool TestCPP65DebugBuild(STestCPP65Debug* psDebug, const char* szSource, ETestCPP65Build eBuild = TCB_Release, ECPPTarget eTarget = CPPT_W65C816)
 {
 	static const char*	aszW65C816Units[] = { "Libc65/stringW65C816.asm", "Libc65/stringW65C816_16.asm", "Libc65/softfloat.cpp", "Libc65/softfloatW65C816.asm", NULL };
 	static const char*	asz65C64Units[] = { "Libc65/string.asm", "Libc65/softfloat.cpp", "Libc65/softfloat.asm", NULL };
@@ -73,6 +91,11 @@ static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource
 	}
 	AssertTrue(psDebug->cBuilder.AddSource("Test.cpp", szSource));
 	TestCPP65AddUnits(&psDebug->cBuilder, (eTarget == CPPT_W65C816) ? aszW65C816Units : asz65C64Units, false);
+	if (eTarget == CPPT_65C64)
+	{
+		//The 65C64's assembly units (TestCPP65AddUnits adds a W65C816's with its C++).
+		TestCPP65AddUnits(&psDebug->cBuilder, asz65C64Units, true);
+	}
 	bResult = psDebug->cBuilder.Link();
 	AssertTrue(bResult);
 	AssertString("", psDebug->cBuilder.GetErrors());
@@ -87,18 +110,30 @@ static bool TestCPP816DebugBuild(STestCPP816Debug* psDebug, const char* szSource
 // step, its stack walked with the program's records.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestCPP816DebugLoad(STestCPP816Debug* psDebug)
+static void TestCPP65DebugLoad(STestCPP65Debug* psDebug)
 {
 	psDebug->cMemory.Init();
-	psDebug->cMemory.Load(psDebug->cBuilder.GetOutput());
-	psDebug->cMemory.InitFast65816(&psDebug->cFast);
-	psDebug->cFast.Reset();
-	psDebug->cCheck.Init(&psDebug->cMemory, &psDebug->cFast);
-	psDebug->cWalker.Init(&psDebug->cMemory);
-	psDebug->cWalker.AddRecords(psDebug->pcRecords, ASS_Kernel);
+	if (psDebug->pcRecords->GetProcessor() == ADP_65C64)
+	{
+		psDebug->cMemory.LoadProgram(psDebug->cBuilder.GetOutput(), CPP65_PROGRAM_ADDRESS);
+		psDebug->cMemory.InitFast65C64(&psDebug->cFast65C64);
+		psDebug->cFast65C64.Reset();
+		psDebug->cCheck65C64.Init(&psDebug->cMemory, &psDebug->cFast65C64);
+		psDebug->pcCheck = &psDebug->cCheck65C64;
+	}
+	else
+	{
+		psDebug->cMemory.Load(psDebug->cBuilder.GetOutput());
+		psDebug->cMemory.InitFast65816(&psDebug->cFastW65C816);
+		psDebug->cFastW65C816.Reset();
+		psDebug->cCheckW65C816.Init(&psDebug->cMemory, &psDebug->cFastW65C816);
+		psDebug->pcCheck = &psDebug->cCheckW65C816;
+	}
+	psDebug->pcWalker = Asm65NewStackWalker(psDebug->pcRecords->GetProcessor(), &psDebug->cMemory);
+	psDebug->pcWalker->AddRecords(psDebug->pcRecords, ASS_Kernel);
 	psDebug->asFrames.Init();
 	psDebug->cValues.Init(&psDebug->cMemory);
-	psDebug->cWatch.Init(&psDebug->cValues, &psDebug->cWalker);
+	psDebug->cWatch.Init(&psDebug->cValues, psDebug->pcWalker);
 	psDebug->bLoaded = true;
 }
 
@@ -108,13 +143,54 @@ static void TestCPP816DebugLoad(STestCPP816Debug* psDebug)
 // Runs the instruction at the program address, its calls followed.
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestCPP816DebugStep(STestCPP816Debug* psDebug)
+static void TestCPP65DebugStep(STestCPP65Debug* psDebug)
 {
-	uint8	uiOpcode;
+	psDebug->pcCheck->Run(1);
+}
 
-	uiOpcode = psDebug->cCheck.BeforeStep();
-	psDebug->cFast.Step();
-	psDebug->cCheck.AfterStep(uiOpcode);
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The program address of the instruction the processor runs next.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 TestCPP65DebugPC(STestCPP65Debug* psDebug)
+{
+	if (psDebug->pcCheck == &psDebug->cCheck65C64)
+	{
+		return psDebug->cFast65C64.GetProgramCounter();
+	}
+	return psDebug->cFastW65C816.GetProgramAddress();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a test expects on the W65C816 (szW65C816) or the 65C64 (sz65C64),
+// for the processor the program was built for.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* TestCPP65DebugFor(STestCPP65Debug* psDebug, const char* szW65C816, const char* sz65C64)
+{
+	return (psDebug->pcRecords->GetProcessor() == ADP_65C64) ? sz65C64 : szW65C816;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The processor's registers as they are.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65DebugRegisters(STestCPP65Debug* psDebug, SAsm65StackRegisters* psRegisters)
+{
+	if (psDebug->pcCheck == &psDebug->cCheck65C64)
+	{
+		psRegisters->Init(&psDebug->cFast65C64, ASS_Kernel);
+	}
+	else
+	{
+		psRegisters->Init(&psDebug->cFastW65C816, ASS_Kernel);
+	}
 }
 
 
@@ -124,12 +200,12 @@ static void TestCPP816DebugStep(STestCPP816Debug* psDebug)
 // how many frames.
 //
 //////////////////////////////////////////////////////////////////////////
-static size TestCPP816DebugWalk(STestCPP816Debug* psDebug)
+static size TestCPP65DebugWalk(STestCPP65Debug* psDebug)
 {
 	SAsm65StackRegisters	sRegisters;
 
-	sRegisters.Init(&psDebug->cFast, ASS_Kernel);
-	return psDebug->cWalker.Walk(&sRegisters, &psDebug->asFrames, 64);
+	TestCPP65DebugRegisters(psDebug, &sRegisters);
+	return psDebug->pcWalker->Walk(&sRegisters, &psDebug->asFrames, 64);
 }
 
 
@@ -137,16 +213,23 @@ static size TestCPP816DebugWalk(STestCPP816Debug* psDebug)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestCPP816DebugKill(STestCPP816Debug* psDebug)
+static void TestCPP65DebugKill(STestCPP65Debug* psDebug)
 {
 	if (psDebug->bLoaded)
 	{
 		psDebug->cWatch.Kill();
 		psDebug->cValues.Kill();
 		psDebug->asFrames.Kill();
-		psDebug->cWalker.Kill();
-		psDebug->cCheck.Kill();
-		psDebug->cFast.Kill();
+		SafeKill(psDebug->pcWalker);
+		psDebug->pcCheck->Kill();
+		if (psDebug->pcCheck == &psDebug->cCheck65C64)
+		{
+			psDebug->cFast65C64.Kill();
+		}
+		else
+		{
+			psDebug->cFastW65C816.Kill();
+		}
 		psDebug->cMemory.Kill();
 	}
 	psDebug->cBuilder.Kill();
@@ -159,7 +242,7 @@ static void TestCPP816DebugKill(STestCPP816Debug* psDebug)
 // fails): it starts there, and its body is in it.
 //
 //////////////////////////////////////////////////////////////////////////
-static SAsm65DebugFunction* TestCPP816DebugFunction(STestCPP816Debug* psDebug, const char* szLabel)
+static SAsm65DebugFunction* TestCPP65DebugFunction(STestCPP65Debug* psDebug, const char* szLabel)
 {
 	int64					iAddress;
 	SAsm65DebugFunction*	psFunction;
@@ -186,14 +269,14 @@ static SAsm65DebugFunction* TestCPP816DebugFunction(STestCPP816Debug* psDebug, c
 // below jsl's push; or by following its code.  Its variables are from D.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugFrame(STestCPP816Debug* psDebug, const char* szLabel, const char* szName, EAsm65DebugFrame eFrame)
+static void AssertCPP65DebugFrame(STestCPP65Debug* psDebug, const char* szLabel, const char* szName, EAsm65DebugFrame eFrame)
 {
 	static const char*		aszFrames[] = { "follow", "register", "memory" };
 	SAsm65DebugFunction*	psFunction;
 	CChars					szExpected;
 	CChars					szActual;
 
-	psFunction = TestCPP816DebugFunction(psDebug, szLabel);
+	psFunction = TestCPP65DebugFunction(psDebug, szLabel);
 	if (psFunction)
 	{
 		szExpected.Init(szName)->Append(' ')->Append(aszFrames[eFrame]);
@@ -224,7 +307,7 @@ static void AssertCPP816DebugFrame(STestCPP816Debug* psDebug, const char* szLabe
 // Whether a function is named szName.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugFind(STestCPP816Debug* psDebug, const char* szName)
+static bool TestCPP65DebugFind(STestCPP65Debug* psDebug, const char* szName)
 {
 	size	ui;
 
@@ -247,11 +330,11 @@ static bool TestCPP816DebugFind(STestCPP816Debug* psDebug, const char* szName)
 // frame whose S is kept, or no frame.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugFrames(void)
+void TestCPP65DebugFrames(void)
 {
-	STestCPP816Debug		sDebug;
+	STestCPP65Debug		sDebug;
 
-	TestCPP816DebugBuild(&sDebug,
+	TestCPP65DebugBuild(&sDebug,
 		"namespace NS\n"
 		"{\n"
 		"	int Twice(int i) { return i + i; }\n"
@@ -289,20 +372,20 @@ void TestCPP816DebugFrames(void)
 
 	//A loop over the direct page: an aligned frame, S kept in it.  Recursive, so never aligned: a frame of its own,
 	//its register word in it.  Nothing in the frame: none at all.
-	AssertCPP816DebugFrame(&sDebug, "_Sum__FPii", "Sum", ADF_Memory);
-	AssertCPP816DebugFrame(&sDebug, "_Factorial__Fi", "Factorial", ADF_Register);
-	AssertCPP816DebugFrame(&sDebug, "_Leaf", "Leaf", ADF_FollowS);
-	AssertCPP816DebugFrame(&sDebug, "_NS__Twice__Fi", "NS::Twice", ADF_Register);
-	AssertCPP816DebugFrame(&sDebug, "_CShape__Area", "CShape::Area", ADF_Register);
-	AssertCPP816DebugFrame(&sDebug, "_main", "main", ADF_Register);
+	AssertCPP65DebugFrame(&sDebug, "_Sum__FPii", "Sum", ADF_Memory);
+	AssertCPP65DebugFrame(&sDebug, "_Factorial__Fi", "Factorial", ADF_Register);
+	AssertCPP65DebugFrame(&sDebug, "_Leaf", "Leaf", ADF_FollowS);
+	AssertCPP65DebugFrame(&sDebug, "_NS__Twice__Fi", "NS::Twice", ADF_Register);
+	AssertCPP65DebugFrame(&sDebug, "_CShape__Area", "CShape::Area", ADF_Register);
+	AssertCPP65DebugFrame(&sDebug, "_main", "main", ADF_Register);
 
 	//Constructors, destructors and operators by their names.
-	AssertTrue(TestCPP816DebugFind(&sDebug, "CShape::CShape"));
-	AssertTrue(TestCPP816DebugFind(&sDebug, "CShape::~CShape"));
-	AssertTrue(TestCPP816DebugFind(&sDebug, "CShape::Area"));
-	AssertTrue(TestCPP816DebugFind(&sDebug, "CShape::operator +"));
+	AssertTrue(TestCPP65DebugFind(&sDebug, "CShape::CShape"));
+	AssertTrue(TestCPP65DebugFind(&sDebug, "CShape::~CShape"));
+	AssertTrue(TestCPP65DebugFind(&sDebug, "CShape::Area"));
+	AssertTrue(TestCPP65DebugFind(&sDebug, "CShape::operator +"));
 
-	TestCPP816DebugKill(&sDebug);
+	TestCPP65DebugKill(&sDebug);
 }
 
 
@@ -311,7 +394,7 @@ void TestCPP816DebugFrames(void)
 // The function named szName, NULL if there is none (which fails).
 //
 //////////////////////////////////////////////////////////////////////////
-static SAsm65DebugFunction* TestCPP816DebugNamed(STestCPP816Debug* psDebug, const char* szName)
+static SAsm65DebugFunction* TestCPP65DebugNamed(STestCPP65Debug* psDebug, const char* szName)
 {
 	size	ui;
 
@@ -334,7 +417,7 @@ static SAsm65DebugFunction* TestCPP816DebugNamed(STestCPP816Debug* psDebug, cons
 // to iLast.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugVariable(STestCPP816Debug* psDebug, SAsm65DebugFunction* psFunction, size uiIndex, const char* szName, bool bParameter, const char* szType, EAsm65DebugWhere eWhere, uint32 uiFirst, uint32 uiLast)
+static void AssertCPP65DebugVariable(STestCPP65Debug* psDebug, SAsm65DebugFunction* psFunction, size uiIndex, const char* szName, bool bParameter, const char* szType, EAsm65DebugWhere eWhere, uint32 uiFirst, uint32 uiLast)
 {
 	SAsm65DebugVariable*	psVariable;
 	SAsm65DebugType*		psType;
@@ -370,16 +453,16 @@ static void AssertCPP816DebugVariable(STestCPP816Debug* psDebug, SAsm65DebugFunc
 // enum with its enumerators.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugVariables(void)
+void TestCPP65DebugVariables(void)
 {
-	STestCPP816Debug		sDebug;
+	STestCPP65Debug		sDebug;
 	SAsm65DebugFunction*	psFunction;
 	SAsm65DebugType*		psType;
 	SAsm65DebugMember*		psMember;
 	SAsm65DebugGlobal*		psGlobal;
 	int64					iLabel;
 
-	TestCPP816DebugBuild(&sDebug,
+	TestCPP65DebugBuild(&sDebug,
 		"enum EColour { EC_Red = 1, EC_Blue = 4 };\n"			//1
 		"struct SBase { int miBase; };\n"							//2
 		"class CShape : public SBase\n"							//3
@@ -412,18 +495,18 @@ void TestCPP816DebugVariables(void)
 		"}\n", TCB_Debug);										//30
 
 	//this first, then the parameters, in the function's lines.
-	psFunction = TestCPP816DebugNamed(&sDebug, "CShape::Area");
+	psFunction = TestCPP65DebugNamed(&sDebug, "CShape::Area");
 	AssertInt(2, psFunction ? psFunction->uiNumVariables : 0);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 0, "this", true, "CShape*", ADW_Frame, 8, 8);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 1, "iScale", true, "int", ADW_Frame, 8, 8);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 0, "this", true, "CShape*", ADW_Frame, 8, 8);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 1, "iScale", true, "int", ADW_Frame, 8, 8);
 
 	//An object passed by value is read through the address kept for it; a for's local is in scope in the for.
-	psFunction = TestCPP816DebugNamed(&sDebug, "Total");
+	psFunction = TestCPP65DebugNamed(&sDebug, "Total");
 	AssertInt(4, psFunction ? psFunction->uiNumVariables : 0);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 0, "s", true, "SBig", ADW_Indirect, 12, 22);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 1, "iFrom", true, "int", ADW_Frame, 12, 22);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 2, "l", false, "long", ADW_Frame, 15, 22);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 3, "i", false, "int", ADW_Frame, 16, 19);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 0, "s", true, "SBig", ADW_Indirect, 12, 22);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 1, "iFrom", true, "int", ADW_Frame, 12, 22);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 2, "l", false, "long", ADW_Frame, 15, 22);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 3, "i", false, "int", ADW_Frame, 16, 19);
 	AssertTrue(sDebug.pcRecords->GetVariable(psFunction, 2)->iOffset != sDebug.pcRecords->GetVariable(psFunction, 3)->iOffset);
 
 	//The static local is Total's, the global is anyone's, each at its label.
@@ -435,9 +518,9 @@ void TestCPP816DebugVariables(void)
 	AssertTrue(sDebug.cBuilder.GetSymbol("_NS__giCount", &iLabel));
 	AssertInt((uint32)iLabel, psGlobal ? psGlobal->sPlace.uiOffset : 0);
 
-	psFunction = TestCPP816DebugNamed(&sDebug, "main");
-	AssertCPP816DebugVariable(&sDebug, psFunction, 0, "cShape", false, "CShape", ADW_Frame, 25, 30);
-	AssertCPP816DebugVariable(&sDebug, psFunction, 1, "sBig", false, "SBig", ADW_Frame, 26, 30);
+	psFunction = TestCPP65DebugNamed(&sDebug, "main");
+	AssertCPP65DebugVariable(&sDebug, psFunction, 0, "cShape", false, "CShape", ADW_Frame, 25, 30);
+	AssertCPP65DebugVariable(&sDebug, psFunction, 1, "sBig", false, "SBig", ADW_Frame, 26, 30);
 
 	//CShape: its base, its vtable pointer, a bit field and an enum field.
 	psType = sDebug.pcRecords->GetType(sDebug.pcRecords->GetVariable(psFunction, 0)->uiType);
@@ -457,7 +540,7 @@ void TestCPP816DebugVariables(void)
 	AssertInt(2, psType->uiNumMembers);
 	AssertString("int", sDebug.pcRecords->GetType(psType->uiTarget)->szName.Text());
 
-	TestCPP816DebugKill(&sDebug);
+	TestCPP65DebugKill(&sDebug);
 }
 
 
@@ -467,14 +550,14 @@ void TestCPP816DebugVariables(void)
 // the W65C816 is in (CAsmW65C816FrameCheck::WrongFrame).
 //
 //////////////////////////////////////////////////////////////////////////
-static void TestCPP816DebugCheckWalk(STestCPP816Debug* psDebug, CChars* pszWrong)
+static void TestCPP65DebugCheckWalk(STestCPP65Debug* psDebug, CChars* pszWrong)
 {
 	SAsm65StackFrame*	psFrame;
 	SAsmW65C816Widths	sWidths;
 	size				uiWrong;
 
-	TestCPP816DebugWalk(psDebug);
-	uiWrong = psDebug->cCheck.WrongFrame(&psDebug->asFrames);
+	TestCPP65DebugWalk(psDebug);
+	uiWrong = psDebug->pcCheck->WrongFrame(&psDebug->asFrames);
 	if (uiWrong != 0)
 	{
 		psFrame = psDebug->asFrames.Get(0);
@@ -482,14 +565,18 @@ static void TestCPP816DebugCheckWalk(STestCPP816Debug* psDebug, CChars* pszWrong
 		pszWrong->AppendHexHiLo(&psFrame->uiPC, 3);
 		pszWrong->Append(" in ");
 		pszWrong->Append(psFrame->psFunction->szName);
-		pszWrong->Append(" (");
-		sWidths.bMemory8 = (psDebug->cFast.GetP() & 0x20) != 0;
-		sWidths.bIndex8 = (psDebug->cFast.GetP() & 0x10) != 0;
-		AsmW65C816Disassemble(psFrame->uiPC, psDebug->cMemory.Byte(psFrame->uiPC), 4, &sWidths, pszWrong);
-		pszWrong->Append("): frame ");
+		if (psDebug->pcCheck == &psDebug->cCheckW65C816)
+		{
+			pszWrong->Append(" (");
+			sWidths.bMemory8 = (psDebug->cFastW65C816.GetP() & 0x20) != 0;
+			sWidths.bIndex8 = (psDebug->cFastW65C816.GetP() & 0x10) != 0;
+			AsmW65C816Disassemble(psFrame->uiPC, psDebug->cMemory.Byte(psFrame->uiPC), 4, &sWidths, pszWrong);
+			pszWrong->Append(")");
+		}
+		pszWrong->Append(": frame ");
 		pszWrong->Append((int)uiWrong);
 		pszWrong->Append(" of ");
-		pszWrong->Append((int)psDebug->cCheck.NumCalls() + 1);
+		pszWrong->Append((int)psDebug->pcCheck->NumCalls() + 1);
 		pszWrong->AppendNewLine();
 	}
 }
@@ -503,27 +590,35 @@ static void TestCPP816DebugCheckWalk(STestCPP816Debug* psDebug, CChars* pszWrong
 // stop.
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 TestCPP816DebugRunWalking(STestCPP816Debug* psDebug, CChars* pszWrong)
+static int32 TestCPP65DebugRunWalking(STestCPP65Debug* psDebug, CChars* pszWrong)
 {
 	size	uiSteps;
 	size	uiWrong;
 	size	uiLength;
 
 	uiWrong = 0;
-	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->cFast.IsStopped(); uiSteps++)
+	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->pcCheck->IsStopped(); uiSteps++)
 	{
-		if ((uiWrong < 8) && psDebug->pcRecords->FindFunction(psDebug->cFast.GetProgramAddress()))
+		if ((uiWrong < 8) && psDebug->pcRecords->FindFunction(TestCPP65DebugPC(psDebug)))
 		{
 			uiLength = pszWrong->Length();
-			TestCPP816DebugCheckWalk(psDebug, pszWrong);
+			TestCPP65DebugCheckWalk(psDebug, pszWrong);
 			uiWrong += (pszWrong->Length() > uiLength) ? 1 : 0;
 		}
-		TestCPP816DebugStep(psDebug);
+		TestCPP65DebugStep(psDebug);
 	}
-	AssertString("", psDebug->cCheck.GetWrites());
 	AssertInt(0, (int)psDebug->cMemory.NumBadAccesses());
-	AssertTrue(psDebug->cFast.IsStopped());
-	return psDebug->cFast.IsStopped() ? (int16)psDebug->cFast.GetC() : -1000000;
+	AssertTrue(psDebug->pcCheck->IsStopped());
+	if (!psDebug->pcCheck->IsStopped())
+	{
+		return -1000000;
+	}
+	if (psDebug->pcCheck == &psDebug->cCheck65C64)
+	{
+		return (int32)psDebug->cFast65C64.GetA();
+	}
+	AssertString("", psDebug->cCheckW65C816.GetWrites());
+	return (int16)psDebug->cFastW65C816.GetC();
 }
 
 
@@ -533,7 +628,7 @@ static int32 TestCPP816DebugRunWalking(STestCPP816Debug* psDebug, CChars* pszWro
 // Test.cpp.  Returns whether it got there.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugRunTo(STestCPP816Debug* psDebug, uint32 uiLine)
+static bool TestCPP65DebugRunTo(STestCPP65Debug* psDebug, uint32 uiLine)
 {
 	CArrayUint32	auiAddresses;
 	size			uiSteps;
@@ -542,10 +637,10 @@ static bool TestCPP816DebugRunTo(STestCPP816Debug* psDebug, uint32 uiLine)
 	auiAddresses.Init();
 	AssertTrue(psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLineAddresses("Test.cpp", uiLine, &auiAddresses) > 0);
 	bThere = false;
-	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->cFast.IsStopped() && !bThere; uiSteps++)
+	for (uiSteps = 0; (uiSteps < 20000000) && !psDebug->pcCheck->IsStopped() && !bThere; uiSteps++)
 	{
-		TestCPP816DebugStep(psDebug);
-		bThere = auiAddresses.Find(psDebug->cFast.GetProgramAddress()) != ARRAY_ELEMENT_NOT_FOUND;
+		TestCPP65DebugStep(psDebug);
+		bThere = auiAddresses.Find(TestCPP65DebugPC(psDebug)) != ARRAY_ELEMENT_NOT_FOUND;
 	}
 	auiAddresses.Kill();
 	AssertTrue(bThere);
@@ -559,7 +654,7 @@ static bool TestCPP816DebugRunTo(STestCPP816Debug* psDebug, uint32 uiLine)
 // code the records don't describe, "?" past the walk's end.
 //
 //////////////////////////////////////////////////////////////////////////
-static const char* TestCPP816DebugFrameName(STestCPP816Debug* psDebug, size uiFrame)
+static const char* TestCPP65DebugFrameName(STestCPP65Debug* psDebug, size uiFrame)
 {
 	SAsm65StackFrame*	psFrame;
 
@@ -579,7 +674,7 @@ static const char* TestCPP816DebugFrameName(STestCPP816Debug* psDebug, size uiFr
 // none, or it isn't kept anywhere.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugValue(STestCPP816Debug* psDebug, size uiFrame, const char* szName, SCPP65DebugValue* psValue)
+static bool TestCPP65DebugValue(STestCPP65Debug* psDebug, size uiFrame, const char* szName, SCPP65DebugValue* psValue)
 {
 	SAsm65StackFrame*		psFrame;
 	SAsm65DebugVariable*	psVariable;
@@ -591,7 +686,7 @@ static bool TestCPP816DebugValue(STestCPP816Debug* psDebug, size uiFrame, const 
 		psVariable = psFrame->pcRecords->GetVariable(psFrame->psFunction, ui);
 		if (psVariable->szName.Equals(szName))
 		{
-			return psDebug->cValues.Variable(&psDebug->cWalker, psFrame, psVariable, psValue);
+			return psDebug->cValues.Variable(psDebug->pcWalker, psFrame, psVariable, psValue);
 		}
 	}
 	return false;
@@ -604,12 +699,12 @@ static bool TestCPP816DebugValue(STestCPP816Debug* psDebug, size uiFrame, const 
 // -1000000 if its function has none, or the debugger can't read it.
 //
 //////////////////////////////////////////////////////////////////////////
-static int32 TestCPP816DebugLocal(STestCPP816Debug* psDebug, size uiFrame, const char* szName)
+static int32 TestCPP65DebugLocal(STestCPP65Debug* psDebug, size uiFrame, const char* szName)
 {
 	SCPP65DebugValue	sValue;
 	uint64				uiValue;
 
-	if (!TestCPP816DebugValue(psDebug, uiFrame, szName, &sValue) || !psDebug->cValues.Read(&sValue, &uiValue))
+	if (!TestCPP65DebugValue(psDebug, uiFrame, szName, &sValue) || !psDebug->cValues.Read(&sValue, &uiValue))
 	{
 		return -1000000;
 	}
@@ -622,7 +717,7 @@ static int32 TestCPP816DebugLocal(STestCPP816Debug* psDebug, size uiFrame, const
 // A value's Value and Type columns, " = " between them.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugShown(STestCPP816Debug* psDebug, const char* szExpected, SCPP65DebugValue* psValue)
+static void AssertCPP65DebugShown(STestCPP65Debug* psDebug, const char* szExpected, SCPP65DebugValue* psValue)
 {
 	CChars	sz;
 
@@ -640,12 +735,12 @@ static void AssertCPP816DebugShown(STestCPP816Debug* psDebug, const char* szExpe
 // The variable named szName of the uiFrame'th frame shown (Value = Type).
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugVariableShown(STestCPP816Debug* psDebug, size uiFrame, const char* szName, const char* szExpected)
+static void AssertCPP65DebugVariableShown(STestCPP65Debug* psDebug, size uiFrame, const char* szName, const char* szExpected)
 {
 	SCPP65DebugValue	sValue;
 
-	AssertTrue(TestCPP816DebugValue(psDebug, uiFrame, szName, &sValue));
-	AssertCPP816DebugShown(psDebug, szExpected, &sValue);
+	AssertTrue(TestCPP65DebugValue(psDebug, uiFrame, szName, &sValue));
+	AssertCPP65DebugShown(psDebug, szExpected, &sValue);
 }
 
 
@@ -655,7 +750,7 @@ static void AssertCPP816DebugVariableShown(STestCPP816Debug* psDebug, size uiFra
 // (Value = Type), or the error it gives.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugWatch(STestCPP816Debug* psDebug, size uiFrame, const char* szExpression, const char* szExpected, SCPP65DebugValue* psValue = NULL)
+static void AssertCPP65DebugWatch(STestCPP65Debug* psDebug, size uiFrame, const char* szExpression, const char* szExpected, SCPP65DebugValue* psValue = NULL)
 {
 	SCPP65DebugValue	sValue;
 
@@ -665,7 +760,7 @@ static void AssertCPP816DebugWatch(STestCPP816Debug* psDebug, size uiFrame, cons
 		AssertString(szExpected, psDebug->cWatch.GetError());
 		return;
 	}
-	AssertCPP816DebugShown(psDebug, szExpected, psValue);
+	AssertCPP65DebugShown(psDebug, szExpected, psValue);
 }
 
 
@@ -674,7 +769,7 @@ static void AssertCPP816DebugWatch(STestCPP816Debug* psDebug, size uiFrame, cons
 // psValue's uiIndex'th child, its name szName, shown (Value = Type).
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugChild(STestCPP816Debug* psDebug, SCPP65DebugValue* psValue, size uiIndex, const char* szName, const char* szExpected, SCPP65DebugValue* psChild)
+static void AssertCPP65DebugChild(STestCPP65Debug* psDebug, SCPP65DebugValue* psValue, size uiIndex, const char* szName, const char* szExpected, SCPP65DebugValue* psChild)
 {
 	CChars	sz;
 
@@ -682,7 +777,7 @@ static void AssertCPP816DebugChild(STestCPP816Debug* psDebug, SCPP65DebugValue* 
 	AssertTrue(psDebug->cValues.GetChild(psValue, uiIndex, &sz, psChild));
 	AssertString(szName, sz.Text());
 	sz.Kill();
-	AssertCPP816DebugShown(psDebug, szExpected, psChild);
+	AssertCPP65DebugShown(psDebug, szExpected, psChild);
 }
 
 
@@ -692,7 +787,7 @@ static void AssertCPP816DebugChild(STestCPP816Debug* psDebug, SCPP65DebugValue* 
 // memory: false if it can't be written so.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugWrite(STestCPP816Debug* psDebug, SCPP65DebugValue* psValue, const char* szText)
+static bool TestCPP65DebugWrite(STestCPP65Debug* psDebug, SCPP65DebugValue* psValue, const char* szText)
 {
 	SCPP65DebugWrite	sWrite;
 	size				ui;
@@ -711,15 +806,15 @@ static bool TestCPP816DebugWrite(STestCPP816Debug* psDebug, SCPP65DebugValue* ps
 
 //////////////////////////////////////////////////////////////////////////
 //
-// TestCPP816DebugWrite to the variable named szName in the uiFrame'th
+// TestCPP65DebugWrite to the variable named szName in the uiFrame'th
 // frame.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool TestCPP816DebugEdit(STestCPP816Debug* psDebug, size uiFrame, const char* szName, const char* szText)
+static bool TestCPP65DebugEdit(STestCPP65Debug* psDebug, size uiFrame, const char* szName, const char* szText)
 {
 	SCPP65DebugValue	sValue;
 
-	return TestCPP816DebugValue(psDebug, uiFrame, szName, &sValue) && TestCPP816DebugWrite(psDebug, &sValue, szText);
+	return TestCPP65DebugValue(psDebug, uiFrame, szName, &sValue) && TestCPP65DebugWrite(psDebug, &sValue, szText);
 }
 
 
@@ -727,20 +822,20 @@ static bool TestCPP816DebugEdit(STestCPP816Debug* psDebug, size uiFrame, const c
 //
 // Stopped at a line in a recursion, the stack walks back through each
 // call to main, each frame's locals and parameters read where the debug
-// records say (a global too), built for a debugger optimised and not.
+// records say (a global too), built for a debugger optimised and not, on
+// both processors.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugStack(void)
+void TestCPP65DebugStack(void)
 {
-	static const ETestCPP816Build	aeBuilds[] = { TCB_Debug, TCB_Unoptimised };
-	STestCPP816Debug				sDebug;
+	STestCPP65Debug				sDebug;
 	SAsm65DebugGlobal*				psGlobal;
 	size							uiBuild;
 	int								i;
 
-	for (uiBuild = 0; uiBuild < 2; uiBuild++)
+	for (uiBuild = 0; uiBuild < TEST_CPP65_DEBUG_BUILDS; uiBuild++)
 	{
-		TestCPP816DebugBuild(&sDebug,
+		TestCPP65DebugBuild(&sDebug,
 			"int giDepth = 0;\n"						//1
 			"int Factorial(int i)\n"					//2
 			"{\n"										//3
@@ -757,37 +852,37 @@ void TestCPP816DebugStack(void)
 			"{\n"										//14
 			"	int iFrom = 5;\n"						//15
 			"	return Factorial(iFrom);\n"			//16
-			"}\n", aeBuilds[uiBuild]);					//17
-		TestCPP816DebugLoad(&sDebug);
+			"}\n", gasTestCPP65DebugBuilds[uiBuild].eBuild, gasTestCPP65DebugBuilds[uiBuild].eTarget);	//17
+		TestCPP65DebugLoad(&sDebug);
 
 		//Factorial(1) to Factorial(5), main, and the start up, which has no records.
-		AssertTrue(TestCPP816DebugRunTo(&sDebug, 8));
-		AssertInt(7, (int)TestCPP816DebugWalk(&sDebug));
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 8));
+		AssertInt(7, (int)TestCPP65DebugWalk(&sDebug));
 		for (i = 0; i < 5; i++)
 		{
-			AssertString("Factorial", TestCPP816DebugFrameName(&sDebug, i));
-			AssertInt(i + 1, TestCPP816DebugLocal(&sDebug, i, "i"));
+			AssertString("Factorial", TestCPP65DebugFrameName(&sDebug, i));
+			AssertInt(i + 1, TestCPP65DebugLocal(&sDebug, i, "i"));
 		}
-		AssertString("main", TestCPP816DebugFrameName(&sDebug, 5));
-		AssertInt(5, TestCPP816DebugLocal(&sDebug, 5, "iFrom"));
-		AssertString("", TestCPP816DebugFrameName(&sDebug, 6));
-		AssertInt(-1000000, TestCPP816DebugLocal(&sDebug, 5, "i"));
+		AssertString("main", TestCPP65DebugFrameName(&sDebug, 5));
+		AssertInt(5, TestCPP65DebugLocal(&sDebug, 5, "iFrom"));
+		AssertString("", TestCPP65DebugFrameName(&sDebug, 6));
+		AssertInt(-1000000, TestCPP65DebugLocal(&sDebug, 5, "i"));
 
-		AssertCPP816DebugWatch(&sDebug, 0, "giDepth * 10 + i", "51 = int");
-		AssertCPP816DebugWatch(&sDebug, 5, "iFrom", "5 = int");
-		AssertCPP816DebugWatch(&sDebug, 5, "i", "i is undefined");
+		AssertCPP65DebugWatch(&sDebug, 0, "giDepth * 10 + i", "51 = int");
+		AssertCPP65DebugWatch(&sDebug, 5, "iFrom", "5 = int");
+		AssertCPP65DebugWatch(&sDebug, 5, "i", "i is undefined");
 
 		psGlobal = sDebug.pcRecords->FindGlobal("giDepth", NULL);
 		AssertTrue(psGlobal != NULL);
 		AssertInt(5, psGlobal ? sDebug.cMemory.GetWord(psGlobal->sPlace.uiOffset) : 0);
 
 		//On the way back out, each caller's local is what its callee returned.
-		AssertTrue(TestCPP816DebugRunTo(&sDebug, 11));
-		TestCPP816DebugWalk(&sDebug);
-		AssertInt(2, TestCPP816DebugLocal(&sDebug, 0, "i"));
-		AssertInt(1, TestCPP816DebugLocal(&sDebug, 0, "iBelow"));
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 11));
+		TestCPP65DebugWalk(&sDebug);
+		AssertInt(2, TestCPP65DebugLocal(&sDebug, 0, "i"));
+		AssertInt(1, TestCPP65DebugLocal(&sDebug, 0, "iBelow"));
 
-		TestCPP816DebugKill(&sDebug);
+		TestCPP65DebugKill(&sDebug);
 	}
 }
 
@@ -800,11 +895,11 @@ void TestCPP816DebugStack(void)
 // whose arguments va_start finds from them; a pointer returned from a
 // frame past the direct page; recursion and loops)
 // give the same results built for a debugger, optimised (Debug) and not,
-// as built for speed (Release); and at every step in each, the stack
-// walks back through the calls it is in.
+// as built for speed (Release), on both processors; and at every step in
+// each, the stack walks back through the calls it is in.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugModes(void)
+void TestCPP65DebugModes(void)
 {
 	static const char*	szSource =
 		"#include <stdarg.h>\n"
@@ -852,6 +947,16 @@ void TestCPP816DebugModes(void)
 		"	va_end(a);\n"
 		"	return iTotal;\n"
 		"}\n"
+		"float Round(float fInput, long iExponent)\n"
+		"{\n"
+		"	float	fValue;\n"
+		"	long	iAdjusted;\n"
+		"	iAdjusted = (iExponent - 1 + 0x7f) << 23;\n"
+		"	fValue = *((float*)((void*)&iAdjusted));\n"
+		"	if (((fValue < 0.0f) && (fInput > 0.0f)) || ((fValue > 0.0f) && (fInput < 0.0f))) { fInput -= fValue; }\n"
+		"	else { fInput += fValue; }\n"
+		"	return fInput;\n"
+		"}\n"
 		"char* Big(char* szFrom)\n"
 		"{\n"
 		"	char	ac[400];\n"
@@ -879,22 +984,28 @@ void TestCPP816DebugModes(void)
 		"	if (cCounter.miCount != 10) return 6;\n"
 		"	if (SumAll(3, 4, 5, 6) != 15) return 7;\n"
 		"	if (*Big((char*)\"xyz\") != 'y') return 8;\n"
+		"	if ((int)Round(2.0f, 2) != 4) return 9;\n"
 		"	return 100;\n"
 		"}\n";
-	static const ETestCPP816Build	aeBuilds[] = { TCB_Release, TCB_Debug, TCB_Unoptimised };
-	STestCPP816Debug				sDebug;
+	static const ETestCPP65Build	aeBuilds[] = { TCB_Release, TCB_Debug, TCB_Unoptimised };
+	static const ECPPTarget			aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	STestCPP65Debug				sDebug;
 	CChars							szWrong;
 	size							uiBuild;
+	size							uiTarget;
 
-	for (uiBuild = 0; uiBuild < 3; uiBuild++)
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
 	{
-		TestCPP816DebugBuild(&sDebug, szSource, aeBuilds[uiBuild]);
-		TestCPP816DebugLoad(&sDebug);
-		szWrong.Init();
-		AssertInt(100, TestCPP816DebugRunWalking(&sDebug, &szWrong));
-		AssertString("", szWrong.Text());
-		szWrong.Kill();
-		TestCPP816DebugKill(&sDebug);
+		for (uiBuild = 0; uiBuild < 3; uiBuild++)
+		{
+			TestCPP65DebugBuild(&sDebug, szSource, aeBuilds[uiBuild], aeTargets[uiTarget]);
+			TestCPP65DebugLoad(&sDebug);
+			szWrong.Init();
+			AssertInt(100, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+			AssertString("", szWrong.Text());
+			szWrong.Kill();
+			TestCPP65DebugKill(&sDebug);
+		}
 	}
 }
 
@@ -907,13 +1018,12 @@ void TestCPP816DebugModes(void)
 // to an object of a derived class (its class from its vtable), an array,
 // a base's members, bit fields.  Edited (C2), the program goes on with the
 // new values; what doesn't fit isn't written.  Built for a debugger,
-// optimised and not.
+// optimised and not, on both processors.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugValues(void)
+void TestCPP65DebugValues(void)
 {
-	static const ETestCPP816Build	aeBuilds[] = { TCB_Debug, TCB_Unoptimised };
-	STestCPP816Debug				sDebug;
+	STestCPP65Debug				sDebug;
 	SCPP65DebugValue				sValue;
 	SCPP65DebugValue				sChild;
 	SCPP65DebugValue				sGrandchild;
@@ -921,9 +1031,9 @@ void TestCPP816DebugValues(void)
 	CChars							sz;
 	size							uiBuild;
 
-	for (uiBuild = 0; uiBuild < 2; uiBuild++)
+	for (uiBuild = 0; uiBuild < TEST_CPP65_DEBUG_BUILDS; uiBuild++)
 	{
-		TestCPP816DebugBuild(&sDebug,
+		TestCPP65DebugBuild(&sDebug,
 			"enum EColour { EC_Red, EC_Green = 5, EC_Blue };\n"										//1
 			"enum EFlags { EF_A = 1, EF_B = 2, EF_C = 4 };\n"											//2
 			"struct SBits { unsigned int uiLow : 3; int iHigh : 5; };\n"								//3
@@ -953,121 +1063,121 @@ void TestCPP816DebugValues(void)
 			"	sBits.uiLow = 5;\n"																	//27
 			"	sBits.iHigh = -3;\n"																	//28
 			"	return Use(&cSquare, \"Ada\\n\", aiCounts, EC_Green, (EFlags)(EF_A | EF_C), 1.5f, 2.25, true, 'c', &sBits);\n"	//29
-			"}\n", aeBuilds[uiBuild]);																	//30
-		TestCPP816DebugLoad(&sDebug);
-		AssertTrue(TestCPP816DebugRunTo(&sDebug, 18));
-		TestCPP816DebugWalk(&sDebug);
-		AssertString("Use", TestCPP816DebugFrameName(&sDebug, 0));
+			"}\n", gasTestCPP65DebugBuilds[uiBuild].eBuild, gasTestCPP65DebugBuilds[uiBuild].eTarget);	//30
+		TestCPP65DebugLoad(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 18));
+		TestCPP65DebugWalk(&sDebug);
+		AssertString("Use", TestCPP65DebugFrameName(&sDebug, 0));
 
-		AssertCPP816DebugVariableShown(&sDebug, 0, "eColour", "EC_Green = EColour");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "eFlags", "EF_A | EF_C = EFlags");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "f", "1.5 = float");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "d", "2.25 = double");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "b", "true = bool");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "c", "99 'c' = char");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "eColour", "EC_Green = EColour");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "eFlags", "EF_A | EF_C = EFlags");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "f", "1.5 = float");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "d", "2.25 = double");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "b", "true = bool");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "c", "99 'c' = char");
 
 		//A string; what an int* points at; a bit field each way.
 		sz.Init();
-		AssertTrue(TestCPP816DebugValue(&sDebug, 0, "szName", &sValue));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "szName", &sValue));
 		AssertTrue(sDebug.cValues.Format(&sValue, &sz));
 		AssertTrue(sz.EndsWith(" \"Ada\\n\""));
 		AssertTrue(sz.StartsWith("0x"));
 		sz.Kill();
-		AssertTrue(TestCPP816DebugValue(&sDebug, 0, "piCounts", &sValue));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "piCounts", &sValue));
 		AssertInt(1, (int)sDebug.cValues.NumChildren(&sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 0, "*", "7 = int", &sChild);
-		AssertTrue(TestCPP816DebugValue(&sDebug, 0, "psBits", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "*", "7 = int", &sChild);
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "psBits", &sValue));
 		AssertInt(2, (int)sDebug.cValues.NumChildren(&sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 0, "uiLow", "5 = unsigned int", &sChild);
-		AssertCPP816DebugChild(&sDebug, &sValue, 1, "iHigh", "-3 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "uiLow", "5 = unsigned int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "iHigh", "-3 = int", &sChild);
 
 		//A CShape* to a CSquare: its members are CShape's.
 		sz.Init();
-		AssertTrue(TestCPP816DebugValue(&sDebug, 0, "pcShape", &sValue));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "pcShape", &sValue));
 		AssertTrue(sDebug.cValues.AppendType(&sValue, &sz));
 		AssertString("CShape* {CSquare}", sz.Text());
 		sz.Kill();
 		AssertInt(1, (int)sDebug.cValues.NumChildren(&sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 0, "miSides", "4 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "miSides", "4 = int", &sChild);
 
 		//main's: the CSquare, its base and its own field; the array.
-		AssertString("main", TestCPP816DebugFrameName(&sDebug, 1));
-		AssertCPP816DebugVariableShown(&sDebug, 1, "cSquare", "{...} = CSquare");
-		AssertTrue(TestCPP816DebugValue(&sDebug, 1, "cSquare", &sValue));
+		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
+		AssertCPP65DebugVariableShown(&sDebug, 1, "cSquare", "{...} = CSquare");
+		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "cSquare", &sValue));
 		AssertInt(2, (int)sDebug.cValues.NumChildren(&sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 0, "CShape", "{...} = CShape {CSquare}", &sChild);
-		AssertCPP816DebugChild(&sDebug, &sChild, 0, "miSides", "4 = int", &sGrandchild);
-		AssertCPP816DebugChild(&sDebug, &sValue, 1, "miSide", "3 = int", &sChild);
-		AssertCPP816DebugVariableShown(&sDebug, 1, "aiCounts", "{...} = int[3]");
-		AssertTrue(TestCPP816DebugValue(&sDebug, 1, "aiCounts", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "CShape", "{...} = CShape {CSquare}", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sChild, 0, "miSides", "4 = int", &sGrandchild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "miSide", "3 = int", &sChild);
+		AssertCPP65DebugVariableShown(&sDebug, 1, "aiCounts", "{...} = int[3]");
+		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "aiCounts", &sValue));
 		AssertInt(3, (int)sDebug.cValues.NumChildren(&sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 2, "[2]", "9 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 2, "[2]", "9 = int", &sChild);
 
 		//Hexadecimal Display.
 		sDebug.cValues.SetHexadecimal(true);
-		AssertCPP816DebugVariableShown(&sDebug, 0, "c", "0x63 'c' = char");
-		AssertCPP816DebugChild(&sDebug, &sValue, 2, "[2]", "0x0009 = int", &sChild);
+		AssertCPP65DebugVariableShown(&sDebug, 0, "c", "0x63 'c' = char");
+		AssertCPP65DebugChild(&sDebug, &sValue, 2, "[2]", TestCPP65DebugFor(&sDebug, "0x0009 = int", "0x00000009 = int"), &sChild);
 		sDebug.cValues.SetHexadecimal(false);
 
 		//Watch expressions (C3), with format suffixes.
-		AssertCPP816DebugWatch(&sDebug, 0, "piCounts[2]", "9 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "*piCounts + 1", "8 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "pcShape->miSides", "4 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "((CSquare*)pcShape)->miSide * 2", "6 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "eColour == EC_Green && !(eFlags & EF_B)", "true = bool");
-		AssertCPP816DebugWatch(&sDebug, 0, "eFlags & EF_C", "4 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "f * 2", "3 = double");
-		AssertCPP816DebugWatch(&sDebug, 0, "1.5f + 1", "2.5 = double");
-		AssertCPP816DebugWatch(&sDebug, 0, "-c", "-99 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "(char)65", "65 'A' = char");
-		AssertCPP816DebugWatch(&sDebug, 0, "sizeof(int) + sizeof(long)", "6 = unsigned int");
-		AssertCPP816DebugWatch(&sDebug, 0, "psBits->iHigh + psBits->uiLow", "2 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "szName,s", "\"Ada\\n\" = const char*");
-		AssertCPP816DebugWatch(&sDebug, 0, "c,x", "0x63 'c' = char");
-		AssertCPP816DebugWatch(&sDebug, 0, "piCounts,3", "{...} = int[3]", &sValue);
-		AssertCPP816DebugChild(&sDebug, &sValue, 1, "[1]", "8 = int", &sChild);
-		AssertCPP816DebugWatch(&sDebug, 0, "piCounts,3,x", "Unexpected ','");
-		AssertCPP816DebugWatch(&sDebug, 1, "aiCounts[1] + aiCounts[2]", "17 = int");
-		AssertCPP816DebugWatch(&sDebug, 1, "*(&aiCounts[0] + 2)", "9 = int");
-		AssertCPP816DebugWatch(&sDebug, 1, "&aiCounts[2] - aiCounts", "2 = long");
-		AssertCPP816DebugWatch(&sDebug, 1, "sBits.iHigh", "-3 = int");
-		AssertCPP816DebugWatch(&sDebug, 1, "cSquare.miSides < cSquare.miSide", "false = bool");
-		AssertCPP816DebugWatch(&sDebug, 0, "nope", "nope is undefined");
-		AssertCPP816DebugWatch(&sDebug, 0, "pcShape->Area()", "Functions aren't called");
-		AssertCPP816DebugWatch(&sDebug, 0, "c = 1", "Assignments aren't evaluated");
-		AssertCPP816DebugWatch(&sDebug, 0, "1 / (c - c)", "Divided by zero");
-		AssertCPP816DebugWatch(&sDebug, 0, "pcShape->nope", "No member named nope");
-		AssertCPP816DebugWatch(&sDebug, 0, "(1 + 2", "Expected ) 'end of expression'");
+		AssertCPP65DebugWatch(&sDebug, 0, "piCounts[2]", "9 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "*piCounts + 1", "8 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "pcShape->miSides", "4 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "((CSquare*)pcShape)->miSide * 2", "6 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "eColour == EC_Green && !(eFlags & EF_B)", "true = bool");
+		AssertCPP65DebugWatch(&sDebug, 0, "eFlags & EF_C", "4 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "f * 2", "3 = double");
+		AssertCPP65DebugWatch(&sDebug, 0, "1.5f + 1", "2.5 = double");
+		AssertCPP65DebugWatch(&sDebug, 0, "-c", "-99 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "(char)65", "65 'A' = char");
+		AssertCPP65DebugWatch(&sDebug, 0, "sizeof(int) + sizeof(long)", TestCPP65DebugFor(&sDebug, "6 = unsigned int", "8 = unsigned int"));
+		AssertCPP65DebugWatch(&sDebug, 0, "psBits->iHigh + psBits->uiLow", "2 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "szName,s", "\"Ada\\n\" = const char*");
+		AssertCPP65DebugWatch(&sDebug, 0, "c,x", "0x63 'c' = char");
+		AssertCPP65DebugWatch(&sDebug, 0, "piCounts,3", "{...} = int[3]", &sValue);
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "[1]", "8 = int", &sChild);
+		AssertCPP65DebugWatch(&sDebug, 0, "piCounts,3,x", "Unexpected ','");
+		AssertCPP65DebugWatch(&sDebug, 1, "aiCounts[1] + aiCounts[2]", "17 = int");
+		AssertCPP65DebugWatch(&sDebug, 1, "*(&aiCounts[0] + 2)", "9 = int");
+		AssertCPP65DebugWatch(&sDebug, 1, "&aiCounts[2] - aiCounts", TestCPP65DebugFor(&sDebug, "2 = long", "2 = int"));
+		AssertCPP65DebugWatch(&sDebug, 1, "sBits.iHigh", "-3 = int");
+		AssertCPP65DebugWatch(&sDebug, 1, "cSquare.miSides < cSquare.miSide", "false = bool");
+		AssertCPP65DebugWatch(&sDebug, 0, "nope", "nope is undefined");
+		AssertCPP65DebugWatch(&sDebug, 0, "pcShape->Area()", "Functions aren't called");
+		AssertCPP65DebugWatch(&sDebug, 0, "c = 1", "Assignments aren't evaluated");
+		AssertCPP65DebugWatch(&sDebug, 0, "1 / (c - c)", "Divided by zero");
+		AssertCPP65DebugWatch(&sDebug, 0, "pcShape->nope", "No member named nope");
+		AssertCPP65DebugWatch(&sDebug, 0, "(1 + 2", "Expected ) 'end of expression'");
 
 		//Edited: 9 + 'A' + 20 + EC_Blue + 5 + 2 + 2 + false + 'd' - 1, where it was 9 + 'A' + 8 + EC_Green + 5 + 1 + 2 + true + 'c' - 3.
-		AssertFalse(TestCPP816DebugEdit(&sDebug, 0, "eColour", "EC_Purple"));
-		AssertFalse(TestCPP816DebugEdit(&sDebug, 0, "c", "300"));
-		AssertFalse(TestCPP816DebugEdit(&sDebug, 0, "b", "maybe"));
-		AssertFalse(TestCPP816DebugEdit(&sDebug, 1, "aiCounts", "1"));
-		AssertTrue(TestCPP816DebugEdit(&sDebug, 0, "eColour", "EC_Blue"));
-		AssertTrue(TestCPP816DebugEdit(&sDebug, 0, "f", "2.5"));
-		AssertTrue(TestCPP816DebugEdit(&sDebug, 0, "b", "false"));
-		AssertTrue(TestCPP816DebugEdit(&sDebug, 0, "c", "'d'"));
-		AssertTrue(TestCPP816DebugValue(&sDebug, 1, "aiCounts", &sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 1, "[1]", "8 = int", &sChild);
-		AssertTrue(TestCPP816DebugWrite(&sDebug, &sChild, "20"));
-		AssertTrue(TestCPP816DebugValue(&sDebug, 0, "psBits", &sValue));
-		AssertCPP816DebugChild(&sDebug, &sValue, 1, "iHigh", "-3 = int", &sChild);
-		AssertFalse(TestCPP816DebugWrite(&sDebug, &sChild, "16"));
-		AssertTrue(TestCPP816DebugWrite(&sDebug, &sChild, "-1"));
-		AssertCPP816DebugChild(&sDebug, &sValue, 0, "uiLow", "5 = unsigned int", &sChild);
-		AssertCPP816DebugVariableShown(&sDebug, 0, "eColour", "EC_Blue = EColour");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "f", "2.5 = float");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "b", "false = bool");
-		AssertCPP816DebugVariableShown(&sDebug, 0, "c", "100 'd' = char");
-		AssertCPP816DebugWatch(&sDebug, 0, "psBits->iHigh", "-1 = int");
-		AssertCPP816DebugWatch(&sDebug, 0, "psBits->uiLow", "5 = unsigned int");
-		AssertCPP816DebugWatch(&sDebug, 0, "piCounts[1]", "20 = int");
+		AssertFalse(TestCPP65DebugEdit(&sDebug, 0, "eColour", "EC_Purple"));
+		AssertFalse(TestCPP65DebugEdit(&sDebug, 0, "c", "300"));
+		AssertFalse(TestCPP65DebugEdit(&sDebug, 0, "b", "maybe"));
+		AssertFalse(TestCPP65DebugEdit(&sDebug, 1, "aiCounts", "1"));
+		AssertTrue(TestCPP65DebugEdit(&sDebug, 0, "eColour", "EC_Blue"));
+		AssertTrue(TestCPP65DebugEdit(&sDebug, 0, "f", "2.5"));
+		AssertTrue(TestCPP65DebugEdit(&sDebug, 0, "b", "false"));
+		AssertTrue(TestCPP65DebugEdit(&sDebug, 0, "c", "'d'"));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "aiCounts", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "[1]", "8 = int", &sChild);
+		AssertTrue(TestCPP65DebugWrite(&sDebug, &sChild, "20"));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 0, "psBits", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "iHigh", "-3 = int", &sChild);
+		AssertFalse(TestCPP65DebugWrite(&sDebug, &sChild, "16"));
+		AssertTrue(TestCPP65DebugWrite(&sDebug, &sChild, "-1"));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "uiLow", "5 = unsigned int", &sChild);
+		AssertCPP65DebugVariableShown(&sDebug, 0, "eColour", "EC_Blue = EColour");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "f", "2.5 = float");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "b", "false = bool");
+		AssertCPP65DebugVariableShown(&sDebug, 0, "c", "100 'd' = char");
+		AssertCPP65DebugWatch(&sDebug, 0, "psBits->iHigh", "-1 = int");
+		AssertCPP65DebugWatch(&sDebug, 0, "psBits->uiLow", "5 = unsigned int");
+		AssertCPP65DebugWatch(&sDebug, 0, "piCounts[1]", "20 = int");
 		szWrong.Init();
-		AssertInt(9 + 'A' + 20 + 6 + 5 + 2 + 2 + 0 + 'd' - 1, TestCPP816DebugRunWalking(&sDebug, &szWrong));
+		AssertInt(9 + 'A' + 20 + 6 + 5 + 2 + 2 + 0 + 'd' - 1, TestCPP65DebugRunWalking(&sDebug, &szWrong));
 		AssertString("", szWrong.Text());
 		szWrong.Kill();
-		TestCPP816DebugKill(&sDebug);
+		TestCPP65DebugKill(&sDebug);
 	}
 }
 
@@ -1110,7 +1220,7 @@ static const char* gszTestCPP65DebugRelease =
 // variables are its body's (an entry of its own after its stub).
 //
 //////////////////////////////////////////////////////////////////////////
-static int TestCPP65DebugWhere(STestCPP816Debug* psDebug, const char* szFunction, const char* szName)
+static int TestCPP65DebugWhere(STestCPP65Debug* psDebug, const char* szFunction, const char* szName)
 {
 	SAsm65DebugFunction*	psFunction;
 	SAsm65DebugVariable*	psVariable;
@@ -1136,48 +1246,53 @@ static int TestCPP65DebugWhere(STestCPP816Debug* psDebug, const char* szFunction
 //////////////////////////////////////////////////////////////////////////
 //
 // A Release build describes the variables whose slot is theirs alone for
-// the whole function: what stays in memory (an array, an object, an int
-// whose address is taken) is shown right in a caller's frame; a variable
-// promoted, folded or split away isn't kept.  The parameters and locals in
-// registers aren't described as kept either.
+// the whole function, on both processors: what stays in memory (an array,
+// an object, an int whose address is taken) is shown right in a caller's
+// frame; a variable promoted, folded or split away isn't kept.  The
+// parameters and locals in registers aren't described as kept either.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugRelease(void)
+void TestCPP65DebugRelease(void)
 {
-	STestCPP816Debug	sDebug;
-	SCPP65DebugValue	sValue;
-	SCPP65DebugValue	sChild;
-	CChars				szWrong;
+	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	STestCPP65Debug		sDebug;
+	SCPP65DebugValue		sValue;
+	SCPP65DebugValue		sChild;
+	CChars					szWrong;
+	size					uiTarget;
 
-	TestCPP816DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_Release);
-	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
-	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
-	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
-	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
-	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
-	TestCPP816DebugLoad(&sDebug);
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_Release, aeTargets[uiTarget]);
+		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
+		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
+		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
+		TestCPP65DebugLoad(&sDebug);
 
-	//Stopped in Area, main's: the array, the object, the int Bump added one to.
-	AssertTrue(TestCPP816DebugRunTo(&sDebug, 9));
-	TestCPP816DebugWalk(&sDebug);
-	AssertString("Area", TestCPP816DebugFrameName(&sDebug, 0));
-	AssertString("main", TestCPP816DebugFrameName(&sDebug, 1));
-	AssertTrue(TestCPP816DebugValue(&sDebug, 1, "aiCounts", &sValue));
-	AssertInt(3, (int)sDebug.cValues.NumChildren(&sValue));
-	AssertCPP816DebugChild(&sDebug, &sValue, 0, "[0]", "7 = int", &sChild);
-	AssertCPP816DebugChild(&sDebug, &sValue, 2, "[2]", "9 = int", &sChild);
-	AssertTrue(TestCPP816DebugValue(&sDebug, 1, "s", &sValue));
-	AssertCPP816DebugChild(&sDebug, &sValue, 0, "x", "2 = int", &sChild);
-	AssertCPP816DebugChild(&sDebug, &sValue, 1, "y", "5 = int", &sChild);
-	AssertInt(5, TestCPP816DebugLocal(&sDebug, 1, "iTaken"));
-	AssertCPP816DebugWatch(&sDebug, 1, "aiCounts[1] + iTaken", "13 = int");
-	AssertCPP816DebugWatch(&sDebug, 1, "iFolded", "iFolded isn't kept anywhere here (optimised away)");
+		//Stopped in Area, main's: the array, the object, the int Bump added one to.
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 9));
+		TestCPP65DebugWalk(&sDebug);
+		AssertString("Area", TestCPP65DebugFrameName(&sDebug, 0));
+		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
+		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "aiCounts", &sValue));
+		AssertInt(3, (int)sDebug.cValues.NumChildren(&sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "[0]", "7 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 2, "[2]", "9 = int", &sChild);
+		AssertTrue(TestCPP65DebugValue(&sDebug, 1, "s", &sValue));
+		AssertCPP65DebugChild(&sDebug, &sValue, 0, "x", "2 = int", &sChild);
+		AssertCPP65DebugChild(&sDebug, &sValue, 1, "y", "5 = int", &sChild);
+		AssertInt(5, TestCPP65DebugLocal(&sDebug, 1, "iTaken"));
+		AssertCPP65DebugWatch(&sDebug, 1, "aiCounts[1] + iTaken", "13 = int");
+		AssertCPP65DebugWatch(&sDebug, 1, "iFolded", "iFolded isn't kept anywhere here (optimised away)");
 
-	szWrong.Init();
-	AssertInt(24 + 10 + 5 + 3, TestCPP816DebugRunWalking(&sDebug, &szWrong));
-	AssertString("", szWrong.Text());
-	szWrong.Kill();
-	TestCPP816DebugKill(&sDebug);
+		szWrong.Init();
+		AssertInt(24 + 10 + 5 + 3, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
 }
 
 
@@ -1187,7 +1302,7 @@ void TestCPP816DebugRelease(void)
 // GetLineAddress): 0 if the line table has none.
 //
 //////////////////////////////////////////////////////////////////////////
-static uint32 TestCPP816DebugFrameLine(STestCPP816Debug* psDebug, size uiFrame)
+static uint32 TestCPP65DebugFrameLine(STestCPP65Debug* psDebug, size uiFrame)
 {
 	SAsm65LineEntry*	psLine;
 
@@ -1202,7 +1317,7 @@ static uint32 TestCPP816DebugFrameLine(STestCPP816Debug* psDebug, size uiFrame)
 // with a space after each.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugLocals(STestCPP816Debug* psDebug, size uiFrame, const char* szExpected)
+static void AssertCPP65DebugLocals(STestCPP65Debug* psDebug, size uiFrame, const char* szExpected)
 {
 	SAsm65StackFrame*	psFrame;
 	CArrayUint32		auiVisible;
@@ -1212,7 +1327,7 @@ static void AssertCPP816DebugLocals(STestCPP816Debug* psDebug, size uiFrame, con
 	psFrame = psDebug->asFrames.Get(uiFrame);
 	auiVisible.Init();
 	sz.Init();
-	psFrame->pcRecords->FindVisible(psFrame->psFunction, TestCPP816DebugFrameLine(psDebug, uiFrame), &auiVisible);
+	psFrame->pcRecords->FindVisible(psFrame->psFunction, TestCPP65DebugFrameLine(psDebug, uiFrame), &auiVisible);
 	for (ui = 0; ui < auiVisible.NumElements(); ui++)
 	{
 		sz.Append(psFrame->pcRecords->GetVariable(psFrame->psFunction, auiVisible.GetValue(ui))->szName)->Append(' ');
@@ -1229,7 +1344,7 @@ static void AssertCPP816DebugLocals(STestCPP816Debug* psDebug, size uiFrame, con
 // before the frame's: the expressions with a space after each.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugAutos(STestCPP816Debug* psDebug, size uiFrame, const char* szSource, const char* szExpected)
+static void AssertCPP65DebugAutos(STestCPP65Debug* psDebug, size uiFrame, const char* szSource, const char* szExpected)
 {
 	CArrayChars	aszLines;
 	CArrayChars	aszAutos;
@@ -1238,7 +1353,7 @@ static void AssertCPP816DebugAutos(STestCPP816Debug* psDebug, size uiFrame, cons
 	uint32		uiLine;
 	size		ui;
 
-	uiLine = TestCPP816DebugFrameLine(psDebug, uiFrame);
+	uiLine = TestCPP65DebugFrameLine(psDebug, uiFrame);
 	aszLines.Init();
 	aszLines.Split(szSource, '\n');
 	szLines.Init();
@@ -1266,7 +1381,7 @@ static void AssertCPP816DebugAutos(STestCPP816Debug* psDebug, size uiFrame, cons
 // returned just after it returned.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816DebugWindows(void)
+void TestCPP65DebugWindows(void)
 {
 	static const char*		szSource =
 		"struct SPoint { int x; int y; };\n"						//1
@@ -1289,57 +1404,56 @@ void TestCPP816DebugWindows(void)
 		"	}\n"													//18
 		"	return (int)(lResult / 100) + i;\n"					//19
 		"}\n";														//20
-	static const ETestCPP816Build	aeBuilds[] = { TCB_Debug, TCB_Unoptimised };
-	STestCPP816Debug				sDebug;
+	STestCPP65Debug				sDebug;
 	SAsm65StackFrame				sCaller;
 	SAsm65StackRegisters			sRegisters;
 	SCPP65DebugValue				sValue;
 	CChars							sz;
 	size							uiBuild;
 
-	for (uiBuild = 0; uiBuild < 2; uiBuild++)
+	for (uiBuild = 0; uiBuild < TEST_CPP65_DEBUG_BUILDS; uiBuild++)
 	{
-		TestCPP816DebugBuild(&sDebug, szSource, aeBuilds[uiBuild]);
-		TestCPP816DebugLoad(&sDebug);
-		AssertTrue(TestCPP816DebugRunTo(&sDebug, 5));
-		TestCPP816DebugWalk(&sDebug);
-		AssertString("Scale", TestCPP816DebugFrameName(&sDebug, 0));
-		AssertString("main", TestCPP816DebugFrameName(&sDebug, 1));
-		AssertInt(5, TestCPP816DebugFrameLine(&sDebug, 0));
-		AssertInt(17, TestCPP816DebugFrameLine(&sDebug, 1));
+		TestCPP65DebugBuild(&sDebug, szSource, gasTestCPP65DebugBuilds[uiBuild].eBuild, gasTestCPP65DebugBuilds[uiBuild].eTarget);
+		TestCPP65DebugLoad(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 5));
+		TestCPP65DebugWalk(&sDebug);
+		AssertString("Scale", TestCPP65DebugFrameName(&sDebug, 0));
+		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
+		AssertInt(5, TestCPP65DebugFrameLine(&sDebug, 0));
+		AssertInt(17, TestCPP65DebugFrameLine(&sDebug, 1));
 
 		//The Call Stack's rows.
 		sz.Init();
-		AssertTrue(sDebug.cValues.AppendCall(&sDebug.cWalker, sDebug.asFrames.Get(0), &sz));
+		AssertTrue(sDebug.cValues.AppendCall(sDebug.pcWalker, sDebug.asFrames.Get(0), &sz));
 		AssertTrue(sz.StartsWith("Scale(SPoint* psPoint = 0x"));
 		AssertTrue(sz.EndsWith(", int iBy = 2)"));
 		sz.Clear();
-		AssertTrue(sDebug.cValues.AppendCall(&sDebug.cWalker, sDebug.asFrames.Get(1), &sz));
+		AssertTrue(sDebug.cValues.AppendCall(sDebug.pcWalker, sDebug.asFrames.Get(1), &sz));
 		AssertString("main()", sz.Text());
 		sz.Kill();
 
 		//Locals: main's outer i is hidden at its call.
-		AssertCPP816DebugLocals(&sDebug, 0, "psPoint iBy lArea ");
-		AssertCPP816DebugLocals(&sDebug, 1, "sPoint lResult i ");
-		AssertCPP816DebugWatch(&sDebug, 1, "i", "2 = int");
+		AssertCPP65DebugLocals(&sDebug, 0, "psPoint iBy lArea ");
+		AssertCPP65DebugLocals(&sDebug, 1, "sPoint lResult i ");
+		AssertCPP65DebugWatch(&sDebug, 1, "i", "2 = int");
 
 		//Autos: the names on the line and the one before, not calls, types, comments or strings.
-		AssertCPP816DebugAutos(&sDebug, 0, szSource, "lArea psPoint->x psPoint->y ");
-		AssertCPP816DebugAutos(&sDebug, 1, szSource, "i lResult sPoint ");
-		AssertTrue(TestCPP816DebugRunTo(&sDebug, 7));
-		TestCPP816DebugWalk(&sDebug);
-		AssertCPP816DebugAutos(&sDebug, 0, szSource, "lArea iBy ");
+		AssertCPP65DebugAutos(&sDebug, 0, szSource, "lArea psPoint->x psPoint->y ");
+		AssertCPP65DebugAutos(&sDebug, 1, szSource, "i lResult sPoint ");
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 7));
+		TestCPP65DebugWalk(&sDebug);
+		AssertCPP65DebugAutos(&sDebug, 0, szSource, "lArea iBy ");
 
-		//Stepped out: what Scale returned, in A and X.
+		//Stepped out: what Scale returned (the W65C816's A and X, the 65C64's A).
 		sCaller = *sDebug.asFrames.Get(1);
-		while (!sDebug.cFast.IsStopped() && (sDebug.cFast.GetProgramAddress() != sCaller.uiPC))
+		while (!sDebug.pcCheck->IsStopped() && (TestCPP65DebugPC(&sDebug) != sCaller.uiPC))
 		{
-			TestCPP816DebugStep(&sDebug);
+			TestCPP65DebugStep(&sDebug);
 		}
-		sRegisters.Init(&sDebug.cFast, ASS_Kernel);
+		TestCPP65DebugRegisters(&sDebug, &sRegisters);
 		AssertTrue(sDebug.cValues.Result(sDebug.pcRecords, sDebug.asFrames.Get(0)->psFunction, &sRegisters, &sValue));
-		AssertCPP816DebugShown(&sDebug, "240000 = long", &sValue);
-		TestCPP816DebugKill(&sDebug);
+		AssertCPP65DebugShown(&sDebug, "240000 = long", &sValue);
+		TestCPP65DebugKill(&sDebug);
 	}
 }
 
@@ -1353,7 +1467,7 @@ void TestCPP816DebugWindows(void)
 // registers' names.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP65DebugDescribed(STestCPP816Debug* psDebug, const char* szName, size uiNth, const char* szExpected)
+static void AssertCPP65DebugDescribed(STestCPP65Debug* psDebug, const char* szName, size uiNth, const char* szExpected)
 {
 	CAsm65DebugRecords*		pcRecords;
 	SAsm65DebugFunction*	psFunction;
@@ -1437,31 +1551,24 @@ void TestCPP65C64DebugFrames(void)
 		"	int ai[4] = { 1, 2, 3, 4 };\n"
 		"	return One(ai[2]);\n"
 		"}\n";
-	STestCPP816Debug	sDebug;
+	STestCPP65Debug	sDebug;
 
 	//Debug: every function with variables has a frame, its variables in it.
-	TestCPP816DebugBuild(&sDebug, szSource, TCB_Debug, CPPT_65C64);
+	TestCPP65DebugBuild(&sDebug, szSource, TCB_Debug, CPPT_65C64);
 	AssertInt(ADP_65C64, sDebug.pcRecords->GetProcessor());
 	AssertCPP65DebugDescribed(&sDebug, "Twice", 0, "follow");
 	AssertCPP65DebugDescribed(&sDebug, "Twice", 1, "V + 12, base V, saved V -7");
-	AssertInt(1, (int)TestCPP816DebugFunction(&sDebug, "_main")->uiNumVariables);
+	AssertInt(1, (int)TestCPP65DebugFunction(&sDebug, "_main")->uiNumVariables);
 	AssertCPP65DebugDescribed(&sDebug, "main", 0, "V + 24, base V, saved V -7");
-	TestCPP816DebugKill(&sDebug);
+	TestCPP65DebugKill(&sDebug);
 
 	//Release: Twice has no frame; One keeps x in V across its calls; main's array is split into values.
-	TestCPP816DebugBuild(&sDebug, szSource, TCB_Release, CPPT_65C64);
+	TestCPP65DebugBuild(&sDebug, szSource, TCB_Release, CPPT_65C64);
 	AssertCPP65DebugDescribed(&sDebug, "Twice", 1, "follow");
 	AssertCPP65DebugDescribed(&sDebug, "One", 1, "follow, saved V -7");
 	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "ai"));
-	TestCPP816DebugKill(&sDebug);
+	TestCPP65DebugKill(&sDebug);
 
-	//Release: what stays in memory is kept in the frame, from its base.
-	TestCPP816DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_Release, CPPT_65C64);
-	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
-	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
-	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
-	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
-	TestCPP816DebugKill(&sDebug);
 }
 
 
@@ -1469,17 +1576,17 @@ void TestCPP65C64DebugFrames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void TestCPP816Debug(void)
+void TestCPP65Debug(void)
 {
 	BeginTests();
 
-	TestCPP816DebugFrames();
-	TestCPP816DebugModes();
-	TestCPP816DebugVariables();
-	TestCPP816DebugStack();
-	TestCPP816DebugValues();
-	TestCPP816DebugWindows();
-	TestCPP816DebugRelease();
+	TestCPP65DebugFrames();
+	TestCPP65DebugModes();
+	TestCPP65DebugVariables();
+	TestCPP65DebugStack();
+	TestCPP65DebugValues();
+	TestCPP65DebugWindows();
+	TestCPP65DebugRelease();
 	TestCPP65C64DebugFrames();
 
 	TestStatistics();

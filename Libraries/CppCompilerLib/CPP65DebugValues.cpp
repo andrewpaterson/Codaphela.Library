@@ -120,6 +120,41 @@ static void AppendCharacter(CChars* pszDest, uint8 uiCharacter, char cQuote)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The bits of an address on pcRecords' processor: 24 on the W65C816 (a
+// pointer's top byte ignored), 32 on the 65C64.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CPP65DebugAddressMask(CAsm65DebugRecords* pcRecords)
+{
+	return (pcRecords->GetProcessor() == ADP_65C64) ? 0xFFFFFFFF : 0xFFFFFF;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The hexadecimal digits an address is shown in on pcRecords' processor.
+//
+//////////////////////////////////////////////////////////////////////////
+int CPP65DebugAddressDigits(CAsm65DebugRecords* pcRecords)
+{
+	return (pcRecords->GetProcessor() == ADP_65C64) ? 8 : 6;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An int's bytes on pcRecords' processor (CCPPTarget::GetIntBytes): 2 on
+// the W65C816, 4 on the 65C64.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CPP65DebugIntBytes(CAsm65DebugRecords* pcRecords)
+{
+	return (pcRecords->GetProcessor() == ADP_65C64) ? 4 : 2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CCPP65DebugValues::Init(CAsm65StackMemory* pcMemory)
@@ -299,7 +334,7 @@ bool CCPP65DebugValues::Format(SCPP65DebugValue* psValue, CChars* pszDest)
 	{
 		if (IsCharacter(psType))
 		{
-			return AppendString((EAsm65StackSpace)psValue->uiSpace, psValue->uiAddress, psValue->uiArrayCount, pszDest);
+			return AppendString(psValue->pcRecords, (EAsm65StackSpace)psValue->uiSpace, psValue->uiAddress, psValue->uiArrayCount, pszDest);
 		}
 		pszDest->Append("{...}");
 		return true;
@@ -315,7 +350,7 @@ bool CCPP65DebugValues::Format(SCPP65DebugValue* psValue, CChars* pszDest)
 	case ADT_Array:
 		if (IsCharacter(psValue->pcRecords->GetType(psType->uiTarget)) && psValue->bInMemory)
 		{
-			return AppendString((EAsm65StackSpace)psValue->uiSpace, psValue->uiAddress, psType->uiCount, pszDest);
+			return AppendString(psValue->pcRecords, (EAsm65StackSpace)psValue->uiSpace, psValue->uiAddress, psType->uiCount, pszDest);
 		}
 		pszDest->Append("{...}");
 		return true;
@@ -361,18 +396,18 @@ bool CCPP65DebugValues::Format(SCPP65DebugValue* psValue, CChars* pszDest)
 		pszDest->Append(sz);
 		return true;
 	default:
-		//A pointer (or a reference to nothing): its 24 bit address, and a char*'s string (,s: its string alone).
-		uiAddress = (uint32)uiValue & 0xFFFFFF;
+		//A pointer (or a reference to nothing): its address, and a char*'s string (,s: its string alone).
+		uiAddress = (uint32)uiValue & CPP65DebugAddressMask(psValue->pcRecords);
 		if ((uiAddress != 0) && IsCharacter(psValue->pcRecords->GetType(psType->uiTarget)))
 		{
 			if (psValue->uiFormat != CPP65DF_String)
 			{
-				snprintf(sz, sizeof(sz), "0x%06x ", uiAddress);
+				snprintf(sz, sizeof(sz), "0x%0*x ", CPP65DebugAddressDigits(psValue->pcRecords), uiAddress);
 				pszDest->Append(sz);
 			}
-			return AppendString((EAsm65StackSpace)psValue->uiSpace, uiAddress, CPP65_DEBUG_STRING_MOST, pszDest);
+			return AppendString(psValue->pcRecords, (EAsm65StackSpace)psValue->uiSpace, uiAddress, CPP65_DEBUG_STRING_MOST, pszDest);
 		}
-		snprintf(sz, sizeof(sz), "0x%06x", uiAddress);
+		snprintf(sz, sizeof(sz), "0x%0*x", CPP65DebugAddressDigits(psValue->pcRecords), uiAddress);
 		pszDest->Append(sz);
 		return true;
 	}
@@ -671,7 +706,7 @@ bool CCPP65DebugValues::Edit(SCPP65DebugValue* psValue, const char* szText, SCPP
 			break;
 		}
 		uiValue = strtoull(szText, &szEnd, 0);
-		if ((szEnd == szText) || (*szEnd != '\0') || (szText[0] == '-') || (uiValue > 0xFFFFFF))
+		if ((szEnd == szText) || (*szEnd != '\0') || (szText[0] == '-') || (uiValue > CPP65DebugAddressMask(psValue->pcRecords)))
 		{
 			return false;
 		}
@@ -765,11 +800,11 @@ bool CCPP65DebugValues::Dereference(SCPP65DebugValue* psValue, SCPP65DebugValue*
 		return false;
 	}
 	psPointee = psValue->pcRecords->GetType(psType->uiTarget);
-	if (!psPointee || (psPointee->uiKind == ADT_Void) || (psPointee->uiKind == ADT_Function) || !Read(psValue, &uiValue) || ((uiValue & 0xFFFFFF) == 0))
+	if (!psPointee || (psPointee->uiKind == ADT_Void) || (psPointee->uiKind == ADT_Function) || !Read(psValue, &uiValue) || ((uiValue & CPP65DebugAddressMask(psValue->pcRecords)) == 0))
 	{
 		return false;
 	}
-	psTarget->Init(psValue->pcRecords, psType->uiTarget, (EAsm65StackSpace)psValue->uiSpace, (uint32)uiValue & 0xFFFFFF);
+	psTarget->Init(psValue->pcRecords, psType->uiTarget, (EAsm65StackSpace)psValue->uiSpace, (uint32)uiValue & CPP65DebugAddressMask(psValue->pcRecords));
 	return true;
 }
 
@@ -786,6 +821,7 @@ bool CCPP65DebugValues::DynamicClass(SCPP65DebugValue* psValue, CChars* pszDest)
 {
 	SAsm65DebugType*	psType;
 	SAsm65DebugMember*	psMember;
+	CAsm65DebugRecords*	pcRecords;
 	EAsm65StackSpace	eSpace;
 	uint32				uiOffset;
 	uint32				uiVtable;
@@ -821,13 +857,14 @@ bool CCPP65DebugValues::DynamicClass(SCPP65DebugValue* psValue, CChars* pszDest)
 	}
 
 	eSpace = (EAsm65StackSpace)psValue->uiSpace;
-	if (!ReadLong(eSpace, psValue->uiAddress + uiOffset + (uint32)psMember->iValue, &uiVtable) || (uiVtable == 0) ||
-		!ReadLong(eSpace, uiVtable + CPP65_VTABLE_TYPE_INFO_OFFSET, &uiTypeInfo) || (uiTypeInfo == 0) ||
-		!ReadLong(eSpace, uiTypeInfo + CPP65_TYPE_INFO_NAME_OFFSET, &uiName) || (uiName == 0))
+	pcRecords = psValue->pcRecords;
+	if (!ReadLong(pcRecords, eSpace, psValue->uiAddress + uiOffset + (uint32)psMember->iValue, &uiVtable) || (uiVtable == 0) ||
+		!ReadLong(pcRecords, eSpace, uiVtable + CPP65_VTABLE_TYPE_INFO_OFFSET, &uiTypeInfo) || (uiTypeInfo == 0) ||
+		!ReadLong(pcRecords, eSpace, uiTypeInfo + CPP65_TYPE_INFO_NAME_OFFSET, &uiName) || (uiName == 0))
 	{
 		return false;
 	}
-	return AppendString(eSpace, uiName, CPP65_DEBUG_STRING_MOST, pszDest, '\0');
+	return AppendString(pcRecords, eSpace, uiName, CPP65_DEBUG_STRING_MOST, pszDest, '\0');
 }
 
 
@@ -863,19 +900,21 @@ bool CCPP65DebugValues::ReadBytes(SCPP65DebugValue* psValue, uint32 uiOffset, vo
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A pointer's 24 bit address, four bytes at uiAddress (the top one
-// ignored).
+// A pointer's address, the four bytes at uiAddress (the bits an address
+// has on pcRecords' processor).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65DebugValues::ReadLong(EAsm65StackSpace eSpace, uint32 uiAddress, uint32* puiLong)
+bool CCPP65DebugValues::ReadLong(CAsm65DebugRecords* pcRecords, EAsm65StackSpace eSpace, uint32 uiAddress, uint32* puiLong)
 {
 	uint8	auiLong[4];
+	uint32	uiMask;
 
-	if (!mpcMemory->Read(eSpace, uiAddress & 0xFFFFFF, auiLong, 4))
+	uiMask = CPP65DebugAddressMask(pcRecords);
+	if (!mpcMemory->Read(eSpace, uiAddress & uiMask, auiLong, 4))
 	{
 		return false;
 	}
-	*puiLong = auiLong[0] | (auiLong[1] << 8) | (auiLong[2] << 16);
+	*puiLong = (auiLong[0] | (auiLong[1] << 8) | (auiLong[2] << 16) | ((uint32)auiLong[3] << 24)) & uiMask;
 	return true;
 }
 
@@ -969,7 +1008,7 @@ void CCPP65DebugValues::AppendEnum(SCPP65DebugValue* psValue, SAsm65DebugType* p
 // ran out first.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65DebugValues::AppendString(EAsm65StackSpace eSpace, uint32 uiAddress, size uiMost, CChars* pszDest, char cQuote)
+bool CCPP65DebugValues::AppendString(CAsm65DebugRecords* pcRecords, EAsm65StackSpace eSpace, uint32 uiAddress, size uiMost, CChars* pszDest, char cQuote)
 {
 	uint8	uiCharacter;
 	size	ui;
@@ -982,7 +1021,7 @@ bool CCPP65DebugValues::AppendString(EAsm65StackSpace eSpace, uint32 uiAddress, 
 	bRead = true;
 	for (ui = 0; ui < uiMost; ui++)
 	{
-		bRead = mpcMemory->Read(eSpace, (uiAddress + (uint32)ui) & 0xFFFFFF, &uiCharacter, 1);
+		bRead = mpcMemory->Read(eSpace, (uiAddress + (uint32)ui) & CPP65DebugAddressMask(pcRecords), &uiCharacter, 1);
 		if (!bRead || (uiCharacter == '\0'))
 		{
 			break;
