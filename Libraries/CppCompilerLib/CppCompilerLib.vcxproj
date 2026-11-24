@@ -286,6 +286,8 @@
     <ClCompile Include="IRThrows.cpp" />
     <ClCompile Include="IRVerifier.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
+    <ClCompile Include="CPP65DebugValues.cpp" />
+    <ClCompile Include="CPP65DebugWatch.cpp" />
     <ClCompile Include="CPP65DebugWriter.cpp" />
     <ClCompile Include="CPP65UnitWorkspace.cpp" />
     <ClCompile Include="SpillStore.cpp" />
@@ -583,6 +585,8 @@
     <ClInclude Include="IRThrows.h" />
     <ClInclude Include="IRVerifier.h" />
     <ClInclude Include="CPP65Builder.h" />
+    <ClInclude Include="CPP65DebugValues.h" />
+    <ClInclude Include="CPP65DebugWatch.h" />
     <ClInclude Include="CPP65DebugWriter.h" />
     <ClInclude Include="CPP65UnitWorkspace.h" />
     <ClInclude Include="SpillStore.h" />

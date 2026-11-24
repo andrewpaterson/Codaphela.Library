@@ -99,6 +99,12 @@
     <ClCompile Include="CPP65Builder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPP65DebugValues.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
+    <ClCompile Include="CPP65DebugWatch.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65DebugWriter.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1041,6 +1047,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPP65Builder.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65DebugValues.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPP65DebugWatch.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65DebugWriter.h">
