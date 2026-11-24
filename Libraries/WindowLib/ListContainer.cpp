@@ -19,6 +19,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
+#include "BaseLib/ArrayElementNotFound.h"
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "Window.h"
@@ -392,18 +393,7 @@ bool CListContainer::IsRowSelected(int32 iRow)
 
 int32 CListContainer::NumSelected(void)
 {
-	int32	i;
-	int32	iNum;
-
-	iNum = 0;
-	for (i = 0; i < NumRows(); i++)
-	{
-		if (mabSelected.Get(i))
-		{
-			iNum++;
-		}
-	}
-	return iNum;
+	return (int32)mabSelected.CountSet();
 }
 
 
@@ -1454,7 +1444,7 @@ bool CListContainer::IsHoverShown(void)
 //////////////////////////////////////////////////////////////////////////
 void CListContainer::UpdateHighlights(void)
 {
-	int32	i;
+	lsize	uiRow;
 	int32	iTop;
 	int32	iHeight;
 
@@ -1462,9 +1452,9 @@ void CListContainer::UpdateHighlights(void)
 	{
 		//The selected highlight is over the whole list and draws a band for each selected row.
 		mpSelectedBands->ClearBands();
-		for (i = 0; i < NumRows(); i++)
+		for (uiRow = mabSelected.FindSet(0); uiRow != ARRAY_LARGE_ELEMENT_NOT_FOUND; uiRow = mabSelected.FindSet(uiRow + 1))
 		{
-			if (mabSelected.Get(i) && GetRowBounds(i, &iTop, &iHeight))
+			if (GetRowBounds((int32)uiRow, &iTop, &iHeight))
 			{
 				mpSelectedBands->AddBand(iTop - GetPosition().y, iHeight);
 			}
