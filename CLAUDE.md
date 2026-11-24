@@ -22,6 +22,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   `Libraries/MicroprocessorLib/Docs/65c64/emulator.md` (the 65C64 simulators).  The website (MkDocs,
   `../HCP65/Website`) gathers every repository's `Docs` folders through its `mkdocs.yml`'s `extra.sources`.
   `../HCP65/Website/DocsPlan.txt` is the plan for the documentation.
+- Name code in a page with a reference: [`CTextArea`], [`CTextArea::ReplaceRanges`], [`CShape::Init(int)`] or
+  [`BaseLib/Chars.h`].  The site build links it to its line on GitHub and fails on one that names nothing; a plain
+  `CTextArea` naming a real class is a warning.  A span that isn't C++ but looks it is written `#!text abs`.
 - Plans and design notes are text files beside their code; list them with
   `find Libraries Tests -name "*.txt" -not -path "*/Input/*" -not -path "*/Output/*"`.  The larger ones:
   `Libraries/CppCompilerLib/Cpp14CompliancePlan.txt`, `Libraries/CppCompilerLib/W65C816.txt`,
