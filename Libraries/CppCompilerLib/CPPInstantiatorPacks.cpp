@@ -20,16 +20,17 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include "CPPSyntaxCopier.h"
 #include "CPPUnit.h"
+#include "CPPInstantiator.h"
 
 
 //Finds the parameter packs a pack expansion's pattern names: the packs of the bindings in use whose parameters it
 //names, and the function parameter packs it names, of those the function being generated can expand
-//(CCPPUnit::FindFunctionPack).  Not in a pack expansion written inside the pattern, or in sizeof...: what is named
+//(CCPPInstantiator::FindFunctionPack).  Not in a pack expansion written inside the pattern, or in sizeof...: what is named
 //there is expanded there, as a whole (Pair<Count<Ts...>, Ts>... expands the second Ts).  [temp.variadic] 5
 class CCPPPackFinder : public CCPPSyntaxChildVisitor
 {
 public:
-	CCPPUnit*				mpcUnit;
+	CCPPInstantiator*		mpcInstantiator;
 	CArrayCPPBindingPtrs*	mpapsPacks;
 	CArrayCPPSymbols*		mpapcFunctionPacks;
 
@@ -60,7 +61,7 @@ public:
 	{
 		SCPPBinding*	psBinding;
 
-		if (*ppcSymbol && mpcUnit->FindFunctionPack(*ppcSymbol))
+		if (*ppcSymbol && mpcInstantiator->FindFunctionPack(*ppcSymbol))
 		{
 			if (mpapcFunctionPacks && (mpapcFunctionPacks->Find(*ppcSymbol) == ARRAY_ELEMENT_NOT_FOUND))
 			{
@@ -68,7 +69,7 @@ public:
 			}
 			return;
 		}
-		psBinding = *ppcSymbol ? mpcUnit->GetInstantiator()->FindBinding(*ppcSymbol) : NULL;
+		psBinding = *ppcSymbol ? mpcInstantiator->FindBinding(*ppcSymbol) : NULL;
 		if (psBinding && psBinding->IsPack() && (mpapsPacks->Find(psBinding) == ARRAY_ELEMENT_NOT_FOUND))
 		{
 			mpapsPacks->Add(psBinding);
@@ -82,7 +83,7 @@ public:
 // A new empty list of a pack's types, kept until the unit is killed.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayCPP65Types* CCPPUnit::NewPack(void)
+CArrayCPP65Types* CCPPInstantiator::NewPack(void)
 {
 	CArrayCPP65Types*	papsPack;
 
@@ -99,7 +100,7 @@ CArrayCPP65Types* CCPPUnit::NewPack(void)
 // args) is declared with, or NULL if the parameter is not a pack.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
+SCPPBinding* CCPPInstantiator::PackBinding(CCPPSyntaxParameter* pcParameter)
 {
 	CCPPSyntaxTypeSpecifier*	pcType;
 	SCPPBinding*				psBinding;
@@ -113,7 +114,7 @@ SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
 	{
 		return NULL;
 	}
-	psBinding = mcInstantiator.FindBinding(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
+	psBinding = FindBinding(((CCPPSyntaxNamedTypeSpecifier*)pcType)->mpcName->mpcSymbol);
 	return (psBinding && psBinding->papsPack) ? psBinding : NULL;
 }
 
@@ -128,7 +129,7 @@ SCPPBinding* CCPPUnit::PackBinding(CCPPSyntaxParameter* pcParameter)
 // (ExpandArguments) and name it.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* pcPack, size k)
+CCPPSymbol* CCPPInstantiator::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* pcPack, size k)
 {
 	SCPPPackElement*	psElement;
 	CCPPSymbol*			pcSymbol;
@@ -139,7 +140,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 		psElement = masPackElements.Get(i);
 		if ((psElement->pcFunction == pcFunction) && (psElement->pcPack == pcPack) && (psElement->uiIndex == k))
 		{
-			GetFunctionPacks()->Add(pcPack)->apcElements.Add(psElement->pcElement);
+			mpcUnit->GetFunctionPacks()->Add(pcPack)->apcElements.Add(psElement->pcElement);
 			return psElement->pcElement;
 		}
 	}
@@ -147,7 +148,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 	pcSymbol = NewMalloc<CCPPSymbol>();
 	pcSymbol->Init(pcPack->mlliName, CPPSK_Variable, pcPack->mpcDeclaration, pcPack->mpcScope);
 	mapcPackSymbols.Add(pcSymbol);
-	GetFunctionPacks()->Add(pcPack)->apcElements.Add(pcSymbol);
+	mpcUnit->GetFunctionPacks()->Add(pcPack)->apcElements.Add(pcSymbol);
 
 	psElement = masPackElements.Add();
 	psElement->pcBindings = NULL;
@@ -164,7 +165,7 @@ CCPPSymbol* CCPPUnit::FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* 
 // Whether a call's arguments expand a pack (f(args...)).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::HasPackExpansion(CArraySyntax* papcArguments)
+bool CCPPInstantiator::HasPackExpansion(CArraySyntax* papcArguments)
 {
 	size	i;
 
@@ -185,7 +186,7 @@ bool CCPPUnit::HasPackExpansion(CArraySyntax* papcArguments)
 // mem-initialiser T()... itself.  NULL if pcNode isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSyntax* CCPPUnit::ExpansionPattern(CCPPSyntax* pcNode)
+CCPPSyntax* CCPPInstantiator::ExpansionPattern(CCPPSyntax* pcNode)
 {
 	if (pcNode->GetKind() == CPPS_PackExpansionExpression)
 	{
@@ -205,7 +206,7 @@ CCPPSyntax* CCPPUnit::ExpansionPattern(CCPPSyntax* pcNode)
 // is killed.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayInt64* CCPPUnit::NewValuePack(void)
+CArrayInt64* CCPPInstantiator::NewValuePack(void)
 {
 	CArrayInt64*	palliPack;
 
@@ -223,11 +224,11 @@ CArrayInt64* CCPPUnit::NewValuePack(void)
 // names.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks)
+void CCPPInstantiator::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks)
 {
 	CCPPPackFinder	cFinder;
 
-	cFinder.mpcUnit = this;
+	cFinder.mpcInstantiator = this;
 	cFinder.mpapsPacks = papsPacks;
 	cFinder.mpapcFunctionPacks = papcFunctionPacks;
 	pcPattern->VisitFields(&cFinder);
@@ -241,7 +242,7 @@ void CCPPUnit::FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks,
 // not.  [temp.variadic] 5, 6
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks, CCPPSyntax* pcNode, size* puiElements)
+bool CCPPInstantiator::PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks, CCPPSyntax* pcNode, size* puiElements)
 {
 	size	i;
 	bool	bFound;
@@ -252,7 +253,7 @@ bool CCPPUnit::PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSym
 	{
 		if (bFound && (FindFunctionPack(papcFunctionPacks->GetPtr(i))->apcElements.NumElements() != *puiElements))
 		{
-			return mcDiagnostics.Error(pcNode, "The packs the pack expansion expands have different lengths");
+			return mpcUnit->GetDiagnostics()->Error(pcNode, "The packs the pack expansion expands have different lengths");
 		}
 		*puiElements = FindFunctionPack(papcFunctionPacks->GetPtr(i))->apcElements.NumElements();
 		bFound = true;
@@ -261,12 +262,12 @@ bool CCPPUnit::PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSym
 	{
 		if (bFound && (papsPacks->GetPtr(i)->PackSize() != *puiElements))
 		{
-			return mcDiagnostics.Error(pcNode, "The packs the pack expansion expands have different lengths");
+			return mpcUnit->GetDiagnostics()->Error(pcNode, "The packs the pack expansion expands have different lengths");
 		}
 		*puiElements = papsPacks->GetPtr(i)->PackSize();
 		bFound = true;
 	}
-	return bFound || mcDiagnostics.Error(pcNode, "The pack expansion names no parameter pack");
+	return bFound || mpcUnit->GetDiagnostics()->Error(pcNode, "The pack expansion names no parameter pack");
 }
 
 
@@ -277,9 +278,9 @@ bool CCPPUnit::PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSym
 // one of a function the lambda is in.  NULL if the symbol isn't one.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPPFunctionPack* CCPPUnit::FindFunctionPack(CCPPSymbol* pcSymbol)
+SCPPFunctionPack* CCPPInstantiator::FindFunctionPack(CCPPSymbol* pcSymbol)
 {
-	return GetFunctionPacks()->Find(pcSymbol);
+	return mpcUnit->GetFunctionPacks()->Find(pcSymbol);
 }
 
 
@@ -295,7 +296,7 @@ SCPPFunctionPack* CCPPUnit::FindFunctionPack(CCPPSymbol* pcSymbol)
 // [temp.variadic] 5
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded)
+bool CCPPInstantiator::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded)
 {
 	CArrayCPPBindingPtrs	apsFound;
 	CArrayCPPBindings		asPacks;
@@ -322,7 +323,7 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 
 	for (k = 0; bResult && (k < uiElements); k++)
 	{
-		cCopier.Init(mpcTree->GetMemory());
+		cCopier.Init(mpcUnit->GetTree()->GetMemory());
 		for (i = 0; i < apcFunctionPacks.NumElements(); i++)
 		{
 			psFunctionPack = FindFunctionPack(apcFunctionPacks.GetPtr(i));
@@ -331,12 +332,12 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 		for (i = 0; bResult && (i < asPacks.NumElements()); i++)
 		{
 			pcElement = PackElement(asPacks.Get(i), k);
-			bResult = (pcElement != NULL) || mcDiagnostics.Error(pcPattern, "The pack expansion is not where the compiler can expand it yet");
+			bResult = (pcElement != NULL) || mpcUnit->GetDiagnostics()->Error(pcPattern, "The pack expansion is not where the compiler can expand it yet");
 			cCopier.Substitute(asPacks.Get(i)->pcParameter, pcElement);
 		}
 		if (bResult)
 		{
-			mpcStatistics->Count(CPPCC_PackExpansionNodes, 3);
+			mpcUnit->GetStatistics()->Count(CPPCC_PackExpansionNodes, 3);
 			papcExpanded->Add(cCopier.Copy(pcPattern, pcParent));
 		}
 		cCopier.Kill();
@@ -354,7 +355,7 @@ bool CCPPUnit::ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArray
 // time it is wanted.  NULL where no bindings are in use.
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
+CCPPSymbol* CCPPInstantiator::PackElement(SCPPBinding* psPack, size k)
 {
 	CCPPTemplateArguments*	pcBindings;
 	SCPPPackElement*		psElement;
@@ -362,7 +363,7 @@ CCPPSymbol* CCPPUnit::PackElement(SCPPBinding* psPack, size k)
 	CCPPSymbol*				pcSymbol;
 	size					i;
 
-	pcBindings = mcContext.GetBindings();
+	pcBindings = mpcUnit->GetContext()->GetBindings();
 	if (!pcBindings || !psPack->pcParameter)
 	{
 		return NULL;
@@ -426,7 +427,7 @@ static void ExpandedArgument(SCPPExpandedArgument* psExpanded, CCPPSyntax* pcArg
 // [temp.variadic] 5
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded)
+bool CCPPInstantiator::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded)
 {
 	CArrayCPPBindingPtrs	apsPacks;
 	SCPPExpandedArgument*	psExpanded;
@@ -469,12 +470,12 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 			ExpandedArgument(psExpanded, pcArgument, true);
 			if (pcPattern->GetKind() == CPPS_TypeId)
 			{
-				psExpanded->psType = mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)pcPattern);
-				bResult = (psExpanded->psType != NULL) || mcDiagnostics.Error(pcArgument, "The template argument is not a type the compiler supports");
+				psExpanded->psType = mpcUnit->GetDeclarators()->GetTypeIdType((CCPPSyntaxTypeId*)pcPattern);
+				bResult = (psExpanded->psType != NULL) || mpcUnit->GetDiagnostics()->Error(pcArgument, "The template argument is not a type the compiler supports");
 			}
 			else
 			{
-				bResult = mcFolder.Constant(pcPattern, &psExpanded->lliValue) || mcFolder.ConstantError(pcArgument, "The template argument must be a constant");
+				bResult = mpcUnit->GetFolder()->Constant(pcPattern, &psExpanded->lliValue) || mpcUnit->GetFolder()->ConstantError(pcArgument, "The template argument must be a constant");
 			}
 		}
 		cElements.Kill();
@@ -490,13 +491,13 @@ bool CCPPUnit::ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExp
 // element's type, or the type a type-id names.  NULL if it is neither.
 //
 //////////////////////////////////////////////////////////////////////////
-SCPP65Type* CCPPUnit::ExpandedArgumentType(SCPPExpandedArgument* psArgument)
+SCPP65Type* CCPPInstantiator::ExpandedArgumentType(SCPPExpandedArgument* psArgument)
 {
 	if (psArgument->bExpanded)
 	{
 		return psArgument->psType;
 	}
-	return (psArgument->pcArgument->GetKind() == CPPS_TypeId) ? mcDeclarators.GetTypeIdType((CCPPSyntaxTypeId*)psArgument->pcArgument) : NULL;
+	return (psArgument->pcArgument->GetKind() == CPPS_TypeId) ? mpcUnit->GetDeclarators()->GetTypeIdType((CCPPSyntaxTypeId*)psArgument->pcArgument) : NULL;
 }
 
 
@@ -507,14 +508,14 @@ SCPP65Type* CCPPUnit::ExpandedArgumentType(SCPPExpandedArgument* psArgument)
 // neither.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue)
+bool CCPPInstantiator::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue)
 {
 	if (psArgument->bExpanded)
 	{
 		*plliValue = psArgument->lliValue;
-		return !psArgument->psType || mcDiagnostics.Error(psArgument->pcArgument, "The template argument must be a constant");
+		return !psArgument->psType || mpcUnit->GetDiagnostics()->Error(psArgument->pcArgument, "The template argument must be a constant");
 	}
-	return mcFolder.Constant(psArgument->pcArgument, plliValue) || mcFolder.ConstantError(psArgument->pcArgument, "The template argument must be a constant");
+	return mpcUnit->GetFolder()->Constant(psArgument->pcArgument, plliValue) || mpcUnit->GetFolder()->ConstantError(psArgument->pcArgument, "The template argument must be a constant");
 }
 
 
@@ -526,7 +527,7 @@ bool CCPPUnit::ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* pl
 // else by its template pack).  [expr.sizeof] 5
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::PackSize(CCPPSymbol* pcPack, int64* plliValue)
+bool CCPPInstantiator::PackSize(CCPPSymbol* pcPack, int64* plliValue)
 {
 	SCPPBinding*		psBinding;
 	SCPPFunctionPack*	psFunctionPack;
@@ -537,7 +538,7 @@ bool CCPPUnit::PackSize(CCPPSymbol* pcPack, int64* plliValue)
 		*plliValue = (int64)psFunctionPack->apcElements.NumElements();
 		return true;
 	}
-	psBinding = pcPack ? mcInstantiator.FindBinding(pcPack) : NULL;
+	psBinding = pcPack ? FindBinding(pcPack) : NULL;
 	if (!psBinding && pcPack && pcPack->mpcDeclaration && (pcPack->mpcDeclaration->GetKind() == CPPS_Parameter))
 	{
 		psBinding = PackBinding((CCPPSyntaxParameter*)pcPack->mpcDeclaration);
@@ -561,7 +562,7 @@ bool CCPPUnit::PackSize(CCPPSymbol* pcPack, int64* plliValue)
 // NULL, with an error, if one can't be expanded.
 //
 //////////////////////////////////////////////////////////////////////////
-CArraySyntax* CCPPUnit::ExpandArguments(CArraySyntax* papcArguments)
+CArraySyntax* CCPPInstantiator::ExpandArguments(CArraySyntax* papcArguments)
 {
 	SCPPExpandedArguments*	psExpanded;
 	CArraySyntax*			papcExpanded;
@@ -577,13 +578,13 @@ CArraySyntax* CCPPUnit::ExpandArguments(CArraySyntax* papcArguments)
 	for (i = 0; i < masExpandedArguments.NumElements(); i++)
 	{
 		psExpanded = masExpandedArguments.Get(i);
-		if ((psExpanded->papcArguments == papcArguments) && (psExpanded->pcBindings == mcContext.GetBindings()) && (psExpanded->pcIn == mcContext.GetFunction()))
+		if ((psExpanded->papcArguments == papcArguments) && (psExpanded->pcBindings == mpcUnit->GetContext()->GetBindings()) && (psExpanded->pcIn == mpcUnit->GetContext()->GetFunction()))
 		{
 			return psExpanded->papcExpanded;
 		}
 	}
 
-	mpcStatistics->Count(CPPCC_PackExpansions);
+	mpcUnit->GetStatistics()->Count(CPPCC_PackExpansions);
 	papcExpanded = NewMalloc<CArraySyntax>();
 	papcExpanded->Init();
 	bResult = true;
@@ -609,8 +610,8 @@ CArraySyntax* CCPPUnit::ExpandArguments(CArraySyntax* papcArguments)
 	}
 	psExpanded = masExpandedArguments.Add();
 	psExpanded->papcArguments = papcArguments;
-	psExpanded->pcBindings = mcContext.GetBindings();
-	psExpanded->pcIn = mcContext.GetFunction();
+	psExpanded->pcBindings = mpcUnit->GetContext()->GetBindings();
+	psExpanded->pcIn = mpcUnit->GetContext()->GetFunction();
 	psExpanded->papcExpanded = papcExpanded;
 	return papcExpanded;
 }
@@ -623,7 +624,7 @@ CArraySyntax* CCPPUnit::ExpandArguments(CArraySyntax* papcArguments)
 // expands them.  If one can't be, after its error, the list's own.
 //
 //////////////////////////////////////////////////////////////////////////
-CArraySyntax* CCPPUnit::ListElements(CCPPSyntax* pcList)
+CArraySyntax* CCPPInstantiator::ListElements(CCPPSyntax* pcList)
 {
 	CArraySyntax*	papcElements;
 	CArraySyntax*	papcExpanded;

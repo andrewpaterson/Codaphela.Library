@@ -353,7 +353,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser, SCPP65Type* 
 	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
-		return (int)mpcUnit->ListElements(mpcUnit->GetDesugarings()->BracedFor(mpcUnit->GetTypes()->Array(psElement, 0), pcInitialiser))->NumElements();
+		return (int)mpcUnit->GetInstantiator()->ListElements(mpcUnit->GetDesugarings()->BracedFor(mpcUnit->GetTypes()->Array(psElement, 0), pcInitialiser))->NumElements();
 	}
 	if (mpcUnit->IsStringLiteral(pcInitialiser))
 	{
@@ -462,12 +462,12 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && pcNode && (pcNode->GetKind() == CPPS_InitDeclarator) && (((CCPPSyntaxInitDeclarator*)pcNode)->meInitializer == CPPI_Braces))
 	{
 		//auto x{e} is auto x = e (as C++17 has it, and MSVC).
-		if (mpcUnit->ListElements(pcInitialiser)->NumElements() != 1)
+		if (mpcUnit->GetInstantiator()->ListElements(pcInitialiser)->NumElements() != 1)
 		{
 			mpcDiagnostics->Error(pcNode, "auto x{...} needs one value");
 			return NULL;
 		}
-		pcInitialiser = mpcUnit->ListElements(pcInitialiser)->GetPtr(0);
+		pcInitialiser = mpcUnit->GetInstantiator()->ListElements(pcInitialiser)->GetPtr(0);
 	}
 	if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{

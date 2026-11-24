@@ -33,6 +33,11 @@ void CCPPInstantiator::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	masOutsideDefinitions.Init();
+	mapapsPacks.Init();
+	mapalliPacks.Init();
+	mapcPackSymbols.Init();
+	masPackElements.Init();
+	masExpandedArguments.Init();
 }
 
 
@@ -42,7 +47,40 @@ void CCPPInstantiator::Init(CCPPUnit* pcUnit)
 //////////////////////////////////////////////////////////////////////////
 void CCPPInstantiator::Kill(void)
 {
+	CArrayCPP65Types*	papsPack;
+	CArrayInt64*		palliPack;
+	CArraySyntax*		papcExpanded;
+	size				i;
+
 	masOutsideDefinitions.Kill();
+	for (i = 0; i < mapapsPacks.NumElements(); i++)
+	{
+		papsPack = mapapsPacks.GetPtr(i);
+		SafeKill(papsPack);
+	}
+	mapapsPacks.Kill();
+	for (i = 0; i < mapalliPacks.NumElements(); i++)
+	{
+		palliPack = mapalliPacks.GetPtr(i);
+		SafeKill(palliPack);
+	}
+	mapalliPacks.Kill();
+	masPackElements.Kill();
+	for (i = 0; i < masExpandedArguments.NumElements(); i++)
+	{
+		papcExpanded = masExpandedArguments.Get(i)->papcExpanded;
+		if (papcExpanded)
+		{
+			papcExpanded->Kill();
+			free(papcExpanded);
+		}
+	}
+	masExpandedArguments.Kill();
+	for (i = 0; i < mapcPackSymbols.NumElements(); i++)
+	{
+		free(mapcPackSymbols.GetPtr(i));
+	}
+	mapcPackSymbols.Kill();
 	mpcUnit = NULL;
 }
 
@@ -1681,7 +1719,7 @@ CCPPTemplateArguments* CCPPInstantiator::BindArguments(CCPPSyntaxTemplateDeclara
 	bool						bResult;
 
 	asArguments.Init();
-	bResult = !papcArguments || mpcUnit->ExpandTemplateArguments(papcArguments, &asArguments);
+	bResult = !papcArguments || ExpandTemplateArguments(papcArguments, &asArguments);
 	if (bResult && (asArguments.NumElements() > pcTemplate->macpParameters.NumElements()) && !IsPackParameter(pcTemplate, pcTemplate->macpParameters.NumElements() - 1))
 	{
 		//[temp.arg] 1, [temp.deduct] 2
@@ -1738,7 +1776,7 @@ CCPPTemplateArguments* CCPPInstantiator::BindArguments(CCPPSyntaxTemplateDeclara
 			if (psArgument)
 			{
 				//const int is a different argument to int (its type is const).
-				psBinding->psType = mpcUnit->ExpandedArgumentType(psArgument);
+				psBinding->psType = ExpandedArgumentType(psArgument);
 			}
 			else if (papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -1785,7 +1823,7 @@ CCPPTemplateArguments* CCPPInstantiator::BindArguments(CCPPSyntaxTemplateDeclara
 			}
 			if (psArgument)
 			{
-				bResult = mpcUnit->ExpandedArgumentValue(psArgument, &psBinding->lliValue) && ValueArgumentFits(pcValue, psArgument, psBinding->lliValue, pcBindings);
+				bResult = ExpandedArgumentValue(psArgument, &psBinding->lliValue) && ValueArgumentFits(pcValue, psArgument, psBinding->lliValue, pcBindings);
 			}
 			else if (palliDeduced && papsDeduced && (i < papsDeduced->NumElements()) && papsDeduced->GetPtr(i))
 			{
@@ -2034,10 +2072,10 @@ bool CCPPInstantiator::BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArg
 	SCPP65Type*	psType;
 	size		j;
 
-	psBinding->papsPack = mpcUnit->NewPack();
+	psBinding->papsPack = NewPack();
 	for (j = uiFirst; j < pasArguments->NumElements(); j++)
 	{
-		psType = mpcUnit->ExpandedArgumentType(pasArguments->Get(j));
+		psType = ExpandedArgumentType(pasArguments->Get(j));
 		if (!psType)
 		{
 			return mpcUnit->mcDiagnostics.Error(pasArguments->Get(j)->pcArgument, "The template argument is not a type the compiler supports");
@@ -2170,7 +2208,7 @@ bool CCPPInstantiator::BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedP
 		pszArguments->Append("_J");
 		if (psPack->papsTypes)
 		{
-			psBinding->papsPack = mpcUnit->NewPack();
+			psBinding->papsPack = NewPack();
 			for (j = 0; j < psPack->papsTypes->NumElements(); j++)
 			{
 				psBinding->papsPack->Add(psPack->papsTypes->GetPtr(j));
@@ -2179,7 +2217,7 @@ bool CCPPInstantiator::BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedP
 		}
 		else
 		{
-			psBinding->palliPack = mpcUnit->NewValuePack();
+			psBinding->palliPack = NewValuePack();
 			for (j = 0; j < psPack->palliValues->NumElements(); j++)
 			{
 				psBinding->palliPack->Add(psPack->palliValues->GetValue(j));
@@ -2206,11 +2244,11 @@ bool CCPPInstantiator::BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedAr
 	int64	lliValue;
 	size	j;
 
-	psBinding->palliPack = mpcUnit->NewValuePack();
+	psBinding->palliPack = NewValuePack();
 	pszArguments->Append("_J");
 	for (j = uiFirst; j < pasArguments->NumElements(); j++)
 	{
-		if (!mpcUnit->ExpandedArgumentValue(pasArguments->Get(j), &lliValue))
+		if (!ExpandedArgumentValue(pasArguments->Get(j), &lliValue))
 		{
 			return false;
 		}

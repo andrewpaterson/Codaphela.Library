@@ -373,7 +373,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	int								iOffset;
 
 	//An implicit constructor has no definition, so no member initialisers.
-	papcInitialisers = pcFunction ? mpcUnit->ExpandArguments(&pcFunction->macpMemberInitializers) : &mapcNone;
+	papcInitialisers = pcFunction ? mpcUnit->GetInstantiator()->ExpandArguments(&pcFunction->macpMemberInitializers) : &mapcNone;
 	if (!papcInitialisers)
 	{
 		return false;
@@ -519,7 +519,7 @@ bool CCPP65IRFrontEnd::ConstructBase(CArraySyntax* papcInitialisers, CCPPClass* 
 	papcArguments = &mapcNone;
 	if (pcFound && pcFound->mpcInitializer && ((pcFound->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer) || (pcFound->mpcInitializer->GetKind() == CPPS_InitializerList)))
 	{
-		papcArguments = mpcUnit->ListElements(pcFound->mpcInitializer);
+		papcArguments = mpcUnit->GetInstantiator()->ListElements(pcFound->mpcInitializer);
 	}
 	sPlace.sAddress = sAddress;
 	sPlace.psType = pcBase->mpsType;
@@ -561,11 +561,11 @@ bool CCPP65IRFrontEnd::DelegatedConstructor(CCPPClass* pcClass, CCPPSyntaxMember
 	{
 		if (pcMember->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer)
 		{
-			papcArguments = mpcUnit->ListElements(pcMember->mpcInitializer);
+			papcArguments = mpcUnit->GetInstantiator()->ListElements(pcMember->mpcInitializer);
 		}
 		else if (pcMember->mpcInitializer->GetKind() == CPPS_InitializerList)
 		{
-			papcArguments = mpcUnit->ListElements(pcMember->mpcInitializer);
+			papcArguments = mpcUnit->GetInstantiator()->ListElements(pcMember->mpcInitializer);
 		}
 	}
 	sPlace.sAddress = msThis;
@@ -889,13 +889,13 @@ bool CCPP65IRFrontEnd::Construct(SCPP65IRPlace* psPlace, CArraySyntax* papcArgum
 	{
 		if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 		{
-			papcArguments = mpcUnit->ListElements(pcInitialiser);
+			papcArguments = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 			pcInitialiser = NULL;
 			bValueInitialise = papcArguments->NumElements() == 0;
 		}
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 		{
-			papcArguments = mpcUnit->ListElements(pcInitialiser);
+			papcArguments = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 			pcList = pcInitialiser;
 			pcInitialiser = NULL;
 			bValueInitialise = papcArguments->NumElements() == 0;
@@ -1157,7 +1157,7 @@ bool CCPP65IRFrontEnd::ConstructClass(SCPP65IRPlace* psPlace, CCPPClass* pcClass
 	size					uiErrors;
 	bool					bResult;
 
-	papcArguments = mpcUnit->ExpandArguments(papcArguments);
+	papcArguments = mpcUnit->GetInstantiator()->ExpandArguments(papcArguments);
 	if (!papcArguments || !mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, mpcCPPFunction->mpcDefinition, &cBound, false))
 	{
 		//Why it can't be made is said where the type checker is asked: of an expression, and of a variable's
@@ -1563,7 +1563,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	//The elements a list in braces gives (or the characters of the string it holds, as an array's are: new
 	//char[n]{"abc"}, [dcl.init.string]), then the rest.
 	pcString = mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType);
-	papcElements = pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL;
+	papcElements = pcNew->mpcInitializer ? mpcUnit->GetInstantiator()->ListElements(pcNew->mpcInitializer) : NULL;
 	bValue = pcNew->mpcInitializer != NULL;
 	uiFirst = papcElements ? papcElements->NumElements() : 0;
 	sElement.psBitField = NULL;

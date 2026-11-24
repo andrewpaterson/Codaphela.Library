@@ -3473,7 +3473,7 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 	{
 		return NULL;
 	}
-	papcElements = pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL;
+	papcElements = pcNew->mpcInitializer ? mpcUnit->GetInstantiator()->ListElements(pcNew->mpcInitializer) : NULL;
 	if (papcElements && (pcNew->mpcInitializer->GetKind() == CPPS_ParenthesisedInitializer) && (papcElements->NumElements() > 0))
 	{
 		Error(pcNew, "new Type[count](arguments) can only be ()");
@@ -3748,7 +3748,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	pcList = bBraced ? pcInitialiser : NULL;
 	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))
 	{
-		papcArguments = mpcUnit->ListElements(pcInitialiser);
+		papcArguments = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 		pcInitialiser = NULL;
 	}
 
@@ -3941,7 +3941,7 @@ bool CCPP65TypeChecker::ConstructClass(CCPPClass* pcClass, CArraySyntax* papcArg
 	size					i;
 	bool					bResult;
 
-	papcArguments = mpcUnit->ExpandArguments(papcArguments);
+	papcArguments = mpcUnit->GetInstantiator()->ExpandArguments(papcArguments);
 	if (!papcArguments || !mpcUnit->GetBinder()->BindConstruction(pcClass, papcArguments, pcNode, &cBound, true))
 	{
 		return false;
@@ -4090,12 +4090,12 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	bDirect = false;
 	if (pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer)
 	{
-		papcElements = mpcUnit->ListElements(pcInitialiser);
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 		bDirect = true;
 	}
 	else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 	{
-		papcElements = mpcUnit->ListElements(pcInitialiser);
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 		bBraced = true;
 		bDirect = true;
 	}

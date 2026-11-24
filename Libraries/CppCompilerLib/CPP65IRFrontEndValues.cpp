@@ -56,7 +56,7 @@ bool CCPP65IRFrontEnd::ValueFor(CCPPSyntax* pcExpression, SCPP65Type* psTo, SCPP
 	if ((pcExpression->GetKind() == CPPS_InitializerList) && !psTo->IsClass())
 	{
 		//{} is zero and {value} the value.  [dcl.init.list] 3
-		papcElements = mpcUnit->ListElements(pcExpression);
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcExpression);
 		if (papcElements->NumElements() == 0)
 		{
 			psValue->sValue = mpcFunction->AddConstant(IRTypeOf(psTo), 0);

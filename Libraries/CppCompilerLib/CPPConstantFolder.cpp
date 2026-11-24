@@ -302,7 +302,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 		pcSizeof = (CCPPSyntaxSizeofExpression*)pcExpression;
 		if (pcSizeof->mbPack)
 		{
-			return mpcUnit->PackSize(pcSizeof->mpcPackSymbol, &psValue->lliValue);
+			return mpcUnit->GetInstantiator()->PackSize(pcSizeof->mpcPackSymbol, &psValue->lliValue);
 		}
 		if ((pcSizeof->meKeyword != CT_sizeof) && (pcSizeof->meKeyword != CT_alignof))
 		{
@@ -430,9 +430,9 @@ bool CCPPConstantFolder::ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConsta
 	{
 		return false;
 	}
-	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && (mpcUnit->ListElements(pcInitialiser)->NumElements() == 1))
+	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && (mpcUnit->GetInstantiator()->ListElements(pcInitialiser)->NumElements() == 1))
 	{
-		pcInitialiser = mpcUnit->ListElements(pcInitialiser)->GetPtr(0);
+		pcInitialiser = mpcUnit->GetInstantiator()->ListElements(pcInitialiser)->GetPtr(0);
 	}
 	if (!Evaluate(pcInitialiser, &sInitialiser))
 	{

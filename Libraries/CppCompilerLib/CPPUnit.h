@@ -100,39 +100,6 @@ enum ECPPConversionRank
 };
 
 
-typedef CArrayTemplatePtr<CArrayCPP65Types>	CArrayCPPPacks;
-typedef CArrayTemplatePtr<CArrayInt64>		CArrayCPPValuePacks;
-
-
-//A template parameter pack's element as a parameter of its own (CCPPUnit::PackElement), in the bindings it is bound
-//in; or a function parameter pack's as a variable of its own (FunctionPackElement), in the function it is of.
-struct SCPPPackElement
-{
-	CCPPTemplateArguments*	pcBindings;
-	CCPPFunction*			pcFunction;
-	CCPPSymbol*				pcPack;
-	size					uiIndex;
-	CCPPSymbol*				pcElement;
-};
-
-
-typedef CArrayTemplate<SCPPPackElement>	CArrayCPPPackElements;
-
-
-//An argument list with its pack expansions expanded, for the bindings and function it was expanded in
-//(CCPPUnit::ExpandArguments).  papcExpanded is NULL if it couldn't be.
-struct SCPPExpandedArguments
-{
-	CArraySyntax*			papcArguments;
-	CCPPTemplateArguments*	pcBindings;
-	CCPPFunction*			pcIn;
-	CArraySyntax*			papcExpanded;
-};
-
-
-typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
-
-
 //What a function has while it is entered (CCPPUnit::EnterFunction): its parameters and locals, and the function
 //parameter packs it can expand.  The unit's first is no function's: what is asked of when none is entered.
 struct SCPPFunctionScope
@@ -208,11 +175,6 @@ protected:
 	CMapCPPFunctionsOfNames	mcFunctionsOfNames;	//mapcFunctions by name (FirstFunctionOfName).
 	CArrayCPPTemplates	mapcTemplates;
 	CArrayCPPTemplateArguments	mapcAllBindings;
-	CArrayCPPPacks		mapapsPacks;		//The packs' types (NewPack).
-	CArrayCPPValuePacks	mapalliPacks;		//The non-type packs' values (NewValuePack).
-	CArrayCPPSymbols		mapcPackSymbols;	//The symbols made for function and template parameter packs' elements.
-	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
-	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CHashMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
 	CHashMapPrimitiveTemplate<CCPPSyntaxEnumerator*, int64>	mcEnumeratorValues;	//The values enumerators are given, folded once (GivenEnumeratorValue).
@@ -414,23 +376,9 @@ public:
 	static bool				IsOutsideTemplates(CCPPSyntax* pcNode);
 	void					SetEnumeratorBodyType(CCPPSyntaxEnumSpecifier* pcSpecifier, size uiEnumerator, SCPP65Type* psFixed);
 	void					ForgetEnumeratorBodyTypes(CCPPSyntaxEnumSpecifier* pcSpecifier);
-	CArrayCPP65Types*		NewPack(void);
-	CArrayInt64*			NewValuePack(void);
-	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks);
-	bool					PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks, CCPPSyntax* pcNode, size* puiElements);
-	SCPPFunctionPack*		FindFunctionPack(CCPPSymbol* pcSymbol);
-	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
-	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
 	bool					IsInUnevaluatedOperand(CCPPSyntax* pcNode);
 	CCPPSyntaxParameter*	DefaultArgumentOf(CCPPSyntax* pcNode);
 	bool					IsDecltypeOperand(CCPPSyntax* pcNode);
-	CArraySyntax*			ListElements(CCPPSyntax* pcList);
-	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
-	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);
-	SCPP65Type*				ExpandedArgumentType(SCPPExpandedArgument* psArgument);
-	bool					ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue);
-	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
-	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
 
 	bool					VariableTemplateValue(CCPPSyntaxIdExpression* pcId, int64* plliValue);
 	int64					GetFunctionName(CCPPSyntaxNameComponent* pcComponent);
@@ -441,9 +389,6 @@ public:
 	//Literals, constants, warnings and TypeOf.  CPPUnitExpressions.cpp
 	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 
-	CCPPSymbol*				FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* pcPack, size k);
-	bool					HasPackExpansion(CArraySyntax* papcArguments);
-	CCPPSyntax*				ExpansionPattern(CCPPSyntax* pcNode);
 
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
 

@@ -851,7 +851,7 @@ void CCPPDeduction::DeduceFromList(CCPPSyntaxName* pcName, CCPPSyntax* pcList)
 		return;
 	}
 	pcSymbol = GetArgumentSymbol(pcName->GetLast()->macpTemplateArguments.GetPtr(0));
-	papcElements = mpcUnit->ListElements(pcList);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcList);
 	for (i = 0; pcSymbol && (i < papcElements->NumElements()); i++)
 	{
 		psElement = mpcUnit->GetTypeChecker()->TypeOf(papcElements->GetPtr(i));
@@ -924,8 +924,8 @@ bool CCPPDeduction::DeducePack(CCPPSyntax* pcArgument, CCPPTemplateArguments* pc
 	}
 	psPack = masPacks.Add();
 	psPack->uiParameter = uiParameter;
-	psPack->papsTypes = bType ? mpcUnit->NewPack() : NULL;
-	psPack->palliValues = bType ? NULL : mpcUnit->NewValuePack();
+	psPack->papsTypes = bType ? mpcUnit->GetInstantiator()->NewPack() : NULL;
+	psPack->palliValues = bType ? NULL : mpcUnit->GetInstantiator()->NewValuePack();
 	for (j = uiFirst; j < pcArguments->macBindings.NumElements(); j++)
 	{
 		psBinding = pcArguments->macBindings.Get(j);
@@ -1311,11 +1311,11 @@ bool CCPPPatternMatch::MatchPack(SCPPBinding* psPack, CArrayCPPBindings* pasArgu
 	bTypes = psPack->pcParameter && (psPack->pcParameter->meKind != CPPSK_ValueParameter);
 	if (bTypes)
 	{
-		psPack->papsPack = mpcUnit->NewPack();
+		psPack->papsPack = mpcUnit->GetInstantiator()->NewPack();
 	}
 	else
 	{
-		psPack->palliPack = mpcUnit->NewValuePack();
+		psPack->palliPack = mpcUnit->GetInstantiator()->NewValuePack();
 	}
 	for (k = uiFirst; k < pasArguments->NumElements(); k++)
 	{

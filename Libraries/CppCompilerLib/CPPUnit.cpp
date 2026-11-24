@@ -353,12 +353,7 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcMangler.Init(mpcTokeniser, mcClasses.GetClassList(), &mcFunctionsOfNames);
 	mapcTemplates.Init();
 	mapcAllBindings.Init();
-	mapapsPacks.Init();
-	mapalliPacks.Init();
 	mbValueArgumentRefused = false;
-	masPackElements.Init();
-	masExpandedArguments.Init();
-	mapcPackSymbols.Init();
 	mapcHiddenSymbols.Init();
 	mcExplicitInstances.Init();
 	mcEnumeratorValues.Init();
@@ -397,11 +392,7 @@ void CCPPUnit::Kill(void)
 {
 	size					i;
 	CCPPFunction*			pcFunction;
-	CCPPClass*				pcClass;
 	CCPPTemplateArguments*	pcBindings;
-	CArrayCPP65Types*		papsPack;
-	CArrayInt64*			palliPack;
-	CArraySyntax*			papcExpanded;
 
 	mcTypeChecker.Kill();
 	SafeKill(mpcConstants);
@@ -443,34 +434,6 @@ void CCPPUnit::Kill(void)
 		SafeFree(pcBindings);
 	}
 	mapcAllBindings.Kill();
-	for (i = 0; i < mapapsPacks.NumElements(); i++)
-	{
-		papsPack = mapapsPacks.GetPtr(i);
-		SafeKill(papsPack);
-	}
-	mapapsPacks.Kill();
-	for (i = 0; i < mapalliPacks.NumElements(); i++)
-	{
-		palliPack = mapalliPacks.GetPtr(i);
-		SafeKill(palliPack);
-	}
-	mapalliPacks.Kill();
-	masPackElements.Kill();
-	for (i = 0; i < masExpandedArguments.NumElements(); i++)
-	{
-		papcExpanded = masExpandedArguments.Get(i)->papcExpanded;
-		if (papcExpanded)
-		{
-			papcExpanded->Kill();
-			free(papcExpanded);
-		}
-	}
-	masExpandedArguments.Kill();
-	for (i = 0; i < mapcPackSymbols.NumElements(); i++)
-	{
-		free(mapcPackSymbols.GetPtr(i));
-	}
-	mapcPackSymbols.Kill();
 	for (i = 0; i < mapcHiddenSymbols.NumElements(); i++)
 	{
 		free(mapcHiddenSymbols.GetPtr(i));
@@ -1589,7 +1552,7 @@ CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* p
 
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
 	{
-		papcElements = ListElements(pcInitialiser);
+		papcElements = mcInstantiator.ListElements(pcInitialiser);
 		if ((papcElements->NumElements() == 1) && IsStringLiteral(papcElements->GetPtr(0)) && (mcStrings.StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
 		{
 			return papcElements->GetPtr(0);
@@ -1874,7 +1837,7 @@ void CCPPUnit::AddParameters(CCPPFunction* pcFunction, CCPPSyntaxDeclarator* pcD
 		for (k = 0; k < uiPack; k++)
 		{
 			psType = pcFunction->mapsParameters.GetPtr(j);
-			pcSymbol = (bPack && pcParameter->mpcSymbol) ? FunctionPackElement(pcFunction, pcParameter->mpcSymbol, k) : pcParameter->mpcSymbol;
+			pcSymbol = (bPack && pcParameter->mpcSymbol) ? mcInstantiator.FunctionPackElement(pcFunction, pcParameter->mpcSymbol, k) : pcParameter->mpcSymbol;
 			if (pcSymbol)
 			{
 				pcVariable = AddVariable(GetLocals(), pcSymbol, ParameterVariableType(psType, pcParameter), CPPVS_Parameter, (int)j);

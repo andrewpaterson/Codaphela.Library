@@ -1205,7 +1205,7 @@ bool CCPPCheck::CheckReturn(CCPPFunction* pcFunction, CCPPSyntaxReturnStatement*
 	papcArguments = &apcValue;
 	if (pcReturn->mpcValue->GetKind() == CPPS_InitializerList)
 	{
-		papcArguments = mpcUnit->ListElements(pcReturn->mpcValue);
+		papcArguments = mpcUnit->GetInstantiator()->ListElements(pcReturn->mpcValue);
 	}
 	else
 	{

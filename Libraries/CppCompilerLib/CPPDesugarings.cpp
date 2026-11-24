@@ -527,7 +527,7 @@ CCPPSyntax* CCPPDesugarings::BracedFor(SCPP65Type* psType, CCPPSyntax* pcList)
 	{
 		return pcList;
 	}
-	papcElements = mpcUnit->ListElements(pcList);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcList);
 	if (!ElidesBraces(psType, papcElements))
 	{
 		return pcList;
@@ -873,7 +873,7 @@ SCPP65Type* CCPPDesugarings::BracedListType(CCPPSyntax* pcList, CCPPSyntax* pcNo
 	SCPP65Type*		psType;
 	size			i;
 
-	papcElements = mpcUnit->ListElements(pcList);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcList);
 	if (papcElements->NumElements() == 0)
 	{
 		mpcUnit->mcDiagnostics.Error(pcNode, "auto can't be worked out from {}");

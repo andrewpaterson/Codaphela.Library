@@ -128,7 +128,7 @@ bool CCPPBinder::Bind(CCPPSyntaxCallExpression* pcCall, CCPPBoundCall* pcBound, 
 	pcBound->Init();
 	pcBound->mpcBindings = mpcUnit->GetContext()->GetBindings();
 	pcBound->mpcIn = mpcUnit->GetContext()->GetFunction();
-	pcBound->mpapcArguments = mpcUnit->ExpandArguments(&pcCall->macpArguments);
+	pcBound->mpapcArguments = mpcUnit->GetInstantiator()->ExpandArguments(&pcCall->macpArguments);
 	if (pcBound->mpapcArguments)
 	{
 		Resolve(pcCall, pcBound);
@@ -1064,7 +1064,7 @@ CCPPFunction* CCPPBinder::InitializerListConstructor(CCPPClass* pcClass, CCPPSyn
 	SCPP65Type*		psParameter;
 	size			i;
 
-	if (mpcUnit->ListElements(pcList)->NumElements() == 0)
+	if (mpcUnit->GetInstantiator()->ListElements(pcList)->NumElements() == 0)
 	{
 		for (i = 0; i < pcClass->mapcMembers.NumElements(); i++)
 		{
@@ -1123,7 +1123,7 @@ bool CCPPBinder::ListConverts(SCPP65Type* psElement, CCPPSyntax* pcList)
 	SCPP65Type*		psValue;
 	size			i;
 
-	papcElements = mpcUnit->ListElements(pcList);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcList);
 	for (i = 0; i < papcElements->NumElements(); i++)
 	{
 		pcValue = papcElements->GetPtr(i);
@@ -2280,7 +2280,7 @@ bool CCPPBinder::CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* p
 	}
 	apcValue.Init();
 	apcValue.Add(pcInit->mpcInitializer);
-	papcArguments = (pcInit->mpcInitializer->GetKind() == CPPS_InitializerList) ? mpcUnit->ListElements(pcInit->mpcInitializer) : &apcValue;
+	papcArguments = (pcInit->mpcInitializer->GetKind() == CPPS_InitializerList) ? mpcUnit->GetInstantiator()->ListElements(pcInit->mpcInitializer) : &apcValue;
 	if ((papcArguments == &apcValue) && !CopiesByConstructor(pcClass, pcInit->mpcInitializer))
 	{
 		//= an object of the class, which no constructor of its own copies: it is copied as its parts or bytes are.
@@ -2628,7 +2628,7 @@ CCPPSyntax* CCPPBinder::BoundInitialiser(SCPP65Type* psReference, CCPPSyntax* pc
 	{
 		return pcInitialiser;
 	}
-	papcElements = mpcUnit->ListElements(pcInitialiser);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 	pcElement = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
 	if (!pcElement || (pcElement->GetKind() == CPPS_InitializerList))
 	{

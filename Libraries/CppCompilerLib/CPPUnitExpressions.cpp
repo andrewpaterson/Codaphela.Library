@@ -327,7 +327,7 @@ SCPP65Type* CCPPUnit::NewElementType(CCPPSyntaxNewExpression* pcNew)
 	pcInitialiser = NULL;
 	if (mcDeclarators.IsAuto(pcNew->mpcType->mpcSpecifiers) && pcNew->mpcInitializer)
 	{
-		papcElements = ListElements(pcNew->mpcInitializer);
+		papcElements = mcInstantiator.ListElements(pcNew->mpcInitializer);
 		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
 	}
 	psType = pcInitialiser ? mcDeclarators.GetType(pcNew->mpcType->mpcSpecifiers, pcNew->mpcType->mpcDeclarator, pcNew->mpcType, pcInitialiser) : mcDeclarators.GetTypeIdType(pcNew->mpcType);
@@ -726,7 +726,7 @@ CArraySyntax* CCPPUnit::ConstructElements(CCPPSyntaxConstructExpression* pcConst
 	pcInitialiser = pcConstruct->mpcInitializer;
 	if (pcInitialiser && ((pcInitialiser->GetKind() == CPPS_ParenthesisedInitializer) || (pcInitialiser->GetKind() == CPPS_InitializerList)))
 	{
-		return ListElements(pcInitialiser);
+		return mcInstantiator.ListElements(pcInitialiser);
 	}
 	return NULL;
 }

@@ -367,7 +367,7 @@ bool CCPPGlobals::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialise
 	}
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psType->IsScalar())
 	{
-		papcElements = mpcUnit->ListElements(pcInitialiser);
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
 		if (pcInitialiser && !mpcUnit->CheckBracedValue(pcInitialiser, psType))
 		{
@@ -399,7 +399,7 @@ bool CCPPGlobals::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialise
 		}
 		else if (pcInitialiser->GetKind() == CPPS_InitializerList)
 		{
-			papcElements = mpcUnit->ListElements(pcInitialiser);
+			papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 			if (papcElements->NumElements() > (size)psType->iCount)
 			{
 				return mpcDiagnostics->Error(pcInitialiser, "Too many initialisers for the array");
@@ -635,9 +635,9 @@ ECPPBoundTemporary CCPPGlobals::BoundTemporary(SCPP65Type* psReference, CCPPSynt
 	bool		bRoutines;
 
 	pcValue = pcInitialiser;
-	if (pcValue && (pcValue->GetKind() == CPPS_ParenthesisedInitializer) && (mpcUnit->ListElements(pcValue)->NumElements() == 1))
+	if (pcValue && (pcValue->GetKind() == CPPS_ParenthesisedInitializer) && (mpcUnit->GetInstantiator()->ListElements(pcValue)->NumElements() == 1))
 	{
-		pcValue = mpcUnit->ListElements(pcValue)->GetPtr(0);
+		pcValue = mpcUnit->GetInstantiator()->ListElements(pcValue)->GetPtr(0);
 	}
 	if (!pcValue || (pcValue->GetKind() == CPPS_InitializerList))
 	{

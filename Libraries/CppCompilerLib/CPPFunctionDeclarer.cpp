@@ -256,8 +256,8 @@ bool CCPPFunctionDeclarer::ReadParameters(SCPPSignature* psSignature)
 		uiPack = 1;
 		if (pcParameter->mpcDeclarator && pcParameter->mpcDeclarator->mbPack && pcParameter->mpcSpecifiers)
 		{
-			mpcUnit->FindPacks(pcParameter->mpcSpecifiers, &apsPacks, NULL);
-			if ((apsPacks.NumElements() > 0) && !mpcUnit->PackExpansionLength(&apsPacks, NULL, pcParameter, &uiPack))
+			mpcUnit->GetInstantiator()->FindPacks(pcParameter->mpcSpecifiers, &apsPacks, NULL);
+			if ((apsPacks.NumElements() > 0) && !mpcUnit->GetInstantiator()->PackExpansionLength(&apsPacks, NULL, pcParameter, &uiPack))
 			{
 				bResult = false;
 				break;
@@ -1119,7 +1119,7 @@ bool CCPPFunctionDeclarer::CheckMemberInitialisers(CCPPFunction* pcFunction)
 	{
 		return true;
 	}
-	papcInitialisers = mpcUnit->ExpandArguments(&pcDefinition->macpMemberInitializers);
+	papcInitialisers = mpcUnit->GetInstantiator()->ExpandArguments(&pcDefinition->macpMemberInitializers);
 	if (!papcInitialisers)
 	{
 		return true;

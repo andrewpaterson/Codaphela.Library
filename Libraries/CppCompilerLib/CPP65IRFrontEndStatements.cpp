@@ -655,7 +655,7 @@ bool CCPP65IRFrontEnd::LocalInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	if ((pcInitialiser->GetKind() == CPPS_InitializerList) && !psPlace->psType->IsReference())
 	{
 		//A reference is bound to what the list makes (BindsToTemporary).
-		papcElements = mpcUnit->ListElements(pcInitialiser);
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 		if (papcElements->NumElements() == 0)
 		{
 			sValue.sValue = mpcFunction->AddConstant(IRTypeOf(psPlace->psType), 0);
@@ -778,7 +778,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 		}
 		return Unsupported(__FILE__, __LINE__);
 	}
-	papcElements = mpcUnit->ListElements(pcInitialiser);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcInitialiser);
 	uiNext = 0;
 	if (!ArrayElements(psPlace, papcElements, &uiNext))
 	{
@@ -839,7 +839,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 		(*puiNext)++;
 		if (pcElement->GetKind() == CPPS_InitializerList)
 		{
-			papcOne = mpcUnit->ListElements(pcElement);
+			papcOne = mpcUnit->GetInstantiator()->ListElements(pcElement);
 			if (papcOne->NumElements() != 1)
 			{
 				return Unsupported(__FILE__, __LINE__);

@@ -705,7 +705,7 @@ bool CCPPExceptions::CheckPointerExceptions(CCPPSyntaxInitDeclarator* pcInit)
 	}
 	if ((pcValue->GetKind() == CPPS_ParenthesisedInitializer) || (pcValue->GetKind() == CPPS_InitializerList))
 	{
-		papcElements = mpcUnit->ListElements(pcValue);
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcValue);
 		if (!papcElements || (papcElements->NumElements() != 1))
 		{
 			return true;
@@ -962,7 +962,7 @@ bool CCPPExceptions::NewMayThrow(CCPPSyntaxNewExpression* pcNew)
 		return true;
 	}
 	psType = psType->InnermostElement();
-	return psType->IsClass() && ConstructionMayThrow(psType->pcClass, pcNew->mpcInitializer ? mpcUnit->ListElements(pcNew->mpcInitializer) : NULL, pcNew, false);
+	return psType->IsClass() && ConstructionMayThrow(psType->pcClass, pcNew->mpcInitializer ? mpcUnit->GetInstantiator()->ListElements(pcNew->mpcInitializer) : NULL, pcNew, false);
 }
 
 
@@ -1046,7 +1046,7 @@ bool CCPPExceptions::MayThrow(CCPPSyntax* pcExpression)
 		//T(arguments) and T{arguments}: a temporary of a class.
 		pcConstruct = (CCPPSyntaxConstructExpression*)pcExpression;
 		psType = mpcUnit->mcDeclarators.GetTypeIdType(pcConstruct->mpcType);
-		bThrows = psType && psType->IsClass() && ConstructionMayThrow(psType->pcClass, pcConstruct->mpcInitializer ? mpcUnit->ListElements(pcConstruct->mpcInitializer) : NULL, pcConstruct, true);
+		bThrows = psType && psType->IsClass() && ConstructionMayThrow(psType->pcClass, pcConstruct->mpcInitializer ? mpcUnit->GetInstantiator()->ListElements(pcConstruct->mpcInitializer) : NULL, pcConstruct, true);
 		break;
 	case CPPS_NamedCastExpression:
 		//dynamic_cast<T&> throws std::bad_cast when the object isn't a T.  [expr.dynamic.cast] 9

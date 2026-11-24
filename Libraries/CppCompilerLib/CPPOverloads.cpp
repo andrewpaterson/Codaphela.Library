@@ -1788,7 +1788,7 @@ int CCPPOverloads::ListRank(SCPP65Type* psParameter, CCPPSyntax* pcList)
 	{
 		return CPPCR_None;
 	}
-	papcElements = mpcUnit->ListElements(pcList);
+	papcElements = mpcUnit->GetInstantiator()->ListElements(pcList);
 	psElement = mpcUnit->GetDesugarings()->InitializerListElement(psType);
 	if (psElement)
 	{

@@ -35,6 +35,39 @@ struct SCPP65Type;
 struct SCPPBinding;
 
 
+typedef CArrayTemplatePtr<CArrayCPP65Types>	CArrayCPPPacks;
+typedef CArrayTemplatePtr<CArrayInt64>		CArrayCPPValuePacks;
+
+
+//A template parameter pack's element as a parameter of its own (CCPPInstantiator::PackElement), in the bindings it is bound
+//in; or a function parameter pack's as a variable of its own (FunctionPackElement), in the function it is of.
+struct SCPPPackElement
+{
+	CCPPTemplateArguments*	pcBindings;
+	CCPPFunction*			pcFunction;
+	CCPPSymbol*				pcPack;
+	size					uiIndex;
+	CCPPSymbol*				pcElement;
+};
+
+
+typedef CArrayTemplate<SCPPPackElement>	CArrayCPPPackElements;
+
+
+//An argument list with its pack expansions expanded, for the bindings and function it was expanded in
+//(CCPPInstantiator::ExpandArguments).  papcExpanded is NULL if it couldn't be.
+struct SCPPExpandedArguments
+{
+	CArraySyntax*			papcArguments;
+	CCPPTemplateArguments*	pcBindings;
+	CCPPFunction*			pcIn;
+	CArraySyntax*			papcExpanded;
+};
+
+
+typedef CArrayTemplate<SCPPExpandedArguments>	CArrayCPPExpandedArgumentLists;
+
+
 //What a definition written outside its class template defines (SCPPOutsideDefinition).
 enum ECPPOutsideDefinition
 {
@@ -73,7 +106,12 @@ class CCPPInstantiator
 {
 protected:
 	CCPPUnit*				mpcUnit;
-	CArrayCPPOutsideDefinitions	masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
+	CArrayCPPOutsideDefinitions	masOutsideDefinitions;
+	CArrayCPPPacks	mapapsPacks;	//The packs' types (NewPack).
+	CArrayCPPValuePacks	mapalliPacks;	//The non-type packs' values (NewValuePack).
+	CArrayCPPSymbols	mapcPackSymbols;	//The symbols made for function and template parameter packs' elements.
+	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
+	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).	//The definitions written outside their class template, in the order seen, to give each instance.
 
 public:
 	void					Init(CCPPUnit* pcUnit);
@@ -165,6 +203,24 @@ public:
 	void					DefineOutsideMember(CCPPClass* pcClass, CCPPTemplate* pcMember);
 	void					DefineOutsideMembers(CCPPTemplate* pcMember);
 	bool					IsOutsideMemberOf(CCPPTemplate* pcMember, CCPPClass* pcClass);
+
+	CArrayCPP65Types*		NewPack(void);
+	CArrayInt64*			NewValuePack(void);
+	void					FindPacks(CCPPSyntax* pcPattern, CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks);
+	bool					PackExpansionLength(CArrayCPPBindingPtrs* papsPacks, CArrayCPPSymbols* papcFunctionPacks, CCPPSyntax* pcNode, size* puiElements);
+	SCPPFunctionPack*		FindFunctionPack(CCPPSymbol* pcSymbol);
+	bool					ExpandPattern(CCPPSyntax* pcPattern, CCPPSyntax* pcParent, CArraySyntax* papcExpanded);
+	CArraySyntax*			ExpandArguments(CArraySyntax* papcArguments);
+	CArraySyntax*			ListElements(CCPPSyntax* pcList);
+	CCPPSymbol*				PackElement(SCPPBinding* psPack, size k);
+	bool					ExpandTemplateArguments(CArraySyntax* papcArguments, CArrayCPPExpandedArguments* pasExpanded);
+	SCPP65Type*				ExpandedArgumentType(SCPPExpandedArgument* psArgument);
+	bool					ExpandedArgumentValue(SCPPExpandedArgument* psArgument, int64* plliValue);
+	bool					PackSize(CCPPSymbol* pcPack, int64* plliValue);
+	SCPPBinding*			PackBinding(CCPPSyntaxParameter* pcParameter);
+	CCPPSymbol*				FunctionPackElement(CCPPFunction* pcFunction, CCPPSymbol* pcPack, size k);
+	bool					HasPackExpansion(CArraySyntax* papcArguments);
+	CCPPSyntax*				ExpansionPattern(CCPPSyntax* pcNode);
 };
 
 

@@ -343,7 +343,7 @@ bool CCPPClasses::AddPackBases(CCPPClass* pcClass, CCPPSyntaxBaseSpecifier* pcBa
 	bool			bResult;
 
 	apcNames.Init();
-	bResult = mpcUnit->ExpandPattern(pcBaseSpecifier->mpcName, pcBaseSpecifier, &apcNames);
+	bResult = mpcUnit->GetInstantiator()->ExpandPattern(pcBaseSpecifier->mpcName, pcBaseSpecifier, &apcNames);
 	for (k = 0; bResult && (k < apcNames.NumElements()); k++)
 	{
 		bResult = AddBase(pcClass, pcBaseSpecifier, (CCPPSyntaxName*)apcNames.GetPtr(k));

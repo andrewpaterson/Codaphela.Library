@@ -153,7 +153,7 @@
     <ClCompile Include="CPPUnitExpressions.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
-    <ClCompile Include="CPPUnitPacks.cpp">
+    <ClCompile Include="CPPInstantiatorPacks.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
     <ClCompile Include="CPP65Type.cpp">
