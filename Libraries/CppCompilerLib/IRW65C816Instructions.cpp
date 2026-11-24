@@ -927,7 +927,7 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 		sz.Init(CIRW65C816Backend::GetScratch());
 		if (szSymbol)
 		{
-			sz.Append("lda [");
+			sz.Append("[");
 			sz.Append(szSymbol);
 			sz.Append(" + ");
 			sz.Append(iOffset + 2 * iWord);
@@ -935,11 +935,11 @@ void CIRW65C816Selector::WordInA(SIRInstruction* psInstruction, int iWord)
 		}
 		else
 		{
-			sz.Append("lda [[D + ");
+			sz.Append("[[D + ");
 			sz.Append(iPlace);
 			sz.Append(mpcBackend->mcFolds.LoadY(sFirst, iOffset + 2 * iWord) ? "]:24 + Y]" : "]:24]");
 		}
-		mpcBackend->Line(sz.Text());
+		mpcBackend->Line(IR816M_Lda, sz.Text());
 		sz.Kill();
 		return;
 	case IRO_Add:
@@ -1008,7 +1008,7 @@ void CIRW65C816Selector::StoreMemory(SIRInstruction* psInstruction)
 		sz.Clear();
 		if (szSymbol)
 		{
-			sz.Append("sta [");
+			sz.Append("[");
 			sz.Append(szSymbol);
 			sz.Append(" + ");
 			sz.Append(iOffset + 2 * i);
@@ -1016,7 +1016,7 @@ void CIRW65C816Selector::StoreMemory(SIRInstruction* psInstruction)
 		}
 		else
 		{
-			sz.Append("sta [[D + ");
+			sz.Append("[[D + ");
 			sz.Append(iPlace);
 		}
 
@@ -1026,7 +1026,7 @@ void CIRW65C816Selector::StoreMemory(SIRInstruction* psInstruction)
 		{
 			sz.Append(mpcBackend->mcFolds.LoadY(psInstruction->asArguments[1], iOffset + 2 * i) ? "]:24 + Y]" : "]:24]");
 		}
-		mpcBackend->Line(sz.Text());
+		mpcBackend->Line(IR816M_Sta, sz.Text());
 	}
 	if (psInstruction->sType.Is(IRTK_I8))
 	{

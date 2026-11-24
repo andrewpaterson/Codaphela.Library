@@ -39,11 +39,10 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 	int32	iLower;
 	const char*	szFlip;
 	uint64	uiFlip;
-	CChars	sz;
 
 	iWords = mpcBackend->Words(sType);
 	iDone = mpcBackend->NewLabel();
-	szFlip = sType.Is(IRTK_I1) ? "eor 1" : (sType.Is(IRTK_I8) ? "eor 0x80" : "eor 0x8000");
+	szFlip = sType.Is(IRTK_I1) ? "1" : (sType.Is(IRTK_I8) ? "0x80" : "0x8000");
 	uiFlip = sType.Is(IRTK_I1) ? 1 : (sType.Is(IRTK_I8) ? 0x80 : 0x8000);
 	for (i = iWords - 1; i >= 0; i--)
 	{
@@ -51,7 +50,7 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 		{
 			//The constant's sign bit flipped as it is written.
 			Operand(IR816M_Lda, sLeft, i);
-			mpcBackend->Line(szFlip);
+			mpcBackend->Line(IR816M_Eor, szFlip);
 			mpcBackend->Line(IR816M_Cmp, (int64)((int64)((((i < 4) ? (mpcBackend->mpcFunction->GetConstant(sRight)->ulliBits >> (16 * i)) : 0) ^ uiFlip) & 0xFFFF)));
 		}
 		else if (bSigned && (i == iWords - 1) && !sType.Is(IRTK_I1) && !sType.Is(IRTK_I8) && !((iWords == 1) && (mpcBackend->mcPlaces.InX(sLeft) || mpcBackend->mcPlaces.InX(sRight))))
@@ -63,32 +62,23 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 			iLower = mpcBackend->NewLabel();
 			Operand(IR816M_Lda, sLeft, i);
 			Operand(IR816M_Cmp, sRight, i);
-			sz.Init("beq L");
-			sz.Append(iLower);
-			mpcBackend->Line(sz.Text());
-			sz.Kill();
+			mpcBackend->Branch(IR816M_Beq, iLower);
 			Operand(IR816M_Eor, sRight, i);
-			sz.Init("bpl L");
-			sz.Append(iDone);
-			mpcBackend->Line(sz.Text());
-			sz.Kill();
+			mpcBackend->Branch(IR816M_Bpl, iDone);
 			Operand(IR816M_Lda, sRight, i);
 			mpcBackend->Line(IR816M_Asl, "A");
 			mpcBackend->Line(IR816M_Lda, "1");
-			sz.Init("bra L");
-			sz.Append(iDone);
-			mpcBackend->Line(sz.Text());
-			sz.Kill();
+			mpcBackend->Branch(IR816M_Bra, iDone);
 			mpcBackend->Label(iLower);
 			continue;
 		}
 		else if (bSigned && (i == iWords - 1))
 		{
 			Operand(IR816M_Lda, sRight, i);
-			mpcBackend->Line(szFlip);
+			mpcBackend->Line(IR816M_Eor, szFlip);
 			Frame(IR816M_Sta, IR816_SCRATCH_VALUE);
 			Operand(IR816M_Lda, sLeft, i);
-			mpcBackend->Line(szFlip);
+			mpcBackend->Line(IR816M_Eor, szFlip);
 			Frame(IR816M_Cmp, IR816_SCRATCH_VALUE);
 		}
 		else if ((iWords == 1) && mpcBackend->mcPlaces.InX(sLeft))
@@ -102,10 +92,7 @@ void CIRW65C816Selector::CompareFlags(SIRReference sLeft, SIRReference sRight, S
 		}
 		if (i > 0)
 		{
-			sz.Init("bne L");
-			sz.Append(iDone);
-			mpcBackend->Line(sz.Text());
-			sz.Kill();
+			mpcBackend->Branch(IR816M_Bne, iDone);
 		}
 	}
 	mpcBackend->Label(iDone);
@@ -393,58 +380,46 @@ void CIRW65C816Selector::Compare(SIRInstruction* psInstruction)
 	int32	iFalse;
 	int32	iEnd;
 	uint16	uiOpcode;
-	CChars	sz;
+	uint16	uiBranch;
 
 	uiOpcode = psInstruction->uiOpcode;
 	CompareFlags(psInstruction->asArguments[0], psInstruction->asArguments[1], psInstruction->sType, IsIRSignedComparison(uiOpcode));
 	iTrue = mpcBackend->NewLabel();
 	iFalse = mpcBackend->NewLabel();
 	iEnd = mpcBackend->NewLabel();
-	sz.Init(CIRW65C816Backend::GetScratch());
 	switch (uiOpcode)
 	{
 	case IRO_Eq:
-		sz.Append("bne L");
+		uiBranch = IR816M_Bne;
 		break;
 	case IRO_Ne:
-		sz.Append("beq L");
+		uiBranch = IR816M_Beq;
 		break;
 	case IRO_SLt:
 	case IRO_ULt:
-		sz.Append("bcs L");
+		uiBranch = IR816M_Bcs;
 		break;
 	case IRO_SGe:
 	case IRO_UGe:
-		sz.Append("bcc L");
+		uiBranch = IR816M_Bcc;
 		break;
 	case IRO_SGt:
 	case IRO_UGt:
-		sz.Append("bcc L");
-		sz.Append(iFalse);
-		mpcBackend->Line(sz.Text());
-		sz.Clear();
-		sz.Append("beq L");
+		mpcBackend->Branch(IR816M_Bcc, iFalse);
+		uiBranch = IR816M_Beq;
 		break;
 	default:
 		//le: true when C is clear or Z set.
-		sz.Append("bcc L");
-		sz.Append(iTrue);
-		mpcBackend->Line(sz.Text());
-		sz.Clear();
-		sz.Append("bne L");
+		mpcBackend->Branch(IR816M_Bcc, iTrue);
+		uiBranch = IR816M_Bne;
 		break;
 	}
-	sz.Append(iFalse);
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Branch(uiBranch, iFalse);
 	mpcBackend->Label(iTrue);
 	mpcBackend->Line(IR816M_Lda, "1");
-	sz.Clear();
-	sz.Append("bra L");
-	sz.Append(iEnd);
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Branch(IR816M_Bra, iEnd);
 	mpcBackend->Label(iFalse);
 	mpcBackend->Line(IR816M_Lda, "0");
 	mpcBackend->Label(iEnd);
 	Store(psInstruction->sResult, 0);
-	sz.Kill();
 }

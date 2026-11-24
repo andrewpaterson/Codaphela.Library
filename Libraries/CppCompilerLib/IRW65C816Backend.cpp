@@ -1446,6 +1446,7 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 	SIRJump*	psJump;
 	int			i;
 	int			iWords;
+	char		szPointer[32];
 
 	psJump = &pcBlock->msJump;
 	if (!psJump->sType.IsNone())
@@ -1461,7 +1462,8 @@ void CIRW65C816Backend::Return(CIRBlock* pcBlock)
 			{
 				Line(IR816M_Ldy, (int64)(2 * i));
 				mcSelector.Operand(IR816M_Lda, psJump->sArgument, i);
-				mpszOut->Append("\t\tsta [[D + ")->Append(IR816_SCRATCH_POINTER)->Append("]:24 + Y]")->AppendNewLine();
+				snprintf(szPointer, sizeof(szPointer), "[[D + %d]:24 + Y]", IR816_SCRATCH_POINTER);
+				Line(IR816M_Sta, szPointer);
 			}
 		}
 		else if (mcFusion.Fused(psJump->sArgument))
@@ -1648,10 +1650,10 @@ void CIRW65C816Backend::JumpTo(CIRBlock* pcFrom, CIRBlock* pcTo, CIRBlock* pcNex
 	if (mpcDominators && mpcDominators->IsBackEdge(pcFrom, pcTo))
 	{
 		//Going round a loop: marked for PeepholeBranches.
-		sz.Init("bra L");
+		sz.Init("L");
 		sz.Append(*maiBlockLabels.Get(pcTo->muiIndex));
 		sz.Append(IR816_ROUND);
-		Line(sz.Text());
+		Line(IR816M_Bra, sz.Text());
 		sz.Kill();
 		return;
 	}

@@ -107,8 +107,7 @@ void CIRW65C816Selector::FrameOperandCall(const char* szName, SIRInstruction* ps
 	sz.Init(szName);
 	sz.Append(IR816_FRAME_OPERANDS);
 	mpcBackend->UseRuntime(sz.Text());
-	sz.Insert(0, "jsl ");
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Line(IR816M_Jsl, sz.Text());
 	sz.Kill();
 	if (!bHidden)
 	{
@@ -223,13 +222,12 @@ int32 CIRW65C816Selector::SoftFloatCall(const char* szName, SIRReference* asValu
 	}
 
 	mpcBackend->UseRuntime(szName);
-	sz.Init("jsl ");
-	sz.Append(szName);
+	sz.Init(szName);
 	if (iRegisters > 0)
 	{
 		mpcBackend->AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
 	}
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Line(IR816M_Jsl, sz.Text());
 	sz.Kill();
 	asArguments.Kill();
 	return iBytes;
@@ -267,8 +265,7 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 		mpcBackend->Line(IR816M_Ldy, (int64)(FrameOperand(psInstruction->asArguments[1], sType, IR816_SCRATCH_ARGUMENT_A)));
 		szName.Append(IR816_FRAME_OPERANDS);
 		mpcBackend->UseRuntime(szName.Text());
-		szName.Insert(0, "jsl ");
-		mpcBackend->Line(szName.Text());
+		mpcBackend->Line(IR816M_Jsl, szName.Text());
 		Frame(IR816M_Sta, IR816_SCRATCH_RESULT);
 	}
 	else
@@ -299,21 +296,12 @@ void CIRW65C816Selector::FloatCompare(SIRInstruction* psInstruction)
 	for (i = 0; i < iValues; i++)
 	{
 		mpcBackend->Line(IR816M_Cmp, (int64)(aiValues[i] & 0xFFFF));
-		sz.Clear();
-		sz.Append("beq L");
-		sz.Append(bNot ? iFalse : iTrue);
-		mpcBackend->Line(sz.Text());
+		mpcBackend->Branch(IR816M_Beq, bNot ? iFalse : iTrue);
 	}
-	sz.Clear();
-	sz.Append("bra L");
-	sz.Append(bNot ? iTrue : iFalse);
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Branch(IR816M_Bra, bNot ? iTrue : iFalse);
 	mpcBackend->Label(iTrue);
 	mpcBackend->Line(IR816M_Lda, "1");
-	sz.Clear();
-	sz.Append("bra L");
-	sz.Append(iEnd);
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Branch(IR816M_Bra, iEnd);
 	mpcBackend->Label(iFalse);
 	mpcBackend->Line(IR816M_Lda, "0");
 	mpcBackend->Label(iEnd);

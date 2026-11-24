@@ -159,23 +159,22 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	sz.Init(CIRW65C816Backend::GetScratch());
 	if (sCallee.IsSymbol())
 	{
-		sz.Append("jsl ");
 		sz.Append(mpcBackend->mpcModule->GetSymbolName(sCallee.Index()));
 		if (iRegisters > 0)
 		{
 			mpcBackend->AppendRegisterSuffix(&sz, &asArguments, IR816_REGISTER_LETTERS);
 		}
-		mpcBackend->Line(sz.Text());
+		mpcBackend->Line(IR816M_Jsl, sz.Text());
 	}
 	else
 	{
 		iReturn = mpcBackend->NewLabel();
 		iCallee = mpcBackend->mcPlaces.OffsetOf(sCallee);
 		mpcBackend->Line(IR816M_Phk);
-		sz.Append("per L");
+		sz.Append("L");
 		sz.Append(iReturn);
 		sz.Append(" - 1");
-		mpcBackend->Line(sz.Text());
+		mpcBackend->Line(IR816M_Per, sz.Text());
 		if (IR816PointerOnDirectPage(iCallee))
 		{
 			//The target's bank and high byte pushed as one word and a byte's room below them (phb: any byte), then the

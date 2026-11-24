@@ -136,8 +136,7 @@ bool CIRW65C816Selector::RuntimeCall(SIRInstruction* psInstruction)
 	}
 	mpcBackend->UseRuntime(szName.Text());
 	mpcBackend->mpsDivided = ((psInstruction->uiOpcode == IRO_UDiv) || (psInstruction->uiOpcode == IRO_SDiv)) ? psInstruction : NULL;
-	szName.Insert(0, "jsl ");
-	mpcBackend->Line(szName.Text());
+	mpcBackend->Line(IR816M_Jsl, szName.Text());
 	szName.Kill();
 	mpcBackend->mcCalls.CallerCleanUp(iBytes, psInstruction);
 	return true;
@@ -361,7 +360,7 @@ bool CIRW65C816Selector::WideMultiply(SIRInstruction* psInstruction)
 	CopyWords(IR816_SCRATCH_ARGUMENT_A, psInstruction->asArguments[0], 2);
 	CopyWords(IR816_SCRATCH_ARGUMENT_B, psInstruction->asArguments[1], 2);
 	mpcBackend->UseRuntime(IR816_RUNTIME_PREFIX "UMulWide32");
-	mpcBackend->Line("jsl " IR816_RUNTIME_PREFIX "UMulWide32");
+	mpcBackend->Line(IR816M_Jsl, IR816_RUNTIME_PREFIX "UMulWide32");
 	if (!psInstruction->sResult.IsNone())
 	{
 		for (i = 0; i < 4; i++)
@@ -402,7 +401,9 @@ bool CIRW65C816Selector::TableDivide(SIRInstruction* psInstruction, bool bSigned
 	Operand(IR816M_Lda, psInstruction->asArguments[0], 0);
 	mpcBackend->Line(IR816M_Asl, "A");
 	mpcBackend->Line(IR816M_Tax);
-	mpcBackend->mpszOut->Append("\t\tlda [")->Append(szName)->Append(" + X]:24\n");
+	szName.Insert(0, "[");
+	szName.Append(" + X]:24");
+	mpcBackend->Line(IR816M_Lda, szName.Text());
 	szName.Kill();
 	if ((psInstruction->uiOpcode == IRO_SRem) || (psInstruction->uiOpcode == IRO_URem))
 	{

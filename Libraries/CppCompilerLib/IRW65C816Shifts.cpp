@@ -144,8 +144,7 @@ bool CIRW65C816Selector::ShiftCall(SIRInstruction* psInstruction)
 		Operand(IR816M_Lda, psInstruction->asArguments[1], 0);
 		mpcBackend->Line(IR816M_Ldx, (int64)(mpcBackend->mcPlaces.OffsetOf(psInstruction->sResult)));
 	}
-	szName.Insert(0, "jsl ");
-	mpcBackend->Line(szName.Text());
+	mpcBackend->Line(IR816M_Jsl, szName.Text());
 	szName.Kill();
 	if (iWords == 2)
 	{
@@ -249,6 +248,7 @@ bool CIRW65C816Selector::ShiftTwoWords(SIRInstruction* psInstruction)
 bool CIRW65C816Selector::BitShift(SIRInstruction* psInstruction)
 {
 	CChars	szTable;
+	CChars	sz;
 	int32	iResult;
 	int		iWords;
 	int		i;
@@ -277,12 +277,17 @@ bool CIRW65C816Selector::BitShift(SIRInstruction* psInstruction)
 	mpcBackend->Line(IR816M_Tax);
 	for (i = 0; i < iWords; i++)
 	{
-		mpcBackend->mpszOut->Append("\t\tlda [")->Append(szTable);
+		sz.Init(CIRW65C816Backend::GetScratch());
+		sz.Append('[');
+		sz.Append(szTable);
 		if (i > 0)
 		{
-			mpcBackend->mpszOut->Append(" + ")->Append(2 * i);
+			sz.Append(" + ");
+			sz.Append(2 * i);
 		}
-		mpcBackend->mpszOut->Append(" + X]:24\n");
+		sz.Append(" + X]:24");
+		mpcBackend->Line(IR816M_Lda, sz.Text());
+		sz.Kill();
 		Frame(IR816M_Sta, iResult + 2 * i);
 	}
 	szTable.Kill();
@@ -323,15 +328,12 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	Operand(IR816M_Lda, sAmount, 0);
 	mpcBackend->Line(IR816M_And, "63");
 	mpcBackend->Branch(IR816M_Beq, iEnd);
-	sz.Init("cmp ");
-	sz.Append(IR816_SHIFT_LOOP_BELOW);
-	mpcBackend->Line(sz.Text());
-	sz.Kill();
+	mpcBackend->Line(IR816M_Cmp, (int64)IR816_SHIFT_LOOP_BELOW);
 	mpcBackend->Branch(IR816M_Bcc, iSmall);
 
 	//The whole value shifted out.
 	iUnder = mpcBackend->NewLabel();
-	mpcBackend->Line((iWords == 2) ? "cmp 32" : "cmp 16");
+	mpcBackend->Line(IR816M_Cmp, (int64)((iWords == 2) ? 32 : 16));
 	mpcBackend->Branch(IR816M_Bcc, iUnder);
 	ShiftConstant(uiOpcode, iResult, iWords, 16 * iWords);
 	mpcBackend->Branch(IR816M_Bra, iEnd);
@@ -368,10 +370,10 @@ void CIRW65C816Selector::ShiftInA(uint16 uiOpcode, int32 iResult, int iWords, SI
 	mpcBackend->Line(IR816M_Asl, "A");
 	mpcBackend->Line(IR816M_Tax);
 	Frame(IR816M_Lda, iInA);
-	sz.Init("jmp [L");
+	sz.Init("[L");
 	sz.Append(iLoop);
 	sz.Append(" + X]");
-	mpcBackend->Line(sz.Text());
+	mpcBackend->Line(IR816M_Jmp, sz.Text());
 	sz.Kill();
 
 	//Entry n runs the last n steps.
@@ -473,12 +475,12 @@ void CIRW65C816Selector::ShiftWordInA(uint16 uiOpcode, int iAmount)
 	if (iBits >= 8)
 	{
 		mpcBackend->Line(IR816M_Xba);
-		mpcBackend->Line((uiOpcode == IRO_Shl) ? "and 0xFF00" : "and 0xFF");
+		mpcBackend->Line(IR816M_And, (uiOpcode == IRO_Shl) ? "0xFF00" : "0xFF");
 		iBits -= 8;
 	}
 	for (; iBits > 0; iBits--)
 	{
-		mpcBackend->Line((uiOpcode == IRO_Shl) ? "asl A" : "lsr A");
+		mpcBackend->Line((uiOpcode == IRO_Shl) ? IR816M_Asl : IR816M_Lsr, "A");
 	}
 	if ((uiOpcode == IRO_AShr) && (iAmount > 0))
 	{
@@ -497,11 +499,10 @@ void CIRW65C816Selector::SignExtendInA(int iSignBit)
 {
 	char	szLine[32];
 
-	snprintf(szLine, sizeof(szLine), "eor 0x%X", 1u << iSignBit);
-	mpcBackend->Line(szLine);
+	snprintf(szLine, sizeof(szLine), "0x%X", 1u << iSignBit);
+	mpcBackend->Line(IR816M_Eor, szLine);
 	mpcBackend->Line(IR816M_Sec);
-	snprintf(szLine, sizeof(szLine), "sbc 0x%X", 1u << iSignBit);
-	mpcBackend->Line(szLine);
+	mpcBackend->Line(IR816M_Sbc, szLine);
 }
 
 
@@ -534,7 +535,6 @@ void CIRW65C816Selector::SignWordInA(void)
 void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWords, SIRReference sAmount, int32 iLoop, int32 iEnd)
 {
 	static const int	aiSteps[] = { 32, 16, 8 };
-	CChars				sz;
 	int					i;
 	int32				iSkip;
 
@@ -546,10 +546,7 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 	if (16 * iWords <= 63)
 	{
 		iSkip = mpcBackend->NewLabel();
-		sz.Init("cmp ");
-		sz.Append(16 * iWords);
-		mpcBackend->Line(sz.Text());
-		sz.Kill();
+		mpcBackend->Line(IR816M_Cmp, (int64)(16 * iWords));
 		mpcBackend->Branch(IR816M_Bcc, iSkip);
 		ShiftConstant(uiOpcode, iResult, iWords, 16 * iWords);
 		mpcBackend->Branch(IR816M_Bra, iEnd);
@@ -565,17 +562,11 @@ void CIRW65C816Selector::ShiftInMemory(uint16 uiOpcode, int32 iResult, int iWord
 			continue;
 		}
 		iSkip = mpcBackend->NewLabel();
-		sz.Init("cmp ");
-		sz.Append(aiSteps[i]);
-		mpcBackend->Line(sz.Text());
+		mpcBackend->Line(IR816M_Cmp, (int64)aiSteps[i]);
 		mpcBackend->Branch(IR816M_Bcc, iSkip);
-		sz.Kill();
 		ShiftConstant(uiOpcode, iResult, iWords, aiSteps[i]);
 		Frame(IR816M_Lda, IR816_SCRATCH_VALUE);
-		sz.Init("and ");
-		sz.Append(aiSteps[i] - 1);
-		mpcBackend->Line(sz.Text());
-		sz.Kill();
+		mpcBackend->Line(IR816M_And, (int64)(aiSteps[i] - 1));
 		mpcBackend->Branch(IR816M_Beq, iEnd);
 		Frame(IR816M_Sta, IR816_SCRATCH_VALUE);
 		mpcBackend->Label(iSkip);
