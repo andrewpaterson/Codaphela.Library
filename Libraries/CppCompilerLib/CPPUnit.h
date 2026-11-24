@@ -326,7 +326,6 @@ public:
 	bool					Emit(CChars* pszLabel);
 	bool					Declarations(CArraySyntax* papcDeclarations);
 	bool					IsScopeDeclaration(CCPPSyntax* pcDeclaration);
-	bool					IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration);
 	CCPPVariable*			AddVariable(CArrayCPPVariables* papcVariables, CCPPSymbol* pcSymbol, SCPP65Type* psType, ECPPStorage eStorage, int iOffset);
 	void					FreeVariables(CArrayCPPVariables* papcVariables);
 	CCPPVariable*			GetVariable(CCPPSymbol* pcSymbol);

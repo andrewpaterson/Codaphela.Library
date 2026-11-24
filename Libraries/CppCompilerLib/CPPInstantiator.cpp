@@ -576,268 +576,452 @@ CCPPVariable* CCPPInstantiator::OwnStatic(CCPPClass* pcClass, CCPPSymbol* pcSymb
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Records a template declaration: a class template, a function template, a member
-// function of a class template defined outside it, a member template defined outside
-// its class (template<class M> template<class N> ... for a class template), or an
-// explicit or partial specialisation of a class or function template, or an
-// explicit specialisation of a class template's member function
-// (MemberSpecialisation).
+// Records a template declaration: what it is (ClassifyTemplateDeclaration),
+// then what that kind of declaration is given.  A class template, a
+// function template, a variable template, a member of a class template
+// defined outside it, a member template defined outside its class, or an
+// explicit or partial specialisation of any of them (MemberSpecialisation
+// for a class template's member function).
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPInstantiator::TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration)
 {
-	CCPPTemplate*					pcTemplate;
-	CCPPSyntax*						pcDeclaration;
-	CCPPSyntaxSimpleDeclaration*	pcSimple;
-	CCPPSyntaxFunctionDefinition*	pcFunction;
-	CCPPSyntaxTemplateDeclaration*	pcClassTemplate;
-	CCPPSyntaxClassSpecifier*		pcSpecifier;
-	CCPPSyntaxName*					pcName;
-	CCPPSyntaxNameComponent*		pcClassName;
-	CCPPTemplate*					pcOwnerTemplate;
-	size							i;
-	bool							bExplicit;
+	SCPPTemplateForm	sForm;
 
-	pcDeclaration = pcTemplateDeclaration->mpcDeclaration;
-	if (!pcDeclaration)
+	if (!pcTemplateDeclaration->mpcDeclaration)
 	{
 		return true;
 	}
 	if (pcTemplateDeclaration->mbInstantiation)
 	{
-		return ExplicitInstantiation(pcDeclaration, pcTemplateDeclaration->mbExtern);
+		return ExplicitInstantiation(pcTemplateDeclaration->mpcDeclaration, pcTemplateDeclaration->mbExtern);
 	}
 	if (mpcUnit->mcContext.IsCLinkage() && (pcTemplateDeclaration->macpParameters.NumElements() > 0))
 	{
 		//[temp] 4
 		return mpcUnit->mcDiagnostics.Error(pcTemplateDeclaration, "A template has no C linkage: it is declared outside extern \"C\"");
 	}
-	bExplicit = pcTemplateDeclaration->macpParameters.NumElements() == 0;
-	if (bExplicit && (pcDeclaration->GetKind() == CPPS_TemplateDeclaration) && (((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->macpParameters.NumElements() == 0) &&
-		((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration && (((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration->GetKind() == CPPS_FunctionDefinition))
+	switch (ClassifyTemplateDeclaration(pcTemplateDeclaration, &sForm))
 	{
-		//template<> template<> int S<int>::f<char>(char) { ... }: a member template's explicit specialisation for one
-		//instance of its class template, found when that instance's member template is instantiated.  [temp.expl.spec] 16
-		AddOutsideDefinition(CPPOD_MemberTemplateSpecialisation, (CCPPSyntaxTemplateDeclaration*)pcDeclaration, NULL, ((CCPPSyntaxTemplateDeclaration*)pcDeclaration)->mpcDeclaration);
+	case CPPTF_MemberTemplateSpecialisation:
+		//Found when that instance's member template is instantiated.  [temp.expl.spec] 16
+		AddOutsideDefinition(CPPOD_MemberTemplateSpecialisation, sForm.pcDeclaration, NULL, sForm.pcDefined);
+		return true;
+	case CPPTF_OutsideMemberClassTemplate:
+		//Each instance's member class template (MemberTemplate).
+		AddOutsideDefinition(CPPOD_MemberClass, sForm.pcClassTemplate, sForm.pcDeclaration, sForm.pcDefined);
+		return true;
+	case CPPTF_MemberVariableSpecialisation:
+		//Partially specialises each instance's member variable template: those laid out already, and the others' as they
+		//are (MemberTemplate).  [temp.class.spec] 5
+		AddOutsideDefinition(CPPOD_MemberVariableSpecialisation, sForm.pcClassTemplate, sForm.pcDeclaration, sForm.pcDefined);
+		GiveMemberVariableTemplates(&sForm, true);
+		return true;
+	case CPPTF_MemberVariableDefinition:
+		//Defines each instance's member variable template: those of the instances laid out already, and the others' as
+		//they are (MemberTemplate).
+		AddOutsideDefinition(CPPOD_MemberVariableTemplate, sForm.pcClassTemplate, sForm.pcDeclaration, sForm.pcDefined);
+		GiveMemberVariableTemplates(&sForm, false);
+		return true;
+	case CPPTF_ClassSpecialisation:
+		Specialisation(sForm.pcSpecifier->mpcSymbol, sForm.pcDeclaration, sForm.pcSpecifier, sForm.pcSpecifier->mpcName->GetLast());
+		return true;
+	case CPPTF_OutsideMemberClass:
+		//Each instance's member class (FindSpecifier).
+		AddOutsideDefinition(CPPOD_MemberClass, sForm.pcDeclaration, NULL, sForm.pcDefined);
+		return true;
+	case CPPTF_ClassTemplate:
+		DefineClassTemplate(sForm.pcSpecifier->mpcSymbol, sForm.pcDeclaration, sForm.pcSpecifier);
+		return true;
+	case CPPTF_ClassTemplateDeclaration:
+		//A template its specialisations can specialise.
+		DeclareClassTemplate((CCPPSyntaxElaboratedTypeSpecifier*)((CCPPSyntaxSimpleDeclaration*)sForm.pcDefined)->mpcSpecifiers->mpcType, sForm.pcDeclaration);
+		return true;
+	case CPPTF_StaticMember:
+		//Each instance's (DefineInstanceStatics).
+		AddOutsideDefinition(CPPOD_StaticMember, sForm.pcDeclaration, NULL, sForm.pcDefined);
+		return true;
+	case CPPTF_StaticMemberSpecialisation:
+		//Defines that instance's, which DefineInstanceStatics then leaves be.  [temp.expl.spec] 13
+		return mpcUnit->GetGlobals()->GlobalDeclaration((CCPPSyntaxSimpleDeclaration*)sForm.pcDefined);
+	case CPPTF_StaticMemberTemplate:
+		StaticMemberTemplate(&sForm);
+		return true;
+	case CPPTF_VariableTemplate:
+		if (sForm.bExplicit || sForm.pcName->GetLast()->mbTemplateArguments)
+		{
+			Specialisation(sForm.pcName->mpcSymbol, sForm.pcDeclaration, sForm.pcDefined, sForm.pcName->GetLast());
+		}
+		else
+		{
+			NewTemplate(sForm.pcName->mpcSymbol, sForm.pcDeclaration, sForm.pcDefined, false);
+		}
+		return true;
+	case CPPTF_FunctionTemplateDeclaration:
+		DeclareFunctionTemplate(sForm.pcDeclaration, (CCPPSyntaxSimpleDeclaration*)sForm.pcDefined);
+		return true;
+	case CPPTF_OutsideMember:
+		OutsideMember(&sForm);
+		return true;
+	case CPPTF_MemberSpecialisation:
+		NoDefaultArguments(((CCPPSyntaxFunctionDefinition*)sForm.pcDefined)->mpcDeclarator, "An explicit specialisation is given no default argument");
+		MemberSpecialisation((CCPPSyntaxFunctionDefinition*)sForm.pcDefined);
+		return true;
+	case CPPTF_FunctionSpecialisation:
+		FunctionSpecialisation(&sForm);
+		return true;
+	case CPPTF_FunctionTemplate:
+		return FunctionTemplateDefinition(&sForm);
+	default:
 		return true;
 	}
+}
 
-	//template<class M> template<class N> N SBox<M>::Mul(N n) { ... }
-	pcClassTemplate = NULL;
-	if ((pcDeclaration->GetKind() == CPPS_TemplateDeclaration) && !bExplicit)
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a template declaration declares, from its syntax alone, and its
+// pieces (SCPPTemplateForm): CPPTF_None for what records nothing.  A member
+// template's (template<class M> template<class N> ...) is its inner
+// declaration's, with its class template's beside it.
+//
+//////////////////////////////////////////////////////////////////////////
+ECPPTemplateForm CCPPInstantiator::ClassifyTemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration, SCPPTemplateForm* psForm)
+{
+	CCPPSyntax*						pcDeclaration;
+	CCPPSyntaxTemplateDeclaration*	pcInner;
+	CCPPSyntaxSimpleDeclaration*	pcSimple;
+	CCPPSyntaxNameComponent*		pcClassName;
+	CCPPSyntaxName*					pcName;
+
+	pcDeclaration = pcTemplateDeclaration->mpcDeclaration;
+	psForm->pcDeclaration = pcTemplateDeclaration;
+	psForm->pcClassTemplate = NULL;
+	psForm->pcDefined = pcDeclaration;
+	psForm->pcSpecifier = NULL;
+	psForm->pcName = NULL;
+	psForm->bExplicit = pcTemplateDeclaration->macpParameters.NumElements() == 0;
+
+	if (pcDeclaration->GetKind() == CPPS_TemplateDeclaration)
 	{
-		pcClassTemplate = pcTemplateDeclaration;
-		pcTemplateDeclaration = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
-		pcDeclaration = pcTemplateDeclaration->mpcDeclaration;
-		if (pcTemplateDeclaration->mbInstantiation || (pcTemplateDeclaration->macpParameters.NumElements() == 0) || !pcDeclaration)
+		pcInner = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
+		if (psForm->bExplicit)
 		{
-			return true;
+			//template<> template<> int S<int>::f<char>(char) { ... }: a member template's explicit specialisation for one
+			//instance of its class template.
+			if ((pcInner->macpParameters.NumElements() != 0) || !pcInner->mpcDeclaration || (pcInner->mpcDeclaration->GetKind() != CPPS_FunctionDefinition))
+			{
+				return CPPTF_None;
+			}
+			psForm->pcDeclaration = pcInner;
+			psForm->pcDefined = pcInner->mpcDeclaration;
+			return CPPTF_MemberTemplateSpecialisation;
+		}
+
+		//template<class M> template<class N> N SBox<M>::Mul(N n) { ... }
+		psForm->pcClassTemplate = pcTemplateDeclaration;
+		psForm->pcDeclaration = pcInner;
+		pcDeclaration = pcInner->mpcDeclaration;
+		psForm->pcDefined = pcDeclaration;
+		if (pcInner->mbInstantiation || (pcInner->macpParameters.NumElements() == 0) || !pcDeclaration)
+		{
+			return CPPTF_None;
 		}
 		if (IsClassTemplateDefinition(pcDeclaration))
 		{
-			//template<class T> template<class U> struct Outer<T>::Pair { ... }; defines each instance's member class template
-			//(MemberTemplate).
-			AddOutsideDefinition(CPPOD_MemberClass, pcClassTemplate, pcTemplateDeclaration, pcDeclaration);
-			return true;
+			//template<class T> template<class U> struct Outer<T>::Pair { ... };
+			return CPPTF_OutsideMemberClassTemplate;
 		}
-		if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
+		if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
 		{
-			//template<class C> template<class T> constexpr bool W<C>::same<T*> = true; partially specialises each instance's
-			//member variable template: those laid out already, and the others' as they are (MemberTemplate).
-			//[temp.class.spec] 5
-			AddOutsideDefinition(CPPOD_MemberVariableSpecialisation, pcClassTemplate, pcTemplateDeclaration, pcDeclaration);
-			pcName = MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
-			for (i = 0; i < mpcUnit->mapcTemplates.NumElements(); i++)
+			//template<class C> template<class T> constexpr bool W<C>::same<T*> = true; and T W<C>::value = T(2);
+			psForm->pcName = MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
+			if (!psForm->pcName)
 			{
-				pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
-				if (!pcTemplate->mbMember && pcTemplate->mpcClass && (pcTemplate->mpcSymbol == pcName->mpcSymbol) && (pcTemplate->mpcPrimary == pcTemplate))
-				{
-					SpecialiseMemberVariableTemplate(pcTemplate, pcClassTemplate);
-				}
+				return CPPTF_None;
 			}
-			return true;
-		}
-		if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration) && !MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->GetLast()->mbTemplateArguments)
-		{
-			//template<class C> template<class T> T W<C>::value = T(2); defines each instance's member variable template:
-			//those of the instances laid out already, and the others' as they are (MemberTemplate).
-			AddOutsideDefinition(CPPOD_MemberVariableTemplate, pcClassTemplate, pcTemplateDeclaration, pcDeclaration);
-			pcName = MemberVariableTemplateName((CCPPSyntaxSimpleDeclaration*)pcDeclaration);
-			for (i = 0; i < mpcUnit->mapcTemplates.NumElements(); i++)
-			{
-				pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
-				if (!pcTemplate->mbMember && pcTemplate->mpcClass && (pcTemplate->mpcSymbol == pcName->mpcSymbol))
-				{
-					DefineMemberVariableTemplate(pcTemplate);
-				}
-			}
-			return true;
+			return psForm->pcName->GetLast()->mbTemplateArguments ? CPPTF_MemberVariableSpecialisation : CPPTF_MemberVariableDefinition;
 		}
 		if (pcDeclaration->GetKind() != CPPS_FunctionDefinition)
 		{
-			return true;
+			return CPPTF_None;
 		}
 	}
 
-	pcTemplate = NULL;
-	if ((pcDeclaration->GetKind() == CPPS_SimpleDeclaration) && !pcClassTemplate)
+	if (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)
 	{
 		pcSimple = (CCPPSyntaxSimpleDeclaration*)pcDeclaration;
 		if (pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ClassSpecifier))
 		{
-			//template<class T> struct SAlign<T*> { ... } and template<> struct SAlign<char> { ... } specialise SAlign.
-			pcSpecifier = (CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType;
-			pcClassName = pcSpecifier->mpcName ? pcSpecifier->mpcName->GetLast() : NULL;
+			//template<class T> struct SAlign<T*> { ... } and template<> struct SAlign<char> { ... } specialise SAlign;
+			//template<class T> struct Outer<T>::Inner { ... }; is each instance's member class.
+			psForm->pcSpecifier = (CCPPSyntaxClassSpecifier*)pcSimple->mpcSpecifiers->mpcType;
+			pcClassName = psForm->pcSpecifier->mpcName ? psForm->pcSpecifier->mpcName->GetLast() : NULL;
 			if (pcClassName && pcClassName->mbTemplateArguments)
 			{
-				Specialisation(pcSpecifier->mpcSymbol, pcTemplateDeclaration, pcSpecifier, pcClassName);
+				return CPPTF_ClassSpecialisation;
 			}
-			else if (!bExplicit && pcSpecifier->mpcName->IsQualifiedByClass() && pcSpecifier->mpcSymbol && (pcSpecifier->mpcSymbol->meKind == CPPSK_Class))
+			if (psForm->bExplicit)
 			{
-				//template<class T> struct Outer<T>::Inner { ... }; defines each instance's member class (FindSpecifier).
-				AddOutsideDefinition(CPPOD_MemberClass, pcTemplateDeclaration, NULL, pcSimple);
+				return CPPTF_None;
 			}
-			else if (!bExplicit)
+			if (psForm->pcSpecifier->mpcName->IsQualifiedByClass() && psForm->pcSpecifier->mpcSymbol && (psForm->pcSpecifier->mpcSymbol->meKind == CPPSK_Class))
 			{
-				DefineClassTemplate(pcSpecifier->mpcSymbol, pcTemplateDeclaration, pcSpecifier);
+				return CPPTF_OutsideMemberClass;
 			}
+			return CPPTF_ClassTemplate;
 		}
-		else if (!bExplicit && pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ElaboratedTypeSpecifier) && (pcSimple->macpDeclarators.NumElements() == 0))
+		if (!psForm->bExplicit && pcSimple->mpcSpecifiers && pcSimple->mpcSpecifiers->mpcType && (pcSimple->mpcSpecifiers->mpcType->GetKind() == CPPS_ElaboratedTypeSpecifier) && (pcSimple->macpDeclarators.NumElements() == 0))
 		{
-			//template<class... T> struct Tuple; is a template its specialisations can specialise.
-			DeclareClassTemplate((CCPPSyntaxElaboratedTypeSpecifier*)pcSimple->mpcSpecifiers->mpcType, pcTemplateDeclaration);
+			//template<class... T> struct Tuple;
+			return CPPTF_ClassTemplateDeclaration;
 		}
-		else if (!bExplicit && IsStaticMemberDefinition(pcSimple))
+		if (IsStaticMemberDefinition(pcSimple))
 		{
-			//template<class T> int S<T>::count = 3; is each instance's (DefineInstanceStatics).
-			AddOutsideDefinition(CPPOD_StaticMember, pcTemplateDeclaration, NULL, pcSimple);
+			//template<class T> int S<T>::count = 3; and template<> int S<int>::count = 5;
+			return psForm->bExplicit ? CPPTF_StaticMemberSpecialisation : CPPTF_StaticMember;
 		}
-		else if (bExplicit && IsStaticMemberDefinition(pcSimple))
+		psForm->pcName = MemberVariableTemplateName(pcSimple);
+		if (psForm->pcName)
 		{
-			//template<> int S<int>::count = 5; defines that instance's, which DefineInstanceStatics then leaves be.  [temp.expl.spec] 13
-			return mpcUnit->GetGlobals()->GlobalDeclaration(pcSimple);
+			//A class's static member that is a variable template, outside the class.
+			return CPPTF_StaticMemberTemplate;
 		}
-		else if (MemberVariableTemplateName(pcSimple))
-		{
-			//A class's static member that is a variable template, outside the class: template<class T> int S::kind<T*> = 2;
-			//and template<> int S::kind<char> = 3; specialise it, and template<class T> const int S::size = sizeof(T);
-			//defines it (its instances are made from this).
-			pcName = MemberVariableTemplateName(pcSimple);
-			pcTemplate = VariableTemplate(pcName->mpcSymbol, pcSimple, NULL);
-			if (pcTemplate && (bExplicit || pcName->GetLast()->mbTemplateArguments))
-			{
-				Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, pcName->GetLast());
-			}
-			else if (pcTemplate)
-			{
-				pcTemplate->mpcDeclaration = pcTemplateDeclaration;
-				pcTemplate->mpcDefinition = pcSimple;
-			}
-			pcTemplate = NULL;
-		}
-		else if (VariableTemplateName(pcSimple))
+		psForm->pcName = VariableTemplateName(pcSimple);
+		if (psForm->pcName)
 		{
 			//template<class T> T pi = T(3);, template<> int size<char> = 9; and template<class T> int size<T*> = 2;
-			pcName = VariableTemplateName(pcSimple);
-			if (bExplicit || pcName->GetLast()->mbTemplateArguments)
-			{
-				Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, pcName->GetLast());
-			}
-			else
-			{
-				NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcSimple, false);
-			}
+			return CPPTF_VariableTemplate;
 		}
-		else if (!bExplicit)
+		//template<class T> T Twice(T v);
+		return psForm->bExplicit ? CPPTF_None : CPPTF_FunctionTemplateDeclaration;
+	}
+
+	if (pcDeclaration->GetKind() != CPPS_FunctionDefinition)
+	{
+		return CPPTF_None;
+	}
+	pcName = ((CCPPSyntaxFunctionDefinition*)pcDeclaration)->mpcDeclarator->GetName();
+	psForm->pcName = pcName;
+	if (!pcName)
+	{
+		return CPPTF_None;
+	}
+	if (pcName->IsQualifiedByClass())
+	{
+		//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... } and template<> int S<char>::f() { ... }
+		if (!psForm->bExplicit)
 		{
-			//template<class T> T Twice(T v);
-			DeclareFunctionTemplate(pcTemplateDeclaration, pcSimple);
+			return CPPTF_OutsideMember;
+		}
+		return psForm->pcClassTemplate ? CPPTF_None : CPPTF_MemberSpecialisation;
+	}
+	if (psForm->pcClassTemplate)
+	{
+		return CPPTF_None;
+	}
+	if (psForm->bExplicit)
+	{
+		//template<> int Size<char>(char c) { ... } and template<> int Size(short s) { ... }
+		return (pcName->macpComponents.NumElements() == 1) ? CPPTF_FunctionSpecialisation : CPPTF_None;
+	}
+	//An operator template (and a literal operator template) has no symbol; it is found by its operator (FindFreeOperator).
+	return (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator) || (pcName->GetLast()->meKind == CPPNC_Literal)) ? CPPTF_FunctionTemplate : CPPTF_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member variable template's specialisation (bSpecialisation) or
+// definition written outside a class template, given to each instance's
+// member variable template made already.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPInstantiator::GiveMemberVariableTemplates(SCPPTemplateForm* psForm, bool bSpecialisation)
+{
+	CCPPTemplate*	pcTemplate;
+	size			i;
+
+	for (i = 0; i < mpcUnit->mapcTemplates.NumElements(); i++)
+	{
+		pcTemplate = mpcUnit->mapcTemplates.GetPtr(i);
+		if (pcTemplate->mbMember || !pcTemplate->mpcClass || (pcTemplate->mpcSymbol != psForm->pcName->mpcSymbol))
+		{
+			continue;
+		}
+		if (bSpecialisation && (pcTemplate->mpcPrimary == pcTemplate))
+		{
+			SpecialiseMemberVariableTemplate(pcTemplate, psForm->pcClassTemplate);
+		}
+		else if (!bSpecialisation)
+		{
+			DefineMemberVariableTemplate(pcTemplate);
 		}
 	}
-	else if (pcDeclaration->GetKind() == CPPS_FunctionDefinition)
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A class's static member that is a variable template, outside the class:
+// template<class T> int S::kind<T*> = 2; and template<> int S::kind<char>
+// = 3; specialise it, and template<class T> const int S::size = sizeof(T);
+// defines it (its instances are made from this).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPInstantiator::StaticMemberTemplate(SCPPTemplateForm* psForm)
+{
+	CCPPTemplate*	pcTemplate;
+
+	pcTemplate = VariableTemplate(psForm->pcName->mpcSymbol, (CCPPSyntaxSimpleDeclaration*)psForm->pcDefined, NULL);
+	if (pcTemplate && (psForm->bExplicit || psForm->pcName->GetLast()->mbTemplateArguments))
 	{
-		pcFunction = (CCPPSyntaxFunctionDefinition*)pcDeclaration;
-		pcName = pcFunction->mpcDeclarator->GetName();
-		if (pcName && pcName->IsQualifiedByClass() && !bExplicit)
+		Specialisation(psForm->pcName->mpcSymbol, psForm->pcDeclaration, psForm->pcDefined, psForm->pcName->GetLast());
+	}
+	else if (pcTemplate)
+	{
+		pcTemplate->mpcDeclaration = psForm->pcDeclaration;
+		pcTemplate->mpcDefinition = psForm->pcDefined;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A member of a class template, or a member template, defined outside its
+// class: template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... },
+// template<class M> template<class N> N SBox<M>::Mul(N n) { ... }, of each
+// instance's member class (template<class T> int Outer<T>::Inner::Size() {
+// ... }: IsOutsideMemberOf), or a class's member template
+// (template<class T> int CValue::Size(T* p) { ... }).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPInstantiator::OutsideMember(SCPPTemplateForm* psForm)
+{
+	CCPPSyntaxFunctionDefinition*	pcFunction;
+	CCPPSyntaxNameComponent*		pcClassName;
+	CCPPTemplate*					pcOwnerTemplate;
+	CCPPTemplate*					pcTemplate;
+
+	pcFunction = (CCPPSyntaxFunctionDefinition*)psForm->pcDefined;
+	NoDefaultArguments(pcFunction->mpcDeclarator, "A template's member is given its default arguments in its class");
+	pcClassName = psForm->pcName->GetQualifier();
+	pcOwnerTemplate = GetComponentTemplate(pcClassName);
+	pcTemplate = NULL;
+	if (pcOwnerTemplate && psForm->pcClassTemplate)
+	{
+		pcTemplate = NewTemplate(pcOwnerTemplate->mpcSymbol, psForm->pcDeclaration, pcFunction, true);
+		pcTemplate->mbMemberTemplate = true;
+		pcTemplate->mpcClassDeclaration = psForm->pcClassTemplate;
+	}
+	else if (pcOwnerTemplate)
+	{
+		pcTemplate = NewTemplate(pcOwnerTemplate->mpcSymbol, psForm->pcDeclaration, pcFunction, true);
+		pcTemplate->mpcOwner = OutsideMemberOwner(pcOwnerTemplate, pcClassName, psForm->pcDeclaration);
+		DefineOutsideMembers(pcTemplate);
+	}
+	else if (pcClassName->mpcSymbol && (pcClassName->mpcSymbol->meKind == CPPSK_Class) && psForm->pcName->IsQualifiedByInstance() && !psForm->pcClassTemplate)
+	{
+		pcTemplate = NewTemplate(pcClassName->mpcSymbol, psForm->pcDeclaration, pcFunction, true);
+		DefineOutsideMembers(pcTemplate);
+	}
+	else if (pcClassName->mpcSymbol && (pcClassName->mpcSymbol->meKind == CPPSK_Class))
+	{
+		pcTemplate = NewTemplate(pcClassName->mpcSymbol, psForm->pcDeclaration, pcFunction, true);
+		pcTemplate->mbMemberTemplate = true;
+	}
+	if (pcTemplate && pcTemplate->mbMemberTemplate)
+	{
+		pcTemplate->mlliName = mpcUnit->GetFunctionName(psForm->pcName->GetLast());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template's explicit specialisation: template<> int
+// Size<char>(char c) { ... } and template<> int Size(short s) { ... }.  An
+// error if a use before it made the template's own instance for its
+// arguments.  [temp.expl.spec] 6
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPInstantiator::FunctionSpecialisation(SCPPTemplateForm* psForm)
+{
+	CCPPSyntaxFunctionDefinition*	pcFunction;
+	CCPPTemplate*					pcTemplate;
+	size							i;
+
+	pcFunction = (CCPPSyntaxFunctionDefinition*)psForm->pcDefined;
+	NoDefaultArguments(pcFunction->mpcDeclarator, "An explicit specialisation is given no default argument");
+	pcTemplate = Specialisation(psForm->pcName->mpcSymbol, psForm->pcDeclaration, pcFunction, psForm->pcName->GetLast());
+	for (i = 0; pcTemplate && (i < pcTemplate->mpcPrimary->mapcInstances.NumElements()); i++)
+	{
+		if (FindFunctionSpecialisation(pcTemplate->mpcPrimary, &pcTemplate->mpcPrimary->mapcInstances.GetPtr(i)->mszArguments, pcFunction) == pcTemplate)
 		{
-			//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }
-			NoDefaultArguments(pcFunction->mpcDeclarator, "A template's member is given its default arguments in its class");
-			pcClassName = pcName->GetQualifier();
-			pcOwnerTemplate = GetComponentTemplate(pcClassName);
-			if (pcOwnerTemplate && pcClassTemplate)
-			{
-				pcTemplate = NewTemplate(pcOwnerTemplate->mpcSymbol, pcTemplateDeclaration, pcFunction, true);
-				pcTemplate->mbMemberTemplate = true;
-				pcTemplate->mpcClassDeclaration = pcClassTemplate;
-			}
-			else if (pcOwnerTemplate)
-			{
-				pcTemplate = NewTemplate(pcOwnerTemplate->mpcSymbol, pcTemplateDeclaration, pcFunction, true);
-				pcTemplate->mpcOwner = OutsideMemberOwner(pcOwnerTemplate, pcClassName, pcTemplateDeclaration);
-				DefineOutsideMembers(pcTemplate);
-			}
-			else if (pcClassName->mpcSymbol && (pcClassName->mpcSymbol->meKind == CPPSK_Class) && pcName->IsQualifiedByInstance() && !pcClassTemplate)
-			{
-				//template<class T> int Outer<T>::Inner::Size() { ... }: of each instance's member class (IsOutsideMemberOf).
-				pcTemplate = NewTemplate(pcClassName->mpcSymbol, pcTemplateDeclaration, pcFunction, true);
-				DefineOutsideMembers(pcTemplate);
-			}
-			else if (pcClassName->mpcSymbol && (pcClassName->mpcSymbol->meKind == CPPSK_Class))
-			{
-				//template<class T> int CValue::Size(T* p) { ... }
-				pcTemplate = NewTemplate(pcClassName->mpcSymbol, pcTemplateDeclaration, pcFunction, true);
-				pcTemplate->mbMemberTemplate = true;
-			}
-			if (pcTemplate && pcTemplate->mbMemberTemplate)
-			{
-				pcTemplate->mlliName = mpcUnit->GetFunctionName(pcName->GetLast());
-			}
+			mpcUnit->mcDiagnostics.Error(pcFunction->mpcDeclarator, "The explicit specialisation is declared after a use of it that made the template's instance");
+			break;
 		}
-		else if (pcName && pcName->IsQualifiedByClass() && bExplicit && !pcClassTemplate)
-		{
-			//template<> int S<char>::f() { ... }
-			NoDefaultArguments(pcFunction->mpcDeclarator, "An explicit specialisation is given no default argument");
-			MemberSpecialisation(pcFunction);
-		}
-		else if (pcName && (pcName->macpComponents.NumElements() == 1) && bExplicit && !pcClassTemplate)
-		{
-			//template<> int Size<char>(char c) { ... } and template<> int Size(short s) { ... }
-			NoDefaultArguments(pcFunction->mpcDeclarator, "An explicit specialisation is given no default argument");
-			pcTemplate = Specialisation(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, pcName->GetLast());
-			for (i = 0; pcTemplate && (i < pcTemplate->mpcPrimary->mapcInstances.NumElements()); i++)
-			{
-				if (FindFunctionSpecialisation(pcTemplate->mpcPrimary, &pcTemplate->mpcPrimary->mapcInstances.GetPtr(i)->mszArguments, pcFunction) == pcTemplate)
-				{
-					//The template's own instance for its arguments was made by a use before it.  [temp.expl.spec] 6
-					mpcUnit->mcDiagnostics.Error(pcFunction->mpcDeclarator, "The explicit specialisation is declared after a use of it that made the template's instance");
-					break;
-				}
-			}
-			pcTemplate = NULL;
-		}
-		else if (pcName && !pcClassTemplate && !bExplicit && (pcName->mpcSymbol || (pcName->GetLast()->meKind == CPPNC_Operator) || (pcName->GetLast()->meKind == CPPNC_Literal)))
-		{
-			//An operator template (and a literal operator template) has no symbol; it is found by its operator (FindFreeOperator).
-			pcTemplate = FindFunctionTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction->mpcDeclarator);
-			if (pcTemplate && pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition != pcFunction) && (pcTemplate->mpcDefinition->GetKind() == CPPS_FunctionDefinition) &&
-				SameReturnWritten(((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcSpecifiers, pcFunction->mpcSpecifiers) && pcTemplate->mpcDeclaration &&
-				(pcTemplate->mpcDeclaration->macpParameters.NumElements() == pcTemplateDeclaration->macpParameters.NumElements()) && TemplateParametersMatch(pcTemplate->mpcDeclaration, pcTemplateDeclaration))
-			{
-				//[temp.over.link] 6, [basic.def.odr] 1
-				return mpcUnit->mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function template is defined twice: one with an equivalent signature is defined already");
-			}
-			if (pcTemplate && !pcTemplate->mpcDefinition)
-			{
-				NoDefaultArguments(pcFunction->mpcDeclarator, "A function template is given its default arguments where it is first declared");
-				DefineFunctionTemplate(pcTemplate, pcTemplateDeclaration, pcFunction);
-			}
-			else
-			{
-				NewTemplate(pcName->mpcSymbol, pcTemplateDeclaration, pcFunction, false);
-			}
-		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A function template's definition: of the template a declaration before
+// it declared, which is then defined once, or a template of its own.
+// False after an error.  [temp.over.link] 6, [basic.def.odr] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPInstantiator::FunctionTemplateDefinition(SCPPTemplateForm* psForm)
+{
+	CCPPSyntaxFunctionDefinition*	pcFunction;
+	CCPPTemplate*					pcTemplate;
+
+	pcFunction = (CCPPSyntaxFunctionDefinition*)psForm->pcDefined;
+	pcTemplate = FindFunctionTemplate(psForm->pcName->mpcSymbol, psForm->pcDeclaration, pcFunction->mpcDeclarator);
+	if (pcTemplate && pcTemplate->mpcDefinition && (pcTemplate->mpcDefinition != pcFunction) && (pcTemplate->mpcDefinition->GetKind() == CPPS_FunctionDefinition) &&
+		SameReturnWritten(((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDefinition)->mpcSpecifiers, pcFunction->mpcSpecifiers) && pcTemplate->mpcDeclaration &&
+		(pcTemplate->mpcDeclaration->macpParameters.NumElements() == psForm->pcDeclaration->macpParameters.NumElements()) && TemplateParametersMatch(pcTemplate->mpcDeclaration, psForm->pcDeclaration))
+	{
+		return mpcUnit->mcDiagnostics.Error(pcFunction->mpcDeclarator, "The function template is defined twice: one with an equivalent signature is defined already");
+	}
+	if (pcTemplate && !pcTemplate->mpcDefinition)
+	{
+		NoDefaultArguments(pcFunction->mpcDeclarator, "A function template is given its default arguments where it is first declared");
+		DefineFunctionTemplate(pcTemplate, psForm->pcDeclaration, pcFunction);
+	}
+	else
+	{
+		NewTemplate(psForm->pcName->mpcSymbol, psForm->pcDeclaration, pcFunction, false);
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a declaration defines a member template of a class (not a class
+// template) outside it: template<class T> int CValue::Size(T* p) { ... }.
+// Its unit records these first (CCPPUnit::Declarations).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPPInstantiator::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
+{
+	CCPPSyntaxTemplateDeclaration*	pcTemplate;
+	CCPPSyntaxNameComponent*		pcClass;
+	SCPPTemplateForm				sForm;
+
+	if (pcDeclaration->GetKind() != CPPS_TemplateDeclaration)
+	{
+		return false;
+	}
+	pcTemplate = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
+	if (pcTemplate->mbInstantiation || !pcTemplate->mpcDeclaration || (ClassifyTemplateDeclaration(pcTemplate, &sForm) != CPPTF_OutsideMember) || sForm.pcClassTemplate)
+	{
+		return false;
+	}
+	pcClass = sForm.pcName->GetQualifier();
+	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !GetComponentTemplate(pcClass);
 }
 
 

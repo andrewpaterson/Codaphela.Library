@@ -20,6 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/ArrayBit.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/PointerFunctions.h"
 #include "SourceFile.h"
@@ -778,40 +779,9 @@ int64 CCPPUnit::GetName(CCPPSyntaxDeclarator* pcDeclarator)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether a declaration defines a member template of a class (not a class
-// template) outside it: template<class T> int CValue::Size(T* p) { ... }.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPPUnit::IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration)
-{
-	CCPPSyntaxTemplateDeclaration*	pcTemplate;
-	CCPPSyntaxName*					pcName;
-	CCPPSyntaxNameComponent*		pcClass;
-
-	if (pcDeclaration->GetKind() != CPPS_TemplateDeclaration)
-	{
-		return false;
-	}
-	pcTemplate = (CCPPSyntaxTemplateDeclaration*)pcDeclaration;
-	if (pcTemplate->mbInstantiation || (pcTemplate->macpParameters.NumElements() == 0) || !pcTemplate->mpcDeclaration || (pcTemplate->mpcDeclaration->GetKind() != CPPS_FunctionDefinition))
-	{
-		return false;
-	}
-	pcName = ((CCPPSyntaxFunctionDefinition*)pcTemplate->mpcDeclaration)->mpcDeclarator->GetName();
-	if (!pcName || !pcName->IsQualifiedByClass())
-	{
-		return false;
-	}
-	pcClass = pcName->GetQualifier();
-	return pcClass->mpcSymbol && (pcClass->mpcSymbol->meKind == CPPSK_Class) && !mcInstantiator.GetComponentTemplate(pcClass);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The declarations in order, but the member templates defined outside their
-// class first (IsOutsideMemberTemplate): a function before one may call it,
-// and its instance needs its definition.
+// class first (CCPPInstantiator::IsOutsideMemberTemplate, asked once each):
+// a function before one may call it, and its instance needs its definition.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
@@ -820,12 +790,15 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 	CCPPSyntax*							pcDeclaration;
 	CCPPSyntaxLinkageSpecification*		pcLinkage;
 	bool								bResult;
+	CArrayBit							acOutside;
 
 	bResult = true;
+	acOutside.Init();
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
 	{
 		pcDeclaration = papcDeclarations->GetPtr(i);
-		if (IsOutsideMemberTemplate(pcDeclaration))
+		acOutside.Add(mcInstantiator.IsOutsideMemberTemplate(pcDeclaration));
+		if (acOutside.Get(i))
 		{
 			bResult &= mcInstantiator.TemplateDeclaration((CCPPSyntaxTemplateDeclaration*)pcDeclaration);
 		}
@@ -833,7 +806,7 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
 	{
 		pcDeclaration = papcDeclarations->GetPtr(i);
-		if (IsOutsideMemberTemplate(pcDeclaration))
+		if (acOutside.Get(i))
 		{
 			continue;
 		}
@@ -874,6 +847,7 @@ bool CCPPUnit::Declarations(CArraySyntax* papcDeclarations)
 			break;
 		}
 	}
+	acOutside.Kill();
 	return bResult;
 }
 

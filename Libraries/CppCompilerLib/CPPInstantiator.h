@@ -98,6 +98,42 @@ struct SCPPOutsideDefinition
 typedef CArrayTemplate<SCPPOutsideDefinition>	CArrayCPPOutsideDefinitions;
 
 
+//What a template declaration declares (CCPPInstantiator::ClassifyTemplateDeclaration), by what it is given.
+enum ECPPTemplateForm
+{
+	CPPTF_None,							//Nothing recorded.
+	CPPTF_MemberTemplateSpecialisation,	//template<> template<> int S<int>::f<char>(char) { ... }
+	CPPTF_OutsideMemberClassTemplate,	//template<class T> template<class U> struct Outer<T>::Pair { ... };
+	CPPTF_MemberVariableSpecialisation,	//template<class C> template<class T> constexpr bool W<C>::same<T*> = true;
+	CPPTF_MemberVariableDefinition,		//template<class C> template<class T> T W<C>::value = T(2);
+	CPPTF_ClassSpecialisation,			//template<class T> struct SAlign<T*> { ... } and template<> struct SAlign<char> { ... }
+	CPPTF_OutsideMemberClass,			//template<class T> struct Outer<T>::Inner { ... };
+	CPPTF_ClassTemplate,				//template<class T> struct SAlign { ... };
+	CPPTF_ClassTemplateDeclaration,		//template<class... T> struct Tuple;
+	CPPTF_StaticMember,					//template<class T> int S<T>::count = 3;
+	CPPTF_StaticMemberSpecialisation,	//template<> int S<int>::count = 5;
+	CPPTF_StaticMemberTemplate,			//template<class T> int S::kind<T*> = 2; (a class's static member variable template)
+	CPPTF_VariableTemplate,				//template<class T> T pi = T(3);, and its specialisations
+	CPPTF_FunctionTemplateDeclaration,	//template<class T> T Twice(T v);
+	CPPTF_OutsideMember,				//template<class M> M* CArrayTemplate<M>::Get(size iIndex) { ... }, and member templates
+	CPPTF_MemberSpecialisation,			//template<> int S<char>::f() { ... }
+	CPPTF_FunctionSpecialisation,		//template<> int Size<char>(char c) { ... }
+	CPPTF_FunctionTemplate,				//template<class T> T Twice(T v) { ... }
+};
+
+
+//A template declaration's pieces, as its kind wants them (ClassifyTemplateDeclaration).
+struct SCPPTemplateForm
+{
+	CCPPSyntaxTemplateDeclaration*	pcDeclaration;		//The template declaration whose parameters are the declared template's (a member template's own).
+	CCPPSyntaxTemplateDeclaration*	pcClassTemplate;	//A member template's class template's declaration (template<class M> template<class N> ...); else NULL.
+	CCPPSyntax*						pcDefined;			//The declaration in pcDeclaration.
+	CCPPSyntaxClassSpecifier*		pcSpecifier;		//The class defined, or NULL.
+	CCPPSyntaxName*					pcName;				//The function's or the variable template's name, or NULL.
+	bool							bExplicit;			//template<>: an explicit specialisation.
+};
+
+
 //The unit's templates (CCPPUnit::GetInstantiator): each template declaration read, a class template's, a function
 //template's and a variable template's instances made for their arguments, their explicit and partial
 //specialisations found, the definitions written outside a class template given to each instance, and explicit
@@ -136,6 +172,13 @@ public:
 	bool					IsInstanceStaticDefined(CCPPClass* pcClass, CCPPSyntaxName* pcName);
 	CCPPVariable*			OwnStatic(CCPPClass* pcClass, CCPPSymbol* pcSymbol);
 	bool					TemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration);
+	ECPPTemplateForm		ClassifyTemplateDeclaration(CCPPSyntaxTemplateDeclaration* pcTemplateDeclaration, SCPPTemplateForm* psForm);
+	void					GiveMemberVariableTemplates(SCPPTemplateForm* psForm, bool bSpecialisation);
+	void					StaticMemberTemplate(SCPPTemplateForm* psForm);
+	void					OutsideMember(SCPPTemplateForm* psForm);
+	void					FunctionSpecialisation(SCPPTemplateForm* psForm);
+	bool					FunctionTemplateDefinition(SCPPTemplateForm* psForm);
+	bool					IsOutsideMemberTemplate(CCPPSyntax* pcDeclaration);
 	void					DeclareFunctionTemplate(CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxSimpleDeclaration* pcSimple);
 	void					DefineFunctionTemplate(CCPPTemplate* pcTemplate, CCPPSyntaxTemplateDeclaration* pcDeclaration, CCPPSyntaxFunctionDefinition* pcDefinition);
 	void					NoDefaultArguments(CCPPSyntaxDeclarator* pcDeclarator, const char* szError);
