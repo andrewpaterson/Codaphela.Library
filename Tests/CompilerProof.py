@@ -2,13 +2,14 @@
 
     python CompilerProof.py listings <directory>
         Compiles each of the three *65 suites' projects for each processor, a unit at a time and nothing run, and keeps
-        every unit's listing in <directory>/<Suite>_<Processor>.  The suites must be built (Release x64).
+        every unit's listing in <directory>/<Suite>_<Processor>.  The suites must be built (Release x64 on Windows; on
+        Linux the CMake builds in Codaphela/build/<Suite>, 32 bit Release).
     python CompilerProof.py compare <directory> <directory>
         Two runs of "listings", file by file: the listings that differ, and those only one has.
     python CompilerProof.py diagnostics <file>
         Runs TestCPPConformance alone with TEST_CPP_CONFORMANCE_DIAGNOSTICS: what the compiler says of every conformance
         case (its errors and its warnings), built for each processor and checked by the semantic pass, is kept in <file>.
-        TestCppCompilerLib must be built (Release x64).
+        TestCppCompilerLib must be built, as the suites are.
     python CompilerProof.py said <file> <file>
         Two runs of "diagnostics", case by case: the cases only one has, and those of which something else is said.
 
@@ -29,6 +30,12 @@ SUITES = ['TestBaseLib65', 'TestStandardLib65', 'TestSupportLib65']
 PROCESSORS = [('65C64', []), ('W65C816', ['816'])]
 
 
+def executable(project):
+    if os.name == 'nt':
+        return os.path.join(TESTS, project, 'x64', 'Release', project + '.exe')
+    return os.path.join(TESTS, '..', '..', 'build', project, project)
+
+
 def listings(directory):
     directory = os.path.abspath(directory)
     for suite in SUITES:
@@ -38,7 +45,7 @@ def listings(directory):
             os.makedirs(out)
             env = dict(os.environ, TEST_PROJECT65_LISTINGS=out, TEST_PROJECT65_ONLY='NoSuchTest', TEST_PROJECT65_SERIAL='1',
                        TESTLIB_LOG=os.path.join(directory, suite + '_' + processor + '_Log.txt'))
-            exe = os.path.join(TESTS, suite, 'x64', 'Release', suite + '.exe')
+            exe = executable(suite)
             start = time.time()
             with open(os.path.join(directory, suite + '_' + processor + '_out.txt'), 'w') as said:
                 code = subprocess.run([exe] + arguments, cwd=os.path.join(TESTS, suite, suite), env=env, stdout=said, stderr=subprocess.STDOUT).returncode
@@ -69,7 +76,7 @@ def compare(first, second):
 def diagnostics(path):
     path = os.path.abspath(path)
     work = os.path.join(TESTS, 'TestCppCompilerLib', 'TestCppCompilerLib')
-    exe = os.path.join(TESTS, 'TestCppCompilerLib', 'x64', 'Release', 'TestCppCompilerLib.exe')
+    exe = executable('TestCppCompilerLib')
     env = dict(os.environ, TEST_CPP_CONFORMANCE_DIAGNOSTICS=path, TESTLIB_LOG=path + '.Log.txt')
     with open(path + '.out.txt', 'w') as said:
         code = subprocess.run([exe, '-only', 'TestCPPConformance'], cwd=work, env=env, stdout=said, stderr=subprocess.STDOUT).returncode
