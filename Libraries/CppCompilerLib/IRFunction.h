@@ -167,6 +167,8 @@ public:
 	SIRType			GetTemporaryType(SIRReference sTemporary);
 	void			SetTemporaryType(SIRReference sTemporary, SIRType sType);
 	char*			GetTemporaryName(SIRReference sTemporary);
+	void			NameTemporary(SIRReference sTemporary, const char* szName);
+	void			ForgetTemporaryName(SIRReference sTemporary);
 
 	SIRReference	AddConstant(SIRType sType, uint64 ulliBits);
 	SIRReference	AddInteger(SIRType sType, int64 lliValue);

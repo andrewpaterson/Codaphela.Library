@@ -537,17 +537,17 @@ CIRWrittenFunction* CIRW65C816Backend::TakeWritten(void)
 	pcWritten = NewMalloc<CIRW65C816Written>();
 	pcWritten->Init();
 	pcWritten->msFrame = msFrame;
-	AddKeptSlots(pcWritten);
+	AddVariableSlots(pcWritten);
 	return pcWritten;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A kept slot is at D + its slot.
+// A variable's slot is at D + its slot.
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIRW65C816Backend::KeptSlotPlace(SIRReference sSlot)
+int32 CIRW65C816Backend::VariableSlotPlace(SIRReference sSlot)
 {
 	return masTemporaries.Get(sSlot.Index())->iSlot;
 }
@@ -762,8 +762,9 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The kept slots' bytes (CIRFunction::Slot's bKept, variables a debugger
-// reads) told to the passes over the code, which then leave their stores.
+// The variables' slots' bytes (VariableSlotName: a debugger reads them,
+// Debug or Release) told to the passes over the code, which then leave
+// their stores.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::KeepSlots(CIRW65C816Code* pcCode)
@@ -779,7 +780,7 @@ void CIRW65C816Backend::KeepSlots(CIRW65C816Code* pcCode)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile))
+			if (VariableSlotName(psInstruction))
 			{
 				pcCode->SetKept(masTemporaries.Get(psInstruction->sResult.Index())->iSlot, (int32)mpcFunction->GetConstant(psInstruction->asArguments[0])->ulliBits);
 			}

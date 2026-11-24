@@ -734,7 +734,7 @@ void CIR65Backend::AppendFramePrologue(CChars* pszDest, SIR65Frame* psFrame)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The function's frame for a debugger, its kept slots' places, and a
+// The function's frame for a debugger, its variables' slots' places, and a
 // register function's body as an entry of its own (its stub may call it
 // after pushing what it was given).
 //
@@ -746,7 +746,7 @@ CIRWrittenFunction* CIR65Backend::TakeWritten(void)
 	pcWritten = NewMalloc<CIR65Written>();
 	pcWritten->Init();
 	pcWritten->msFrame = msFrame;
-	AddKeptSlots(pcWritten);
+	AddVariableSlots(pcWritten);
 	if (!mszBodyLabel.Empty())
 	{
 		pcWritten->AddEntry(mszBodyLabel.Text());
@@ -757,10 +757,10 @@ CIRWrittenFunction* CIR65Backend::TakeWritten(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A kept slot is at [1 + its offset + V].
+// A variable's slot is at [1 + its offset + V].
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CIR65Backend::KeptSlotPlace(SIRReference sSlot)
+int32 CIR65Backend::VariableSlotPlace(SIRReference sSlot)
 {
 	return 1 + masPlaces.Get(sSlot.Index())->iOffset;
 }

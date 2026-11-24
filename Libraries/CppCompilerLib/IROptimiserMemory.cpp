@@ -614,6 +614,8 @@ bool CIRMemoryPasses::SplitSlots(void)
 				continue;
 			}
 		}
+		//The old slot is no longer its variable's (CIRFunction::ForgetTemporaryName); the new ones have no names.
+		mpcFunction->ForgetTemporaryName(psAccess->sSlot);
 		sNew = mpcFunction->AddTemporary(IRType(IRTK_Pointer));
 		pcEntry->masInstructions.InsertAt(0);
 		psInstruction = pcEntry->masInstructions.Get(0);

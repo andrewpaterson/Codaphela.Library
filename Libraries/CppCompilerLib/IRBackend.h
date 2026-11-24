@@ -61,8 +61,8 @@ class CAsm65Profile;
 
 
 //What a back end keeps about a function it wrote (TakeWritten), for FinishFunction: its own to make sense of (the
-//W65C816's is the function's frame), and where each named kept slot (a variable a debugger reads, CIRFunction::Slot's
-//bKept) is in the frame, for the front end to tell a debugger (FindSlot).
+//W65C816's is the function's frame), and where each variable's slot (a named slot, CIRBackend::VariableSlotName) is in
+//the frame, for the front end to tell a debugger (FindSlot).
 class CIRWrittenFunction
 {
 protected:
@@ -142,8 +142,9 @@ public:
 	static void		AppendRegisterSuffix(CChars* psz, CArrayIRRegisterArguments* pasArguments, const char* szLetters);
 
 protected:
-	void			AddKeptSlots(CIRWrittenFunction* pcWritten);
-	virtual int32	KeptSlotPlace(SIRReference sSlot) = 0;
+	char*			VariableSlotName(SIRInstruction* psInstruction);
+	void			AddVariableSlots(CIRWrittenFunction* pcWritten);
+	virtual int32	VariableSlotPlace(SIRReference sSlot) = 0;
 	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
 
 	void			Binding(const char* szName, uint32 uiAttributes, CChars* pszDest);

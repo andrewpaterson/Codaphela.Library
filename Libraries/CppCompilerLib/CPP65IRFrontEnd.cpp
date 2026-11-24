@@ -456,7 +456,7 @@ void CCPP65IRFrontEnd::BeginWriting(CCPPFunction* pcFunction, const char* szLabe
 	mcImplicitValues.Init();
 	mcAnonymousAddresses.Init();
 	masDebugVariables.Init();
-	miKeptSlots = 0;
+	miVariableSlots = 0;
 	mpcBaseObject = NULL;
 	msVTT = IRNone();
 	msVTTArgument = IRNone();
@@ -581,6 +581,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		{
 			uiFingerprint = Fingerprint(mpcFunction);
 		}
+		NameVariableSlots();
 		if (mpcUnit->GetOptions()->mbOptimise)
 		{
 			InitOptimiser(&cOptimiser);
@@ -616,7 +617,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		mcModule.Begin(CPPCP_BackEnd);
 		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &pcWritten);
 		mcModule.End(CPPCP_BackEnd);
-		if (bResult && Debuggable() && mpcUnit->HasLineTable())
+		if (bResult && DescribesVariables())
 		{
 			DescribeVariables(&szCode, pcWritten);
 		}
@@ -1375,7 +1376,7 @@ bool CCPP65IRFrontEnd::Parameters(void)
 	ClosureThis();
 	if (Debuggable() && !msThis.IsNone())
 	{
-		AddDebugVariable(NULL, KeptSlot(4, 4), 0, false);
+		AddDebugVariable(NULL, VariableSlot(4, 4), 0, false);
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), msThis, masDebugVariables.Get(0)->sSlot);
 	}
 	return true;
@@ -1404,7 +1405,7 @@ bool CCPP65IRFrontEnd::DebugParameter(CCPPVariable* pcVariable, SIRReference sAd
 	}
 	if (bByAddress)
 	{
-		sSlot = KeptSlot(4, 4);
+		sSlot = VariableSlot(4, 4);
 		mpcFunction->Store(mpcBlock, IRType(IRTK_Pointer), sAddress, sSlot);
 		AddDebugVariable(pcVariable, sSlot, 0, true);
 		return true;
@@ -1414,7 +1415,7 @@ bool CCPP65IRFrontEnd::DebugParameter(CCPPVariable* pcVariable, SIRReference sAd
 		return false;
 	}
 	sType = IRTypeOf(pcVariable->mpsType);
-	sSlot = KeptSlot((uint32)pcVariable->mpsType->iBytes, (pcVariable->mpsType->iBytes >= 4) ? 4 : (uint32)pcVariable->mpsType->iBytes);
+	sSlot = VariableSlot((uint32)pcVariable->mpsType->iBytes, (pcVariable->mpsType->iBytes >= 4) ? 4 : (uint32)pcVariable->mpsType->iBytes);
 	mpcFunction->Store(mpcBlock, sType, mpcFunction->Load(mpcBlock, sType, sAddress), sSlot);
 	mcAddresses.Put((int64)(size)pcVariable, &sSlot);
 	AddDebugVariable(pcVariable, sSlot, 0, false);
@@ -1778,7 +1779,7 @@ bool CCPP65IRFrontEnd::Locals(void)
 			psAnonymousAddress = mcAnonymousAddresses.Get((int64)(size)pcVariable->mpcAnonymous);
 			if (!psAnonymousAddress)
 			{
-				sAddress = KeptSlot((uint32)pcVariable->mpcAnonymous->mpsType->iBytes, 4);
+				sAddress = VariableSlot((uint32)pcVariable->mpcAnonymous->mpsType->iBytes, 4);
 				mcAnonymousAddresses.Put((int64)(size)pcVariable->mpcAnonymous, &sAddress);
 				psAnonymousAddress = mcAnonymousAddresses.Get((int64)(size)pcVariable->mpcAnonymous);
 			}
@@ -1796,7 +1797,7 @@ bool CCPP65IRFrontEnd::Locals(void)
 			//of the alignment.  [dcl.align] 1
 			//Where in it is only known as the code runs: no place a debugger can read.
 			AddDebugVariable(pcVariable, IRNone(), 0, false);
-			sAddress = KeptSlot((uint32)(pcVariable->mpsType->iBytes + iAlignas - iFrameAlign), (uint32)iAlign);
+			sAddress = VariableSlot((uint32)(pcVariable->mpsType->iBytes + iAlignas - iFrameAlign), (uint32)iAlign);
 			sOffsetType = IRIntegerType(mcModule.GetPointerSize(0));
 			sPadding = mpcFunction->Add(mpcBlock, IRO_Neg, sOffsetType, mpcFunction->Add(mpcBlock, IRO_PtrToI, sOffsetType, sAddress));
 			sPadding = mpcFunction->Add(mpcBlock, IRO_And, sOffsetType, sPadding, mpcFunction->AddInteger(sOffsetType, iAlignas - 1));
@@ -1804,7 +1805,7 @@ bool CCPP65IRFrontEnd::Locals(void)
 		}
 		else
 		{
-			sAddress = KeptSlot((uint32)pcVariable->mpsType->iBytes, (uint32)iAlign);
+			sAddress = VariableSlot((uint32)pcVariable->mpsType->iBytes, (uint32)iAlign);
 			AddDebugVariable(pcVariable, sAddress, 0, false);
 		}
 		mcAddresses.Put((int64)(size)pcVariable, &sAddress);
@@ -1826,20 +1827,73 @@ bool CCPP65IRFrontEnd::Debuggable(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A local's slot, kept (CIRFunction::Slot) in code for a debugger.
+// Whether a debugger is told of the function's variables (.dvariable):
+// when the unit has a line table, Debug or Release (Debugger65C64Plan.txt
+// A3).
 //
 //////////////////////////////////////////////////////////////////////////
-SIRReference CCPP65IRFrontEnd::KeptSlot(uint32 uiSize, uint32 uiAlign)
+bool CCPP65IRFrontEnd::DescribesVariables(void)
 {
-	char	szName[32];
+	return mpcUnit->HasLineTable();
+}
 
-	if (!Debuggable())
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A local's slot.  In code for a debugger it is kept (CIRFunction::Slot):
+// never promoted or split.  In Release the optimiser may promote or split
+// it, and the debugger says the variable isn't kept.
+//
+//////////////////////////////////////////////////////////////////////////
+SIRReference CCPP65IRFrontEnd::VariableSlot(uint32 uiSize, uint32 uiAlign)
+{
+	return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign, NULL, Debuggable());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The slot of each variable a debugger is told of named dbg<n> (its
+// iSlot), which the back end says where it put (CIRBackend::
+// VariableSlotName) while it is still the variable's alone.  Named after
+// the function's fingerprint is taken, so the IR a profile matches is the
+// same with a line table and without.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::NameVariableSlots(void)
+{
+	SCPP65IRDebugVariable*	psVariable;
+	SCPP65IRDebugVariable*	psEarlier;
+	char					szName[32];
+	size					ui;
+	size					uj;
+
+	for (ui = 0; ui < masDebugVariables.NumElements(); ui++)
 	{
-		return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign);
+		psVariable = masDebugVariables.Get(ui);
+		if (psVariable->sSlot.IsNone())
+		{
+			continue;
+		}
+
+		//The members of an anonymous union share its slot.
+		for (uj = 0; uj < ui; uj++)
+		{
+			psEarlier = masDebugVariables.Get(uj);
+			if (psEarlier->sSlot.Equals(psVariable->sSlot))
+			{
+				psVariable->iSlot = psEarlier->iSlot;
+				break;
+			}
+		}
+		if (uj == ui)
+		{
+			psVariable->iSlot = miVariableSlots;
+			snprintf(szName, sizeof(szName), "dbg%d", (int)miVariableSlots);
+			miVariableSlots++;
+			mpcFunction->NameTemporary(psVariable->sSlot, szName);
+		}
 	}
-	snprintf(szName, sizeof(szName), "dbg%d", (int)miKeptSlots);
-	miKeptSlots++;
-	return mpcFunction->Slot(mpcBlock, IRType(IRTK_Pointer), uiSize, uiAlign, szName, true);
 }
 
 
@@ -1852,13 +1906,13 @@ void CCPP65IRFrontEnd::AddDebugVariable(CCPPVariable* pcVariable, SIRReference s
 {
 	SCPP65IRDebugVariable	sVariable;
 
-	if (!Debuggable())
+	if (!DescribesVariables())
 	{
 		return;
 	}
 	sVariable.pcVariable = pcVariable;
 	sVariable.sSlot = sSlot;
-	sVariable.iSlot = sSlot.IsNone() ? -1 : atoi(mpcFunction->GetTemporaryName(sSlot) + 3);
+	sVariable.iSlot = -1;
 	sVariable.iOffset = iOffset;
 	sVariable.bIndirect = bIndirect;
 

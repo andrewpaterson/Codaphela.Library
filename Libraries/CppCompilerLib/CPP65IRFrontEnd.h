@@ -132,11 +132,11 @@ struct SCPP65IRPendingGoto
 };
 
 
-//A variable a debugger is told of (code for one, CCPPCompileOptions::mbDebuggable): the kept slot it is in, at iOffset
+//A variable a debugger is told of (DescribesVariables, Debug or Release): the slot it is in (VariableSlot), at iOffset
 //(a member of an anonymous union), or that holds its address (bIndirect: an object passed by address, or in the bytes
-//its caller pushed).  The slot is named for its number (KeptSlot: dbg<iSlot>), which the back end says where it put
-//(CIRWrittenFunction::FindSlot).  pcVariable NULL is this; sSlot IRNone (iSlot -1) a variable that has no place a
-//debugger can read.
+//its caller pushed).  The slot is named for its number (NameVariableSlots: dbg<iSlot>), which the back end says where
+//it put (CIRWrittenFunction::FindSlot).  pcVariable NULL is this; sSlot IRNone (iSlot -1) a variable that has no place
+//a debugger can read.
 struct SCPP65IRDebugVariable
 {
 	CCPPVariable*	pcVariable;
@@ -227,8 +227,8 @@ protected:
 	CMapCPP65IRAddresses	mcAddresses;		//Each local's and parameter's address, by its CCPPVariable.
 	CMapCPP65IRValues		mcImplicitValues;	//The values of the implicit arguments of the calls being written (CCPPUnit::ImplicitValue).
 	CMapCPP65IRAddresses	mcAnonymousAddresses;	//Each anonymous union or struct local's slot, by its class.
-	CArrayCPP65IRDebugVariables	masDebugVariables;	//The function's variables a debugger is told of (Debuggable), in their order.
-	int32					miKeptSlots;		//The function's kept slots so far (KeptSlot names them).
+	CArrayCPP65IRDebugVariables	masDebugVariables;	//The function's variables a debugger is told of (DescribesVariables), in their order.
+	int32					miVariableSlots;	//The function's variables' slots so far (NameVariableSlots names them).
 	CArrayCPP65IRJumps		masJumps;
 	CArrayCPP65IRCases		masCases;
 	CArrayCPP65IRLabels		masLabels;
@@ -343,7 +343,9 @@ protected:
 	int				PieceBytes(int iLeft);
 	bool			Locals(void);
 	bool			Debuggable(void);
-	SIRReference	KeptSlot(uint32 uiSize, uint32 uiAlign);
+	bool			DescribesVariables(void);
+	SIRReference	VariableSlot(uint32 uiSize, uint32 uiAlign);
+	void			NameVariableSlots(void);
 	void			AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect);
 	void			DescribeVariables(CChars* pszCode, CIRWrittenFunction* pcWritten);
 	void			VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast);

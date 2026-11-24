@@ -1074,6 +1074,115 @@ void TestCPP816DebugValues(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A Release program (Debugger65C64Plan.txt A3) whose main keeps an array,
+// an object and an int whose address is taken in memory, and an int the
+// optimiser folds away.
+//
+//////////////////////////////////////////////////////////////////////////
+static const char* gszTestCPP65DebugRelease =
+	"struct SPoint { int x; int y; };\n"									//1
+	"int Sum(int* pi, int iCount)\n"										//2
+	"{\n"																	//3
+	"	int i;\n"															//4
+	"	int iTotal = 0;\n"													//5
+	"	for (i = 0; i < iCount; i++) { iTotal += pi[i]; }\n"				//6
+	"	return iTotal;\n"													//7
+	"}\n"																	//8
+	"int Area(SPoint* ps) { return ps->x * ps->y; }\n"						//9
+	"void Bump(int* pi) { *pi = *pi + 1; }\n"								//10
+	"int main(void)\n"														//11
+	"{\n"																	//12
+	"	int		aiCounts[3] = { 7, 8, 9 };\n"								//13
+	"	SPoint	s;\n"														//14
+	"	int		iTaken = 4;\n"												//15
+	"	int		iFolded = 3;\n"												//16
+	"	s.x = 2;\n"															//17
+	"	s.y = 5;\n"															//18
+	"	Bump(&iTaken);\n"													//19
+	"	return Sum(aiCounts, 3) + Area(&s) + iTaken + iFolded;\n"			//20
+	"}\n";																	//21
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the variable szName of the function named szFunction is kept
+// (EAsm65DebugWhere), -1 if it isn't described.  A register function's
+// variables are its body's (an entry of its own after its stub).
+//
+//////////////////////////////////////////////////////////////////////////
+static int TestCPP65DebugWhere(STestCPP816Debug* psDebug, const char* szFunction, const char* szName)
+{
+	SAsm65DebugFunction*	psFunction;
+	SAsm65DebugVariable*	psVariable;
+	size					uiFunction;
+	size					ui;
+
+	for (uiFunction = 0; uiFunction < psDebug->pcRecords->NumFunctions(); uiFunction++)
+	{
+		psFunction = psDebug->pcRecords->GetFunction(uiFunction);
+		for (ui = 0; psFunction->szName.Equals(szFunction) && (ui < psFunction->uiNumVariables); ui++)
+		{
+			psVariable = psDebug->pcRecords->GetVariable(psFunction, ui);
+			if (psVariable->szName.Equals(szName))
+			{
+				return psVariable->uiWhere;
+			}
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A Release build describes the variables whose slot is theirs alone for
+// the whole function: what stays in memory (an array, an object, an int
+// whose address is taken) is shown right in a caller's frame; a variable
+// promoted, folded or split away isn't kept.  The parameters and locals in
+// registers aren't described as kept either.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP816DebugRelease(void)
+{
+	STestCPP816Debug	sDebug;
+	SCPP65DebugValue	sValue;
+	SCPP65DebugValue	sChild;
+	CChars				szWrong;
+
+	TestCPP816DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_Release);
+	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
+	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
+	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
+	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
+	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "Sum", "iTotal"));
+	TestCPP816DebugLoad(&sDebug);
+
+	//Stopped in Area, main's: the array, the object, the int Bump added one to.
+	AssertTrue(TestCPP816DebugRunTo(&sDebug, 9));
+	TestCPP816DebugWalk(&sDebug);
+	AssertString("Area", TestCPP816DebugFrameName(&sDebug, 0));
+	AssertString("main", TestCPP816DebugFrameName(&sDebug, 1));
+	AssertTrue(TestCPP816DebugValue(&sDebug, 1, "aiCounts", &sValue));
+	AssertInt(3, (int)sDebug.cValues.NumChildren(&sValue));
+	AssertCPP816DebugChild(&sDebug, &sValue, 0, "[0]", "7 = int", &sChild);
+	AssertCPP816DebugChild(&sDebug, &sValue, 2, "[2]", "9 = int", &sChild);
+	AssertTrue(TestCPP816DebugValue(&sDebug, 1, "s", &sValue));
+	AssertCPP816DebugChild(&sDebug, &sValue, 0, "x", "2 = int", &sChild);
+	AssertCPP816DebugChild(&sDebug, &sValue, 1, "y", "5 = int", &sChild);
+	AssertInt(5, TestCPP816DebugLocal(&sDebug, 1, "iTaken"));
+	AssertCPP816DebugWatch(&sDebug, 1, "aiCounts[1] + iTaken", "13 = int");
+	AssertCPP816DebugWatch(&sDebug, 1, "iFolded", "iFolded isn't kept anywhere here (optimised away)");
+
+	szWrong.Init();
+	AssertInt(24 + 10 + 5 + 3, TestCPP816DebugRunWalking(&sDebug, &szWrong));
+	AssertString("", szWrong.Text());
+	szWrong.Kill();
+	TestCPP816DebugKill(&sDebug);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The uiFrame'th frame of the last walk's line (CAsm65StackFrame::
 // GetLineAddress): 0 if the line table has none.
 //
@@ -1339,10 +1448,19 @@ void TestCPP65C64DebugFrames(void)
 	AssertCPP65DebugDescribed(&sDebug, "main", 0, "V + 24, base V, saved V -7");
 	TestCPP816DebugKill(&sDebug);
 
-	//Release: Twice has no frame; One keeps x in V across its calls.
+	//Release: Twice has no frame; One keeps x in V across its calls; main's array is split into values.
 	TestCPP816DebugBuild(&sDebug, szSource, TCB_Release, CPPT_65C64);
 	AssertCPP65DebugDescribed(&sDebug, "Twice", 1, "follow");
 	AssertCPP65DebugDescribed(&sDebug, "One", 1, "follow, saved V -7");
+	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "ai"));
+	TestCPP816DebugKill(&sDebug);
+
+	//Release: what stays in memory is kept in the frame, from its base.
+	TestCPP816DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_Release, CPPT_65C64);
+	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
+	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "s"));
+	AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
+	AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
 	TestCPP816DebugKill(&sDebug);
 }
 
@@ -1361,6 +1479,7 @@ void TestCPP816Debug(void)
 	TestCPP816DebugStack();
 	TestCPP816DebugValues();
 	TestCPP816DebugWindows();
+	TestCPP816DebugRelease();
 	TestCPP65C64DebugFrames();
 
 	TestStatistics();

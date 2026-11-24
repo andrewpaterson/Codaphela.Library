@@ -2566,6 +2566,57 @@ void TestIROptimiserSinkLoads(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A variable's slot is named for a debugger (Release too, Debugger65C64Plan
+// A3).  Split into a slot per field, it forgets its name, so the debugger
+// says the variable isn't kept rather than read a slot nothing stores to;
+// one whose address goes to a call stays its variable's, named.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestIROptimiserSplitSlotNames(void)
+{
+	CIRModule		cModule;
+	CCPPErrors		cErrors;
+	CIRParser		cParser;
+	CIROptimiser	cOptimiser;
+	CIRFunction*	pcFunction;
+
+	cModule.Init();
+	cErrors.Init();
+	cParser.Init(&cModule, &cErrors);
+	AssertTrue(cParser.Parse(
+		"space default 4\n"
+		"\n"
+		"function i32 @_F__Fv()\n"
+		"{\n"
+		"entry:\n"
+		"\t%dbg0 = slot ptr 8, 4\n"
+		"\tstore i32 2, %dbg0\n"
+		"\t%y = ptradd ptr %dbg0, 4\n"
+		"\tstore i32 3, %y\n"
+		"\t%dbg1 = slot ptr 4, 4\n"
+		"\tstore i32 5, %dbg1\n"
+		"\tcall void @_Use__FPi(ptr %dbg1)\n"
+		"\t%x = load i32 %dbg0\n"
+		"\t%y2 = load i32 %y\n"
+		"\t%r = add i32 %x, %y2\n"
+		"\tret i32 %r\n"
+		"}\n"));
+	cParser.Kill();
+	pcFunction = cModule.GetFunction(0);
+	AssertFalse(pcFunction->FindTemporary("dbg0").IsNone());
+	cOptimiser.Init(&cModule);
+	cOptimiser.Optimise(pcFunction);
+	cOptimiser.Kill();
+	AssertTrue(pcFunction->FindTemporary("dbg0").IsNone());
+	AssertFalse(pcFunction->FindTemporary("dbg1").IsNone());
+	AssertString("", cErrors.Text());
+	cErrors.Kill();
+	cModule.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A loop stepping p and x by 1 until x + 1 is x0 + d, entered only when
 // 0 < d, goes round d times: after it p is p0 + d, and the loop, doing
 // nothing else, goes.  Unguarded (d may be 0: 65536 times round) or with
@@ -6688,6 +6739,7 @@ void TestIR(void)
 	TestIROptimiserZeroExtendedCounters();
 	TestIROptimiserSharedDivisions();
 	TestIROptimiserSinkLoads();
+	TestIROptimiserSplitSlotNames();
 	TestIROptimiserNoWritesCalls();
 	TestIROptimiserExitValues();
 	TestIROptimiserSinkAndHoist();

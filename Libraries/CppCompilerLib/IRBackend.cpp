@@ -516,11 +516,31 @@ const char* CIRWrittenFunction::GetEntry(size uiIndex) { return maszEntries.GetT
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Each named kept slot's place (from the frame register, KeptSlotPlace) in
-// what is kept about the function, for a debugger.
+// The name of the variable psInstruction is the slot of, NULL if it isn't
+// one.  Only a variable's slot is named (the front end's VariableSlot), and
+// it keeps its name only while it is the variable's alone, Debug (kept) or
+// Release: a pass that changes what it holds forgets the name
+// (CIRFunction::ForgetTemporaryName), and a promoted slot is gone.  A
+// debugger reads it, so the back end leaves its stores.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackend::AddKeptSlots(CIRWrittenFunction* pcWritten)
+char* CIRBackend::VariableSlotName(SIRInstruction* psInstruction)
+{
+	if (psInstruction->uiOpcode != IRO_Slot)
+	{
+		return NULL;
+	}
+	return mpcFunction->GetTemporaryName(psInstruction->sResult);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Each variable's slot's place (from the frame register, VariableSlotPlace)
+// in what is kept about the function, for a debugger.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRBackend::AddVariableSlots(CIRWrittenFunction* pcWritten)
 {
 	size			uiBlock;
 	size			uiInstruction;
@@ -534,13 +554,10 @@ void CIRBackend::AddKeptSlots(CIRWrittenFunction* pcWritten)
 		for (uiInstruction = 0; uiInstruction < pcBlock->masInstructions.NumElements(); uiInstruction++)
 		{
 			psInstruction = pcBlock->masInstructions.Get(uiInstruction);
-			if ((psInstruction->uiOpcode == IRO_Slot) && (psInstruction->uiFlags & IRF_Volatile))
+			szName = VariableSlotName(psInstruction);
+			if (szName)
 			{
-				szName = mpcFunction->GetTemporaryName(psInstruction->sResult);
-				if (szName)
-				{
-					pcWritten->AddSlot(szName, KeptSlotPlace(psInstruction->sResult));
-				}
+				pcWritten->AddSlot(szName, VariableSlotPlace(psInstruction->sResult));
 			}
 		}
 	}
@@ -617,7 +634,7 @@ void CIRWrittenFunction::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The named kept slot szName is at iOffset from the function's frame
+// The variable's slot szName is at iOffset from the function's frame
 // register (D on the W65C816, V on the 65C64).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -630,7 +647,7 @@ void CIRWrittenFunction::AddSlot(const char* szName, int32 iOffset)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Where the named kept slot szName is; false if the function kept none of
+// Where the variable's slot szName is; false if the function kept none of
 // the name (it was optimised away).
 //
 //////////////////////////////////////////////////////////////////////////

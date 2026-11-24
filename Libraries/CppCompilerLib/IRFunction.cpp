@@ -231,28 +231,17 @@ void CIRFunction::UniqueName(const char* szName, CMapStringBlock* pmNames, CChar
 SIRReference CIRFunction::AddTemporary(SIRType sType, const char* szName)
 {
 	SIRTemporary*	psTemporary;
-	CChars			szUnique;
-	size			uiIndex;
+	SIRReference	sTemporary;
 
-	uiIndex = masTemporaries.NumElements();
+	sTemporary = IRReference(IRRK_Temporary, (uint32)masTemporaries.NumElements());
 	psTemporary = masTemporaries.Add();
 	psTemporary->sType = sType;
 	psTemporary->uiName = 0;
-
 	if (IsName(szName))
 	{
-		if (mpmTemporaryNames == NULL)
-		{
-			mpmTemporaryNames = NewMalloc<CMapStringInt>();
-			mpmTemporaryNames->Init();
-		}
-		UniqueName(szName, mpmTemporaryNames, &szUnique);
-		maszTemporaryNames.Add(&szUnique);
-		psTemporary->uiName = (uint32)maszTemporaryNames.NumElements();
-		mpmTemporaryNames->Put(szUnique.Text(), (int32)uiIndex);
-		szUnique.Kill();
+		NameTemporary(sTemporary, szName);
 	}
-	return IRReference(IRRK_Temporary, (uint32)uiIndex);
+	return sTemporary;
 }
 
 
@@ -335,6 +324,51 @@ SIRReference CIRFunction::FindTemporary(const char* szName)
 		return IRNone();
 	}
 	return IRReference(IRRK_Temporary, (uint32)iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The temporary, which has no name, is called szName from here on (made
+// unique, as AddTemporary's are).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::NameTemporary(SIRReference sTemporary, const char* szName)
+{
+	SIRTemporary*	psTemporary;
+	CChars			szUnique;
+
+	psTemporary = masTemporaries.Get(sTemporary.Index());
+	if (mpmTemporaryNames == NULL)
+	{
+		mpmTemporaryNames = NewMalloc<CMapStringInt>();
+		mpmTemporaryNames->Init();
+	}
+	UniqueName(szName, mpmTemporaryNames, &szUnique);
+	maszTemporaryNames.Add(&szUnique);
+	psTemporary->uiName = (uint32)maszTemporaryNames.NumElements();
+	mpmTemporaryNames->Put(szUnique.Text(), (int32)sTemporary.Index());
+	szUnique.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The temporary has no name from here on (FindTemporary doesn't find it):
+// a pass that changes what a variable's slot holds forgets the slot's
+// name, so a debugger is told it isn't kept rather than shown it wrong.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRFunction::ForgetTemporaryName(SIRReference sTemporary)
+{
+	SIRTemporary*	psTemporary;
+
+	psTemporary = masTemporaries.Get(sTemporary.Index());
+	if (psTemporary->uiName != 0)
+	{
+		mpmTemporaryNames->Remove(maszTemporaryNames.GetText(psTemporary->uiName - 1));
+		psTemporary->uiName = 0;
+	}
 }
 
 
