@@ -88,7 +88,7 @@ public:
 
 	bool	Variable(CAsm65StackWalker* pcWalker, SAsm65StackFrame* psFrame, SAsm65DebugVariable* psVariable, SCPP65DebugValue* psValue);
 	void	Global(CAsm65DebugRecords* pcRecords, SAsm65DebugGlobal* psGlobal, EAsm65StackSpace eSpace, SCPP65DebugValue* psValue);
-	bool	Result(CAsm65DebugRecords* pcRecords, SAsm65DebugFunction* psFunction, uint16 uiA, uint16 uiX, SCPP65DebugValue* psValue);
+	bool	Result(CAsm65DebugRecords* pcRecords, SAsm65DebugFunction* psFunction, SAsm65StackRegisters* psRegisters, SCPP65DebugValue* psValue);
 	bool	AppendCall(CAsm65StackWalker* pcWalker, SAsm65StackFrame* psFrame, CChars* pszDest);
 
 	bool	Format(SCPP65DebugValue* psValue, CChars* pszDest);

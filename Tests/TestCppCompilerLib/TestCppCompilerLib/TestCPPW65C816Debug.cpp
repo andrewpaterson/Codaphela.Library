@@ -2,7 +2,7 @@
 #include "BaseLib/FileUtil.h"
 #include "CppCompilerLib/CPP65Builder.h"
 #include "CppCompilerLib/CPP65DebugWatch.h"
-#include "Assembler65Lib/Asm65StackWalker.h"
+#include "Assembler65Lib/AsmW65C816StackWalker.h"
 #include "Assembler65Lib/AsmW65C816Disassembler.h"
 #include "Assembler65Lib/AsmW65C816FrameCheck.h"
 #include "TestLib/Assert.h"
@@ -31,7 +31,7 @@ struct STestCPP816Debug
 	CAsm65Memory			cMemory;
 	CFastW65C816			cFast;
 	CAsmW65C816FrameCheck	cCheck;
-	CAsm65StackWalker		cWalker;
+	CAsmW65C816StackWalker	cWalker;
 	CArrayAsm65StackFrames	asFrames;
 	CCPP65DebugValues		cValues;
 	CCPP65DebugWatch		cWatch;
@@ -176,13 +176,15 @@ static SAsm65DebugFunction* TestCPP816DebugFunction(STestCPP816Debug* psDebug, c
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The function at szLabel is named szName and its caller is found as
-// eLink says (an offset past the link's own bytes, when it has one).
+// The function at szLabel is named szName and its frame address is found
+// as eFrame says: from D (D plus what the prologue made, past phd's and
+// jsl's 5 bytes, or the S kept there plus those 5), the caller's D saved
+// below jsl's push; or by following its code.  Its variables are from D.
 //
 //////////////////////////////////////////////////////////////////////////
-static void AssertCPP816DebugFrame(STestCPP816Debug* psDebug, const char* szLabel, const char* szName, EAsm65DebugLink eLink)
+static void AssertCPP816DebugFrame(STestCPP816Debug* psDebug, const char* szLabel, const char* szName, EAsm65DebugFrame eFrame)
 {
-	static const char*		aszLinks[] = { "none", "frame", "saved" };
+	static const char*		aszFrames[] = { "follow", "register", "memory" };
 	SAsm65DebugFunction*	psFunction;
 	CChars					szExpected;
 	CChars					szActual;
@@ -190,10 +192,23 @@ static void AssertCPP816DebugFrame(STestCPP816Debug* psDebug, const char* szLabe
 	psFunction = TestCPP816DebugFunction(psDebug, szLabel);
 	if (psFunction)
 	{
-		szExpected.Init(szName)->Append(' ')->Append(aszLinks[eLink]);
-		szActual.Init(psFunction->szName)->Append(' ')->Append((psFunction->uiLink <= ADL_SavedS) ? aszLinks[psFunction->uiLink] : "?");
+		szExpected.Init(szName)->Append(' ')->Append(aszFrames[eFrame]);
+		szActual.Init(psFunction->szName)->Append(' ')->Append((psFunction->uiFrame <= ADF_Memory) ? aszFrames[psFunction->uiFrame] : "?");
 		AssertString(szExpected.Text(), szActual.Text());
-		AssertTrue((eLink == ADL_None) ? (psFunction->iLink == 0) : (psFunction->iLink > 0));
+		AssertInt(AW65DR_D, psFunction->uiBase);
+		if (eFrame == ADF_FollowS)
+		{
+			AssertInt(0, psFunction->uiNumSaved);
+		}
+		else
+		{
+			AssertInt(AW65DR_D, psFunction->uiFrameRegister);
+			AssertTrue(psFunction->iFrameOffset > ((eFrame == ADF_Register) ? 5 : 0));
+			AssertInt((eFrame == ADF_Memory) ? 5 : 0, psFunction->iFrameAdjust);
+			AssertInt(1, psFunction->uiNumSaved);
+			AssertInt(AW65DR_D, psDebug->pcRecords->GetSaved(psFunction, 0)->uiWhat);
+			AssertInt(-4, psDebug->pcRecords->GetSaved(psFunction, 0)->iOffset);
+		}
 		szActual.Kill();
 		szExpected.Kill();
 	}
@@ -270,12 +285,12 @@ void TestCPP816DebugFrames(void)
 
 	//A loop over the direct page: an aligned frame, S kept in it.  Recursive, so never aligned: a frame of its own,
 	//its register word in it.  Nothing in the frame: none at all.
-	AssertCPP816DebugFrame(&sDebug, "_Sum__FPii", "Sum", ADL_SavedS);
-	AssertCPP816DebugFrame(&sDebug, "_Factorial__Fi", "Factorial", ADL_Frame);
-	AssertCPP816DebugFrame(&sDebug, "_Leaf", "Leaf", ADL_None);
-	AssertCPP816DebugFrame(&sDebug, "_NS__Twice__Fi", "NS::Twice", ADL_Frame);
-	AssertCPP816DebugFrame(&sDebug, "_CShape__Area", "CShape::Area", ADL_Frame);
-	AssertCPP816DebugFrame(&sDebug, "_main", "main", ADL_Frame);
+	AssertCPP816DebugFrame(&sDebug, "_Sum__FPii", "Sum", ADF_Memory);
+	AssertCPP816DebugFrame(&sDebug, "_Factorial__Fi", "Factorial", ADF_Register);
+	AssertCPP816DebugFrame(&sDebug, "_Leaf", "Leaf", ADF_FollowS);
+	AssertCPP816DebugFrame(&sDebug, "_NS__Twice__Fi", "NS::Twice", ADF_Register);
+	AssertCPP816DebugFrame(&sDebug, "_CShape__Area", "CShape::Area", ADF_Register);
+	AssertCPP816DebugFrame(&sDebug, "_main", "main", ADF_Register);
 
 	//Constructors, destructors and operators by their names.
 	AssertTrue(TestCPP816DebugFind(&sDebug, "CShape::CShape"));
@@ -333,9 +348,9 @@ static void AssertCPP816DebugVariable(STestCPP816Debug* psDebug, SAsm65DebugFunc
 		AssertInt(uiLast, psVariable->uiLastLine);
 		if (eWhere != ADW_None)
 		{
-			//In the frame, above the scratch bytes and below the link.
+			//In the frame, above the scratch bytes and below the caller's D (phd's and jsl's 5 bytes below the frame address).
 			AssertTrue(psVariable->iOffset >= 23);
-			AssertTrue(psVariable->iOffset <= psFunction->iLink);
+			AssertTrue(psVariable->iOffset <= psFunction->iFrameOffset - 5);
 		}
 	}
 }
@@ -1164,6 +1179,7 @@ void TestCPP816DebugWindows(void)
 	static const ETestCPP816Build	aeBuilds[] = { TCB_Debug, TCB_Unoptimised };
 	STestCPP816Debug				sDebug;
 	SAsm65StackFrame				sCaller;
+	SAsm65StackRegisters			sRegisters;
 	SCPP65DebugValue				sValue;
 	CChars							sz;
 	size							uiBuild;
@@ -1207,7 +1223,8 @@ void TestCPP816DebugWindows(void)
 		{
 			TestCPP816DebugStep(&sDebug);
 		}
-		AssertTrue(sDebug.cValues.Result(sDebug.pcRecords, sDebug.asFrames.Get(0)->psFunction, sDebug.cFast.GetC(), sDebug.cFast.GetX(), &sValue));
+		sRegisters.Init(&sDebug.cFast, ASS_Kernel);
+		AssertTrue(sDebug.cValues.Result(sDebug.pcRecords, sDebug.asFrames.Get(0)->psFunction, &sRegisters, &sValue));
 		AssertCPP816DebugShown(&sDebug, "240000 = long", &sValue);
 		TestCPP816DebugKill(&sDebug);
 	}

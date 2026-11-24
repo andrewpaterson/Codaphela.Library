@@ -183,22 +183,43 @@ void CCPP65DebugValues::Global(CAsm65DebugRecords* pcRecords, SAsm65DebugGlobal*
 //////////////////////////////////////////////////////////////////////////
 //
 // What psFunction (of pcRecords' program) returned, just after it
-// returned, from the W65C816's A and X: a result of up to 32 bits that
-// isn't an object is in A (its low 16 bits) and X (its high), as the
-// back end returns one (IRW65C816Backend.h).  False for void, or a result
-// returned through a hidden pointer.
+// returned, from its processor's registers then (psRegisters), as its back
+// end returns a result: the W65C816's of up to 32 bits in A (C, the low
+// half) and X (the high), the 65C64's of up to 64 bits in A.  False for
+// void, an object or an array, a result too big for those (returned
+// through a hidden pointer), or registers not known.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCPP65DebugValues::Result(CAsm65DebugRecords* pcRecords, SAsm65DebugFunction* psFunction, uint16 uiA, uint16 uiX, SCPP65DebugValue* psValue)
+bool CCPP65DebugValues::Result(CAsm65DebugRecords* pcRecords, SAsm65DebugFunction* psFunction, SAsm65StackRegisters* psRegisters, SCPP65DebugValue* psValue)
 {
 	SAsm65DebugType*	psType;
+	uint64				uiValue;
 
 	psType = pcRecords->GetType(psFunction->uiResult);
-	if (!psType || (psType->uiKind == ADT_Class) || (psType->uiKind == ADT_Array) || (psType->uiBytes == 0) || (psType->uiBytes > 4))
+	if (!psType || (psType->uiKind == ADT_Class) || (psType->uiKind == ADT_Array) || (psType->uiBytes == 0))
 	{
 		return false;
 	}
-	psValue->Init(pcRecords, psFunction->uiResult, (uint64)uiA | ((uint64)uiX << 16));
+	switch (pcRecords->GetProcessor())
+	{
+	case ADP_W65C816:
+		if ((psType->uiBytes > 4) || !psRegisters->IsKnown(AW65DR_C) || !psRegisters->IsKnown(AW65DR_X))
+		{
+			return false;
+		}
+		uiValue = (psRegisters->Get(AW65DR_C) & 0xFFFF) | ((psRegisters->Get(AW65DR_X) & 0xFFFF) << 16);
+		break;
+	case ADP_65C64:
+		if ((psType->uiBytes > 8) || !psRegisters->IsKnown(A65DR_A))
+		{
+			return false;
+		}
+		uiValue = psRegisters->Get(A65DR_A);
+		break;
+	default:
+		return false;
+	}
+	psValue->Init(pcRecords, psFunction->uiResult, uiValue);
 	return true;
 }
 

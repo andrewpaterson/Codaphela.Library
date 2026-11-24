@@ -25,6 +25,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65DebugWriter.h"
 
 
+#define IR816_FRAME_FROM_PHD	5		//S after phd is a function's frame address less jsl's 3 bytes and phd's 2.
+
+
 //The W65C816 back end's frames: the text of a function's frame entry and exit, taken out when nothing uses the
 //frame (DropFrame) and pointed at a page where that saves cycles (AlignFrame).
 
@@ -898,12 +901,15 @@ static const char* IR816FindSavedS(const char* szLine, int32 iPlace)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A .dframe where the function's frame is made, read from its finished
-// code: after "tcd" for a frame of its own, S as it was after phd being D
-// plus what the prologue pushed and subtracted ("frame"); after S is kept
-// in an aligned frame (AlignFrame: "saved", where); at the body's start
-// for code with no frame ("none": DropFrame took it away, or it never had
-// one).
+// For a debugger (the frame model, Debugger65C64Plan.txt), read from its
+// finished code: a .dframe where the function's frame is made, its frame
+// address (S before the jsl) found from D: after "tcd" for a frame of its
+// own, D plus what the prologue pushed and subtracted plus phd's and jsl's
+// pushes; after S is kept in an aligned frame (AlignFrame), the S kept
+// there plus those; with the caller's D phd saved (.dsaved).  At the
+// body's start for code with no frame (.dframe none: DropFrame took it
+// away, or it never had one), found by following its code.  Its variables
+// are from D (.dbase).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten)
@@ -931,7 +937,6 @@ void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRW
 	}
 
 	szDirective.Init(CIRW65C816Backend::GetScratch());
-	szDirective.Append("\t\t.dframe ");
 	szAfter = NULL;
 	szLine = IR816Instruction(szCode + uiBody);
 	if (szLine && IR816IsMnemonic(szLine, "phd"))
@@ -958,14 +963,14 @@ void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRW
 			sFrame = ((CIRW65C816Written*)pcWritten)->msFrame;
 			iBelow = (sFrame.iSavedS >= 0) ? sFrame.iSavedS : sFrame.Link();
 			szAfter = IR816FindSavedS(szLine, iBelow);
-			szDirective.Append("saved, ");
+			szDirective.Append("\t\t.dframe [D + ")->Append(iBelow)->Append("], ")->Append(IR816_FRAME_FROM_PHD);
 		}
 		else if (szLine && !bAligned)
 		{
 			szAfter = IR816NextLine(szLine);
-			szDirective.Append("frame, ");
+			szDirective.Append("\t\t.dframe D, ")->Append(iBelow + IR816_FRAME_FROM_PHD);
 		}
-		szDirective.Append(iBelow);
+		szDirective.AppendNewLine()->Append("\t\t.dsaved D, ")->Append(-IR816_FRAME_FROM_PHD + 1);
 	}
 	if (szAfter)
 	{
@@ -976,10 +981,10 @@ void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRW
 		//No frame, or one this doesn't know: its caller is found from S.
 		szDirective.Kill();
 		szDirective.Init(CIRW65C816Backend::GetScratch());
-		szDirective.Append("\t\t.dframe none, 0");
+		szDirective.Append("\t\t.dframe none");
 		uiAt = uiBody;
 	}
-	szDirective.AppendNewLine();
+	szDirective.AppendNewLine()->Append("\t\t.dbase D")->AppendNewLine();
 	pszCode->Insert(uiAt, &szDirective);
 	szDirective.Kill();
 }

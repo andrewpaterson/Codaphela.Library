@@ -529,9 +529,10 @@ void CIRBackend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWritten
 //////////////////////////////////////////////////////////////////////////
 //
 // For a debugger, after FinishFunction: a .dframe where the function's
-// frame is made (the end of its prologue), saying how its caller's D and
-// return address are found (Assembler65Lib's EAsm65DebugLink).  Nothing,
-// unless the back end describes its frames.
+// frame is made (the end of its prologue), saying how its frame address is
+// found (Assembler65Lib's EAsm65DebugFrame), the registers it saved
+// (.dsaved) and what its variables are from (.dbase).  Nothing, unless
+// the back end describes its frames.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten)
