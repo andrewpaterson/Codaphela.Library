@@ -22,7 +22,8 @@ deque, CArrayBit's operations, and a union-find.  Their order from here:
      declarations and PPHeaderCache's headers (each still keys by a hash with its own collision chain, now in a hash
      map); a case insensitive text HASH (for IDECodeModel's mcProjectFiles); CPPIndex's text maps, CPP65ListingIndex
      and SpillStore; the ID keyed maps outside the compiler where a timing shows them (ExternalObjectDeserialiser,
-     Orderer, LinePositionCache, Positions); and the IDE's checks over the code model's maps.
+     Orderer, LinePositionCache, Positions); and the IDE's checks over the code model's maps.  (The user, 2026-11-24:
+     all of it.  Planned at the end, "The hash map's follow-ups".)
 
 Left on purpose, the reasons where each is described: CPointerLocations, MapUnknownUnknown, InputLib's copy maps,
 SFTWriter's map, VRMLReader, ImageCombiner, UndoLog and ObjectsRemovalContext.
@@ -664,3 +665,46 @@ A union-find (the plan's item 4, built from the survey)
      decides which node gives a set its net number (JoinNodes' "iRoot != i"), so the lower root would renumber nets
      and reorder the traces made.  Proved by TestKicadImporterLib, TestSupportLib and TestLogicimLib in three
      configurations and LogiCim built.
+
+
+The hash map's follow-ups (the plan's item 5, planned 2026-11-24)
+=================================================================
+
+The user, 2026-11-24: "Continue with the HashMapPlan" (all of item 5), "Clean up and commit as you go, ensure there are
+tests.  Try and keep code elegant and DRY".
+
+Where it is: steps 1 to 4 built and committed 2026-11-24 (CommonLibraries 6b3aac7fd, 460de0865, 3cd3726f4, a4dcf470e,
+123b4d189, e61f6a11c, 54d05c41d; HCP65 157d798; HCP65-IDE ab794ba).  Proved so far: TestBaseLib and TestStandardLib in
+three configurations, TestBaseLib65 and TestStandardLib65 on both processors, TestAssembler65Lib (Release and Debug
+x64), the IDE's five suites and 58 of its checks, TestCppCompilerLib's touched files (49,188 run), and the listings:
+4,225, old compiler against new, all the same (D:\gameengine\HashMapWork\item5\L1 and L2).  Still to run, both stopped
+for low memory: the whole of TestCppCompilerLib (RunParallel.py -jobs 2) and TestHCP65Lib alone; and TestLibc65.
+
+What the survey of 2026-11-24 found, beyond item 5's list: four text maps whose value isn't used, so they are sets of
+text that keep a value for nothing (CASCIIIndex's mcNames, "The value isn't used"; IDECodeModel's mcProblems and
+FindSymbolsOfKeys' cKeys; Asm65BaseAssembler's mcUndefinedNames).  And three of item 5's are an array of text beside a
+map from the same text to its index in the array (CPPIndex's keys and files, CPP65ListingIndex's files and functions,
+IDECodeModel's project files): the dense entries of a hash map that owns its text are both at once.
+
+Steps
+-----
+
+  1. BaseLib.  CHashSetString, the text set that owns its text (FindOrAddIndex, Find, GetKey(i)), and CHashMapString
+     on what they share (CHashStringBase: the copies of the text, Find, Remove, GetKey); CHashMapString and
+     CHashSetString take a HASH.  HashText.h's SHashOfFoldedText<FOLD>, with SHashOfTextIgnoreCase (ASCII letters in
+     either case alike, as CMapStringBlock's Init(false)) and SHashOfFileName (that, and either slash alike).
+     CHashMapIntTemplate, the drop in for CMapIntTemplate.  TestHashMap's tests of each.
+  2. The compiler's real keys, one commit each: CCPP65Types' function types a CHashSetTemplate of the types themselves
+     (hashed by HashStructure, compared by Equals: psNextSameSignature goes); PPHeaderCache's headers keyed by
+     (file, where found, context) itself, so its chain holds only the same key's (the callers' comparing goes);
+     CPPHeaderIndex's declarations keyed by (file, line, column), the file's name in a CHashSetString.
+  3. The compiler's text: CPPIndex's and CCPPIndexUnit's keys and files, CPP65ListingIndex's files (SHashOfFileName,
+     so NormaliseFile goes) and functions, CASCIIIndex's names, each a CHashSetString; CMemorySpillStore a
+     CHashMapString of its blobs.
+  4. Outside the compiler: the ID keyed maps (ExternalObjectDeserialiser's two, Orderer's, LinePositionCache's two,
+     Positions'), Asm65BaseAssembler's mcUndefinedNames, and IDECodeModel's mcProjectFiles (ignoring case, its
+     maszProjectFiles gone), mcProblems and cKeys.
+  5. Proved: TestBaseLib, TestStandardLib in three configurations and the *65 suites on both processors;
+     TestCppCompilerLib in Release x64; the *65 suites' listings, old compiler against new (CompilerProof.py), the
+     same; TestAssembler65Lib and TestLibc65; the IDE's suites and its checks over the code model; TestHCP65Lib once,
+     alone, which also covers the CArrayBlock fix and everything after it.
