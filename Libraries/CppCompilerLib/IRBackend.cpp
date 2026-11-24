@@ -36,11 +36,11 @@ void CIRBackend::InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pc
 	mpszOut = NULL;
 	muiSource = 0;
 	mbSourceMarkers = false;
-	mcSourceMarkers.Init();
+	mcMarkers.Init();
 	mcDebugPlaces.Init();
 	mbDebugPlaces = false;
 	maszDebugPlaces.Init();
-	mcPlaceMarkers.Init(IR_PLACE_MARKER, true);
+	masDebugValues.Init();
 	mpcErrors = NULL;
 	mbResult = true;
 	maiBlockLabels.Init();
@@ -56,10 +56,10 @@ void CIRBackend::Kill(void)
 {
 	maszRuntime.Kill();
 	maiBlockLabels.Kill();
-	mcPlaceMarkers.Kill();
+	masDebugValues.Kill();
 	maszDebugPlaces.Kill();
 	mcDebugPlaces.Kill();
-	mcSourceMarkers.Kill();
+	mcMarkers.Kill();
 }
 
 
@@ -396,20 +396,14 @@ void CIRBackend::Source(uint32 uiSource)
 // The marker lines (a listing's source markers, a debugger's place
 // markers) taken out of the code from uiStart before the text passes run,
 // so they see the code they would without them; PutMarkers puts them back
-// where the code they were before went.  The place markers are taken out
-// first and put back last, so the source markers go where they would
-// without them.
+// where the code they were before went.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::TakeMarkers(CChars* pszCode, size uiStart)
 {
-	if (mbDebugPlaces)
+	if (mbSourceMarkers || mbDebugPlaces)
 	{
-		mcPlaceMarkers.Take(pszCode, uiStart);
-	}
-	if (mbSourceMarkers)
-	{
-		mcSourceMarkers.Take(pszCode, uiStart);
+		mcMarkers.Take(pszCode, uiStart);
 	}
 }
 
@@ -420,13 +414,9 @@ void CIRBackend::TakeMarkers(CChars* pszCode, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::PutMarkers(CChars* pszCode, size uiStart)
 {
-	if (mbSourceMarkers)
+	if (mbSourceMarkers || mbDebugPlaces)
 	{
-		mcSourceMarkers.Put(pszCode, uiStart);
-	}
-	if (mbDebugPlaces)
-	{
-		mcPlaceMarkers.Put(pszCode, uiStart);
+		mcMarkers.Put(pszCode, uiStart);
 	}
 }
 
@@ -435,17 +425,22 @@ void CIRBackend::PutMarkers(CChars* pszCode, size uiStart)
 //
 // Before the function's blocks are written (in their order, numbered):
 // place markers (DebugPlaces) are written if it has debug value markers.
+// pcLiveness is the back end's of the function, if it has one.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRBackend::BeginDebugPlaces(CIRDominators* pcDominators)
+void CIRBackend::BeginDebugPlaces(CIRDominators* pcDominators, CIRLiveness* pcLiveness)
 {
-	size	ui;
+	size			ui;
+	SIRReference	sNone;
 
-	mbDebugPlaces = mcDebugPlaces.Begin(mpcFunction, pcDominators);
+	mbDebugPlaces = mcDebugPlaces.Begin(mpcFunction, pcDominators, pcLiveness);
 	maszDebugPlaces.ReInit();
+	masDebugValues.ReInit();
+	sNone = IRNone();
 	for (ui = 0; mbDebugPlaces && (ui < mcDebugPlaces.NumSlots()); ui++)
 	{
 		maszDebugPlaces.Add("none");
+		masDebugValues.Add(&sNone);
 	}
 }
 
@@ -459,13 +454,15 @@ void CIRBackend::BeginDebugPlaces(CIRDominators* pcDominators)
 // last marker for it in the text said (a block's start says them all, as
 // its predecessors' ends may be anywhere): the home of the value it holds
 // while that is live through the code (DebugPlace), a constant's value,
-// else none.
+// else none.  A value's place is the same wherever it is: it is only
+// worked out when the variable's value isn't the one it last had.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast)
 {
 	CChars			szPlace;
 	SIRReference	sValue;
+	SIRReference*	psLast;
 	size			ui;
 
 	if (!mbDebugPlaces)
@@ -476,8 +473,14 @@ void CIRBackend::DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast)
 	szPlace.Init();
 	for (ui = 0; ui < mcDebugPlaces.NumSlots(); ui++)
 	{
-		szPlace.Clear();
 		sValue = mcDebugPlaces.Value(ui);
+		psLast = masDebugValues.Get(ui);
+		if (sValue.Equals(*psLast))
+		{
+			continue;
+		}
+		*psLast = sValue;
+		szPlace.Clear();
 		if (sValue.IsConstant())
 		{
 			szPlace.Append("value, ")->Append((int64)mpcFunction->GetConstant(sValue)->ulliBits);
@@ -506,6 +509,7 @@ void CIRBackend::EndDebugPlaces(void)
 	for (ui = 0; mbDebugPlaces && (ui < maszDebugPlaces.NumElements()); ui++)
 	{
 		DebugPlaceMarker(ui, "none");
+		*masDebugValues.Get(ui) = IRNone();
 	}
 }
 

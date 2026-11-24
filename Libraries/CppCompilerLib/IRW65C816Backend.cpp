@@ -588,7 +588,6 @@ int32 CIRW65C816Backend::VariableSlotBytes(SIRInstruction* psSlot)
 void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile)
 {
 	CIRSourceMarkers	cMarkers;
-	CIRSourceMarkers	cPlaces;
 	SIRW65C816Frame		sFrame;
 	CIRW65C816Code		cCode;
 	uint8				abRead[IR816_DIRECT_PAGE];
@@ -603,8 +602,6 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 		memset(&sFrame, 0, sizeof(sFrame));
 	}
 	bPlaces = pcWritten && (strstr(pszCode->Text(), IR_PLACE_MARKER) != NULL);
-	cPlaces.Init(IR_PLACE_MARKER, true);
-	cPlaces.Take(pszCode, 0);
 	cMarkers.Init();
 	cMarkers.Take(pszCode, 0);
 	if (!mpcOptions->mbDebuggable)
@@ -629,8 +626,6 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 	}
 	cMarkers.Put(pszCode, 0);
 	cMarkers.Kill();
-	cPlaces.Put(pszCode, 0);
-	cPlaces.Kill();
 	if (bPlaces)
 	{
 		UnreadPlaces(pszCode, (CIRW65C816Written*)pcWritten, abRead);

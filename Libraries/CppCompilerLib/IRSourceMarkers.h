@@ -25,28 +25,28 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRBlock.h"
 
 
-//The marker lines of a function's code (the source markers, IR_SOURCE_MARKER, or the debugger's place markers,
+//The marker lines of a function's code (the source markers, IR_SOURCE_MARKER, and the debugger's place markers,
 //IR_PLACE_MARKER), taken out before a back end's text passes so the passes see the code they would without them (a
 //listing's code is the same as the one without), and put back after: each before the first line it was before that
-//is still there, wherever a pass moved it.  Of the markers that end up before one line only the last stays (a source
-//marker's code went), or with bKeepAll all of them in order (each place marker says something of its own).
+//is still there, wherever a pass moved it.  Both kinds are taken out and put back together, the code's lines matched
+//once.  Of the source markers that end up before one line only the last stays (the code of the others went); every
+//place marker stays, in order (each says something of its own).
 class CIRSourceMarkers
 {
 protected:
-	const char*				mszPrefix;
-	bool					mbKeepAll;
 	CArrayChars				maszLines;		//The code's lines without the markers, as Take left them.
 	CArrayTemplate<int32>	maiBefore;		//Per marker: the line (in maszLines) it was before.
 	CArrayChars				maszMarkers;	//Per marker: its line.
 
 public:
-	void	Init(const char* szPrefix = IR_SOURCE_MARKER, bool bKeepAll = false);
+	void	Init(void);
 	void	Kill(void);
 
 	void	Take(CChars* pszCode, size uiStart);
 	void	Put(CChars* pszCode, size uiStart);
 
 protected:
+	bool	IsMarker(const char* szLine);
 	void	Match(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound);
 	void	MatchMoved(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound, CArrayTemplate<int32>* paiOwner, CArrayTemplate<int32>* paiMoved);
 };

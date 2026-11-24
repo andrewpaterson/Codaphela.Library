@@ -30,6 +30,7 @@ void CIRDebugPlaces::Init(void)
 {
 	mpcFunction = NULL;
 	mcLiveness.Init();
+	mpcLiveness = &mcLiveness;
 	muiSlots = 0;
 	masEntries.Init();
 	masValues.Init();
@@ -55,11 +56,12 @@ void CIRDebugPlaces::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // Starts on pcFunction as it is about to be written (its blocks in the
-// order they are written, numbered).  False if it has no debug value
-// markers: there is nothing to describe.
+// order they are written, numbered), with the back end's liveness of it
+// (pcLiveness) or its own.  False if it has no debug value markers: there
+// is nothing to describe.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRDebugPlaces::Begin(CIRFunction* pcFunction, CIRDominators* pcDominators)
+bool CIRDebugPlaces::Begin(CIRFunction* pcFunction, CIRDominators* pcDominators, CIRLiveness* pcLiveness)
 {
 	size			uiBlock;
 	size			ui;
@@ -86,7 +88,15 @@ bool CIRDebugPlaces::Begin(CIRFunction* pcFunction, CIRDominators* pcDominators)
 		return false;
 	}
 
-	mcLiveness.Compute(pcFunction, pcDominators);
+	if (pcLiveness)
+	{
+		mpcLiveness = pcLiveness;
+	}
+	else
+	{
+		mcLiveness.Compute(pcFunction, pcDominators);
+		mpcLiveness = &mcLiveness;
+	}
 	ComputeEntries();
 	masValues.ReInit();
 	masValues.GrowToAtLeastNumElements(muiSlots, true, 0);
@@ -296,7 +306,7 @@ void CIRDebugPlaces::Move(CIRBlock* pcBlock, size uiInstruction, size uiLast)
 //////////////////////////////////////////////////////////////////////////
 int32 CIRDebugPlaces::Position(CIRBlock* pcBlock, size uiInstruction)
 {
-	return (uiInstruction < pcBlock->masInstructions.NumElements()) ? mcLiveness.Position(pcBlock, uiInstruction) : mcLiveness.Jump(pcBlock);
+	return (uiInstruction < pcBlock->masInstructions.NumElements()) ? mpcLiveness->Position(pcBlock, uiInstruction) : mpcLiveness->Jump(pcBlock);
 }
 
 
@@ -337,8 +347,8 @@ bool CIRDebugPlaces::IsLive(SIRReference sValue, int32 iPosition)
 	size		uiRanges;
 	size		ui;
 
-	psRanges = mcLiveness.GetRanges(sValue);
-	uiRanges = mcLiveness.NumRanges(sValue);
+	psRanges = mpcLiveness->GetRanges(sValue);
+	uiRanges = mpcLiveness->NumRanges(sValue);
 	for (ui = 0; ui < uiRanges; ui++)
 	{
 		if ((iPosition >= psRanges[ui].iFrom) && (iPosition < psRanges[ui].iTo))

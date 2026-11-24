@@ -427,7 +427,7 @@ bool CIR65Backend::WriteBody(const char* szLabel, size uiStart)
 	Prologue(szLabel);
 	mpsFlags = NULL;
 	mpcFlags = NULL;
-	BeginDebugPlaces(&mcDominators);
+	BeginDebugPlaces(&mcDominators, &mcLiveness);
 	for (ui = 0; ui < mpcFunction->NumBlocks(); ui++)
 	{
 		pcBlock = mpcFunction->GetBlock(ui);

@@ -111,11 +111,11 @@ protected:
 	CChars*					mpszOut;
 	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
 	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
-	CIRSourceMarkers		mcSourceMarkers;	//The markers while the text passes run.
+	CIRSourceMarkers		mcMarkers;			//The source and place markers while the text passes run.
 	CIRDebugPlaces			mcDebugPlaces;		//Which value each variable holds as the code is written (DebugPlaces)...
 	bool					mbDebugPlaces;		//...when the function has debug value markers...
-	CArrayChars				maszDebugPlaces;	//...and per variable, the place its last place marker said.
-	CIRSourceMarkers		mcPlaceMarkers;		//The place markers while the text passes run.
+	CArrayChars				maszDebugPlaces;	//...and per variable, the place its last place marker said...
+	CArrayIRReferences		masDebugValues;		//...and the value it had then.
 	CCPPErrors*				mpcErrors;
 	bool					mbResult;
 	CArrayTemplate<int32>	maiBlockLabels;		//Per block index.
@@ -154,7 +154,7 @@ protected:
 
 	void			TakeMarkers(CChars* pszCode, size uiStart);
 	void			PutMarkers(CChars* pszCode, size uiStart);
-	void			BeginDebugPlaces(CIRDominators* pcDominators);
+	void			BeginDebugPlaces(CIRDominators* pcDominators, CIRLiveness* pcLiveness = NULL);
 	void			DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast);
 	void			EndDebugPlaces(void);
 	void			DebugPlaceMarker(size uiSlot, const char* szPlace);

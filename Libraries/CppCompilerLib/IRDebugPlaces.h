@@ -32,7 +32,8 @@ class CIRDebugPlaces
 {
 protected:
 	CIRFunction*		mpcFunction;
-	CIRLiveness			mcLiveness;
+	CIRLiveness			mcLiveness;		//Worked out here when the back end has none...
+	CIRLiveness*		mpcLiveness;	//...and the one used.
 	size				muiSlots;
 	CArrayIRReferences	masEntries;		//Per block, per slot: what it holds as the block starts.
 	CArrayIRReferences	masValues;		//Per slot: what it holds now (Move).
@@ -45,7 +46,7 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	bool			Begin(CIRFunction* pcFunction, CIRDominators* pcDominators);
+	bool			Begin(CIRFunction* pcFunction, CIRDominators* pcDominators, CIRLiveness* pcLiveness = NULL);
 	void			Move(CIRBlock* pcBlock, size uiInstruction, size uiLast);
 	size			NumSlots(void) const;
 	SIRReference	Value(size uiSlot);

@@ -33,10 +33,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Init(const char* szPrefix, bool bKeepAll)
+void CIRSourceMarkers::Init(void)
 {
-	mszPrefix = szPrefix;
-	mbKeepAll = bKeepAll;
 	maszLines.Init();
 	maiBefore.Init();
 	maszMarkers.Init();
@@ -71,7 +69,7 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 	maszLines.ReInit();
 	maiBefore.ReInit();
 	maszMarkers.ReInit();
-	if (strstr(pszCode->Text() + uiStart, mszPrefix) == NULL)
+	if ((strstr(pszCode->Text() + uiStart, IR_SOURCE_MARKER) == NULL) && (strstr(pszCode->Text() + uiStart, IR_PLACE_MARKER) == NULL))
 	{
 		return;
 	}
@@ -87,7 +85,7 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 	for (ui = 0; ui < aszLines.NumElements(); ui++)
 	{
 		pszLine = aszLines.Get(ui);
-		if (pszLine->StartsWith(mszPrefix))
+		if (IsMarker(pszLine->Text()))
 		{
 			iBefore = (int32)maszLines.NumElements();
 			maiBefore.Add(&iBefore);
@@ -104,15 +102,26 @@ void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether szLine is a marker line: a source marker or a place marker.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRSourceMarkers::IsMarker(const char* szLine)
+{
+	return (strncmp(szLine, IR_SOURCE_MARKER, strlen(IR_SOURCE_MARKER)) == 0) || (strncmp(szLine, IR_PLACE_MARKER, strlen(IR_PLACE_MARKER)) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Puts the markers Take took out back into the code from uiStart: the
 // passes mostly keep the order of the lines they leave, so the lines from
 // before are found as the longest run of them in order (Match), then the
 // blocks a pass moved are found wherever they went (MatchMoved); between
 // two found, the lines not found are paired in order with the lines now
 // there (as a pass rewrites a line in place).  A marker goes before the
-// first line it was before that has a place now.  Of markers that go
-// before one line only the last stays (the code of the others went), or
-// with mbKeepAll all, in their order.
+// first line it was before that has a place now.  Of the source markers
+// that go before one line only the last stays (the code of the others
+// went); every place marker stays, in their order.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
@@ -133,6 +142,8 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 	int32					iNew;
 	int32					iFirst;
 	int32					iEnd;
+	int32					iLastSource;
+	CChars*					pszMarker;
 	size					uiGap;
 	size					uiGapStart;
 
@@ -243,14 +254,22 @@ void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
 	{
 		iFirst = *aiFirst.Get(ui);
 		iEnd = *aiFirst.Get(ui + 1);
-		if ((iEnd > iFirst) && !mbKeepAll)
+		iLastSource = -1;
+		for (iMarker = iFirst; iMarker < iEnd; iMarker++)
 		{
-			iFirst = iEnd - 1;
+			if (maszMarkers.Get((size)*aiMarker.Get((size)iMarker))->StartsWith(IR_SOURCE_MARKER))
+			{
+				iLastSource = iMarker;
+			}
 		}
-		for (; iFirst < iEnd; iFirst++)
+		for (iMarker = iFirst; iMarker < iEnd; iMarker++)
 		{
-			pszCode->Append(*maszMarkers.Get((size)*aiMarker.Get((size)iFirst)));
-			pszCode->AppendNewLine();
+			pszMarker = maszMarkers.Get((size)*aiMarker.Get((size)iMarker));
+			if ((iMarker == iLastSource) || !pszMarker->StartsWith(IR_SOURCE_MARKER))
+			{
+				pszCode->Append(*pszMarker);
+				pszCode->AppendNewLine();
+			}
 		}
 		if (ui < aszLines.NumElements())
 		{
