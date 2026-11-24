@@ -10,8 +10,8 @@ Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for wh
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
 2026-11-23) is what it left; its questions (6 to 10) are answered.  It was checked against the code on
 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes, and
-questions 11 and 12 were asked and answered as assumed.  Stages 17, 18 and 19 are done (2026-11-24, their
-records at the end); 20 is next.  The user on 2026-11-22: "Finish and commit,
+questions 11 and 12 were asked and answered as assumed.  Stages 17 to 21 and 22a are done (2026-11-24,
+their records at the end); 22b is next.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -52,7 +52,8 @@ The rules (the questions say which the user settled, 2026-11-22)
      CCPP65CheckChildren, CCPP65CheckLambdas, gasCPP65Builtins.  SCPP65Type and CCPP65Types are the type
      checker's area's and keep their names.
   5. A helper that replaces several copies gets cases of its own in TestCppCompilerLib.
-  6. The work is done in D:\gameengine\CommonLibraries itself, on master, not in a worktree (the user,
+  6. The work is done in the CommonLibraries checkout itself (D:\gameengine on Windows, Codaphela on Linux, where
+     stages 17 on were done), on master, not in a worktree (the user,
      2026-11-22: "Why do you keep working in worktrees?").  A stage is committed when it has passed, by its own
      paths.  Nothing is pushed.  It is no longer the only work in the compiler (2026-11-24): the debugger's
      (DebuggerPlan.txt; its compiler stages A1 to A4 and C1 to C3 are in, F1 to F4 would touch the compiler
@@ -413,7 +414,7 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
       SaysDeprecated, WarnDeprecated and WarnDeprecatedSymbol.
    d. New: the function names.  __func__'s text (FunctionNameText, IsFunctionName) to CCPPStrings, which makes the
       unit's strings; the function a name means for a target type (FunctionNameFor, MemberFunctionNameFor,
-      MemberPointerName, FunctionNameOf) to the binder, beside stage 18's resolver; PointedFunctionSuffix (a
+      MemberPointerName, FunctionNameOf) to the binder, beside stage 18's CCPPNames; PointedFunctionSuffix (a
       pointer's exception specification) to CCPPExceptions.
    e. New: the questions of the syntax (SkipParentheses, IsMemberPointerOperator, IsDecltypeOperand,
       DefaultArgumentOf, IsInUnevaluatedOperand, NamesFunction) onto the syntax nodes, as ConsolidationPlan stage
@@ -462,8 +463,9 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
 
    The findings' "Since:" lines, and this part's last table, as stage 16 did.
 
-Ends when: CCPPUnit is the walk, the queue, the options and the classes it holds: 106 functions by the count of
-2026-11-24, with the getters (question 8), in CPPUnit.cpp and CPPUnitLabels.cpp, and no friends.  Finding 36's
+Ends when: CCPPUnit is the walk, the queue, the options and the classes it holds: about 115 functions (106 by the count of
+2026-11-24; stages 17 to 19 left the variable table and five getters more with it), with the getters
+(question 8), in CPPUnit.cpp and CPPUnitLabels.cpp, and no friends.  Finding 36's
 rest is not in it (question 6).  Size: 30 to 40 proofs, 17, 18, 22 and 24 the long ones.
 
 
@@ -1500,11 +1502,11 @@ baseline was taken again before the first (question 11): HashMapPlan's conversio
 (0f53e5129) came in under this plan's work with the user's pull and moved 78 listings; against the new baseline
 the first commit's were the same.
 
-	725b3d9a3  CCPPNames (CPPNames.h and .cpp), the binder's (CCPPBinder::GetNames; CCPPUnit::GetNames hands it
+	3154451fe  CCPPNames (CPPNames.h and .cpp), the binder's (CCPPBinder::GetNames; CCPPUnit::GetNames hands it
 	           out), as CCPPOverloads and CCPPAccess are: twenty functions moved as they were, the class a name, its
 	           qualifiers or a component names, the member a qualified name names with the class that declares
 	           it, and lookup in a class's bases.  Not a friend.  Listings and diagnostics the same.
-	9fea344e5  The rule, said once.  Proved first by a harness (not committed): at every call of QualifiedMember
+	27eae532d  The rule, said once.  Proved first by a harness (not committed): at every call of QualifiedMember
 	           and NameQualifierClass the other's rule was worked out too, silently, over the three *65 projects
 	           on both processors and the whole suite.  They disagreed only in QualifiedMember, on four names
 	           (W<X>::Type::N, Wrap<int,char>::Type::N, Wrap<int,char>::More::N, P<char>::Q<long>::V: stage 7's
@@ -1523,19 +1525,19 @@ the first commit's were the same.
 
 Stage 19 (2026-11-24): static data, start-up and exit.  Three commits, each proved alone.
 
-	fe50c2f00  CCPPGlobals (CPPGlobals.h and .cpp), the unit's mcGlobals (GetGlobals): eighteen functions moved as
+	885e3f0c7  CCPPGlobals (CPPGlobals.h and .cpp), the unit's mcGlobals (GetGlobals): eighteen functions moved as
 	           they were, with the static locals (which CCPPClosures::EnclosingStatic reads through
 	           GetStaticLocals), the exit finalisers, miStatics and the exit lists' and dynamic_cast's flags.
 	           SCPPUnitRoutine is CPPUnitData.h's, as the exceptions use it too; the unit gives its IR front end
 	           and its global variables (GetIRFrontEnd, GetGlobalVariables).  Not a friend.  The same.
-	3c9400cbc  BoundTemporary answers once (ECPPBoundTemporary: nothing, bound, bound with an error said in its
+	58c210a00  BoundTemporary answers once (ECPPBoundTemporary: nothing, bound, bound with an error said in its
 	           routines, or an error), where it answered a bool and *pbResult.  CheckRedeclaredType is the three
 	           copies of "declared again with another type"; GlobalDeclaration knows once whether its variable is
 	           thread_local and destroyed (three and four copies).  CCPPUnitData::AppendRoutineSection,
 	           AddRoutine and KillRoutines are the unit's AddUnitRoutine and KillUnitRoutines and four copies of a
 	           routine's section.  TestCPP65GeneratorGlobals: what static data may and may not be (none of its
 	           twelve errors had a test).  The same.
-	125d94db7  The try block's and the handlers' functions and the thrown objects' destroyers are CCPPExceptions'
+	6a80d36ed  The try block's and the handlers' functions and the thrown objects' destroyers are CCPPExceptions'
 	           (TryRegionOf, HandlerType, HandlerLocal, ThrownDestroyer, WriteThrownDestroyers, and the list of
 	           destroyers to write).  Whether every unit that needs a function writes it is CCPPFunction::IsShared:
 	           a question of the function's, not the exceptions'.  The same.
@@ -1546,3 +1548,45 @@ Stage 19 (2026-11-24): static data, start-up and exit.  Three commits, each prov
 	Not changed: the handlers' checks have conformance cases whose texts the diagnostics' proof pins.
 
 	The unit: 283 functions at stage 18's start, 241 at stage 19's end.
+
+
+Stage 20 (2026-11-24): the unit's classes.  Three commits, each proved alone.  The class is CCPPClasses, not the
+CCPPClassBuilder this plan named: it holds the unit's list of classes as well as making and laying them out.
+
+	8d58cf8f9  CCPPClasses (CPPClasses.h and .cpp), the unit's mcClasses (GetClasses): the list of classes
+	           (GetClassList, which the mangler and the instantiator read) and twenty-nine functions moved as they
+	           were, with stage 18's GetClass, GetUnnamedClass and FindClass and stage 17's CheckVirtSpecifiers;
+	           the layouts record is the classes' (the unit's SetLayouts and GetLayouts pass to it); the unit says
+	           whether it was compiled before (IsCompiledBefore).  Not a friend.  The same.
+	f95794495  The member specialisations, the definitions written outside a class template and a member class
+	           defined outside it are CCPPInstantiator's, with the list of them (SCPPOutsideDefinition is
+	           CPPInstantiator.h's); IsDefinedBefore, a question of classes', is CCPPClasses'; GetComponentName is
+	           beside GetFunctionName; CPPUnitClasses.cpp is gone.  The same.
+	35dceb61a  Stage 17's find: a class's own operator=(...) = default, the implicit copy assignment, takes its own
+	           class (CCPPFunctionDeclarer::CheckDefaultedAssignment); TakesOwnClass and DefaultedError are the
+	           test and the error once.  The listings and every conformance case's diagnostics the same: no case
+	           has one; TestCPP65GeneratorFunctionDeclarations has it and a copy assignment that is.
+
+Stage 21 (2026-11-24): bases, this and packs.  Two commits, each proved alone.
+
+	d9f5e1ac3  A class's bases are CCPPClasses' (CPPUnitOverloads.cpp is CPPClassesBases.cpp), beside the
+	           ResolveBases they ask.  What this is in the function being written (ThisFunction, IsConstThis,
+	           IsVolatileThis, ThisType, and IsConstObject) is the type checker's: not CCPPContext's, as this
+	           plan said, which knows where the compiler is but not the closures or the types they ask.
+	60ed95119  The packs are CCPPInstantiator's (CPPUnitPacks.cpp is CPPInstantiatorPacks.cpp), with their state
+	           (the packs' types, values and symbols, their elements, the lists expanded) and its freeing;
+	           ListElements goes with ExpandArguments; the pack finder holds the instantiator.  The same.
+
+Stage 22a (2026-11-24): 6a6bbd1f1, the type traits (with their table, which was CPPUnitExpressions.cpp's), the
+new-expression's and the literals' types, IsNullPointerConstant and QualifiedFieldType are the type checker's.
+The same.
+
+	The debugger's records.  The plan asked for TestBaseLib65's W65C816 listings in debug mode, .dglobal and
+	.dtype included, at stages 19, 22 and 24.  A listing has those directives only with a line table, which the
+	suite makes only when it measures, so TEST_PROJECT65_DEBUG=1 gives the debugger's code (its kept slots) and
+	not its records.  The records are TestCPPW65C816Debug's, in every proof's suite run.  The code is compared at
+	the end of stage 22 with a build from before stage 19 (the same sources, one compiler each), which covers
+	stage 19's comparison as well: the listings of 9fea344e5's compiler (27eae532d after the rebase) are taken.
+
+	The unit: 241 functions at stage 20's start, 157 after stage 22a.  The hashes of stages 18 and 19 are the
+	commits' after the user's pull rebased them again (2026-11-24, under HashMapPlan's last commit).
