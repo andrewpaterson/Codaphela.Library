@@ -8,9 +8,10 @@ this plan finishes what they left and what has been added since.
 
 Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for what each stage's record says it
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
-2026-11-23) is what it left; its questions (6 to 10) are answered, and it hasn't begun.  It was checked against
-the code on 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes,
-and questions 11 and 12 are new (answers assumed, in brackets).  The user on 2026-11-22: "Finish and commit,
+2026-11-23) is what it left; its questions (6 to 10) are answered.  It was checked against the code on
+2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes, and
+questions 11 and 12 are new (answers assumed, in brackets).  Stage 17 is done (2026-11-24, its record at the
+end); 18 is next.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
 
@@ -330,7 +331,8 @@ the three *65 projects, the compile's time), "Same code" unless it says otherwis
 record.  The listings' baseline is taken again at stage 17's start: deca26453 (W65C816 slots addressed in place,
 2026-11-23) changed them after stage 16's.
 
-17. Declaring a function (finding 23).  Same code.  (L, 31 functions)
+17. Declaring a function (finding 23).  Same code.  (L, 31 functions)  Done 2026-11-24: its record, at the end, says
+    what it did and where the list below differed (four went to other stages, three stayed with the walk).
 
    Still as finding 23 found it (2026-11-24): there is no SCPPSignature, and DeclareFunction and DeclareSignature
    both take the same seven parameters.  A signature, SCPPSignature (kind, name, parameters, defaults, qualifiers
@@ -376,12 +378,15 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
 
    CCPPClassBuilder: NewClass, CompleteClass, CompleteObjectClass, CompleteMembers, PlaceMembers, LayoutClass,
    AddLayout, ResolveBases, AddBase, AddPackBases, ClassMember, ClassBitField, ClassUsing, InheritConstructors,
-   InjectedNameReached, IsDeclaredAgainInClass, CheckOverrides, ReturnsCovariant, HasVirtSpecifier,
-   IsConstantMember, FindStatic, ArrowType and the alignments (ObjectAlignment, VariableAlignment,
+   InjectedNameReached, IsDeclaredAgainInClass, CheckOverrides, CheckVirtSpecifiers (from stage 17: it lays a
+   class out), ReturnsCovariant, HasVirtSpecifier, IsConstantMember, FindStatic, ArrowType and the alignments (ObjectAlignment, VariableAlignment,
    AlignasAlignment).  The member specialisations and the definitions outside a class go to the instantiator:
    MemberSpecialisation, SpecialiseMembers, SpecialiseMember, QualifierIsInstance, AddOutsideDefinition,
    DefineOutsideMember, DefineOutsideMembers, IsOutsideMemberOf, IsDefinedBefore and FindSpecifier.
    CPPUnitClasses.cpp is then gone (with stage 18's eleven).
+   Found in stage 17: a class's own operator=(...) = default is passed over as the implicit copy assignment
+   (ClassMember), so what it takes is never checked (struct S { S& operator=(int) = default; } is taken; g++
+   refuses it).  It is put right here, with a case in TestCPP65GeneratorFunctionDeclarations.
 
 21. Bases, this and packs.  Same code.  (M, 10, 5 and 17 functions)
 
@@ -411,10 +416,10 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
       DefaultArgumentOf, IsInUnevaluatedOperand, NamesFunction) onto the syntax nodes, as ConsolidationPlan stage
       5 put the small questions (SkipParentheses alone is asked from most of the library: a script, and a commit
       of its own).
-   f. New: the initialisers' checks (CheckInitialiser, CheckBracedValue, CheckConstexprLocal, ConstructElements)
-      to the type checker, whose KeepsQualifiers they already rest on; QuietConstant and VariableTemplateValue to
-      CCPPConstantFolder.  Supported, AppendUnsupported and ReportFailedDeclaration stay with the walk, in
-      CPPUnit.cpp, and CPPUnitExpressions.cpp is then gone.
+   f. New: the initialisers' checks (CheckInitialiser, CheckBracedValue, CheckConstexprLocal, ConstructElements,
+      and from stage 17 CheckDeclared and NeedsNoInitialiser, a variable's) to the type checker, whose KeepsQualifiers they already rest on; QuietConstant and VariableTemplateValue to
+      CCPPConstantFolder.  Supported and AppendUnsupported stay with the walk, in CPPUnit.cpp
+      (ReportFailedDeclaration went with stage 17), and CPPUnitExpressions.cpp is then gone.
 
 23. The mechanisms' leftovers, each a commit of its own.  All five still apply (2026-11-24).
 
@@ -1432,3 +1437,54 @@ Stage 16 (2026-11-23): the end.
 	Compile time (TestSupportLib65's project, the 65C64, ms): declarations 6,407 at stage 0 and 6,598 at the end;
 	types 6,189 and 6,512; the front end 3,299 and 3,455, the user's commits since in all of them.  The plan's
 	rule was that the compiler's time is only watched (ConsolidationPlan): it is within 5%.
+
+
+Stage 17 (2026-11-24): declaring a function.  Four commits, each proved alone: the suite (RunParallel.py, 4 jobs),
+what is said of every conformance case and the 4,229 listings of the three *65 projects on both processors, this
+time on Linux (CompilerProof.py finds the CMake builds, d00da5a99; Release, 32 bit).
+
+	3478792cc  CCPPFunctionDeclarer (CPPFunctionDeclarer.h and .cpp), the unit's mcFunctionDeclarer and
+	           GetFunctionDeclarer: the functions moved as they were.  Not a friend: what it asks the unit (31
+	           asks, of 21 functions: the names, the functions of a name, the packs, the attributes, entering a
+	           function and its locals) is public.  The failed declarations (SCPPFailedDeclaration, masFailed)
+	           and ReportFailedDeclaration (ReportFailed) went with DeclareQuietly, which writes them.
+	           WrittenSpecification is CCPPExceptions', whose four callers it has; IsFunctionByType is the
+	           declarator's (CCPPSyntaxDeclarator::IsFunctionByType).  TestCPP65GeneratorFunctionDeclarations:
+	           each of the declarer's errors with its text and place (32), and what a declaration may be.
+	           Listings and diagnostics the same; 272,892 checks.
+	73eb5b02b  SCPPSignature (CPPSignature.h and .cpp): what declares a function (its specifiers, its
+	           declarator as written, its class, an instance's template and arguments, ECPPDeclaredAs) and what
+	           the declaration says (name, kind, return, parameters and defaults, const, volatile, & and &&,
+	           namespace, extern "C", the specifiers' flags), read once (ReadSignature, ReadParameters).  A
+	           function declared by its type's name keeps both declarators: the errors and mpcDeclarator are the
+	           typedef's, as they were.  CCPPFunction::IsDeclaredBy is the redeclaration's test, Adopt what a new
+	           function takes, Redeclare what a later declaration adds.  DeclareSignature's 325 lines are
+	           Declare(SCPPSignature*), ReadSignature, ReadParameters, CheckSignature, FindDeclared, Redeclare,
+	           AddDeclared and CheckOverloads, and the four ways out that killed the arrays by hand are the
+	           signature's Kill.  Declare takes four parameters (DeclareFunction took seven); an instance is
+	           DeclareInstance's.  CPPIsNewName, CPPIsDeleteName and CPPIsAllocationName (CPPFunction.h) are the
+	           five copies of the test of operator new's and delete's names, CCPPExceptions' two too;
+	           CheckAbstract is the two copies of the abstract class's.  Listings and diagnostics the same.
+	036c443cf  Not the same diagnostics, on purpose (rule 2): = default's errors were said twice, the parser's
+	           (CCPPParser::CheckDefaulted, which a class nothing lays out needs) and the declarer's.  The
+	           declarer says only what the class tells.  DclDefaultedNotSpecialRefused's error is said once on
+	           both targets; the IDE's check's record has none, as the IDE has the parser's errors apart
+	           (CIDECodeModel, mcTree.GetErrors()), so the Problems tab shows it once where it showed it twice.
+	           No other case and no listing differs.
+	ab7e6c023  Not the same diagnostics, on purpose: a constructor that left a const array member without a
+	           value was taken (the test of such a field didn't look through arrays where the class's did); g++
+	           refuses it.  SCPPField::NeedsValue is the one test (SCPP65Type::InnermostElement looks through
+	           the arrays) and CCPPClass::HasFieldNeedingValue the unit's HasFieldNeedingInitialiser.
+
+	Where the list in the stage differed.  CheckDeclared and NeedsNoInitialiser are a variable's checks (stage
+	22f now), CheckVirtSpecifiers lays a class out (stage 20), and HasFieldNeedingInitialiser is the class's;
+	IsCLinkage reads a linkage specification and stays with the walk, as do AddParameters and
+	ParameterVariableType, which make a function's locals as it is written (beside AllocateLocals).
+
+	Found by the new test and left, as each is a design or another stage's: a declaration the compiler can't take
+	is said only where the function is used (DeclareQuietly), so int f() const; alone, or an abstract class as a
+	parameter of a declaration, is taken until it is called; a class's own operator= = default (stage 20).
+
+	The unit: 308 functions at the stage's start, 283 at its end.  The suite's count moved by 18 between runs
+	with nothing changed in that file (TestIRW65C816Backend counts 18 more in two parts than in one); each run's
+	count is the parts it happened to be split into.
