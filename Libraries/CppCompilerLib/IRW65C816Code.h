@@ -71,6 +71,22 @@ public:
 	bool		Decoded(size uiLine, SIRW65C816Line* psLine);
 	bool		Has(size uiLine, uint32 uiFlags);
 	bool		Instruction(size uiLine, SIRW65C816Line* psLine);
+	bool		IsBare(size uiLine, uint16 uiMnemonic);
+	bool		IsWith(size uiLine, uint16 uiMnemonic, const char* szOperand);
+	bool		IsDirective(size uiLine);
+	bool		IsComment(size uiLine);
+	bool		IsRound(size uiLine);
+	const char*	LabelName(size uiLine, size* puiLength);
+	bool		IsLabelNamed(size uiLine, const char* szLabel, size uiLength);
+	int64		LocalLabelNumber(size uiLine);
+	const char*	Mentions(size uiLine, size* puiLength);
+
+	void		SetInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand = NULL);
+	void		SetBranch(size uiLine, uint16 uiMnemonic, const char* szLabel, size uiLabel);
+	void		ClearRound(size uiLine);
+	void		AppendInstruction(uint16 uiMnemonic, const char* szOperand = NULL);
+	void		AppendInstruction(SIRW65C816Line* psLine, bool bMarked);
+	void		AppendLine(CIRW65C816Code* pcFrom, size uiLine);
 
 	void		Set(size uiLine, const char* szText);
 	void		Remove(size uiLine);

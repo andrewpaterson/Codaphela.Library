@@ -250,6 +250,267 @@ bool CIRW65C816Code::Instruction(size uiLine, SIRW65C816Line* psLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether a line is the instruction uiMnemonic alone (no operand or mark).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsBare(size uiLine, uint16 uiMnemonic)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	return (psCode->uiKind == IR816CL_TABBED) && (psCode->sLine.uiMnemonic == uiMnemonic) && (psCode->sLine.uiOperand == 0) && !psCode->sLine.bMarked;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is the instruction uiMnemonic with exactly the operand
+// szOperand (and no mark).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsWith(size uiLine, uint16 uiMnemonic, const char* szOperand)
+{
+	SIRW65C816CodeLine*	psCode;
+	size				uiOperand;
+
+	psCode = Line(uiLine);
+	uiOperand = StrLen(szOperand);
+	return (psCode->uiKind == IR816CL_TABBED) && (psCode->sLine.uiMnemonic == uiMnemonic) && !psCode->sLine.bMarked &&
+		   (psCode->sLine.uiOperand == uiOperand) && (strncmp(psCode->szText.Text() + psCode->uiOperand, szOperand, uiOperand) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is a directive (".width ...").
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsDirective(size uiLine)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	return (psCode->uiKind == IR816CL_TABBED) && (psCode->szText.Text()[2] == '.');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is a comment (a tabbed line starting ';').
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsComment(size uiLine)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	return (psCode->uiKind == IR816CL_TABBED) && (psCode->szText.Text()[2] == ';');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is a bra JumpTo marked as going round a loop
+// (IR816_ROUND).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsRound(size uiLine)
+{
+	return Line(uiLine)->szText.EndsWith(IR816_ROUND);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A label line's name (without its colon) and its length, else NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIRW65C816Code::LabelName(size uiLine, size* puiLength)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	if (psCode->uiKind != IR816CL_LABEL)
+	{
+		return NULL;
+	}
+	*puiLength = psCode->szText.Length() - 1;
+	return psCode->szText.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is the label szLabel (uiLength long).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIRW65C816Code::IsLabelNamed(size uiLine, const char* szLabel, size uiLength)
+{
+	const char*	szName;
+	size		uiName;
+
+	szName = LabelName(uiLine, &uiName);
+	return szName && (uiName == uiLength) && (strncmp(szName, szLabel, uiLength) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of a local label's line ("L12:"), else -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CIRW65C816Code::LocalLabelNumber(size uiLine)
+{
+	const char*	szName;
+	size		uiName;
+
+	szName = LabelName(uiLine, &uiName);
+	return szName ? IR816LocalLabelNumber(szName, uiName) : -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Where the names a line mentions are: a tabbed line's operand, a label's
+// name, anything else's text.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIRW65C816Code::Mentions(size uiLine, size* puiLength)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	if (psCode->uiKind == IR816CL_TABBED)
+	{
+		*puiLength = psCode->sLine.uiOperand;
+		return psCode->szText.Text() + psCode->uiOperand;
+	}
+	if (psCode->uiKind == IR816CL_LABEL)
+	{
+		*puiLength = psCode->szText.Length() - 1;
+		return psCode->szText.Text();
+	}
+	*puiLength = psCode->szText.Length();
+	return psCode->szText.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line made the instruction uiMnemonic with szOperand (NULL for none).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::SetInstruction(size uiLine, uint16 uiMnemonic, const char* szOperand)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	psCode->szText.Clear();
+	IR816AppendInstruction(&psCode->szText, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0);
+	Decode(psCode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line made the branch uiMnemonic to szLabel (uiLabel long).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::SetBranch(size uiLine, uint16 uiMnemonic, const char* szLabel, size uiLabel)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	psCode->szText.Clear();
+	IR816AppendInstruction(&psCode->szText, uiMnemonic, szLabel, uiLabel);
+	Decode(psCode);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bra's IR816_ROUND mark taken off.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::ClearRound(size uiLine)
+{
+	SIRW65C816CodeLine*	psCode;
+
+	psCode = Line(uiLine);
+	if (psCode->szText.EndsWith(IR816_ROUND))
+	{
+		psCode->szText.SetLength(psCode->szText.Length() - StrLen(IR816_ROUND));
+		Decode(psCode);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction uiMnemonic with szOperand (NULL for none) added after
+// the last line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::AppendInstruction(uint16 uiMnemonic, const char* szOperand)
+{
+	SIRW65C816CodeLine*	psCode;
+	size				uiIndex;
+
+	uiIndex = masLines.NumElements();
+	psCode = masLines.Add();
+	psCode->szText.Init(CIRW65C816Backend::GetScratch());
+	IR816AppendInstruction(&psCode->szText, uiMnemonic, szOperand, szOperand ? StrLen(szOperand) : 0);
+	Decode(psCode);
+	*maiOrder.Add() = uiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instruction as psLine decodes one (its mnemonic and operand), with
+// the IR816_KEEP_IN_A mark or without, added after the last line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::AppendInstruction(SIRW65C816Line* psLine, bool bMarked)
+{
+	SIRW65C816CodeLine*	psCode;
+	size				uiIndex;
+
+	uiIndex = masLines.NumElements();
+	psCode = masLines.Add();
+	psCode->szText.Init(CIRW65C816Backend::GetScratch());
+	psCode->szText.Append("\t\t");
+	psCode->szText.Append(psLine->szMnemonic);
+	if (psLine->uiOperand > 0)
+	{
+		psCode->szText.Append(' ');
+		psCode->szText.AppendSubString(psLine->szOperand, psLine->uiOperand);
+	}
+	if (bMarked)
+	{
+		psCode->szText.Append(IR816_KEEP_IN_A);
+	}
+	Decode(psCode);
+	*maiOrder.Add() = uiIndex;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Line uiLine of pcFrom added after the last line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::AppendLine(CIRW65C816Code* pcFrom, size uiLine)
+{
+	CChars*	psz;
+
+	psz = pcFrom->GetText(uiLine);
+	Append(psz->Text(), psz->Length());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A line's text replaced, and decoded again.
 //
 //////////////////////////////////////////////////////////////////////////

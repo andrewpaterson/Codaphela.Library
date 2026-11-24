@@ -71,42 +71,16 @@ static bool IR816LabelFollows(CIRW65C816Code* pcCode, size uiFrom, const char* s
 {
 	size	ui;
 	size	uiLength;
-	CChars*	psz;
 
 	uiLength = StrLen(szLabel);
 	for (ui = uiFrom; (ui < pcCode->NumLines()) && pcCode->IsLabel(ui); ui++)
 	{
-		psz = pcCode->GetText(ui);
-		if ((psz->Length() == uiLength + 1) && (strncmp(psz->Text(), szLabel, uiLength) == 0))
+		if (pcCode->IsLabelNamed(ui, szLabel, uiLength))
 		{
 			return true;
 		}
 	}
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The number of a local label's name ("L12", or "L12:" with bColon), else -1.
-//
-//////////////////////////////////////////////////////////////////////////
-static int64 IR816LocalLabelNumber(const char* szLabel, bool bColon)
-{
-	size	ui;
-
-	if ((szLabel[0] != 'L') || (szLabel[1] < '0') || (szLabel[1] > '9') || ((szLabel[1] == '0') && (szLabel[2] >= '0') && (szLabel[2] <= '9')))
-	{
-		return -1;
-	}
-	for (ui = 1; (szLabel[ui] >= '0') && (szLabel[ui] <= '9'); ui++)
-	{
-	}
-	if (bColon ? ((szLabel[ui] != ':') || (szLabel[ui + 1] != '\0')) : (szLabel[ui] != '\0'))
-	{
-		return -1;
-	}
-	return (ui <= 10) ? atoll(&szLabel[1]) : -1;
 }
 
 
@@ -123,24 +97,18 @@ static size IR816LocalLabelLine(CIRW65C816Code* pcCode, CArrayTemplate<size>* pa
 	size	uiLine;
 	size	uiZero;
 	int64	lliDefined;
-	CChars*	psz;
 
 	uiLine = ((size)lliNumber < pauiLines->NumElements()) ? *pauiLines->Get((size)lliNumber) : 0;
-	if ((uiLine != 0) && (uiLine <= pcCode->NumLines()))
+	if ((uiLine != 0) && (uiLine <= pcCode->NumLines()) && pcCode->IsLabelNamed(uiLine - 1, szLabel, StrLen(szLabel)))
 	{
-		psz = pcCode->GetText(uiLine - 1);
-		if ((psz->Length() == StrLen(szLabel) + 1) && (strncmp(psz->Text(), szLabel, psz->Length() - 1) == 0) && (psz->Text()[psz->Length() - 1] == ':'))
-		{
-			return uiLine - 1;
-		}
+		return uiLine - 1;
 	}
 
 	uiZero = 0;
 	pauiLines->FakeSetUsedElements(0);
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		psz = pcCode->GetText(ui);
-		lliDefined = pcCode->IsLabel(ui) ? IR816LocalLabelNumber(psz->Text(), true) : -1;
+		lliDefined = pcCode->LocalLabelNumber(ui);
 		if (lliDefined < 0)
 		{
 			continue;
@@ -170,20 +138,18 @@ static size IR816LabelledInstruction(CIRW65C816Code* pcCode, const char* szLabel
 	size	ui;
 	size	uiLength;
 	int64	lliNumber;
-	CChars*	psz;
 
-	lliNumber = IR816LocalLabelNumber(szLabel, false);
+	uiLength = StrLen(szLabel);
+	lliNumber = IR816LocalLabelNumber(szLabel, uiLength);
 	if (lliNumber >= 0)
 	{
 		ui = IR816LocalLabelLine(pcCode, pauiLabelLines, lliNumber, szLabel);
 	}
 	else
 	{
-		uiLength = StrLen(szLabel);
 		for (ui = 0; ui < pcCode->NumLines(); ui++)
 		{
-			psz = pcCode->GetText(ui);
-			if (pcCode->IsLabel(ui) && (psz->Length() == uiLength + 1) && (strncmp(psz->Text(), szLabel, uiLength) == 0))
+			if (pcCode->IsLabelNamed(ui, szLabel, uiLength))
 			{
 				break;
 			}
@@ -206,38 +172,43 @@ static size IR816LabelledInstruction(CIRW65C816Code* pcCode, const char* szLabel
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Marks in pabMentioned (by number) each local label (L and a number) an
-// instruction line names.  A name is bounded by characters that can't be in
-// a name.
+// Marks in pabMentioned (by number) each local label (L and a number) a
+// line names (CIRW65C816Code::Mentions).  A name is bounded by characters
+// that can't be in a name, or the text's ends.  With bStrict a name followed
+// by a name's character, with a leading 0 or of more than ten digits isn't a
+// local label's.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816MarkMentions(const char* szLine, CArrayTemplate<uint8>* pabMentioned)
+static void IR816MarkMentions(CIRW65C816Code* pcCode, size uiLine, bool bStrict, CArrayTemplate<uint8>* pabMentioned)
 {
-	const char*	szAt;
-	const char*	szEnd;
-	int64		lliNumber;
+	const char*	szText;
+	size		uiLength;
+	size		ui;
+	size		uiEnd;
+	size		uiNumber;
 	uint8		uiZero;
 
 	uiZero = 0;
-	for (szAt = szLine; (szAt = strchr(szAt, 'L')) != NULL; szAt++)
+	szText = pcCode->Mentions(uiLine, &uiLength);
+	for (ui = 0; ui + 1 < uiLength; ui++)
 	{
-		if ((szAt == szLine) || IsCPPNameCharacter(szAt[-1]) || (szAt[1] < '0') || (szAt[1] > '9'))
+		if ((szText[ui] != 'L') || ((ui > 0) && IsCPPNameCharacter(szText[ui - 1])) || (szText[ui + 1] < '0') || (szText[ui + 1] > '9'))
 		{
 			continue;
 		}
-		for (szEnd = szAt + 1; (*szEnd >= '0') && (*szEnd <= '9'); szEnd++)
+		for (uiEnd = ui + 1; (uiEnd < uiLength) && (szText[uiEnd] >= '0') && (szText[uiEnd] <= '9'); uiEnd++)
 		{
 		}
-		if (IsCPPNameCharacter(*szEnd) || ((szAt[1] == '0') && (szEnd - szAt > 2)) || (szEnd - szAt > 11))
+		if ((uiEnd - ui > 11) || (bStrict && (((uiEnd < uiLength) && IsCPPNameCharacter(szText[uiEnd])) || ((szText[ui + 1] == '0') && (uiEnd - ui > 2)))))
 		{
 			continue;
 		}
-		lliNumber = atoll(szAt + 1);
-		while (pabMentioned->NumElements() <= (size)lliNumber)
+		uiNumber = (size)IR816DecimalNumber(szText + ui + 1, uiEnd - (ui + 1));
+		while (pabMentioned->NumElements() <= uiNumber)
 		{
 			pabMentioned->Add(&uiZero);
 		}
-		*pabMentioned->Get((size)lliNumber) = 1;
+		*pabMentioned->Get(uiNumber) = 1;
 	}
 }
 
@@ -299,13 +270,11 @@ static bool IR816SetsAFirst(CIRW65C816Code* pcCode, size uiFrom, CArrayTemplate<
 static bool IR816SetsXFirst(CIRW65C816Code* pcCode, size uiFrom)
 {
 	size		ui;
-	CChars*		psz;
 	SIRW65C816Line	sLine;
 
 	for (ui = uiFrom; ui < pcCode->NumLines(); ui++)
 	{
-		psz = pcCode->GetText(ui);
-		if (!pcCode->Decoded(ui, &sLine) || (strstr(psz->Text(), "X]") != NULL) || (strstr(psz->Text(), ", X") != NULL))
+		if (!pcCode->Decoded(ui, &sLine) || IR816OperandHas(&sLine, "X]") || IR816OperandHas(&sLine, ", X"))
 		{
 			return false;
 		}
@@ -332,83 +301,50 @@ static bool IR816SetsXFirst(CIRW65C816Code* pcCode, size uiFrom)
 static void IR816FindUsedLabels(CIRW65C816Code* pcCode, CArrayTemplate<uint8>* pabUsed)
 {
 	const char*	szText;
+	size		uiLength;
 	size		ui;
-	size		uiNumber;
-	uint8		uiZero;
-	uint8		uiOne;
 
-	uiZero = 0;
-	uiOne = 1;
 	pabUsed->FakeSetUsedElements(0);
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		szText = pcCode->Text(ui);
-		if (szText[0] == 'L')
+		szText = pcCode->Mentions(ui, &uiLength);
+		if (pcCode->IsLabel(ui) && (szText[0] == 'L'))
 		{
 			//A label's definition.
 			continue;
 		}
-		for (; *szText; szText++)
-		{
-			if ((szText[0] == 'L') && (szText[1] >= '0') && (szText[1] <= '9') && ((szText == pcCode->Text(ui)) || !IsCPPNameCharacter(szText[-1])))
-			{
-				uiNumber = (size)atoi(&szText[1]);
-				while (pabUsed->NumElements() <= uiNumber)
-				{
-					pabUsed->Add(&uiZero);
-				}
-				pabUsed->Set(uiNumber, &uiOne);
-			}
-		}
+		IR816MarkMentions(pcCode, ui, false, pabUsed);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// False if psz is a local label's definition ("L12:") that nothing names
-// (IR816FindUsedLabels); true for any other line.
+// False if line uiLine is a local label's definition ("L12:") that nothing
+// names (IR816FindUsedLabels); true for any other line.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR816LabelUsed(CChars* psz, CArrayTemplate<uint8>* pabUsed)
+static bool IR816LabelUsed(CIRW65C816Code* pcCode, size uiLine, CArrayTemplate<uint8>* pabUsed)
 {
-	const char*	szText;
-	size		ui;
-	size		uiNumber;
+	int64	lliNumber;
 
-	szText = psz->Text();
-	if ((szText[0] != 'L') || (szText[1] < '0') || (szText[1] > '9'))
+	lliNumber = pcCode->LocalLabelNumber(uiLine);
+	if (lliNumber < 0)
 	{
 		return true;
 	}
-	for (ui = 1; (szText[ui] >= '0') && (szText[ui] <= '9'); ui++)
-	{
-	}
-	if ((szText[ui] != ':') || (szText[ui + 1] != '\0'))
-	{
-		return true;
-	}
-	uiNumber = (size)atoi(&szText[1]);
-	return (uiNumber < pabUsed->NumElements()) && (*pabUsed->Get(uiNumber) != 0);
+	return ((size)lliNumber < pabUsed->NumElements()) && (*pabUsed->Get((size)lliNumber) != 0);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Writes a branch line, "\t\tszMnemonic szLabel", over line uiLine.
+// Writes the branch szMnemonic to szLabel over line uiLine.
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR816SetBranch(CIRW65C816Code* pcCode, size uiLine, const char* szMnemonic, const char* szLabel)
+static void IR816SetBranch(CIRW65C816Code* pcCode, size uiLine, uint16 uiMnemonic, const char* szLabel)
 {
-	CChars	sz;
-
-	sz.Init(CIRW65C816Backend::GetScratch());
-	sz.Append("\t\t");
-	sz.Append(szMnemonic);
-	sz.Append(" ");
-	sz.Append(szLabel);
-	pcCode->Set(uiLine, sz.Text());
-	sz.Kill();
+	pcCode->SetBranch(uiLine, uiMnemonic, szLabel, StrLen(szLabel));
 }
 
 
@@ -437,8 +373,8 @@ static bool IR816CarryOrEqual(CIRW65C816Code* pcCode)
 			(((sLine.uiMnemonic == IR816M_Bcc) && (sLine2.uiMnemonic == IR816M_Beq)) || ((sLine.uiMnemonic == IR816M_Beq) && (sLine2.uiMnemonic == IR816M_Bcc))) &&
 			IR816LabelFollows(pcCode, ui + 3, szLabel))
 		{
-			IR816SetBranch(pcCode, ui, "beq", szLabel);
-			IR816SetBranch(pcCode, ui + 1, "bcs", szLabel3);
+			IR816SetBranch(pcCode, ui, IR816M_Beq, szLabel);
+			IR816SetBranch(pcCode, ui + 1, IR816M_Bcs, szLabel3);
 			pcCode->Remove(ui + 2);
 			bChanged = true;
 		}
@@ -475,7 +411,7 @@ public:
 	void		Remove(size uiLine) override;
 
 protected:
-	void		SetBranch(size uiLine, const char* szMnemonic, size uiLabel);
+	void		SetBranch(size uiLine, uint16 uiMnemonic, size uiLabel);
 };
 
 
@@ -505,7 +441,7 @@ void CIR816BranchCode::Init(CIRW65C816Code* pcCode)
 	{
 		if (pcCode->IsLabel(ui))
 		{
-			lliNumber = IR816LocalLabelNumber(pcCode->Text(ui), true);
+			lliNumber = pcCode->LocalLabelNumber(ui);
 			if (lliNumber < 0)
 			{
 				continue;
@@ -519,7 +455,7 @@ void CIR816BranchCode::Init(CIRW65C816Code* pcCode)
 		}
 		else if (pcCode->IsTabbed(ui) && !IR816BranchLine(pcCode, ui, &sLine, szLabel))
 		{
-			IR816MarkMentions(pcCode->Text(ui), &mabNamed);
+			IR816MarkMentions(pcCode, ui, true, &mabNamed);
 		}
 	}
 	while (mabNamed.NumElements() < mauiLabelLines.NumElements())
@@ -617,7 +553,7 @@ size CIR816BranchCode::Target(size uiLine)
 	{
 		return IR_NO_LINE;
 	}
-	lliNumber = IR816LocalLabelNumber(szLabel, false);
+	lliNumber = IR816LocalLabelNumber(szLabel, StrLen(szLabel));
 	if ((lliNumber < 0) || ((size)lliNumber >= mauiLabelLines.NumElements()))
 	{
 		return IR_NO_LINE;
@@ -633,20 +569,18 @@ size CIR816BranchCode::Target(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 bool CIR816BranchCode::IsEntry(size uiLine)
 {
-	const char*	szText;
 	int64		lliNumber;
 
 	if (uiLine == 0)
 	{
 		return true;
 	}
-	szText = mpcCode->Text(uiLine);
 	if (mpcCode->IsLabel(uiLine))
 	{
-		lliNumber = IR816LocalLabelNumber(szText, true);
+		lliNumber = mpcCode->LocalLabelNumber(uiLine);
 		return (lliNumber < 0) || (((size)lliNumber < mabNamed.NumElements()) && *mabNamed.Get((size)lliNumber));
 	}
-	return !mpcCode->IsTabbed(uiLine) || (szText[2] == '.');
+	return !mpcCode->IsTabbed(uiLine) || mpcCode->IsDirective(uiLine);
 }
 
 
@@ -659,11 +593,11 @@ bool CIR816BranchCode::Retarget(size uiLine, size uiLabel)
 	SIRW65C816Line	sLine;
 	char		szLabel[32];
 
-	if (!IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
+	if (!IR816BranchLine(mpcCode, uiLine, &sLine, szLabel) || (sLine.uiMnemonic == IR816M_Unknown))
 	{
 		return false;
 	}
-	SetBranch(uiLine, sLine.szMnemonic, uiLabel);
+	SetBranch(uiLine, sLine.uiMnemonic, uiLabel);
 	return true;
 }
 
@@ -676,18 +610,18 @@ bool CIR816BranchCode::Invert(size uiLine, size uiLabel)
 {
 	SIRW65C816Line	sLine;
 	char		szLabel[32];
-	const char*	szInverted;
+	uint16		uiInverted;
 
 	if (!IR816BranchLine(mpcCode, uiLine, &sLine, szLabel))
 	{
 		return false;
 	}
-	szInverted = IR816InvertedBranch(sLine.uiMnemonic);
-	if (!szInverted)
+	uiInverted = IR816InvertedBranch(sLine.uiMnemonic);
+	if (uiInverted == IR816M_Unknown)
 	{
 		return false;
 	}
-	SetBranch(uiLine, szInverted, uiLabel);
+	SetBranch(uiLine, uiInverted, uiLabel);
 	return true;
 }
 
@@ -708,14 +642,13 @@ void CIR816BranchCode::Remove(size uiLine)
 // The branch at uiLine as szMnemonic to the label at uiLabel.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR816BranchCode::SetBranch(size uiLine, const char* szMnemonic, size uiLabel)
+void CIR816BranchCode::SetBranch(size uiLine, uint16 uiMnemonic, size uiLabel)
 {
-	CChars	szLabel;
+	const char*	szLabel;
+	size		uiLength;
 
-	szLabel.Init(CIRW65C816Backend::GetScratch());
-	szLabel.AppendSubString(mpcCode->Text(uiLabel), mpcCode->GetText(uiLabel)->Length() - 1);
-	IR816SetBranch(mpcCode, uiLine, szMnemonic, szLabel.Text());
-	szLabel.Kill();
+	szLabel = mpcCode->LabelName(uiLabel, &uiLength);
+	mpcCode->SetBranch(uiLine, uiMnemonic, szLabel, uiLength);
 }
 
 
@@ -756,8 +689,6 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 	CIR816BranchCode		cBranches;
 	CArrayTemplate<uint8>	abUsed;
 	CArrayTemplate<size>	auiLabelLines;
-	CChars*					psz;
-	CChars					szRound;
 	SIRW65C816Line				sLine;
 	SIRW65C816Line				sLine2;
 	char					szLabel[32];
@@ -783,8 +714,7 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 		IR816FindUsedLabels(pcCode, &abUsed);
 		for (ui = 0; ui < pcCode->NumLines(); ui++)
 		{
-			psz = pcCode->GetText(ui);
-			if (!IR816LabelUsed(psz, &abUsed))
+			if (!IR816LabelUsed(pcCode, ui, &abUsed))
 			{
 				//A label nothing goes to (its branches were sent elsewhere): it would keep the rules below apart.
 				pcCode->Remove(ui);
@@ -795,11 +725,11 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 			if (IR816BranchLine(pcCode, ui, &sLine, szLabel))
 			{
 				//Bcc X, bra Y round a loop (JumpTo marked it) is B!cc Y, bra X: going round, the usual way, is one branch taken.
-				if ((ui + 1 < pcCode->NumLines()) && IR816InvertedBranch(sLine.uiMnemonic) && IR816BranchLine(pcCode, ui + 1, &sLine2, szLabel2) &&
-					(sLine2.uiMnemonic == IR816M_Bra) && pcCode->GetText(ui + 1)->EndsWith(IR816_ROUND) && (StringCompare(szLabel, szLabel2) != 0))
+				if ((ui + 1 < pcCode->NumLines()) && (IR816InvertedBranch(sLine.uiMnemonic) != IR816M_Unknown) && IR816BranchLine(pcCode, ui + 1, &sLine2, szLabel2) &&
+					(sLine2.uiMnemonic == IR816M_Bra) && pcCode->IsRound(ui + 1) && (StringCompare(szLabel, szLabel2) != 0))
 				{
 					IR816SetBranch(pcCode, ui, IR816InvertedBranch(sLine.uiMnemonic), szLabel2);
-					IR816SetBranch(pcCode, ui + 1, "bra", szLabel);
+					IR816SetBranch(pcCode, ui + 1, IR816M_Bra, szLabel);
 					bChanged = true;
 					continue;
 				}
@@ -808,7 +738,7 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 			}
 
 			//An lda (of a direct page word or a constant) for nothing: what runs next sets A before reading A or N and Z.
-			if ((psz->Length() > 3) && pcCode->Decoded(ui, &sLine))
+			if (pcCode->Decoded(ui, &sLine))
 			{
 				if ((sLine.uiMnemonic == IR816M_Lda) && ((strncmp(sLine.szOperand, "[D + ", 5) == 0) || IR816IsDecimal(sLine.szOperand)) &&
 					IR816SetsAFirst(pcCode, ui + 1, &auiLabelLines))
@@ -821,7 +751,7 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 			}
 
 			//A tax for nothing: X is written again before anything reads it.
-			if (psz->Equals("\t\ttax") && IR816SetsXFirst(pcCode, ui + 1))
+			if (pcCode->IsBare(ui, IR816M_Tax) && IR816SetsXFirst(pcCode, ui + 1))
 			{
 				pcCode->Remove(ui);
 				ui--;
@@ -831,12 +761,12 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 
 			//tax then txa, or txa then tax, with only clc or sec between: A and X hold the same already (and N and Z
 			//are as the first set them).
-			if (psz->Equals("\t\ttax") || psz->Equals("\t\ttxa"))
+			if (pcCode->IsBare(ui, IR816M_Tax) || pcCode->IsBare(ui, IR816M_Txa))
 			{
-				for (uiTarget = ui + 1; (uiTarget < pcCode->NumLines()) && (pcCode->GetText(uiTarget)->Equals("\t\tclc") || pcCode->GetText(uiTarget)->Equals("\t\tsec")); uiTarget++)
+				for (uiTarget = ui + 1; (uiTarget < pcCode->NumLines()) && (pcCode->IsBare(uiTarget, IR816M_Clc) || pcCode->IsBare(uiTarget, IR816M_Sec)); uiTarget++)
 				{
 				}
-				if ((uiTarget < pcCode->NumLines()) && pcCode->GetText(uiTarget)->Equals((psz->Text()[3] == 'a') ? "\t\ttxa" : "\t\ttax"))
+				if ((uiTarget < pcCode->NumLines()) && pcCode->IsBare(uiTarget, pcCode->IsBare(ui, IR816M_Tax) ? IR816M_Txa : IR816M_Tax))
 				{
 					pcCode->Remove(uiTarget);
 					bChanged = true;
@@ -845,9 +775,9 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 			}
 
 			//txy, an instruction that keeps X and Y (lda, sta, and, ora, eor, adc, sbc, cmp, sep, rep, clc or sec), txy.
-			if ((ui + 2 < pcCode->NumLines()) && psz->Equals("\t\ttxy") && pcCode->Decoded(ui + 1, &sLine) &&
+			if ((ui + 2 < pcCode->NumLines()) && pcCode->IsBare(ui, IR816M_Txy) && pcCode->Decoded(ui + 1, &sLine) &&
 				(((sLine.uiFlags & IR816MF_A_ALU) && (sLine.uiMnemonic != IR816M_Bit)) || (sLine.uiFlags & (IR816MF_WIDTH | IR816MF_CARRY))) &&
-				pcCode->GetText(ui + 2)->Equals("\t\ttxy"))
+				pcCode->IsBare(ui + 2, IR816M_Txy))
 			{
 				pcCode->Remove(ui + 2);
 				bChanged = true;
@@ -867,14 +797,7 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		psz = pcCode->GetText(ui);
-		if (psz->EndsWith(IR816_ROUND))
-		{
-			szRound.Init(CIRW65C816Backend::GetScratch());
-			szRound.AppendSubString(psz->Text(), psz->Length() - StrLen(IR816_ROUND));
-			pcCode->Set(ui, szRound.Text());
-			szRound.Kill();
-		}
+		pcCode->ClearRound(ui);
 	}
 	auiLabelLines.Kill();
 	abUsed.Kill();

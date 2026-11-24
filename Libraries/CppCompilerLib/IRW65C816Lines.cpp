@@ -336,10 +336,10 @@ bool IR816LeavesA(SIRW65C816Line* psLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The branch that goes when uiMnemonic's doesn't, or NULL.
+// The branch that goes when uiMnemonic's doesn't, or IR816M_Unknown.
 //
 //////////////////////////////////////////////////////////////////////////
-const char* IR816InvertedBranch(uint16 uiMnemonic)
+uint16 IR816InvertedBranch(uint16 uiMnemonic)
 {
 	int	i;
 
@@ -347,10 +347,104 @@ const char* IR816InvertedBranch(uint16 uiMnemonic)
 	{
 		if (gauiIR816InvertedBranches[i] == uiMnemonic)
 		{
-			return gasIR816Mnemonics[gauiIR816InvertedBranches[i ^ 1]].szName;
+			return gauiIR816InvertedBranches[i ^ 1];
 		}
 	}
-	return NULL;
+	return IR816M_Unknown;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The decimal number szDigits (uiLength digits) is.
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 IR816DecimalNumber(const char* szDigits, size uiLength)
+{
+	uint64	ulliNumber;
+	size	ui;
+
+	ulliNumber = 0;
+	for (ui = 0; ui < uiLength; ui++)
+	{
+		ulliNumber = ulliNumber * 10 + (uint64)(szDigits[ui] - '0');
+	}
+	return ulliNumber;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the instruction's operand has szText in it.
+//
+//////////////////////////////////////////////////////////////////////////
+bool IR816OperandHas(SIRW65C816Line* psLine, const char* szText)
+{
+	size	uiText;
+	size	ui;
+
+	uiText = StrLen(szText);
+	for (ui = 0; ui + uiText <= psLine->uiOperand; ui++)
+	{
+		if (strncmp(psLine->szOperand + ui, szText, uiText) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A mnemonic's name ("lda").
+//
+//////////////////////////////////////////////////////////////////////////
+const char* IR816MnemonicName(uint16 uiMnemonic)
+{
+	return gasIR816Mnemonics[uiMnemonic].szName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instruction's line, two tabs then "mnemonic operand" (szOperand uiOperand long,
+// none when 0), appended to psz.
+//
+//////////////////////////////////////////////////////////////////////////
+void IR816AppendInstruction(CChars* psz, uint16 uiMnemonic, const char* szOperand, size uiOperand)
+{
+	psz->Append("\t\t");
+	psz->Append(gasIR816Mnemonics[uiMnemonic].szName);
+	if (uiOperand > 0)
+	{
+		psz->Append(' ');
+		psz->AppendSubString(szOperand, uiOperand);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The number of a local label's name ("L12", uiLength long), else -1.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 IR816LocalLabelNumber(const char* szLabel, size uiLength)
+{
+	size	ui;
+
+	if ((uiLength < 2) || (szLabel[0] != 'L') || (szLabel[1] < '0') || (szLabel[1] > '9') || ((szLabel[1] == '0') && (uiLength > 2)))
+	{
+		return -1;
+	}
+	for (ui = 1; (ui < uiLength) && (szLabel[ui] >= '0') && (szLabel[ui] <= '9'); ui++)
+	{
+	}
+	if ((ui != uiLength) || (ui > 10))
+	{
+		return -1;
+	}
+	return atoll(&szLabel[1]);
 }
 
 
