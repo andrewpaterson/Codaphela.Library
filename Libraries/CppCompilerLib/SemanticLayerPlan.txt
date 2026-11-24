@@ -10,7 +10,7 @@ Where it is (2026-11-24): the first part's stages (0 to 16) are done, but for wh
 left; stage 7 was tried and taken back; its last table is at the end.  Part two (stages 17 to 25, planned
 2026-11-23) is what it left; its questions (6 to 10) are answered.  It was checked against the code on
 2026-11-24 and planned again: every item still applies, 37 functions no stage took were given homes, and
-questions 11 and 12 are new (answers assumed, in brackets).  Stage 17 is done (2026-11-24, its record at the
+questions 11 and 12 were asked and answered as assumed.  Stage 17 is done (2026-11-24, its record at the
 end); 18 is next.  The user on 2026-11-22: "Finish and commit,
 continue with all fixes in the semantic layer as planned.  Commit and clean-up as you go along."
 
@@ -442,7 +442,7 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
    The unit has twelve friends (CPPUnit.h, 2026-11-24): CCPPConstantFolder, CCPPClosures, CCPPClassData,
    CCPPStrings, CCPPCheck, CCPPWarnings, CCPPBuiltins, CCPPExceptions, CCPPDesugarings, CCPPInstantiator,
    CCPP65TypeChecker and CCPPBinder.  The last two were never out of the unit, but reach into it the same way and
-   are in this stage too (question 12).  Each reaches into it (mpcUnit->mcTypes, mpcUnit->mcContext ...); the
+   are in this stage too (question 12, answered yes).  Each reaches into it (mpcUnit->mcTypes, mpcUnit->mcContext ...); the
    classes stages 17 to 22 make are made without friendship.  Each one's asks of the unit are counted, and then
    each is given what it works with when it is made (the types, the diagnostics, the context, the binder, the
    classes beside it), a narrow interface its header shows, and is no longer a friend (question 10).  The debug
@@ -476,15 +476,15 @@ What this plan takes from the other areas' findings, and what it leaves
 
 Questions for the user
 
-Open, asked 2026-11-24 (work goes on with the answer in brackets assumed):
+Open: none.
 
- 11. HashMapPlan.txt's conversions of StandardLib, SupportLib, LogiCim and HCP65's Assembler65Lib wait "until
-     its plan is finished", at this plan's asking: they change the *65 projects' listings this plan compares.
-     Part two is 30 to 40 proofs.  May they land between part two's stages, each followed by a fresh listings
-     baseline?  [Yes: a baseline costs one listings run, and nothing of part two needs them held back.]
- 12. CCPP65TypeChecker and CCPPBinder are the unit's friends too, though they were never taken out of it.  Do they
-     stop being friends in stage 24, as the classes taken out do?  [Yes: the unit ends with no friends, as
-     ConsolidationPlan's stage 4 first asked.]
+Answered 2026-11-24 (each asked alone, as the plan assumed):
+
+ 11. HashMapPlan.txt's conversions of StandardLib, SupportLib, LogiCim and HCP65's Assembler65Lib may land between
+     part two's stages, each followed by a fresh listings baseline, which the next stage's record says it took and
+     why.
+ 12. CCPP65TypeChecker and CCPPBinder stop being the unit's friends in stage 24 too, each with a narrow interface:
+     the unit ends with no friends.
 
 Answered 2026-11-23 (part two's, each asked alone):
 
