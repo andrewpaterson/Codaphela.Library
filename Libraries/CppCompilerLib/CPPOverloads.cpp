@@ -1861,7 +1861,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 		//A value with no name only binds to a const reference or T&&.
 		return CPPCR_None;
 	}
-	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcArgument)))
+	if (psParameter->IsPointer() && psArgument->IsPointer() && psParameter->psBase->Equals(psArgument->psBase) && pcArgument && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcArgument)))
 	{
 		//A string literal's characters are const: char* p = "x" is allowed, but const char* is the better match.
 		return psParameter->psBase->bConst ? CPPCR_Exact : CPPCR_Qualification;
@@ -1921,7 +1921,7 @@ int CCPPOverloads::ConversionRank(SCPP65Type* psParameter, SCPP65Type* psArgumen
 	if (psParameter->IsNullPointer())
 	{
 		//Only a null pointer constant becomes a std::nullptr_t.
-		return (pcArgument && mpcUnit->IsNullPointerConstant(pcArgument)) ? CPPCR_Conversion : CPPCR_None;
+		return (pcArgument && mpcUnit->GetTypeChecker()->IsNullPointerConstant(pcArgument)) ? CPPCR_Conversion : CPPCR_None;
 	}
 	if (psParameter->IsPointer() && psArgument->IsPointer())
 	{

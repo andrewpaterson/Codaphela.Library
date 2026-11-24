@@ -743,7 +743,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 
 	psElement = psPlace->psType->psBase;
 	pcInitialiser = mpcUnit->StringInitialiser(pcInitialiser, psElement);
-	if (mpcUnit->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
+	if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcInitialiser) && psElement->IsScalar() && (psElement->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
 		if (!mpcUnit->GetStrings()->DecodeString(pcInitialiser, &auiBytes))
@@ -771,7 +771,7 @@ bool CCPP65IRFrontEnd::ArrayInitialiser(SCPP65IRPlace* psPlace, CCPPSyntax* pcIn
 	}
 	if (pcInitialiser->GetKind() != CPPS_InitializerList)
 	{
-		if (mpcUnit->IsStringLiteral(pcInitialiser))
+		if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcInitialiser))
 		{
 			//[dcl.init.string] 1
 			return mpcDiagnostics->ReportError(pcInitialiser, mpcUnit->GetCheck()->StringArrayError(pcInitialiser, psElement));
@@ -822,7 +822,7 @@ bool CCPP65IRFrontEnd::ArrayElements(SCPP65IRPlace* psPlace, CArraySyntax* papcE
 		pcElement = papcElements->GetPtr(*puiNext);
 		if (psElement->IsArray())
 		{
-			if ((pcElement->GetKind() == CPPS_InitializerList) || mpcUnit->IsStringLiteral(pcElement))
+			if ((pcElement->GetKind() == CPPS_InitializerList) || mpcUnit->GetTypeChecker()->IsStringLiteral(pcElement))
 			{
 				(*puiNext)++;
 				if (!ArrayInitialiser(&sPlace, pcElement))

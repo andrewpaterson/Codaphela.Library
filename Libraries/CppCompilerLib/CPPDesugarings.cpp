@@ -406,10 +406,10 @@ SCPPLiteralCall* CCPPDesugarings::GetLiteralCall(CCPPSyntax* pcLiteral)
 		}
 		auiBytes.Kill();
 	}
-	else if (mpcUnit->CharacterTokenType(pcUser->mpcLiteral))
+	else if (mpcUnit->GetTypeChecker()->CharacterTokenType(pcUser->mpcLiteral))
 	{
 		//'c'_x is given a char, L'c'_x a wchar_t, u'c'_x a char16_t and U'c'_x a char32_t.  [lex.ext] 6
-		pcArgument = LiteralArgument(pcLiteral, mpcUnit->CharacterTokenType(pcUser->mpcLiteral), papcArguments);
+		pcArgument = LiteralArgument(pcLiteral, mpcUnit->GetTypeChecker()->CharacterTokenType(pcUser->mpcLiteral), papcArguments);
 		pcArgument->mbConstant = mpcUnit->mcFolder.TokenConstant(pcUser->mpcLiteral, &pcArgument->mlliValue);
 		sCall.pcFunction = mpcUnit->mcBinder.FindLiteralOperator(lliName, NULL, papcArguments, pcLiteral);
 	}
@@ -571,7 +571,7 @@ bool CCPPDesugarings::InitialisesWhole(SCPP65Type* psMember, CCPPSyntax* pcValue
 
 	if (psMember->IsArray())
 	{
-		return psMember->psBase->IsInteger() && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcValue));
+		return psMember->psBase->IsInteger() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcValue));
 	}
 	mpcUnit->mcDiagnostics.BeginQuiet();
 	psValue = mpcUnit->GetTypeChecker()->ValueTypeOf(pcValue);

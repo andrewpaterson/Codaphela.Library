@@ -383,7 +383,7 @@ bool CCPPGlobals::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialise
 		{
 			i = 0;
 		}
-		else if (mpcUnit->IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
+		else if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
 		{
 			auiBytes.Init();
 			bResult = mpcUnit->GetStrings()->DecodeString(pcInitialiser, &auiBytes);
@@ -431,7 +431,7 @@ bool CCPPGlobals::GlobalInitialiser(SCPP65Type* psType, CCPPSyntax* pcInitialise
 		mpcData->AppendData(psType->iBytes, mpcUnit->GetFolder()->FloatBits(psType, dValue));
 		return true;
 	}
-	if (pcInitialiser && psType->IsPointer() && mpcUnit->IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
+	if (pcInitialiser && psType->IsPointer() && mpcUnit->GetTypeChecker()->IsStringLiteral(pcInitialiser) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)))
 	{
 		auiBytes.Init();
 		bResult = mpcUnit->GetStrings()->DecodeString(pcInitialiser, &auiBytes);

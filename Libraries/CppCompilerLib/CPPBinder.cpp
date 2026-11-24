@@ -1169,7 +1169,7 @@ CCPPFunction* CCPPBinder::FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65T
 	int64			lliName;
 
 	*pbFailed = false;
-	lliName = mpcUnit->GetOperatorName(CT_new, mpcUnit->IsArrayNew(pcNew));
+	lliName = mpcUnit->GetOperatorName(CT_new, mpcUnit->GetTypeChecker()->IsArrayNew(pcNew));
 	pcClass = (psType->IsClass() && !pcNew->mbGlobal) ? psType->pcClass : NULL;
 	if (pcClass && mcNames.HasMember(pcClass, lliName))
 	{

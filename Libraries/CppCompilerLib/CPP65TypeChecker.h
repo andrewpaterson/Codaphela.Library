@@ -35,6 +35,7 @@ class CCPPClass;
 class CCPPFunction;
 class CCPPTemplateArguments;
 class CCPPErrors;
+class CCTInt;
 
 
 //What an expression is ([basic.lval]): an lvalue (a place that stays), an xvalue (a place about to go), or a
@@ -188,6 +189,22 @@ public:
 	bool					IsVolatileThis(void);
 	SCPP65Type*				ThisType(CCPPClass* pcClass);
 
+
+	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
+	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
+	SCPP65Type*				CharacterTokenType(CCPPToken* pcToken);
+	bool					IsStringLiteral(CCPPSyntax* pcExpression);
+	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
+	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
+	SCPP65Type*				NewTypeIdArray(CCPPSyntaxNewExpression* pcNew);
+	bool					IsArrayNew(CCPPSyntaxNewExpression* pcNew);
+	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);
+	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
+	bool					TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes);
+	bool					IsTriviallyCopyableType(SCPP65Type* psType);
+	bool					IsStandardLayoutType(SCPP65Type* psType);
+	bool					IsNullPointerConstant(CCPPSyntax* pcExpression);
+	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 protected:
 	SCPP65Type*		Result(CCPPSyntax* pcExpression);
 	SCPP65Type*		PlaceType(CCPPSyntax* pcExpression);

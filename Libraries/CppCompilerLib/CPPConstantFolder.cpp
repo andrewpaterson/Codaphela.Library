@@ -283,7 +283,7 @@ bool CCPPConstantFolder::Fold(CCPPSyntax* pcExpression, SCPPConstant* psValue)
 		return true;
 
 	case CPPS_TypeTraitExpression:
-		return mpcUnit->TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, &psValue->lliValue);
+		return mpcUnit->GetTypeChecker()->TypeTrait((CCPPSyntaxTypeTraitExpression*)pcExpression, &psValue->lliValue);
 
 	case CPPS_NoexceptExpression:
 		psValue->lliValue = !mpcUnit->GetExceptions()->MayThrow(((CCPPSyntaxNoexceptExpression*)pcExpression)->mpcOperand);
@@ -770,7 +770,7 @@ bool CCPPConstantFolder::NamesConstexpr(CCPPSyntax* pcNode)
 	{
 		return false;
 	}
-	if (mpcUnit->IsStringLiteral(pcNode) || ((pcNode->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcNode)->meOperator == CT_BitwiseAnd)))
+	if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcNode) || ((pcNode->GetKind() == CPPS_UnaryExpression) && (((CCPPSyntaxUnaryExpression*)pcNode)->meOperator == CT_BitwiseAnd)))
 	{
 		return true;
 	}

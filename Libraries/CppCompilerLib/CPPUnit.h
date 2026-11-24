@@ -387,7 +387,6 @@ public:
 
 
 	//Literals, constants, warnings and TypeOf.  CPPUnitExpressions.cpp
-	SCPP65Type*				IntegerLiteralType(CCTInt* pcInt);
 
 
 	bool					QuietConstant(CCPPSyntax* pcExpression, int64* plliValue);
@@ -395,17 +394,9 @@ public:
 
 	bool					FunctionNameText(int64 lliName, CChars* pszText);
 	bool					IsFunctionName(CCPPSyntaxIdExpression* pcId);
-	SCPP65Type*				Literal(CCPPSyntaxLiteralExpression* pcLiteral);
-	SCPP65Type*				CharacterTokenType(CCPPToken* pcToken);
 	CCPPSyntaxIdExpression*	FunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
 	CCPPSyntaxIdExpression*	MemberFunctionNameFor(CCPPSyntax* pcExpression, SCPP65Type* psTo);
-	bool					IsStringLiteral(CCPPSyntax* pcExpression);
 	CCPPSyntaxFunctionSuffix*	PointedFunctionSuffix(CCPPSyntaxDeclarator* pcDeclarator);
-	CCPPSyntax*				NewSize(CCPPSyntaxNewExpression* pcNew);
-	SCPP65Type*				NewElementType(CCPPSyntaxNewExpression* pcNew);
-	SCPP65Type*				NewTypeIdArray(CCPPSyntaxNewExpression* pcNew);
-	bool					IsArrayNew(CCPPSyntaxNewExpression* pcNew);
-	void					NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments);
 	CCPPSyntaxIdExpression*	FunctionNameOf(CCPPSyntax* pcExpression);
 	bool					IsMemberPointerOperator(CCPPSyntax* pcExpression);
 	bool					NamesFunction(CCPPSyntax* pcExpression);
@@ -417,16 +408,10 @@ public:
 
 
 	bool					CheckConstexprLocal(CCPPVariable* pcVariable, CCPPSyntaxInitDeclarator* pcInit);
-	bool					TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue);
-	bool					TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes);
-	bool					IsTriviallyCopyableType(SCPP65Type* psType);
-	bool					IsStandardLayoutType(SCPP65Type* psType);
 	bool					EnumeratorValue(CCPPSymbol* pcSymbol, int64* plliValue);
 	SCPP65Type*				EnumType(CCPPSymbol* pcEnum, CCPPSyntaxEnumSpecifier* pcSpecifier);
 	SCPP65Type*				EnumeratorType(CCPPSymbol* pcSymbol);
 	CCPPSyntax*				SkipParentheses(CCPPSyntax* pcExpression);
-	bool					IsNullPointerConstant(CCPPSyntax* pcExpression);
-	SCPP65Type*				QualifiedFieldType(CCPPSyntax* pcExpression);
 
 	//Objects and copies.  CPPUnitObjects.cpp
 	CCPPSyntaxIdExpression*	MemberPointerName(CCPPSyntaxUnaryExpression* pcAddress);

@@ -1269,12 +1269,12 @@ bool CCPP65IRFrontEnd::NewExpression(CCPPSyntaxNewExpression* pcNew, SCPP65IRVal
 	CIRBlock*		pcEnd;
 	size			uiMark;
 
-	psType = mpcUnit->NewElementType(pcNew);
+	psType = mpcUnit->GetTypeChecker()->NewElementType(pcNew);
 	if (!psType || !IsLocalType(psType) || psType->IsVoid() || psType->IsReference())
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	if (mpcUnit->IsArrayNew(pcNew))
+	if (mpcUnit->GetTypeChecker()->IsArrayNew(pcNew))
 	{
 		return NewArray(pcNew, psType, psValue);
 	}
@@ -1341,9 +1341,9 @@ bool CCPP65IRFrontEnd::Allocate(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	bool			bFailed;
 	bool			bResult;
 
-	bArray = mpcUnit->IsArrayNew(pcNew);
+	bArray = mpcUnit->GetTypeChecker()->IsArrayNew(pcNew);
 	apcArguments.Init();
-	mpcUnit->NewArguments(pcNew, &apcArguments);
+	mpcUnit->GetTypeChecker()->NewArguments(pcNew, &apcArguments);
 	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	bResult = !bFailed;
 	if (ppcAllocation)
@@ -1461,7 +1461,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	{
 		return Unsupported(__FILE__, __LINE__);
 	}
-	psWhole = mpcUnit->NewTypeIdArray(pcNew);
+	psWhole = mpcUnit->GetTypeChecker()->NewTypeIdArray(pcNew);
 	if (psWhole)
 	{
 		//new (Type[N]): the type-id's own bound.
@@ -1567,7 +1567,7 @@ bool CCPP65IRFrontEnd::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psTy
 	bValue = pcNew->mpcInitializer != NULL;
 	uiFirst = papcElements ? papcElements->NumElements() : 0;
 	sElement.psBitField = NULL;
-	if (mpcUnit->IsStringLiteral(pcString))
+	if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcString))
 	{
 		uiFirst = mpcUnit->GetStrings()->StringArrayType(pcString)->iCount;
 		sElement.sAddress = sMemory;

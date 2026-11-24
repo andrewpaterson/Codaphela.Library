@@ -24,6 +24,16 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 #include "CPPSemanticPass.h"
 #include "CPP65TypeChecker.h"
+#include "CTInt.h"
+#include "CTShort.h"
+#include "CTLongLong.h"
+#include "CTChar.h"
+#include "CTBoolean.h"
+#include "CTString.h"
+#include "CTIdentifier.h"
+#include "CTUserLiteral.h"
+#include "LiteralHelper.h"
+#include "CPPConstants.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -915,7 +925,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 	}
 	else
 	{
-		psType = mpcUnit->Literal((CCPPSyntaxLiteralExpression*)pcExpression);
+		psType = Literal((CCPPSyntaxLiteralExpression*)pcExpression);
 		if (!psType)
 		{
 			return NULL;
@@ -1211,7 +1221,7 @@ SCPP65Type* CCPP65TypeChecker::UnaryExpression(CCPPSyntaxUnaryExpression* pcUnar
 			{
 				return psType;
 			}
-			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->GetClosures()->ThisClass() && mpcUnit->QualifiedFieldType(pcId))
+			if (!mpcUnit->MemberPointerName(pcUnary) && !mpcUnit->GetClosures()->ThisClass() && QualifiedFieldType(pcId))
 			{
 				//&(Class::field), which is no pointer to a member, where there is no object for the field to be in.
 				Error(pcUnary, "A pointer to a member is &Class::member, with no brackets about the name");
@@ -1683,7 +1693,7 @@ bool CCPP65TypeChecker::Compare(CCPPSyntaxBinaryExpression* pcBinary, SCPP65Type
 	bRightPointer = psRight->IsPointer() || psRight->IsMemberPointer();
 	if ((bLeftPointer && psRight->IsInteger()) || (bRightPointer && psLeft->IsInteger()))
 	{
-		if (!mpcUnit->IsNullPointerConstant(bLeftPointer ? pcBinary->mpcRight : pcBinary->mpcLeft))
+		if (!IsNullPointerConstant(bLeftPointer ? pcBinary->mpcRight : pcBinary->mpcLeft))
 		{
 			return Error(pcNode, "A pointer is compared with a pointer, 0 or nullptr: not with a number");
 		}
@@ -1835,11 +1845,11 @@ bool CCPP65TypeChecker::ConditionalResultsFit(CCPPSyntaxConditionalExpression* p
 	}
 	if ((psTrue->IsPointer() || psTrue->IsMemberPointer()) && psFalse->IsInteger())
 	{
-		return mpcUnit->IsNullPointerConstant(pcConditional->mpcFalse);
+		return IsNullPointerConstant(pcConditional->mpcFalse);
 	}
 	if ((psFalse->IsPointer() || psFalse->IsMemberPointer()) && psTrue->IsInteger())
 	{
-		return mpcUnit->IsNullPointerConstant(pcConditional->mpcTrue);
+		return IsNullPointerConstant(pcConditional->mpcTrue);
 	}
 	return true;
 }
@@ -2837,7 +2847,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 				return NULL;
 			}
 			//S::m with no object, in an operand that isn't evaluated: nothing is read.  [expr.prim.general] 13
-			psType = mpcUnit->GetContext()->IsUnevaluated() ? mpcUnit->QualifiedFieldType(pcExpression) : NULL;
+			psType = mpcUnit->GetContext()->IsUnevaluated() ? QualifiedFieldType(pcExpression) : NULL;
 			if (!psType)
 			{
 				Error(pcExpression, NotAPlace(((CCPPSyntaxIdExpression*)pcExpression)->mpcName));
@@ -2887,7 +2897,7 @@ SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 
 	case CPPS_StringExpression:
 		//A string literal is the array of its characters ("text"_s is its literal operator's call, below).
-		if (mpcUnit->IsStringLiteral(pcExpression))
+		if (IsStringLiteral(pcExpression))
 		{
 			return mpcUnit->GetStrings()->StringArrayType(pcExpression);
 		}
@@ -3129,7 +3139,7 @@ SCPP65Type* CCPP65TypeChecker::CastExpression(CCPPSyntaxTypeId* pcTypeId, CCPPSy
 		Error(pcNode, "A pointer to a member isn't an address: no cast makes it a pointer or a number");
 		return NULL;
 	}
-	if (psTo->IsMemberPointer() && !psFrom->IsMemberPointer() && !psFrom->IsNullPointer() && !mpcUnit->IsNullPointerConstant(pcOperand))
+	if (psTo->IsMemberPointer() && !psFrom->IsMemberPointer() && !psFrom->IsNullPointer() && !IsNullPointerConstant(pcOperand))
 	{
 		Error(pcNode, "A pointer to a member is made from another, 0 or nullptr: no cast makes one from an address or a number");
 		return NULL;
@@ -3405,7 +3415,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 	CArraySyntax	apcArguments;
 	bool			bFailed;
 
-	psType = mpcUnit->NewElementType(pcNew);
+	psType = NewElementType(pcNew);
 	if (!psType || (psType->IsClass() && !mpcUnit->GetClasses()->CompleteObjectClass(psType->pcClass, pcNew)))
 	{
 		return NULL;
@@ -3418,7 +3428,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 	}
 
 	apcArguments.Init();
-	mpcUnit->NewArguments(pcNew, &apcArguments);
+	NewArguments(pcNew, &apcArguments);
 	pcAllocation = mpcUnit->GetBinder()->FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	psResult = pcAllocation ? Call(pcAllocation, &apcArguments, pcNew) : &mpcTypes->msVoid;
 	apcArguments.Kill();
@@ -3436,7 +3446,7 @@ SCPP65Type* CCPP65TypeChecker::NewExpression(CCPPSyntaxNewExpression* pcNew)
 		return NULL;
 	}
 
-	if (mpcUnit->IsArrayNew(pcNew))
+	if (IsArrayNew(pcNew))
 	{
 		return NewArray(pcNew, psType);
 	}
@@ -3461,9 +3471,9 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 	SCPP65Type*		psElement;
 	size			i;
 
-	if (mpcUnit->NewTypeIdArray(pcNew))
+	if (NewTypeIdArray(pcNew))
 	{
-		if (mpcUnit->NewTypeIdArray(pcNew)->iCount == 0)
+		if (NewTypeIdArray(pcNew)->iCount == 0)
 		{
 			Error(pcNew, "A new array needs its bound");
 			return NULL;
@@ -3484,7 +3494,7 @@ SCPP65Type* CCPP65TypeChecker::NewArray(CCPPSyntaxNewExpression* pcNew, SCPP65Ty
 		Error(pcNew, "A new array of arrays with a list of initialisers is not supported by the compiler yet");
 		return NULL;
 	}
-	if (mpcUnit->IsStringLiteral(mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType)))
+	if (IsStringLiteral(mpcUnit->StringInitialiser(pcNew->mpcInitializer, psType)))
 	{
 		//new char[n]{"abc"}: the string's characters, as an array of them is initialised.  [dcl.init.string]
 		papcElements = NULL;
@@ -3767,7 +3777,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 	{
 		//char a[4] = "abc"; and = { "abc" }: an array of characters is its string's.  [dcl.init.string]
 		pcString = pcInitialiser ? pcInitialiser : ((papcArguments->NumElements() == 1) ? papcArguments->GetPtr(0) : NULL);
-		if (pcString && mpcUnit->IsStringLiteral(pcString) && psType->psBase->IsInteger() && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcString)))
+		if (pcString && IsStringLiteral(pcString) && psType->psBase->IsInteger() && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcString)))
 		{
 			apcArguments.Kill();
 			return true;
@@ -3779,7 +3789,7 @@ bool CCPP65TypeChecker::Construct(SCPP65Type* psType, CArraySyntax* papcArgument
 			apcArguments.Kill();
 			return Error(pcNode, "More initialisers than the array's elements take");
 		}
-		if (pcString && mpcUnit->IsStringLiteral(pcString))
+		if (pcString && IsStringLiteral(pcString))
 		{
 			//[dcl.init.string] 1
 			apcArguments.Kill();
@@ -4108,7 +4118,7 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	{
 		if (!papcElements)
 		{
-			if (mpcUnit->IsStringLiteral(pcInitialiser) && !(psType->psBase->IsInteger() && (psType->psBase->eKind != CPP65TK_Bool) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser))))
+			if (IsStringLiteral(pcInitialiser) && !(psType->psBase->IsInteger() && (psType->psBase->eKind != CPP65TK_Bool) && (psType->psBase->iBytes == mpcUnit->GetStrings()->StringElementBytes(pcInitialiser))))
 			{
 				//[dcl.init.string] 1
 				return Error(pcInitialiser, mpcUnit->GetCheck()->StringArrayError(pcInitialiser, psType->psBase));
@@ -4302,7 +4312,7 @@ bool CCPP65TypeChecker::KeepsNullPointer(SCPP65Type* psFrom, SCPP65Type* psTo, C
 		}
 		return Error(pcNode, (psTo->eKind == CPP65TK_Bool) ? "nullptr is a bool only where it is tested or directly initialises one" : "nullptr converts only to a pointer or a pointer to a member");
 	}
-	if (psTo->IsNullPointer() && !(pcValue && mpcUnit->IsNullPointerConstant(pcValue)))
+	if (psTo->IsNullPointer() && !(pcValue && IsNullPointerConstant(pcValue)))
 	{
 		return Error(pcNode, "Only nullptr or a literal 0 converts to std::nullptr_t");
 	}
@@ -4391,7 +4401,7 @@ bool CCPP65TypeChecker::ConvertsPointer(SCPP65Type* psFrom, SCPP65Type* psTo, CC
 	}
 	if (!bFromPointer)
 	{
-		return (psFrom->IsInteger() && (!pcValue || mpcUnit->IsNullPointerConstant(pcValue))) || Error(pcNode, "Only 0 or nullptr becomes a pointer without a cast");
+		return (psFrom->IsInteger() && (!pcValue || IsNullPointerConstant(pcValue))) || Error(pcNode, "Only 0 or nullptr becomes a pointer without a cast");
 	}
 	if (!bToPointer)
 	{
@@ -4608,7 +4618,7 @@ bool CCPP65TypeChecker::StaticCastAllowed(CCPPSyntaxNamedCastExpression* pcCast,
 	}
 	if ((psTo->IsPointer() || psTo->IsMemberPointer()) && !(psFrom->IsPointer() || psFrom->IsMemberPointer()))
 	{
-		return mpcUnit->IsNullPointerConstant(pcCast->mpcOperand) || Error(pcCast, "static_cast doesn't make a pointer from a number: reinterpret_cast does");
+		return IsNullPointerConstant(pcCast->mpcOperand) || Error(pcCast, "static_cast doesn't make a pointer from a number: reinterpret_cast does");
 	}
 	if ((psFrom->IsPointer() || psFrom->IsMemberPointer()) && !(psTo->IsPointer() || psTo->IsMemberPointer()))
 	{
@@ -4696,7 +4706,7 @@ bool CCPP65TypeChecker::KeepsPointerQualifiers(SCPP65Type* psFrom, SCPP65Type* p
 		return true;
 	}
 	bKept = !LosesPointerQualifiers(psFrom, psTo);
-	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcNode)))
+	if (!bKept && psFrom->psBase->Equals(psTo->psBase) && IsStringLiteral(mpcUnit->SkipParentheses(pcNode)))
 	{
 		//char* p = "abc": a string literal's characters are const, and the conversion that let that be forgotten went
 		//with C++11.  It is still made, as code written before is full of it, and is warned about when that is asked
@@ -5642,4 +5652,550 @@ bool CCPP65TypeChecker::IsVolatileThis(void) { return !mpcUnit->GetContext()->Ge
 SCPP65Type* CCPP65TypeChecker::ThisType(CCPPClass* pcClass)
 {
 	return mpcTypes->Pointer(mpcTypes->Qualified(pcClass->mpsType, IsConstThis(), IsVolatileThis()));
+}
+
+
+//The compiler's type traits of one type.
+enum ECPP65TypeTrait
+{
+	CPP65TT_None,
+	CPP65TT_Class,
+	CPP65TT_Union,
+	CPP65TT_Enum,
+	CPP65TT_Empty,
+	CPP65TT_Polymorphic,
+	CPP65TT_Abstract,
+	CPP65TT_TrivialConstructor,
+	CPP65TT_TrivialDestructor,
+	CPP65TT_Trivial,
+	CPP65TT_TriviallyCopyable,
+	CPP65TT_Pod,
+	CPP65TT_StandardLayout,
+	CPP65TT_LiteralType,
+	CPP65TT_Final,
+	CPP65TT_BaseOf,
+	CPP65TT_ConvertibleTo,
+	CPP65TT_Constructible,
+	CPP65TT_Assignable,
+};
+
+
+struct SCPP65TypeTraitName
+{
+	const char*			szName;
+	ECPP65TypeTrait		eTrait;
+};
+
+
+static SCPP65TypeTraitName gasCPP65TypeTraits[] =
+{
+	{ "__is_class", CPP65TT_Class },
+	{ "__is_union", CPP65TT_Union },
+	{ "__is_enum", CPP65TT_Enum },
+	{ "__is_empty", CPP65TT_Empty },
+	{ "__is_polymorphic", CPP65TT_Polymorphic },
+	{ "__is_abstract", CPP65TT_Abstract },
+	{ "__is_trivially_constructible", CPP65TT_TrivialConstructor },
+	{ "__has_trivial_constructor", CPP65TT_TrivialConstructor },
+	{ "__is_trivially_destructible", CPP65TT_TrivialDestructor },
+	{ "__has_trivial_destructor", CPP65TT_TrivialDestructor },
+	{ "__is_pod", CPP65TT_Pod },
+	{ "__is_trivial", CPP65TT_Trivial },
+	{ "__is_trivially_copyable", CPP65TT_TriviallyCopyable },
+	{ "__has_trivial_copy", CPP65TT_TriviallyCopyable },
+	{ "__is_standard_layout", CPP65TT_StandardLayout },
+	{ "__is_literal_type", CPP65TT_LiteralType },
+	{ "__is_literal", CPP65TT_LiteralType },
+	{ "__is_final", CPP65TT_Final },
+	{ "__is_sealed", CPP65TT_Final },
+	{ "__is_base_of", CPP65TT_BaseOf },
+	{ "__is_convertible_to", CPP65TT_ConvertibleTo },
+	{ "__is_convertible", CPP65TT_ConvertibleTo },
+	{ "__is_constructible", CPP65TT_Constructible },
+	{ "__is_assignable", CPP65TT_Assignable },
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type trait called pszName, CPP65TT_None if there is none this
+// compiler knows.
+//
+//////////////////////////////////////////////////////////////////////////
+static ECPP65TypeTrait CPP65FindTypeTrait(CChars* pszName)
+{
+	size	ui;
+
+	for (ui = 0; ui < sizeof(gasCPP65TypeTraits) / sizeof(gasCPP65TypeTraits[0]); ui++)
+	{
+		if (pszName->Equals(gasCPP65TypeTraits[ui].szName))
+		{
+			return gasCPP65TypeTraits[ui].eTrait;
+		}
+	}
+	return CPP65TT_None;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A compiler type trait's value (see gasCPP65TypeTraits), of its types.  A
+// class is abstract when one of its virtual functions is still pure; it is
+// trivially copyable when copying, assigning and destroying it is only its
+// bytes (nothing the compiler writes runs, and it has no vtable), trivial
+// when making one is too, standard layout when its fields are laid out as
+// C's are, and a POD when both.  [meta.unary.prop]
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::TypeTrait(CCPPSyntaxTypeTraitExpression* pcTrait, int64* plliValue)
+{
+	CArrayCPP65Types	apsTypes;
+	SCPP65Type*			psType;
+	CCPPClass*			pcClass;
+	CChars				szTrait;
+	ECPP65TypeTrait		eTrait;
+	size				i;
+	bool				bResult;
+
+	szTrait.Init();
+	mpcUnit->GetTokeniser()->GetSource(mpcUnit->GetTokeniser()->Get(pcTrait->miName))->Append(&szTrait);
+	eTrait = CPP65FindTypeTrait(&szTrait);
+	szTrait.Kill();
+	if (eTrait == CPP65TT_None)
+	{
+		return false;
+	}
+
+	apsTypes.Init();
+	bResult = pcTrait->macpArguments.NumElements() >= 1;
+	for (i = 0; bResult && (i < pcTrait->macpArguments.NumElements()); i++)
+	{
+		psType = (pcTrait->macpArguments.GetPtr(i)->GetKind() == CPPS_TypeId) ? mpcUnit->GetDeclarators()->GetTypeIdType((CCPPSyntaxTypeId*)pcTrait->macpArguments.GetPtr(i)) : NULL;
+		pcClass = (psType && psType->WithoutReference()->IsClass()) ? psType->WithoutReference()->pcClass : NULL;
+		bResult = psType && (!pcClass || mpcUnit->GetClasses()->CompleteClass(pcClass, pcTrait));
+		if (bResult)
+		{
+			apsTypes.Add(psType);
+		}
+	}
+	if (bResult && (apsTypes.NumElements() < (size)(((eTrait == CPP65TT_BaseOf) || (eTrait == CPP65TT_ConvertibleTo) || (eTrait == CPP65TT_Assignable)) ? 2 : 1)))
+	{
+		bResult = mpcDiagnostics->Error(pcTrait, "The type trait needs more types");
+	}
+	if (bResult)
+	{
+		*plliValue = TypeTraitValue(eTrait, &apsTypes);
+	}
+	apsTypes.Kill();
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A type trait's value for its types (each complete).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::TypeTraitValue(int iTrait, CArrayCPP65Types* papsTypes)
+{
+	SCPP65Type*			psType;
+	SCPP65Type*			psOther;
+	CCPPClass*			pcClass;
+	CArrayCPP65Types	apsArguments;
+	size				i;
+	bool				bResult;
+
+	psType = papsTypes->GetPtr(0);
+	psOther = (papsTypes->NumElements() > 1) ? papsTypes->GetPtr(1) : NULL;
+	pcClass = psType->IsClass() ? psType->pcClass : NULL;
+	switch ((ECPP65TypeTrait)iTrait)
+	{
+	case CPP65TT_Class:					return pcClass && !pcClass->mbUnion;
+	case CPP65TT_Union:					return pcClass && pcClass->mbUnion;
+	case CPP65TT_Enum:					return psType->pcEnum != NULL;
+	case CPP65TT_Empty:					return pcClass && pcClass->mbEmpty;
+	case CPP65TT_Polymorphic:			return pcClass && pcClass->IsPolymorphic();
+	case CPP65TT_Abstract:				return pcClass && pcClass->IsAbstract();
+	case CPP65TT_Final:					return pcClass && pcClass->mpcSpecifier && pcClass->mpcSpecifier->mbFinal;
+	case CPP65TT_TrivialConstructor:	return !pcClass || !pcClass->NeedsConstructor();
+	case CPP65TT_TrivialDestructor:		return !pcClass || !pcClass->NeedsDestructor();
+	case CPP65TT_TriviallyCopyable:		return IsTriviallyCopyableType(psType);
+	case CPP65TT_Trivial:				return IsTriviallyCopyableType(psType) && (!pcClass || !pcClass->NeedsConstructor());
+	case CPP65TT_StandardLayout:		return IsStandardLayoutType(psType);
+	case CPP65TT_Pod:					return IsTriviallyCopyableType(psType) && (!pcClass || !pcClass->NeedsConstructor()) && IsStandardLayoutType(psType);
+	case CPP65TT_LiteralType:			return mpcUnit->GetConstants()->IsLiteralType(psType);
+	case CPP65TT_BaseOf:
+		//A class is its own base here.  [meta.rel] Table 49
+		return pcClass && psOther->IsClass() && ((pcClass == psOther->pcClass) || mpcUnit->GetClasses()->IsDerived(psOther->pcClass, pcClass, NULL));
+	case CPP65TT_ConvertibleTo:
+		return mpcUnit->GetBinder()->IsConvertible(psOther, psType);
+	case CPP65TT_Constructible:
+		apsArguments.Init();
+		for (i = 1; i < papsTypes->NumElements(); i++)
+		{
+			apsArguments.Add(papsTypes->GetPtr(i));
+		}
+		bResult = mpcUnit->GetBinder()->IsConstructible(psType, &apsArguments);
+		apsArguments.Kill();
+		return bResult;
+	case CPP65TT_Assignable:
+		return mpcUnit->GetBinder()->IsAssignable(psType, psOther);
+	default:
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if copying, assigning and destroying an object of the type is only
+// its bytes.  [basic.types] 9
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsTriviallyCopyableType(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+
+	psType = psType->InnermostElement();
+	if (!psType->IsClass())
+	{
+		return !psType->IsReference();
+	}
+	pcClass = psType->pcClass;
+	return pcClass->IsTriviallyCopyable() && pcClass->IsTriviallyAssignable() && !pcClass->NeedsDestructor() && !pcClass->IsPolymorphic();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// True if the type is laid out as C's types are: no vtable, no reference,
+// standard layout fields and bases, and fields in only one class of its
+// hierarchy.  [class] 7
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsStandardLayoutType(SCPP65Type* psType)
+{
+	CCPPClass*	pcClass;
+	CCPPClass*	pcFields;
+	size		i;
+
+	psType = psType->InnermostElement();
+	if (!psType->IsClass())
+	{
+		return !psType->IsReference();
+	}
+	pcClass = psType->pcClass;
+	if (pcClass->IsPolymorphic())
+	{
+		return false;
+	}
+	for (i = 0; i < pcClass->macFields.NumElements(); i++)
+	{
+		if (!IsStandardLayoutType(pcClass->macFields.Get(i)->psType))
+		{
+			return false;
+		}
+	}
+	pcFields = (pcClass->macFields.NumElements() > 0) ? pcClass : NULL;
+	for (i = 0; i < pcClass->macBases.NumElements(); i++)
+	{
+		if (!IsStandardLayoutType(pcClass->macBases.Get(i)->pcClass->mpsType))
+		{
+			return false;
+		}
+		if (!pcClass->macBases.Get(i)->pcClass->mbEmpty)
+		{
+			if (pcFields)
+			{
+				return false;
+			}
+			pcFields = pcClass->macBases.Get(i)->pcClass;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What a new expression makes: its type-id's type (auto's is its
+// initialiser's), and for new Type[count][N]... arrays of the inner bounds
+// (constants).  A type-id that is an array by itself (NewTypeIdArray) makes
+// the array's elements.  NULL after an error.  [expr.new] 2, 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::NewElementType(CCPPSyntaxNewExpression* pcNew)
+{
+	CArraySyntax*	papcElements;
+	CCPPSyntax*		pcInitialiser;
+	SCPP65Type*		psType;
+	int64			lliCount;
+	size			i;
+
+	//new auto(x) is of x's type: the one thing in its brackets.  [expr.new] 2
+	pcInitialiser = NULL;
+	if (mpcUnit->GetDeclarators()->IsAuto(pcNew->mpcType->mpcSpecifiers) && pcNew->mpcInitializer)
+	{
+		papcElements = mpcUnit->GetInstantiator()->ListElements(pcNew->mpcInitializer);
+		pcInitialiser = (papcElements->NumElements() == 1) ? papcElements->GetPtr(0) : NULL;
+	}
+	psType = pcInitialiser ? mpcUnit->GetDeclarators()->GetType(pcNew->mpcType->mpcSpecifiers, pcNew->mpcType->mpcDeclarator, pcNew->mpcType, pcInitialiser) : mpcUnit->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
+	for (i = pcNew->macpArraySizes.NumElements(); psType && (i > 1); i--)
+	{
+		if (!mpcUnit->GetFolder()->Constant(pcNew->macpArraySizes.GetPtr(i - 1), &lliCount) || (lliCount <= 0))
+		{
+			mpcUnit->GetFolder()->ConstantError(pcNew->macpArraySizes.GetPtr(i - 1), "A new array's bounds after the first must be positive constants");
+			return NULL;
+		}
+		psType = mpcTypes->Array(psType, (int)lliCount);
+	}
+	return (psType && psType->IsArray() && (pcNew->macpArraySizes.NumElements() == 0)) ? psType->psBase : psType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The array a new expression's type-id is by itself, with no bound after
+// it: new (int[3]), or new A where A is a typedef of an array.  It makes the
+// array's elements, as new int[3] does, and gives a pointer to the first.
+// NULL if it isn't one.  [expr.new] 5
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::NewTypeIdArray(CCPPSyntaxNewExpression* pcNew)
+{
+	SCPP65Type*	psType;
+
+	if ((pcNew->macpArraySizes.NumElements() > 0) || mpcUnit->GetDeclarators()->IsAuto(pcNew->mpcType->mpcSpecifiers))
+	{
+		return NULL;
+	}
+	mpcDiagnostics->BeginQuiet();
+	psType = mpcUnit->GetDeclarators()->GetTypeIdType(pcNew->mpcType);
+	mpcDiagnostics->EndQuiet();
+	return (psType && psType->IsArray()) ? psType : NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a new expression makes an array: by operator new[], its elements
+// each constructed.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsArrayNew(CCPPSyntaxNewExpression* pcNew)
+{
+	return (pcNew->macpArraySizes.NumElements() > 0) || (NewTypeIdArray(pcNew) != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new expression's allocation arguments: its size (NewSize), then its
+// placement arguments.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65TypeChecker::NewArguments(CCPPSyntaxNewExpression* pcNew, CArraySyntax* papcArguments)
+{
+	size	i;
+
+	papcArguments->Add(NewSize(pcNew));
+	for (i = 0; i < pcNew->macpPlacement.NumElements(); i++)
+	{
+		papcArguments->Add(pcNew->macpPlacement.GetPtr(i));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The size a new expression's allocation function is given: a size_t.
+// [expr.new] 9
+//
+//////////////////////////////////////////////////////////////////////////
+CCPPSyntax* CCPP65TypeChecker::NewSize(CCPPSyntaxNewExpression* pcNew)
+{
+	return mpcUnit->GetDesugarings()->ImplicitValue(pcNew, mpcTypes->Size());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Numbers, characters, true, false and nullptr.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::Literal(CCPPSyntaxLiteralExpression* pcLiteral)
+{
+	CCPPToken*		pcToken;
+
+	pcToken = mpcUnit->GetTokeniser()->Get(pcLiteral->miLiteral);
+	if (pcToken->IsUserLiteral())
+	{
+		mpcDiagnostics->Error(pcLiteral, "No literal operator takes the literal");
+		return NULL;
+	}
+	if (pcToken->IsNumber())
+	{
+		switch (((CCTNumber*)pcToken)->meType)
+		{
+		case CTNT_Int:
+			return ((CCTInt*)pcToken)->mbChar32 ? &mpcTypes->msChar32 : IntegerLiteralType((CCTInt*)pcToken);
+		case CTNT_Short:
+			//L'x' and u'x'.
+			return ((CCTShort*)pcToken)->mbChar16 ? &mpcTypes->msChar16 : &mpcTypes->msWChar;
+		case CTNT_LongLong:
+			return ((CCTLongLong*)pcToken)->IsSigned() ? &mpcTypes->msLongLong : &mpcTypes->msUnsignedLongLong;
+		case CTNT_Float:
+			return &mpcTypes->msFloat;
+		case CTNT_Double:
+			return &mpcTypes->msDouble;
+		case CTNT_LongDouble:
+			return &mpcTypes->msLongDouble;
+		default:
+			mpcDiagnostics->Error(pcLiteral, "This literal is not supported by the compiler yet");
+			return NULL;
+		}
+	}
+	if (pcToken->IsChar())
+	{
+		return &mpcTypes->msChar;
+	}
+	if (pcToken->IsBool())
+	{
+		return &mpcTypes->msBool;
+	}
+	//nullptr is a std::nullptr_t.  [lex.nullptr]
+	return &mpcTypes->msNullPointer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An int literal is int (or unsigned int) if it fits and has no L suffix, otherwise long (or unsigned long): only
+// different where int is narrower than 32 bits (the W65C816).  A hex or octal one too big for an int is an unsigned
+// int if it fits one ([lex.icon]).
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::IntegerLiteralType(CCTInt* pcInt)
+{
+	uint64	ulliValue;
+	uint64	ulliIntMax;
+
+	//An L literal is long (unsigned long if it's unsigned), whatever int is.
+	ulliValue = (uint32)pcInt->mcValue;
+	ulliIntMax = (uint64)mpcTypes->msInt.Most();
+	if (pcInt->IsSigned())
+	{
+		if (!pcInt->mbLong && (ulliValue <= ulliIntMax))
+		{
+			return &mpcTypes->msInt;
+		}
+		if (!pcInt->mbLong && !pcInt->mbDecimal && (ulliValue <= ulliIntMax * 2 + 1))
+		{
+			return &mpcTypes->msUnsignedInt;
+		}
+		return &mpcTypes->msLong;
+	}
+	if (!pcInt->mbLong && (ulliValue <= ulliIntMax * 2 + 1))
+	{
+		return &mpcTypes->msUnsignedInt;
+	}
+	return &mpcTypes->msUnsignedLong;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of a character literal's token (char, wchar_t, char16_t or
+// char32_t), or NULL if it is no character literal of one character.
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::CharacterTokenType(CCPPToken* pcToken)
+{
+	if (pcToken->IsChar())
+	{
+		return &mpcTypes->msChar;
+	}
+	if (pcToken->IsNumber() && (((CCTNumber*)pcToken)->meType == CTNT_Short))
+	{
+		return ((CCTShort*)pcToken)->mbChar16 ? &mpcTypes->msChar16 : &mpcTypes->msWChar;
+	}
+	if (pcToken->IsNumber() && (((CCTNumber*)pcToken)->meType == CTNT_Int) && ((CCTInt*)pcToken)->mbChar32)
+	{
+		return &mpcTypes->msChar32;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an expression is a string literal, its characters: not a
+// user-defined one ("text"_s), which is its literal operator's call.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsStringLiteral(CCPPSyntax* pcExpression)
+{
+	return pcExpression && (pcExpression->GetKind() == CPPS_StringExpression) && !mpcUnit->GetDesugarings()->UserLiteralToken(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the expression is a null pointer constant: nullptr, or an
+// integer literal whose value is 0.  [conv.ptr] 1
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCPP65TypeChecker::IsNullPointerConstant(CCPPSyntax* pcExpression)
+{
+	CCPPToken*	pcToken;
+	int64		lliValue;
+
+	pcExpression = pcExpression ? pcExpression->WithoutParentheses() : NULL;
+	if (!pcExpression || (pcExpression->GetKind() != CPPS_LiteralExpression))
+	{
+		return false;
+	}
+	pcToken = mpcUnit->GetTokeniser()->Get(((CCPPSyntaxLiteralExpression*)pcExpression)->miLiteral);
+	if (pcToken->Is(CT_nullptr))
+	{
+		return true;
+	}
+	return pcToken->IsNumber() && !pcToken->IsUserLiteral() && (((CCTNumber*)pcToken)->meType != CTNT_Float) && (((CCTNumber*)pcToken)->meType != CTNT_Double) &&
+		   (((CCTNumber*)pcToken)->meType != CTNT_LongDouble) && mpcUnit->GetFolder()->Constant(pcExpression, &lliValue) && (lliValue == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The type of the field Class::field names, with no object: what sizeof
+// and the like may be given, as nothing is read.  NULL if the expression
+// isn't that.  [expr.prim.general] 13
+//
+//////////////////////////////////////////////////////////////////////////
+SCPP65Type* CCPP65TypeChecker::QualifiedFieldType(CCPPSyntax* pcExpression)
+{
+	CCPPSyntaxName*	pcName;
+	CCPPClass*		pcClass;
+	SCPPField*		psField;
+	int				iOffset;
+
+	if (!pcExpression || (pcExpression->GetKind() != CPPS_IdExpression))
+	{
+		return NULL;
+	}
+	pcName = ((CCPPSyntaxIdExpression*)pcExpression)->mpcName;
+	if (pcName->IsQualifiedByDecltype() && !pcName->mpcSymbol)
+	{
+		//decltype(d)::m: the parser doesn't know d's class, so the field is found by its name.
+		pcClass = mpcUnit->GetNames()->QualifiersClass(pcName, pcExpression);
+		psField = (pcClass && mpcUnit->GetClasses()->CompleteClass(pcClass, pcExpression)) ? pcClass->FindField(mpcUnit->GetComponentName(pcName->GetLast()), &iOffset) : NULL;
+		return psField ? psField->psType : NULL;
+	}
+	if (!pcName->mpcSymbol || (pcName->mpcSymbol->meKind != CPPSK_Field) || !pcName->IsQualifiedByClass())
+	{
+		return NULL;
+	}
+	pcClass = mpcUnit->GetNames()->NameQualifierClass(pcName, pcExpression);
+	psField = (pcClass && mpcUnit->GetClasses()->CompleteClass(pcClass, pcExpression)) ? pcClass->FindFieldSymbol(pcName->mpcSymbol, &iOffset) : NULL;
+	return psField ? psField->psType : NULL;
 }

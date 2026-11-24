@@ -947,14 +947,14 @@ bool CCPPExceptions::NewMayThrow(CCPPSyntaxNewExpression* pcNew)
 	CArraySyntax	apcArguments;
 	bool			bFailed;
 
-	psType = mpcUnit->NewElementType(pcNew);
+	psType = mpcUnit->GetTypeChecker()->NewElementType(pcNew);
 	if (!psType)
 	{
 		return true;
 	}
 	bFailed = false;
 	apcArguments.Init();
-	mpcUnit->NewArguments(pcNew, &apcArguments);
+	mpcUnit->GetTypeChecker()->NewArguments(pcNew, &apcArguments);
 	pcAllocation = mpcUnit->mcBinder.FindAllocation(pcNew, psType, &apcArguments, &bFailed);
 	apcArguments.Kill();
 	if (bFailed || (pcAllocation ? !IsNoexcept(pcAllocation) : !pcNew->mbPlacement))

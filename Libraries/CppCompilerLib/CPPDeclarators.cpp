@@ -243,7 +243,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 		{
 			return NULL;
 		}
-		if (pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && psType->IsInteger() && mpcUnit->IsStringLiteral(mpcUnit->StringInitialiser(pcInitialiser, psType)) &&
+		if (pcArray->mpcSize && (i == 1) && !pcDeclarator->mpcNested && psType->IsInteger() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->StringInitialiser(pcInitialiser, psType)) &&
 			(GetInitialiserCount(mpcUnit->StringInitialiser(pcInitialiser, psType), psType) > lliCount + (mpcUnit->IsCSource() ? 1 : 0)))
 		{
 			//char a[3] = "abc" has no room for the string's end (which C lets go).  [dcl.init.string] 2
@@ -355,7 +355,7 @@ int CCPPDeclarators::GetInitialiserCount(CCPPSyntax* pcInitialiser, SCPP65Type* 
 	{
 		return (int)mpcUnit->GetInstantiator()->ListElements(mpcUnit->GetDesugarings()->BracedFor(mpcUnit->GetTypes()->Array(psElement, 0), pcInitialiser))->NumElements();
 	}
-	if (mpcUnit->IsStringLiteral(pcInitialiser))
+	if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcInitialiser))
 	{
 		auiBytes.Init();
 		iCount = mpcUnit->GetStrings()->DecodeString(pcInitialiser, &auiBytes) ? ((int)auiBytes.NumElements() / mpcUnit->GetStrings()->StringElementBytes(pcInitialiser)) + 1 : 0;
@@ -502,7 +502,7 @@ SCPP65Type* CCPPDeclarators::DeduceAuto(CCPPSyntaxDeclSpecifiers* pcSpecifiers, 
 		{
 			psType = pcTypes->Pointer(psType->ElementType());
 		}
-		else if (psType && psType->IsPointer() && mpcUnit->IsStringLiteral(mpcUnit->SkipParentheses(pcInitialiser)))
+		else if (psType && psType->IsPointer() && mpcUnit->GetTypeChecker()->IsStringLiteral(mpcUnit->SkipParentheses(pcInitialiser)))
 		{
 			//A string literal's characters are const.
 			psType = pcTypes->Pointer(pcTypes->Qualified(psType->psBase, true, false));
@@ -640,7 +640,7 @@ SCPP65Type* CCPPDeclarators::EntityType(CCPPSyntax* pcOperand)
 	cBound.meWhat = CPPBN_Nothing;
 	if (pcOperand->GetKind() == CPPS_IdExpression)
 	{
-		psType = mpcUnit->QualifiedFieldType(pcOperand);
+		psType = mpcUnit->GetTypeChecker()->QualifiedFieldType(pcOperand);
 		if (psType)
 		{
 			return psType;

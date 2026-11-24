@@ -1553,7 +1553,7 @@ CCPPSyntax* CCPPUnit::StringInitialiser(CCPPSyntax* pcInitialiser, SCPP65Type* p
 	if (pcInitialiser && (pcInitialiser->GetKind() == CPPS_InitializerList) && psElement->IsInteger())
 	{
 		papcElements = mcInstantiator.ListElements(pcInitialiser);
-		if ((papcElements->NumElements() == 1) && IsStringLiteral(papcElements->GetPtr(0)) && (mcStrings.StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
+		if ((papcElements->NumElements() == 1) && mcTypeChecker.IsStringLiteral(papcElements->GetPtr(0)) && (mcStrings.StringElementBytes(papcElements->GetPtr(0)) == psElement->iBytes))
 		{
 			return papcElements->GetPtr(0);
 		}

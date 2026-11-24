@@ -526,7 +526,7 @@ bool CCPP65IRFrontEnd::ConstantValue(CCPPSyntax* pcExpression, SCPP65IRValue* ps
 	int64		lliValue;
 	double		dValue;
 
-	psType = (pcExpression->GetKind() == CPPS_LiteralExpression) ? mpcUnit->Literal((CCPPSyntaxLiteralExpression*)pcExpression) : mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
+	psType = (pcExpression->GetKind() == CPPS_LiteralExpression) ? mpcUnit->GetTypeChecker()->Literal((CCPPSyntaxLiteralExpression*)pcExpression) : mpcUnit->GetTypeChecker()->TypeOf(pcExpression);
 	if (!psType)
 	{
 		return false;
@@ -1322,7 +1322,7 @@ bool CCPP65IRFrontEnd::Place(CCPPSyntax* pcExpression, SCPP65IRPlace* psPlace)
 		return true;
 
 	case CPPS_StringExpression:
-		if (mpcUnit->IsStringLiteral(pcExpression))
+		if (mpcUnit->GetTypeChecker()->IsStringLiteral(pcExpression))
 		{
 			//The array of its characters, where its data is.
 			if (!StringLiteral(pcExpression, &sAddress))
