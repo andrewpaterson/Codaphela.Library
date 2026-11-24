@@ -501,11 +501,12 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 	CCPPSymbol*						pcEnumerator;
 	CCPPSymbol*						pcMember;
 	bool							bResult;
+	size							uiRefused;
 
 	pcSymbol = pcId->mpcName->mpcSymbol;
 	if (!pcSymbol || (pcSymbol->meKind == CPPSK_Enumerator))
 	{
-		mpcUnit->mbValueArgumentRefused = false;
+		uiRefused = mpcUnit->GetInstantiator()->NumRefusedArguments();
 		pcEnumerator = mpcUnit->GetNames()->QualifiedEnumerator(pcId->mpcName, pcId, &pcClass);
 		if (pcEnumerator)
 		{
@@ -514,7 +515,7 @@ bool CCPPConstantFolder::NameConstant(CCPPSyntaxIdExpression* pcId, int64* plliV
 			mpcUnit->mcContext.LeaveBindings();
 			return bResult;
 		}
-		if (mpcUnit->mbValueArgumentRefused)
+		if (mpcUnit->GetInstantiator()->NumRefusedArguments() != uiRefused)
 		{
 			//Count<-1>::V: there is no such class for V to be the enumerator of.
 			return false;

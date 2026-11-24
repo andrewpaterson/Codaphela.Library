@@ -353,7 +353,6 @@ void CCPPUnit::Init(CCPPSyntaxTree* pcTree, ECPPTarget eTarget)
 	mcMangler.Init(mpcTokeniser, mcClasses.GetClassList(), &mcFunctionsOfNames);
 	mapcTemplates.Init();
 	mapcAllBindings.Init();
-	mbValueArgumentRefused = false;
 	mapcHiddenSymbols.Init();
 	mcExplicitInstances.Init();
 	mcEnums.Init(this);

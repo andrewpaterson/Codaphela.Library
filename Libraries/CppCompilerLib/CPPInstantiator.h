@@ -106,16 +106,18 @@ class CCPPInstantiator
 {
 protected:
 	CCPPUnit*				mpcUnit;
-	CArrayCPPOutsideDefinitions	masOutsideDefinitions;
-	CArrayCPPPacks	mapapsPacks;	//The packs' types (NewPack).
-	CArrayCPPValuePacks	mapalliPacks;	//The non-type packs' values (NewValuePack).
-	CArrayCPPSymbols	mapcPackSymbols;	//The symbols made for function and template parameter packs' elements.
-	CArrayCPPPackElements	masPackElements;	//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
-	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).	//The definitions written outside their class template, in the order seen, to give each instance.
+	CArrayCPPOutsideDefinitions		masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
+	CArrayCPPPacks					mapapsPacks;			//The packs' types (NewPack).
+	CArrayCPPValuePacks				mapalliPacks;			//The non-type packs' values (NewValuePack).
+	CArrayCPPSymbols				mapcPackSymbols;		//The symbols made for function and template parameter packs' elements.
+	CArrayCPPPackElements			masPackElements;		//Template parameter packs' elements in each bindings (PackElement), and function ones' in each function.
+	CArrayCPPExpandedArgumentLists	masExpandedArguments;	//Argument lists with their packs expanded (ExpandArguments).
+	size							muiRefusedArguments;	//Template arguments whose values weren't of their parameters' types (ValueArgumentFits), all told.
 
 public:
 	void					Init(CCPPUnit* pcUnit);
 	void					Kill(void);
+	size					NumRefusedArguments(void) const;
 
 	bool					IsStaticMemberDefinition(CCPPSyntaxSimpleDeclaration* pcSimple);
 	bool					DefineInstanceData(void);

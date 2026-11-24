@@ -33,6 +33,7 @@ void CCPPInstantiator::Init(CCPPUnit* pcUnit)
 {
 	mpcUnit = pcUnit;
 	masOutsideDefinitions.Init();
+	muiRefusedArguments = 0;
 	mapapsPacks.Init();
 	mapalliPacks.Init();
 	mapcPackSymbols.Init();
@@ -83,6 +84,16 @@ void CCPPInstantiator::Kill(void)
 	mapcPackSymbols.Kill();
 	mpcUnit = NULL;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many template arguments have been refused for a value that isn't of
+// their parameter's type (ValueArgumentFits): what a caller compares before
+// and after a name to know whether naming it refused one.
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPPInstantiator::NumRefusedArguments(void) const { return muiRefusedArguments; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1891,7 +1902,7 @@ bool CCPPInstantiator::ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPE
 		return true;
 	}
 	//Said again where the instance is named for good (CCPP65TypeChecker::ConstantValue): this may only be a try.
-	mpcUnit->mbValueArgumentRefused = true;
+	muiRefusedArguments++;
 	return mpcUnit->mcDiagnostics.ReportOnce(psArgument->pcArgument, "The constant's value isn't one of the type it is converted to");
 }
 
