@@ -23,6 +23,7 @@ along with Codaphela KicadLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ListVariable.h"
+#include "BaseLib/UnionFind.h"
 #include "KicadSchemFile.h"
 #include "KicadSchemNet.h"
 #include "KicadSchemBus.h"
@@ -76,7 +77,7 @@ protected:
 	CListVariable				macBuses;
 	CListVariable				macBusNets;
 	CArrayKicadSchemNetNode		masNodes;
-	CArrayInt					maiParents;
+	CUnionFind					mcParents;
 
 public:
 	void				Init(CKicadSchemFile* pcFile);
@@ -110,8 +111,8 @@ protected:
 	void				JoinNodes(void);
 	void				CreateSubnets(void);
 	void				CreateNets(void);
-	void				AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
-	void				AddSubnetName(char* szScope, const char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents);
+	void				AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CUnionFind* pcSubnetParents);
+	void				AddSubnetName(char* szScope, const char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CUnionFind* pcSubnetParents);
 	void				NameNet(CKicadSchemNet* pcNet);
 	void				CreateBuses(void);
 	void				AddBusTaps(void);
@@ -120,8 +121,6 @@ protected:
 };
 
 
-int		FindKicadSchemRoot(CArrayInt* paiParents, int iNode);
-void	JoinKicadSchemRoots(CArrayInt* paiParents, int iNode1, int iNode2);
 
 
 #endif // __KICAD_SCHEM_NETLIST_H__

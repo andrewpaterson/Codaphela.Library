@@ -35,7 +35,7 @@ void CKicadSchemNetlist::Init(CKicadSchemFile* pcFile)
 	macBuses.Init();
 	macBusNets.Init();
 	masNodes.Init();
-	maiParents.Init();
+	mcParents.Init();
 }
 
 
@@ -47,7 +47,7 @@ void CKicadSchemNetlist::Kill(void)
 {
 	size	i;
 
-	maiParents.Kill();
+	mcParents.Kill();
 	masNodes.Kill();
 
 	for (i = 0; i < macBusNets.NumElements(); i++)
@@ -96,9 +96,9 @@ bool CKicadSchemNetlist::Build(void)
 	AddBusTaps();
 	AddBusMembers();
 
-	maiParents.Kill();
+	mcParents.Kill();
 	masNodes.Kill();
-	maiParents.Init();
+	mcParents.Init();
 	masNodes.Init();
 	return true;
 }
@@ -198,7 +198,7 @@ SKicadSchemNetNode* CKicadSchemNetlist::AddNode(EKicadSchemNetNodeType eType, vo
 	psNode->pvItem = pvItem;
 	psNode->pvOwner = pvOwner;
 	psNode->sPosition = *psPosition;
-	maiParents.Add((int)(masNodes.NumElements() - 1));
+	mcParents.Add();
 	return psNode;
 }
 
@@ -233,12 +233,12 @@ void CKicadSchemNetlist::JoinNodes(void)
 					if (pcWire->Contains(pcOtherWire->GetStart()) || pcWire->Contains(pcOtherWire->GetEnd()) ||
 						pcOtherWire->Contains(pcWire->GetStart()) || pcOtherWire->Contains(pcWire->GetEnd()))
 					{
-						JoinKicadSchemRoots(&maiParents, (int)i, (int)j);
+						mcParents.Join(i, j);
 					}
 				}
 				else if (pcWire->Contains(&psOther->sPosition))
 				{
-					JoinKicadSchemRoots(&maiParents, (int)i, (int)j);
+					mcParents.Join(i, j);
 				}
 			}
 			else if (IsWireNode(psOther))
@@ -246,12 +246,12 @@ void CKicadSchemNetlist::JoinNodes(void)
 				pcOtherWire = (CKicadSchemWire*)psOther->pvItem;
 				if (pcOtherWire->Contains(&psNode->sPosition))
 				{
-					JoinKicadSchemRoots(&maiParents, (int)i, (int)j);
+					mcParents.Join(i, j);
 				}
 			}
 			else if (psNode->sPosition.CloselyEqual(&psOther->sPosition, KICAD_SCHEM_POINT_TOLERANCE))
 			{
-				JoinKicadSchemRoots(&maiParents, (int)i, (int)j);
+				mcParents.Join(i, j);
 			}
 		}
 	}
@@ -282,7 +282,7 @@ void CKicadSchemNetlist::CreateSubnets(void)
 	for (i = 0; i < masNodes.NumElements(); i++)
 	{
 		psNode = masNodes.Get(i);
-		iRoot = FindKicadSchemRoot(&maiParents, (int)i);
+		iRoot = (int)mcParents.Find(i);
 		iSubnet = aiRootSubnets.GetValue(iRoot);
 		if (iSubnet == -1)
 		{
@@ -335,7 +335,7 @@ void CKicadSchemNetlist::CreateNets(void)
 {
 	CArrayChars			aszNames;
 	CArrayInt			aiNameSubnets;
-	CArrayInt			aiSubnetParents;
+	CUnionFind			cSubnetParents;
 	CArrayInt			aiRootNets;
 	size				i;
 	int					iRoot;
@@ -344,22 +344,22 @@ void CKicadSchemNetlist::CreateNets(void)
 
 	aszNames.Init();
 	aiNameSubnets.Init();
-	aiSubnetParents.Init();
+	cSubnetParents.Init();
 	aiRootNets.Init();
 	for (i = 0; i < macSubnets.NumElements(); i++)
 	{
-		aiSubnetParents.Add((int)i);
+		cSubnetParents.Add();
 		aiRootNets.Add(-1);
 	}
 
 	for (i = 0; i < macSubnets.NumElements(); i++)
 	{
-		AddSubnetNames(GetSubnet(i), i, &aszNames, &aiNameSubnets, &aiSubnetParents);
+		AddSubnetNames(GetSubnet(i), i, &aszNames, &aiNameSubnets, &cSubnetParents);
 	}
 
 	for (i = 0; i < macSubnets.NumElements(); i++)
 	{
-		iRoot = FindKicadSchemRoot(&aiSubnetParents, (int)i);
+		iRoot = (int)cSubnetParents.Find(i);
 		iNet = aiRootNets.GetValue(iRoot);
 		if (iNet == -1)
 		{
@@ -381,7 +381,7 @@ void CKicadSchemNetlist::CreateNets(void)
 	}
 
 	aiRootNets.Kill();
-	aiSubnetParents.Kill();
+	cSubnetParents.Kill();
 	aiNameSubnets.Kill();
 	aszNames.Kill();
 }
@@ -394,7 +394,7 @@ void CKicadSchemNetlist::CreateNets(void)
 // is one pin, so the subnets of its places are one net.
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemNetlist::AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents)
+void CKicadSchemNetlist::AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CUnionFind* pcSubnetParents)
 {
 	size					i;
 	SKicadSchemNetPin*		psPin;
@@ -408,14 +408,14 @@ void CKicadSchemNetlist::AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubn
 		pcLibSymbol = mpcFile->GetLibSymbol(psPin->pcSymbol);
 		if (IsGlobalPowerPin(pcLibSymbol, psPin->pcPin))
 		{
-			AddSubnetName("N", GetGlobalPowerName(psPin->pcSymbol, pcLibSymbol, psPin->pcPin), uiSubnet, paszNames, paiNameSubnets, paiSubnetParents);
+			AddSubnetName("N", GetGlobalPowerName(psPin->pcSymbol, pcLibSymbol, psPin->pcPin), uiSubnet, paszNames, paiNameSubnets, pcSubnetParents);
 		}
 		else if (IsSharedPin(pcLibSymbol, psPin->pcSymbol, psPin->pcPin))
 		{
 			szPin.Init(psPin->pcSymbol->GetReference());
 			szPin.Append('.');
 			szPin.Append(psPin->pcPin->GetNumber());
-			AddSubnetName("P", szPin.Text(), uiSubnet, paszNames, paiNameSubnets, paiSubnetParents);
+			AddSubnetName("P", szPin.Text(), uiSubnet, paszNames, paiNameSubnets, pcSubnetParents);
 			szPin.Kill();
 		}
 	}
@@ -423,7 +423,7 @@ void CKicadSchemNetlist::AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubn
 	for (i = 0; i < pcSubnet->NumLabels(); i++)
 	{
 		pcLabel = pcSubnet->GetLabel(i);
-		AddSubnetName("N", pcLabel->GetText(), uiSubnet, paszNames, paiNameSubnets, paiSubnetParents);
+		AddSubnetName("N", pcLabel->GetText(), uiSubnet, paszNames, paiNameSubnets, pcSubnetParents);
 	}
 }
 
@@ -432,7 +432,7 @@ void CKicadSchemNetlist::AddSubnetNames(CKicadSchemSubnet* pcSubnet, size uiSubn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKicadSchemNetlist::AddSubnetName(char* szScope, const char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CArrayInt* paiSubnetParents)
+void CKicadSchemNetlist::AddSubnetName(char* szScope, const char* szName, size uiSubnet, CArrayChars* paszNames, CArrayInt* paiNameSubnets, CUnionFind* pcSubnetParents)
 {
 	CChars	szKey;
 	size	uiIndex;
@@ -453,7 +453,7 @@ void CKicadSchemNetlist::AddSubnetName(char* szScope, const char* szName, size u
 	}
 	else
 	{
-		JoinKicadSchemRoots(paiSubnetParents, paiNameSubnets->GetValue(uiIndex), (int)uiSubnet);
+		pcSubnetParents->Join((size)paiNameSubnets->GetValue(uiIndex), uiSubnet);
 	}
 	szKey.Kill();
 }
@@ -640,7 +640,7 @@ const char* CKicadSchemNetlist::GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, 
 void CKicadSchemNetlist::CreateBuses(void)
 {
 	CArrayTemplatePtr<CKicadSchemWire>	apcWires;
-	CArrayInt							aiParents;
+	CUnionFind							cParents;
 	CArrayInt							aiRootBuses;
 	size								i;
 	size								j;
@@ -651,7 +651,7 @@ void CKicadSchemNetlist::CreateBuses(void)
 	bool								bVertical;
 
 	apcWires.Init();
-	aiParents.Init();
+	cParents.Init();
 	aiRootBuses.Init();
 	for (i = 0; i < mpcFile->NumWires(); i++)
 	{
@@ -659,7 +659,7 @@ void CKicadSchemNetlist::CreateBuses(void)
 		if (pcWire->IsBus())
 		{
 			apcWires.Add(pcWire);
-			aiParents.Add((int)(apcWires.NumElements() - 1));
+			cParents.Add();
 			aiRootBuses.Add(-1);
 		}
 	}
@@ -671,13 +671,13 @@ void CKicadSchemNetlist::CreateBuses(void)
 			pcOther = apcWires.GetPtr(j);
 			if (pcWire->Contains(pcOther->GetStart()) || pcWire->Contains(pcOther->GetEnd()) || pcOther->Contains(pcWire->GetStart()) || pcOther->Contains(pcWire->GetEnd()))
 			{
-				JoinKicadSchemRoots(&aiParents, (int)i, (int)j);
+				cParents.Join(i, j);
 			}
 		}
 	}
 	for (i = 0; i < apcWires.NumElements(); i++)
 	{
-		iRoot = FindKicadSchemRoot(&aiParents, (int)i);
+		iRoot = (int)cParents.Find(i);
 		if (aiRootBuses.GetValue(iRoot) == -1)
 		{
 			pcBus = (CKicadSchemBus*)macBuses.Add(sizeof(CKicadSchemBus));
@@ -687,7 +687,7 @@ void CKicadSchemNetlist::CreateBuses(void)
 		GetBus(aiRootBuses.GetValue(iRoot))->AddWire(apcWires.GetPtr(i));
 	}
 	aiRootBuses.Kill();
-	aiParents.Kill();
+	cParents.Kill();
 	apcWires.Kill();
 
 	for (i = 0; i < macBuses.NumElements(); i++)
@@ -1038,49 +1038,4 @@ size CKicadSchemNetlist::NumSubnets(void) const { return macSubnets.NumElements(
 CKicadSchemSubnet* CKicadSchemNetlist::GetSubnet(size uiIndex) { return (CKicadSchemSubnet*)macSubnets.Get(uiIndex); }
 size CKicadSchemNetlist::NumNets(void) const { return macNets.NumElements(); }
 CKicadSchemNet* CKicadSchemNetlist::GetNet(size uiIndex) { return (CKicadSchemNet*)macNets.Get(uiIndex); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Union find with path halving.
-//
-//////////////////////////////////////////////////////////////////////////
-int FindKicadSchemRoot(CArrayInt* paiParents, int iNode)
-{
-	int		iParent;
-
-	for (;;)
-	{
-		iParent = paiParents->GetValue(iNode);
-		if (iParent == iNode)
-		{
-			return iNode;
-		}
-		paiParents->SetValue(iNode, paiParents->GetValue(iParent));
-		iNode = iParent;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The lower root becomes the root of both.
-//
-//////////////////////////////////////////////////////////////////////////
-void JoinKicadSchemRoots(CArrayInt* paiParents, int iNode1, int iNode2)
-{
-	int		iRoot1;
-	int		iRoot2;
-
-	iRoot1 = FindKicadSchemRoot(paiParents, iNode1);
-	iRoot2 = FindKicadSchemRoot(paiParents, iNode2);
-	if (iRoot1 < iRoot2)
-	{
-		paiParents->SetValue(iRoot2, iRoot1);
-	}
-	else if (iRoot2 < iRoot1)
-	{
-		paiParents->SetValue(iRoot1, iRoot2);
-	}
-}
 

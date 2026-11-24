@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
 #include "MeshCharts.h"
+#include "BaseLib/UnionFind.h"
 
 
 //How far, at most, a face may end up from its grown chart's normal: short of a right angle, so it can't fold when laid flat.
@@ -141,28 +142,13 @@ void CMeshCharts::ListFaces(int iNumFaces, int iNumCharts)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-static int MeshChartsRoot(CArrayLargeInt* paiParents, int i)
-{
-	while (paiParents->GetValue((lsize)i) != i)
-	{
-		paiParents->SetValue((lsize)i, paiParents->GetValue((lsize)paiParents->GetValue((lsize)i)));
-		i = paiParents->GetValue((lsize)i);
-	}
-	return i;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Faces of one direction joined by an edge, found by union and find.
 //
 //////////////////////////////////////////////////////////////////////////
 void CMeshCharts::MakeBox(CMesh* pcMesh)
 {
 	CArrayLargeInt	aiDirections;
-	CArrayLargeInt	aiParents;
+	CUnionFindLarge	cParents;
 	CArrayLargeInt	aiRootCharts;
 	CMeshEdge*		pcEdge;
 	SFloat32Vec3	sNormal;
@@ -172,13 +158,12 @@ void CMeshCharts::MakeBox(CMesh* pcMesh)
 	int				iFace;
 	int				iAxis;
 	int				iRoot0;
-	int				iRoot1;
 	int				iDirection;
 	int				i;
 
 	iNumFaces = pcMesh->NumFaces();
 	aiDirections.Init();
-	aiParents.Init();
+	cParents.Init();
 	for (iFace = 0; iFace < iNumFaces; iFace++)
 	{
 		MeshFaceAreaNormal(&sNormal, pcMesh, iFace);
@@ -194,7 +179,7 @@ void CMeshCharts::MakeBox(CMesh* pcMesh)
 			}
 		}
 		aiDirections.Add((iAxis * 2) + ((afNormal[iAxis] > 0.0f) ? 1 : 0));
-		aiParents.Add(iFace);
+		cParents.Add();
 	}
 	for (i = 0; i < pcMesh->NumEdges(); i++)
 	{
@@ -203,12 +188,7 @@ void CMeshCharts::MakeBox(CMesh* pcMesh)
 		{
 			continue;
 		}
-		iRoot0 = MeshChartsRoot(&aiParents, pcEdge->maiFace[0]);
-		iRoot1 = MeshChartsRoot(&aiParents, pcEdge->maiFace[1]);
-		if (iRoot0 != iRoot1)
-		{
-			aiParents.SetValue((lsize)((iRoot0 > iRoot1) ? iRoot0 : iRoot1), (iRoot0 < iRoot1) ? iRoot0 : iRoot1);
-		}
+		cParents.Join((lsize)pcEdge->maiFace[0], (lsize)pcEdge->maiFace[1]);
 	}
 
 	maiFaceCharts.Resize((lsize)iNumFaces);
@@ -219,7 +199,7 @@ void CMeshCharts::MakeBox(CMesh* pcMesh)
 	iNumCharts = 0;
 	for (iFace = 0; iFace < iNumFaces; iFace++)
 	{
-		iRoot0 = MeshChartsRoot(&aiParents, iFace);
+		iRoot0 = (int)cParents.Find((lsize)iFace);
 		if (aiRootCharts.GetValue((lsize)iRoot0) == -1)
 		{
 			aiRootCharts.SetValue((lsize)iRoot0, iNumCharts);
@@ -236,7 +216,7 @@ void CMeshCharts::MakeBox(CMesh* pcMesh)
 	ListFaces(iNumFaces, iNumCharts);
 
 	aiRootCharts.Kill();
-	aiParents.Kill();
+	cParents.Kill();
 	aiDirections.Kill();
 }
 
