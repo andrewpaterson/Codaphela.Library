@@ -191,6 +191,7 @@
     <ClCompile Include="DebugMemoryCache.cpp" />
     <ClCompile Include="DebugFormat.cpp" />
     <ClCompile Include="Fast65C64DebugDecoder.cpp" />
+    <ClCompile Include="EmulatorDebugger.cpp" />
     <ClCompile Include="DebugServer.cpp" />
     <ClCompile Include="DebugTarget.cpp" />
     <ClCompile Include="DebugLaunch.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="DebugLaunch.h" />
     <ClInclude Include="Fast65C64DebugDecoder.h" />
     <ClInclude Include="DebugProtocol.h" />
+    <ClInclude Include="EmulatorDebugger.h" />
     <ClInclude Include="DebugServer.h" />
     <ClInclude Include="DebugTarget.h" />
     <ClInclude Include="Flat65C64DebugTarget.h" />

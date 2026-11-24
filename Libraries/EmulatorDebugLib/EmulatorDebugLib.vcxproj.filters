@@ -18,6 +18,9 @@
     <ClCompile Include="Fast65C64DebugDecoder.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="EmulatorDebugger.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="DebugServer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -54,6 +57,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="DebugProtocol.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="EmulatorDebugger.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="DebugServer.h">

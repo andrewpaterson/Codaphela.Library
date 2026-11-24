@@ -42,7 +42,8 @@ enum EFlat65C64Register
 
 
 //A CFast65C64 with nothing but memory: a flat block at 0000:0000, uiMemorySize bytes.  Reads past it are $FFFF
-//and writes are ignored.  Run's budget is instructions.  Its decoder is MicroprocessorLib's (CFast65C64DebugDecoder)
+//and writes are ignored.  Or, Init'ed with the caller's block, on memory the caller has and connects to the MPU
+//(GetMPU) with its devices: the debugger peeks and pokes the block.  Run's budget is instructions.  Its decoder is MicroprocessorLib's (CFast65C64DebugDecoder)
 //unless it is given another.
 class CFlat65C64DebugTarget : public CDebugTarget
 {
@@ -50,11 +51,13 @@ protected:
 	CFast65C64		mcMPU;
 	uint8*			mpuiMemory;
 	uint32			muiMemorySize;
+	bool			mbOwnMemory;
 	CFast65C64DebugDecoder	mcDecoder;
 	CDebugDecoder*	mpcDecoder;
 
 public:
 	void			Init(uint32 uiMemorySize);
+	void			Init(uint8* puiMemory, uint32 uiMemorySize);
 	void			Kill(void);
 
 	CFast65C64*		GetMPU(void);

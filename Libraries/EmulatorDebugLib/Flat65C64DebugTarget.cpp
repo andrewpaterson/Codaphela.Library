@@ -30,10 +30,25 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 //////////////////////////////////////////////////////////////////////////
 void CFlat65C64DebugTarget::Init(uint32 uiMemorySize)
 {
-	muiMemorySize = uiMemorySize;
-	mpuiMemory = (uint8*)malloc(uiMemorySize);
+	Init((uint8*)malloc(uiMemorySize), uiMemorySize);
 	memset(mpuiMemory, 0, uiMemorySize);
+	mbOwnMemory = true;
 	mcMPU.Init(ReadWord, WriteByte, this, mpuiMemory, uiMemorySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// On the caller's memory (puiMemory, uiMemorySize bytes at 0000:0000),
+// which it keeps and connects the MPU to (GetMPU's Init), with whatever
+// devices it has.
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlat65C64DebugTarget::Init(uint8* puiMemory, uint32 uiMemorySize)
+{
+	muiMemorySize = uiMemorySize;
+	mpuiMemory = puiMemory;
+	mbOwnMemory = false;
 	mpcDecoder = &mcDecoder;
 }
 
@@ -45,7 +60,10 @@ void CFlat65C64DebugTarget::Init(uint32 uiMemorySize)
 void CFlat65C64DebugTarget::Kill(void)
 {
 	mcMPU.Kill();
-	free(mpuiMemory);
+	if (mbOwnMemory)
+	{
+		free(mpuiMemory);
+	}
 	mpuiMemory = NULL;
 }
 
