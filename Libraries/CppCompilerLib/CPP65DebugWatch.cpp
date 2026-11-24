@@ -582,8 +582,8 @@ bool CCPP65DebugWatch::Name(const char* szName, SCPP65DebugValue* psValue)
 	size					uiMember;
 
 	psFunction = mpsFrame->psFunction;
-	psFound = psFunction ? mpcRecords->FindVariable(psFunction, szName, muiLine) : NULL;
-	psThis = psFunction ? mpcRecords->FindVariable(psFunction, "this", muiLine) : NULL;
+	psFound = psFunction ? mpcRecords->FindVariable(psFunction, szName, muiLine, mpsFrame->iInline) : NULL;
+	psThis = psFunction ? mpcRecords->FindVariable(psFunction, "this", muiLine, mpsFrame->iInline) : NULL;
 	if (psFound)
 	{
 		if (!mpcValues->Variable(mpcWalker, mpsFrame, psFound, psValue))

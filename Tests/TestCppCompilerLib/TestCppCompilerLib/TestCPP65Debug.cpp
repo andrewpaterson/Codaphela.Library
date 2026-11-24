@@ -612,7 +612,7 @@ static const char* TestCPP65DebugFrameName(STestCPP65Debug* psDebug, size uiFram
 		return "?";
 	}
 	psFrame = psDebug->asFrames.Get(uiFrame);
-	return psFrame->psFunction ? psFrame->psFunction->szName.Text() : "";
+	return psFrame->psFunction ? psFrame->GetName() : "";
 }
 
 
@@ -1173,6 +1173,26 @@ static void AssertCPP65DebugCall(STestCPP65Debug* psDebug, size uiFrame, const c
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The uiFrame'th frame of the last walk's line (CAsm65StackFrame::
+// GetLineAddress): 0 if the line table has none.  A row with an inlined
+// call inside it is at that call's line.
+//
+//////////////////////////////////////////////////////////////////////////
+static uint32 TestCPP65DebugFrameLine(STestCPP65Debug* psDebug, size uiFrame)
+{
+	SAsm65LineEntry*	psLine;
+
+	if (psDebug->asFrames.Get(uiFrame)->GetCalled())
+	{
+		return psDebug->asFrames.Get(uiFrame)->GetCalled()->uiLine;
+	}
+	psLine = psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLine(psDebug->asFrames.Get(uiFrame)->GetLineAddress());
+	return psLine ? psLine->uiLine : 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A Release program (Debugger65C64Plan.txt A3) whose main keeps an array,
 // an object and an int whose address is taken in memory, and an int the
 // optimiser folds away.
@@ -1321,12 +1341,14 @@ void TestCPP65DebugRelease(void)
 // (CIRInterprocedural, as Libc65's FloorDivide is): a copy has its
 // variables too, described only once it has code of its own (one inlined
 // leaves none to describe them after).  The stack walks at every step.
+// A call inlined is a row of its own in a walk with inlines.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65DebugReleaseInlined(void)
 {
 	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
 	STestCPP65Debug			sDebug;
+	SAsm65StackRegisters	sRegisters;
 	CChars					szWrong;
 	size					uiTarget;
 
@@ -1337,8 +1359,46 @@ void TestCPP65DebugReleaseInlined(void)
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
 		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
 		TestCPP65DebugLoad(&sDebug);
+
 		szWrong.Init();
 		AssertInt(24 + 10 + 5 + 3 + 8 * 5 + 2, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
+
+	//Pick, inlined into main's loop (DebuggerFPlan.txt F2): a row of its own at its line, its parameter its own; main's
+	//row below it at the call, its variables its own.
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug,
+			"int giValues[4] = { 3, 1, 4, 1 };\n"
+			"int Pick(int iIndex)\n"
+			"{\n"
+			"	return giValues[iIndex & 3] * 2;\n"
+			"}\n"
+			"int main(void)\n"
+			"{\n"
+			"	int	iSum = 0;\n"
+			"	for (int i = 0; i < 4; i++) { iSum += Pick(i); }\n"
+			"	return iSum;\n"
+			"}\n", TCB_ReleaseInlined, aeTargets[uiTarget]);
+		TestCPP65DebugLoad(&sDebug);
+		AssertTrue(TestCPP65DebugRunTo(&sDebug, 4));
+		TestCPP65DebugRunTo(&sDebug, 4);
+		TestCPP65DebugRegisters(&sDebug, &sRegisters);
+		sDebug.pcWalker->Walk(&sRegisters, &sDebug.asFrames, 64, true);
+		AssertString("Pick", TestCPP65DebugFrameName(&sDebug, 0));
+		AssertTrue(sDebug.asFrames.Get(0)->IsInline());
+		AssertInt(4, TestCPP65DebugFrameLine(&sDebug, 0));
+		AssertString("main", TestCPP65DebugFrameName(&sDebug, 1));
+		AssertFalse(sDebug.asFrames.Get(1)->IsInline());
+		AssertInt(9, TestCPP65DebugFrameLine(&sDebug, 1));
+		AssertInt(1, TestCPP65DebugLocal(&sDebug, 0, "iIndex"));
+		AssertTrue(sDebug.pcRecords->FindVariable(sDebug.asFrames.Get(0)->psFunction, "iSum", 4, sDebug.asFrames.Get(0)->iInline) == NULL);
+		AssertTrue(sDebug.pcRecords->FindVariable(sDebug.asFrames.Get(1)->psFunction, "iSum", 9, sDebug.asFrames.Get(1)->iInline) != NULL);
+		szWrong.Init();
+		AssertInt(18, TestCPP65DebugRunWalking(&sDebug, &szWrong));
 		AssertString("", szWrong.Text());
 		szWrong.Kill();
 		TestCPP65DebugKill(&sDebug);
@@ -1369,21 +1429,6 @@ void TestCPP65DebugReleaseInlined(void)
 		szWrong.Kill();
 		TestCPP65DebugKill(&sDebug);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The uiFrame'th frame of the last walk's line (CAsm65StackFrame::
-// GetLineAddress): 0 if the line table has none.
-//
-//////////////////////////////////////////////////////////////////////////
-static uint32 TestCPP65DebugFrameLine(STestCPP65Debug* psDebug, size uiFrame)
-{
-	SAsm65LineEntry*	psLine;
-
-	psLine = psDebug->cBuilder.GetDebugInfo()->GetLines()->FindLine(psDebug->asFrames.Get(uiFrame)->GetLineAddress());
-	return psLine ? psLine->uiLine : 0;
 }
 
 

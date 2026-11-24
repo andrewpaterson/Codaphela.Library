@@ -273,9 +273,11 @@ bool CCPP65DebugValues::Result(CAsm65DebugRecords* pcRecords, SAsm65DebugFunctio
 //////////////////////////////////////////////////////////////////////////
 //
 // The Call Stack's text for the frame, as Visual Studio's: its function's
-// name and its parameters, each's type, name and value,
-// "Factorial(int i = 3, char* sz = 0x012345 "Hello")".  A parameter that
-// isn't kept anywhere is "???".  False if some of it couldn't be read.
+// name (an inlined call's row its callee's) and its parameters, each's
+// type, name and value, "Factorial(int i = 3, char* sz = 0x012345
+// "Hello")".  A parameter that isn't kept anywhere there is "(optimised
+// away)", one that can't be read "???".  False if some of it couldn't be
+// read.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65DebugValues::AppendCall(CAsm65StackWalker* pcWalker, SAsm65StackFrame* psFrame, CChars* pszDest)
@@ -286,14 +288,14 @@ bool CCPP65DebugValues::AppendCall(CAsm65StackWalker* pcWalker, SAsm65StackFrame
 	bool					bFirst;
 	bool					bResult;
 
-	pszDest->Append(psFrame->psFunction->szName);
+	pszDest->Append(psFrame->GetName());
 	pszDest->Append('(');
 	bFirst = true;
 	bResult = true;
 	for (ui = 0; ui < psFrame->psFunction->uiNumVariables; ui++)
 	{
 		psVariable = psFrame->pcRecords->GetVariable(psFrame->psFunction, ui);
-		if (!psVariable->bParameter || psVariable->szName.Equals("this"))
+		if (!psVariable->bParameter || (psVariable->iInline != psFrame->iInline) || psVariable->szName.Equals("this"))
 		{
 			continue;
 		}
@@ -311,7 +313,7 @@ bool CCPP65DebugValues::AppendCall(CAsm65StackWalker* pcWalker, SAsm65StackFrame
 		}
 		else
 		{
-			pszDest->Append((psVariable->uiWhere == ADW_None) ? CPP65_DEBUG_OPTIMISED_AWAY : "???");
+			pszDest->Append(((psVariable->uiWhere == ADW_None) || (psVariable->uiWhere == ADW_Ranges)) ? CPP65_DEBUG_OPTIMISED_AWAY : "???");
 		}
 	}
 	pszDest->Append(')');

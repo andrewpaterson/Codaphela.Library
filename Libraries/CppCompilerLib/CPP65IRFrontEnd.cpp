@@ -2298,23 +2298,28 @@ void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWri
 	SCPP65IRDescribedVariable*	psVariable;
 	size						ui;
 	size						uj;
+	size						uiInline;
 
 	for (ui = 0; ui < psWritten->asVariables.NumElements(); ui++)
 	{
 		psVariable = psWritten->asVariables.Get(ui);
 		DescribeVariable(pszCode, psWritten, psVariable, psVariable->iSlot, -1, paszRanges);
 	}
+	//Each inline's in its callee's order.
 	pcFunction = psWritten->pcFunction;
-	for (ui = 0; pcFunction && (ui < pcFunction->masInlineVariables.NumElements()); ui++)
+	for (uiInline = 0; pcFunction && (uiInline < pcFunction->masInlines.NumElements()); uiInline++)
 	{
-		psInlineVariable = pcFunction->masInlineVariables.Get(ui);
-		psCallee = FindWritten(mcModule.GetSymbolName(pcFunction->masInlines.Get(psInlineVariable->uiInline)->uiCallee));
+		psCallee = FindWritten(mcModule.GetSymbolName(pcFunction->masInlines.Get(uiInline)->uiCallee));
 		for (uj = 0; psCallee && (uj < psCallee->asVariables.NumElements()); uj++)
 		{
 			psVariable = psCallee->asVariables.Get(uj);
-			if (psVariable->iSlot == (int32)psInlineVariable->uiCalleeSlot)
+			for (ui = 0; ui < pcFunction->masInlineVariables.NumElements(); ui++)
 			{
-				DescribeVariable(pszCode, psWritten, psVariable, (int32)psInlineVariable->uiSlot, (int32)psInlineVariable->uiInline, paszRanges);
+				psInlineVariable = pcFunction->masInlineVariables.Get(ui);
+				if ((psInlineVariable->uiInline == uiInline) && (psVariable->iSlot == (int32)psInlineVariable->uiCalleeSlot))
+				{
+					DescribeVariable(pszCode, psWritten, psVariable, (int32)psInlineVariable->uiSlot, (int32)uiInline, paszRanges);
+				}
 			}
 		}
 	}
