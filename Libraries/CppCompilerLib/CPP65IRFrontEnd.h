@@ -150,6 +150,25 @@ struct SCPP65IRDebugVariable
 typedef CArrayTemplate<SCPP65IRDebugVariable>	CArrayCPP65IRDebugVariables;
 
 
+//A variable a debugger is told of, kept with its function (SCPP65IRWritten) until the unit's code is finished, when it
+//is described (.dvariable, DescribeVariables) from what the back end last kept: a function written again once inlined
+//is described as it was written last.  Its place is then dbg<iSlot>'s (CIRWrittenFunction::FindSlot) plus iOffset.
+struct SCPP65IRDescribedVariable
+{
+	CChars			szName;
+	SCPP65Type*		psType;
+	int32			iSlot;			//-1: no place a debugger can read.
+	int32			iOffset;
+	int				iFirstLine;
+	int				iLastLine;
+	bool			bParameter;
+	bool			bIndirect;
+};
+
+
+typedef CArrayTemplate<SCPP65IRDescribedVariable>	CArrayCPP65IRDescribedVariables;
+
+
 //A function written as IR, waiting for FinishUnit: its label and the code Body generated.
 struct SCPP65IRWritten
 {
@@ -160,6 +179,8 @@ struct SCPP65IRWritten
 	uint16			uiPieces;		//How many pieces its code is in, in the generator's spill store (CCPP65Assembly::PutCode).
 	CIRWrittenFunction*	pcBackend;	//What the back end kept about it, for CIRBackend::FinishFunction, or NULL.
 	uint32			uiFingerprint;	//A hash of its IR before it was optimised (for a line table).
+	CArrayCPP65IRDescribedVariables	asVariables;	//For a debugger (DescribesVariables): its variables, this first,
+	CChars			szStatics;		//and its static locals' .dglobal lines.
 };
 
 
@@ -347,7 +368,9 @@ protected:
 	SIRReference	VariableSlot(uint32 uiSize, uint32 uiAlign);
 	void			NameVariableSlots(void);
 	void			AddDebugVariable(CCPPVariable* pcVariable, SIRReference sSlot, int32 iOffset, bool bIndirect);
-	void			DescribeVariables(CChars* pszCode, CIRWrittenFunction* pcWritten);
+	void			RecordVariables(SCPP65IRWritten* psWritten);
+	void			CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* psWritten);
+	void			DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten);
 	void			VariableLines(SCPP65IRDebugVariable* psVariable, int* piFirst, int* piLast);
 	int				TokenLine(int iToken);
 	void			Finish(void);

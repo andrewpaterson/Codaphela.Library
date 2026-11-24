@@ -13,11 +13,12 @@
 CCPPCompileOptions*	TestCPP816Options(void);	//TestCPPW65C816.cpp
 
 
-//How a program is built: for speed (Release, though without inlining so each function is a function of its own), for
-//a debugger (Debug) or for one and not optimised (an Unoptimised project).
+//How a program is built: for speed (Release, though without inlining so each function is a function of its own, or
+//with it as the IDE builds Release), for a debugger (Debug) or for one and not optimised (an Unoptimised project).
 enum ETestCPP65Build
 {
 	TCB_Release,
+	TCB_ReleaseInlined,
 	TCB_Debug,
 	TCB_Unoptimised,
 };
@@ -75,8 +76,8 @@ static bool TestCPP65DebugBuild(STestCPP65Debug* psDebug, const char* szSource, 
 	psDebug->bLoaded = false;
 	psDebug->cBuilder.Init();
 	*psDebug->cBuilder.GetOptions() = (eTarget == CPPT_W65C816) ? *TestCPP816Options() : *TestCPP65Options();
-	psDebug->cBuilder.GetOptions()->mbInline = false;
-	psDebug->cBuilder.GetOptions()->mbDebuggable = (eBuild != TCB_Release);
+	psDebug->cBuilder.GetOptions()->mbInline = (eBuild == TCB_ReleaseInlined);
+	psDebug->cBuilder.GetOptions()->mbDebuggable = (eBuild != TCB_Release) && (eBuild != TCB_ReleaseInlined);
 	psDebug->cBuilder.GetOptions()->mbOptimise = (eBuild != TCB_Unoptimised);
 	psDebug->cBuilder.SetTarget(eTarget);
 	psDebug->cBuilder.SetLineTable(true);
@@ -895,7 +896,8 @@ void TestCPP65DebugStack(void)
 // whose arguments va_start finds from them; a pointer returned from a
 // frame past the direct page; recursion and loops)
 // give the same results built for a debugger, optimised (Debug) and not,
-// as built for speed (Release), on both processors; and at every step in
+// as built for speed (Release, with inlining and without), on both
+// processors; and at every step in
 // each, the stack walks back through the calls it is in.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -987,7 +989,7 @@ void TestCPP65DebugModes(void)
 		"	if ((int)Round(2.0f, 2) != 4) return 9;\n"
 		"	return 100;\n"
 		"}\n";
-	static const ETestCPP65Build	aeBuilds[] = { TCB_Release, TCB_Debug, TCB_Unoptimised };
+	static const ETestCPP65Build	aeBuilds[] = { TCB_Release, TCB_ReleaseInlined, TCB_Debug, TCB_Unoptimised };
 	static const ECPPTarget			aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
 	STestCPP65Debug				sDebug;
 	CChars							szWrong;
@@ -996,7 +998,7 @@ void TestCPP65DebugModes(void)
 
 	for (uiTarget = 0; uiTarget < 2; uiTarget++)
 	{
-		for (uiBuild = 0; uiBuild < 3; uiBuild++)
+		for (uiBuild = 0; uiBuild < 4; uiBuild++)
 		{
 			TestCPP65DebugBuild(&sDebug, szSource, aeBuilds[uiBuild], aeTargets[uiTarget]);
 			TestCPP65DebugLoad(&sDebug);
@@ -1298,6 +1300,69 @@ void TestCPP65DebugRelease(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Built for speed with inlining, as the IDE's Release is, on both
+// processors: a function written again once calls are inlined into it is
+// described as it is then (its variables where its slots went last), so
+// main's array is still in its frame, and what became a value once Area and
+// Bump were inlined (the object, the int whose address went to Bump) isn't
+// kept.  A function called with a constant is copied for each
+// (CIRInterprocedural, as Libc65's FloorDivide is): a copy has its
+// variables too, described only once it has code of its own (one inlined
+// leaves none to describe them after).  The stack walks at every step.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65DebugReleaseInlined(void)
+{
+	static const ECPPTarget	aeTargets[] = { CPPT_W65C816, CPPT_65C64 };
+	STestCPP65Debug			sDebug;
+	CChars					szWrong;
+	size					uiTarget;
+
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug, gszTestCPP65DebugRelease, TCB_ReleaseInlined, aeTargets[uiTarget]);
+		AssertInt(ADW_Frame, TestCPP65DebugWhere(&sDebug, "main", "aiCounts"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "s"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iTaken"));
+		AssertInt(ADW_None, TestCPP65DebugWhere(&sDebug, "main", "iFolded"));
+		TestCPP65DebugLoad(&sDebug);
+		szWrong.Init();
+		AssertInt(24 + 10 + 5 + 3, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
+
+	for (uiTarget = 0; uiTarget < 2; uiTarget++)
+	{
+		TestCPP65DebugBuild(&sDebug,
+			"int giValue = -7;\n"
+			"static int FloorDivide(int i, int iBy)\n"
+			"{\n"
+			"	int	aiParts[2];\n"
+			"	aiParts[0] = i / iBy;\n"
+			"	aiParts[1] = i % iBy;\n"
+			"	if ((aiParts[1] != 0) && ((i < 0) != (iBy < 0))) { aiParts[0]--; }\n"
+			"	return aiParts[giValue & 1];\n"
+			"}\n"
+			"int main(void)\n"
+			"{\n"
+			"	int	iTotal;\n"
+			"	iTotal = FloorDivide(giValue, 4) + FloorDivide(giValue, 100) * 10 + FloorDivide(giValue * 100, 400) * 100;\n"
+			"	return iTotal;\n"
+			"}\n", TCB_ReleaseInlined, aeTargets[uiTarget]);
+		TestCPP65DebugLoad(&sDebug);
+		szWrong.Init();
+		AssertInt(-3 + -7 * 10 + -300 * 100, TestCPP65DebugRunWalking(&sDebug, &szWrong));
+		AssertString("", szWrong.Text());
+		szWrong.Kill();
+		TestCPP65DebugKill(&sDebug);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The uiFrame'th frame of the last walk's line (CAsm65StackFrame::
 // GetLineAddress): 0 if the line table has none.
 //
@@ -1587,6 +1652,7 @@ void TestCPP65Debug(void)
 	TestCPP65DebugValues();
 	TestCPP65DebugWindows();
 	TestCPP65DebugRelease();
+	TestCPP65DebugReleaseInlined();
 	TestCPP65C64DebugFrames();
 
 	TestStatistics();

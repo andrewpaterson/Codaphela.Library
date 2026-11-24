@@ -137,6 +137,7 @@ void CCPP65IRFrontEnd::SetStatistics(CCPPCompileStatistics* pcStatistics)
 void CCPP65IRFrontEnd::Kill(void)
 {
 	size				ui;
+	size				uj;
 	SCPP65IRWritten*	psWritten;
 
 	mauiStringLengths.Kill();
@@ -152,6 +153,12 @@ void CCPP65IRFrontEnd::Kill(void)
 		psWritten = masWritten.Get(ui);
 		psWritten->szLabel.Kill();
 		psWritten->szName.Kill();
+		for (uj = 0; uj < psWritten->asVariables.NumElements(); uj++)
+		{
+			psWritten->asVariables.Get(uj)->szName.Kill();
+		}
+		psWritten->asVariables.Kill();
+		psWritten->szStatics.Kill();
 		FreeWritten(psWritten);
 
 		//Code not given to the unit's assembly (a unit generated again, or one that failed) leaves the store.
@@ -617,10 +624,6 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 		mcModule.Begin(CPPCP_BackEnd);
 		bResult = GenerateCode(mpcFunction, szLabel, &szCode, &pcWritten);
 		mcModule.End(CPPCP_BackEnd);
-		if (bResult && DescribesVariables())
-		{
-			DescribeVariables(&szCode, pcWritten);
-		}
 		if (bResult)
 		{
 			//The code waits (with a marker where it goes) for FinishUnit, which inlines across the unit.
@@ -633,6 +636,7 @@ bool CCPP65IRFrontEnd::FinishWriting(bool bResult, const char* szLabel)
 			CCPP65Assembly::PutCode(mpcUnit->GetSpillStore(), mpcUnit->GetSpillUnit(), masWritten.NumElements() - 1, szCode.Text(), szCode.Length(), &psWritten->uiPieces);
 			psWritten->pcBackend = pcWritten;
 			psWritten->uiFingerprint = uiFingerprint;
+			RecordVariables(psWritten);
 			mpcUnit->GetCode()->Append(IR65_FRONT_END_MARKER);
 			mpcUnit->GetCode()->Append((int)(masWritten.NumElements() - 1));
 			mpcUnit->GetCode()->Append(IR65_FRONT_END_MARKER);
@@ -1930,42 +1934,107 @@ void CCPP65IRFrontEnd::AddDebugVariable(CCPPVariable* pcVariable, SIRReference s
 
 //////////////////////////////////////////////////////////////////////////
 //
-// .dvariable for each of the function's variables (this first), after its
-// code: where the back end put its kept slot (pcWritten), its type and the
-// lines it is in scope from and to.
+// What a debugger is told of the function written (DescribesVariables):
+// each of its variables (this first), its type and the lines it is in
+// scope from and to, kept with it (psWritten) to describe once the unit's
+// code is finished (DescribeVariables); and its static locals, at their
+// labels.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, CIRWrittenFunction* pcWritten)
+void CCPP65IRFrontEnd::RecordVariables(SCPP65IRWritten* psWritten)
 {
-	SCPP65IRDebugVariable*	psVariable;
-	CCPPVariable*			pcStatic;
-	CCPPTypeWriter			cWriter;
-	CChars					szName;
-	char					szSlot[32];
-	SCPP65Type*				psType;
-	const char*				szWhere;
-	int32					iPlace;
-	int						iFirst;
-	int						iLast;
-	size					ui;
+	SCPP65IRDebugVariable*		psVariable;
+	SCPP65IRDescribedVariable*	psDescribed;
+	CCPPVariable*				pcStatic;
+	CCPPTypeWriter				cWriter;
+	CChars						szLabel;
+	size						ui;
 
+	psWritten->asVariables.Init();
+	psWritten->szStatics.Init();
+	if (!DescribesVariables())
+	{
+		return;
+	}
 	cWriter.Init(mpcUnit, CPPTW_Shown);
 	for (ui = 0; ui < masDebugVariables.NumElements(); ui++)
 	{
 		psVariable = masDebugVariables.Get(ui);
-		szName.Init();
+		psDescribed = psWritten->asVariables.Add();
+		psDescribed->szName.Init();
 		if (psVariable->pcVariable)
 		{
-			cWriter.AppendIdentifier(psVariable->pcVariable->mpcSymbol->mlliName, &szName);
-			psType = psVariable->pcVariable->mpsType;
+			cWriter.AppendIdentifier(psVariable->pcVariable->mpcSymbol->mlliName, &psDescribed->szName);
+			psDescribed->psType = psVariable->pcVariable->mpsType;
 		}
 		else
 		{
-			szName.Append("this");
-			psType = mpcTypes->Pointer(mpcCPPFunction->mpcClass->mpsType);
+			psDescribed->szName.Append("this");
+			psDescribed->psType = mpcTypes->Pointer(mpcCPPFunction->mpcClass->mpsType);
 		}
+		psDescribed->iSlot = psVariable->iSlot;
+		psDescribed->iOffset = psVariable->iOffset;
+		psDescribed->bIndirect = psVariable->bIndirect;
+		psDescribed->bParameter = !psVariable->pcVariable || (psVariable->pcVariable->meStorage == CPPVS_Parameter);
+		VariableLines(psVariable, &psDescribed->iFirstLine, &psDescribed->iLastLine);
+	}
+
+	for (ui = 0; ui < mpcUnit->GetLocals()->NumElements(); ui++)
+	{
+		pcStatic = mpcUnit->GetLocals()->GetPtr(ui);
+		if (pcStatic->meStorage == CPPVS_Static)
+		{
+			szLabel.Init();
+			mpcUnit->GetMangler()->AppendVariableLabel(&szLabel, pcStatic);
+			mpcUnit->GetDebugWriter()->AppendGlobal(&psWritten->szStatics, pcStatic, szLabel.Text(), true);
+			szLabel.Kill();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A copy of the written function (CIRInterprocedural's, for a constant)
+// has its variables, in the slots it copied with their names.  Its static
+// locals are psWritten's, described there.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::CopyVariables(SCPP65IRWritten* psCopy, SCPP65IRWritten* psWritten)
+{
+	SCPP65IRDescribedVariable*	psVariable;
+	size						ui;
+
+	psCopy->asVariables.Init();
+	psCopy->szStatics.Init();
+	for (ui = 0; ui < psWritten->asVariables.NumElements(); ui++)
+	{
+		psVariable = psCopy->asVariables.Add(psWritten->asVariables.Get(ui));
+		psVariable->szName.Init(psWritten->asVariables.Get(ui)->szName);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// .dvariable for each of the written function's variables (RecordVariables),
+// where the back end last put its slot (psWritten's pcBackend), then its
+// static locals.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, SCPP65IRWritten* psWritten)
+{
+	SCPP65IRDescribedVariable*	psVariable;
+	char						szSlot[32];
+	const char*					szWhere;
+	int32						iPlace;
+	size						ui;
+
+	for (ui = 0; ui < psWritten->asVariables.NumElements(); ui++)
+	{
+		psVariable = psWritten->asVariables.Get(ui);
 		snprintf(szSlot, sizeof(szSlot), "dbg%d", (int)psVariable->iSlot);
-		if ((psVariable->iSlot >= 0) && pcWritten && pcWritten->FindSlot(szSlot, &iPlace))
+		if ((psVariable->iSlot >= 0) && psWritten->pcBackend && psWritten->pcBackend->FindSlot(szSlot, &iPlace))
 		{
 			szWhere = psVariable->bIndirect ? "indirect" : "frame";
 			iPlace += psVariable->iOffset;
@@ -1975,23 +2044,9 @@ void CCPP65IRFrontEnd::DescribeVariables(CChars* pszCode, CIRWrittenFunction* pc
 			szWhere = "none";
 			iPlace = 0;
 		}
-		VariableLines(psVariable, &iFirst, &iLast);
-		mpcUnit->GetDebugWriter()->AppendVariable(pszCode, szName.Text(), psType, !psVariable->pcVariable || (psVariable->pcVariable->meStorage == CPPVS_Parameter), szWhere, iPlace, iFirst, iLast);
-		szName.Kill();
+		mpcUnit->GetDebugWriter()->AppendVariable(pszCode, psVariable->szName.Text(), psVariable->psType, psVariable->bParameter, szWhere, iPlace, psVariable->iFirstLine, psVariable->iLastLine);
 	}
-
-	//Its static locals, at their labels.
-	for (ui = 0; ui < mpcUnit->GetLocals()->NumElements(); ui++)
-	{
-		pcStatic = mpcUnit->GetLocals()->GetPtr(ui);
-		if (pcStatic->meStorage == CPPVS_Static)
-		{
-			szName.Init();
-			mpcUnit->GetMangler()->AppendVariableLabel(&szName, pcStatic);
-			mpcUnit->GetDebugWriter()->AppendGlobal(pszCode, pcStatic, szName.Text(), true);
-			szName.Kill();
-		}
-	}
+	pszCode->Append(psWritten->szStatics);
 }
 
 

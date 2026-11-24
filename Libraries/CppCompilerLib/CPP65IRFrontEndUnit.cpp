@@ -209,7 +209,10 @@ bool CCPP65IRFrontEnd::FinishUnit(void)
 		if (mpcBackend && mpcUnit->HasLineTable())
 		{
 			mpcBackend->DescribeFrame(&szCode, psWritten->szLabel.Text(), psWritten->pcBackend);
-			CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult, psWritten->pcBackend);
+			if (CCPP65DebugWriter::DescribeFunction(&szCode, psWritten->szLabel.Text(), psWritten->szName.Text(), psWritten->iResult, psWritten->pcBackend))
+			{
+				DescribeVariables(&szCode, psWritten);
+			}
 		}
 		FreeWritten(psWritten);
 		SourceComments(&szCode, mpcUnit->HasListing(), mpcUnit->HasLineTable());
@@ -285,6 +288,7 @@ void CCPP65IRFrontEnd::AddSpecialised(size uiFunction, CIRFunction* pcCopy)
 	psWritten->uiPieces = 0;
 	psWritten->pcBackend = NULL;
 	psWritten->uiFingerprint = 0;
+	CopyVariables(psWritten, masWritten.Get(uiFunction));
 
 	szMarker.Init(IR65_FRONT_END_MARKER);
 	szMarker.Append((int)uiFunction);

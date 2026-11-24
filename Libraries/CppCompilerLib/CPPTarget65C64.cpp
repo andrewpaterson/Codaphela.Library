@@ -27,6 +27,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRInliner.h"
 #include "IROptimiser.h"
 #include "IR65Backend.h"
+#include "CPPUnit.h"
 #include "CPPTarget65C64.h"
 
 
@@ -158,7 +159,9 @@ void CCPPTarget65C64::AppendCallTerminate(CChars* pszDest, const char* szAfter)
 // calls the init table (each global's R_Initialise, in link order), calls main, calls
 // the fini table backwards and stops with main's result in A.  Its object must be
 // linked first so it is at the start of the text, 0001:0000; the reset vector is left
-// to the loader.
+// to the loader.  A project that isn't built by a test links Libc65's
+// Start65C64.asm, which is this start up (TestCPP65StartUpFile keeps them the
+// same).  It is the same with exceptions and without (bExceptions isn't needed).
 //
 // After main it runs the exit lists (the atexit functions and the destructors of what
 // was made at start up and of static locals, last first, thread_local objects first):
@@ -193,20 +196,19 @@ void CCPPTarget65C64::AppendStartUp(CChars* pszDest, bool bExceptions)
 	pszDest->Append("\t\tbra StartInitialise")->AppendNewLine();
 	pszDest->Append("StartMain:")->AppendNewLine();
 	pszDest->Append("\t\tjsr _main")->AppendNewLine();
-	if (bExceptions)
-	{
-		//main left with an exception nobody caught: std::terminate, which the runtime has when anything can throw (a
-		//weak reference, as ___RunAtExit below is); with no runtime linked the program stops here.
-		pszDest->Append("\t\tbrac c, StartReturned")->AppendNewLine();
-		pszDest->Append("\t\t.weak ___Terminate")->AppendNewLine();
-		pszDest->Append("\t\tcpy Y, ___Terminate")->AppendNewLine();
-		pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
-		pszDest->Append("\t\tbras z, StartUncaught")->AppendNewLine();
-		pszDest->Append("\t\tjsr Y")->AppendNewLine();
-		pszDest->Append("StartUncaught:")->AppendNewLine();
-		pszDest->Append("\t\tstp")->AppendNewLine();
-		pszDest->Append("StartReturned:")->AppendNewLine();
-	}
+
+	//main left with an exception nobody caught when the carry is set in a program built with exceptions (R_Exceptions,
+	//which their units define: a weak reference, so one start up serves both): std::terminate, which the runtime has
+	//when anything can throw; with no runtime linked the program stops here.  Without exceptions the carry is as it fell.
+	pszDest->Append("\t\tbrac c, StartReturned")->AppendNewLine();
+	pszDest->Append("\t\t.weak " CPP_EXCEPTIONS_LABEL)->AppendNewLine();
+	pszDest->Append("\t\tcpy Y, " CPP_EXCEPTIONS_LABEL)->AppendNewLine();
+	pszDest->Append("\t\tcmp Y, 0")->AppendNewLine();
+	pszDest->Append("\t\tbras z, StartReturned")->AppendNewLine();
+	AppendCallTerminate(pszDest, "StartUncaught");
+	pszDest->Append("StartUncaught:")->AppendNewLine();
+	pszDest->Append("\t\tstp")->AppendNewLine();
+	pszDest->Append("StartReturned:")->AppendNewLine();
 	pszDest->Append("\t\tpsh A")->AppendNewLine();
 	pszDest->Append("\t\t.weak ___RunAtExit")->AppendNewLine();
 	pszDest->Append("\t\t.weak R_RunExitLists")->AppendNewLine();

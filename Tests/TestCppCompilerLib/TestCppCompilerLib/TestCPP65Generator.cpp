@@ -365,6 +365,53 @@ void TestCPP65GeneratorAssembly(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Libc65's Start65C64.asm, the start up a 65C64 project links (as a W65C816
+// program links UserStart.asm), is the compiler's own (CCPPTarget65C64::
+// AppendStartUp) after its comment lines: the two can't differ.  When they
+// do, the compiler's is written to Output/Start65C64.asm.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestCPP65GeneratorStartUpFile(void)
+{
+	CTextFile	cFile;
+	CChars		szPath;
+	CChars		szExpected;
+	const char*	szText;
+
+	szExpected.Init();
+	GetCPPTarget(CPPT_65C64)->AppendStartUp(&szExpected);
+	TestCPP65LibrariesDirectory(&szPath, "Libc65");
+	szPath.Append("Libc65" _FS_ "Start65C64.asm");
+	cFile.Init();
+	AssertTrue(cFile.Read(szPath.Text()));
+	cFile.PassifyNewlines();
+
+	//Its comment lines, then a blank line, then the start up.
+	szText = cFile.Text();
+	while (*szText == ';')
+	{
+		szText = strchr(szText, '\n');
+		szText = szText ? szText + 1 : "";
+	}
+	if (*szText == '\n')
+	{
+		szText++;
+	}
+	if (strcmp(szExpected.Text(), szText) != 0)
+	{
+		cFile.Kill();
+		cFile.Init(szExpected.Text());
+		cFile.Write("Output" _FS_ "Start65C64.asm");
+	}
+	AssertString(szExpected.Text(), szText);
+	cFile.Kill();
+	szPath.Kill();
+	szExpected.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The start up, the stack, arguments at their own size and pseudo registers.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -4297,6 +4344,7 @@ void TestCPP65Generator(void)
 
 	TEST_PART(TestCPP65GeneratorAssembly());
 	TEST_PART(TestCPP65GeneratorConvention());
+	TEST_PART(TestCPP65GeneratorStartUpFile());
 	TEST_PART(TestCPP65GeneratorOperatorTypes());
 	TEST_PART(TestCPP65GeneratorTypesFoundAgain());
 	TEST_PART(TestCPP65GeneratorOperators());
