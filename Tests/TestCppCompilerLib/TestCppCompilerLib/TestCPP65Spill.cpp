@@ -11,14 +11,6 @@
 #define TEST_CPP65_SPILL_DIRECTORY		"Output" _FS_ "CPP65Spill"
 
 
-//A spill store in memory that says how many keys it holds.
-class CTestCountedSpillStore : public CMemorySpillStore
-{
-public:
-	size	NumKeys(void) { return mcMap.NumElements(); }
-};
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 // Builds the units (all code kept) for eTarget with the functions' code
@@ -145,7 +137,7 @@ static void TestCPP65SpillSame(ECPPTarget eTarget)
 //////////////////////////////////////////////////////////////////////////
 static void TestCPP65SpillUnits(void)
 {
-	CTestCountedSpillStore	cStore;
+	CMemorySpillStore		cStore;
 	uint16					uiFirst;
 	uint16					uiSecond;
 	CChars					sz;
@@ -170,6 +162,43 @@ static void TestCPP65SpillUnits(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The memory store's blobs: replaced by a Put of the same key, gone after
+// a Remove (and a second Remove finds nothing), back with a Put again.
+//
+//////////////////////////////////////////////////////////////////////////
+static void TestCPP65SpillMemoryStore(void)
+{
+	CMemorySpillStore	cStore;
+	char				sz[16];
+	size				uiSize;
+
+	cStore.Init();
+	AssertTrue(cStore.Put("Key", 3, "First", 5));
+	AssertTrue(cStore.Put("Key", 3, "Second", 6));
+	AssertTrue(cStore.Put("Empty", 5, "", 0));
+	AssertSize(2, cStore.NumKeys());
+	AssertTrue(cStore.Get("Key", 3, sz, sizeof(sz), &uiSize));
+	AssertSize(6, uiSize);
+	AssertTrue(memcmp(sz, "Second", 6) == 0);
+	AssertFalse(cStore.Get("Key", 3, sz, 5, &uiSize));
+	AssertTrue(cStore.Get("Empty", 5, sz, sizeof(sz), &uiSize));
+	AssertSize(0, uiSize);
+	AssertFalse(cStore.Get("Ke", 2, sz, sizeof(sz), &uiSize));
+
+	AssertTrue(cStore.Remove("Key", 3));
+	AssertFalse(cStore.Remove("Key", 3));
+	AssertFalse(cStore.Get("Key", 3, sz, sizeof(sz), &uiSize));
+	AssertSize(1, cStore.NumKeys());
+	AssertTrue(cStore.Put("Key", 3, "Third", 5));
+	AssertTrue(cStore.Get("Key", 3, sz, sizeof(sz), &uiSize));
+	AssertTrue(memcmp(sz, "Third", 5) == 0);
+	AssertSize(2, cStore.NumKeys());
+	cStore.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A generator killed before its unit's assembly has its functions' code (a
 // unit generated again, CCPP65Builder::RestartGenerating) takes that code
 // out of the store; generated whole, the assembly takes it out.
@@ -183,7 +212,7 @@ static void TestCPP65SpillRestart(bool bWhole)
 	CCPPSyntaxTree			cTree;
 	CCPPParser				cParser;
 	CCPPUnit			cGenerator;
-	CTestCountedSpillStore	cStore;
+	CMemorySpillStore		cStore;
 	CChars					szAssembly;
 
 	cFile.Init("Restart.cpp", NULL, false);
@@ -231,6 +260,7 @@ void TestCPP65Spill(void)
 {
 	BeginTests();
 
+	TestCPP65SpillMemoryStore();
 	TestCPP65SpillUnits();
 	TestCPP65SpillRestart(false);
 	TestCPP65SpillRestart(true);

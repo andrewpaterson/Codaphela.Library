@@ -19,6 +19,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
+#include <stdlib.h>
 #include "BaseLib/FileUtil.h"
 #include "SpillStore.h"
 
@@ -29,7 +30,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CMemorySpillStore::Init(void)
 {
-	mcMap.Init();
+	mcSpills.Init();
 }
 
 
@@ -39,7 +40,13 @@ void CMemorySpillStore::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMemorySpillStore::Kill(void)
 {
-	mcMap.Kill();
+	size	i;
+
+	for (i = 0; i < mcSpills.NumElements(); i++)
+	{
+		free(mcSpills.GetValue(i)->pvData);
+	}
+	mcSpills.Kill();
 }
 
 
@@ -59,7 +66,25 @@ size CMemorySpillStore::MaxDataSize(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CMemorySpillStore::Put(const void* pvKey, size uiKeySize, const void* pvData, size uiDataSize)
 {
-	return mcMap.Put(pvKey, uiKeySize, pvData, uiDataSize);
+	SMemorySpill*	psSpill;
+	void*			pvCopy;
+
+	pvCopy = malloc((uiDataSize > 0) ? uiDataSize : 1);
+	if (pvCopy == NULL)
+	{
+		return false;
+	}
+	psSpill = mcSpills.FindOrAdd((const char*)pvKey, uiKeySize);
+	if (psSpill == NULL)
+	{
+		free(pvCopy);
+		return false;
+	}
+	memcpy(pvCopy, pvData, uiDataSize);
+	free(psSpill->pvData);
+	psSpill->pvData = pvCopy;
+	psSpill->uiSize = uiDataSize;
+	return true;
 }
 
 
@@ -69,15 +94,15 @@ bool CMemorySpillStore::Put(const void* pvKey, size uiKeySize, const void* pvDat
 //////////////////////////////////////////////////////////////////////////
 bool CMemorySpillStore::Get(const void* pvKey, size uiKeySize, void* pvData, size uiMaxDataSize, size* puiDataSize)
 {
-	void*	pvStored;
-	size	uiStoredSize;
+	SMemorySpill*	psSpill;
 
-	if (!mcMap.Get(pvKey, uiKeySize, &pvStored, &uiStoredSize) || (uiStoredSize > uiMaxDataSize))
+	psSpill = mcSpills.Get((const char*)pvKey, uiKeySize);
+	if ((psSpill == NULL) || (psSpill->pvData == NULL) || (psSpill->uiSize > uiMaxDataSize))
 	{
 		return false;
 	}
-	memcpy(pvData, pvStored, uiStoredSize);
-	*puiDataSize = uiStoredSize;
+	memcpy(pvData, psSpill->pvData, psSpill->uiSize);
+	*puiDataSize = psSpill->uiSize;
 	return true;
 }
 
@@ -88,7 +113,38 @@ bool CMemorySpillStore::Get(const void* pvKey, size uiKeySize, void* pvData, siz
 //////////////////////////////////////////////////////////////////////////
 bool CMemorySpillStore::Remove(const void* pvKey, size uiKeySize)
 {
-	return mcMap.Remove(pvKey, uiKeySize);
+	SMemorySpill*	psSpill;
+
+	psSpill = mcSpills.Get((const char*)pvKey, uiKeySize);
+	if ((psSpill == NULL) || (psSpill->pvData == NULL))
+	{
+		return false;
+	}
+	free(psSpill->pvData);
+	psSpill->pvData = NULL;
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many keys hold a blob (not counting those removed).
+//
+//////////////////////////////////////////////////////////////////////////
+size CMemorySpillStore::NumKeys(void)
+{
+	size	i;
+	size	uiKeys;
+
+	uiKeys = 0;
+	for (i = 0; i < mcSpills.NumElements(); i++)
+	{
+		if (mcSpills.GetValue(i)->pvData)
+		{
+			uiKeys++;
+		}
+	}
+	return uiKeys;
 }
 
 

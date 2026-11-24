@@ -20,7 +20,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPILL_STORE_H__
 #define __SPILL_STORE_H__
-#include "BaseLib/MapBlock.h"
+#include "BaseLib/HashMapString.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/DurableFileController.h"
 #include "BaseLib/IndexTreeEvicting.h"
@@ -49,11 +49,20 @@ public:
 };
 
 
-//Everything kept in memory.
+//A blob CMemorySpillStore keeps, malloced; NULL after its key is removed.
+struct SMemorySpill
+{
+	void*	pvData;
+	size	uiSize;
+};
+
+
+//Everything kept in memory, by key.  A removed key's entry stays, empty, so a key put again (a function's code
+//replaced) finds it.
 class CMemorySpillStore : public CSpillStore
 {
 protected:
-	CMapBlock	mcMap;
+	CHashMapString<SMemorySpill>	mcSpills;
 
 public:
 	void	Init(void);
@@ -63,6 +72,8 @@ public:
 	bool	Put(const void* pvKey, size uiKeySize, const void* pvData, size uiDataSize) override;
 	bool	Get(const void* pvKey, size uiKeySize, void* pvData, size uiMaxDataSize, size* puiDataSize) override;
 	bool	Remove(const void* pvKey, size uiKeySize) override;
+
+	size	NumKeys(void);
 };
 
 
