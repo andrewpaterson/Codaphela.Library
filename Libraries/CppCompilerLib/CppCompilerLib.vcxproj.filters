@@ -342,6 +342,9 @@
     <ClCompile Include="IR65Fusion.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>
+    <ClCompile Include="IR65Folds.cpp">
+      <Filter>Source\IR</Filter>
+    </ClCompile>
     <ClCompile Include="IR65Calls.cpp">
       <Filter>Source\IR</Filter>
     </ClCompile>

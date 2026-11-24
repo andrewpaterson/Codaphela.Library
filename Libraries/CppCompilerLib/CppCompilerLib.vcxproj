@@ -213,6 +213,7 @@
     <ClCompile Include="IR65Multiplies.cpp" />
     <ClCompile Include="IR65Floats.cpp" />
     <ClCompile Include="IR65Fusion.cpp" />
+    <ClCompile Include="IR65Folds.cpp" />
     <ClCompile Include="IR65Calls.cpp" />
     <ClCompile Include="IR65Compares.cpp" />
     <ClCompile Include="IR65Passes.cpp" />
