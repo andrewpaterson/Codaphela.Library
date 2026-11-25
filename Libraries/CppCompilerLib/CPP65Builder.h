@@ -23,109 +23,16 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "BaseLib/Jobs.h"
-#include "BaseLib/Mutex.h"
-#include "BaseLib/ConditionVariable.h"
 #include "Assembler65Lib/Asm65Object.h"
 #include "Assembler65Lib/Asm65Linker.h"
 #include "Project.h"
 #include "CPPTarget.h"
-#include "IRImports.h"
 #include "Assembler65Lib/Asm65Profile.h"
 #include "CPP65Assembly.h"
-#include "CPPHeaderIndex.h"
-#include "CPP65UnitWorkspace.h"
-#include "CppTokeniser.h"
-#include "CppParser.h"
-#include "CPPUnit.h"
 #include "CPPCompileStatistics.h"
 #include "CPPBuild.h"
 #include "CPPProgramLinker.h"
-
-
-//How many times a unit is generated again before its turn, having missed a function exported while it inlined
-//(after that it only waits for its turn).
-#define CPP65_STALE_ATTEMPTS	3
-
-
-class CCPP65Builder;
-
-
-//Whether a unit is compiled again (after the first pass, on the W65C816).
-enum ECPP65CompileAgain
-{
-	CPP65CA_No,
-	CPP65CA_Yes,			//A function it calls has been exported.
-	CPP65CA_IfExported,		//If a unit compiled again before it exports a function it calls.
-};
-
-
-//Where a unit waiting for its turn without a thread (CIRImports::Arrive) is: generated up to its turn (it goes on in
-//it), or deciding whether it is compiled again (CompileUnitAgain).
-enum ECPP65UnitStage
-{
-	CPP65US_Generating,
-	CPP65US_Deciding,
-};
-
-
-//A unit being compiled (from CompileUnit to FinishCompile): kept while it waits for its turn.
-struct SCPP65UnitCompile
-{
-	CCPPTokeniser			cTokeniser;
-	CCPPSyntaxTree			cTree;
-	CCPPParser				cParser;
-	CCPPUnit			cGenerator;
-	CCPP65Assembly			cAssembly;
-	CCPP65UnitWorkspace*	pcWorkspace;
-	bool					bResult;		//Preprocessed, tokenised and parsed.
-	bool					bGenerated;		//Its generation before its turn went well.
-	size					uiAttempts;		//Times it was generated again before its turn (stale).
-	bool					bFirst;			//Compiled for the first time, not again.
-};
-
-
-//A translation unit compiled by CompileUnits: its object, and the functions it calls that no unit had exported
-//when it was compiled (it is compiled again if one is exported later).  What compiling it gives (its errors,
-//warnings and counts) is kept with it until it is added to the builder's, in the units' order.
-struct SCPP65CompiledUnit
-{
-	CCPP65Builder*		pcBuilder;
-	CTranslationUnit*	pcFile;
-	CAsm65Object*		pcObject;
-	CArrayChars			aszMissing;
-	CArrayChars			aszTested;		//The functions it calls by name and tests for an exception (CCPPUnit::GetTestedCallees).
-	CArrayChars			aszLayouts;		//The classes it laid out (CCPPUnit::GetLayouts), with SetLayoutsFile.
-	ECPP65CompileAgain	eAgain;
-	size				uiTurn;			//Its turn with the imports (CIRImports::BeginTurn).
-	bool				bResult;
-	CChars				szErrors;
-	CChars				szWarnings;
-	CSpillStore*		pcSpillStore;	//The builder's index tree (SetSpillDirectory), or cSpillStore.
-	CMemorySpillStore	cSpillStore;
-	size				uiLazySkipped;
-	size				uiLazyLoaded;
-	size				uiLazyRead;
-	CCPPCompileStatistics	cStatistics;	//What compiling it was counted and timed in, until it is added to the builder's (FinishUnit).
-	SCPP65UnitCompile*	psCompile;		//While it is being compiled.
-	ECPP65UnitStage		eStage;			//While it waits for its turn.
-};
-
-
-typedef CArrayTemplatePtr<SCPP65CompiledUnit>	CArrayCPP65CompiledUnits;
-
-
-//A unit that has finished compiling, with the errors and warnings it had, as soon as it has (SetUnitReports).
-struct SCPP65UnitReport
-{
-	CChars	szName;		//The unit's file name, without its directory.
-	CChars	szErrors;
-	CChars	szWarnings;
-	bool	bAgain;		//A unit compiled a second time; it was reported the first time too.
-};
-
-
-typedef CArrayTemplate<SCPP65UnitReport>	CArrayCPP65UnitReports;
+#include "CPPUnitSchedule.h"
 
 
 //Builds a program for a target (SetTarget, before anything is added: the 65C64 unless set, or the W65C816, whose
@@ -145,6 +52,7 @@ typedef CArrayTemplate<SCPP65UnitReport>	CArrayCPP65UnitReports;
 class CCPP65Builder
 {
 protected:
+	CCPPUnitSchedule				mcSchedule;			//What compiles the project's units.
 	CCPPProgramLinker				mcProgram;			//The objects and how they are linked.
 	CCPPBuild						mcBuild;			//What is built and how: the target, options, include directories, listings.
 	CProject						mcProject;
@@ -152,28 +60,10 @@ protected:
 	bool							mbCompiled;
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
-	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
 	CArrayChars						maszOutsideProjects;	//A project with a source outside its directory, and that
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
 	bool							mbRuntime;			//The target's runtime units have been added (AddRuntime).
-	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
-	CMemorySpillStore				mcMemorySpillStore;
-	CIndexTreeSpillStore			mcIndexTreeSpillStore;
-	CCPPHeaderIndex					mcHeaderIndex;			//The header declarations the units have parsed.
 	CPPHeaderCache					mcHeaderCache;			//Headers' preprocessed output (SetHeaderCache).
-	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
-	size							muiLazyLoaded;			//...and loaded when used...
-	size							muiLazyRead;			//...of them read as parsed before, not parsed again.
-	CJobs*							mpcJobs;				//What compiles the units (SetJobs), or NULL for one at a time.
-	CJobs*							mpcUnitJobs;			//What CompileUnits is compiling the units with (units waiting for their turns are resumed on it).
-	CMutex							mcCompilingMutex;
-	CConditionVariable				mcCompiled;
-	size							muiCompiling;			//Units given to mpcJobs that haven't finished.
-	size							muiUnitsFinished;		//Units that have finished compiling (NumUnitsFinished).
-	CArrayTemplatePtr<CCPP65UnitWorkspace>	mapcWorkspaces;	//Those no unit is being compiled with (TakeWorkspace).
-	size							muiCompiledAgain;		//Units compiled a second time.
-	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
-	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
 	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
 
 public:
@@ -250,31 +140,6 @@ public:
 
 protected:
 	void					AddAssemblyUnit(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
-	bool					CompileUnits(void);
-	CJobs*					UnitJobs(CSerialJobs* pcSerialJobs);
-	void					StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFile, size uiTurn, bool bOwnSpillStore);
-	void					RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling);
-	void					FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings);
-	bool					CalleeExported(SCPP65CompiledUnit* psUnit);
-	void					CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport);
-	void					CompileUnitAgain(SCPP65CompiledUnit* psUnit);
-	void					DecideAgain(SCPP65CompiledUnit* psUnit);
-	void					StartGenerating(SCPP65CompiledUnit* psUnit);
-	void					RestartGenerating(SCPP65CompiledUnit* psUnit);
-	void					ContinueGenerating(SCPP65CompiledUnit* psUnit);
-	void					FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated);
-	void					InitGenerator(SCPP65CompiledUnit* psUnit);
-	void					Resume(SCPP65CompiledUnit* psUnit);
-	static void				ResumeUnit(void* pvBuilder, void* pvUnit, bool bStale);
-	static void				ResumeUnitJob(void* pvUnit);
-	static void				RestartUnitJob(void* pvUnit);
-	void					UnitFinished(void);
-	void					ReportUnit(SCPP65CompiledUnit* psUnit, bool bFirst);
-	CCPP65UnitWorkspace*	TakeWorkspace(void);
-	void					GiveBackWorkspace(CCPP65UnitWorkspace* pcWorkspace);
-	void					KillWorkspaces(void);
-	static void				CompileUnitJob(void* pvUnit);
-	static void				CompileUnitAgainJob(void* pvUnit);
 	bool					GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
 };
 

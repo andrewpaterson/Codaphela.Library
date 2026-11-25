@@ -170,6 +170,7 @@ void CCPPProgramLinker::SetStubMissing(bool bStubMissing)
 	mcLinker.SetStubMissing(bStubMissing);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Whether what nothing uses is left out of the program (the default).
@@ -180,6 +181,7 @@ void CCPPProgramLinker::SetRemoveUnused(bool bRemoveUnused)
 	mbRemoveUnused = bRemoveUnused;
 	mcLinker.SetRemoveUnused(bRemoveUnused);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -195,6 +197,7 @@ void CCPPProgramLinker::SetLazy(uint32 uiSectorSize, uint32 uiFirstSector)
 	mcLinker.SetLazy(CPP65_HEAP_ADDRESS, uiSectorSize, uiFirstSector);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -203,6 +206,7 @@ size CCPPProgramLinker::NumUnits(void)
 {
 	return mcLinker.NumUnits();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -214,6 +218,7 @@ CAsm65LineTable* CCPPProgramLinker::GetLineTable(void)
 	return mcLinker.GetLineTable();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // What the last link gives a debugger: its line table and debug records.
@@ -223,6 +228,7 @@ CAsm65DebugInfo* CCPPProgramLinker::GetDebugInfo(void)
 {
 	return mcLinker.GetDebugInfo();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -234,6 +240,7 @@ bool CCPPProgramLinker::GetSymbol(const char* szName, int64* plliValue)
 	return mcLinker.GetSymbol(szName, plliValue);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Where the program must end (CPP65_HEAP_ADDRESS unless set).  A program in a memory of more than 2MB has its heap
@@ -244,6 +251,7 @@ void CCPPProgramLinker::SetLimit(uint32 uiLimit)
 {
 	muiLimit = uiLimit;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -257,6 +265,7 @@ void CCPPProgramLinker::SetTextAddress(uint32 uiTextAddress)
 	muiTextAddress = uiTextAddress;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The lazy units' sectors, to write to the drive from the first sector given to
@@ -268,6 +277,7 @@ CArrayUint8* CCPPProgramLinker::GetLazyImage(void)
 	return mcLinker.GetLazyImage();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -276,6 +286,7 @@ CAsm65Output* CCPPProgramLinker::GetOutput(void)
 {
 	return mcLinker.GetOutput();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -287,6 +298,7 @@ CAsm65Linker* CCPPProgramLinker::GetLinker(void)
 	return &mcLinker;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -295,6 +307,7 @@ const char* CCPPProgramLinker::GetMap(void)
 {
 	return mcLinker.GetMap();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -305,6 +318,7 @@ size CCPPProgramLinker::NumMissing(void)
 	return mcLinker.NumMissing();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -313,6 +327,7 @@ char* CCPPProgramLinker::GetMissing(size uiIndex)
 {
 	return mcLinker.GetMissing(uiIndex);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -325,6 +340,7 @@ size CCPPProgramLinker::NumUnitObjects(void) const
 	return macObjects.NumElements();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -333,6 +349,7 @@ CAsm65Object* CCPPProgramLinker::GetUnitObject(size uiIndex)
 {
 	return macObjects.Get(uiIndex)->pcObject;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -361,6 +378,7 @@ void CCPPProgramLinker::GetMissingNames(CChars* pszDest)
 	aszMissing.Kill();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -375,6 +393,7 @@ void CCPPProgramLinker::ForbidFloats(void)
 		mcLinker.ForbidObject(aszFloatUnits[i], "Floating point is used, and this build has none (CCPPProgramLinker::SetNoFloats: the kernal has no floats)");
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -413,6 +432,7 @@ void CCPPProgramLinker::ResetLinker(void)
 		}
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -463,6 +483,7 @@ bool CCPPProgramLinker::CheckTested(void)
 	return bResult;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -504,6 +525,7 @@ bool CCPPProgramLinker::LinkObjects(void)
 	return bResult;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Assembles one object and adds it to the link.  .inchex file names are
@@ -521,6 +543,7 @@ bool CCPPProgramLinker::AddObject(const char* szName, const char* szAssembly, bo
 	cSource.Kill();
 	return bResult;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -548,6 +571,7 @@ bool CCPPProgramLinker::AddObject(const char* szName, CAsm65Source* pcSource, bo
 	return bResult;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // szDirectory is the directory .inchex file names are relative to (an
@@ -566,6 +590,7 @@ bool CCPPProgramLinker::Assemble(CAsm65Object* pcObject, const char* szAssembly,
 	return bResult;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Assembles pcSource into pcObject with the target's assembler.
@@ -575,6 +600,7 @@ bool CCPPProgramLinker::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource,
 {
 	return mpcBuild->GetTarget()->Assemble(pcSource, pcObject, szDirectory, szSourceFile, pszErrors);
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -594,6 +620,7 @@ CAsm65Library* CCPPProgramLinker::GetLinkLibrary(CLibrary* pcLibrary)
 	}
 	return NULL;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

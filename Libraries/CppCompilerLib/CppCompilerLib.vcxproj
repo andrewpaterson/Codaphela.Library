@@ -289,6 +289,8 @@
     <ClCompile Include="IRVerifier.cpp" />
     <ClCompile Include="CPPBuild.cpp" />
     <ClCompile Include="CPPProgramLinker.cpp" />
+    <ClCompile Include="CPPUnitSchedule.cpp" />
+    <ClCompile Include="CPPUnitCompiler.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
     <ClCompile Include="CPP65DebugValues.cpp" />
     <ClCompile Include="CPP65DebugWatch.cpp" />
@@ -596,6 +598,8 @@
     <ClInclude Include="IRVerifier.h" />
     <ClInclude Include="CPPBuild.h" />
     <ClInclude Include="CPPProgramLinker.h" />
+    <ClInclude Include="CPPUnitSchedule.h" />
+    <ClInclude Include="CPPUnitCompiler.h" />
     <ClInclude Include="CPP65Builder.h" />
     <ClInclude Include="CPP65DebugValues.h" />
     <ClInclude Include="CPP65DebugWatch.h" />
