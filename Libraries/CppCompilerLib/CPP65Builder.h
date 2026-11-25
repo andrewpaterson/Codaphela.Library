@@ -40,33 +40,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPPUnit.h"
 #include "CPPCompileStatistics.h"
 #include "CPPBuild.h"
+#include "CPPProgramLinker.h"
 
 
 //How many times a unit is generated again before its turn, having missed a function exported while it inlined
 //(after that it only waits for its turn).
 #define CPP65_STALE_ATTEMPTS	3
-
-
-//A project library whose units are linked as a library: a unit is only linked if another object needs it.
-struct SCPP65LinkLibrary
-{
-	CLibrary*		pcLibrary;
-	CAsm65Library	cObjects;
-};
-
-
-typedef CArrayTemplate<SCPP65LinkLibrary>	CArrayCPP65LinkLibraries;
-
-
-//An object given to the linker, again for each LinkWith.
-struct SCPP65Object
-{
-	CAsm65Object*	pcObject;
-	bool			bResident;
-};
-
-
-typedef CArrayTemplate<SCPP65Object>	CArrayCPP65Objects;
 
 
 class CCPP65Builder;
@@ -166,22 +145,11 @@ typedef CArrayTemplate<SCPP65UnitReport>	CArrayCPP65UnitReports;
 class CCPP65Builder
 {
 protected:
+	CCPPProgramLinker				mcProgram;			//The objects and how they are linked.
 	CCPPBuild						mcBuild;			//What is built and how: the target, options, include directories, listings.
-	CArrayCPP65LinkLibraries		macLinkLibraries;
 	CProject						mcProject;
 	size							muiUnits;
-	uint32							muiLimit;
-	uint32							muiTextAddress;
 	bool							mbCompiled;
-	bool							mbStubMissing;
-	bool							mbRemoveUnused;
-	bool							mbLazy;
-	uint32							muiLazySectorSize;
-	uint32							muiLazyFirstSector;
-	CAsm65Library					mcObjects;
-	CArrayCPP65Objects				macObjects;
-	CAsm65Library					mcLinkWithObjects;
-	CAsm65Linker					mcLinker;
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
@@ -207,8 +175,6 @@ protected:
 	bool							mbUnitReports;			//Each unit is reported as it finishes (SetUnitReports).
 	CArrayCPP65UnitReports			masUnitReports;			//Those not taken yet (TakeUnitReports), under mcCompilingMutex.
 	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
-	CArrayChars						maszTested;				//The functions the compiled units call by name and test for an exception...
-	CArrayTemplate<CAsm65Object*>	mapcCompiled;			//...and the objects that were compiled from C++: a tested function must be in one (CheckTested).
 
 public:
 	void					Init(void);
@@ -283,16 +249,10 @@ public:
 	CCPPBuild*				GetBuild(void);
 
 protected:
-	bool					CheckTested(void);
-	bool					AddObject(const char* szName, const char* szAssembly, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
-	bool					AddObject(const char* szName, CAsm65Source* pcSource, bool bResident = false, const char* szDirectory = NULL, const char* szSourceFile = NULL);
-	bool					Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory = NULL, const char* szSourceFile = NULL);
-	bool					Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile = NULL);
 	void					AddAssemblyUnit(const char* szLibrary, const char* szDirectory, const char* szSource, bool bLinkAsLibrary);
 	bool					CompileUnits(void);
 	CJobs*					UnitJobs(CSerialJobs* pcSerialJobs);
 	void					StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFile, size uiTurn, bool bOwnSpillStore);
-	void					AddUnitObject(SCPP65CompiledUnit* psUnit);
 	void					RunUnit(CJobs* pcJobs, JobFunction fJob, SCPP65CompiledUnit* psUnit, size uiMaxCompiling);
 	void					FinishUnit(SCPP65CompiledUnit* psUnit, bool bWarnings);
 	bool					CalleeExported(SCPP65CompiledUnit* psUnit);
@@ -316,10 +276,6 @@ protected:
 	static void				CompileUnitJob(void* pvUnit);
 	static void				CompileUnitAgainJob(void* pvUnit);
 	bool					GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
-	CAsm65Library*			GetLinkLibrary(CLibrary* pcLibrary);
-	void					ForbidFloats(void);
-	bool					LinkObjects(void);
-	void					ResetLinker(void);
 };
 
 

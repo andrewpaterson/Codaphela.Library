@@ -99,6 +99,9 @@
     <ClCompile Include="CPPBuild.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
+    <ClCompile Include="CPPProgramLinker.cpp">
+      <Filter>Source\Generator65</Filter>
+    </ClCompile>
     <ClCompile Include="CPP65Builder.cpp">
       <Filter>Source\Generator65</Filter>
     </ClCompile>
@@ -1071,6 +1074,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPPBuild.h">
+      <Filter>Source\Generator65</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPProgramLinker.h">
       <Filter>Source\Generator65</Filter>
     </ClInclude>
     <ClInclude Include="CPP65Builder.h">

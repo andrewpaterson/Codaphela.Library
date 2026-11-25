@@ -44,29 +44,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 void CCPP65Builder::Init(void)
 {
 	mcBuild.Init();
-	macLinkLibraries.Init();
 	mcProject.Init(false);
 	muiUnits = 0;
-	muiLimit = CPP65_HEAP_ADDRESS;
-	muiTextAddress = CPP65_PROGRAM_ADDRESS;
 	mbCompiled = false;
-	mbStubMissing = true;
-	mbRemoveUnused = true;
-	mbLazy = false;
-	muiLazySectorSize = 0;
-	muiLazyFirstSector = 0;
-	mcObjects.Init("objects");
-	macObjects.Init();
-	mcLinkWithObjects.Init("link with");
-	mcLinker.Init();
-	mcLinker.SetStubMissing(true);
-	mcLinker.SetRemoveUnused(true);
 	mszErrors.Init();
 	mszWarnings.Init();
-	maszTested.Init();
 	mcBuild.SetWarnings(&mszWarnings);
-	mcBuild.SetTested(&maszTested);
-	mapcCompiled.Init();
+	mcProgram.Init(&mcBuild, &mszErrors, &mcStatistics);
+	mcBuild.SetTested(mcProgram.GetTested());
 	mcImports.Init(IR_IMPORT_INSTRUCTIONS);
 	mcImports.SetResume(ResumeUnit, this);
 	mpcUnitJobs = NULL;
@@ -100,8 +85,6 @@ void CCPP65Builder::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::Kill(void)
 {
-	size	i;
-
 	if (mpcSpillStore == &mcIndexTreeSpillStore)
 	{
 		mcIndexTreeSpillStore.Kill();
@@ -118,19 +101,9 @@ void CCPP65Builder::Kill(void)
 	maszOutsideLibraries.Kill();
 	maszOutsideProjects.Kill();
 	mcImports.Kill();
-	mapcCompiled.Kill();
-	maszTested.Kill();
 	mszWarnings.Kill();
 	mszErrors.Kill();
-	mcLinker.Kill();
-	mcLinkWithObjects.Kill();
-	macObjects.Kill();
-	mcObjects.Kill();
-	for (i = 0; i < macLinkLibraries.NumElements(); i++)
-	{
-		macLinkLibraries.Get(i)->cObjects.Kill();
-	}
-	macLinkLibraries.Kill();
+	mcProgram.Kill();
 	mcProject.Kill();
 	mcBuild.Kill();
 }
@@ -160,7 +133,6 @@ bool CCPP65Builder::AddIncludeDirectory(const char* szDirectory, bool bIncludeSu
 void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary)
 {
 	CLibrary*			pcLibrary;
-	SCPP65LinkLibrary*	psLinkLibrary;
 	CAsm65Library*		pcLinkLibrary;
 	CTextFile			cFile;
 	CFileUtil			cFileUtil;
@@ -175,9 +147,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 		mcBuild.GetTarget()->AddDefines(pcLibrary->AddConfiguration((char*)mcBuild.GetTarget()->GetConfigurationName()), mcBuild.GetOptions());
 		if (bLinkAsLibrary)
 		{
-			psLinkLibrary = macLinkLibraries.Add();
-			psLinkLibrary->pcLibrary = pcLibrary;
-			psLinkLibrary->cObjects.Init(szLibrary);
+			mcProgram.AddLinkLibrary(pcLibrary, szLibrary);
 		}
 	}
 
@@ -190,17 +160,17 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 		if (cFile.Read(szPath.Text()))
 		{
 			cFile.PassifyNewlines();
-			pcLinkLibrary = GetLinkLibrary(pcLibrary);
+			pcLinkLibrary = mcProgram.GetLinkLibrary(pcLibrary);
 			//With a line table its lines that write bytes are source lines, as compiled code's .lines are.
 			szSourceFile.Init(szPath);
 			cFileUtil.RemoveLastFromPath(&szPath);
 			if (pcLinkLibrary)
 			{
-				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text(), mcBuild.HasLineTable() ? szSourceFile.Text() : NULL);
+				mcProgram.Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text(), mcBuild.HasLineTable() ? szSourceFile.Text() : NULL);
 			}
 			else
 			{
-				AddObject(szFile, cFile.Text(), false, szPath.Text(), mcBuild.HasLineTable() ? szSourceFile.Text() : NULL);
+				mcProgram.AddObject(szFile, cFile.Text(), false, szPath.Text(), mcBuild.HasLineTable() ? szSourceFile.Text() : NULL);
 			}
 			szSourceFile.Kill();
 		}
@@ -530,8 +500,7 @@ void CCPP65Builder::AddAssemblyUnit(const char* szLibrary, const char* szDirecto
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetStubMissing(bool bStubMissing)
 {
-	mbStubMissing = bStubMissing;
-	mcLinker.SetStubMissing(bStubMissing);
+	mcProgram.SetStubMissing(bStubMissing);
 }
 
 
@@ -542,8 +511,7 @@ void CCPP65Builder::SetStubMissing(bool bStubMissing)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetRemoveUnused(bool bRemoveUnused)
 {
-	mbRemoveUnused = bRemoveUnused;
-	mcLinker.SetRemoveUnused(bRemoveUnused);
+	mcProgram.SetRemoveUnused(bRemoveUnused);
 }
 
 
@@ -555,10 +523,7 @@ void CCPP65Builder::SetRemoveUnused(bool bRemoveUnused)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLazy(uint32 uiSectorSize, uint32 uiFirstSector)
 {
-	mbLazy = true;
-	muiLazySectorSize = uiSectorSize;
-	muiLazyFirstSector = uiFirstSector;
-	mcLinker.SetLazy(CPP65_HEAP_ADDRESS, uiSectorSize, uiFirstSector);
+	mcProgram.SetLazy(uiSectorSize, uiFirstSector);
 }
 
 
@@ -568,7 +533,7 @@ void CCPP65Builder::SetLazy(uint32 uiSectorSize, uint32 uiFirstSector)
 //////////////////////////////////////////////////////////////////////////
 size CCPP65Builder::NumUnits(void)
 {
-	return mcLinker.NumUnits();
+	return mcProgram.NumUnits();
 }
 
 
@@ -985,7 +950,7 @@ void CCPP65Builder::SetNoFloats(bool bNoFloats)
 	mcBuild.SetNoFloats(bNoFloats);
 	if (bNoFloats)
 	{
-		ForbidFloats();
+		mcProgram.ForbidFloats();
 	}
 }
 
@@ -1013,28 +978,12 @@ void CCPP65Builder::SetMathTables(bool bMathTables)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::ForbidFloats(void)
-{
-	static const char*	aszFloatUnits[] = { "softfloatW65C816.asm", "softfloat.asm", "softfloat.cpp", "math.cpp", NULL };
-	size				i;
-
-	for (i = 0; aszFloatUnits[i]; i++)
-	{
-		mcLinker.ForbidObject(aszFloatUnits[i], "Floating point is used, and this build has none (CCPP65Builder::SetNoFloats: the kernal has no floats)");
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The linked program's source lines and fingerprints (SetLineTable).
 //
 //////////////////////////////////////////////////////////////////////////
 CAsm65LineTable* CCPP65Builder::GetLineTable(void)
 {
-	return mcLinker.GetLineTable();
+	return mcProgram.GetLineTable();
 }
 
 
@@ -1045,7 +994,7 @@ CAsm65LineTable* CCPP65Builder::GetLineTable(void)
 //////////////////////////////////////////////////////////////////////////
 CAsm65DebugInfo* CCPP65Builder::GetDebugInfo(void)
 {
-	return mcLinker.GetDebugInfo();
+	return mcProgram.GetDebugInfo();
 }
 
 
@@ -1056,7 +1005,7 @@ CAsm65DebugInfo* CCPP65Builder::GetDebugInfo(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::GetSymbol(const char* szName, int64* plliValue)
 {
-	return mcLinker.GetSymbol(szName, plliValue);
+	return mcProgram.GetSymbol(szName, plliValue);
 }
 
 
@@ -1068,7 +1017,7 @@ bool CCPP65Builder::GetSymbol(const char* szName, int64* plliValue)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLimit(uint32 uiLimit)
 {
-	muiLimit = uiLimit;
+	mcProgram.SetLimit(uiLimit);
 }
 
 
@@ -1081,7 +1030,7 @@ void CCPP65Builder::SetLimit(uint32 uiLimit)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetTextAddress(uint32 uiTextAddress)
 {
-	muiTextAddress = uiTextAddress;
+	mcProgram.SetTextAddress(uiTextAddress);
 }
 
 
@@ -1093,7 +1042,7 @@ void CCPP65Builder::SetTextAddress(uint32 uiTextAddress)
 //////////////////////////////////////////////////////////////////////////
 CArrayUint8* CCPP65Builder::GetLazyImage(void)
 {
-	return mcLinker.GetLazyImage();
+	return mcProgram.GetLazyImage();
 }
 
 
@@ -1109,7 +1058,7 @@ bool CCPP65Builder::AddStartUp(void)
 
 	szAssembly.Init();
 	mcBuild.GetTarget()->AppendStartUp(&szAssembly, mcBuild.GetOptions()->mbExceptions);
-	bResult = AddObject("start up", szAssembly.Text(), true);
+	bResult = mcProgram.AddObject("start up", szAssembly.Text(), true);
 	szAssembly.Kill();
 	return bResult;
 }
@@ -1127,8 +1076,7 @@ bool CCPP65Builder::AddSource(const char* szName, const char* szSource)
 
 	szAssembly.Init();
 	bResult = GenerateSource(&szAssembly, szName, szSource);
-	bResult &= AddObject(szName, szAssembly.Text());
-	mapcCompiled.Add(&macObjects.Tail()->pcObject);
+	bResult &= mcProgram.AddCompiledObject(szName, szAssembly.Text());
 	szAssembly.Kill();
 	return bResult;
 }
@@ -1160,7 +1108,7 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::AddAssembly(const char* szName, const char* szAssembly)
 {
-	return AddObject(szName, szAssembly);
+	return mcProgram.AddObject(szName, szAssembly);
 }
 
 
@@ -1174,7 +1122,7 @@ bool CCPP65Builder::Link(void)
 	bool	bResult;
 
 	bResult = Compile();
-	bResult &= LinkObjects();
+	bResult &= mcProgram.LinkObjects();
 	return bResult && mszErrors.Empty();
 }
 
@@ -1219,148 +1167,14 @@ bool CCPP65Builder::LinkWith(const char* szName, const char* szSource)
 		return false;
 	}
 
-	ResetLinker();
-	mcLinkWithObjects.Kill();
-	mcLinkWithObjects.Init("link with");
+	mcProgram.ResetLinker();
 	szAssembly.Init();
 	bResult = GenerateSource(&szAssembly, szName, szSource);
-	bResult &= Assemble(mcLinkWithObjects.AddObject(szName), szAssembly.Text());
+	bResult &= mcProgram.AddLinkWithObject(szName, szAssembly.Text());
 	szAssembly.Kill();
-	mcLinker.AddObject(mcLinkWithObjects.GetObject(0));
 
-	bResult &= LinkObjects();
+	bResult &= mcProgram.LinkObjects();
 	return bResult && mszErrors.Empty();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A new linker with the builder's settings and objects, for LinkWith.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::ResetLinker(void)
-{
-	SCPP65Object*	psObject;
-	size			i;
-
-	mszErrors.Kill();
-	mszErrors.Init();
-	mcLinker.Kill();
-	mcLinker.Init();
-	mcLinker.SetStubMissing(mbStubMissing);
-	mcLinker.SetRemoveUnused(mbRemoveUnused);
-	if (mcBuild.HasNoFloats())
-	{
-		ForbidFloats();
-	}
-	if (mbLazy)
-	{
-		mcLinker.SetLazy(CPP65_HEAP_ADDRESS, muiLazySectorSize, muiLazyFirstSector);
-	}
-	for (i = 0; i < macObjects.NumElements(); i++)
-	{
-		psObject = macObjects.Get(i);
-		if (psObject->bResident)
-		{
-			mcLinker.AddResidentObject(psObject->pcObject);
-		}
-		else
-		{
-			mcLinker.AddObject(psObject->pcObject);
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Exceptions (ExceptionsPlan.txt): a function that throws returns with a
-// flag set, and compiled C++ returns with it clear when it doesn't.  An
-// assembly routine leaves it as it falls, so C++ that tests a call of one
-// would take what it finds for an exception.  Every function the compiled
-// units call by name and test must therefore be one a compiled unit
-// defines; one that is linked from anything else is an error, which says
-// what to do: declare it noexcept, and its calls aren't tested.  (A function
-// nothing defines is the linker's to report, or a stub.)
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::CheckTested(void)
-{
-	CAsm65Object*	pcObject;
-	const char*		szName;
-	size			ui;
-	size			uiObject;
-	size			uiMissing;
-	int32			iSymbol;
-	bool			bCompiled;
-	bool			bMissing;
-	bool			bResult;
-
-	bResult = true;
-	for (ui = 0; ui < maszTested.NumElements(); ui++)
-	{
-		szName = maszTested.GetText(ui);
-		bCompiled = false;
-		for (uiObject = 0; !bCompiled && (uiObject < mapcCompiled.NumElements()); uiObject++)
-		{
-			pcObject = *mapcCompiled.Get(uiObject);
-			iSymbol = pcObject->FindSymbol(szName);
-			bCompiled = (iSymbol >= 0) && (pcObject->GetSymbol((size)iSymbol)->iSection >= 0);
-		}
-		bMissing = false;
-		for (uiMissing = 0; !bCompiled && !bMissing && (uiMissing < mcLinker.NumMissing()); uiMissing++)
-		{
-			bMissing = strcmp(mcLinker.GetMissing(uiMissing), szName) == 0;
-		}
-		if (!bCompiled && !bMissing)
-		{
-			mszErrors.Append(szName)->Append(" is assembly and is called by C++ that tests for an exception: declare it noexcept.\n");
-			bResult = false;
-		}
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::LinkObjects(void)
-{
-	const char*	szPrefix;
-	bool		bResult;
-	size		i;
-
-	//The libraries are only added now, when their array won't move them any more.
-	for (i = 0; i < macLinkLibraries.NumElements(); i++)
-	{
-		mcLinker.AddLibrary(&macLinkLibraries.Get(i)->cObjects);
-	}
-	mcLinker.SetAddress(ASK65_Text, muiTextAddress);
-	mcLinker.SetLimit(muiLimit);
-	mcLinker.SetBankSize(mcBuild.GetTarget()->GetBankSize());
-	if (mcBuild.GetTarget()->GetStubOpcode() >= 0)
-	{
-		mcLinker.SetStubOpcode((uint8)mcBuild.GetTarget()->GetStubOpcode());
-	}
-	mcStatistics.Begin(CPPCP_Link);
-	bResult = mcLinker.Link();
-	mcStatistics.End(CPPCP_Link);
-	mszErrors.Append(mcLinker.GetErrors());
-	bResult &= CheckTested();
-
-	//A runtime routine isn't stubbed: its program would stop at the first multiply.
-	szPrefix = mcBuild.GetTarget()->GetRuntimePrefix();
-	for (i = 0; szPrefix && (i < mcLinker.NumMissing()); i++)
-	{
-		if (strncmp(mcLinker.GetMissing(i), szPrefix, strlen(szPrefix)) == 0)
-		{
-			mszErrors.Append("The ")->Append(mcBuild.GetTarget()->GetConfigurationName())->Append(" runtime routine ")->Append(mcLinker.GetMissing(i))->Append(" isn't linked (CCPP65Builder::AddMathTables or AddLibc65 adds the runtime).\n");
-			bResult = false;
-		}
-	}
-	return bResult;
 }
 
 
@@ -1370,7 +1184,7 @@ bool CCPP65Builder::LinkObjects(void)
 //////////////////////////////////////////////////////////////////////////
 CAsm65Output* CCPP65Builder::GetOutput(void)
 {
-	return mcLinker.GetOutput();
+	return mcProgram.GetOutput();
 }
 
 
@@ -1381,7 +1195,7 @@ CAsm65Output* CCPP65Builder::GetOutput(void)
 //////////////////////////////////////////////////////////////////////////
 CAsm65Linker* CCPP65Builder::GetLinker(void)
 {
-	return &mcLinker;
+	return mcProgram.GetLinker();
 }
 
 
@@ -1412,7 +1226,7 @@ const char* CCPP65Builder::GetWarnings(void) const
 //////////////////////////////////////////////////////////////////////////
 const char* CCPP65Builder::GetMap(void)
 {
-	return mcLinker.GetMap();
+	return mcProgram.GetMap();
 }
 
 
@@ -1422,7 +1236,7 @@ const char* CCPP65Builder::GetMap(void)
 //////////////////////////////////////////////////////////////////////////
 size CCPP65Builder::NumMissing(void)
 {
-	return mcLinker.NumMissing();
+	return mcProgram.NumMissing();
 }
 
 
@@ -1432,7 +1246,7 @@ size CCPP65Builder::NumMissing(void)
 //////////////////////////////////////////////////////////////////////////
 char* CCPP65Builder::GetMissing(size uiIndex)
 {
-	return mcLinker.GetMissing(uiIndex);
+	return mcProgram.GetMissing(uiIndex);
 }
 
 
@@ -1444,7 +1258,7 @@ char* CCPP65Builder::GetMissing(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 size CCPP65Builder::NumUnitObjects(void) const
 {
-	return macObjects.NumElements();
+	return mcProgram.NumUnitObjects();
 }
 
 
@@ -1454,7 +1268,7 @@ size CCPP65Builder::NumUnitObjects(void) const
 //////////////////////////////////////////////////////////////////////////
 CAsm65Object* CCPP65Builder::GetUnitObject(size uiIndex)
 {
-	return macObjects.Get(uiIndex)->pcObject;
+	return mcProgram.GetUnitObject(uiIndex);
 }
 
 
@@ -1465,24 +1279,7 @@ CAsm65Object* CCPP65Builder::GetUnitObject(size uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::GetMissingNames(CChars* pszDest)
 {
-	CArrayChars	aszMissing;
-	size		i;
-
-	aszMissing.Init();
-	for (i = 0; i < mcLinker.NumMissing(); i++)
-	{
-		aszMissing.Add(mcLinker.GetMissing(i));
-	}
-	aszMissing.QuickSort(true);
-	for (i = 0; i < aszMissing.NumElements(); i++)
-	{
-		if (i > 0)
-		{
-			pszDest->Append(' ');
-		}
-		pszDest->Append(aszMissing.GetText(i));
-	}
-	aszMissing.Kill();
+	mcProgram.GetMissingNames(pszDest);
 }
 
 
@@ -1495,102 +1292,6 @@ void CCPP65Builder::GetMissingNames(CChars* pszDest)
 CCPPBuild* CCPP65Builder::GetBuild(void)
 {
 	return &mcBuild;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Assembles one object and adds it to the link.  .inchex file names are
-// relative to szDirectory.  szSourceFile, the assembly's own file, makes
-// its lines that write bytes source lines (CAsm65BaseAssembler::SetSourceFile).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::AddObject(const char* szName, const char* szAssembly, bool bResident, const char* szDirectory, const char* szSourceFile)
-{
-	CAsm65TextSource	cSource;
-	bool				bResult;
-
-	cSource.Init(szAssembly);
-	bResult = AddObject(szName, &cSource, bResident, szDirectory, szSourceFile);
-	cSource.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::AddObject(const char* szName, CAsm65Source* pcSource, bool bResident, const char* szDirectory, const char* szSourceFile)
-{
-	CAsm65Object*	pcObject;
-	SCPP65Object*	psObject;
-	bool			bResult;
-
-	pcObject = mcObjects.AddObject(szName);
-	bResult = Assemble(pcObject, pcSource, szDirectory, &mszErrors, szSourceFile);
-	psObject = macObjects.Add();
-	psObject->pcObject = pcObject;
-	psObject->bResident = bResident;
-	if (bResident)
-	{
-		mcLinker.AddResidentObject(pcObject);
-	}
-	else
-	{
-		mcLinker.AddObject(pcObject);
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// szDirectory is the directory .inchex file names are relative to (an
-// assembly unit's own).  The errors go to pszErrors.  szSourceFile, the
-// assembly's own file, makes its lines that write bytes source lines.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, const char* szDirectory, const char* szSourceFile)
-{
-	CAsm65TextSource	cSource;
-	bool				bResult;
-
-	cSource.Init(szAssembly);
-	bResult = Assemble(pcObject, &cSource, szDirectory, &mszErrors, szSourceFile);
-	cSource.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Assembles pcSource into pcObject with the target's assembler.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile)
-{
-	return mcBuild.GetTarget()->Assemble(pcSource, pcObject, szDirectory, szSourceFile, pszErrors);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The library a project library's units are linked as, or NULL if they are linked as objects.
-//
-//////////////////////////////////////////////////////////////////////////
-CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
-{
-	size	i;
-
-	for (i = 0; i < macLinkLibraries.NumElements(); i++)
-	{
-		if (macLinkLibraries.Get(i)->pcLibrary == pcLibrary)
-		{
-			return &macLinkLibraries.Get(i)->cObjects;
-		}
-	}
-	return NULL;
 }
 
 
@@ -1623,7 +1324,6 @@ bool CCPP65Builder::CompileUnits(void)
 	size						uiMaxCompiling;
 	size						uiTurn;
 	size						ui;
-	size						uj;
 	bool						bResult;
 	CFileUtil					cFileUtil;
 
@@ -1650,7 +1350,7 @@ bool CCPP65Builder::CompileUnits(void)
 		StartUnit(psUnit, pcFile, uiTurn, mpcSpillStore != &mcIndexTreeSpillStore);
 		uiTurn++;
 		apsUnits.Add(psUnit);
-		AddUnitObject(psUnit);
+		psUnit->pcObject = mcProgram.AddUnitObject(psUnit->pcFile);
 		RunUnit(pcJobs, CompileUnitJob, psUnit, uiMaxCompiling);
 	}
 	pcJobs->Wait();
@@ -1706,14 +1406,7 @@ bool CCPP65Builder::CompileUnits(void)
 		psUnit = *apsUnits.Get(ui);
 
 		//What it tests, and that its object is C++'s, for CheckTested.
-		for (uj = 0; uj < psUnit->aszTested.NumElements(); uj++)
-		{
-			maszTested.AddIfUnique(psUnit->aszTested.GetText(uj));
-		}
-		if (psUnit->pcObject)
-		{
-			mapcCompiled.Add(&psUnit->pcObject);
-		}
+		mcProgram.AddCompiled(psUnit->pcObject, &psUnit->aszTested);
 		mcBuild.AddLayouts(&psUnit->aszLayouts);
 		psUnit->aszLayouts.Kill();
 		psUnit->aszTested.Kill();
@@ -1787,33 +1480,6 @@ void CCPP65Builder::StartUnit(SCPP65CompiledUnit* psUnit, CTranslationUnit* pcFi
 	psUnit->cStatistics.SetTimes(mcStatistics.IsTimed());
 	psUnit->psCompile = NULL;
 	psUnit->eStage = CPP65US_Generating;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The unit's (empty) object, added to its link library or to the objects
-// linked, after the units before it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::AddUnitObject(SCPP65CompiledUnit* psUnit)
-{
-	CAsm65Library*	pcLinkLibrary;
-	SCPP65Object*	psObject;
-
-	pcLinkLibrary = GetLinkLibrary(psUnit->pcFile->GetLibrary());
-	if (pcLinkLibrary)
-	{
-		psUnit->pcObject = pcLinkLibrary->AddObject(psUnit->pcFile->ShortName());
-	}
-	else
-	{
-		psUnit->pcObject = mcObjects.AddObject(psUnit->pcFile->ShortName());
-		psObject = macObjects.Add();
-		psObject->pcObject = psUnit->pcObject;
-		psObject->bResident = false;
-		mcLinker.AddObject(psUnit->pcObject);
-	}
 }
 
 
@@ -2142,7 +1808,7 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 	psCompile->cGenerator.SetListing(mcBuild.HasListingDirectory());
 	psCompile->cGenerator.SetLayouts(mcBuild.HasLayouts());
 	psCompile->cGenerator.SetLineTable(mcBuild.HasLineTable(), mcBuild.GetCompileTime());
-	psCompile->cGenerator.SetNoFloats(mcBuild.HasNoFloats() && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
+	psCompile->cGenerator.SetNoFloats(mcBuild.HasNoFloats() && (mcProgram.GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
 	psCompile->cGenerator.SetCompiledBefore(!psCompile->bFirst);
 }
 
@@ -2270,7 +1936,7 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psCompile->cTokeniser.Kill();
 
 	psUnit->cStatistics.Begin(CPPCP_Assemble);
-	bResult &= Assemble(psUnit->pcObject, &psCompile->cAssembly, NULL, &psUnit->szErrors);
+	bResult &= mcProgram.Assemble(psUnit->pcObject, &psCompile->cAssembly, NULL, &psUnit->szErrors);
 	psUnit->cStatistics.End(CPPCP_Assemble);
 	psCompile->cAssembly.Kill();
 	if (psUnit->pcSpillStore == &psUnit->cSpillStore)
