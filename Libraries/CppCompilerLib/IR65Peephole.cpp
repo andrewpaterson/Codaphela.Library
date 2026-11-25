@@ -518,6 +518,7 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 		Forget(psState, IR65_NAME_W);
 		break;
 	case IR65CK_Alu:
+	case IR65CK_Negate:
 		if (!psLine->bWritesFirst)
 		{
 			break;

@@ -1286,7 +1286,8 @@ bool CIR65Code::DecodeInstruction(uint8 uiMnemonic, const char* szOperands, SIR6
 		return true;
 
 	case IR65CK_Negate:
-		//neg R1 {, R2}: R2 (R1 when there is one register) is negated into R1.
+		//neg R1 {, R2}: R2 (R1 when there is one register) is negated into R1.  V and W are registers the passes keep
+		//no widths for (iFirst and iSecond -1), as with the other instructions on them.
 		if ((iOperands < 1) || (iOperands > 2))
 		{
 			return false;
@@ -1294,7 +1295,7 @@ bool CIR65Code::DecodeInstruction(uint8 uiMnemonic, const char* szOperands, SIR6
 		psLine->iFirst = (int8)IR65CodeRegister(&asOperands[0]);
 		psLine->iSecond = (int8)IR65CodeRegister(psLast);
 		psLine->bFirstRegister = true;
-		return (psLine->iFirst >= 0) && (psLine->iSecond >= 0);
+		return IR65CodeIsRegister(&asOperands[0]) && IR65CodeIsRegister(psLast);
 
 	case IR65CK_Push:
 	case IR65CK_Pull:

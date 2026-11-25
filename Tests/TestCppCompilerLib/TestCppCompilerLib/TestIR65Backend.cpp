@@ -1764,6 +1764,23 @@ void TestIR65BackendHomeV(void)
 		"\t\tcpy A, [4 + V]\n"
 		"\t\tadd A, X\n"
 		"\t\tret\n", false);
+
+	//A neg of V moves the frame, so [4 + V] is other memory after it.
+	TestIR65PeepholeOptimise(
+		"_F:\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tcpy X, A\n"
+		"\t\tneg V, V\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tadd A, X\n"
+		"\t\tret\n",
+		"_F:\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tcpy X, A\n"
+		"\t\tneg V, V\n"
+		"\t\tcpy A, [4 + V]\n"
+		"\t\tadd A, X\n"
+		"\t\tret\n", false);
 }
 
 
