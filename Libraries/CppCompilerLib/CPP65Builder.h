@@ -48,7 +48,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //objects again and again, each time with another source (a main, for example), so a large project can be run as
 //several programs that each fit.  On the W65C816 small functions are inlined across the project's units (CIRImports):
 //a unit compiled before one whose function it calls is compiled again at the end.  With SetJobs several units are
-//preprocessed and compiled at once; what is built is the same as compiling them one at a time.
+//preprocessed and compiled at once; what is built is the same as compiling them one at a time.  The builder is the
+//front over four parts, keeping the project, the errors, the warnings and the counts: what is built and how
+//(CCPPBuild, GetBuild), the project's units compiled (CCPPUnitSchedule, each unit by a CCPPUnitCompiler) and the
+//objects linked (CCPPProgramLinker).
 class CCPP65Builder
 {
 protected:
