@@ -683,7 +683,7 @@ Stage 8.  The back ends' code is instructions.  (L-XL; in full, in two halves: t
      W65C816's through CIR816BranchCode, built over its code, not text); that the W65C816's code isn't a
      CIRBranchCode itself is 11b's (PeepholeBranches' cost).
 
-Stage 9.  The builder is four classes.  (M; not started)
+Stage 9.  The builder is four classes.  (M; done 2026-11-26)
 
    What the code is now: CCPP65Builder is one class, CPP65Builder.cpp 2,621 lines, 108 functions and 55 fields
    (CPP65Builder.h:183-237), doing the build's options, the schedule, compiling a unit and linking and
@@ -713,6 +713,20 @@ Stage 9.  The builder is four classes.  (M; not started)
    peak memory with the jobs running.  A schedule is easy to make slower without making it wrong.
    Ends when: the listings are the same serial and parallel; wall time and memory are within the spread on
    each thread count.
+
+   Done 2026-11-26 (Progress has the record).  What went otherwise than written:
+   - CCPPBuild is a class, not a struct, and holds what is built and how (the target, include directories,
+     options and the unoptimised libraries' options, frame profile, listing directory, layouts file and the
+     classes laid out, line table, no floats, lazy headers); Generate is its member with five arguments (name,
+     source, program or not, assembly, errors), what Generate gives besides going where SetWarnings,
+     SetExternals, SetTested and SetStatistics say.  The listings and the layouts are written by it, not by the
+     linker: they are what is written beside the code.
+   - CCPP65Builder keeps the project, the header cache, the errors, the warnings and the statistics, and Link,
+     Compile and LinkWith, which use the schedule and the linker; its public functions forward to the four.
+   - The header index and the spill store are the schedule's (only compiling uses them).
+   - The parked count was added first (CIRImports::NumParked, CCPP65Builder::NumImportsParked).
+   - HCP65-IDE's IDEConvertMacro, IDEInlineFunction and IDEMoveMembers had SCPP65Type through CPP65Builder.h's
+     includes; they include CPP65Type.h now (HCP65-IDE 26a8989).
 
 Stage 10.  The parser and the preprocessor.  (M-L and M-L; little done)
 
@@ -1360,6 +1374,30 @@ text, the passes no longer decode it three times, together 16.9 s against 17.3 s
 code passes 20,408 and back end 14,306 (19,353 and 13,901 after 8a; one run of each, times move by a few per cent).
 Each 65C64 pass from the list (runs, the runs that changed their function's lines, milliseconds): StoreLoads
 106,335 137 542; Flags 31,244 2,135; Widths 14,240 3,804; Peephole 47,278 2,405; PseudoWithoutW 15,766 77.
+
+Stage 9, 2026-11-25 and 26.  Each commit only moves code: the listings (4,245) are the same as the baseline's
+(dfabaed31, made serially as CompilerProof.py makes them), and at the end the same compiled on 16 threads
+(TEST_PROJECT65_THREADS=16, not serially); TestCppCompilerLib passes (278,316 run, 0 failed, at the end).
+HCP65Emulator.sln, TestLibc65.sln and HCP65IDE.sln build (Release x64).
+  - dfabaed31  the measure first: the units parked waiting for their turn.
+  - 411fec205  CCPPBuild: what is built and how; Generate on it (five arguments in place of nineteen).
+  - 566047ce6  CCPPProgramLinker: the objects and how they are linked.
+  - 82f4ad24b  CCPPUnitSchedule and CCPPUnitCompiler: the units compiled in their turns, and one unit.
+  - d4b820785  the builder's comment.
+CPP65Builder.cpp went from 2,770 lines to 1,215 (CPPBuild.cpp 830, CPPProgramLinker.cpp 621, CPPUnitSchedule.cpp
+806, CPPUnitCompiler.cpp 259).  Measured before (dfabaed31) and after (d4b820785's code, 82f4ad24b's), each suite's
+project compiled only (no program linked or run), Release x64, on 1, 4 and 16 threads, twice: wall seconds, the
+two runs before / after (peak MB were the same within 3%, and the counts compiled again the same on every run;
+stale, missed and parked vary from run to run as before):
+                         1 thread               4 threads              16 threads
+  BaseLib 65C64          55.3/55.3  56.0/55.1   20.9/20.9  20.9/20.7   14.4/14.1  14.0/13.9
+  BaseLib W65C816        74.0/74.7  75.1/75.4   30.1/30.1  29.7/29.7   21.4/21.1  21.1/20.8
+  StandardLib 65C64      65.6/64.7  66.0/65.5   21.9/21.9  21.9/22.1   14.2/13.9  14.0/13.5
+  StandardLib W65C816    95.1/95.3  95.9/96.2   33.3/33.4  33.0/33.7   23.1/22.0  22.3/22.2
+  SupportLib 65C64      103.4/103.1 103.0/103.2 34.0/33.7  34.2/33.8   21.9/21.1  20.7/20.9
+  SupportLib W65C816    141.5      142.6/142.2  48.9/48.2  48.0/48.4   32.6/31.2  31.3
+TestSupportLib65's compile on the W65C816 crashed once before (1 thread) and once after (16 threads), an access
+violation in 36 runs each time; the other run of each was as above.  Not yet chased: it happened before stage 9.
 
 The numbers of 2026-11-11.
 
