@@ -24,39 +24,33 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //////////////////////////////////////////////////////////////////////////
 //
-// True if line uiLine, not removed, is "szMnemonic R, value" with R one of
-// A, B, X and Y; the register's index and the value.  (A removed line keeps
-// its text.)
+// True if line uiLine, not removed, is "uiMnemonic R, value" with R one of
+// A, B, X and Y; the register's index and the value.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR65WidthsImmediate(CIR65Code* pcCode, size uiLine, const char* szMnemonic, int* piRegister, int64* plliValue)
+static bool IR65WidthsImmediate(CIR65Code* pcCode, size uiLine, uint8 uiMnemonic, int* piRegister, int64* plliValue)
 {
 	const char*	sz;
 	size		uiLength;
 	int			i;
 	char*		szEnd;
 
-	if (pcCode->IsRemoved(uiLine))
+	if (pcCode->IsRemoved(uiLine) || (pcCode->Mnemonic(uiLine) != uiMnemonic))
 	{
 		return false;
 	}
-	sz = pcCode->GetText(uiLine)->Text();
-	while (*sz == '\t')
-	{
-		sz++;
-	}
-	uiLength = strlen(szMnemonic);
-	if ((strncmp(sz, szMnemonic, uiLength) != 0) || (sz[uiLength] != ' ') || (sz[uiLength + 2] != ',') || (sz[uiLength + 3] != ' '))
+	sz = pcCode->OperandsText(uiLine, &uiLength);
+	if ((uiLength < 3) || (sz[1] != ',') || (sz[2] != ' '))
 	{
 		return false;
 	}
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
-		if (sz[uiLength + 1] == CIR65Code::RegisterName(i))
+		if (sz[0] == CIR65Code::RegisterName(i))
 		{
 			*piRegister = i;
-			*plliValue = strtoll(sz + uiLength + 4, &szEnd, 10);
-			return (szEnd != sz + uiLength + 4) && (*szEnd == '\0');
+			*plliValue = strtoll(sz + 3, &szEnd, 10);
+			return (szEnd != sz + 3) && (*szEnd == '\0');
 		}
 	}
 	return false;
@@ -72,19 +66,15 @@ static bool IR65WidthsImmediate(CIR65Code* pcCode, size uiLine, const char* szMn
 static bool IR65WidthsCopy(CIR65Code* pcCode, size uiLine, int iDestination, int* piSource)
 {
 	SIR65CodeLine*	psLine;
-	const char*		sz;
+	size			uiLength;
 
 	if (pcCode->IsRemoved(uiLine))
 	{
 		return false;
 	}
 	psLine = pcCode->GetLine(uiLine);
-	sz = pcCode->GetText(uiLine)->Text();
-	while (*sz == '\t')
-	{
-		sz++;
-	}
-	if ((psLine->uiKind != IR65CK_Alu) || (strncmp(sz, "cpy ", 4) != 0) || (psLine->iFirst != iDestination) || (psLine->iSecond < 0) || (psLine->iSecond == iDestination) || (strlen(sz) != 8))
+	pcCode->OperandsText(uiLine, &uiLength);
+	if ((psLine->uiKind != IR65CK_Alu) || (pcCode->Mnemonic(uiLine) != IR65M_Cpy) || (psLine->iFirst != iDestination) || (psLine->iSecond < 0) || (psLine->iSecond == iDestination) || (uiLength != 4))
 	{
 		return false;
 	}
@@ -275,9 +265,12 @@ bool CIR65Widths::UseTests(void)
 	SIR65CodeLine*	psBranch;
 	SIR65Widths		sOut;
 	SIR65Widths*	psWidths;
-	CChars*			pszCopy;
-	CChars*			pszAnd;
-	CChars*			pszBranch;
+	const char*		szCopy;
+	const char*		szAnd;
+	const char*		szBranch;
+	size			uiCopy;
+	size			uiAnd;
+	size			uiBranch;
 	CChars			szInstruction;
 	bool			bChanged;
 
@@ -300,10 +293,11 @@ bool CIR65Widths::UseTests(void)
 		{
 			continue;
 		}
-		pszCopy = mcCode.GetText(ui);
-		pszAnd = mcCode.GetText(ui + 1);
-		pszBranch = mcCode.GetText(ui + 2);
-		if ((pszCopy->Length() != 10) || !pszCopy->StartsWith("\t\tcpy A, ") || !pszAnd->StartsWith("\t\tand A, ") || (pszAnd->Text()[9] == '[') || !(pszBranch->StartsWith("\t\tbras z, ") || pszBranch->StartsWith("\t\tbrac z, ")))
+		szCopy = mcCode.OperandsText(ui, &uiCopy);
+		szAnd = mcCode.OperandsText(ui + 1, &uiAnd);
+		szBranch = mcCode.OperandsText(ui + 2, &uiBranch);
+		if ((mcCode.Mnemonic(ui) != IR65M_Cpy) || (uiCopy != 4) || (strncmp(szCopy, "A, ", 3) != 0) || (mcCode.Mnemonic(ui + 1) != IR65M_And) || (uiAnd < 3) || (strncmp(szAnd, "A, ", 3) != 0) ||
+			(szAnd[3] == '[') || !((mcCode.Mnemonic(ui + 2) == IR65M_Bras) || (mcCode.Mnemonic(ui + 2) == IR65M_Brac)) || (uiBranch < 3) || (strncmp(szBranch, "z, ", 3) != 0))
 		{
 			continue;
 		}
@@ -319,9 +313,9 @@ bool CIR65Widths::UseTests(void)
 		{
 			continue;
 		}
-		szInstruction.Init("tst ");
-		szInstruction.Append(CIR65Code::RegisterName(psCopy->iSecond))->Append(", ")->Append(pszAnd->Text() + 9);
-		if (mcCode.Replace(ui + 1, szInstruction.Text()))
+		szInstruction.Init();
+		szInstruction.Append(CIR65Code::RegisterName(psCopy->iSecond))->Append(", ")->Append(szAnd + 3);
+		if (mcCode.ReplaceInstruction(ui + 1, IR65M_Tst, szInstruction.Text()))
 		{
 			mcCode.Remove(ui);
 			bChanged = true;
@@ -361,7 +355,7 @@ void CIR65Widths::NarrowExtensions(void)
 		{
 			continue;
 		}
-		if (IR65WidthsImmediate(&mcCode, ui, "and", &iRegister, &lliValue) && ((lliValue == 0xFF) || (lliValue == 0xFFFF)) && (mcCode.GetWidths(ui)->auiRegisters[iRegister] == 32))
+		if (IR65WidthsImmediate(&mcCode, ui, IR65M_And, &iRegister, &lliValue) && ((lliValue == 0xFF) || (lliValue == 0xFFFF)) && (mcCode.GetWidths(ui)->auiRegisters[iRegister] == 32))
 		{
 			uiBits = (lliValue == 0xFF) ? 8 : 16;
 			if ((ui > 0) && mcCode.IsReached(ui - 1) && IR65WidthsCopy(&mcCode, ui - 1, iRegister, &iSource) && (mcCode.GetWidths(ui - 1)->auiRegisters[iSource] == 32))
@@ -372,11 +366,11 @@ void CIR65Widths::NarrowExtensions(void)
 			}
 			continue;
 		}
-		if (!IR65WidthsImmediate(&mcCode, ui, "xor", &iRegister, &lliValue) || ((lliValue != 0x80) && (lliValue != 0x8000)) || (mcCode.GetWidths(ui)->auiRegisters[iRegister] != 32))
+		if (!IR65WidthsImmediate(&mcCode, ui, IR65M_Xor, &iRegister, &lliValue) || ((lliValue != 0x80) && (lliValue != 0x8000)) || (mcCode.GetWidths(ui)->auiRegisters[iRegister] != 32))
 		{
 			continue;
 		}
-		if ((ui + 1 >= uiNum) || !IR65WidthsImmediate(&mcCode, ui + 1, "sub", &iSub, &lliSub) || (iSub != iRegister) || (lliSub != lliValue))
+		if ((ui + 1 >= uiNum) || !IR65WidthsImmediate(&mcCode, ui + 1, IR65M_Sub, &iSub, &lliSub) || (iSub != iRegister) || (lliSub != lliValue))
 		{
 			continue;
 		}
@@ -384,9 +378,9 @@ void CIR65Widths::NarrowExtensions(void)
 		uiDemand = *mauiDemand.Get(ui + 1);
 		if ((ui > 0) && mcCode.IsReached(ui - 1) && IR65WidthsCopy(&mcCode, ui - 1, iRegister, &iSource) && (mcCode.GetWidths(ui - 1)->auiRegisters[iSource] == 32) && ((uiDemand & (IR65_FLAG_C | IR65_FLAG_V)) == 0))
 		{
-			szInstruction.Init("cpy ");
+			szInstruction.Init();
 			szInstruction.Append(CIR65Code::RegisterName(iRegister))->Append(", ")->Append(CIR65Code::RegisterName(iSource))->Append(":s");
-			if (mcCode.Replace(ui - 1, szInstruction.Text()))
+			if (mcCode.ReplaceInstruction(ui - 1, IR65M_Cpy, szInstruction.Text()))
 			{
 				mcCode.GetWidths(ui - 1)->auiRegisters[iSource] = uiBits;
 				mcCode.Remove(ui);
@@ -396,9 +390,9 @@ void CIR65Widths::NarrowExtensions(void)
 		}
 		else if (uiDemand == 0)
 		{
-			szInstruction.Init("wthx ");
+			szInstruction.Init();
 			szInstruction.Append(CIR65Code::RegisterName(iRegister))->Append(", 32:s");
-			if (mcCode.Replace(ui, szInstruction.Text()))
+			if (mcCode.ReplaceInstruction(ui, IR65M_Wthx, szInstruction.Text()))
 			{
 				mcCode.GetWidths(ui)->auiRegisters[iRegister] = uiBits;
 				mcCode.Remove(ui + 1);

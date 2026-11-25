@@ -30,27 +30,30 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // True if the line is a cmp (an Alu that writes nothing).
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR65FlagsIsCompare(SIR65CodeLine* psLine)
+//
+// Whether a line's operands end with szEnd.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool IR65FlagsEndsWith(CIR65Code* pcCode, size uiLine, const char* szEnd)
 {
-	return (psLine->uiKind == IR65CK_Alu) && !psLine->bWritesFirst;
+	const char*	szOperands;
+	size		uiLength;
+	size		uiEnd;
+
+	szOperands = pcCode->OperandsText(uiLine, &uiLength);
+	uiEnd = StrLen(szEnd);
+	return (uiLength >= uiEnd) && (strncmp(szOperands + uiLength - uiEnd, szEnd, uiEnd) == 0);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The text of an instruction without its leading tabs.
+// True if the line is a cmp (an Alu that writes nothing).
 //
 //////////////////////////////////////////////////////////////////////////
-static const char* IR65FlagsInstruction(CChars* pszLine)
+static bool IR65FlagsIsCompare(SIR65CodeLine* psLine)
 {
-	const char*	sz;
-
-	sz = pszLine->Text();
-	while (*sz == '\t')
-	{
-		sz++;
-	}
-	return sz;
+	return (psLine->uiKind == IR65CK_Alu) && !psLine->bWritesFirst;
 }
 
 
@@ -310,11 +313,11 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 			}
 		}
 		bWritesMemory = psLine->bFirstMemory && (psLine->bWritesFirst || (psLine->uiKind == IR65CK_Pull));
-		if (bWritesMemory && mcCode.GetText(psState->iCompare)->Contains('['))
+		if (bWritesMemory && mcCode.OperandsHave(psState->iCompare, "["))
 		{
 			psState->uiKind = IR65FK_None;
 		}
-		else if (((psLine->uiKind == IR65CK_Push) || (psLine->uiKind == IR65CK_Pull)) && MovesCompareBase(uiLine, mcCode.GetText(psState->iCompare)))
+		else if (((psLine->uiKind == IR65CK_Push) || (psLine->uiKind == IR65CK_Pull)) && MovesCompareBase(uiLine, (size)psState->iCompare))
 		{
 			//The same text then names another slot: psh and pul move S, and pul V (or W) changes V.
 			psState->uiKind = IR65FK_None;
@@ -330,27 +333,26 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 // pul names (pul V reads into V, so [n + V] is somewhere else after it).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Flags::MovesCompareBase(size uiLine, CChars* pszCompare)
+bool CIR65Flags::MovesCompareBase(size uiLine, size uiCompare)
 {
-	CChars	szBase;
-	CChars*	pszLine;
-	size	uiLength;
-	bool	bMoves;
+	CChars		szBase;
+	const char*	szPulled;
+	size		uiLength;
+	bool		bMoves;
 
-	if (pszCompare->Contains("+ S]"))
+	if (mcCode.OperandsHave(uiCompare, "+ S]"))
 	{
 		return true;
 	}
-	pszLine = mcCode.GetText(uiLine);
-	uiLength = pszLine->Length();
-	if ((mcCode.GetLine(uiLine)->uiKind != IR65CK_Pull) || (uiLength < 2) || (pszLine->GetChar(uiLength - 2) != ' '))
+	szPulled = mcCode.OperandsText(uiLine, &uiLength);
+	if ((mcCode.GetLine(uiLine)->uiKind != IR65CK_Pull) || (uiLength < 1) || ((uiLength >= 2) && (szPulled[uiLength - 2] != ' ')))
 	{
 		return false;
 	}
 	szBase.Init("+ ");
-	szBase.Append(pszLine->GetChar(uiLength - 1));
+	szBase.Append(szPulled[uiLength - 1]);
 	szBase.Append(']');
-	bMoves = pszCompare->Contains(szBase.Text());
+	bMoves = mcCode.OperandsHave(uiCompare, szBase.Text());
 	szBase.Kill();
 	return bMoves;
 }
@@ -440,25 +442,22 @@ bool CIR65Flags::RemoveCompares(void)
 bool CIR65Flags::FollowsFixedWidthResult(size uiLine)
 {
 	SIR65CodeLine*	psBefore;
-	CChars*			pszLine;
-	CChars*			pszBefore;
 	const char*		szOperand;
+	size			uiLength;
 	char			cRegister;
 
-	pszLine = mcCode.GetText(uiLine);
-	if ((uiLine == 0) || !(pszLine->Equals("\t\tcmp V, 0") || pszLine->Equals("\t\tcmp W, 0")))
+	if ((uiLine == 0) || !(mcCode.IsWith(uiLine, IR65M_Cmp, "V, 0") || mcCode.IsWith(uiLine, IR65M_Cmp, "W, 0")))
 	{
 		return false;
 	}
-	cRegister = pszLine->GetChar(6);
+	cRegister = mcCode.OperandsText(uiLine, &uiLength)[0];
 	psBefore = mcCode.GetLine(uiLine - 1);
 	if (!mcCode.IsReached(uiLine - 1) || (psBefore->uiKind != IR65CK_Alu) || !psBefore->bResultFlags || !psBefore->bWritesFirst || psBefore->bFirstMemory)
 	{
 		return false;
 	}
-	pszBefore = mcCode.GetText(uiLine - 1);
-	szOperand = FindChar(pszBefore->Text() + 2, ' ', false);
-	return (szOperand != NULL) && (szOperand[1] == cRegister) && (szOperand[2] == ',');
+	szOperand = mcCode.OperandsText(uiLine - 1, &uiLength);
+	return (uiLength >= 2) && (szOperand[0] == cRegister) && (szOperand[1] == ',');
 }
 
 
@@ -472,7 +471,7 @@ bool CIR65Flags::IsCompareWithZero(size uiLine)
 	SIR65CodeLine*	psLine;
 
 	psLine = mcCode.GetLine(uiLine);
-	return IR65FlagsIsCompare(psLine) && (psLine->iFirst >= 0) && mcCode.GetText(uiLine)->EndsWith(", 0");
+	return IR65FlagsIsCompare(psLine) && (psLine->iFirst >= 0) && IR65FlagsEndsWith(&mcCode, uiLine, ", 0");
 }
 
 
@@ -490,7 +489,7 @@ bool CIR65Flags::SameCompare(size uiLine1, size uiLine2)
 	uint8		uiUses;
 	int			i;
 
-	if (StringCompare(IR65FlagsInstruction(mcCode.GetText(uiLine1)), IR65FlagsInstruction(mcCode.GetText(uiLine2))) != 0)
+	if (!mcCode.SameInstruction(uiLine1, uiLine2))
 	{
 		return false;
 	}

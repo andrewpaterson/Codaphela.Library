@@ -60,6 +60,41 @@ enum EIR65CodeKind
 };
 
 
+//The 65C64 instructions the back end writes (IR65Backend.cpp), in the order of IR65Code.cpp's table of how each
+//decodes.
+enum EIR65Mnemonic
+{
+	IR65M_Cpy,
+	IR65M_Cpyx,
+	IR65M_Add,
+	IR65M_Sub,
+	IR65M_And,
+	IR65M_Or,
+	IR65M_Xor,
+	IR65M_Shl,
+	IR65M_Shr,
+	IR65M_Cmp,
+	IR65M_Tst,
+	IR65M_Neg,
+	IR65M_Psh,
+	IR65M_Pul,
+	IR65M_Wth,
+	IR65M_Wtth,
+	IR65M_Wthx,
+	IR65M_Mul,
+	IR65M_Div,
+	IR65M_Jsr,
+	IR65M_Ret,
+	IR65M_Stp,
+	IR65M_Bra,
+	IR65M_Bras,
+	IR65M_Brac,
+	IR65M_Brasa,
+	IR65M_Braso,
+	IR65M_Unknown,		//A label, or a line that isn't an instruction.
+};
+
+
 //The registers a line's widths follow, as indexes.
 enum EIR65CodeRegister
 {
@@ -77,6 +112,7 @@ enum EIR65CodeRegister
 struct SIR65CodeLine
 {
 	uint8	uiKind;
+	uint8	uiMnemonic;		//EIR65Mnemonic.
 	int8	iFirst;			//The first operand's register.
 	int8	iSecond;		//The second operand's register.
 	bool	bFirstRegister;	//The first operand is a register (A, B, X, Y, S, V or W): it sets the operation's width.
@@ -149,7 +185,14 @@ public:
 	void			Remove(size uiLine) override;
 	bool			IsRemoved(size uiLine);
 	bool			Replace(size uiLine, const char* szInstruction);
-	bool			Branch(size uiLine, const char* szMnemonic, size uiLabel);
+	bool			ReplaceInstruction(size uiLine, uint8 uiMnemonic, const char* szOperands);
+	bool			Branch(size uiLine, uint8 uiMnemonic, size uiLabel);
+	uint8			Mnemonic(size uiLine);
+	const char*		OperandsText(size uiLine, size* puiLength);
+	bool			OperandsHave(size uiLine, const char* szFind);
+	bool			IsWith(size uiLine, uint8 uiMnemonic, const char* szOperands);
+	bool			SameInstruction(size uiLine1, size uiLine2);
+	static const char*	MnemonicName(uint8 uiMnemonic);
 	void			WriteLine(CChars* pszOut, size uiLine);
 
 	static uint8	Bands(uint8 uiBits);

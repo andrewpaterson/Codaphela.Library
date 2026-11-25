@@ -665,6 +665,7 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 	psLine->iSecond = -1;
 	psLine->iTarget = -1;
 	psLine->uiKind = IR65CK_Other;
+	psLine->uiMnemonic = IR65M_Unknown;
 
 	if (pszLine->Empty())
 	{
@@ -720,6 +721,7 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 	psLast = (iOperands > 0) ? &asOperands[iOperands - 1] : NULL;
 
 	psLine->uiKind = psMnemonic->uiKind;
+	psLine->uiMnemonic = (uint8)(psMnemonic - gasIR65CodeMnemonics);
 	psLine->bReadsFirst = psMnemonic->bReadsFirst;
 	psLine->bWritesFirst = psMnemonic->bWritesFirst;
 	psLine->bShift = psMnemonic->bShift;
@@ -1069,16 +1071,7 @@ bool CIR65Code::IsEntry(size uiLine)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Code::Retarget(size uiLine, size uiLabel)
 {
-	CChars		szMnemonic;
-	const char*	szText;
-	bool		bReplaced;
-
-	szText = GetText(uiLine)->Text() + 2;
-	szMnemonic.Init();
-	szMnemonic.AppendSubString(szText, FindChar(szText, ' ', false));
-	bReplaced = Branch(uiLine, szMnemonic.Text(), uiLabel);
-	szMnemonic.Kill();
-	return bReplaced;
+	return Branch(uiLine, Mnemonic(uiLine), uiLabel);
 }
 
 
@@ -1090,16 +1083,13 @@ bool CIR65Code::Retarget(size uiLine, size uiLabel)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Code::Invert(size uiLine, size uiLabel)
 {
-	CChars*	pszLine;
-
-	pszLine = GetText(uiLine);
-	if (pszLine->StartsWith("\t\tbras "))
+	if (Mnemonic(uiLine) == IR65M_Bras)
 	{
-		return Branch(uiLine, "brac", uiLabel);
+		return Branch(uiLine, IR65M_Brac, uiLabel);
 	}
-	if (pszLine->StartsWith("\t\tbrac "))
+	if (Mnemonic(uiLine) == IR65M_Brac)
 	{
-		return Branch(uiLine, "bras", uiLabel);
+		return Branch(uiLine, IR65M_Bras, uiLabel);
 	}
 	return false;
 }
@@ -1107,33 +1097,31 @@ bool CIR65Code::Invert(size uiLine, size uiLabel)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes the branch or jump at uiLine szMnemonic (bra, bras or brac ...)
+// Makes the branch or jump at uiLine uiMnemonic (bra, bras or brac ...)
 // with its condition, to the label at uiLabel.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Code::Branch(size uiLine, const char* szMnemonic, size uiLabel)
+bool CIR65Code::Branch(size uiLine, uint8 uiMnemonic, size uiLabel)
 {
-	CChars*		pszLine;
 	CChars*		pszLabel;
-	CChars		szInstruction;
-	const char*	szCondition;
+	CChars		szOperands;
+	const char*	szOperand;
 	const char*	szTarget;
+	size		uiOperands;
 	bool		bReplaced;
 
-	pszLine = GetText(uiLine);
 	pszLabel = GetText(uiLabel);
-	szInstruction.Init(szMnemonic);
-	szInstruction.Append(' ');
+	szOperands.Init();
 	if (GetLine(uiLine)->uiKind == IR65CK_Branch)
 	{
-		//"\t\tbras z, L5": the condition is between the mnemonic and the target.
-		szCondition = FindChar(pszLine->Text() + 2, ' ', false) + 1;
-		szTarget = FindChar(pszLine->Text(), ',', true);
-		szInstruction.AppendSubString(szCondition, szTarget + 2);
+		//"bras z, L5": the condition is before the target.
+		szOperand = OperandsText(uiLine, &uiOperands);
+		szTarget = FindChar(szOperand, ',', true);
+		szOperands.AppendSubString(szOperand, szTarget + 2);
 	}
-	szInstruction.AppendSubString(pszLabel->Text(), pszLabel->Length() - 1);
-	bReplaced = Replace(uiLine, szInstruction.Text());
-	szInstruction.Kill();
+	szOperands.AppendSubString(pszLabel->Text(), pszLabel->Length() - 1);
+	bReplaced = ReplaceInstruction(uiLine, uiMnemonic, szOperands.Text());
+	szOperands.Kill();
 	return bReplaced;
 }
 
@@ -1307,6 +1295,7 @@ void CIR65Code::Remove(size uiLine)
 {
 	memset(masLines.Get(uiLine), 0, sizeof(SIR65CodeLine));
 	masLines.Get(uiLine)->uiKind = IR65CK_Other;
+	masLines.Get(uiLine)->uiMnemonic = IR65M_Unknown;
 	masLines.Get(uiLine)->iFirst = -1;
 	masLines.Get(uiLine)->iSecond = -1;
 	masLines.Get(uiLine)->iTarget = -1;
@@ -1352,6 +1341,119 @@ bool CIR65Code::Replace(size uiLine, const char* szInstruction)
 	maszLines.Get(uiLine)->Init(szLine);
 	szLine.Kill();
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes a line the instruction uiMnemonic with szOperands (NULL for none),
+// as Replace.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::ReplaceInstruction(size uiLine, uint8 uiMnemonic, const char* szOperands)
+{
+	CChars	sz;
+	bool	bReplaced;
+
+	sz.Init(gasIR65CodeMnemonics[uiMnemonic].szName);
+	if (szOperands)
+	{
+		sz.Append(' ');
+		sz.Append(szOperands);
+	}
+	bReplaced = Replace(uiLine, sz.Text());
+	sz.Kill();
+	return bReplaced;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line's mnemonic (IR65M_Unknown for a label or a line that isn't an
+// instruction).
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CIR65Code::Mnemonic(size uiLine)
+{
+	return masLines.Get(uiLine)->uiMnemonic;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instruction's operands, as written after its mnemonic ("[8 + W], A"),
+// and their length; "" for none.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIR65Code::OperandsText(size uiLine, size* puiLength)
+{
+	const char*	sz;
+
+	sz = maszLines.Get(uiLine)->Text();
+	while ((*sz == '\t') || (*sz == ' '))
+	{
+		sz++;
+	}
+	while ((*sz != '\0') && (*sz != ' '))
+	{
+		sz++;
+	}
+	if (*sz == ' ')
+	{
+		sz++;
+	}
+	*puiLength = StrLen(sz);
+	return sz;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether an instruction's operands have szFind in them.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::OperandsHave(size uiLine, const char* szFind)
+{
+	size	uiLength;
+
+	return strstr(OperandsText(uiLine, &uiLength), szFind) != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a line is the instruction uiMnemonic with exactly the operands
+// szOperands.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::IsWith(size uiLine, uint8 uiMnemonic, const char* szOperands)
+{
+	size	uiLength;
+
+	return (Mnemonic(uiLine) == uiMnemonic) && (StringCompare(OperandsText(uiLine, &uiLength), szOperands) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether two lines are the same instruction (mnemonic and operands).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::SameInstruction(size uiLine1, size uiLine2)
+{
+	size	uiLength;
+
+	return (Mnemonic(uiLine1) == Mnemonic(uiLine2)) && (StringCompare(OperandsText(uiLine1, &uiLength), OperandsText(uiLine2, &uiLength)) == 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CIR65Code::MnemonicName(uint8 uiMnemonic)
+{
+	return gasIR65CodeMnemonics[uiMnemonic].szName;
 }
 
 
