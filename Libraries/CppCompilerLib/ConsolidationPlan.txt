@@ -502,7 +502,7 @@ Stage 7.  The back ends are the same parts.  (L; done 2026-11-24)
    its prologue as the W65C816's do; and the two W65C816 entries (Prologue, GenerateForwarder) written by one
    function, CIRW65C816Calls::Entry.  IRW65C816Backend.cpp is now 1,545 lines and IR65Backend.cpp 1,482.
 
-Stage 8.  The back ends' code is instructions.  (L-XL; in full, in two halves: the user, 2026-11-24; 8a done 2026-11-25)
+Stage 8.  The back ends' code is instructions.  (L-XL; in full, in two halves: the user, 2026-11-24; done 2026-11-25)
 
    What it is, as written: the selector adds instructions (mnemonic, operand, source position) to the back
    end's code instead of text; the passes are classes over the instructions, run from a list; nothing is
@@ -656,6 +656,32 @@ Stage 8.  The back ends' code is instructions.  (L-XL; in full, in two halves: t
      DescribeFrame counts the printed lines past the markers and the labels DebugRanges makes of place markers.
    - What FinishFunction and DescribeFrame look for is kept in CIRW65C816Written (SIRW65C816Facts, the exits),
      and they change the printed code's lines by number.
+
+   8b done 2026-11-25 (Progress has the record), in the steps' order, 1 and 2 together.  What went otherwise than
+   written:
+   - A line that isn't "\t\tmnemonic operands" as the printer would write it (a label, an empty line, a directive)
+     stays its text, decoded from it (DecodeText); an instruction is its mnemonic and operands, decoded from them
+     (DecodeInstruction).  Decode stays: it is what a pass's analysis is made from (the kinds, registers, widths
+     and targets of SIR65CodeLine), now from the fields.  Text is parsed into instructions only for code read
+     from text, the tests' (SetText, Load).
+   - The selector's Line keeps the instruction it is writing until the next starts (Commit), so its callers still
+     append the operands; a register function's label, stub and directive are written into a code of their own
+     (mcHead) before the body's, which the passes run over from its label as before.
+   - The markers (step 6) are a list per line (CIRLineMarkers, which took IRSourceMarkers' files), not one source
+     position per instruction: of the source markers before a line only the last is printed and every place
+     marker is, as CIRSourceMarkers::Put did.  A line taken out gives its markers to the line after it; a pass's
+     new code gives an uncopied line's to the first new line after the one copied before it; the 65C64's code
+     written again gives them to the line kept next, before the lines added for it (its wth); lines the selector
+     cuts back give theirs back (PutBack).  The code of every listing stayed the same; of 1,063,629 source
+     comment lines 389 went (statements whose code a pass took out, which Put had kept by matching a later
+     line), 91 came, and the rest of 2,432 listings' comments moved, mostly after a block's label rather than
+     before the widths code written ahead of it on the 65C64 and by a line on the W65C816.
+   - The refusals (step 7) were two kinds: a neg of V or W, which the decoder didn't take (it now does, as the
+     other instructions on V and W), and a register whose width depends on the way a line is reached, which the
+     Flags and Widths passes can't work with and still leave alone (46, 54 and 102 functions' runs of a pass in
+     the three suites).  The branch passes already ran over both processors' instructions in the lists (the
+     W65C816's through CIR816BranchCode, built over its code, not text); that the W65C816's code isn't a
+     CIRBranchCode itself is 11b's (PeepholeBranches' cost).
 
 Stage 9.  The builder is four classes.  (M; not started)
 
@@ -1308,6 +1334,32 @@ milliseconds): Peephole 89,466 48,920 3,356; PeepholeMasks 93 79; PeepholeStores
 29,332 408; RemoveUnreadStores 8,536 231; RemoveDeadStores 504 555; RemoveFlowDeadStores 20,812 1,653;
 RemoveDeadStores after it 82 160 (of 20,812 runs); PeepholeFlowRegisters 8,881 2,522.  PeepholeBranches is now
 the passes' biggest cost (it builds a CIR816BranchCode up to eight times a function): stage 11b's.
+
+Stage 8b, 2026-11-25.  Each commit but 7a's changes only how the 65C64's code is held: the listings (4,245) are the
+same as the build before it on the same sources (step 6's code the same, its comments moved: 8b's note above), and
+TestCppCompilerLib passes (278,328 run, 0 failed, at the end).
+  - 5aa82b1dc  steps 1 and 2: the mnemonics (EIR65Mnemonic) and each line's; CIR65Code read and changed by
+               mnemonic and operands (Mnemonic, OperandsText, IsWith, ReplaceInstruction ...), and the passes by them.
+  - ff3353570  step 3: one CIR65Code for the five passes, from a list that counts and times each (gasIR65Passes:
+               65C64StoreLoads, Flags, Widths, Peephole, PseudoWithoutW), written back once.
+  - 0e9b3c353  step 4: a line is its fields, decoded from them, printed by PrintLine.
+  - 3d6b88ee2  step 5: the selector writes instructions (Line(uiMnemonic, ...), Branch by mnemonic); the function
+               written as lines; CheckHomeB's chunks and the rewinds by lines; no text read back.
+  - ad1de5a9a  step 6: the markers are the lines' (CIRLineMarkers), on both processors; CIRSourceMarkers,
+               TakeMarkers, PutMarkers, RetakeMarkers and MarkLines go.
+  - 33c9fa9bd  step 7, first part: neg of V or W decoded; measured on the 65C64 before and after: code refused
+               112, 117, 180 to 46, 54, 102 (BaseLib, StandardLib, SupportLib 65); cycles 7,384,448,906 to
+               7,383,917,961, 13,926,755,309 to 13,926,755,294, 34,273,279,718 to 34,232,878,265; bytes 20,135,249
+               to 20,133,265, 28,792,309 to 28,792,287, 35,583,083 to 35,581,799; 24 listings differ (the functions
+               that were left alone, their compares, loads and widths now taken out as elsewhere).
+  - 91ad0ff0e  step 7, second part: the 65C64's DescribeFrame from what was kept (KeepPrologue); the old text
+               comparison run beside it gave the same for all 4,649 functions TestCppCompilerLib describes.
+After, the measure 8a's was (CompilerMeasure --compile --serial --only TestSupportLib65, Release x64, one run): the
+65C64's code passes 10,265 ms (11,849 after 8a), back end 6,673 (5,413): the selector makes lines where it wrote
+text, the passes no longer decode it three times, together 16.9 s against 17.3 s; assemble 11,031.  The W65C816's
+code passes 20,408 and back end 14,306 (19,353 and 13,901 after 8a; one run of each, times move by a few per cent).
+Each 65C64 pass from the list (runs, the runs that changed their function's lines, milliseconds): StoreLoads
+106,335 137 542; Flags 31,244 2,135; Widths 14,240 3,804; Peephole 47,278 2,405; PseudoWithoutW 15,766 77.
 
 The numbers of 2026-11-11.
 
