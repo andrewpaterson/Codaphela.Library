@@ -86,7 +86,7 @@ void CIR65Selector::CompareOperands(SIRReference sFirst, SIRReference sSecond)
 		LoadValue(sSecond, (StringCompare(szLeft.Text(), "B") == 0) ? "A" : "B", IR65E_Zero);
 		szRight.Append((StringCompare(szLeft.Text(), "B") == 0) ? 'A' : 'B');
 	}
-	mpcBackend->Line("cmp ")->Append(szLeft)->Append(", ")->Append(szRight)->AppendNewLine();
+	mpcBackend->Line(IR65M_Cmp)->Append(szLeft)->Append(", ")->Append(szRight);
 	szRight.Kill();
 	szLeft.Kill();
 }
@@ -108,12 +108,12 @@ bool CIR65Selector::NarrowMemoryOperand(SIRReference sValue, CChars* pszOperand)
 	{
 		return false;
 	}
-	uiMark = mpcBackend->mpszOut->Length();
+	uiMark = mpcBackend->CodeLines();
 	if (Operand(sValue, pszOperand, true, IR65E_Zero) && (pszOperand->Length() > 0) && (pszOperand->Text()[0] == '['))
 	{
 		return true;
 	}
-	mpcBackend->mpszOut->SetLength(uiMark);
+	mpcBackend->CutCode(uiMark);
 	pszOperand->Clear();
 	return false;
 }
@@ -144,7 +144,7 @@ bool CIR65Selector::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, 
 	if (mpcBackend->mbFlagsKnown)
 	{
 		//The block before compared the same operands.
-		mpcBackend->Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
+		mpcBackend->Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? IR65M_Bras : IR65M_Brac, "z, ", iLabel);
 		return true;
 	}
 	szOperand.Init();
@@ -162,26 +162,24 @@ bool CIR65Selector::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, 
 		if (!bWide && (iBits != 1) && mpcBackend->mcPlaces.InRegister(sLeft) && mpcBackend->mcPlaces.InRegister(sRight) && (mpcBackend->mcPlaces.PlaceOf(sLeft)->iOffset != mpcBackend->mcPlaces.PlaceOf(sRight)->iOffset))
 		{
 			//Both kept in X and Y: those are narrowed instead.
-			mpcBackend->Line("wtth (X, Y), ")->Append(iBits)->AppendNewLine();
-			mpcBackend->Line("cmp ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(bSwap ? sRight : sLeft)))->Append(", ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(bSwap ? sLeft : sRight)))->AppendNewLine();
-			mpcBackend->Line("wtth (X, Y), 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wtth, "(X, Y), ")->Append(iBits);
+			mpcBackend->Line(IR65M_Cmp)->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(bSwap ? sRight : sLeft)))->Append(", ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(bSwap ? sLeft : sRight)));
+			mpcBackend->Line(IR65M_Wtth, "(X, Y), 32");
 		}
 		else if (!bWide && (iBits != 1) && !bSwap && mpcBackend->mcPlaces.InRegister(sLeft) && Immediate(sRight, psInstruction->sType))
 		{
 			//Kept in X or Y and compared with a constant: the register is narrowed.
-			mpcBackend->Line("wth ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", ")->Append(iBits)->AppendNewLine();
-			mpcBackend->Line("cmp ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", ");
-			AppendImmediate(mpcBackend->mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
-			mpcBackend->mpszOut->AppendNewLine();
-			mpcBackend->Line("wth ")->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wth)->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", ")->Append(iBits);
+			AppendImmediate(mpcBackend->Line(IR65M_Cmp)->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", "), sRight, bSigned ? IR65E_Sign : IR65E_Zero);
+			mpcBackend->Line(IR65M_Wth)->Append(mpcBackend->mcPlaces.RegisterName(mpcBackend->mcPlaces.PlaceOf(sLeft)))->Append(", 32");
 		}
 		else if (!bWide && (iBits != 1) && NarrowMemoryOperand(bSwap ? sLeft : sRight, &szOperand))
 		{
 			//The second in memory: read at the width A is narrowed to (its low bytes), without B.
 			LoadValue(bSwap ? sRight : sLeft, "A", IR65E_Zero);
-			mpcBackend->Line("wth A, ")->Append(iBits)->AppendNewLine();
-			mpcBackend->Line("cmp A, ")->Append(szOperand)->AppendNewLine();
-			mpcBackend->Line("wth A, 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wth, "A, ")->Append(iBits);
+			mpcBackend->Line(IR65M_Cmp, "A, ")->Append(szOperand);
+			mpcBackend->Line(IR65M_Wth, "A, 32");
 		}
 		else
 		{
@@ -196,21 +194,19 @@ bool CIR65Selector::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, 
 			}
 			if (iBits != 32)
 			{
-				mpcBackend->Line("wtth (A, B), ")->Append(iBits)->AppendNewLine();
+				mpcBackend->Line(IR65M_Wtth, "(A, B), ")->Append(iBits);
 			}
 			if (mpcBackend->mbRightImmediate)
 			{
-				mpcBackend->Line("cmp A, ");
-				AppendImmediate(mpcBackend->mpszOut, sRight, bSigned ? IR65E_Sign : IR65E_Zero);
-				mpcBackend->mpszOut->AppendNewLine();
+				AppendImmediate(mpcBackend->Line(IR65M_Cmp, "A, "), sRight, bSigned ? IR65E_Sign : IR65E_Zero);
 			}
 			else
 			{
-				mpcBackend->Line(bSwap ? "cmp B, A" : "cmp A, B")->AppendNewLine();
+				mpcBackend->Line(IR65M_Cmp, bSwap ? "B, A" : "A, B");
 			}
 			if (iBits != 32)
 			{
-				mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
+				mpcBackend->Line(IR65M_Wtth, "(A, B), 32");
 			}
 		}
 	}
@@ -226,7 +222,7 @@ bool CIR65Selector::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, 
 
 	if ((uiOpcode == IRO_Eq) || (uiOpcode == IRO_Ne))
 	{
-		mpcBackend->Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? "bras z, " : "brac z, ", iLabel);
+		mpcBackend->Branch(((uiOpcode == IRO_Eq) == bJumpIf) ? IR65M_Bras : IR65M_Brac, "z, ", iLabel);
 		return true;
 	}
 
@@ -234,22 +230,22 @@ bool CIR65Selector::IntegerCompare(SIRInstruction* psInstruction, bool bJumpIf, 
 	bLess = ((uiOpcode == IRO_SLt) || (uiOpcode == IRO_ULt) || (uiOpcode == IRO_SGt) || (uiOpcode == IRO_UGt)) == bJumpIf;
 	if (!bSigned)
 	{
-		mpcBackend->Branch(bLess ? "brac c, " : "bras c, ", iLabel);
+		mpcBackend->Branch(bLess ? IR65M_Brac : IR65M_Bras, "c, ", iLabel);
 	}
 	else if (!bSwap && mpcBackend->IsZero(sRight))
 	{
 		//cmp x, 0 can't overflow, so n alone is x < 0 (x > -1 is x >= 0 by AdjustComparisons; x > 0 is x >= 1).
-		mpcBackend->Branch(bLess ? "bras n, " : "brac n, ", iLabel);
+		mpcBackend->Branch(bLess ? IR65M_Bras : IR65M_Brac, "n, ", iLabel);
 	}
 	else if (bLess)
 	{
-		mpcBackend->Branch("braso (n, v), ", iLabel);
+		mpcBackend->Branch(IR65M_Braso, "(n, v), ", iLabel);
 	}
 	else
 	{
 		iSkip = mpcBackend->NewLabel();
-		mpcBackend->Branch("braso (n, v), ", iSkip);
-		mpcBackend->Branch("bra ", iLabel);
+		mpcBackend->Branch(IR65M_Braso, "(n, v), ", iSkip);
+		mpcBackend->Branch(IR65M_Bra, NULL, iLabel);
 		mpcBackend->Label(iSkip);
 	}
 	return true;

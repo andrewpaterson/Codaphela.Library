@@ -59,7 +59,7 @@ public:
 	void				MemoryOperand(SIRReference sAddress, CChars* pszOperand, const char* szWidened);
 	void				FoldedOperand(SIR65Place* psFolded, CChars* pszOperand, const char* szWidened);
 	void				Push(SIRReference sValue, SIRType sType);
-	void				Multiply(const char* szInstruction);
+	void				Multiply(uint8 uiMnemonic);
 	SIRInstruction*		PairedDivide(CIRBlock* pcBlock, size uiIndex);
 	bool				PairsWithDivide(SIRInstruction* psInstruction, SIRInstruction* psPartner);
 	bool				Instruction(CIRBlock* pcBlock, size uiIndex);

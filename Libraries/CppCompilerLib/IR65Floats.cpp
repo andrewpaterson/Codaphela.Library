@@ -43,13 +43,13 @@ bool CIR65Selector::FloatOperation(SIRInstruction* psInstruction)
 		LoadValue(psInstruction->asArguments[0], "A", IR65E_Zero);
 		if (bDouble)
 		{
-			mpcBackend->Line("wth A, 64")->AppendNewLine();
-			mpcBackend->Line("xor A, -9223372036854775808")->AppendNewLine();
-			mpcBackend->Line("wth A, 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wth, "A, 64");
+			mpcBackend->Line(IR65M_Xor, "A, -9223372036854775808");
+			mpcBackend->Line(IR65M_Wth, "A, 32");
 		}
 		else
 		{
-			mpcBackend->Line("xor A, -2147483648")->AppendNewLine();
+			mpcBackend->Line(IR65M_Xor, "A, -2147483648");
 		}
 		mpcBackend->msAvailable = IRNone();
 		StoreResult(psInstruction->sResult);
@@ -102,7 +102,7 @@ bool CIR65Selector::FloatConversion(SIRInstruction* psInstruction)
 		{
 			//Narrow integers are pushed as ints, extended.
 			LoadValue(psInstruction->asArguments[0], "A", bSigned ? IR65E_Sign : IR65E_Zero);
-			mpcBackend->Line("psh A")->AppendNewLine();
+			mpcBackend->Line(IR65M_Psh, "A");
 		}
 		mpcBackend->mcCalls.CallRuntime(szName.Text(), mpcBackend->IsWide(sFrom) ? 8 : 4);
 		break;
@@ -128,8 +128,9 @@ bool CIR65Selector::FloatConversion(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Selector::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, int32 iLabel)
 {
-	const char*	szTrue;
-	const char*	szFalse;
+	uint8		uiTrue;
+	uint8		uiFalse;
+	const char*	szCondition;
 	CChars		szName;
 	int			aiValues[2];
 	int			iValues;
@@ -147,20 +148,22 @@ bool CIR65Selector::FloatCompare(SIRInstruction* psInstruction, bool bJumpIf, in
 	iValues = mpcBackend->FloatCompareValues(psInstruction->uiOpcode, aiValues, &bNot);
 	if (iValues == 1)
 	{
-		mpcBackend->Line("cmp A, ")->Append(aiValues[0])->AppendNewLine();
-		szTrue = bNot ? "brac z, " : "bras z, ";
-		szFalse = bNot ? "bras z, " : "brac z, ";
+		mpcBackend->Line(IR65M_Cmp, "A, ")->Append(aiValues[0]);
+		uiTrue = bNot ? IR65M_Brac : IR65M_Bras;
+		uiFalse = bNot ? IR65M_Bras : IR65M_Brac;
+		szCondition = "z, ";
 	}
 	else
 	{
 		if (aiValues[0] != 0)
 		{
-			mpcBackend->Line("add A, ")->Append(-aiValues[0])->AppendNewLine();
+			mpcBackend->Line(IR65M_Add, "A, ")->Append(-aiValues[0]);
 		}
-		mpcBackend->Line("cmp A, 2")->AppendNewLine();
-		szTrue = "brac c, ";
-		szFalse = "bras c, ";
+		mpcBackend->Line(IR65M_Cmp, "A, 2");
+		uiTrue = IR65M_Brac;
+		uiFalse = IR65M_Bras;
+		szCondition = "c, ";
 	}
-	mpcBackend->Branch(bJumpIf ? szTrue : szFalse, iLabel);
+	mpcBackend->Branch(bJumpIf ? uiTrue : uiFalse, szCondition, iLabel);
 	return true;
 }

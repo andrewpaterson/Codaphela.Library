@@ -921,7 +921,7 @@ bool CIR65Places::HasParameter(int32 iLeader)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Notes the code written from uiStart to now as that of the instructions
+// Notes the body's lines written from uiStart to now as those of the instructions
 // at positions iFrom to iTo (a jump's copies at the jump's position).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -933,7 +933,7 @@ void CIR65Places::AddChunk(int32 iFrom, int32 iTo, size uiStart)
 	psChunk->iFrom = iFrom;
 	psChunk->iTo = iTo;
 	psChunk->uiStart = uiStart;
-	psChunk->uiEnd = mpcBackend->mpszOut->Length();
+	psChunk->uiEnd = mpcBackend->CodeLines();
 }
 
 
@@ -1161,9 +1161,8 @@ bool CIR65Places::CheckHomeB(bool bChanges)
 	CArrayIRRanges*		pasRanges;
 	SIRRange*			psRange;
 	size				ui;
-	const char*			szText;
+	CChars				szLine;
 	size				uiLine;
-	size				uiEnd;
 	bool				bReads;
 	bool				bWrites;
 	bool				bOverwrites;
@@ -1181,7 +1180,7 @@ bool CIR65Places::CheckHomeB(bool bChanges)
 
 	bAllRight = true;
 	pasRanges = &mpcBackend->masHomes.Get(IR65R_B)->asRanges;
-	szText = mpcBackend->mpszOut->Text();
+	szLine.Init();
 	for (uiChunk = 0; uiChunk < mpcBackend->masChunks.NumElements(); uiChunk++)
 	{
 		psChunk = mpcBackend->masChunks.Get(uiChunk);
@@ -1222,13 +1221,11 @@ bool CIR65Places::CheckHomeB(bool bChanges)
 		bInPlace = false;
 		bReadSince = true;
 		bAnyWrite = false;
-		uiLine = psChunk->uiStart;
-		while (uiLine < psChunk->uiEnd)
+		for (uiLine = psChunk->uiStart; uiLine < psChunk->uiEnd; uiLine++)
 		{
-			for (uiEnd = uiLine; (uiEnd < psChunk->uiEnd) && (szText[uiEnd] != '\n') && (szText[uiEnd] != '\r'); uiEnd++)
-			{
-			}
-			IR65LineUsesB(&szText[uiLine], uiEnd - uiLine, &bReads, &bWrites, &bOverwrites);
+			szLine.Clear();
+			mpcBackend->mcCode.PrintLine(&szLine, uiLine);
+			IR65LineUsesB(szLine.Text(), szLine.Length(), &bReads, &bWrites, &bOverwrites);
 			if (bReads && bWritten && bDies && !bInPlace)
 			{
 				//The value read for the last time here was written over first.
@@ -1257,9 +1254,6 @@ bool CIR65Places::CheckHomeB(bool bChanges)
 			{
 				bReadSince = true;
 			}
-			for (uiLine = uiEnd; (uiLine < psChunk->uiEnd) && ((szText[uiLine] == '\n') || (szText[uiLine] == '\r')); uiLine++)
-			{
-			}
 		}
 
 		if (bChanges)
@@ -1286,6 +1280,7 @@ bool CIR65Places::CheckHomeB(bool bChanges)
 			bAllRight = false;
 		}
 	}
+	szLine.Kill();
 	return bAllRight;
 }
 

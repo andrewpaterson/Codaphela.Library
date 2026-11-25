@@ -101,34 +101,34 @@ uint8 IR65OpcodeFlags(uint16 uiOpcode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The mnemonic an integer opcode is written with; NULL if none is.  not is an
+// The mnemonic an integer opcode is written with; IR65M_Unknown if none is.  not is an
 // xor (with -1), and ptradd an add.
 //
 //////////////////////////////////////////////////////////////////////////
-const char* IR65IntegerMnemonic(uint16 uiOpcode)
+uint8 IR65IntegerMnemonic(uint16 uiOpcode)
 {
 	switch (uiOpcode)
 	{
 	case IRO_Add:
 	case IRO_PtrAdd:
-		return "add";
+		return IR65M_Add;
 	case IRO_Sub:
-		return "sub";
+		return IR65M_Sub;
 	case IRO_And:
-		return "and";
+		return IR65M_And;
 	case IRO_Or:
-		return "or";
+		return IR65M_Or;
 	case IRO_Xor:
 	case IRO_Not:
-		return "xor";
+		return IR65M_Xor;
 	case IRO_Shl:
-		return "shl";
+		return IR65M_Shl;
 	case IRO_LShr:
-		return "shr";
+		return IR65M_Shr;
 	case IRO_Neg:
-		return "neg";
+		return IR65M_Neg;
 	default:
-		return NULL;
+		return IR65M_Unknown;
 	}
 }
 
@@ -233,10 +233,10 @@ bool CIR65Selector::Instruction(CIRBlock* pcBlock, size uiIndex)
 		{
 			mpcBackend->msAvailable = IRNone();
 		}
-		mpcBackend->Line("cpy ")->Append(szWork)->Append(", 0")->AppendNewLine();
-		mpcBackend->Branch("bra ", iEnd);
+		mpcBackend->Line(IR65M_Cpy)->Append(szWork)->Append(", 0");
+		mpcBackend->Branch(IR65M_Bra, NULL, iEnd);
 		mpcBackend->Label(iTrue);
-		mpcBackend->Line("cpy ")->Append(szWork)->Append(", 1")->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpy)->Append(szWork)->Append(", 1");
 		mpcBackend->Label(iEnd);
 		StoreResult(psInstruction->sResult, szWork);
 		return true;
@@ -369,7 +369,7 @@ bool CIR65Selector::ReadModifyWrite(SIRInstruction* psInstruction, SIRInstructio
 	}
 	if (bResult)
 	{
-		mpcBackend->Line(IR65IntegerMnemonic(psInstruction->uiOpcode))->Append(' ')->Append(szAddress)->Append(", ")->Append(szOperand)->AppendNewLine();
+		mpcBackend->Line(IR65IntegerMnemonic(psInstruction->uiOpcode))->Append(szAddress)->Append(", ")->Append(szOperand);
 		mpcBackend->msInA = mpcBackend->msAvailable;
 	}
 	szAddress.Kill();
@@ -391,7 +391,7 @@ bool CIR65Selector::ReadModifyWrite(SIRInstruction* psInstruction, SIRInstructio
 bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 {
 	uint16			uiOpcode;
-	const char*		szOperation;
+	uint8			uiOperation;
 	const char*		szWork;
 	bool			bArithmetic;
 	bool			bShift;
@@ -412,7 +412,7 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 	sResult = psInstruction->sResult;
 	bShift = (uiOpcode == IRO_Shl) || (uiOpcode == IRO_LShr);
 	bArithmetic = (uiOpcode == IRO_Add) || (uiOpcode == IRO_Sub) || (uiOpcode == IRO_PtrAdd) || bShift;
-	szOperation = IR65IntegerMnemonic(uiOpcode);
+	uiOperation = IR65IntegerMnemonic(uiOpcode);
 
 	//Where the first operand is kept already (or the second, if they swap).
 	if (Commutes(uiOpcode) && mpcBackend->mcPlaces.SamePlace(sRight, sResult) && !mpcBackend->mcPlaces.SamePlace(sLeft, sResult))
@@ -433,7 +433,7 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 		{
 			if (uiOpcode == IRO_Neg)
 			{
-				mpcBackend->Line("neg ")->Append(mpcBackend->mcPlaces.RegisterName(psResult))->Append(", ")->Append(mpcBackend->mcPlaces.RegisterName(psResult))->AppendNewLine();
+				mpcBackend->Line(IR65M_Neg)->Append(mpcBackend->mcPlaces.RegisterName(psResult))->Append(", ")->Append(mpcBackend->mcPlaces.RegisterName(psResult));
 				szOperand.Kill();
 				return true;
 			}
@@ -450,7 +450,7 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 					szOperand.Clear();
 					szOperand.Append('B');
 				}
-				mpcBackend->Line(szOperation)->Append(' ')->Append(mpcBackend->mcPlaces.RegisterName(psResult))->Append(", ")->Append(szOperand)->AppendNewLine();
+				mpcBackend->Line(uiOperation)->Append(mpcBackend->mcPlaces.RegisterName(psResult))->Append(", ")->Append(szOperand);
 				szOperand.Kill();
 				return true;
 			}
@@ -476,9 +476,9 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 			}
 			if (!szOperand.Empty())
 			{
-				psz = mpcBackend->Line(szOperation)->Append(' ');
+				psz = mpcBackend->Line(uiOperation);
 				AppendPlace(psz, psResult);
-				psz->Append(", ")->Append(szOperand)->AppendNewLine();
+				psz->Append(", ")->Append(szOperand);
 				szOperand.Kill();
 				return true;
 			}
@@ -507,13 +507,13 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 		else if ((uiOpcode == IRO_Sub) && Operand(sLeft, &szOperand, true, IR65E_Zero))
 		{
 			//x - A is -A + x.
-			mpcBackend->Line("neg A, A")->AppendNewLine();
-			szOperation = "add";
+			mpcBackend->Line(IR65M_Neg, "A, A");
+			uiOperation = IR65M_Add;
 		}
 		else
 		{
 			szOperand.Clear();
-			mpcBackend->Line("cpy B, A")->AppendNewLine();
+			mpcBackend->Line(IR65M_Cpy, "B, A");
 			LoadValue(sLeft, "A", IR65E_Zero);
 			szOperand.Append('B');
 		}
@@ -537,15 +537,15 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 
 	if (uiOpcode == IRO_Neg)
 	{
-		mpcBackend->Line("neg ")->Append(szWork)->Append(", ")->Append(szWork)->AppendNewLine();
+		mpcBackend->Line(IR65M_Neg)->Append(szWork)->Append(", ")->Append(szWork);
 	}
 	else if (uiOpcode == IRO_Not)
 	{
-		mpcBackend->Line("xor ")->Append(szWork)->Append(", -1")->AppendNewLine();
+		mpcBackend->Line(IR65M_Xor)->Append(szWork)->Append(", -1");
 	}
-	else if (szOperation)
+	else if (uiOperation != IR65M_Unknown)
 	{
-		mpcBackend->Line(szOperation)->Append(' ')->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
+		mpcBackend->Line(uiOperation)->Append(szWork)->Append(", ")->Append(szOperand);
 	}
 	szOperand.Kill();
 	if (StringCompare(szWork, "A") == 0)
@@ -565,36 +565,36 @@ bool CIR65Selector::Integer(SIRInstruction* psInstruction)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Selector::IntegerWide(SIRInstruction* psInstruction)
 {
-	const char*	szMnemonic;
+	uint8	uiMnemonic;
+	CChars*	psz;
 
 	LoadOperands(psInstruction, IR65E_Zero, true);
-	mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
+	mpcBackend->Line(IR65M_Wtth, "(A, B), 64");
 	if (psInstruction->uiOpcode == IRO_Neg)
 	{
-		mpcBackend->Line("neg A, A")->AppendNewLine();
+		mpcBackend->Line(IR65M_Neg, "A, A");
 	}
 	else if (psInstruction->uiOpcode == IRO_Not)
 	{
-		mpcBackend->Line("xor A, -1")->AppendNewLine();
+		mpcBackend->Line(IR65M_Xor, "A, -1");
 	}
 	else
 	{
-		szMnemonic = IR65IntegerMnemonic(psInstruction->uiOpcode);
-		if (szMnemonic)
+		uiMnemonic = IR65IntegerMnemonic(psInstruction->uiOpcode);
+		if (uiMnemonic != IR65M_Unknown)
 		{
-			mpcBackend->Line(szMnemonic)->Append(" A, ");
+			psz = mpcBackend->Line(uiMnemonic, "A, ");
 			if (mpcBackend->mbRightImmediate)
 			{
-				AppendImmediate(mpcBackend->mpszOut, psInstruction->asArguments[1], IR65E_Zero);
+				AppendImmediate(psz, psInstruction->asArguments[1], IR65E_Zero);
 			}
 			else
 			{
-				mpcBackend->mpszOut->Append('B');
+				psz->Append('B');
 			}
-			mpcBackend->mpszOut->AppendNewLine();
 		}
 	}
-	mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
+	mpcBackend->Line(IR65M_Wtth, "(A, B), 32");
 	mpcBackend->msAvailable = IRNone();
 	StoreResult(psInstruction->sResult);
 	return true;
@@ -627,23 +627,23 @@ bool CIR65Selector::ShiftSigned(SIRInstruction* psInstruction)
 	}
 	if (bWide)
 	{
-		mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wtth, "(A, B), 64");
 	}
 	iPositive = mpcBackend->NewLabel();
 	iEnd = mpcBackend->NewLabel();
-	mpcBackend->Line("cmp A, 0")->AppendNewLine();
-	mpcBackend->Branch("brac n, ", iPositive);
-	mpcBackend->Line("xor A, -1")->AppendNewLine();
-	mpcBackend->Line("shr A, ")->Append(szAmount)->AppendNewLine();
-	mpcBackend->Line("xor A, -1")->AppendNewLine();
-	mpcBackend->Branch("bra ", iEnd);
+	mpcBackend->Line(IR65M_Cmp, "A, 0");
+	mpcBackend->Branch(IR65M_Brac, "n, ", iPositive);
+	mpcBackend->Line(IR65M_Xor, "A, -1");
+	mpcBackend->Line(IR65M_Shr, "A, ")->Append(szAmount);
+	mpcBackend->Line(IR65M_Xor, "A, -1");
+	mpcBackend->Branch(IR65M_Bra, NULL, iEnd);
 	mpcBackend->Label(iPositive);
-	mpcBackend->Line("shr A, ")->Append(szAmount)->AppendNewLine();
+	mpcBackend->Line(IR65M_Shr, "A, ")->Append(szAmount);
 	mpcBackend->Label(iEnd);
 	szAmount.Kill();
 	if (bWide)
 	{
-		mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wtth, "(A, B), 32");
 	}
 	mpcBackend->msAvailable = IRNone();
 	StoreResult(psInstruction->sResult);
@@ -674,8 +674,8 @@ bool CIR65Selector::Conversion(SIRInstruction* psInstruction)
 	LoadValue(psInstruction->asArguments[0], szWork, bSigned ? IR65E_Sign : IR65E_Zero);
 	if (mpcBackend->IsWide(psInstruction->sType) && !mpcBackend->IsWide(sFrom))
 	{
-		mpcBackend->Line(bSigned ? "wthx A, 64:s" : "wthx A, 64")->AppendNewLine();
-		mpcBackend->Line("wth A, 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wthx, bSigned ? "A, 64:s" : "A, 64");
+		mpcBackend->Line(IR65M_Wth, "A, 32");
 	}
 	StoreResult(psInstruction->sResult, szWork);
 	return true;
@@ -726,23 +726,23 @@ bool CIR65Selector::Load(CIRBlock* pcBlock, size uiIndex, SIRInstruction* psExte
 	}
 	if (iBytes == 8)
 	{
-		mpcBackend->Line("wth A, 64")->AppendNewLine();
-		mpcBackend->Line("cpy A, ")->Append(szOperand)->AppendNewLine();
-		mpcBackend->Line("wth A, 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wth, "A, 64");
+		mpcBackend->Line(IR65M_Cpy, "A, ")->Append(szOperand);
+		mpcBackend->Line(IR65M_Wth, "A, 32");
 	}
 	else if (iBytes == 4)
 	{
-		mpcBackend->Line("cpy ")->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpy)->Append(szWork)->Append(", ")->Append(szOperand);
 	}
 	else if (bCopyExtend)
 	{
-		mpcBackend->Line("cpyx ")->Append(szWork)->Append(", ")->Append(szOperand)->Append(psExtend ? ":s" : ":")->Append(8 * iBytes)->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpyx)->Append(szWork)->Append(", ")->Append(szOperand)->Append(psExtend ? ":s" : ":")->Append(8 * iBytes);
 	}
 	else
 	{
-		mpcBackend->Line("wth ")->Append(szWork)->Append(", ")->Append(8 * iBytes)->AppendNewLine();
-		mpcBackend->Line("cpy ")->Append(szWork)->Append(", ")->Append(szOperand)->AppendNewLine();
-		mpcBackend->Line("wthx ")->Append(szWork)->Append(psExtend ? ", 32:s" : ", 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wth)->Append(szWork)->Append(", ")->Append(8 * iBytes);
+		mpcBackend->Line(IR65M_Cpy)->Append(szWork)->Append(", ")->Append(szOperand);
+		mpcBackend->Line(IR65M_Wthx)->Append(szWork)->Append(psExtend ? ", 32:s" : ", 32");
 	}
 	szOperand.Kill();
 	if (psExtend)
@@ -818,28 +818,28 @@ bool CIR65Selector::Store(CIRBlock* pcBlock, size uiIndex)
 
 	if (szValueRegister == NULL)
 	{
-		mpcBackend->Line("cpy ")->Append(szOperand)->Append(", ")->Append(szValue)->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpy)->Append(szOperand)->Append(", ")->Append(szValue);
 	}
 	else if (iBytes == 4)
 	{
-		mpcBackend->Line("cpy ")->Append(szOperand)->Append(", ")->Append(szValueRegister)->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpy)->Append(szOperand)->Append(", ")->Append(szValueRegister);
 	}
 	else if (iBytes == 8)
 	{
-		mpcBackend->Line("wth A, 64")->AppendNewLine();
-		mpcBackend->Line("cpy ")->Append(szOperand)->Append(", A")->AppendNewLine();
-		mpcBackend->Line("wth A, 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wth, "A, 64");
+		mpcBackend->Line(IR65M_Cpy)->Append(szOperand)->Append(", A");
+		mpcBackend->Line(IR65M_Wth, "A, 32");
 	}
 	else if (bCopyExtend)
 	{
 		//cpyx stores the register's low bits.
-		mpcBackend->Line("cpyx ")->Append(szOperand)->Append(':')->Append(8 * iBytes)->Append(", ")->Append(szValueRegister)->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpyx)->Append(szOperand)->Append(':')->Append(8 * iBytes)->Append(", ")->Append(szValueRegister);
 	}
 	else
 	{
-		mpcBackend->Line("wth ")->Append(szValueRegister)->Append(", ")->Append(8 * iBytes)->AppendNewLine();
-		mpcBackend->Line("cpy ")->Append(szOperand)->Append(", ")->Append(szValueRegister)->AppendNewLine();
-		mpcBackend->Line("wth ")->Append(szValueRegister)->Append(", 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wth)->Append(szValueRegister)->Append(", ")->Append(8 * iBytes);
+		mpcBackend->Line(IR65M_Cpy)->Append(szOperand)->Append(", ")->Append(szValueRegister);
+		mpcBackend->Line(IR65M_Wth)->Append(szValueRegister)->Append(", 32");
 	}
 	szValue.Kill();
 	szOperand.Kill();
@@ -926,13 +926,13 @@ void CIR65Selector::LoadOperands(SIRInstruction* psInstruction, EIR65Extend eExt
 	{
 		if (mpcBackend->IsWide(sType))
 		{
-			mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
-			mpcBackend->Line("cpy B, A")->AppendNewLine();
-			mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wtth, "(A, B), 64");
+			mpcBackend->Line(IR65M_Cpy, "B, A");
+			mpcBackend->Line(IR65M_Wtth, "(A, B), 32");
 		}
 		else
 		{
-			mpcBackend->Line("cpy B, A")->AppendNewLine();
+			mpcBackend->Line(IR65M_Cpy, "B, A");
 		}
 		mpcBackend->msAvailable = IRNone();
 		Extend("B", sType, eExtend);

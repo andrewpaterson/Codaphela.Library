@@ -259,7 +259,6 @@ protected:
 	CArrayTemplate<uint8>	mauiAddressed;		//Per parameter: 1 if an argaddr of it is taken.
 	CArrayIRRegisterArguments	masArguments;	//The function's parameters as its callers pass them, less a thiscall's this (FunctionArguments).
 	int						miRegisterArguments;	//How many of them arrive in A, B and Y.
-	size					muiBodyStart;		//Where the function's body starts in the text: its label, after a register function's stub.
 	CArrayIR65Homes			masHomes;			//X, Y, the pseudo registers, the saved pseudo registers, the frame.
 	CArrayTemplate<int32>	maiCalls;			//Positions of instructions that change X, Y and [$00 + W] to [$7F + W]...
 	CArrayTemplate<int32>	maiChangesXY;		//...that change X and Y...
@@ -287,7 +286,12 @@ protected:
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
 	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
 	const char*				mszAddress;			//Where MemoryOperand puts an address it must load: B, or for a cpyx a free X or Y (not A).
-	CIR65Code				mcCode;				//The function's body as the passes over it change it (RunPasses).
+	CIR65Code				mcCode;				//The function's body (from its label) as it is written and the passes change it (RunPasses).
+	CIR65Code				mcHead;				//A register function's label, stub and directive, before the body.
+	CIR65Code*				mpcWriting;			//The one of them being written.
+	uint8					muiPending;			//The instruction being written (Line), not in the code yet (IR65M_Unknown for none)...
+	CChars					mszPending;			//...and its operands as far as they are written.
+	size					muiMarked;			//The lines of mcHead then mcCode given to mcMarkers (MarkerLine).
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
 	CIR65Peephole			mcPeephole;
@@ -306,6 +310,7 @@ public:
 	CIRWrittenFunction*	TakeWritten(void) override;
 	void				DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
 	static void			AppendFramePrologue(CChars* pszDest, SIR65Frame* psFrame);
+	static void			FramePrologue(CIR65Code* pcCode, SIR65Frame* psFrame);
 	static bool			PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
 	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
 
@@ -331,8 +336,16 @@ protected:
 	void				Epilogue(void);
 	void				ReturnCode(bool bThrow = false);
 	int					ReturnInstructions(void);
-	CChars*				Line(const char* szText);
-	void				Branch(const char* szBranch, int32 iLabel);
+	CChars*				Line(uint8 uiMnemonic, const char* szOperands = NULL);
+	void				Branch(uint8 uiMnemonic, const char* szCondition, int32 iLabel);
+	void				Label(int32 iLabel);
+	void				TextLine(const char* szText);
+	void				Commit(void);
+	void				Write(CIR65Code* pcCode);
+	size				CodeLines(void);
+	void				CutCode(size uiLines);
+	void				MarkLines(void);
+	void				MarkerLine(const char* szMarker) override;
 	int					ValueBytes(SIRType sType);
 	bool				IsWide(SIRType sType);
 	bool				IsNarrow(SIRType sType);

@@ -172,6 +172,11 @@ public:
 
 	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
 	void			SetText(CChars* pszCode, size uiStart);
+	void			Clear(void);
+	void			AppendInstruction(uint8 uiMnemonic, const char* szOperands);
+	void			AppendText(const char* szText);
+	void			Cut(size uiLines);
+	void			WriteLines(CChars* pszOut);
 	bool			Analyse(bool bConflicts);
 	bool			IsLoaded(void) const;
 	void			Write(CChars* pszOut);

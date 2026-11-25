@@ -469,6 +469,80 @@ void CIR65Code::SetText(CChars* pszCode, size uiStart)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// No lines: the code is written from here (AppendInstruction, AppendText).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::Clear(void)
+{
+	maszLines.ReInit();
+	mauiWritten.ReInit();
+	mauiRemoved.ReInit();
+	masLines.ReInit();
+	mbLoaded = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The instruction uiMnemonic with szOperands, the code's next line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::AppendInstruction(uint8 uiMnemonic, const char* szOperands)
+{
+	maszLines.Add(szOperands);
+	mauiWritten.Add()[0] = uiMnemonic;
+	mauiRemoved.Add()[0] = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line of text (a label, an empty line), the code's next line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::AppendText(const char* szText)
+{
+	maszLines.Add(szText);
+	mauiWritten.Add()[0] = IR65M_Unknown;
+	mauiRemoved.Add()[0] = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code's first uiLines lines only: what was written after them goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::Cut(size uiLines)
+{
+	while (maszLines.NumElements() > uiLines)
+	{
+		maszLines.RemoveTail();
+		mauiWritten.RemoveTail();
+		mauiRemoved.RemoveTail();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Every line, each with a new line after it.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::WriteLines(CChars* pszOut)
+{
+	size	ui;
+
+	for (ui = 0; ui < maszLines.NumElements(); ui++)
+	{
+		PrintLine(pszOut, ui);
+		pszOut->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A line of text added to paszLines: "\t\tmnemonic operands" (or with no
 // operands) as an instruction, its mnemonic and operands; any other line,
 // or one that wouldn't print as it was written, as its text.

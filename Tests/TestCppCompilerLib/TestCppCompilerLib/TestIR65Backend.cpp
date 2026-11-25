@@ -2160,19 +2160,19 @@ void TestIR65BackendUnits(void)
 //////////////////////////////////////////////////////////////////////////
 void TestIR65BackendMnemonics(void)
 {
-	AssertString("add", IR65IntegerMnemonic(IRO_Add));
-	AssertString("add", IR65IntegerMnemonic(IRO_PtrAdd));
-	AssertString("sub", IR65IntegerMnemonic(IRO_Sub));
-	AssertString("and", IR65IntegerMnemonic(IRO_And));
-	AssertString("or", IR65IntegerMnemonic(IRO_Or));
-	AssertString("xor", IR65IntegerMnemonic(IRO_Xor));
-	AssertString("xor", IR65IntegerMnemonic(IRO_Not));
-	AssertString("shl", IR65IntegerMnemonic(IRO_Shl));
-	AssertString("shr", IR65IntegerMnemonic(IRO_LShr));
-	AssertString("neg", IR65IntegerMnemonic(IRO_Neg));
-	AssertTrue(IR65IntegerMnemonic(IRO_AShr) == NULL);
-	AssertTrue(IR65IntegerMnemonic(IRO_Mul) == NULL);
-	AssertTrue(IR65IntegerMnemonic(IRO_Call) == NULL);
+	AssertString("add", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Add)));
+	AssertString("add", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_PtrAdd)));
+	AssertString("sub", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Sub)));
+	AssertString("and", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_And)));
+	AssertString("or", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Or)));
+	AssertString("xor", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Xor)));
+	AssertString("xor", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Not)));
+	AssertString("shl", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Shl)));
+	AssertString("shr", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_LShr)));
+	AssertString("neg", CIR65Code::MnemonicName(IR65IntegerMnemonic(IRO_Neg)));
+	AssertInt(IR65M_Unknown, IR65IntegerMnemonic(IRO_AShr));
+	AssertInt(IR65M_Unknown, IR65IntegerMnemonic(IRO_Mul));
+	AssertInt(IR65M_Unknown, IR65IntegerMnemonic(IRO_Call));
 }
 
 

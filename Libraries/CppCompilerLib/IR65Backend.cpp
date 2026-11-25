@@ -68,6 +68,11 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mszAddress = "B";
 	mbCopyAddress = false;
 	mcCode.Init();
+	mcHead.Init();
+	mpcWriting = &mcCode;
+	muiPending = IR65M_Unknown;
+	mszPending.Init();
+	muiMarked = 0;
 	mcFlags.Init();
 	mcWidths.Init();
 	mcPeephole.Init();
@@ -102,6 +107,8 @@ void CIR65Backend::Kill(void)
 	mcBackendPasses.Kill();
 	mcWidths.Kill();
 	mcFlags.Kill();
+	mszPending.Kill();
+	mcHead.Kill();
 	mcCode.Kill();
 	mszDeferred.Kill();
 	masFused.Kill();
@@ -142,7 +149,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	SIR65Frame	sWritten;
 
 	mpcFunction = pcFunction;
-	mpszOut = pszDest;
+	mpszOut = NULL;
 	mpcErrors = pcErrors;
 	mbResult = true;
 	uiStart = pszDest->Length();
@@ -203,7 +210,6 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 				}
 				break;
 			}
-			pszDest->SetLength(uiStart);
 			if (!WriteBody(szLabel, uiStart))
 			{
 				//Kept from the code without B, which has none.
@@ -223,19 +229,20 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 		if (!bHomeB)
 		{
 			Reallocate(&sLaidOut, false);
-			pszDest->SetLength(uiStart);
 			WriteBody(szLabel, uiStart);
 		}
 	}
-	TakeMarkers(pszDest, uiStart);
+	//The text a listing's markers are kept between ends with a new line (Take leaves out the empty line after it).
+	MarkLines();
+	mcCode.AppendText("");
 	//The passes over the body's code: a register function's stub before it (RegisterStub) is as it must be, and
 	//the body's label is theirs to start from (the stub's jsr of it is no branch they know).
 	mpcModule->Begin(CPPCP_CodePasses);
 	mcCode.SetReturnReadsCarry(mpcOptions->mbExceptions);
-	mcCode.SetText(pszDest, muiBodyStart);
 	RunPasses();
-	pszDest->SetLength(muiBodyStart);
+	mcHead.WriteLines(pszDest);
 	mcCode.Write(pszDest);
+	mpszOut = pszDest;
 	mpcModule->End(CPPCP_CodePasses);
 	PutMarkers(pszDest, uiStart);
 	return mbResult;
@@ -456,7 +463,7 @@ void CIR65Backend::ReturnCode(bool bThrow)
 	{
 		if (msFrame.uiSaved & (1u << iUnit))
 		{
-			Line("pul [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
+			Line(IR65M_Pul, "[")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]");
 		}
 	}
 	bClear = false;
@@ -464,24 +471,24 @@ void CIR65Backend::ReturnCode(bool bThrow)
 	{
 		if (msFrame.iFrameBytes > 0)
 		{
-			Line("add S, ")->Append(msFrame.iFrameBytes)->AppendNewLine();
+			Line(IR65M_Add, "S, ")->Append(msFrame.iFrameBytes);
 			bClear = true;
 		}
-		Line("pul V")->AppendNewLine();
+		Line(IR65M_Pul, "V");
 	}
 	if (msFrame.bHomeV)
 	{
-		Line("pul V")->AppendNewLine();
+		Line(IR65M_Pul, "V");
 	}
 	if (bThrow)
 	{
-		Line("cmp S, S")->AppendNewLine();
+		Line(IR65M_Cmp, "S, S");
 	}
 	else if (mpcOptions->mbExceptions && !bClear)
 	{
-		Line("add S, 0")->AppendNewLine();
+		Line(IR65M_Add, "S, 0");
 	}
-	Line("ret")->AppendNewLine();
+	Line(IR65M_Ret);
 }
 
 
@@ -515,7 +522,7 @@ int CIR65Backend::ReturnInstructions(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function's code from its homes (Allocate): the prologue, the blocks
-// and the epilogue, appended to the text from uiStart on, each block's
+// and the epilogue, written again into mcHead and mcCode, each block's
 // instructions and jump noted in masChunks.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -538,6 +545,12 @@ bool CIR65Backend::WriteBody(const char* szLabel, size uiStart)
 	miReturnLabel = NewLabel();
 	masChunks.FakeSetUsedElements(0);
 	muiSource = 0;
+	mcHead.Clear();
+	mcCode.Clear();
+	mpcWriting = &mcCode;
+	muiPending = IR65M_Unknown;
+	muiMarked = 0;
+	mcMarkers.Begin();
 
 	Prologue(szLabel);
 	mpsFlags = NULL;
@@ -588,10 +601,14 @@ void CIR65Backend::Prologue(const char* szLabel)
 	SIR65Place		sArrival;
 	CChars			szBody;
 
-	muiBodyStart = mpszOut->Length();
-	mpszOut->Append(szLabel);
-	mpszOut->Append(':');
-	mpszOut->AppendNewLine();
+	szBody.Init(szLabel);
+	szBody.Append(':');
+	if (miRegisterArguments > 0)
+	{
+		Write(&mcHead);
+	}
+	TextLine(szBody.Text());
+	szBody.Kill();
 	mszBodyLabel.Clear();
 	if (miRegisterArguments > 0)
 	{
@@ -600,20 +617,20 @@ void CIR65Backend::Prologue(const char* szLabel)
 		szBody.Init(szLabel);
 		AppendRegisterSuffix(&szBody, &masArguments, IR65_REGISTER_LETTERS);
 		mcCalls.RegisterStub(szBody.Text());
+		mszBodyLabel.Set(szBody);
 		if (!(mpcFunction->muiAttributes & IRA_Local) && !mpcModule->IsLocal(mpcFunction->muiSymbol))
 		{
-			mpszOut->Append((mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
-			mpszOut->Append(szBody);
-			mpszOut->AppendNewLine();
+			szBody.Insert(0, (mpcFunction->muiAttributes & IRA_Weak) ? "\t\t.weak " : "\t\t.global ");
+			TextLine(szBody.Text());
 		}
-		muiBodyStart = mpszOut->Length();
-		mpszOut->Append(szBody);
-		mpszOut->Append(':');
-		mpszOut->AppendNewLine();
-		mszBodyLabel.Set(szBody);
+		Write(&mcCode);
+		szBody.Set(mszBodyLabel);
+		szBody.Append(':');
+		TextLine(szBody.Text());
 		szBody.Kill();
 	}
-	AppendFramePrologue(mpszOut, &msFrame);
+	Commit();
+	FramePrologue(&mcCode, &msFrame);
 
 	//The parameters that came in registers first (the pushed ones are read through A).
 	StoreRegisterParameters();
@@ -698,7 +715,7 @@ void CIR65Backend::StoreRegisterParameters(void)
 			szRegister = "X";
 			if (msFrame.iThisOffset >= 0)
 			{
-				Line("cpy [")->Append(1 + msFrame.iThisOffset)->Append(" + V], X")->AppendNewLine();
+				Line(IR65M_Cpy, "[")->Append(1 + msFrame.iThisOffset)->Append(" + V], X");
 			}
 		}
 		else
@@ -711,7 +728,7 @@ void CIR65Backend::StoreRegisterParameters(void)
 			szRegister = aszRegisters[iRegister];
 			if (msFrame.aiRegisterOffset[iRegister] >= 0)
 			{
-				Line("cpy [")->Append(1 + msFrame.aiRegisterOffset[iRegister])->Append(" + V], ")->Append(szRegister)->AppendNewLine();
+				Line(IR65M_Cpy, "[")->Append(1 + msFrame.aiRegisterOffset[iRegister])->Append(" + V], ")->Append(szRegister);
 			}
 		}
 		StoreArrivedRegister(szRegister, mcPlaces.PlaceOf(sParameter), mpcFunction->GetTemporaryType(sParameter), aszSources, apsPlaces, &iMoves);
@@ -735,12 +752,12 @@ void CIR65Backend::StoreRegisterParameters(void)
 		if (i == iMoves)
 		{
 			//X and Y take each other's.
-			Line("cpy A, X")->AppendNewLine();
-			Line("cpy X, Y")->AppendNewLine();
-			Line("cpy Y, A")->AppendNewLine();
+			Line(IR65M_Cpy, "A, X");
+			Line(IR65M_Cpy, "X, Y");
+			Line(IR65M_Cpy, "Y, A");
 			return;
 		}
-		Line("cpy ")->Append(mcPlaces.RegisterName(apsPlaces[i]))->Append(", ")->Append(aszSources[i])->AppendNewLine();
+		Line(IR65M_Cpy)->Append(mcPlaces.RegisterName(apsPlaces[i]))->Append(", ")->Append(aszSources[i]);
 		iMoves--;
 		aszSources[i] = aszSources[iMoves];
 		apsPlaces[i] = apsPlaces[iMoves];
@@ -750,32 +767,56 @@ void CIR65Backend::StoreRegisterParameters(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The prologue's instructions that make psFrame: V saved (a home), or V
-// saved and the frame made from S, then the [$80 + W] units it keeps.
+// The prologue's instructions that make psFrame (FramePrologue), as text:
+// V saved (a home), or V saved and the frame made from S, then the
+// [$80 + W] units it keeps.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::AppendFramePrologue(CChars* pszDest, SIR65Frame* psFrame)
 {
+	CIR65Code	cCode;
+
+	cCode.Init();
+	FramePrologue(&cCode, psFrame);
+	cCode.WriteLines(pszDest);
+	cCode.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The prologue's instructions that make psFrame, written into pcCode.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::FramePrologue(CIR65Code* pcCode, SIR65Frame* psFrame)
+{
+	CChars	sz;
 	int32	iUnit;
 
 	if (psFrame->bHomeV)
 	{
-		pszDest->Append("\t\tpsh V")->AppendNewLine();
+		pcCode->AppendInstruction(IR65M_Psh, "V");
 	}
 	if (!psFrame->bFrameless)
 	{
-		pszDest->Append("\t\tpsh V")->AppendNewLine();
+		pcCode->AppendInstruction(IR65M_Psh, "V");
 		if (psFrame->iFrameBytes > 0)
 		{
-			pszDest->Append("\t\tsub S, ")->Append(psFrame->iFrameBytes)->AppendNewLine();
+			sz.Init("S, ");
+			sz.Append(psFrame->iFrameBytes);
+			pcCode->AppendInstruction(IR65M_Sub, sz.Text());
+			sz.Kill();
 		}
-		pszDest->Append("\t\tcpy V, S")->AppendNewLine();
+		pcCode->AppendInstruction(IR65M_Cpy, "V, S");
 	}
 	for (iUnit = 0; iUnit < IR65_PSEUDO_UNITS; iUnit++)
 	{
 		if (psFrame->uiSaved & (1u << iUnit))
 		{
-			pszDest->Append("\t\tpsh [")->Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]")->AppendNewLine();
+			sz.Init("[");
+			sz.Append(IR65_SAVED_UNIT(iUnit))->Append(" + W]");
+			pcCode->AppendInstruction(IR65M_Psh, sz.Text());
+			sz.Kill();
 		}
 	}
 }
@@ -979,7 +1020,7 @@ void CIR65Backend::Epilogue(void)
 		{
 			continue;
 		}
-		uiText = mpszOut->Length();
+		uiText = CodeLines();
 		Label(psStub->iLabel);
 		if (psStub->bTested && !EdgeCopies(psStub->pcFrom, psStub->pcTo))
 		{
@@ -995,37 +1036,176 @@ void CIR65Backend::Epilogue(void)
 		}
 		if (psStub->iRemove > 0)
 		{
-			Line("add S, ")->Append(psStub->iRemove)->AppendNewLine();
+			Line(IR65M_Add, "S, ")->Append(psStub->iRemove);
 		}
 		Edge(psStub->pcFrom, psStub->pcTo);
-		Branch("bra ", *maiBlockLabels.Get(psStub->pcTo->muiIndex));
+		Branch(IR65M_Bra, NULL, *maiBlockLabels.Get(psStub->pcTo->muiIndex));
 		mcPlaces.AddChunk(mcLiveness.Jump(psStub->pcFrom), mcLiveness.Jump(psStub->pcFrom), uiText);
 	}
 	masStubs.FakeSetUsedElements(0);
-	mpszOut->AppendNewLine();
+	TextLine("");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts an instruction line.  The caller appends the rest and the new line.
+// Starts an instruction: uiMnemonic with szOperands, to which the caller
+// may append more.  It goes into the code when the next line starts.
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CIR65Backend::Line(const char* szText)
+CChars* CIR65Backend::Line(uint8 uiMnemonic, const char* szOperands)
 {
-	mpszOut->Append("\t\t");
-	return mpszOut->Append(szText);
+	Commit();
+	muiPending = uiMnemonic;
+	mszPending.Clear();
+	if (szOperands)
+	{
+		mszPending.Append(szOperands);
+	}
+	return &mszPending;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// szBranch is the instruction and its flag ("bras z, "), or "bra ".
+// The instruction being written (Line) into the code, its operands
+// written.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Branch(const char* szBranch, int32 iLabel)
+void CIR65Backend::Commit(void)
 {
-	Line(szBranch)->Append('L')->Append(iLabel)->AppendNewLine();
+	if (muiPending != IR65M_Unknown)
+	{
+		mpcWriting->AppendInstruction(muiPending, mszPending.Text());
+		muiPending = IR65M_Unknown;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line of text (a label, a directive, an empty line) next.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::TextLine(const char* szText)
+{
+	Commit();
+	mpcWriting->AppendText(szText);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// "Ln:".
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Label(int32 iLabel)
+{
+	CChars	sz;
+
+	sz.Init("L");
+	sz.Append(iLabel);
+	sz.Append(':');
+	TextLine(sz.Text());
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What is written next goes into pcCode (mcHead or mcCode).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Write(CIR65Code* pcCode)
+{
+	Commit();
+	mpcWriting = pcCode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines of the body written so far, for a chunk's bounds or a place
+// to cut back to (CutCode).
+//
+//////////////////////////////////////////////////////////////////////////
+size CIR65Backend::CodeLines(void)
+{
+	Commit();
+	return mcCode.NumLines();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What was written into the body after its first uiLines lines goes.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::CutCode(size uiLines)
+{
+	Commit();
+	mcCode.Cut(uiLines);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The lines written since the last are given to the markers (as printed)
+// for a listing or a debugger's place markers: the markers are kept
+// between them (CIRSourceMarkers::AddLine, as Take would find them).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::MarkLines(void)
+{
+	CChars	sz;
+	size	uiHead;
+
+	if (!mbSourceMarkers && !mbDebugPlaces)
+	{
+		return;
+	}
+	Commit();
+	uiHead = mcHead.NumLines();
+	sz.Init();
+	for (; muiMarked < uiHead + mcCode.NumLines(); muiMarked++)
+	{
+		sz.Clear();
+		if (muiMarked < uiHead)
+		{
+			mcHead.PrintLine(&sz, muiMarked);
+		}
+		else
+		{
+			mcCode.PrintLine(&sz, muiMarked - uiHead);
+		}
+		mcMarkers.AddLine(sz.Text(), sz.Length());
+	}
+	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A marker line (Source's, DebugPlaceMarker's) before what is written
+// next: kept, as Take would have taken it out (CIRSourceMarkers).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::MarkerLine(const char* szMarker)
+{
+	MarkLines();
+	mcMarkers.AddMarker(szMarker, StrLen(szMarker));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiMnemonic to the label Ln; szCondition is the flags it tests ("z, "),
+// NULL for a bra.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::Branch(uint8 uiMnemonic, const char* szCondition, int32 iLabel)
+{
+	Line(uiMnemonic, szCondition)->Append('L')->Append(iLabel);
 }
 
 
@@ -1182,13 +1362,13 @@ bool CIR65Backend::Block(CIRBlock* pcBlock, CIRBlock* pcNext)
 			continue;
 		}
 		DebugPlaces(pcBlock, uiFirst, ui);
-		uiText = mpszOut->Length();
+		uiText = CodeLines();
 		bResult &= WriteInstruction(pcBlock, ui);
 		mcPlaces.AddChunk(mcLiveness.Position(pcBlock, uiFirst), mcLiveness.Position(pcBlock, ui), uiText);
 		uiFirst = ui + 1;
 	}
 	DebugPlaces(pcBlock, uiFirst, pcBlock->masInstructions.NumElements());
-	uiText = mpszOut->Length();
+	uiText = CodeLines();
 	bResult &= WriteFused(pcBlock, masFused.NumElements());
 	NextInstruction();
 	Source(psFused ? psFused->uiSource : pcBlock->msJump.uiSource);
@@ -1325,7 +1505,7 @@ bool CIR65Backend::BranchOn(SIRInstruction* psFused, SIRReference sCondition, bo
 		return mcSelector.Compare(psFused, bJumpIf, iLabel);
 	}
 	TestZero(sCondition);
-	Branch(bJumpIf ? "brac z, " : "bras z, ", iLabel);
+	Branch(bJumpIf ? IR65M_Brac : IR65M_Bras, "z, ", iLabel);
 	return true;
 }
 
@@ -1495,11 +1675,10 @@ void CIR65Backend::Move(SIRReference sDestination, SIRReference sSource, SIRType
 	}
 	else if (mcSelector.SmallImmediate(sSource, -8, 8))
 	{
-		psz = Line("cpy ");
+		psz = Line(IR65M_Cpy);
 		mcSelector.AppendPlace(psz, psDestination);
 		psz->Append(", ");
 		mcSelector.AppendImmediate(psz, sSource, IR65E_Zero);
-		psz->AppendNewLine();
 	}
 	else
 	{
@@ -1524,14 +1703,14 @@ void CIR65Backend::TestZero(SIRReference sValue)
 		psPlace = mcPlaces.PlaceOf(sValue);
 		if ((psPlace->uiKind == IR65P_Register) || (psPlace->uiKind == IR65P_Pseudo))
 		{
-			psz = Line("cmp ");
+			psz = Line(IR65M_Cmp);
 			mcSelector.AppendPlace(psz, psPlace);
-			psz->Append(", 0")->AppendNewLine();
+			psz->Append(", 0");
 			return;
 		}
 	}
 	mcSelector.LoadValue(sValue, "A", IR65E_Zero);
-	Line("cmp A, 0")->AppendNewLine();
+	Line(IR65M_Cmp, "A, 0");
 }
 
 
@@ -1559,7 +1738,7 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		Edge(pcBlock, psJump->pcThen);
 		if (psJump->pcThen != pcNext)
 		{
-			Branch("bra ", *maiBlockLabels.Get(psJump->pcThen->muiIndex));
+			Branch(IR65M_Bra, NULL, *maiBlockLabels.Get(psJump->pcThen->muiIndex));
 		}
 		break;
 
@@ -1571,7 +1750,7 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 			Edge(pcBlock, psJump->pcElse);
 			if (psJump->pcElse != pcNext)
 			{
-				Branch("bra ", *maiBlockLabels.Get(psJump->pcElse->muiIndex));
+				Branch(IR65M_Bra, NULL, *maiBlockLabels.Get(psJump->pcElse->muiIndex));
 			}
 			break;
 		}
@@ -1602,13 +1781,13 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 		Edge(pcBlock, psJump->pcThen);
 		if ((psJump->pcThen != pcNext) || bElseMoves)
 		{
-			Branch("bra ", *maiBlockLabels.Get(psJump->pcThen->muiIndex));
+			Branch(IR65M_Bra, NULL, *maiBlockLabels.Get(psJump->pcThen->muiIndex));
 		}
 		if (bElseMoves)
 		{
 			Label(iElse);
 			Edge(pcBlock, psJump->pcElse);
-			Branch("bra ", *maiBlockLabels.Get(psJump->pcElse->muiIndex));
+			Branch(IR65M_Bra, NULL, *maiBlockLabels.Get(psJump->pcElse->muiIndex));
 		}
 		break;
 
@@ -1626,13 +1805,13 @@ bool CIR65Backend::Jump(CIRBlock* pcBlock, CIRBlock* pcNext, SIRInstruction* psF
 			}
 			else
 			{
-				Branch("bra ", miReturnLabel);
+				Branch(IR65M_Bra, NULL, miReturnLabel);
 			}
 		}
 		break;
 
 	case IRJ_Unreachable:
-		Line("stp")->AppendNewLine();
+		Line(IR65M_Stp);
 		break;
 
 	case IRJ_Throw:

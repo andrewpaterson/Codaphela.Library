@@ -96,7 +96,7 @@ bool CIR65Calls::Call(CIRBlock* pcBlock, size uiIndex)
 	{
 		LoadRegisterArguments(pcBlock, uiFirst, bThisCall, &asArguments);
 	}
-	mpcBackend->Line("jsr ")->Append(szCallee)->AppendNewLine();
+	mpcBackend->Line(IR65M_Jsr)->Append(szCallee);
 	szCallee.Kill();
 	asArguments.Kill();
 
@@ -113,7 +113,7 @@ bool CIR65Calls::Call(CIRBlock* pcBlock, size uiIndex)
 		psStub->iRemove = iBytes;
 		psStub->bTested = true;
 		psStub->bWritten = false;
-		mpcBackend->Branch("bras c, ", psStub->iLabel);
+		mpcBackend->Branch(IR65M_Bras, "c, ", psStub->iLabel);
 	}
 	CallerCleanUp(iBytes, psCall);
 	return true;
@@ -323,7 +323,7 @@ void CIR65Calls::LoadRegisterArguments(CIRBlock* pcBlock, size uiFirst, bool bTh
 	{
 		if (abPull[i])
 		{
-			mpcBackend->Line("pul ")->Append(aszRegisters[i])->AppendNewLine();
+			mpcBackend->Line(IR65M_Pul)->Append(aszRegisters[i]);
 			if (i == 0)
 			{
 				mpcBackend->msAvailable = IRNone();
@@ -356,7 +356,7 @@ void CIR65Calls::RemoveArguments(int32 iBytes)
 {
 	if (iBytes > 0)
 	{
-		mpcBackend->Line("add S, ")->Append(iBytes)->AppendNewLine();
+		mpcBackend->Line(IR65M_Add, "S, ")->Append(iBytes);
 	}
 }
 
@@ -374,7 +374,7 @@ void CIR65Calls::CallRuntime(const char* szName, int iBytes)
 	szLabel.Init("_");
 	szLabel.Append(szName);
 	mpcBackend->UseRuntime(szLabel.Text());
-	mpcBackend->Line("jsr ")->Append(szLabel)->AppendNewLine();
+	mpcBackend->Line(IR65M_Jsr)->Append(szLabel);
 	szLabel.Kill();
 	RemoveArguments(iBytes);
 }
@@ -434,12 +434,12 @@ void CIR65Calls::RegisterStub(const char* szBody)
 		mpcBackend->mcSelector.LoadPlace(&sArrival, sType, "A", IR65E_Zero);
 		if (iBytes != 4)
 		{
-			mpcBackend->Line("wth A, ")->Append(8 * iBytes)->AppendNewLine();
+			mpcBackend->Line(IR65M_Wth, "A, ")->Append(8 * iBytes);
 		}
-		mpcBackend->Line("psh A")->AppendNewLine();
+		mpcBackend->Line(IR65M_Psh, "A");
 		if (iBytes != 4)
 		{
-			mpcBackend->Line("wth A, 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wth, "A, 32");
 		}
 		iPushed += iBytes;
 	}
@@ -464,22 +464,22 @@ void CIR65Calls::RegisterStub(const char* szBody)
 
 	if (iPushed > 0)
 	{
-		mpcBackend->Line("jsr ")->Append(szBody)->AppendNewLine();
+		mpcBackend->Line(IR65M_Jsr)->Append(szBody);
 		iThrown = -1;
 		if (mpcBackend->mpcOptions->mbExceptions && !mpcBackend->mpcModule->IsNoThrow(mpcBackend->mpcFunction->muiSymbol))
 		{
 			//Removing the pushed bytes clears the carry: a body that threw leaves by an exit of its own.
 			iThrown = mpcBackend->NewLabel();
-			mpcBackend->Branch("bras c, ", iThrown);
+			mpcBackend->Branch(IR65M_Bras, "c, ", iThrown);
 		}
-		mpcBackend->Line("add S, ")->Append(iPushed)->AppendNewLine();
-		mpcBackend->Line("ret")->AppendNewLine();
+		mpcBackend->Line(IR65M_Add, "S, ")->Append(iPushed);
+		mpcBackend->Line(IR65M_Ret);
 		if (iThrown >= 0)
 		{
 			mpcBackend->Label(iThrown);
-			mpcBackend->Line("add S, ")->Append(iPushed)->AppendNewLine();
-			mpcBackend->Line("cmp S, S")->AppendNewLine();
-			mpcBackend->Line("ret")->AppendNewLine();
+			mpcBackend->Line(IR65M_Add, "S, ")->Append(iPushed);
+			mpcBackend->Line(IR65M_Cmp, "S, S");
+			mpcBackend->Line(IR65M_Ret);
 		}
 	}
 }

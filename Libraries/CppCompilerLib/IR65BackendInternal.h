@@ -38,7 +38,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 //IR65Instructions.cpp: what the lowering of an opcode needs and changes.
 uint8	IR65OpcodeFlags(uint16 uiOpcode);
-const char*	IR65IntegerMnemonic(uint16 uiOpcode);
+uint8		IR65IntegerMnemonic(uint16 uiOpcode);
 
 //IR65BackendPeephole.cpp: [n + W] written [n] where the instruction can't address memory with W.
 bool	IR65PseudoWithoutW(CIR65Code* pcCode);

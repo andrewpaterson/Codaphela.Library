@@ -34,10 +34,10 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // takes that out where W is 0 already.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Selector::Multiply(const char* szInstruction)
+void CIR65Selector::Multiply(uint8 uiMnemonic)
 {
-	mpcBackend->Line("cpy W, 0")->AppendNewLine();
-	mpcBackend->Line(szInstruction)->AppendNewLine();
+	mpcBackend->Line(IR65M_Cpy, "W, 0");
+	mpcBackend->Line(uiMnemonic);
 }
 
 
@@ -62,26 +62,26 @@ bool CIR65Selector::MultiplyInstruction(SIRInstruction* psInstruction)
 	}
 	if (bWide)
 	{
-		mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
-		mpcBackend->Line("wth Y, 64")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wtth, "(A, B), 64");
+		mpcBackend->Line(IR65M_Wth, "Y, 64");
 	}
 	bByte = !bWide && psInstruction->asArguments[1].IsConstant() && (IRTruncate(psInstruction->sType, mpcBackend->mpcFunction->GetConstant(psInstruction->asArguments[1])->ulliBits) < 256);
 	if (bByte)
 	{
 		//mul takes a step for each byte of B: a multiplier below 256 takes one.
-		mpcBackend->Line("wth B, 8")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wth, "B, 8");
 	}
-	Multiply("mul");
+	Multiply(IR65M_Mul);
 	if (bByte)
 	{
-		mpcBackend->Line("wth B, 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Wth, "B, 32");
 	}
 	mpcBackend->msAvailable = IRNone();
 	if (bWide)
 	{
-		mpcBackend->Line("cpy A, Y")->AppendNewLine();
-		mpcBackend->Line("wth Y, 32")->AppendNewLine();
-		mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
+		mpcBackend->Line(IR65M_Cpy, "A, Y");
+		mpcBackend->Line(IR65M_Wth, "Y, 32");
+		mpcBackend->Line(IR65M_Wtth, "(A, B), 32");
 		StoreResult(psInstruction->sResult);
 	}
 	else
@@ -166,30 +166,30 @@ bool CIR65Selector::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext
 		LoadOperands(psInstruction, bSigned ? IR65E_Sign : IR65E_Zero, false);
 		if (bWide)
 		{
-			mpcBackend->Line("wtth (A, B), 64")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wtth, "(A, B), 64");
 		}
 		if (bSigned)
 		{
-			mpcBackend->Line(bWide ? "jsr R_DivideSigned64" : "jsr R_DivideSigned")->AppendNewLine();
+			mpcBackend->Line(IR65M_Jsr, bWide ? "R_DivideSigned64" : "R_DivideSigned");
 			mpcBackend->UseRuntime(bWide ? "R_DivideSigned64" : "R_DivideSigned");
 		}
 		else
 		{
-			mpcBackend->Line("wth Y, 64")->AppendNewLine();
-			mpcBackend->Line("cpy Y, A")->AppendNewLine();
-			mpcBackend->Line("cpy A, B")->AppendNewLine();
-			mpcBackend->Line("cpy B, 0")->AppendNewLine();
-			Multiply("div");
-			mpcBackend->Line("cpy A, Y")->AppendNewLine();
-			mpcBackend->Line("wth Y, 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wth, "Y, 64");
+			mpcBackend->Line(IR65M_Cpy, "Y, A");
+			mpcBackend->Line(IR65M_Cpy, "A, B");
+			mpcBackend->Line(IR65M_Cpy, "B, 0");
+			Multiply(IR65M_Div);
+			mpcBackend->Line(IR65M_Cpy, "A, Y");
+			mpcBackend->Line(IR65M_Wth, "Y, 32");
 		}
 		if (bRemainder)
 		{
-			mpcBackend->Line("cpy A, B")->AppendNewLine();
+			mpcBackend->Line(IR65M_Cpy, "A, B");
 		}
 		if (bWide)
 		{
-			mpcBackend->Line("wtth (A, B), 32")->AppendNewLine();
+			mpcBackend->Line(IR65M_Wtth, "(A, B), 32");
 		}
 		mpcBackend->msAvailable = IRNone();
 		StoreResult(psInstruction->sResult);
@@ -205,9 +205,9 @@ bool CIR65Selector::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext
 	{
 		if (mpcBackend->mcPlaces.IsInA(sLeft))
 		{
-			mpcBackend->Line("cpy B, A")->AppendNewLine();
-			mpcBackend->Line("cpy A, Y")->AppendNewLine();
-			mpcBackend->Line("cpy Y, B")->AppendNewLine();
+			mpcBackend->Line(IR65M_Cpy, "B, A");
+			mpcBackend->Line(IR65M_Cpy, "A, Y");
+			mpcBackend->Line(IR65M_Cpy, "Y, B");
 		}
 		else
 		{
@@ -220,8 +220,8 @@ bool CIR65Selector::Divide(SIRInstruction* psInstruction, SIRInstruction* psNext
 		LoadValue(sLeft, "Y", IR65E_Zero);
 		LoadValue(sRight, "A", IR65E_Zero);
 	}
-	mpcBackend->Line("cpy B, 0")->AppendNewLine();
-	Multiply("div");
+	mpcBackend->Line(IR65M_Cpy, "B, 0");
+	Multiply(IR65M_Div);
 	mpcBackend->msAvailable = IRNone();
 	if (psNext && PairsWithDivide(psInstruction, psNext))
 	{
