@@ -584,6 +584,7 @@ void CIR65Widths::SetWidths(SIR65Widths* psTarget, size uiNext)
 	int		i;
 	int		iPair;
 	uint8	uiBits;
+	uint8	uiMnemonic;
 
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
@@ -611,16 +612,18 @@ void CIR65Widths::SetWidths(SIR65Widths* psTarget, size uiNext)
 		}
 		if (iPair < IR65_CODE_REGISTERS)
 		{
-			szLine.Init("\t\twtth (");
+			uiMnemonic = IR65M_Wtth;
+			szLine.Init("(");
 			szLine.Append(CIR65Code::RegisterName(i))->Append(", ")->Append(CIR65Code::RegisterName(iPair))->Append("), ")->Append((int32)uiBits);
 			msActual.auiRegisters[iPair] = uiBits;
 		}
 		else
 		{
-			szLine.Init("\t\twth ");
+			uiMnemonic = IR65M_Wth;
+			szLine.Init();
 			szLine.Append(CIR65Code::RegisterName(i))->Append(", ")->Append((int32)uiBits);
 		}
-		mpcCode->AddLine(szLine.Text());
+		mpcCode->AddLine(uiMnemonic, szLine.Text());
 		szLine.Kill();
 		msActual.auiRegisters[i] = uiBits;
 	}

@@ -151,7 +151,8 @@ typedef CArrayTemplate<SIR65Widths>	CArrayIR65Widths;
 class CIR65Code : public CIRBranchCode
 {
 protected:
-	CArrayChars				maszLines;
+	CArrayChars				maszLines;		//Per line: an instruction's operands ("[8 + W], A"), any other line's text.
+	CArrayTemplate<uint8>	mauiWritten;	//Per line: the instruction's mnemonic (EIR65Mnemonic), IR65M_Unknown for text.
 	CArrayIR65CodeLines		masLines;
 	CArrayIR65Widths		masWidths;		//Per line: the widths it starts with.
 	CArrayTemplate<uint8>	mauiReached;	//Per line: 1 if it can run.
@@ -159,6 +160,7 @@ protected:
 	CArrayTemplate<uint8>	mauiJumpedBack;	//Per line: 1 for a label a branch after it goes to.
 	CArrayTemplate<uint8>	mauiRemoved;	//Per line: 1 for a line a pass took out (now IR65CK_Other).
 	CArrayChars				maszNewLines;	//The lines a pass is writing the code again as (BeginLines)...
+	CArrayTemplate<uint8>	mauiNewWritten;
 	bool					mbLastKept;		//...and whether the last of them is the code's last line.
 	CHashMapString<int32>	mmLabels;		//Label name to line.
 	bool					mbReturnReadsCarry;	//A ret reads c: the caller's thrown (a program built with exceptions).
@@ -175,7 +177,7 @@ public:
 	void			Write(CChars* pszOut);
 	void			BeginLines(void);
 	void			KeepLine(size uiLine);
-	void			AddLine(const char* szText);
+	void			AddLine(uint8 uiMnemonic, const char* szOperands);
 	void			EndLines(void);
 	void			Drop(size uiLine);
 
@@ -186,7 +188,10 @@ public:
 	bool			Retarget(size uiLine, size uiLabel) override;
 	bool			Invert(size uiLine, size uiLabel) override;
 	SIR65CodeLine*	GetLine(size uiLine);
-	CChars*			GetText(size uiLine);
+	CChars*			LineText(size uiLine);
+	uint8			WrittenMnemonic(size uiLine);
+	void			SetLine(size uiLine, uint8 uiMnemonic, const char* szText);
+	void			PrintLine(CChars* pszOut, size uiLine);
 	SIR65Widths*	GetWidths(size uiLine);
 	bool			IsReached(size uiLine);
 	bool			IsJumpedBack(size uiLine);
@@ -195,7 +200,6 @@ public:
 	void			ComputeFlagDemand(CArrayTemplate<uint8>* pauiDemand);
 	void			Remove(size uiLine) override;
 	bool			IsRemoved(size uiLine);
-	bool			Replace(size uiLine, const char* szInstruction);
 	bool			ReplaceInstruction(size uiLine, uint8 uiMnemonic, const char* szOperands);
 	bool			Branch(size uiLine, uint8 uiMnemonic, size uiLabel);
 	uint8			Mnemonic(size uiLine);
@@ -215,7 +219,10 @@ public:
 protected:
 	void			Compact(void);
 	bool			Decode(void);
-	bool			DecodeLine(CChars* pszLine, SIR65CodeLine* psLine);
+	bool			DecodeLine(size uiLine, SIR65CodeLine* psLine);
+	bool			DecodeText(CChars* pszLine, SIR65CodeLine* psLine);
+	bool			DecodeInstruction(uint8 uiMnemonic, const char* szOperands, SIR65CodeLine* psLine);
+	void			AddTextLine(CArrayChars* paszLines, CArrayTemplate<uint8>* pauiWritten, const char* szLine);
 	bool			ComputeWidths(void);
 };
 

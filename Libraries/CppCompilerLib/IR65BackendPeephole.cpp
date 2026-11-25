@@ -41,17 +41,18 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 bool IR65PseudoWithoutW(CIR65Code* pcCode)
 {
-	CChars*	pszLine;
+	CChars*	pszText;
 	size	ui;
 	bool	bChanged;
 
 	bChanged = false;
 	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		pszLine = pcCode->GetText(ui);
-		if (pszLine->Contains(" + W]"))
+		//An instruction's operands, or a line of text.
+		pszText = pcCode->LineText(ui);
+		if (pszText->Contains(" + W]"))
 		{
-			pszLine->Replace(" + W]", "]");
+			pszText->Replace(" + W]", "]");
 			bChanged = true;
 		}
 	}
@@ -61,20 +62,20 @@ bool IR65PseudoWithoutW(CIR65Code* pcCode)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Splits "\t\tcpy first, second" into its operands; false if pszLine isn't
+// Splits "cpy first, second" into its operands; false if the line isn't
 // a cpy of two.
 //
 //////////////////////////////////////////////////////////////////////////
-static bool IR65CopyOperands(CChars* pszLine, CChars* pszFirst, CChars* pszSecond)
+static bool IR65CopyOperands(CIR65Code* pcCode, size uiLine, CChars* pszFirst, CChars* pszSecond)
 {
 	const char*	szText;
 	const char*	szComma;
 
-	if (!pszLine->StartsWith("\t\tcpy "))
+	if (pcCode->WrittenMnemonic(uiLine) != IR65M_Cpy)
 	{
 		return false;
 	}
-	szText = pszLine->Text() + 6;
+	szText = pcCode->LineText(uiLine)->Text();
 	szComma = strstr(szText, ", ");
 	if ((szComma == NULL) || strstr(szComma + 2, ", "))
 	{
@@ -108,16 +109,19 @@ static void IR65ResetWidths(int* aiWidths)
 // unknown).
 //
 //////////////////////////////////////////////////////////////////////////
-static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
+static void IR65UpdateWidths(CIR65Code* pcCode, size uiLine, int* aiWidths)
 {
 	const char*	szText;
 	const char*	szComma;
+	uint8		uiMnemonic;
 	int			iRegister;
 	int			iWidth;
 
-	if (pszLine->StartsWith("\t\twtth ("))
+	uiMnemonic = pcCode->WrittenMnemonic(uiLine);
+	szText = pcCode->LineText(uiLine)->Text();
+	if ((uiMnemonic == IR65M_Wtth) && (szText[0] == '('))
 	{
-		szText = pszLine->Text() + 8;
+		szText++;
 		szComma = strstr(szText, "), ");
 		iWidth = szComma ? atoi(szComma + 3) : 0;
 		iRegister = CIR65Code::RegisterIndex(szText, 1);
@@ -132,9 +136,8 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 		}
 		return;
 	}
-	if (pszLine->StartsWith("\t\twth ") || pszLine->StartsWith("\t\twthx "))
+	if ((uiMnemonic == IR65M_Wth) || (uiMnemonic == IR65M_Wthx))
 	{
-		szText = pszLine->Text() + (pszLine->StartsWith("\t\twth ") ? 6 : 7);
 		szComma = strstr(szText, ", ");
 		iRegister = CIR65Code::RegisterIndex(szText, szComma ? (size)(szComma - szText) : 0);
 		if (iRegister >= 0)
@@ -190,7 +193,6 @@ static bool IR65IsBlockLabel(CChars* pszLine, CArrayTemplate<int32>* paiBlockLab
 bool CIR65Backend::PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV)
 {
 	CChars*			pszLine;
-	CChars*			pszNext;
 	CChars			szStored;
 	CChars			szFrom;
 	CChars			szTo;
@@ -209,8 +211,12 @@ bool CIR65Backend::PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlo
 	IR65ResetWidths(aiWidths);
 	for (ui = 0; ui < uiNum; ui++)
 	{
-		pszLine = pcCode->GetText(ui);
-		if (!pszLine->StartsWith("\t\t"))
+		if (pcCode->IsRemoved(ui))
+		{
+			continue;
+		}
+		pszLine = pcCode->LineText(ui);
+		if ((pcCode->WrittenMnemonic(ui) == IR65M_Unknown) && !pszLine->StartsWith("\t\t"))
 		{
 			//Each block starts with all four 32 bits wide; at another label they aren't known.
 			if (IR65IsBlockLabel(pszLine, paiBlockLabels))
@@ -222,7 +228,7 @@ bool CIR65Backend::PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlo
 				memset(aiWidths, 0, sizeof(aiWidths));
 			}
 		}
-		else if (pszLine->Length() == 2)
+		else if ((pcCode->WrittenMnemonic(ui) == IR65M_Unknown) && (pszLine->Length() == 2))
 		{
 			pcCode->Drop(ui);
 			bChanged = true;
@@ -230,22 +236,25 @@ bool CIR65Backend::PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlo
 		}
 		else if (ui + 1 < uiNum)
 		{
-			pszNext = pcCode->GetText(ui + 1);
 			szStored.Init();
 			szFrom.Init();
 			szTo.Init();
 			szLoaded.Init();
-			if (IR65CopyOperands(pszLine, &szStored, &szFrom) && IR65CopyOperands(pszNext, &szTo, &szLoaded) && CIR65Code::IsOwnMemory(szStored.Text(), szStored.Length(), bHomeV, &uiBase, &iOffset) && szLoaded.Equals(szStored))
+			if (IR65CopyOperands(pcCode, ui, &szStored, &szFrom) && IR65CopyOperands(pcCode, ui + 1, &szTo, &szLoaded) && CIR65Code::IsOwnMemory(szStored.Text(), szStored.Length(), bHomeV, &uiBase, &iOffset) && szLoaded.Equals(szStored))
 			{
 				iFrom = CIR65Code::RegisterIndex(szFrom.Text(), szFrom.Length());
 				iTo = CIR65Code::RegisterIndex(szTo.Text(), szTo.Length());
 				if ((iFrom >= 0) && (iTo >= 0) && (aiWidths[iFrom] == 32) && (aiWidths[iTo] == 32))
 				{
-					pszNext->Kill();
-					pszNext->Init("\t\t");
 					if (iFrom != iTo)
 					{
-						pszNext->Append("cpy ")->Append(szTo)->Append(", ")->Append(szFrom);
+						szTo.Append(", ")->Append(szFrom);
+						pcCode->SetLine(ui + 1, IR65M_Cpy, szTo.Text());
+					}
+					else
+					{
+						//Taken out when the loop reaches it.
+						pcCode->SetLine(ui + 1, IR65M_Unknown, "\t\t");
 					}
 					bChanged = true;
 				}
@@ -255,7 +264,7 @@ bool CIR65Backend::PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlo
 			szFrom.Kill();
 			szStored.Kill();
 		}
-		IR65UpdateWidths(pszLine, aiWidths);
+		IR65UpdateWidths(pcCode, ui, aiWidths);
 	}
 	return bChanged;
 }

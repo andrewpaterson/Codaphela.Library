@@ -373,6 +373,7 @@ bool CIR65Code::IsCopyExtendAddress(CChars* pszOperand)
 void CIR65Code::Init(void)
 {
 	maszLines.Init();
+	mauiWritten.Init();
 	masLines.Init();
 	masWidths.Init();
 	mauiReached.Init();
@@ -380,6 +381,7 @@ void CIR65Code::Init(void)
 	mauiJumpedBack.Init();
 	mauiRemoved.Init();
 	maszNewLines.Init();
+	mauiNewWritten.Init();
 	mbLastKept = false;
 	mmLabels.Init();
 	mbReturnReadsCarry = false;
@@ -405,12 +407,14 @@ void CIR65Code::SetReturnReadsCarry(bool bReads)
 void CIR65Code::Kill(void)
 {
 	mmLabels.Kill();
+	mauiNewWritten.Kill();
 	maszNewLines.Kill();
 	mauiRemoved.Kill();
 	mauiJumpedBack.Kill();
 	mauiReached.Kill();
 	masWidths.Kill();
 	masLines.Kill();
+	mauiWritten.Kill();
 	maszLines.Kill();
 }
 
@@ -438,13 +442,21 @@ bool CIR65Code::Load(CChars* pszCode, size uiStart, bool bConflicts)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Code::SetText(CChars* pszCode, size uiStart)
 {
-	CChars	szText;
-	size	ui;
+	CChars		szText;
+	CArrayChars	aszLines;
+	size		ui;
 
-	maszLines.ReInit();
+	aszLines.Init();
 	szText.Init(pszCode->Text() + uiStart);
-	szText.SplitLines(&maszLines);
+	szText.SplitLines(&aszLines);
 	szText.Kill();
+	maszLines.ReInit();
+	mauiWritten.ReInit();
+	for (ui = 0; ui < aszLines.NumElements(); ui++)
+	{
+		AddTextLine(&maszLines, &mauiWritten, aszLines.Get(ui)->Text());
+	}
+	aszLines.Kill();
 	masLines.ReInit();
 	mauiRemoved.ReInit();
 	for (ui = 0; ui < maszLines.NumElements(); ui++)
@@ -452,6 +464,44 @@ void CIR65Code::SetText(CChars* pszCode, size uiStart)
 		mauiRemoved.Add()[0] = 0;
 	}
 	mbLoaded = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line of text added to paszLines: "\t\tmnemonic operands" (or with no
+// operands) as an instruction, its mnemonic and operands; any other line,
+// or one that wouldn't print as it was written, as its text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::AddTextLine(CArrayChars* paszLines, CArrayTemplate<uint8>* pauiWritten, const char* szLine)
+{
+	const char*	szName;
+	size		uiName;
+	uint8		uiMnemonic;
+
+	if ((szLine[0] == '\t') && (szLine[1] == '\t'))
+	{
+		szName = szLine + 2;
+		for (uiName = 0; (szName[uiName] != '\0') && (szName[uiName] != ' '); uiName++)
+		{
+		}
+		for (uiMnemonic = 0; uiMnemonic < IR65M_Unknown; uiMnemonic++)
+		{
+			if ((StrLen(gasIR65CodeMnemonics[uiMnemonic].szName) == uiName) && (strncmp(gasIR65CodeMnemonics[uiMnemonic].szName, szName, uiName) == 0))
+			{
+				break;
+			}
+		}
+		if ((uiMnemonic < IR65M_Unknown) && ((szName[uiName] == '\0') || (szName[uiName + 1] != '\0')))
+		{
+			paszLines->Add((szName[uiName] == '\0') ? "" : szName + uiName + 1);
+			pauiWritten->Add()[0] = uiMnemonic;
+			return;
+		}
+	}
+	paszLines->Add(szLine);
+	pauiWritten->Add()[0] = IR65M_Unknown;
 }
 
 
@@ -533,6 +583,7 @@ void CIR65Code::Write(CChars* pszOut)
 void CIR65Code::BeginLines(void)
 {
 	maszNewLines.ReInit();
+	mauiNewWritten.ReInit();
 	mbLastKept = false;
 }
 
@@ -550,18 +601,21 @@ void CIR65Code::KeepLine(size uiLine)
 		return;
 	}
 	maszNewLines.Add(maszLines.Get(uiLine)->Text());
+	mauiNewWritten.Add()[0] = *mauiWritten.Get(uiLine);
 	mbLastKept = (uiLine + 1 == maszLines.NumElements());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A new line next in the code being written again.
+// A new instruction next in the code being written again: uiMnemonic
+// with szOperands (NULL for none).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Code::AddLine(const char* szText)
+void CIR65Code::AddLine(uint8 uiMnemonic, const char* szOperands)
 {
-	maszNewLines.Add(szText);
+	maszNewLines.Add(szOperands ? szOperands : "");
+	mauiNewWritten.Add()[0] = uiMnemonic;
 	mbLastKept = false;
 }
 
@@ -580,15 +634,19 @@ void CIR65Code::EndLines(void)
 	if (!mbLastKept)
 	{
 		maszNewLines.Add("");
+		mauiNewWritten.Add()[0] = IR65M_Unknown;
 	}
 	maszLines.ReInit();
+	mauiWritten.ReInit();
 	mauiRemoved.ReInit();
 	for (ui = 0; ui < maszNewLines.NumElements(); ui++)
 	{
 		maszLines.Add(maszNewLines.Get(ui)->Text());
+		mauiWritten.Add()[0] = *mauiNewWritten.Get(ui);
 		mauiRemoved.Add()[0] = 0;
 	}
 	maszNewLines.ReInit();
+	mauiNewWritten.ReInit();
 	masLines.ReInit();
 }
 
@@ -639,9 +697,63 @@ SIR65CodeLine* CIR65Code::GetLine(size uiLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CIR65Code::GetText(size uiLine)
+CChars* CIR65Code::LineText(size uiLine)
 {
 	return maszLines.Get(uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The mnemonic a line was written with (IR65M_Unknown for a line that is
+// text), known before the code is decoded.
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CIR65Code::WrittenMnemonic(size uiLine)
+{
+	return *mauiWritten.Get(uiLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Makes a line of code not decoded the instruction uiMnemonic with the
+// operands szText, or (IR65M_Unknown) the text szText.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::SetLine(size uiLine, uint8 uiMnemonic, const char* szText)
+{
+	maszLines.Get(uiLine)->Kill();
+	maszLines.Get(uiLine)->Init(szText);
+	*mauiWritten.Get(uiLine) = uiMnemonic;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line as it is printed: "\t\tmnemonic operands" for an instruction,
+// any other line's text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::PrintLine(CChars* pszOut, size uiLine)
+{
+	uint8	uiMnemonic;
+	CChars*	pszText;
+
+	uiMnemonic = *mauiWritten.Get(uiLine);
+	pszText = maszLines.Get(uiLine);
+	if (uiMnemonic == IR65M_Unknown)
+	{
+		pszOut->Append(pszText);
+		return;
+	}
+	pszOut->Append("\t\t");
+	pszOut->Append(gasIR65CodeMnemonics[uiMnemonic].szName);
+	if (!pszText->Empty())
+	{
+		pszOut->Append(' ');
+		pszOut->Append(pszText);
+	}
 }
 
 
@@ -785,7 +897,7 @@ bool CIR65Code::Decode(void)
 	for (ui = 0; ui < uiNum; ui++)
 	{
 		pszLine = maszLines.Get(ui);
-		if (!pszLine->Empty() && !pszLine->StartsWith("\t") && pszLine->EndsWith(':'))
+		if ((*mauiWritten.Get(ui) == IR65M_Unknown) && !pszLine->Empty() && !pszLine->StartsWith("\t") && pszLine->EndsWith(':'))
 		{
 			*mmLabels.FindOrAdd(pszLine->Text(), (size)(pszLine->Length() - 1), NULL) = (int32)ui;
 		}
@@ -797,7 +909,7 @@ bool CIR65Code::Decode(void)
 	{
 		psLine = masLines.Add();
 		mauiJumpedBack.Add()[0] = 0;
-		bDecoded = DecodeLine(maszLines.Get(ui), psLine);
+		bDecoded = DecodeLine(ui, psLine);
 		if (!bDecoded)
 		{
 			return false;
@@ -817,17 +929,28 @@ bool CIR65Code::Decode(void)
 // these instructions).
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
+bool CIR65Code::DecodeLine(size uiLine, SIR65CodeLine* psLine)
+{
+	if (*mauiWritten.Get(uiLine) != IR65M_Unknown)
+	{
+		return DecodeInstruction(*mauiWritten.Get(uiLine), maszLines.Get(uiLine)->Text(), psLine);
+	}
+	return DecodeText(maszLines.Get(uiLine), psLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Decodes a line that is text: a label, an empty line or a comment, or an
+// instruction written otherwise than "\t\tmnemonic operands".
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::DecodeText(CChars* pszLine, SIR65CodeLine* psLine)
 {
 	const char*					szText;
 	char						szMnemonic[8];
 	size						uiMnemonic;
-	SIR65CodeOperand			asOperands[IR65_CODE_MAX_OPERANDS];
-	SIR65CodeOperand*			psLast;
 	const SIR65CodeMnemonic*	psMnemonic;
-	int							iOperands;
-	int							i;
-	int32*						piTarget;
 
 	memset(psLine, 0, sizeof(SIR65CodeLine));
 	psLine->iFirst = -1;
@@ -878,7 +1001,31 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 	{
 		return false;
 	}
-	iOperands = IR65CodeOperands(szText + uiMnemonic, asOperands);
+	return DecodeInstruction((uint8)(psMnemonic - gasIR65CodeMnemonics), szText + uiMnemonic, psLine);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Decodes the instruction uiMnemonic with its operands (as written after
+// the mnemonic).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::DecodeInstruction(uint8 uiMnemonic, const char* szOperands, SIR65CodeLine* psLine)
+{
+	SIR65CodeOperand			asOperands[IR65_CODE_MAX_OPERANDS];
+	SIR65CodeOperand*			psLast;
+	const SIR65CodeMnemonic*	psMnemonic;
+	int							iOperands;
+	int							i;
+	int32*						piTarget;
+
+	memset(psLine, 0, sizeof(SIR65CodeLine));
+	psLine->iFirst = -1;
+	psLine->iSecond = -1;
+	psLine->iTarget = -1;
+	psMnemonic = &gasIR65CodeMnemonics[uiMnemonic];
+	iOperands = IR65CodeOperands(szOperands, asOperands);
 	if (iOperands < 0)
 	{
 		return false;
@@ -890,7 +1037,7 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 	psLast = (iOperands > 0) ? &asOperands[iOperands - 1] : NULL;
 
 	psLine->uiKind = psMnemonic->uiKind;
-	psLine->uiMnemonic = (uint8)(psMnemonic - gasIR65CodeMnemonics);
+	psLine->uiMnemonic = uiMnemonic;
 	psLine->bReadsFirst = psMnemonic->bReadsFirst;
 	psLine->bWritesFirst = psMnemonic->bWritesFirst;
 	psLine->bShift = psMnemonic->bShift;
@@ -917,7 +1064,7 @@ bool CIR65Code::DecodeLine(CChars* pszLine, SIR65CodeLine* psLine)
 		psLine->iSecond = (int8)IR65CodeRegister(&asOperands[1]);
 		psLine->bFirstRegister = IR65CodeIsRegister(&asOperands[0]);
 		psLine->bFirstMemory = asOperands[0].szStart[0] == '[';
-		if (psLine->bFirstMemory && (StringCompare(szMnemonic, "cpyx") == 0))
+		if (psLine->bFirstMemory && (uiMnemonic == IR65M_Cpyx))
 		{
 			//cpyx [m]:bits, R sets n and z from the bits stored, not from R at its width.
 			psLine->bResultFlags = false;
@@ -1200,7 +1347,7 @@ EIRCodeFlow CIR65Code::Flow(size uiLine)
 	case IR65CK_Return:
 		return IRCF_End;
 	case IR65CK_Other:
-		return (IsRemoved(uiLine) || maszLines.Get(uiLine)->Empty()) ? IRCF_None : IRCF_Instruction;
+		return (IsRemoved(uiLine) || ((*mauiWritten.Get(uiLine) == IR65M_Unknown) && maszLines.Get(uiLine)->Empty())) ? IRCF_None : IRCF_Instruction;
 	default:
 		return IRCF_Instruction;
 	}
@@ -1279,7 +1426,7 @@ bool CIR65Code::Branch(size uiLine, uint8 uiMnemonic, size uiLabel)
 	size		uiOperands;
 	bool		bReplaced;
 
-	pszLabel = GetText(uiLabel);
+	pszLabel = LineText(uiLabel);
 	szOperands.Init();
 	if (GetLine(uiLine)->uiKind == IR65CK_Branch)
 	{
@@ -1484,21 +1631,22 @@ bool CIR65Code::IsRemoved(size uiLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes a line another instruction, decoded; its widths stay those it
-// started with, which the caller may change.  False (and the line as it
-// was) if it isn't one the decoder knows.
+// Makes a line the instruction uiMnemonic with szOperands (NULL for none),
+// decoded; its widths stay those it started with, which the caller may
+// change.  False (and the line as it was) if it isn't one the decoder
+// knows.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Code::Replace(size uiLine, const char* szInstruction)
+bool CIR65Code::ReplaceInstruction(size uiLine, uint8 uiMnemonic, const char* szOperands)
 {
-	CChars			szLine;
 	SIR65CodeLine	sLine;
 
-	szLine.Init("\t\t");
-	szLine.Append(szInstruction);
-	if (!DecodeLine(&szLine, &sLine))
+	if (szOperands == NULL)
 	{
-		szLine.Kill();
+		szOperands = "";
+	}
+	if (!DecodeInstruction(uiMnemonic, szOperands, &sLine))
+	{
 		return false;
 	}
 	if ((sLine.iTarget >= 0) && ((size)sLine.iTarget <= uiLine))
@@ -1506,33 +1654,8 @@ bool CIR65Code::Replace(size uiLine, const char* szInstruction)
 		*mauiJumpedBack.Get(sLine.iTarget) = 1;
 	}
 	*masLines.Get(uiLine) = sLine;
-	maszLines.Get(uiLine)->Kill();
-	maszLines.Get(uiLine)->Init(szLine);
-	szLine.Kill();
+	SetLine(uiLine, uiMnemonic, szOperands);
 	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Makes a line the instruction uiMnemonic with szOperands (NULL for none),
-// as Replace.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CIR65Code::ReplaceInstruction(size uiLine, uint8 uiMnemonic, const char* szOperands)
-{
-	CChars	sz;
-	bool	bReplaced;
-
-	sz.Init(gasIR65CodeMnemonics[uiMnemonic].szName);
-	if (szOperands)
-	{
-		sz.Append(' ');
-		sz.Append(szOperands);
-	}
-	bReplaced = Replace(uiLine, sz.Text());
-	sz.Kill();
-	return bReplaced;
 }
 
 
@@ -1558,6 +1681,11 @@ const char* CIR65Code::OperandsText(size uiLine, size* puiLength)
 {
 	const char*	sz;
 
+	if (*mauiWritten.Get(uiLine) != IR65M_Unknown)
+	{
+		*puiLength = maszLines.Get(uiLine)->Length();
+		return maszLines.Get(uiLine)->Text();
+	}
 	sz = maszLines.Get(uiLine)->Text();
 	while ((*sz == '\t') || (*sz == ' '))
 	{
@@ -1638,7 +1766,7 @@ void CIR65Code::WriteLine(CChars* pszOut, size uiLine)
 	{
 		return;
 	}
-	pszOut->Append(maszLines.Get(uiLine));
+	PrintLine(pszOut, uiLine);
 	if (uiLine + 1 < maszLines.NumElements())
 	{
 		pszOut->AppendNewLine();
