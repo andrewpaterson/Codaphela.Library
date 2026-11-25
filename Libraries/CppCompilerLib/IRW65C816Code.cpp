@@ -28,6 +28,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::Init(void)
 {
+	mpcMarkers = NULL;
+	miTrailing = IR_NO_MARKERS;
 	masLines.Init(CIRW65C816Backend::GetScratch());
 	maiOrder.Init(CIRW65C816Backend::GetScratch());
 	memset(mabKept, 0, sizeof(mabKept));
@@ -61,6 +63,7 @@ void CIRW65C816Code::Clear(void)
 	}
 	masLines.FakeSetUsedElements(0);
 	maiOrder.FakeSetUsedElements(0);
+	miTrailing = IR_NO_MARKERS;
 }
 
 
@@ -77,6 +80,9 @@ SIRW65C816CodeLine* CIRW65C816Code::AddLine(const char* szText, size uiLength)
 	psCode->szText.Init(CIRW65C816Backend::GetScratch());
 	psCode->szText.AppendSubString(szText, uiLength);
 	psCode->uiNote = 0;
+	psCode->iMarkers = mpcMarkers ? mpcMarkers->TakePending() : IR_NO_MARKERS;
+	psCode->pvOrigin = NULL;
+	psCode->uiOrigin = 0;
 	Decode(psCode);
 	return psCode;
 }
@@ -120,7 +126,7 @@ void CIRW65C816Code::Load(CChars* pszCode, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 //
 // The lines written back over the code from uiStart on, each ending with a
-// new line.
+// new line, the markers before each (and after the last) printed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::Write(CChars* pszCode, size uiStart)
@@ -130,8 +136,16 @@ void CIRW65C816Code::Write(CChars* pszCode, size uiStart)
 	pszCode->SetLength(uiStart);
 	for (ui = 0; ui < maiOrder.NumElements(); ui++)
 	{
+		if (mpcMarkers)
+		{
+			mpcMarkers->Print(Line(ui)->iMarkers, pszCode);
+		}
 		PrintLine(ui, pszCode);
 		pszCode->AppendNewLine();
+	}
+	if (mpcMarkers)
+	{
+		mpcMarkers->Print(miTrailing, pszCode);
 	}
 }
 
@@ -571,7 +585,8 @@ void CIRW65C816Code::AppendInstruction(SIRW65C816Line* psLine, bool bMarked)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Line uiLine of pcFrom added after the last line.
+// Line uiLine of pcFrom added after the last line, with its markers (and
+// where it came from, for Take).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::AppendLine(CIRW65C816Code* pcFrom, size uiLine)
@@ -587,6 +602,14 @@ void CIRW65C816Code::AppendLine(CIRW65C816Code* pcFrom, size uiLine)
 	psCode->sLine = psFrom->sLine;
 	psCode->uiOperand = psFrom->uiOperand;
 	psCode->szText.Append(psFrom->szText);
+	if (mpcMarkers == NULL)
+	{
+		//A pass's new code: its lines' markers are the code's they came from.
+		mpcMarkers = pcFrom->mpcMarkers;
+	}
+	psCode->iMarkers = JoinMarkers(psCode->iMarkers, psFrom->iMarkers);
+	psCode->pvOrigin = pcFrom;
+	psCode->uiOrigin = *pcFrom->maiOrder.Get(uiLine);
 }
 
 
@@ -779,6 +802,9 @@ SIRW65C816CodeLine* CIRW65C816Code::NewLine(void)
 	psCode->bText = true;
 	memset(&psCode->sLine, 0, sizeof(SIRW65C816Line));
 	psCode->uiOperand = 0;
+	psCode->iMarkers = mpcMarkers ? mpcMarkers->TakePending() : IR_NO_MARKERS;
+	psCode->pvOrigin = NULL;
+	psCode->uiOrigin = 0;
 	*maiOrder.Add() = uiIndex;
 	return psCode;
 }
@@ -811,35 +837,59 @@ void CIRW65C816Code::MakeInstruction(SIRW65C816CodeLine* psCode, uint16 uiMnemon
 //////////////////////////////////////////////////////////////////////////
 //
 // A line taken out of the code (its text stays until the code is cleared,
-// as lines don't move).
+// as lines don't move); its markers go to the line after it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::Remove(size uiLine)
 {
+	int32	iMarkers;
+
+	iMarkers = Line(uiLine)->iMarkers;
+	if (iMarkers != IR_NO_MARKERS)
+	{
+		if (uiLine + 1 < maiOrder.NumElements())
+		{
+			Line(uiLine + 1)->iMarkers = JoinMarkers(iMarkers, Line(uiLine + 1)->iMarkers);
+		}
+		else
+		{
+			miTrailing = JoinMarkers(iMarkers, miTrailing);
+		}
+	}
 	maiOrder.RemoveAt(uiLine, true);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The lines pabRemove marks (per line, 1 to take out) taken out at once.
+// The lines pabRemove marks (per line, 1 to take out) taken out at once,
+// their markers given to the next line kept.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Code::RemoveMarked(CArrayTemplate<uint8>* pabRemove)
 {
 	size	ui;
 	size	uiKept;
+	int32	iCarried;
 
+	iCarried = IR_NO_MARKERS;
 	uiKept = 0;
 	for (ui = 0; ui < maiOrder.NumElements(); ui++)
 	{
 		if (!*pabRemove->Get(ui))
 		{
 			*maiOrder.Get(uiKept) = *maiOrder.Get(ui);
+			Line(uiKept)->iMarkers = JoinMarkers(iCarried, Line(uiKept)->iMarkers);
+			iCarried = IR_NO_MARKERS;
 			uiKept++;
+		}
+		else
+		{
+			iCarried = JoinMarkers(iCarried, Line(ui)->iMarkers);
 		}
 	}
 	maiOrder.FakeSetUsedElements(uiKept);
+	miTrailing = JoinMarkers(iCarried, miTrailing);
 }
 
 
@@ -851,17 +901,26 @@ void CIRW65C816Code::RemoveMarked(CArrayTemplate<bool>* pabRemove)
 {
 	size	ui;
 	size	uiKept;
+	int32	iCarried;
 
+	iCarried = IR_NO_MARKERS;
 	uiKept = 0;
 	for (ui = 0; ui < maiOrder.NumElements(); ui++)
 	{
 		if (!*pabRemove->Get(ui))
 		{
 			*maiOrder.Get(uiKept) = *maiOrder.Get(ui);
+			Line(uiKept)->iMarkers = JoinMarkers(iCarried, Line(uiKept)->iMarkers);
+			iCarried = IR_NO_MARKERS;
 			uiKept++;
+		}
+		else
+		{
+			iCarried = JoinMarkers(iCarried, Line(ui)->iMarkers);
 		}
 	}
 	maiOrder.FakeSetUsedElements(uiKept);
+	miTrailing = JoinMarkers(iCarried, miTrailing);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -915,13 +974,122 @@ void CIRW65C816Code::Take(CIRW65C816Code* pcFrom)
 {
 	CArrayIR816CodeLines	asLines;
 	CArrayIR816LineOrder	aiOrder;
+	int32					iTrailing;
 
+	TakeMarkers(pcFrom);
+	iTrailing = miTrailing;
+	miTrailing = pcFrom->miTrailing;
+	pcFrom->miTrailing = iTrailing;
 	memcpy(&asLines, &masLines, sizeof(CArrayIR816CodeLines));
 	memcpy(&aiOrder, &maiOrder, sizeof(CArrayIR816LineOrder));
 	memcpy(&masLines, &pcFrom->masLines, sizeof(CArrayIR816CodeLines));
 	memcpy(&maiOrder, &pcFrom->maiOrder, sizeof(CArrayIR816LineOrder));
 	memcpy(&pcFrom->masLines, &asLines, sizeof(CArrayIR816CodeLines));
 	memcpy(&pcFrom->maiOrder, &aiOrder, sizeof(CArrayIR816LineOrder));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Before pcFrom's lines (a pass's new code, built from these) become the
+// code: the markers of each line of this code pcFrom didn't copy go to
+// the first of pcFrom's lines after the one copied from the line before
+// it here (a line the pass wrote in its place, or the next one copied),
+// and past the end after the last.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::TakeMarkers(CIRW65C816Code* pcFrom)
+{
+	CArrayTemplate<int32>	aiCopy;
+	SIRW65C816CodeLine*		psCode;
+	size					ui;
+	int32					iCopy;
+	int32					iAfter;
+	int32					iCarried;
+	int32					iTarget;
+
+	if (mpcMarkers == NULL)
+	{
+		return;
+	}
+
+	//Per line where it was made here: the first of pcFrom's lines copied from it.
+	aiCopy.Init();
+	aiCopy.GrowToAtLeastNumElements(masLines.NumElements(), true, -1);
+	for (ui = 0; ui < pcFrom->maiOrder.NumElements(); ui++)
+	{
+		psCode = pcFrom->Line(ui);
+		if ((psCode->pvOrigin == this) && (psCode->uiOrigin < masLines.NumElements()) && (*aiCopy.Get(psCode->uiOrigin) < 0))
+		{
+			iCopy = (int32)ui;
+			aiCopy.Set(psCode->uiOrigin, &iCopy);
+		}
+	}
+
+	iAfter = 0;
+	iCarried = IR_NO_MARKERS;
+	iTarget = 0;
+	for (ui = 0; ui < maiOrder.NumElements(); ui++)
+	{
+		psCode = Line(ui);
+		iCopy = *aiCopy.Get(*maiOrder.Get(ui));
+		if (iCopy >= 0)
+		{
+			if ((iCarried != IR_NO_MARKERS) && (iTarget < (int32)pcFrom->maiOrder.NumElements()))
+			{
+				pcFrom->Line((size)iTarget)->iMarkers = JoinMarkers(iCarried, pcFrom->Line((size)iTarget)->iMarkers);
+				iCarried = IR_NO_MARKERS;
+			}
+			iAfter = iCopy + 1;
+		}
+		else if (psCode->iMarkers != IR_NO_MARKERS)
+		{
+			if (iCarried == IR_NO_MARKERS)
+			{
+				iTarget = iAfter;
+			}
+			iCarried = JoinMarkers(iCarried, psCode->iMarkers);
+		}
+	}
+	if ((iCarried != IR_NO_MARKERS) && (iTarget < (int32)pcFrom->maiOrder.NumElements()))
+	{
+		pcFrom->Line((size)iTarget)->iMarkers = JoinMarkers(iCarried, pcFrom->Line((size)iTarget)->iMarkers);
+		iCarried = IR_NO_MARKERS;
+	}
+	pcFrom->miTrailing = JoinMarkers(JoinMarkers(iCarried, miTrailing), pcFrom->miTrailing);
+	miTrailing = IR_NO_MARKERS;
+	aiCopy.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The markers written are given to the lines written next (CIRLineMarkers),
+// and printed before them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRW65C816Code::SetMarkers(CIRLineMarkers* pcMarkers)
+{
+	mpcMarkers = pcMarkers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iFirst's markers then iSecond's.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRW65C816Code::JoinMarkers(int32 iFirst, int32 iSecond)
+{
+	if (iFirst == IR_NO_MARKERS)
+	{
+		return iSecond;
+	}
+	if (iSecond == IR_NO_MARKERS)
+	{
+		return iFirst;
+	}
+	return mpcMarkers->Join(iFirst, iSecond);
 }
 
 

@@ -25,6 +25,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/MapStringInt.h"
 #include "IRBranchPasses.h"
+#include "IRSourceMarkers.h"
 
 
 #define IR65_CODE_REGISTERS		4		//A, B, X and Y.
@@ -153,6 +154,8 @@ class CIR65Code : public CIRBranchCode
 protected:
 	CArrayChars				maszLines;		//Per line: an instruction's operands ("[8 + W], A"), any other line's text.
 	CArrayTemplate<uint8>	mauiWritten;	//Per line: the instruction's mnemonic (EIR65Mnemonic), IR65M_Unknown for text.
+	CArrayTemplate<int32>	maiMarkers;		//Per line: the markers before it (CIRLineMarkers), IR_NO_MARKERS for none.
+	CIRLineMarkers*			mpcMarkers;		//The markers the lines are given as they are written (SetMarkers), or NULL.
 	CArrayIR65CodeLines		masLines;
 	CArrayIR65Widths		masWidths;		//Per line: the widths it starts with.
 	CArrayTemplate<uint8>	mauiReached;	//Per line: 1 if it can run.
@@ -161,6 +164,10 @@ protected:
 	CArrayTemplate<uint8>	mauiRemoved;	//Per line: 1 for a line a pass took out (now IR65CK_Other).
 	CArrayChars				maszNewLines;	//The lines a pass is writing the code again as (BeginLines)...
 	CArrayTemplate<uint8>	mauiNewWritten;
+	CArrayTemplate<int32>	maiNewMarkers;
+	size					muiNextKept;	//The next line KeepLine may keep: the lines before it it didn't give theirs...
+	int32					miCarried;		//...markers, for the next line kept...
+	int32					miFirstAdded;	//...or for the first of the lines added just before it (AddLine), -1 for none.
 	bool					mbLastKept;		//...and whether the last of them is the code's last line.
 	CHashMapString<int32>	mmLabels;		//Label name to line.
 	bool					mbReturnReadsCarry;	//A ret reads c: the caller's thrown (a program built with exceptions).
@@ -177,6 +184,7 @@ public:
 	void			AppendText(const char* szText);
 	void			Cut(size uiLines);
 	void			WriteLines(CChars* pszOut);
+	void			SetMarkers(CIRLineMarkers* pcMarkers);
 	bool			Analyse(bool bConflicts);
 	bool			IsLoaded(void) const;
 	void			Write(CChars* pszOut);
@@ -223,6 +231,9 @@ public:
 
 protected:
 	void			Compact(void);
+	int32			JoinMarkers(int32 iFirst, int32 iSecond);
+	int32			NewMarkers(void);
+	void			AddNewLine(const char* szText, uint8 uiMnemonic, int32 iMarkers);
 	bool			Decode(void);
 	bool			DecodeLine(size uiLine, SIR65CodeLine* psLine);
 	bool			DecodeText(CChars* pszLine, SIR65CodeLine* psLine);

@@ -397,44 +397,13 @@ void CIRBackend::Source(uint32 uiSource)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A marker line (Source's, DebugPlaceMarker's) written before what is
-// written next.
+// A marker line (Source's, DebugPlaceMarker's) before the line written
+// next: one of its markers (CIRLineMarkers::TakePending).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRBackend::MarkerLine(const char* szMarker)
 {
-	mpszOut->Append(szMarker);
-	mpszOut->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The marker lines (a listing's source markers, a debugger's place
-// markers) taken out of the code from uiStart before the text passes run,
-// so they see the code they would without them; PutMarkers puts them back
-// where the code they were before went.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRBackend::TakeMarkers(CChars* pszCode, size uiStart)
-{
-	if (mbSourceMarkers || mbDebugPlaces)
-	{
-		mcMarkers.Take(pszCode, uiStart);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRBackend::PutMarkers(CChars* pszCode, size uiStart)
-{
-	if (mbSourceMarkers || mbDebugPlaces)
-	{
-		mcMarkers.Put(pszCode, uiStart);
-	}
+	mcMarkers.Add(szMarker);
 }
 
 

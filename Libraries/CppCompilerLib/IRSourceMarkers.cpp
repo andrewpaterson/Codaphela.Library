@@ -22,22 +22,15 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IRSourceMarkers.h"
 
 
-//The most differences Match looks through; past it the lines from before are only found one after another.
-#define IR_SOURCE_MARKERS_MAX_DIFFERENCES	4000
-
-//The fewest lines in a run found out of order (MatchMoved); fewer could be a few common lines that only look the same.
-#define IR_SOURCE_MARKERS_MIN_MOVED			3
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Init(void)
+void CIRLineMarkers::Init(void)
 {
-	maszLines.Init();
-	maiBefore.Init();
 	maszMarkers.Init();
+	maiLists.Init();
+	maiPending.Init();
 }
 
 
@@ -45,481 +38,182 @@ void CIRSourceMarkers::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Kill(void)
+void CIRLineMarkers::Kill(void)
 {
+	maiPending.Kill();
+	maiLists.Kill();
 	maszMarkers.Kill();
-	maiBefore.Kill();
-	maszLines.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Takes the marker lines out of the code from uiStart, remembering the line
-// each was before.
+// No markers: a function's code is written from here.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Take(CChars* pszCode, size uiStart)
+void CIRLineMarkers::Clear(void)
 {
-	CArrayChars	aszLines;
-	CChars*		pszLine;
-	size		ui;
-	int32		iBefore;
-
-	maszLines.ReInit();
-	maiBefore.ReInit();
 	maszMarkers.ReInit();
-	if ((strstr(pszCode->Text() + uiStart, IR_SOURCE_MARKER) == NULL) && (strstr(pszCode->Text() + uiStart, IR_PLACE_MARKER) == NULL))
-	{
-		return;
-	}
-
-	//The code ends with a new line, so its last split line is empty.
-	aszLines.Init();
-	aszLines.Split(pszCode->Text() + uiStart, '\n');
-	if ((aszLines.NumElements() > 0) && aszLines.Tail()->Empty())
-	{
-		aszLines.RemoveTail();
-	}
-	pszCode->SetLength(uiStart);
-	for (ui = 0; ui < aszLines.NumElements(); ui++)
-	{
-		pszLine = aszLines.Get(ui);
-		if (IsMarker(pszLine->Text()))
-		{
-			iBefore = (int32)maszLines.NumElements();
-			maiBefore.Add(&iBefore);
-			maszMarkers.Add(pszLine->Text());
-			continue;
-		}
-		maszLines.Add(pszLine->Text());
-		pszCode->Append(*pszLine);
-		pszCode->AppendNewLine();
-	}
-	aszLines.Kill();
+	maiLists.ReInit();
+	maiPending.ReInit();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether szLine is a marker line: a source marker or a place marker.
+// A marker written before the next line.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIRSourceMarkers::IsMarker(const char* szLine)
+void CIRLineMarkers::Add(const char* szMarker)
 {
-	return (strncmp(szLine, IR_SOURCE_MARKER, strlen(IR_SOURCE_MARKER)) == 0) || (strncmp(szLine, IR_PLACE_MARKER, strlen(IR_PLACE_MARKER)) == 0);
+	int32	iMarker;
+
+	iMarker = (int32)maszMarkers.NumElements();
+	maszMarkers.Add(szMarker);
+	maiPending.Add(&iMarker);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Nothing taken yet: the lines and markers are then given as they are
-// written (AddLine, AddMarker), as Take would have found them.
+// The markers written since the last line, as a list for the line written
+// now (IR_NO_MARKERS for none).
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Begin(void)
+int32 CIRLineMarkers::TakePending(void)
 {
-	maszLines.ReInit();
-	maiBefore.ReInit();
-	maszMarkers.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A line of the code (not a marker), as it is written.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::AddLine(const char* szLine, size uiLength)
-{
-	maszLines.Add(szLine, 0, uiLength);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// A marker, before the line written next.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::AddMarker(const char* szMarker, size uiLength)
-{
-	int32	iBefore;
-
-	iBefore = (int32)maszLines.NumElements();
-	maiBefore.Add(&iBefore);
-	maszMarkers.Add(szMarker, 0, uiLength);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Puts the markers Take took out back into the code from uiStart: the
-// passes mostly keep the order of the lines they leave, so the lines from
-// before are found as the longest run of them in order (Match), then the
-// blocks a pass moved are found wherever they went (MatchMoved); between
-// two found, the lines not found are paired in order with the lines now
-// there (as a pass rewrites a line in place).  A marker goes before the
-// first line it was before that has a place now.  Of the source markers
-// that go before one line only the last stays (the code of the others
-// went); every place marker stays, in their order.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Put(CChars* pszCode, size uiStart)
-{
-	CArrayChars				aszLines;
-	CArrayTemplate<int32>	aiFound;		//Per line from before: where it is now, or -1.
-	CArrayTemplate<int32>	aiMoved;		//Per line from before: where it was moved to, or -1.
-	CArrayTemplate<int32>	aiOwner;		//Per line now: the line from before found there, or -1.
-	CArrayTemplate<int32>	aiLine;			//Per marker: the line now it goes before.
-	CArrayTemplate<int32>	aiFirst;		//Per line now: its first marker in aiMarker.
-	CArrayTemplate<int32>	aiNext;
-	CArrayTemplate<int32>	aiMarker;		//The markers, by the line they go before.
-	size					ui;
-	int32					iFound;
-	int32					iMarker;
-	int32					iBefore;
-	int32					iPrevious;
-	int32					iNew;
-	int32					iFirst;
-	int32					iEnd;
-	int32					iLastSource;
-	CChars*					pszMarker;
-	size					uiGap;
-	size					uiGapStart;
-
-	if (maszMarkers.NumElements() == 0)
-	{
-		return;
-	}
-
-	aszLines.Init();
-	aszLines.Split(pszCode->Text() + uiStart, '\n');
-	if ((aszLines.NumElements() > 0) && aszLines.Tail()->Empty())
-	{
-		aszLines.RemoveTail();
-	}
-
-	aiFound.Init();
-	Match(&aszLines, &aiFound);
-	aiOwner.Init();
-	aiOwner.GrowToAtLeastNumElements(aszLines.NumElements(), true, -1);
-	for (ui = 0; ui < maszLines.NumElements(); ui++)
-	{
-		iFound = *aiFound.Get(ui);
-		if (iFound >= 0)
-		{
-			iBefore = (int32)ui;
-			aiOwner.Set((size)iFound, &iBefore);
-		}
-	}
-	aiMoved.Init();
-	MatchMoved(&aszLines, &aiFound, &aiOwner, &aiMoved);
-
-	//Between two lines found in order, the lines not found are taken to be the ones there now that no line was found
-	//at, in order (a pass rewrote them).
-	iPrevious = -1;
-	uiGapStart = 0;
-	for (ui = 0; ui <= maszLines.NumElements(); ui++)
-	{
-		iFound = (ui < maszLines.NumElements()) ? *aiFound.Get(ui) : (int32)aszLines.NumElements();
-		if (iFound < 0)
-		{
-			continue;
-		}
-		iNew = iPrevious + 1;
-		for (uiGap = uiGapStart; uiGap < ui; uiGap++)
-		{
-			while ((iNew < iFound) && (*aiOwner.Get((size)iNew) >= 0))
-			{
-				iNew++;
-			}
-			if (iNew >= iFound)
-			{
-				break;
-			}
-			if (*aiMoved.Get(uiGap) < 0)
-			{
-				aiFound.Set(uiGap, &iNew);
-				iNew++;
-			}
-		}
-		iPrevious = iFound;
-		uiGapStart = ui + 1;
-	}
-
-	//The moved lines are where they went.
-	for (ui = 0; ui < maszLines.NumElements(); ui++)
-	{
-		if (*aiMoved.Get(ui) >= 0)
-		{
-			aiFound.Set(ui, aiMoved.Get(ui));
-		}
-	}
-
-	//Each marker's line now (one past the end for none), then the markers bucketed by it in order: aiFirst per line
-	//(and one past the end, and one more) the first of its markers in aiMarker.
-	aiLine.Init();
-	aiFirst.Init();
-	aiFirst.GrowToAtLeastNumElements(aszLines.NumElements() + 2, true, 0);
-	for (ui = 0; ui < maszMarkers.NumElements(); ui++)
-	{
-		iFound = (int32)aszLines.NumElements();
-		for (iBefore = *maiBefore.Get(ui); iBefore < (int32)maszLines.NumElements(); iBefore++)
-		{
-			if (*aiFound.Get((size)iBefore) >= 0)
-			{
-				iFound = *aiFound.Get((size)iBefore);
-				break;
-			}
-		}
-		aiLine.Add(&iFound);
-		(*aiFirst.Get((size)iFound + 1))++;
-	}
-	for (ui = 1; ui < aiFirst.NumElements(); ui++)
-	{
-		*aiFirst.Get(ui) += *aiFirst.Get(ui - 1);
-	}
-	aiMarker.Init();
-	aiMarker.GrowToAtLeastNumElements(maszMarkers.NumElements(), true, -1);
-	aiNext.Init();
-	aiNext.Copy(&aiFirst);
-	for (ui = 0; ui < maszMarkers.NumElements(); ui++)
-	{
-		iMarker = (int32)ui;
-		aiMarker.Set((size)(*aiNext.Get((size)*aiLine.Get(ui)))++, &iMarker);
-	}
-
-	pszCode->SetLength(uiStart);
-	for (ui = 0; ui <= aszLines.NumElements(); ui++)
-	{
-		iFirst = *aiFirst.Get(ui);
-		iEnd = *aiFirst.Get(ui + 1);
-		iLastSource = -1;
-		for (iMarker = iFirst; iMarker < iEnd; iMarker++)
-		{
-			if (maszMarkers.Get((size)*aiMarker.Get((size)iMarker))->StartsWith(IR_SOURCE_MARKER))
-			{
-				iLastSource = iMarker;
-			}
-		}
-		for (iMarker = iFirst; iMarker < iEnd; iMarker++)
-		{
-			pszMarker = maszMarkers.Get((size)*aiMarker.Get((size)iMarker));
-			if ((iMarker == iLastSource) || !pszMarker->StartsWith(IR_SOURCE_MARKER))
-			{
-				pszCode->Append(*pszMarker);
-				pszCode->AppendNewLine();
-			}
-		}
-		if (ui < aszLines.NumElements())
-		{
-			pszCode->Append(*aszLines.Get(ui));
-			pszCode->AppendNewLine();
-		}
-	}
-	aiNext.Kill();
-	aiLine.Kill();
-	aiFirst.Kill();
-	aiMarker.Kill();
-	aiMoved.Kill();
-	aiOwner.Kill();
-	aiFound.Kill();
-	aszLines.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Finds the blocks a pass moved: runs of at least
-// IR_SOURCE_MARKERS_MIN_MOVED lines from before that Match didn't find,
-// the same and in the same order as lines now that no line was found at.
-// The longest run is taken, the first of equals.  paiMoved gets per line
-// from before where it went, or -1; paiOwner (per line now, the line from
-// before found there) gets the runs too.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::MatchMoved(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound, CArrayTemplate<int32>* paiOwner, CArrayTemplate<int32>* paiMoved)
-{
-	size	uiBefore;
-	size	uiNow;
-	size	uiLength;
-	size	uiBest;
-	size	uiBestLength;
-	size	uiNumBefore;
-	size	uiNumNow;
+	int32	iList;
+	int32	iCount;
 	size	ui;
-	int32	iValue;
 
-	uiNumBefore = maszLines.NumElements();
-	uiNumNow = pasLines->NumElements();
-	paiMoved->GrowToAtLeastNumElements(uiNumBefore, true, -1);
-
-	uiBefore = 0;
-	while (uiBefore < uiNumBefore)
+	if (maiPending.NumElements() == 0)
 	{
-		if (*paiFound->Get(uiBefore) >= 0)
-		{
-			uiBefore++;
-			continue;
-		}
-
-		uiBest = 0;
-		uiBestLength = 0;
-		for (uiNow = 0; uiNow < uiNumNow; uiNow++)
-		{
-			for (uiLength = 0; (uiBefore + uiLength < uiNumBefore) && (uiNow + uiLength < uiNumNow); uiLength++)
-			{
-				if ((*paiFound->Get(uiBefore + uiLength) >= 0) || (*paiOwner->Get(uiNow + uiLength) >= 0) || !maszLines.Get(uiBefore + uiLength)->Equals(pasLines->Get(uiNow + uiLength)))
-				{
-					break;
-				}
-			}
-			if (uiLength > uiBestLength)
-			{
-				uiBest = uiNow;
-				uiBestLength = uiLength;
-			}
-		}
-
-		if (uiBestLength < IR_SOURCE_MARKERS_MIN_MOVED)
-		{
-			uiBefore++;
-			continue;
-		}
-		for (ui = 0; ui < uiBestLength; ui++)
-		{
-			iValue = (int32)(uiBest + ui);
-			paiMoved->Set(uiBefore + ui, &iValue);
-			iValue = (int32)(uiBefore + ui);
-			paiOwner->Set(uiBest + ui, &iValue);
-		}
-		uiBefore += uiBestLength;
+		return IR_NO_MARKERS;
 	}
+	iList = (int32)maiLists.NumElements();
+	iCount = (int32)maiPending.NumElements();
+	maiLists.Add(&iCount);
+	for (ui = 0; ui < maiPending.NumElements(); ui++)
+	{
+		maiLists.Add(maiPending.Get(ui));
+	}
+	maiPending.ReInit();
+	return iList;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
-// Finds the lines from before (maszLines) in pasLines: the most of them in
-// order (a diff, Myers' O(ND) one).  paiFound gets per line from before
-// where it is in pasLines, or -1.  With too many differences the lines are
-// found one after another from the start.
+// The markers of lines taken back (the code cut back to before them) are
+// written again, before those written since.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRSourceMarkers::Match(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound)
+void CIRLineMarkers::PutBack(int32 iList)
 {
-	CArrayTemplate<int32>	aiV;			//Per diagonal k (x - y), offset by iOffset: the furthest x reached.
-	CArrayTemplate<int32>	aiTrace;		//aiV before each step d, diagonals -d - 1 to d + 1.
-	int32					iN;
-	int32					iM;
-	int32					iOffset;
-	int32					iD;
-	int32					iK;
-	int32					iX;
-	int32					iY;
-	int32					iPreviousK;
-	int32					iPreviousX;
-	int32					iPreviousY;
-	int32					iTraceStart;
-	int32					iNone;
-	bool					bDone;
+	CArrayTemplate<int32>	aiPending;
+	int32					iCount;
+	int32					iMarker;
 	int32					i;
 
-	iN = (int32)maszLines.NumElements();
-	iM = (int32)pasLines->NumElements();
-	iNone = -1;
-	for (i = 0; i < iN; i++)
+	if (iList == IR_NO_MARKERS)
 	{
-		paiFound->Add(&iNone);
-	}
-
-	iOffset = iN + iM + 2;
-	aiV.Init();
-	aiV.GrowToAtLeastNumElements((size)(2 * iOffset + 1), true, 0);
-	aiTrace.Init();
-	bDone = false;
-	for (iD = 0; (iD <= iN + iM) && (iD <= IR_SOURCE_MARKERS_MAX_DIFFERENCES) && !bDone; iD++)
-	{
-		for (iK = -iD - 1; iK <= iD + 1; iK++)
-		{
-			aiTrace.Add(aiV.Get((size)(iK + iOffset)));
-		}
-		for (iK = -iD; iK <= iD; iK += 2)
-		{
-			if ((iK == -iD) || ((iK != iD) && (*aiV.Get((size)(iK - 1 + iOffset)) < *aiV.Get((size)(iK + 1 + iOffset)))))
-			{
-				iX = *aiV.Get((size)(iK + 1 + iOffset));
-			}
-			else
-			{
-				iX = *aiV.Get((size)(iK - 1 + iOffset)) + 1;
-			}
-			iY = iX - iK;
-			while ((iX < iN) && (iY < iM) && maszLines.Get((size)iX)->Equals(pasLines->Get((size)iY)))
-			{
-				iX++;
-				iY++;
-			}
-			aiV.Set((size)(iK + iOffset), &iX);
-			if ((iX >= iN) && (iY >= iM))
-			{
-				bDone = true;
-				break;
-			}
-		}
-	}
-
-	if (!bDone)
-	{
-		//Too different: each line from before is the next line equal to it.
-		iY = 0;
-		for (iX = 0; iX < iN; iX++)
-		{
-			for (i = iY; i < iM; i++)
-			{
-				if (maszLines.Get((size)iX)->Equals(pasLines->Get((size)i)))
-				{
-					paiFound->Set((size)iX, &i);
-					iY = i + 1;
-					break;
-				}
-			}
-		}
-		aiTrace.Kill();
-		aiV.Kill();
 		return;
 	}
-
-	//Back from the end through each step's aiV: the diagonal runs are the lines found.
-	iX = iN;
-	iY = iM;
-	for (iD = iD - 1; iD >= 0; iD--)
+	aiPending.Init();
+	iCount = *maiLists.Get((size)iList);
+	for (i = 1; i <= iCount; i++)
 	{
-		iTraceStart = iD * (iD + 2);	//The steps before d stored 2d' + 3 diagonals each.
-		iK = iX - iY;
-		if ((iK == -iD) || ((iK != iD) && (*aiTrace.Get((size)(iTraceStart + iK - 1 + iD + 1)) < *aiTrace.Get((size)(iTraceStart + iK + 1 + iD + 1)))))
+		iMarker = *maiLists.Get((size)(iList + i));
+		aiPending.Add(&iMarker);
+	}
+	for (i = 0; i < (int32)maiPending.NumElements(); i++)
+	{
+		aiPending.Add(maiPending.Get((size)i));
+	}
+	maiPending.ReInit();
+	for (i = 0; i < (int32)aiPending.NumElements(); i++)
+	{
+		maiPending.Add(aiPending.Get((size)i));
+	}
+	aiPending.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The list of iFirst's markers then iSecond's (either IR_NO_MARKERS).
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIRLineMarkers::Join(int32 iFirst, int32 iSecond)
+{
+	int32	iList;
+	int32	iCount;
+	int32	iFirstCount;
+	int32	iSecondCount;
+	int32	iMarker;
+	int32	i;
+
+	if (iFirst == IR_NO_MARKERS)
+	{
+		return iSecond;
+	}
+	if (iSecond == IR_NO_MARKERS)
+	{
+		return iFirst;
+	}
+	iFirstCount = *maiLists.Get((size)iFirst);
+	iSecondCount = *maiLists.Get((size)iSecond);
+	iCount = iFirstCount + iSecondCount;
+	iList = (int32)maiLists.NumElements();
+	maiLists.Add(&iCount);
+	//Each copied out first: adding to the lists may move them.
+	for (i = 1; i <= iFirstCount; i++)
+	{
+		iMarker = *maiLists.Get((size)(iFirst + i));
+		maiLists.Add(&iMarker);
+	}
+	for (i = 1; i <= iSecondCount; i++)
+	{
+		iMarker = *maiLists.Get((size)(iSecond + i));
+		maiLists.Add(&iMarker);
+	}
+	return iList;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The list's markers, each a line: every place marker, and of the source
+// markers only the last.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIRLineMarkers::Print(int32 iList, CChars* pszOut)
+{
+	int32	iCount;
+	int32	i;
+	int32	iLastSource;
+	CChars*	pszMarker;
+
+	if (iList == IR_NO_MARKERS)
+	{
+		return;
+	}
+	iCount = *maiLists.Get((size)iList);
+	iLastSource = -1;
+	for (i = 1; i <= iCount; i++)
+	{
+		if (maszMarkers.Get((size)*maiLists.Get((size)(iList + i)))->StartsWith(IR_SOURCE_MARKER))
 		{
-			iPreviousK = iK + 1;
-		}
-		else
-		{
-			iPreviousK = iK - 1;
-		}
-		iPreviousX = *aiTrace.Get((size)(iTraceStart + iPreviousK + iD + 1));
-		iPreviousY = iPreviousX - iPreviousK;
-		while ((iX > iPreviousX) && (iY > iPreviousY))
-		{
-			iX--;
-			iY--;
-			paiFound->Set((size)iX, &iY);
-		}
-		if (iD > 0)
-		{
-			iX = iPreviousX;
-			iY = iPreviousY;
+			iLastSource = i;
 		}
 	}
-	aiTrace.Kill();
-	aiV.Kill();
+	for (i = 1; i <= iCount; i++)
+	{
+		pszMarker = maszMarkers.Get((size)*maiLists.Get((size)(iList + i)));
+		if ((i == iLastSource) || !pszMarker->StartsWith(IR_SOURCE_MARKER))
+		{
+			pszOut->Append(*pszMarker);
+			pszOut->AppendNewLine();
+		}
+	}
 }

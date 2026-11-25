@@ -834,6 +834,13 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, CIRW65C
 	{
 		szEnd = strchr(szLine, '\n');
 		szEnd = szEnd ? szEnd + 1 : szLine + StrLen(szLine);
+		if (IR816IsMarkerLine(szLine))
+		{
+			//Not one of the code's lines the facts count: kept where it is.
+			sz.AppendSubString(szLine, szEnd);
+			iLine--;
+			continue;
+		}
 		if (iSkip > 0)
 		{
 			iSkip--;

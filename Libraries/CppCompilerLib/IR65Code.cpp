@@ -374,6 +374,8 @@ void CIR65Code::Init(void)
 {
 	maszLines.Init();
 	mauiWritten.Init();
+	maiMarkers.Init();
+	mpcMarkers = NULL;
 	masLines.Init();
 	masWidths.Init();
 	mauiReached.Init();
@@ -382,6 +384,10 @@ void CIR65Code::Init(void)
 	mauiRemoved.Init();
 	maszNewLines.Init();
 	mauiNewWritten.Init();
+	maiNewMarkers.Init();
+	muiNextKept = 0;
+	miCarried = IR_NO_MARKERS;
+	miFirstAdded = -1;
 	mbLastKept = false;
 	mmLabels.Init();
 	mbReturnReadsCarry = false;
@@ -407,6 +413,7 @@ void CIR65Code::SetReturnReadsCarry(bool bReads)
 void CIR65Code::Kill(void)
 {
 	mmLabels.Kill();
+	maiNewMarkers.Kill();
 	mauiNewWritten.Kill();
 	maszNewLines.Kill();
 	mauiRemoved.Kill();
@@ -414,6 +421,7 @@ void CIR65Code::Kill(void)
 	mauiReached.Kill();
 	masWidths.Kill();
 	masLines.Kill();
+	maiMarkers.Kill();
 	mauiWritten.Kill();
 	maszLines.Kill();
 }
@@ -452,9 +460,11 @@ void CIR65Code::SetText(CChars* pszCode, size uiStart)
 	szText.Kill();
 	maszLines.ReInit();
 	mauiWritten.ReInit();
+	maiMarkers.ReInit();
 	for (ui = 0; ui < aszLines.NumElements(); ui++)
 	{
 		AddTextLine(&maszLines, &mauiWritten, aszLines.Get(ui)->Text());
+		maiMarkers.Add()[0] = IR_NO_MARKERS;
 	}
 	aszLines.Kill();
 	masLines.ReInit();
@@ -476,6 +486,7 @@ void CIR65Code::Clear(void)
 {
 	maszLines.ReInit();
 	mauiWritten.ReInit();
+	maiMarkers.ReInit();
 	mauiRemoved.ReInit();
 	masLines.ReInit();
 	mbLoaded = false;
@@ -491,6 +502,7 @@ void CIR65Code::AppendInstruction(uint8 uiMnemonic, const char* szOperands)
 {
 	maszLines.Add(szOperands);
 	mauiWritten.Add()[0] = uiMnemonic;
+	maiMarkers.Add()[0] = NewMarkers();
 	mauiRemoved.Add()[0] = 0;
 }
 
@@ -504,6 +516,7 @@ void CIR65Code::AppendText(const char* szText)
 {
 	maszLines.Add(szText);
 	mauiWritten.Add()[0] = IR65M_Unknown;
+	maiMarkers.Add()[0] = NewMarkers();
 	mauiRemoved.Add()[0] = 0;
 }
 
@@ -515,11 +528,25 @@ void CIR65Code::AppendText(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CIR65Code::Cut(size uiLines)
 {
+	size	ui;
+	int32	iMarkers;
+
+	//The markers the lines cut were given are the next line's again: they were written before the code cut back to.
+	iMarkers = IR_NO_MARKERS;
+	for (ui = uiLines; ui < maszLines.NumElements(); ui++)
+	{
+		iMarkers = JoinMarkers(iMarkers, *maiMarkers.Get(ui));
+	}
 	while (maszLines.NumElements() > uiLines)
 	{
 		maszLines.RemoveTail();
 		mauiWritten.RemoveTail();
+		maiMarkers.RemoveTail();
 		mauiRemoved.RemoveTail();
+	}
+	if (mpcMarkers)
+	{
+		mpcMarkers->PutBack(iMarkers);
 	}
 }
 
@@ -535,9 +562,55 @@ void CIR65Code::WriteLines(CChars* pszOut)
 
 	for (ui = 0; ui < maszLines.NumElements(); ui++)
 	{
+		if (mpcMarkers)
+		{
+			mpcMarkers->Print(*maiMarkers.Get(ui), pszOut);
+		}
 		PrintLine(pszOut, ui);
 		pszOut->AppendNewLine();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The markers written are given to the lines written next (CIRLineMarkers),
+// and printed before them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::SetMarkers(CIRLineMarkers* pcMarkers)
+{
+	mpcMarkers = pcMarkers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The markers written since the last line, for a line written now.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR65Code::NewMarkers(void)
+{
+	return mpcMarkers ? mpcMarkers->TakePending() : IR_NO_MARKERS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// iFirst's markers then iSecond's.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CIR65Code::JoinMarkers(int32 iFirst, int32 iSecond)
+{
+	if (iFirst == IR_NO_MARKERS)
+	{
+		return iSecond;
+	}
+	if (iSecond == IR_NO_MARKERS)
+	{
+		return iFirst;
+	}
+	return mpcMarkers->Join(iFirst, iSecond);
 }
 
 
@@ -633,16 +706,35 @@ void CIR65Code::Compact(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The code as it is now, every line but those taken out.
+// The code as it is now, every line but those taken out, the markers
+// before each printed (a line taken out's before the next).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Code::Write(CChars* pszOut)
 {
 	size	ui;
+	int32	iMarkers;
+	int32	iCarried;
 
+	iCarried = IR_NO_MARKERS;
 	for (ui = 0; ui < maszLines.NumElements(); ui++)
 	{
+		iMarkers = JoinMarkers(iCarried, *maiMarkers.Get(ui));
+		if (*mauiRemoved.Get(ui))
+		{
+			iCarried = iMarkers;
+			continue;
+		}
+		iCarried = IR_NO_MARKERS;
+		if (mpcMarkers)
+		{
+			mpcMarkers->Print(iMarkers, pszOut);
+		}
 		WriteLine(pszOut, ui);
+	}
+	if (mpcMarkers)
+	{
+		mpcMarkers->Print(iCarried, pszOut);
 	}
 }
 
@@ -658,38 +750,78 @@ void CIR65Code::BeginLines(void)
 {
 	maszNewLines.ReInit();
 	mauiNewWritten.ReInit();
+	maiNewMarkers.ReInit();
 	mbLastKept = false;
+	muiNextKept = 0;
+	miCarried = IR_NO_MARKERS;
+	miFirstAdded = -1;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The code's line uiLine, unless a pass took it out, next in the code
-// being written again.
+// being written again; the markers of the lines passed over since the
+// last kept (and its own if it was taken out) go to the next line kept,
+// or before the lines added for it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Code::KeepLine(size uiLine)
 {
+	size	ui;
+	int32	iMarkers;
+
+	//The lines passed over give their markers to the next line kept.
+	for (ui = muiNextKept; ui < uiLine; ui++)
+	{
+		miCarried = JoinMarkers(miCarried, *maiMarkers.Get(ui));
+	}
+	muiNextKept = uiLine + 1;
 	if (*mauiRemoved.Get(uiLine))
 	{
+		miCarried = JoinMarkers(miCarried, *maiMarkers.Get(uiLine));
 		return;
 	}
-	maszNewLines.Add(maszLines.Get(uiLine)->Text());
-	mauiNewWritten.Add()[0] = *mauiWritten.Get(uiLine);
+	iMarkers = JoinMarkers(miCarried, *maiMarkers.Get(uiLine));
+	miCarried = IR_NO_MARKERS;
+	if (miFirstAdded >= 0)
+	{
+		//The lines added for it (its wth) are the code of its source line, so they start after its markers.
+		maiNewMarkers.Set((size)miFirstAdded, &iMarkers);
+		iMarkers = IR_NO_MARKERS;
+		miFirstAdded = -1;
+	}
+	AddNewLine(maszLines.Get(uiLine)->Text(), *mauiWritten.Get(uiLine), iMarkers);
 	mbLastKept = (uiLine + 1 == maszLines.NumElements());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::AddNewLine(const char* szText, uint8 uiMnemonic, int32 iMarkers)
+{
+	maszNewLines.Add(szText);
+	mauiNewWritten.Add()[0] = uiMnemonic;
+	maiNewMarkers.Add(&iMarkers);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A new instruction next in the code being written again: uiMnemonic
-// with szOperands (NULL for none).
+// with szOperands (NULL for none), for the line kept after it, whose
+// markers go before it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Code::AddLine(uint8 uiMnemonic, const char* szOperands)
 {
-	maszNewLines.Add(szOperands ? szOperands : "");
-	mauiNewWritten.Add()[0] = uiMnemonic;
+	if (miFirstAdded < 0)
+	{
+		miFirstAdded = (int32)maszNewLines.NumElements();
+	}
+	AddNewLine(szOperands ? szOperands : "", uiMnemonic, IR_NO_MARKERS);
 	mbLastKept = false;
 }
 
@@ -705,22 +837,30 @@ void CIR65Code::EndLines(void)
 {
 	size	ui;
 
+	for (ui = muiNextKept; ui < maszLines.NumElements(); ui++)
+	{
+		miCarried = JoinMarkers(miCarried, *maiMarkers.Get(ui));
+	}
 	if (!mbLastKept)
 	{
-		maszNewLines.Add("");
-		mauiNewWritten.Add()[0] = IR65M_Unknown;
+		AddNewLine("", IR65M_Unknown, miCarried);
 	}
+	miCarried = IR_NO_MARKERS;
+	miFirstAdded = -1;
 	maszLines.ReInit();
 	mauiWritten.ReInit();
+	maiMarkers.ReInit();
 	mauiRemoved.ReInit();
 	for (ui = 0; ui < maszNewLines.NumElements(); ui++)
 	{
 		maszLines.Add(maszNewLines.Get(ui)->Text());
 		mauiWritten.Add()[0] = *mauiNewWritten.Get(ui);
+		maiMarkers.Add(maiNewMarkers.Get(ui));
 		mauiRemoved.Add()[0] = 0;
 	}
 	maszNewLines.ReInit();
 	mauiNewWritten.ReInit();
+	maiNewMarkers.ReInit();
 	masLines.ReInit();
 }
 

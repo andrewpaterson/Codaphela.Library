@@ -274,7 +274,6 @@ public:
 	int32			VariableSlotBytes(SIRInstruction* psSlot);
 	void			FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile) override;
 	void			MarkExits(void);
-	void			RetakeMarkers(void);
 	void			KeepFacts(const char* szLabel);
 	void			KeepDescribeFacts(const char* szLabel);
 	void			DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
@@ -283,12 +282,10 @@ public:
 	bool			GenerateFunction(CIRFunction* pcFunction, const char* szLabel, CChars* pszDest, CCPPErrors* pcErrors) override;
 	void			GenerateBody(const char* szLabel);
 	void			RunPasses(void);
-	void			MarkerLine(const char* szMarker) override;
 	void			Label(int32 iLabel);
 	void			LabelLine(const char* szName);
 	void			Directive(const char* szName, const char* szOperand = NULL);
 	void			Lines(CIRW65C816Code* pcFrom);
-	void			Added(void);
 	void			KeepSlots(CIRW65C816Code* pcCode);
 	void			DropFrame(void);
 	bool			ReturnsNothingInA(void);

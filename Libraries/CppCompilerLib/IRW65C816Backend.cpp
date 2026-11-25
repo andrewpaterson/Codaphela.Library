@@ -115,8 +115,8 @@ void CIRW65C816Backend::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The instruction uiMnemonic with szOperand (NULL for none) added to the
-// code: as fields, never as text (but a listing's source markers are kept
-// with the lines as written: CIRSourceMarkers::AddLine).
+// code: as fields, never as text (the markers written before it are its,
+// CIRLineMarkers).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand)
@@ -134,7 +134,6 @@ void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand)
 void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand, bool bMarked)
 {
 	mpcCode->AppendInstruction(uiMnemonic, szOperand, bMarked);
-	Added();
 }
 
 
@@ -146,7 +145,6 @@ void CIRW65C816Backend::Line(uint16 uiMnemonic, const char* szOperand, bool bMar
 void CIRW65C816Backend::LabelLine(const char* szName)
 {
 	mpcCode->AppendLabel(szName);
-	Added();
 }
 
 
@@ -159,7 +157,6 @@ void CIRW65C816Backend::LabelLine(const char* szName)
 void CIRW65C816Backend::Directive(const char* szName, const char* szOperand)
 {
 	mpcCode->AppendDirective(szName, szOperand);
-	Added();
 }
 
 
@@ -192,28 +189,6 @@ void CIRW65C816Backend::Lines(CIRW65C816Code* pcFrom)
 	for (ui = 0; ui < pcFrom->NumLines(); ui++)
 	{
 		mpcCode->AppendLine(pcFrom, ui);
-		Added();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The code's last line was just added: for a listing or a debugger's
-// place markers it is one of the lines the markers are kept between, as
-// written (CIRSourceMarkers::AddLine, as Take would find it).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::Added(void)
-{
-	CChars	sz;
-
-	if (mbSourceMarkers || mbDebugPlaces)
-	{
-		sz.Init(CIRW65C816Backend::GetScratch());
-		mpcCode->PrintLine(mpcCode->NumLines() - 1, &sz);
-		mcMarkers.AddLine(sz.Text(), sz.Length());
-		sz.Kill();
 	}
 }
 
@@ -525,7 +500,8 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	cCode.Init();
 	mpcCode = &cCode;
 	mpszOut = NULL;
-	mcMarkers.Begin();
+	mcMarkers.Clear();
+	cCode.SetMarkers(&mcMarkers);
 
 	ExpandMultiplies();
 	CopyAddressedParameters();
@@ -596,14 +572,12 @@ bool CIRW65C816Backend::GenerateFunction(CIRFunction* pcFunction, const char* sz
 	//code as printed so far and taken out again first, so the tidying moves them as it did when it was done to the
 	//printed code (in FinishFunction, between taking them out and putting them back).
 	MarkExits();
-	RetakeMarkers();
 	IR816TidyExits(mpcCode, msFrame.bNoResult);
 	KeepFacts(szLabel);
 	cCode.Write(pszDest, uiStart);
 	cCode.Kill();
 	mpcCode = NULL;
 	mpszOut = pszDest;
-	PutMarkers(pszDest, uiStart);
 	pszDest->AppendNewLine();
 	return mbResult;
 }
@@ -746,8 +720,8 @@ int32 CIRW65C816Backend::VariableSlotBytes(SIRInstruction* psSlot)
 //////////////////////////////////////////////////////////////////////////
 //
 // The function's frame is put on a page if that is worth it, now that the
-// unit's calls are known (AlignFrame; a listing's source markers and a
-// debugger's place markers are taken out while it looks at the code), and
+// unit's calls are known (AlignFrame, which steps over a listing's source
+// markers and a debugger's place markers), and
 // then its exits keep A in Y only when they must (IR816TidyExits).  A
 // function nothing was kept for has an empty frame.  Then a place marker
 // at frame bytes the code never reads says none (UnreadPlaces).
@@ -755,7 +729,6 @@ int32 CIRW65C816Backend::VariableSlotBytes(SIRInstruction* psSlot)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten, bool bRecursive, CAsm65Profile* pcProfile)
 {
-	CIRSourceMarkers	cMarkers;
 	SIRW65C816Frame		sFrame;
 	uint8				abRead[IR816_DIRECT_PAGE];
 	bool				bPlaces;
@@ -770,8 +743,6 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 		memset(&sFrame, 0, sizeof(sFrame));
 	}
 	bPlaces = pcWritten && (strstr(pszCode->Text(), IR_PLACE_MARKER) != NULL);
-	cMarkers.Init();
-	cMarkers.Take(pszCode, 0);
 	bAligned = false;
 	if (!mpcOptions->mbDebuggable && pcWritten)
 	{
@@ -794,36 +765,10 @@ void CIRW65C816Backend::FinishFunction(CChars* pszCode, const char* szLabel, CIR
 			abRead[sFrame.SavedS() + 1] = 1;
 		}
 	}
-	cMarkers.Put(pszCode, 0);
-	cMarkers.Kill();
 	if (bPlaces)
 	{
 		UnreadPlaces(pszCode, (CIRW65C816Written*)pcWritten, abRead);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The markers kept as the code was written put back into the code as it is
-// now (printed), and taken out of that again: the passes after then move
-// them as they would the printed code's (CIRSourceMarkers::Put matches what
-// changed since they were taken out).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::RetakeMarkers(void)
-{
-	CChars	szPrinted;
-
-	if (!mbSourceMarkers && !mbDebugPlaces)
-	{
-		return;
-	}
-	szPrinted.Init(CIRW65C816Backend::GetScratch());
-	mpcCode->Write(&szPrinted, 0);
-	mcMarkers.Put(&szPrinted, 0);
-	mcMarkers.Take(&szPrinted, 0);
-	szPrinted.Kill();
 }
 
 
@@ -1202,20 +1147,6 @@ int CIRW65C816Backend::ShiftAddCost(SIRType sType, int* aiPlaces, int* aiSigns, 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A marker line (a listing's source marker, a debugger's place marker)
-// before what is written next: kept apart from the code, as
-// CIRSourceMarkers::Take would take it out, so the passes see the code
-// they would without it.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIRW65C816Backend::MarkerLine(const char* szMarker)
-{
-	mcMarkers.AddMarker(szMarker, StrLen(szMarker));
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The function's code after Layout, into mpcCode: the prologue, each
 // block's instructions (those CanFuse finds read by the next as it goes)
 // and jump, then the passes over it.
@@ -1246,7 +1177,7 @@ void CIRW65C816Backend::GenerateBody(const char* szLabel)
 	mpcDominators = &mcDominators;
 
 	//Whether the function has place markers is known before anything is written: the lines between markers are
-	//kept from the first (Added, CIRSourceMarkers::AddLine).
+	//the lines' from the first (CIRLineMarkers).
 	memset(mauiPlaceBytes, 0, sizeof(mauiPlaceBytes));
 	BeginDebugPlaces(&mcDominators);
 	Prologue(szLabel);

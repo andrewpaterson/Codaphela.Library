@@ -23,6 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/Chars.h"
 #include "IRW65C816BackendInternal.h"
+#include "IRSourceMarkers.h"
 
 
 //What a line of a W65C816 function's code is.
@@ -42,6 +43,9 @@ struct SIRW65C816CodeLine
 	bool		bText;			//The line is its text; else an instruction, szText its operand.
 	SIRW65C816Line	sLine;
 	size		uiOperand;		//sLine.szOperand's offset in szText.
+	int32		iMarkers;		//The markers before the line (CIRLineMarkers), IR_NO_MARKERS for none.
+	void*		pvOrigin;		//The code a pass copied the line from (AppendLine), for Take...
+	size		uiOrigin;		//...and the line it was there (where it was made, masLines).
 };
 typedef CArrayLargeTemplate<SIRW65C816CodeLine>	CArrayIR816CodeLines;
 
@@ -59,6 +63,8 @@ protected:
 	CArrayIR816CodeLines	masLines;
 	CArrayIR816LineOrder	maiOrder;
 	uint8					mabKept[IR816_DIRECT_PAGE];	//The direct page bytes a debugger reads (SetKept): stores to them stay.
+	CIRLineMarkers*			mpcMarkers;		//The markers the lines are given as they are written (SetMarkers), or NULL...
+	int32					miTrailing;		//...and those after the last line.
 
 public:
 	void		Init(void);
@@ -109,6 +115,7 @@ public:
 	void		Append(const char* szText);
 	void		Truncate(size uiLines);
 	void		Take(CIRW65C816Code* pcFrom);
+	void		SetMarkers(CIRLineMarkers* pcMarkers);
 
 	void		SetKept(int32 iOffset, int32 iBytes);
 	bool		IsKept(int32 iOffset, int32 iBytes);
@@ -120,6 +127,8 @@ protected:
 	SIRW65C816CodeLine*	AddLine(const char* szText, size uiLength);
 	SIRW65C816CodeLine*	NewLine(void);
 	void			Decode(SIRW65C816CodeLine* psCode);
+	int32			JoinMarkers(int32 iFirst, int32 iSecond);
+	void			TakeMarkers(CIRW65C816Code* pcFrom);
 	void			MakeInstruction(SIRW65C816CodeLine* psCode, uint16 uiMnemonic, const char* szOperand, size uiOperand, bool bMarked);
 };
 

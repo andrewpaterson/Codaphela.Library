@@ -291,7 +291,6 @@ protected:
 	CIR65Code*				mpcWriting;			//The one of them being written.
 	uint8					muiPending;			//The instruction being written (Line), not in the code yet (IR65M_Unknown for none)...
 	CChars					mszPending;			//...and its operands as far as they are written.
-	size					muiMarked;			//The lines of mcHead then mcCode given to mcMarkers (MarkerLine).
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
 	CIR65Peephole			mcPeephole;
@@ -344,7 +343,6 @@ protected:
 	void				Write(CIR65Code* pcCode);
 	size				CodeLines(void);
 	void				CutCode(size uiLines);
-	void				MarkLines(void);
 	void				MarkerLine(const char* szMarker) override;
 	int					ValueBytes(SIRType sType);
 	bool				IsWide(SIRType sType);

@@ -111,7 +111,7 @@ protected:
 	CChars*					mpszOut;
 	uint32					muiSource;			//The source token + 1 of the last marker written (Source).
 	bool					mbSourceMarkers;	//Source writes markers (SetSourceMarkers), for a listing.
-	CIRSourceMarkers		mcMarkers;			//The source and place markers while the text passes run.
+	CIRLineMarkers			mcMarkers;			//The source and place markers, kept with the lines they are before.
 	CIRDebugPlaces			mcDebugPlaces;		//Which value each variable holds as the code is written (DebugPlaces)...
 	bool					mbDebugPlaces;		//...when the function has debug value markers...
 	CArrayChars				maszDebugPlaces;	//...and per variable, the place its last place marker said...
@@ -152,8 +152,6 @@ protected:
 	virtual int32	VariableSlotPlace(SIRInstruction* psSlot) = 0;
 	void			InitBackend(CIRModule* pcModule, int* piLabels, CMallocator* pcMallocator);
 
-	void			TakeMarkers(CChars* pszCode, size uiStart);
-	void			PutMarkers(CChars* pszCode, size uiStart);
 	void			BeginDebugPlaces(CIRDominators* pcDominators, CIRLiveness* pcLiveness = NULL);
 	void			DebugPlaces(CIRBlock* pcBlock, size uiInstruction, size uiLast);
 	void			EndDebugPlaces(void);

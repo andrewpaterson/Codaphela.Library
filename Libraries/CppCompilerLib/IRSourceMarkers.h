@@ -22,39 +22,35 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define __I_R_SOURCE_MARKERS_H__
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/ArrayTemplate.h"
-#include "IRBlock.h"
+
+
+#define IR_NO_MARKERS	(-1)	//A line with no markers before it.
 
 
 //The marker lines of a function's code (the source markers, IR_SOURCE_MARKER, and the debugger's place markers,
-//IR_PLACE_MARKER), taken out before a back end's text passes so the passes see the code they would without them (a
-//listing's code is the same as the one without), and put back after: each before the first line it was before that
-//is still there, wherever a pass moved it.  Both kinds are taken out and put back together, the code's lines matched
-//once.  Of the source markers that end up before one line only the last stays (the code of the others went); every
-//place marker stays, in order (each says something of its own).
-class CIRSourceMarkers
+//IR_PLACE_MARKER), kept as fields of the code's lines: each line has the list of markers written before it (a list
+//here, IR_NO_MARKERS for none), and they are printed before it.  The markers written since the last line (Add) are
+//the next line's (TakePending).  A line a pass takes out gives its markers to the line after it (Join); a list is
+//never changed, so two lines may have one.  Of the source markers before one line only the last is printed (the
+//code of the others went); every place marker is, in order (each says something of its own).
+class CIRLineMarkers
 {
 protected:
-	CArrayChars				maszLines;		//The code's lines without the markers, as Take left them.
-	CArrayTemplate<int32>	maiBefore;		//Per marker: the line (in maszLines) it was before.
-	CArrayChars				maszMarkers;	//Per marker: its line.
+	CArrayChars				maszMarkers;	//Each marker's line, as written.
+	CArrayTemplate<int32>	maiLists;		//The lists: at each one's index its count, then that many of maszMarkers.
+	CArrayTemplate<int32>	maiPending;		//The markers written since the last line.
 
 public:
 	void	Init(void);
 	void	Kill(void);
+	void	Clear(void);
 
-	void	Take(CChars* pszCode, size uiStart);
-	void	Put(CChars* pszCode, size uiStart);
-
-	void	Begin(void);
-	void	AddLine(const char* szLine, size uiLength);
-	void	AddMarker(const char* szMarker, size uiLength);
-
-protected:
-	bool	IsMarker(const char* szLine);
-	void	Match(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound);
-	void	MatchMoved(CArrayChars* pasLines, CArrayTemplate<int32>* paiFound, CArrayTemplate<int32>* paiOwner, CArrayTemplate<int32>* paiMoved);
+	void	Add(const char* szMarker);
+	int32	TakePending(void);
+	void	PutBack(int32 iList);
+	int32	Join(int32 iFirst, int32 iSecond);
+	void	Print(int32 iList, CChars* pszOut);
 };
 
 
 #endif // __I_R_SOURCE_MARKERS_H__
-

@@ -1939,139 +1939,122 @@ void TestIR65BackendPeepholeCopies(void)
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// A listing's source markers are taken out before the text passes and put
-// back after: before the line they were before, a line a pass rewrote
-// (paired in order between lines that stayed), or the next line still
-// there; of two that go before one line the last stays.  A line repeated
-// further on doesn't draw a marker to it.
+// A listing's source markers and a debugger's place markers are the lines'
+// they were written before (CIRLineMarkers): a line taken out gives them
+// to the line after it, where only the last source marker is printed and
+// every place marker; the code written again (BeginLines) gives the
+// markers of a line it passes over to the next line it keeps, before the
+// lines added for that.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestIRSourceMarkers(void)
+static void TestIRLineMarkersCode(CIRLineMarkers* pcMarkers, CIR65Code* pcCode)
 {
-	CIRSourceMarkers	cMarkers;
-	CChars				sz;
-
-	sz.Init("; before\n");
-	sz.Append(
-		"_F:\n"
-		"\t\t;@5\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [0 + W], A\n"
-		"\t\t;@7\n"
-		"\t\tcpy A, 1\n"
-		"\t\t;@9\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [4 + W], A\n"
-		"\t\t;@11\n"
-		"\t\tadd A, 2\n"
-		"\t\tret\n");
-	cMarkers.Init();
-	cMarkers.Take(&sz, 9);
-	AssertString(
-		"; before\n"
-		"_F:\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [0 + W], A\n"
-		"\t\tcpy A, 1\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [4 + W], A\n"
-		"\t\tadd A, 2\n"
-		"\t\tret\n", sz.Text());
-
-	//The passes: the + W goes, the first cpy A, 1 goes.
-	sz.Kill();
-	sz.Init(
-		"; before\n"
-		"_F:\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [0], A\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [4], A\n"
-		"\t\tadd A, 2\n"
-		"\t\tret\n");
-	cMarkers.Put(&sz, 9);
-	AssertString(
-		"; before\n"
-		"_F:\n"
-		"\t\t;@5\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [0], A\n"
-		"\t\t;@9\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [4], A\n"
-		"\t\t;@11\n"
-		"\t\tadd A, 2\n"
-		"\t\tret\n", sz.Text());
-	cMarkers.Kill();
-	sz.Kill();
+	pcCode->Clear();
+	pcCode->SetMarkers(pcMarkers);
+	pcCode->AppendText("_F:");
+	pcMarkers->Add("\t\t;@5");
+	pcCode->AppendInstruction(IR65M_Cpy, "A, 0");
+	pcCode->AppendInstruction(IR65M_Cpy, "[0 + W], A");
+	pcMarkers->Add("\t\t;@7");
+	pcCode->AppendInstruction(IR65M_Cpy, "A, 1");
+	pcMarkers->Add("\t\t;@9");
+	pcMarkers->Add("\t\t;#0 [4]");
+	pcCode->AppendInstruction(IR65M_Cpy, "A, 0");
+	pcCode->AppendInstruction(IR65M_Cpy, "[4 + W], A");
+	pcMarkers->Add("\t\t;@11");
+	pcCode->AppendInstruction(IR65M_Add, "A, 2");
+	pcCode->AppendInstruction(IR65M_Ret, "");
+	pcMarkers->Add("\t\t;@12");
+	pcCode->AppendText("");
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A block a pass moves keeps its marker: line 6's code moved to the end
-// is still line 6's, not lost to line 7's.
 //
 //////////////////////////////////////////////////////////////////////////
-void TestIRSourceMarkersMovedBlock(void)
+void TestIRLineMarkers(void)
 {
-	CIRSourceMarkers	cMarkers;
-	CChars				sz;
+	CIRLineMarkers	cMarkers;
+	CIR65Code		cCode;
+	CChars			sz;
 
-	sz.Init(
-		"_F:\n"
-		"\t\t;@5\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [0 + W], A\n"
-		"\t\t;@6\n"
-		"L1:\n"
-		"\t\tcpy A, 5\n"
-		"\t\tadd A, 6\n"
-		"\t\tcpy [2], A\n"
-		"\t\t;@7\n"
-		"\t\tcpy A, 1\n"
-		"\t\tcpy [4], A\n"
-		"\t\tret\n");
 	cMarkers.Init();
-	cMarkers.Take(&sz, 0);
+	cCode.Init();
 
-	//The passes: the + W goes and L1's block goes to the end.  The block is longer than the code left in place, so
-	//it's the code left in place that's found out of order.
-	sz.Kill();
-	sz.Init(
-		"_F:\n"
-		"\t\tcpy A, 0\n"
-		"\t\tcpy [0], A\n"
-		"\t\tbra L1\n"
-		"L2:\n"
-		"\t\tcpy A, 1\n"
-		"\t\tcpy [4], A\n"
-		"\t\tret\n"
-		"L1:\n"
-		"\t\tcpy A, 5\n"
-		"\t\tadd A, 6\n"
-		"\t\tcpy [2], A\n"
-		"\t\tbra L2\n");
-	cMarkers.Put(&sz, 0);
+	//As written.
+	TestIRLineMarkersCode(&cMarkers, &cCode);
+	sz.Init();
+	cCode.Write(&sz);
 	AssertString(
 		"_F:\n"
 		"\t\t;@5\n"
 		"\t\tcpy A, 0\n"
-		"\t\tcpy [0], A\n"
-		"\t\tbra L1\n"
-		"L2:\n"
+		"\t\tcpy [0 + W], A\n"
 		"\t\t;@7\n"
 		"\t\tcpy A, 1\n"
-		"\t\tcpy [4], A\n"
+		"\t\t;@9\n"
+		"\t\t;#0 [4]\n"
+		"\t\tcpy A, 0\n"
+		"\t\tcpy [4 + W], A\n"
+		"\t\t;@11\n"
+		"\t\tadd A, 2\n"
 		"\t\tret\n"
-		"\t\t;@6\n"
-		"L1:\n"
-		"\t\tcpy A, 5\n"
-		"\t\tadd A, 6\n"
-		"\t\tcpy [2], A\n"
-		"\t\tbra L2\n", sz.Text());
-	cMarkers.Kill();
+		"\t\t;@12\n", sz.Text());
 	sz.Kill();
+
+	//The cpy A, 1 taken out: its source marker goes to the next line, where line 9's is printed, then the place marker.
+	cMarkers.Clear();
+	TestIRLineMarkersCode(&cMarkers, &cCode);
+	cCode.Drop(3);
+	sz.Init();
+	cCode.Write(&sz);
+	AssertString(
+		"_F:\n"
+		"\t\t;@5\n"
+		"\t\tcpy A, 0\n"
+		"\t\tcpy [0 + W], A\n"
+		"\t\t;@9\n"
+		"\t\t;#0 [4]\n"
+		"\t\tcpy A, 0\n"
+		"\t\tcpy [4 + W], A\n"
+		"\t\t;@11\n"
+		"\t\tadd A, 2\n"
+		"\t\tret\n"
+		"\t\t;@12\n", sz.Text());
+	sz.Kill();
+
+	//Written again without the stores and the second cpy A, 0, with a wth added for the add: the markers of the cpy A, 0
+	//go to the next line kept, the add, before the wth written for it.
+	cMarkers.Clear();
+	TestIRLineMarkersCode(&cMarkers, &cCode);
+	cCode.BeginLines();
+	cCode.KeepLine(0);
+	cCode.KeepLine(1);
+	cCode.KeepLine(3);
+	cCode.AddLine(IR65M_Wth, "A, 8");
+	cCode.KeepLine(6);
+	cCode.KeepLine(7);
+	cCode.KeepLine(8);
+	cCode.EndLines();
+	sz.Init();
+	cCode.Write(&sz);
+	AssertString(
+		"_F:\n"
+		"\t\t;@5\n"
+		"\t\tcpy A, 0\n"
+		"\t\t;@7\n"
+		"\t\tcpy A, 1\n"
+		"\t\t;#0 [4]\n"
+		"\t\t;@11\n"
+		"\t\twth A, 8\n"
+		"\t\tadd A, 2\n"
+		"\t\tret\n"
+		"\t\t;@12\n", sz.Text());
+	sz.Kill();
+
+	cCode.Kill();
+	cMarkers.Kill();
 }
 
 
@@ -2294,8 +2277,7 @@ void TestIR65Backend(void)
 	TestIR65BackendPeepholeCopies();
 	TestIR65BackendPeepholeJumps();
 	TestIR65BackendHomeV();
-	TestIRSourceMarkers();
-	TestIRSourceMarkersMovedBlock();
+	TestIRLineMarkers();
 
 	C65C64InstructionFactory::GetInstance()->Kill();
 	TypeConverterKill();

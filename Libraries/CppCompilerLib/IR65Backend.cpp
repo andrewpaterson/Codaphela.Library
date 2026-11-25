@@ -72,7 +72,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mpcWriting = &mcCode;
 	muiPending = IR65M_Unknown;
 	mszPending.Init();
-	muiMarked = 0;
+	mcHead.SetMarkers(&mcMarkers);
+	mcCode.SetMarkers(&mcMarkers);
 	mcFlags.Init();
 	mcWidths.Init();
 	mcPeephole.Init();
@@ -232,8 +233,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 			WriteBody(szLabel, uiStart);
 		}
 	}
-	//The text a listing's markers are kept between ends with a new line (Take leaves out the empty line after it).
-	MarkLines();
+	//The code ends with a new line: the empty line after it (with the markers after the last line).
 	mcCode.AppendText("");
 	//The passes over the body's code: a register function's stub before it (RegisterStub) is as it must be, and
 	//the body's label is theirs to start from (the stub's jsr of it is no branch they know).
@@ -244,7 +244,6 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mcCode.Write(pszDest);
 	mpszOut = pszDest;
 	mpcModule->End(CPPCP_CodePasses);
-	PutMarkers(pszDest, uiStart);
 	return mbResult;
 }
 
@@ -549,8 +548,7 @@ bool CIR65Backend::WriteBody(const char* szLabel, size uiStart)
 	mcCode.Clear();
 	mpcWriting = &mcCode;
 	muiPending = IR65M_Unknown;
-	muiMarked = 0;
-	mcMarkers.Begin();
+	mcMarkers.Clear();
 
 	Prologue(szLabel);
 	mpsFlags = NULL;
@@ -1150,50 +1148,15 @@ void CIR65Backend::CutCode(size uiLines)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The lines written since the last are given to the markers (as printed)
-// for a listing or a debugger's place markers: the markers are kept
-// between them (CIRSourceMarkers::AddLine, as Take would find them).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::MarkLines(void)
-{
-	CChars	sz;
-	size	uiHead;
-
-	if (!mbSourceMarkers && !mbDebugPlaces)
-	{
-		return;
-	}
-	Commit();
-	uiHead = mcHead.NumLines();
-	sz.Init();
-	for (; muiMarked < uiHead + mcCode.NumLines(); muiMarked++)
-	{
-		sz.Clear();
-		if (muiMarked < uiHead)
-		{
-			mcHead.PrintLine(&sz, muiMarked);
-		}
-		else
-		{
-			mcCode.PrintLine(&sz, muiMarked - uiHead);
-		}
-		mcMarkers.AddLine(sz.Text(), sz.Length());
-	}
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // A marker line (Source's, DebugPlaceMarker's) before what is written
-// next: kept, as Take would have taken it out (CIRSourceMarkers).
+// next: the instruction being written is done (Commit), so the marker is
+// the next line's (CIRLineMarkers).
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::MarkerLine(const char* szMarker)
 {
-	MarkLines();
-	mcMarkers.AddMarker(szMarker, StrLen(szMarker));
+	Commit();
+	mcMarkers.Add(szMarker);
 }
 
 
