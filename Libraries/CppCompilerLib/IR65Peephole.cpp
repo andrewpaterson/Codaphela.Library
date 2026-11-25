@@ -111,22 +111,11 @@ static void IR65PeepholeOperands(CIR65Code* pcCode, size uiLine, const char** ps
 
 //////////////////////////////////////////////////////////////////////////
 //
-// With exceptions a ret reads the carry: the caller's thrown.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Peephole::SetExceptions(bool bExceptions)
-{
-	mcCode.SetReturnReadsCarry(bExceptions);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Peephole::Init(void)
 {
-	mcCode.Init();
+	mpcCode = NULL;
 	maszValues.Init();
 	mmValues.Init();
 	masValues.Init();
@@ -148,66 +137,65 @@ void CIR65Peephole::Kill(void)
 	masValues.Kill();
 	mmValues.Kill();
 	maszValues.Kill();
-	mcCode.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Rewrites the function's code from uiStart (its label first) with its
-// jumps tidied.  Code with anything the decoder doesn't know is left as
-// it is.
+// Tidies pcCode's copies and jumps; true if it changed anything.  Code
+// with anything the decoder doesn't know is left as it is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Peephole::Optimise(CChars* pszCode, size uiStart, bool bHomeV)
+bool CIR65Peephole::Run(CIR65Code* pcCode, bool bHomeV)
 {
-	size	ui;
 	int		iRound;
 	bool	bChanged;
 	bool	bAny;
 
 	mbHomeV = bHomeV;
-	if (!mcCode.Load(pszCode, uiStart, true))
+	mpcCode = pcCode;
+	if (!mpcCode->Analyse(true))
 	{
-		return;
+		return false;
 	}
 
 	bAny = RemoveCopies();
 	for (iRound = 0; iRound < IR65_PEEPHOLE_ROUNDS; iRound++)
 	{
-		bChanged = IRThreadJumps(&mcCode);
+		bChanged = IRThreadJumps(mpcCode);
 		bChanged |= ReturnDirectly();
-		bChanged |= IRInvertBranches(&mcCode);
-		bChanged |= IRRemoveBranchesToNext(&mcCode);
-		bChanged |= IRRemoveUnreached(&mcCode);
+		bChanged |= IRInvertBranches(mpcCode);
+		bChanged |= IRRemoveBranchesToNext(mpcCode);
+		bChanged |= IRRemoveUnreached(mpcCode);
 		if (!bChanged)
 		{
 			break;
 		}
 		bAny = true;
 	}
-	if (!bAny)
-	{
-		return;
-	}
-
-	pszCode->SetLength(uiStart);
-	for (ui = 0; ui < mcCode.NumLines(); ui++)
-	{
-		mcCode.WriteLine(pszCode, ui);
-	}
+	return bAny;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the last Optimise could read the code it was given (it left the
-// code as it was if not).
+// The pass on pszCode from uiStart (its label first), as a whole function:
+// its code is written again if it could be read.  For the tests.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Peephole::IsLoaded(void) const
+void CIR65Peephole::Optimise(CChars* pszCode, size uiStart, bool bHomeV)
 {
-	return mcCode.IsLoaded();
+	CIR65Code	cCode;
+
+	cCode.Init();
+	cCode.SetText(pszCode, uiStart);
+	Run(&cCode, bHomeV);
+	if (cCode.IsLoaded())
+	{
+		pszCode->SetLength(uiStart);
+		cCode.Write(pszCode);
+	}
+	cCode.Kill();
 }
 
 
@@ -231,18 +219,18 @@ bool CIR65Peephole::RemoveCopies(void)
 
 	ComputeCopied();
 	ComputeStates();
-	mcCode.ComputeFlagDemand(&mauiDemand);
+	mpcCode->ComputeFlagDemand(&mauiDemand);
 
 	bChanged = false;
-	uiNum = mcCode.NumLines();
+	uiNum = mpcCode->NumLines();
 	for (ui = 0; ui < uiNum; ui++)
 	{
-		psLine = mcCode.GetLine(ui);
+		psLine = mpcCode->GetLine(ui);
 		psState = masStates.Get(ui);
 		iCopied = *maiCopied.Get(ui);
-		if ((psState->aiValues[0] != IR65_VALUE_UNSET) && psState->bZeroW && !(*mauiDemand.Get(ui) & (IR65_FLAG_N | IR65_FLAG_Z)) && mcCode.IsWith(ui, IR65M_Cpy, "W, 0"))
+		if ((psState->aiValues[0] != IR65_VALUE_UNSET) && psState->bZeroW && !(*mauiDemand.Get(ui) & (IR65_FLAG_N | IR65_FLAG_Z)) && mpcCode->IsWith(ui, IR65M_Cpy, "W, 0"))
 		{
-			mcCode.Remove(ui);
+			mpcCode->Remove(ui);
 			bChanged = true;
 			continue;
 		}
@@ -256,7 +244,7 @@ bool CIR65Peephole::RemoveCopies(void)
 		{
 			//The register holds the value already; or the value is one copied from the register itself, which
 			//hasn't changed since (cpy X, A then cpy A, X: a parameter that came in A, kept in X).
-			mcCode.Remove(ui);
+			mpcCode->Remove(ui);
 			bChanged = true;
 		}
 	}
@@ -351,15 +339,15 @@ void CIR65Peephole::ComputeCopied(void)
 	mmValues.ReInit();
 	masValues.ReInit();
 	maiCopied.ReInit();
-	uiNum = mcCode.NumLines();
+	uiNum = mpcCode->NumLines();
 	for (ui = 0; ui < uiNum; ui++)
 	{
-		psLine = mcCode.GetLine(ui);
-		psWidths = mcCode.GetWidths(ui);
+		psLine = mpcCode->GetLine(ui);
+		psWidths = mpcCode->GetWidths(ui);
 		iCopied = IR65_VALUE_UNKNOWN;
-		if ((psLine->uiKind == IR65CK_Alu) && (mcCode.Mnemonic(ui) == IR65M_Cpy))
+		if ((psLine->uiKind == IR65CK_Alu) && (mpcCode->Mnemonic(ui) == IR65M_Cpy))
 		{
-			IR65PeepholeOperands(&mcCode, ui, &szFirst, &uiFirst, &szSecond, &uiSecond);
+			IR65PeepholeOperands(mpcCode, ui, &szFirst, &uiFirst, &szSecond, &uiSecond);
 			if ((psLine->iFirst >= 0) && (psWidths->auiRegisters[psLine->iFirst] == 32) && ((psLine->iSecond < 0) || (psWidths->auiRegisters[psLine->iSecond] == 32)))
 			{
 				iCopied = AddValue(szSecond, uiSecond);
@@ -394,7 +382,7 @@ void CIR65Peephole::ComputeStates(void)
 	SIR65CodeLine*	psLine;
 	bool			bChanged;
 
-	uiNum = mcCode.NumLines();
+	uiNum = mpcCode->NumLines();
 	masStates.ReInit();
 	for (ui = 0; ui < uiNum; ui++)
 	{
@@ -415,12 +403,12 @@ void CIR65Peephole::ComputeStates(void)
 			{
 				continue;
 			}
-			psLine = mcCode.GetLine(ui);
+			psLine = mpcCode->GetLine(ui);
 			sState = *masStates.Get(ui);
 			Transfer(ui, &sState);
 			TransferW(ui, &sState);
 
-			auiTo[0] = (mcCode.FallsThrough(ui) && (ui + 1 < uiNum)) ? ui + 1 : uiNum;
+			auiTo[0] = (mpcCode->FallsThrough(ui) && (ui + 1 < uiNum)) ? ui + 1 : uiNum;
 			auiTo[1] = (psLine->iTarget >= 0) ? (size)psLine->iTarget : uiNum;
 			for (iTo = 0; iTo < 2; iTo++)
 			{
@@ -475,7 +463,7 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 	int16			iCopied;
 	int				i;
 
-	psLine = mcCode.GetLine(uiLine);
+	psLine = mpcCode->GetLine(uiLine);
 	if ((psLine->uiKind == IR65CK_Label) || (psLine->uiKind == IR65CK_Other))
 	{
 		return;
@@ -497,8 +485,8 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 		iCopied = Canonical(psState, iCopied);
 	}
 
-	sWidths = *mcCode.GetWidths(uiLine);
-	mcCode.Effect(uiLine, &sWidths, &sReads, &sWrites, &uiUses);
+	sWidths = *mpcCode->GetWidths(uiLine);
+	mpcCode->Effect(uiLine, &sWidths, &sReads, &sWrites, &uiUses);
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
 		if (sWrites.auiRegisters[i] != 0)
@@ -513,7 +501,7 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 		break;
 	case IR65CK_Pull:
 		Forget(psState, IR65_NAME_S);
-		IR65PeepholeOperands(&mcCode, uiLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
+		IR65PeepholeOperands(mpcCode, uiLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
 		if (psLine->bFirstMemory)
 		{
 			ForgetMemory(psState, szFirst, uiFirst);
@@ -534,7 +522,7 @@ void CIR65Peephole::Transfer(size uiLine, SIR65Values* psState)
 		{
 			break;
 		}
-		IR65PeepholeOperands(&mcCode, uiLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
+		IR65PeepholeOperands(mpcCode, uiLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
 		if (psLine->bFirstMemory)
 		{
 			ForgetMemory(psState, szFirst, uiFirst);
@@ -578,7 +566,7 @@ void CIR65Peephole::TransferW(size uiLine, SIR65Values* psState)
 	size			uiFirst;
 	size			uiSecond;
 
-	psLine = mcCode.GetLine(uiLine);
+	psLine = mpcCode->GetLine(uiLine);
 	switch (psLine->uiKind)
 	{
 	case IR65CK_Other:
@@ -591,17 +579,17 @@ void CIR65Peephole::TransferW(size uiLine, SIR65Values* psState)
 		psState->bZeroW = false;
 		break;
 	default:
-		if (mcCode.IsWith(uiLine, IR65M_Cpy, "W, 0"))
+		if (mpcCode->IsWith(uiLine, IR65M_Cpy, "W, 0"))
 		{
 			psState->bZeroW = true;
 		}
-		else if ((psLine->uiKind == IR65CK_Pull) && mcCode.OperandsHave(uiLine, "W"))
+		else if ((psLine->uiKind == IR65CK_Pull) && mpcCode->OperandsHave(uiLine, "W"))
 		{
 			psState->bZeroW = false;
 		}
 		else if ((psLine->uiKind != IR65CK_Alu) || psLine->bWritesFirst)
 		{
-			IR65PeepholeOperands(&mcCode, uiLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
+			IR65PeepholeOperands(mpcCode, uiLine, &szFirst, &uiFirst, &szSecond, &uiSecond);
 			if ((uiFirst == 1) && (szFirst[0] == 'W'))
 			{
 				psState->bZeroW = false;
@@ -722,18 +710,18 @@ bool CIR65Peephole::ReturnDirectly(void)
 	bool			bChanged;
 
 	bChanged = false;
-	uiNum = mcCode.NumLines();
+	uiNum = mpcCode->NumLines();
 	for (ui = 0; ui < uiNum; ui++)
 	{
-		psLine = mcCode.GetLine(ui);
+		psLine = mpcCode->GetLine(ui);
 		if (psLine->uiKind != IR65CK_Jump)
 		{
 			continue;
 		}
-		uiNext = IRNextInstruction(&mcCode, (size)psLine->iTarget);
-		if ((uiNext < uiNum) && (mcCode.GetLine(uiNext)->uiKind == IR65CK_Return) && !mcCode.GetLine(uiNext)->bReadsFirst)
+		uiNext = IRNextInstruction(mpcCode, (size)psLine->iTarget);
+		if ((uiNext < uiNum) && (mpcCode->GetLine(uiNext)->uiKind == IR65CK_Return) && !mpcCode->GetLine(uiNext)->bReadsFirst)
 		{
-			bChanged |= mcCode.ReplaceInstruction(ui, IR65M_Ret, NULL);
+			bChanged |= mpcCode->ReplaceInstruction(ui, IR65M_Ret, NULL);
 		}
 	}
 	return bChanged;

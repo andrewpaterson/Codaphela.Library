@@ -287,6 +287,7 @@ protected:
 	bool					mbFlagsKnown;		//The block's comparison uses the flags it is entered with (FlagsKnown).
 	bool					mbRightImmediate;	//LoadOperands left the second operand a constant, for "op A, value".
 	const char*				mszAddress;			//Where MemoryOperand puts an address it must load: B, or for a cpyx a free X or Y (not A).
+	CIR65Code				mcCode;				//The function's body as the passes over it change it (RunPasses).
 	CIR65Flags				mcFlags;
 	CIR65Widths				mcWidths;
 	CIR65Peephole			mcPeephole;
@@ -305,7 +306,14 @@ public:
 	CIRWrittenFunction*	TakeWritten(void) override;
 	void				DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten) override;
 	static void			AppendFramePrologue(CChars* pszDest, SIR65Frame* psFrame);
+	static bool			PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
 	static void			PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV);
+
+	bool				RunStoreLoads(void);
+	bool				RunFlags(void);
+	bool				RunWidths(void);
+	bool				RunPeephole(void);
+	bool				RunPseudoWithoutW(void);
 
 protected:
 	void				GrowTemporaries(void);
@@ -315,7 +323,7 @@ protected:
 	void				PreferSingleBranches(void);
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);
-	void				Peephole(size uiStart);
+	void				RunPasses(void);
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
 	int32				VariableSlotPlace(SIRInstruction* psSlot) override;

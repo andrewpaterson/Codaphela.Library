@@ -62,7 +62,7 @@ typedef CArrayTemplate<SIR65Value>	CArrayIR65Value;
 class CIR65Peephole
 {
 protected:
-	CIR65Code				mcCode;
+	CIR65Code*				mpcCode;		//The code the pass runs over (Run).
 	CArrayChars				maszValues;		//The operands registers hold, as written...
 	CHashMapString<int32>	mmValues;		//...and each one's index there.
 	CArrayIR65Value			masValues;		//What each of them is.
@@ -73,11 +73,10 @@ protected:
 
 public:
 	void	Init(void);
-	void	SetExceptions(bool bExceptions);
 	void	Kill(void);
 
+	bool	Run(CIR65Code* pcCode, bool bHomeV);
 	void	Optimise(CChars* pszCode, size uiStart, bool bHomeV);
-	bool	IsLoaded(void) const;
 
 protected:
 	bool	RemoveCopies(void);

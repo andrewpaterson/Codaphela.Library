@@ -24,6 +24,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "BaseLib/ConstructorCall.h"
 #include "IR65BackendInternal.h"
 #include "CPP65DebugWriter.h"
+#include "IRPipeline.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,6 +67,7 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mbRightImmediate = false;
 	mszAddress = "B";
 	mbCopyAddress = false;
+	mcCode.Init();
 	mcFlags.Init();
 	mcWidths.Init();
 	mcPeephole.Init();
@@ -100,6 +102,7 @@ void CIR65Backend::Kill(void)
 	mcBackendPasses.Kill();
 	mcWidths.Kill();
 	mcFlags.Kill();
+	mcCode.Kill();
 	mszDeferred.Kill();
 	masFused.Kill();
 	masStubs.Kill();
@@ -228,20 +231,132 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	//The passes over the body's code: a register function's stub before it (RegisterStub) is as it must be, and
 	//the body's label is theirs to start from (the stub's jsr of it is no branch they know).
 	mpcModule->Begin(CPPCP_CodePasses);
-	Peephole(muiBodyStart);
-	mcFlags.SetExceptions(mpcOptions->mbExceptions);
-	mcWidths.SetExceptions(mpcOptions->mbExceptions);
-	mcPeephole.SetExceptions(mpcOptions->mbExceptions);
-	mcFlags.Optimise(pszDest, muiBodyStart);
-	CountLoaded(mcFlags.IsLoaded());
-	mcWidths.Optimise(pszDest, muiBodyStart);
-	CountLoaded(mcWidths.IsLoaded());
-	mcPeephole.Optimise(pszDest, muiBodyStart, msFrame.bHomeV);
-	CountLoaded(mcPeephole.IsLoaded());
-	IR65PseudoWithoutW(pszDest, muiBodyStart);
+	mcCode.SetReturnReadsCarry(mpcOptions->mbExceptions);
+	mcCode.SetText(pszDest, muiBodyStart);
+	RunPasses();
+	pszDest->SetLength(muiBodyStart);
+	mcCode.Write(pszDest);
 	mpcModule->End(CPPCP_CodePasses);
 	PutMarkers(pszDest, uiStart);
 	return mbResult;
+}
+
+
+//A pass over a 65C64 function's code (gasIR65Passes): its name, and what runs it (true if it changed the code).
+struct SIR65Pass
+{
+	const char*	szName;
+	bool		(CIR65Backend::*fRun)(void);
+};
+
+
+//The passes over a 65C64 function's body, in the order they run.  The stores read straight back first (the
+//selector's code as it was written); then the compares whose flags are set, the registers' widths, the copies and
+//jumps; last the pseudo registers written without W.
+static const SIR65Pass gasIR65Passes[] =
+{
+	{ "65C64StoreLoads", &CIR65Backend::RunStoreLoads },
+	{ "65C64Flags", &CIR65Backend::RunFlags },
+	{ "65C64Widths", &CIR65Backend::RunWidths },
+	{ "65C64Peephole", &CIR65Backend::RunPeephole },
+	{ "65C64PseudoWithoutW", &CIR65Backend::RunPseudoWithoutW },
+};
+
+
+#define IR65_NUM_PASSES	(sizeof(gasIR65Passes) / sizeof(gasIR65Passes[0]))
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The passes over the body's code (gasIR65Passes) in their order, each
+// counted and timed in the unit's statistics (when it has them) as the
+// optimiser's passes are, numbered after them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::RunPasses(void)
+{
+	CCPPCompileStatistics*	pcStatistics;
+	size					ui;
+	int64					lliStart;
+	bool					bChanged;
+
+	pcStatistics = mpcModule->mpcStatistics;
+	lliStart = 0;
+	for (ui = 0; ui < IR65_NUM_PASSES; ui++)
+	{
+		if (pcStatistics)
+		{
+			lliStart = pcStatistics->Now();
+		}
+		bChanged = (this->*gasIR65Passes[ui].fRun)();
+		if (pcStatistics && (IRP_NumPasses + ui < CPP_MAX_PASSES))
+		{
+			pcStatistics->CountPass((int)(IRP_NumPasses + ui), gasIR65Passes[ui].szName, bChanged, CPP_NO_ROUND, pcStatistics->Now() - lliStart);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The stores read straight back (PeepholeCode).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::RunStoreLoads(void)
+{
+	return PeepholeCode(&mcCode, &maiBlockLabels, msFrame.bHomeV);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::RunFlags(void)
+{
+	bool	bChanged;
+
+	bChanged = mcFlags.Run(&mcCode);
+	CountLoaded(mcCode.IsLoaded());
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::RunWidths(void)
+{
+	bool	bChanged;
+
+	bChanged = mcWidths.Run(&mcCode);
+	CountLoaded(mcCode.IsLoaded());
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::RunPeephole(void)
+{
+	bool	bChanged;
+
+	bChanged = mcPeephole.Run(&mcCode, msFrame.bHomeV);
+	CountLoaded(mcCode.IsLoaded());
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Backend::RunPseudoWithoutW(void)
+{
+	return IR65PseudoWithoutW(&mcCode);
 }
 
 

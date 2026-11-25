@@ -379,6 +379,8 @@ void CIR65Code::Init(void)
 	mbLoaded = false;
 	mauiJumpedBack.Init();
 	mauiRemoved.Init();
+	maszNewLines.Init();
+	mbLastKept = false;
 	mmLabels.Init();
 	mbReturnReadsCarry = false;
 }
@@ -403,6 +405,7 @@ void CIR65Code::SetReturnReadsCarry(bool bReads)
 void CIR65Code::Kill(void)
 {
 	mmLabels.Kill();
+	maszNewLines.Kill();
 	mauiRemoved.Kill();
 	mauiJumpedBack.Kill();
 	mauiReached.Kill();
@@ -422,12 +425,47 @@ void CIR65Code::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Code::Load(CChars* pszCode, size uiStart, bool bConflicts)
 {
+	SetText(pszCode, uiStart);
+	return Analyse(bConflicts);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The function's code from uiStart (its label first), split into lines,
+// not yet decoded.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::SetText(CChars* pszCode, size uiStart)
+{
 	CChars	szText;
+	size	ui;
 
 	maszLines.ReInit();
 	szText.Init(pszCode->Text() + uiStart);
 	szText.SplitLines(&maszLines);
 	szText.Kill();
+	masLines.ReInit();
+	mauiRemoved.ReInit();
+	for (ui = 0; ui < maszLines.NumElements(); ui++)
+	{
+		mauiRemoved.Add()[0] = 0;
+	}
+	mbLoaded = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Decodes the lines as they are now (the lines passes took out go first);
+// false for code the passes must leave as it is.  With bConflicts a
+// register may have a width that depends on the way a line was reached
+// (IR65_WIDTH_CONFLICT), as it can after the Widths pass.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIR65Code::Analyse(bool bConflicts)
+{
+	Compact();
 	mbLoaded = Decode() && (ComputeWidths() || (bConflicts && (masLines.NumElements() > 0)));
 	return mbLoaded;
 }
@@ -435,7 +473,140 @@ bool CIR65Code::Load(CChars* pszCode, size uiStart, bool bConflicts)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the last Load could read the code.
+// The lines without those taken out, as they would be split from the
+// code written (WriteLine): a last line taken out leaves the new line
+// before it, so an empty line ends them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::Compact(void)
+{
+	size	ui;
+	size	uiNum;
+	bool	bRemoved;
+
+	uiNum = maszLines.NumElements();
+	bRemoved = false;
+	for (ui = 0; ui < uiNum; ui++)
+	{
+		if (*mauiRemoved.Get(ui))
+		{
+			bRemoved = true;
+			break;
+		}
+	}
+	if (!bRemoved)
+	{
+		return;
+	}
+	BeginLines();
+	for (ui = 0; ui < uiNum; ui++)
+	{
+		KeepLine(ui);
+	}
+	EndLines();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code as it is now, every line but those taken out.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::Write(CChars* pszOut)
+{
+	size	ui;
+
+	for (ui = 0; ui < maszLines.NumElements(); ui++)
+	{
+		WriteLine(pszOut, ui);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts writing the code again: the lines kept (KeepLine) and added
+// (AddLine) from here are the code's when EndLines is called, and until
+// then the code is as it was.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::BeginLines(void)
+{
+	maszNewLines.ReInit();
+	mbLastKept = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code's line uiLine, unless a pass took it out, next in the code
+// being written again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::KeepLine(size uiLine)
+{
+	if (*mauiRemoved.Get(uiLine))
+	{
+		return;
+	}
+	maszNewLines.Add(maszLines.Get(uiLine)->Text());
+	mbLastKept = (uiLine + 1 == maszLines.NumElements());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A new line next in the code being written again.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::AddLine(const char* szText)
+{
+	maszNewLines.Add(szText);
+	mbLastKept = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The code written again is the code, not decoded until the next Analyse.
+// Each line written ended with a new line but the code's last, so without
+// that an empty line ends them.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::EndLines(void)
+{
+	size	ui;
+
+	if (!mbLastKept)
+	{
+		maszNewLines.Add("");
+	}
+	maszLines.ReInit();
+	mauiRemoved.ReInit();
+	for (ui = 0; ui < maszNewLines.NumElements(); ui++)
+	{
+		maszLines.Add(maszNewLines.Get(ui)->Text());
+		mauiRemoved.Add()[0] = 0;
+	}
+	maszNewLines.ReInit();
+	masLines.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes a line out of code not decoded: it isn't written.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Code::Drop(size uiLine)
+{
+	*mauiRemoved.Get(uiLine) = 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the last Analyse could read the code.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIR65Code::IsLoaded(void) const
@@ -450,7 +621,7 @@ bool CIR65Code::IsLoaded(void) const
 //////////////////////////////////////////////////////////////////////////
 size CIR65Code::NumLines(void)
 {
-	return masLines.NumElements();
+	return maszLines.NumElements();
 }
 
 
@@ -622,12 +793,10 @@ bool CIR65Code::Decode(void)
 
 	masLines.ReInit();
 	mauiJumpedBack.ReInit();
-	mauiRemoved.ReInit();
 	for (ui = 0; ui < uiNum; ui++)
 	{
 		psLine = masLines.Add();
 		mauiJumpedBack.Add()[0] = 0;
-		mauiRemoved.Add()[0] = 0;
 		bDecoded = DecodeLine(maszLines.Get(ui), psLine);
 		if (!bDecoded)
 		{

@@ -26,8 +26,8 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "IR65BackendInternal.h"
 
 
-//The 65C64 back end's first and last passes over a function's code text (Peephole, IR65PseudoWithoutW); the
-//passes between are CIR65Flags, CIR65Widths and CIR65Peephole.
+//The 65C64 back end's first and last passes over a function's code (PeepholeCode, IR65PseudoWithoutW): gasIR65Passes
+//(IR65Backend.cpp) has the passes between, CIR65Flags, CIR65Widths and CIR65Peephole.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,30 +39,23 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 // it is done last.
 //
 //////////////////////////////////////////////////////////////////////////
-void IR65PseudoWithoutW(CChars* pszCode, size uiStart)
+bool IR65PseudoWithoutW(CIR65Code* pcCode)
 {
-	CChars				szOut;
-	CChars				szLine;
-	const char*			szText;
-	const char*			szEnd;
-	size				uiLength;
+	CChars*	pszLine;
+	size	ui;
+	bool	bChanged;
 
-	szOut.Init();
-	szText = pszCode->Text() + uiStart;
-	while (*szText != '\0')
+	bChanged = false;
+	for (ui = 0; ui < pcCode->NumLines(); ui++)
 	{
-		szEnd = FindChar(szText, '\n');
-		uiLength = szEnd ? (size)(szEnd - szText + 1) : StrLen(szText);
-		szLine.Init();
-		szLine.Append(szText, uiLength);
-		szLine.Replace(" + W]", "]");
-		szOut.Append(szLine);
-		szLine.Kill();
-		szText += uiLength;
+		pszLine = pcCode->GetText(ui);
+		if (pszLine->Contains(" + W]"))
+		{
+			pszLine->Replace(" + W]", "]");
+			bChanged = true;
+		}
 	}
-	pszCode->SetLength(uiStart);
-	pszCode->Append(szOut);
-	szOut.Kill();
+	return bChanged;
 }
 
 
@@ -154,21 +147,6 @@ static void IR65UpdateWidths(CChars* pszLine, int* aiWidths)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Cleans up the function's code written from uiStart: a value stored to a
-// pseudo register or the frame then read straight back (at 32 bits) is
-// copied from the register it was stored from instead (or not at all into
-// the same register: the store set the same flags).  A branch to the label
-// after it is left for CIR65Peephole (IRRemoveBranchesToNext).
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Backend::Peephole(size uiStart)
-{
-	PeepholeCode(mpszOut, uiStart, &maiBlockLabels, msFrame.bHomeV);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // Whether pszLine (a label) is a block's (one of paiBlockLabels, "Ln:") or
 // the function's own: the registers are 32 bits wide there.  A label in an
 // instruction's code (ShiftSigned's) may be reached with other widths.
@@ -197,14 +175,20 @@ static bool IR65IsBlockLabel(CChars* pszLine, CArrayTemplate<int32>* paiBlockLab
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Peephole on pszCode from uiStart, whose block labels are paiBlockLabels.
-// bHomeV: V is a home there (SIR65Frame::bHomeV).
+//
+// Cleans up pcCode, whose block labels are paiBlockLabels: a value stored to a
+// pseudo register or the frame then read straight back (at 32 bits) is
+// copied from the register it was stored from instead (or not at all into
+// the same register: the store set the same flags).  A branch to the label
+// after it is left for CIR65Peephole (IRRemoveBranchesToNext).
+//
+////////////////////////////////////////////////////////////////////////
+// bHomeV: V is a home there (SIR65Frame::bHomeV).  True if it changed
+// anything.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV)
+bool CIR65Backend::PeepholeCode(CIR65Code* pcCode, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV)
 {
-	CChars			szText;
-	CArrayChars		aszLines;
 	CChars*			pszLine;
 	CChars*			pszNext;
 	CChars			szStored;
@@ -212,22 +196,20 @@ void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<in
 	CChars			szTo;
 	CChars			szLoaded;
 	size			ui;
+	size			uiNum;
 	int				aiWidths[IR65_CODE_REGISTERS];
 	int				iFrom;
 	int				iTo;
 	uint8			uiBase;
 	int32			iOffset;
+	bool			bChanged;
 
-	szText.Init(pszCode->Text() + uiStart);
-	aszLines.Init();
-	szText.SplitLines(&aszLines);
-	szText.Kill();
-	pszCode->SetLength(uiStart);
-
+	bChanged = false;
+	uiNum = pcCode->NumLines();
 	IR65ResetWidths(aiWidths);
-	for (ui = 0; ui < aszLines.NumElements(); ui++)
+	for (ui = 0; ui < uiNum; ui++)
 	{
-		pszLine = aszLines.Get(ui);
+		pszLine = pcCode->GetText(ui);
 		if (!pszLine->StartsWith("\t\t"))
 		{
 			//Each block starts with all four 32 bits wide; at another label they aren't known.
@@ -242,11 +224,13 @@ void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<in
 		}
 		else if (pszLine->Length() == 2)
 		{
+			pcCode->Drop(ui);
+			bChanged = true;
 			continue;
 		}
-		else if (ui + 1 < aszLines.NumElements())
+		else if (ui + 1 < uiNum)
 		{
-			pszNext = aszLines.Get(ui + 1);
+			pszNext = pcCode->GetText(ui + 1);
 			szStored.Init();
 			szFrom.Init();
 			szTo.Init();
@@ -263,6 +247,7 @@ void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<in
 					{
 						pszNext->Append("cpy ")->Append(szTo)->Append(", ")->Append(szFrom);
 					}
+					bChanged = true;
 				}
 			}
 			szLoaded.Kill();
@@ -271,12 +256,24 @@ void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<in
 			szStored.Kill();
 		}
 		IR65UpdateWidths(pszLine, aiWidths);
-		pszCode->Append(*pszLine);
-		if (ui + 1 < aszLines.NumElements())
-		{
-			//The last piece is what follows the last new line.
-			pszCode->AppendNewLine();
-		}
 	}
-	aszLines.Kill();
+	return bChanged;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PeepholeCode on pszCode from uiStart, written again.  For the tests.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::PeepholeCode(CChars* pszCode, size uiStart, CArrayTemplate<int32>* paiBlockLabels, bool bHomeV)
+{
+	CIR65Code	cCode;
+
+	cCode.Init();
+	cCode.SetText(pszCode, uiStart);
+	PeepholeCode(&cCode, paiBlockLabels, bHomeV);
+	pszCode->SetLength(uiStart);
+	cCode.Write(pszCode);
+	cCode.Kill();
 }

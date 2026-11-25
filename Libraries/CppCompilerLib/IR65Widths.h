@@ -34,21 +34,19 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CIR65Widths
 {
 protected:
-	CIR65Code				mcCode;
+	CIR65Code*				mpcCode;		//The code the pass runs over (Run).
 	CArrayTemplate<uint8>	mauiDemand;		//Per line: the flags read after it before they are set.
 	CArrayIR65Widths		masLive;		//Per line: the bits read from its start before they are written (CIR65Code::Bands).
 	CArrayIR65Widths		masEntries;		//Per line: a label's widths as the new code reaches it (0 unknown or undecided).
 	CArrayTemplate<uint8>	mauiArrived;	//Per line: 1 for a label the new code has reached (Arrive), or a loop's with its entry decided.
 	SIR65Widths				msActual;		//The widths the new code has set.
-	CChars*					mpszOut;
 
 public:
 	void	Init(void);
-	void	SetExceptions(bool bExceptions);
 	void	Kill(void);
 
+	bool	Run(CIR65Code* pcCode);
 	void	Optimise(CChars* pszCode, size uiStart);
-	bool	IsLoaded(void) const;
 
 protected:
 	void	NarrowExtensions(void);

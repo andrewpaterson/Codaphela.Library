@@ -143,10 +143,11 @@ struct SIR65Widths
 typedef CArrayTemplate<SIR65Widths>	CArrayIR65Widths;
 
 
-//A function's 65C64 code as the back end wrote it (from its label on), decoded line by line for the passes over
-//the text (CIR65Flags, CIR65Widths), with the widths each line runs at.  Load fails for code with an instruction
-//it doesn't know, a branch out of the function, or a register used at a width that depends on the way the line was
-//reached; the passes leave such code as it is.  It is a CIRBranchCode for the branch passes both back ends share.
+//A function's 65C64 code as the back end wrote it (from its label on), a line at a time (SetText), for the passes
+//over it (CIR65Backend's gasIR65Passes); each pass that needs the lines decoded, with the widths each runs at,
+//analyses them first (Analyse).  That fails for code with an instruction it doesn't know, a branch out of the
+//function, or a register used at a width that depends on the way the line was reached; the passes leave such code
+//as it is.  It is a CIRBranchCode for the branch passes both back ends share.
 class CIR65Code : public CIRBranchCode
 {
 protected:
@@ -157,6 +158,8 @@ protected:
 	bool					mbLoaded;		//The last Load could read the code.
 	CArrayTemplate<uint8>	mauiJumpedBack;	//Per line: 1 for a label a branch after it goes to.
 	CArrayTemplate<uint8>	mauiRemoved;	//Per line: 1 for a line a pass took out (now IR65CK_Other).
+	CArrayChars				maszNewLines;	//The lines a pass is writing the code again as (BeginLines)...
+	bool					mbLastKept;		//...and whether the last of them is the code's last line.
 	CHashMapString<int32>	mmLabels;		//Label name to line.
 	bool					mbReturnReadsCarry;	//A ret reads c: the caller's thrown (a program built with exceptions).
 
@@ -166,7 +169,15 @@ public:
 	void			SetReturnReadsCarry(bool bReads);
 
 	bool			Load(CChars* pszCode, size uiStart, bool bConflicts);
+	void			SetText(CChars* pszCode, size uiStart);
+	bool			Analyse(bool bConflicts);
 	bool			IsLoaded(void) const;
+	void			Write(CChars* pszOut);
+	void			BeginLines(void);
+	void			KeepLine(size uiLine);
+	void			AddLine(const char* szText);
+	void			EndLines(void);
+	void			Drop(size uiLine);
 
 	size			NumLines(void) override;
 	EIRCodeFlow		Flow(size uiLine) override;
@@ -202,6 +213,7 @@ public:
 	static bool		IsCopyExtendAddress(CChars* pszOperand);
 
 protected:
+	void			Compact(void);
 	bool			Decode(void);
 	bool			DecodeLine(CChars* pszLine, SIR65CodeLine* psLine);
 	bool			ComputeWidths(void);

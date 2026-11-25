@@ -59,22 +59,11 @@ static bool IR65FlagsIsCompare(SIR65CodeLine* psLine)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// With exceptions a ret reads the carry: the caller's thrown.
-//
-//////////////////////////////////////////////////////////////////////////
-void CIR65Flags::SetExceptions(bool bExceptions)
-{
-	mcCode.SetReturnReadsCarry(bExceptions);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Flags::Init(void)
 {
-	mcCode.Init();
+	mpcCode = NULL;
 	masStates.Init();
 	mauiDemand.Init();
 }
@@ -88,61 +77,60 @@ void CIR65Flags::Kill(void)
 {
 	mauiDemand.Kill();
 	masStates.Kill();
-	mcCode.Kill();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Rewrites the function's code from uiStart (its label first) without the
-// compares whose flags are already set.  Code with anything it doesn't know
-// is left as it is.
+// Takes the compares whose flags are already set out of pcCode; true if
+// any went.  Code with anything it doesn't know is left as it is.
 //
 //////////////////////////////////////////////////////////////////////////
-void CIR65Flags::Optimise(CChars* pszCode, size uiStart)
+bool CIR65Flags::Run(CIR65Code* pcCode)
 {
-	size	ui;
 	int		iRound;
 	bool	bRemoved;
 
-	if (!mcCode.Load(pszCode, uiStart, false))
+	mpcCode = pcCode;
+	if (!mpcCode->Analyse(false))
 	{
-		return;
+		return false;
 	}
 
 	bRemoved = false;
 	for (iRound = 0; iRound < IR65_FLAG_ROUNDS; iRound++)
 	{
 		ComputeStates();
-		mcCode.ComputeFlagDemand(&mauiDemand);
+		mpcCode->ComputeFlagDemand(&mauiDemand);
 		if (!RemoveCompares())
 		{
 			break;
 		}
 		bRemoved = true;
 	}
-	if (!bRemoved)
-	{
-		return;
-	}
-
-	pszCode->SetLength(uiStart);
-	for (ui = 0; ui < mcCode.NumLines(); ui++)
-	{
-		mcCode.WriteLine(pszCode, ui);
-	}
+	return bRemoved;
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the last Optimise could read the code it was given (it left the
-// code as it was if not).
+// The pass on pszCode from uiStart (its label first), as a whole function:
+// its code is written again if it could be read.  For the tests.
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIR65Flags::IsLoaded(void) const
+void CIR65Flags::Optimise(CChars* pszCode, size uiStart)
 {
-	return mcCode.IsLoaded();
+	CIR65Code	cCode;
+
+	cCode.Init();
+	cCode.SetText(pszCode, uiStart);
+	Run(&cCode);
+	if (cCode.IsLoaded())
+	{
+		pszCode->SetLength(uiStart);
+		cCode.Write(pszCode);
+	}
+	cCode.Kill();
 }
 
 
@@ -165,7 +153,7 @@ void CIR65Flags::ComputeStates(void)
 	SIR65CodeLine*	psLine;
 	bool			bChanged;
 
-	uiNum = mcCode.NumLines();
+	uiNum = mpcCode->NumLines();
 	masStates.ReInit();
 	for (ui = 0; ui < uiNum; ui++)
 	{
@@ -178,15 +166,15 @@ void CIR65Flags::ComputeStates(void)
 		bChanged = false;
 		for (ui = 0; ui < uiNum; ui++)
 		{
-			if (!mcCode.IsReached(ui) || (masStates.Get(ui)->uiKind == IR65FK_Unknown))
+			if (!mpcCode->IsReached(ui) || (masStates.Get(ui)->uiKind == IR65FK_Unknown))
 			{
 				continue;
 			}
-			psLine = mcCode.GetLine(ui);
+			psLine = mpcCode->GetLine(ui);
 			sState = *masStates.Get(ui);
 			Transfer(ui, &sState);
 
-			auiTo[0] = (mcCode.FallsThrough(ui) && (ui + 1 < uiNum)) ? ui + 1 : uiNum;
+			auiTo[0] = (mpcCode->FallsThrough(ui) && (ui + 1 < uiNum)) ? ui + 1 : uiNum;
 			auiTo[1] = (psLine->iTarget >= 0) ? (size)psLine->iTarget : uiNum;
 			for (iTo = 0; iTo < 2; iTo++)
 			{
@@ -240,9 +228,9 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 	int				i;
 	bool			bWritesMemory;
 
-	psLine = mcCode.GetLine(uiLine);
-	sWidths = *mcCode.GetWidths(uiLine);
-	mcCode.Effect(uiLine, &sWidths, &sReads, &sWrites, &uiUses);
+	psLine = mpcCode->GetLine(uiLine);
+	sWidths = *mpcCode->GetWidths(uiLine);
+	mpcCode->Effect(uiLine, &sWidths, &sReads, &sWrites, &uiUses);
 
 	if (psLine->uiFlagsWritten != 0)
 	{
@@ -257,7 +245,7 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 			if (IsCompareWithZero(uiLine))
 			{
 				psState->iRegister = psLine->iFirst;
-				psState->uiBits = mcCode.GetWidths(uiLine)->auiRegisters[psLine->iFirst];
+				psState->uiBits = mpcCode->GetWidths(uiLine)->auiRegisters[psLine->iFirst];
 			}
 		}
 		else if (psLine->bResultFlags && (psLine->iFirst >= 0))
@@ -265,8 +253,8 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 			//The value written to the register, at the operation's width (the register's).
 			psState->uiKind = IR65FK_Value;
 			psState->iRegister = psLine->iFirst;
-			psState->uiBits = mcCode.GetWidths(uiLine)->auiRegisters[psLine->iFirst];
-			if (!psLine->bReadsFirst && (psLine->uiKind == IR65CK_Alu) && (psLine->iSecond >= 0) && (mcCode.GetWidths(uiLine)->auiRegisters[psLine->iSecond] >= psState->uiBits))
+			psState->uiBits = mpcCode->GetWidths(uiLine)->auiRegisters[psLine->iFirst];
+			if (!psLine->bReadsFirst && (psLine->uiKind == IR65CK_Alu) && (psLine->iSecond >= 0) && (mpcCode->GetWidths(uiLine)->auiRegisters[psLine->iSecond] >= psState->uiBits))
 			{
 				//cpy R1, R2: R2 is the same value at R1's width.
 				psState->iCopy = psLine->iSecond;
@@ -277,7 +265,7 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 			//cpy [m], R: the value stored, R at its width.
 			psState->uiKind = IR65FK_Value;
 			psState->iRegister = psLine->iSecond;
-			psState->uiBits = mcCode.GetWidths(uiLine)->auiRegisters[psLine->iSecond];
+			psState->uiBits = mpcCode->GetWidths(uiLine)->auiRegisters[psLine->iSecond];
 		}
 		return;
 	}
@@ -294,7 +282,7 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 	if (psState->uiKind == IR65FK_Compare)
 	{
 		//The compare's operands must not change: its registers, and memory if it reads any.
-		psCompare = mcCode.GetLine(psState->iCompare);
+		psCompare = mpcCode->GetLine(psState->iCompare);
 		uiCompareUses = psCompare->uiAddresses;
 		if (psCompare->iFirst >= 0)
 		{
@@ -313,7 +301,7 @@ void CIR65Flags::Transfer(size uiLine, SIR65FlagState* psState)
 			}
 		}
 		bWritesMemory = psLine->bFirstMemory && (psLine->bWritesFirst || (psLine->uiKind == IR65CK_Pull));
-		if (bWritesMemory && mcCode.OperandsHave(psState->iCompare, "["))
+		if (bWritesMemory && mpcCode->OperandsHave(psState->iCompare, "["))
 		{
 			psState->uiKind = IR65FK_None;
 		}
@@ -340,19 +328,19 @@ bool CIR65Flags::MovesCompareBase(size uiLine, size uiCompare)
 	size		uiLength;
 	bool		bMoves;
 
-	if (mcCode.OperandsHave(uiCompare, "+ S]"))
+	if (mpcCode->OperandsHave(uiCompare, "+ S]"))
 	{
 		return true;
 	}
-	szPulled = mcCode.OperandsText(uiLine, &uiLength);
-	if ((mcCode.GetLine(uiLine)->uiKind != IR65CK_Pull) || (uiLength < 1) || ((uiLength >= 2) && (szPulled[uiLength - 2] != ' ')))
+	szPulled = mpcCode->OperandsText(uiLine, &uiLength);
+	if ((mpcCode->GetLine(uiLine)->uiKind != IR65CK_Pull) || (uiLength < 1) || ((uiLength >= 2) && (szPulled[uiLength - 2] != ' ')))
 	{
 		return false;
 	}
 	szBase.Init("+ ");
 	szBase.Append(szPulled[uiLength - 1]);
 	szBase.Append(']');
-	bMoves = mcCode.OperandsHave(uiCompare, szBase.Text());
+	bMoves = mpcCode->OperandsHave(uiCompare, szBase.Text());
 	szBase.Kill();
 	return bMoves;
 }
@@ -377,21 +365,21 @@ bool CIR65Flags::RemoveCompares(void)
 
 	bRemoved = false;
 	auiNew.Init();
-	for (ui = 0; ui < mcCode.NumLines(); ui++)
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
 	{
 		auiNew.Add()[0] = 0;
 	}
-	for (ui = 0; ui < mcCode.NumLines(); ui++)
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
 	{
-		psLine = mcCode.GetLine(ui);
-		if (!mcCode.IsReached(ui) || !IR65FlagsIsCompare(psLine))
+		psLine = mpcCode->GetLine(ui);
+		if (!mpcCode->IsReached(ui) || !IR65FlagsIsCompare(psLine))
 		{
 			continue;
 		}
 		psState = masStates.Get(ui);
 		if (IsCompareWithZero(ui) && ((psState->uiKind == IR65FK_Value) || (psState->uiKind == IR65FK_Compare)) && ((psState->iRegister == psLine->iFirst) || (psState->iCopy == psLine->iFirst)))
 		{
-			uiBits = mcCode.GetWidths(ui)->auiRegisters[psLine->iFirst];
+			uiBits = mpcCode->GetWidths(ui)->auiRegisters[psLine->iFirst];
 			if ((psState->uiBits == uiBits) && ((*mauiDemand.Get(ui) & ~(IR65_FLAG_N | IR65_FLAG_Z)) == 0))
 			{
 				*auiNew.Get(ui) = 1;
@@ -404,10 +392,10 @@ bool CIR65Flags::RemoveCompares(void)
 			bRemoved = true;
 		}
 	}
-	for (ui = 0; ui < mcCode.NumLines(); ui++)
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
 	{
-		psLine = mcCode.GetLine(ui);
-		if (!mcCode.IsReached(ui) || *auiNew.Get(ui) || !IR65FlagsIsCompare(psLine))
+		psLine = mpcCode->GetLine(ui);
+		if (!mpcCode->IsReached(ui) || *auiNew.Get(ui) || !IR65FlagsIsCompare(psLine))
 		{
 			continue;
 		}
@@ -418,11 +406,11 @@ bool CIR65Flags::RemoveCompares(void)
 			bRemoved = true;
 		}
 	}
-	for (ui = 0; ui < mcCode.NumLines(); ui++)
+	for (ui = 0; ui < mpcCode->NumLines(); ui++)
 	{
 		if (*auiNew.Get(ui))
 		{
-			mcCode.Remove(ui);
+			mpcCode->Remove(ui);
 		}
 	}
 	auiNew.Kill();
@@ -446,17 +434,17 @@ bool CIR65Flags::FollowsFixedWidthResult(size uiLine)
 	size			uiLength;
 	char			cRegister;
 
-	if ((uiLine == 0) || !(mcCode.IsWith(uiLine, IR65M_Cmp, "V, 0") || mcCode.IsWith(uiLine, IR65M_Cmp, "W, 0")))
+	if ((uiLine == 0) || !(mpcCode->IsWith(uiLine, IR65M_Cmp, "V, 0") || mpcCode->IsWith(uiLine, IR65M_Cmp, "W, 0")))
 	{
 		return false;
 	}
-	cRegister = mcCode.OperandsText(uiLine, &uiLength)[0];
-	psBefore = mcCode.GetLine(uiLine - 1);
-	if (!mcCode.IsReached(uiLine - 1) || (psBefore->uiKind != IR65CK_Alu) || !psBefore->bResultFlags || !psBefore->bWritesFirst || psBefore->bFirstMemory)
+	cRegister = mpcCode->OperandsText(uiLine, &uiLength)[0];
+	psBefore = mpcCode->GetLine(uiLine - 1);
+	if (!mpcCode->IsReached(uiLine - 1) || (psBefore->uiKind != IR65CK_Alu) || !psBefore->bResultFlags || !psBefore->bWritesFirst || psBefore->bFirstMemory)
 	{
 		return false;
 	}
-	szOperand = mcCode.OperandsText(uiLine - 1, &uiLength);
+	szOperand = mpcCode->OperandsText(uiLine - 1, &uiLength);
 	return (uiLength >= 2) && (szOperand[0] == cRegister) && (szOperand[1] == ',');
 }
 
@@ -470,8 +458,8 @@ bool CIR65Flags::IsCompareWithZero(size uiLine)
 {
 	SIR65CodeLine*	psLine;
 
-	psLine = mcCode.GetLine(uiLine);
-	return IR65FlagsIsCompare(psLine) && (psLine->iFirst >= 0) && IR65FlagsEndsWith(&mcCode, uiLine, ", 0");
+	psLine = mpcCode->GetLine(uiLine);
+	return IR65FlagsIsCompare(psLine) && (psLine->iFirst >= 0) && IR65FlagsEndsWith(mpcCode, uiLine, ", 0");
 }
 
 
@@ -489,15 +477,15 @@ bool CIR65Flags::SameCompare(size uiLine1, size uiLine2)
 	uint8		uiUses;
 	int			i;
 
-	if (!mcCode.SameInstruction(uiLine1, uiLine2))
+	if (!mpcCode->SameInstruction(uiLine1, uiLine2))
 	{
 		return false;
 	}
-	sWidths = *mcCode.GetWidths(uiLine2);
-	mcCode.Effect(uiLine2, &sWidths, &sReads, &sWrites, &uiUses);
+	sWidths = *mpcCode->GetWidths(uiLine2);
+	mpcCode->Effect(uiLine2, &sWidths, &sReads, &sWrites, &uiUses);
 	for (i = 0; i < IR65_CODE_REGISTERS; i++)
 	{
-		if ((uiUses & (1 << i)) && (mcCode.GetWidths(uiLine1)->auiRegisters[i] != mcCode.GetWidths(uiLine2)->auiRegisters[i]))
+		if ((uiUses & (1 << i)) && (mpcCode->GetWidths(uiLine1)->auiRegisters[i] != mpcCode->GetWidths(uiLine2)->auiRegisters[i]))
 		{
 			return false;
 		}

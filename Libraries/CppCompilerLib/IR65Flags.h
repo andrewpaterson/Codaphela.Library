@@ -55,17 +55,16 @@ typedef CArrayTemplate<SIR65FlagState>	CArrayIR65FlagStates;
 class CIR65Flags
 {
 protected:
-	CIR65Code				mcCode;
+	CIR65Code*				mpcCode;		//The code the pass runs over (Run).
 	CArrayIR65FlagStates	masStates;		//Per line: what the flags hold as it starts.
 	CArrayTemplate<uint8>	mauiDemand;		//Per line: the flags read after it before they are set (IR65_FLAG_ bits).
 
 public:
 	void	Init(void);
-	void	SetExceptions(bool bExceptions);
 	void	Kill(void);
 
+	bool	Run(CIR65Code* pcCode);
 	void	Optimise(CChars* pszCode, size uiStart);
-	bool	IsLoaded(void) const;
 
 protected:
 	void	ComputeStates(void);
