@@ -459,6 +459,38 @@ record.  The listings' baseline is taken again at stage 17's start: deca26453 (W
    (what each asks, by function) is made at its start and again at the end: what each still asks the unit for is
    the unit's own (the queue, the options).
 
+   Counted again 2026-11-25, only what needs friendship (the unit's protected members through mpcUnit->; what a
+   public getter gives, GetContext() and its kin, doesn't): the instantiator 143, CCPPCheck 134, the class data
+   111, the desugarings 71, the folder 52, the closures 49, the type checker 46, the warnings and the exceptions
+   33 each, the binder 27, the strings 19, the builtins 10.  Most are of members that have getters already, and
+   the same few pieces are wanted by most: the diagnostics, the context, the types, the tokeniser.
+
+   The steps, each a commit proved alone (the listings, the diagnostics, the suite) as stage 23's were, smallest
+   first so the way each friend is given its pieces is settled on the small ones:
+
+   a. The pieces most friends want, given in Init: the diagnostics, the context, the types and the tokeniser,
+      kept as the type checker and the interpreter keep mpcDiagnostics.  Each friend's Init takes what it uses;
+      a getter use (GetContext()) of a piece it is given becomes its own member's.  This step settles the shape
+      on the builtins (10: mpcTokeniser 5, mcTypes 3, mpcOptions 1, mcFolder 1), which stop being a friend.
+   b. The strings (19: mcTypes 6, mpcTokeniser 5, mcDiagnostics 5, mcContext 2).
+   c. The binder (27: mcDiagnostics 11, mcTypeChecker 9, mcBinder 6): its asks of the type checker are the
+      type checker's, given; mcBinder is itself, through the unit.
+   d. The exceptions (33: mcDiagnostics 16, mcBinder 8, mcDeclarators 4).
+   e. The warnings (33: mcDiagnostics 12, mcContext 11, mcFolder 8).
+   f. The type checker (46: mcTypes 17, mpcStatistics 7, mcDiagnostics 7, mpcTypeInfo 3).
+   g. The closures (49: mcDiagnostics 18, mcContext 11, mcDeclarators 9, mcTypes 6).
+   h. The folder (52: mcContext 16, mcTypes 10, mpcConstants 9, mcDiagnostics 6).
+   i. The desugarings (71: mcTypes 13, mpcTree 10, mpcTokeniser 10, mcDiagnostics 10).
+   j. The class data (111: mcData 81, mcMangler 15, mszThunks 10, mpcTarget 3): the unit's data writer (mcData)
+      is given it, which is most of its asks; the thunks may be its own.
+   k. CCPPCheck (134: mcDiagnostics 53, mpcTokeniser 16, mcContext 14, mpcObserver 7).
+   l. The instantiator (143: mcDiagnostics 39, mcContext 35, mapcTemplates 23, mcMangler 8): whether the
+      templates (mapcTemplates) are the instantiator's own rather than the unit's is read at this step.
+   m. The debug writer (CCPP65DebugWriter, not a friend: Init(this)) is given the three things it asks the
+      unit for.
+   n. The end: CPPUnit.h has no friend lines, and the count is made again, by function, of what each class
+      still asks the unit (the queue, the options).  Stage 24's record.
+
 25. The end.  (S)
 
    The findings' "Since:" lines, and this part's last table, as stage 16 did.
