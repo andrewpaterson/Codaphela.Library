@@ -604,8 +604,41 @@ Stage 8.  The back ends' code is instructions.  (L-XL; in full, in two halves: t
       the carry cleared, as they would have been after it) in their places.
    7. IR816Decode, CIRW65C816Code's text ways and SIRW65C816Line's operand into the text go.  The pass list:
       GenerateBody's passes as entries of a list that runs and times each, in the order they run now.
-   The steps of 8b are the same over CIR65Code, and then CIRSourceMarkers goes; they are written out when 8a is
-   done, from what it found.
+   The steps of 8b, written 2026-11-25 from what 8a found and from the 65C64's code as it is (read at 62f8d0aad).
+   The 65C64 holds its code otherwise than the W65C816 did: CIR65Code keeps each line's text and what DecodeLine
+   made of it (a kind, the operands' registers, widths and flags), with no table of mnemonics; its passes change
+   lines by text (Replace, Branch by a mnemonic's name, WriteLine); each pass (CIR65Flags, CIR65Widths,
+   CIR65Peephole) loads the text for itself, about three loads a function, and the back end's Peephole and
+   IR65PseudoWithoutW work on the whole text with strstr.  The selector writes through Line, which returns the text
+   for its callers to append the operands to (about 200 calls in ten files, and the operand writers,
+   MemoryOperand and the like, append to the text themselves).  The B home's check (CheckHomeB) finds the code
+   each instruction wrote by offsets in the text (masChunks).  The steps, each proved by the listings being the
+   same as 8a's were, but for step 7 (and step 6's comments):
+   1. The mnemonics.  A table of the 65C64's mnemonics (EIR65Mnemonic: name, kind, what DecodeLine sets for it)
+      and each line's mnemonic and operands kept as fields beside its decoding; ways to read and change a line by
+      mnemonic and operands, as CIRW65C816Code's.  The text is still what the code is.
+   2. The passes over CIR65Code (CIR65Flags, CIR65Widths, CIR65Peephole) read and change lines by those fields:
+      GetText, Replace, Branch by name and WriteLine go from them.
+   3. One code for every pass: GenerateFunction loads the function's text once into a CIR65Code and the passes
+      run over it from a list that counts and times each (as gasIR816Passes); the back end's Peephole and
+      IR65PseudoWithoutW become passes over the code.  Written back once.
+   4. A line is its fields: the decoding is made from the mnemonic and operands, not from text, and a printer
+      writes the line.
+   5. The selector writes instructions: Line's callers give a mnemonic and operands (the operand writers build
+      operands, not lines), labels and directives by their parts; CheckHomeB's chunks are lines of the code;
+      writing the body again for B as a home starts the code again.  GenerateFunction no longer loads text.
+      A line DecodeLine wouldn't know is still noted, so the passes still leave such a function alone and the
+      output stays the same.
+   6. The markers are fields, on both processors: each instruction's source position, and the place markers
+      where they come, printed where they change; CIRSourceMarkers and the W65C816's RetakeMarkers go.  A
+      listing's comments may move: the listings are compared without them as well and the moves read, and
+      TestCppCompilerLib's walks of its programs' stacks and the debugger's tests say whether the line tables
+      are right.
+   7. The refusals go: a function with a line the passes didn't know is now passed over like any other, so the
+      65C64's code may change (measured: the suites' cycles and sizes on the 65C64, the listings that differ
+      read).  DecodeLine and the text ways stay only as the reader the tests give their text to.  CIRBranchCode's
+      passes run over both processors' code in the lists.  The 65C64's DescribeFrame from what is kept when the
+      function is written, as the W65C816's.
 
    8a done 2026-11-25 (Progress has the record).  The steps were done in another order than written: 4 first
    (the passes read and change the code by its fields while the text was still what the code was, so each change
