@@ -72,6 +72,8 @@ void CIR65Backend::Init(CIRModule* pcModule, int* piLabels, CScratchPadAllocator
 	mpcWriting = &mcCode;
 	muiPending = IR65M_Unknown;
 	mszPending.Init();
+	mbPrologue = false;
+	miPrologueLines = 0;
 	mcHead.SetMarkers(&mcMarkers);
 	mcCode.SetMarkers(&mcMarkers);
 	mcFlags.Init();
@@ -240,6 +242,7 @@ bool CIR65Backend::GenerateFunction(CIRFunction* pcFunction, const char* szLabel
 	mpcModule->Begin(CPPCP_CodePasses);
 	mcCode.SetReturnReadsCarry(mpcOptions->mbExceptions);
 	RunPasses();
+	KeepPrologue();
 	mcHead.WriteLines(pszDest);
 	mcCode.Write(pszDest);
 	mpszOut = pszDest;
@@ -300,6 +303,41 @@ void CIR65Backend::RunPasses(void)
 			pcStatistics->CountPass((int)(IRP_NumPasses + ui), gasIR65Passes[ui].szName, bChanged, CPP_NO_ROUND, pcStatistics->Now() - lliStart);
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the body's code after the passes starts with its label and the
+// frame's prologue as FramePrologue writes it (mbPrologue), and its lines,
+// for DescribeFrame.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Backend::KeepPrologue(void)
+{
+	CIR65Code	cPrologue;
+	size		ui;
+	size		uiLine;
+
+	cPrologue.Init();
+	FramePrologue(&cPrologue, &msFrame);
+	miPrologueLines = (int32)cPrologue.NumLines();
+	mbPrologue = true;
+	uiLine = 1;
+	for (ui = 0; ui < cPrologue.NumLines(); ui++)
+	{
+		while ((uiLine < mcCode.NumLines()) && mcCode.IsRemoved(uiLine))
+		{
+			uiLine++;
+		}
+		if ((uiLine >= mcCode.NumLines()) || (mcCode.WrittenMnemonic(uiLine) != cPrologue.WrittenMnemonic(ui)) || !mcCode.LineText(uiLine)->Equals(cPrologue.LineText(ui)->Text()))
+		{
+			mbPrologue = false;
+			break;
+		}
+		uiLine++;
+	}
+	cPrologue.Kill();
 }
 
 
@@ -822,6 +860,19 @@ void CIR65Backend::FramePrologue(CIR65Code* pcCode, SIR65Frame* psFrame)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// No prologue known to be as written (DescribeFrame then follows the code).
+//
+//////////////////////////////////////////////////////////////////////////
+void CIR65Written::Init(void)
+{
+	CIRWrittenFunction::Init();
+	mbPrologue = false;
+	miPrologueLines = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The function's frame for a debugger, its variables' slots' places, and a
 // register function's body as an entry of its own (its stub may call it
 // after pushing what it was given).
@@ -834,6 +885,8 @@ CIRWrittenFunction* CIR65Backend::TakeWritten(void)
 	pcWritten = NewMalloc<CIR65Written>();
 	pcWritten->Init();
 	pcWritten->msFrame = msFrame;
+	pcWritten->mbPrologue = mbPrologue;
+	pcWritten->miPrologueLines = miPrologueLines;
 	AddVariableSlots(pcWritten);
 	if (!mszBodyLabel.Empty())
 	{
@@ -925,39 +978,50 @@ bool CIR65Backend::DebugPlace(SIRReference sValue, CChars* pszPlace)
 // below it (a frame of its own: .dframe V, its variables from V too), or
 // found by following its code (frameless, V a home or untouched); what it
 // pushed is saved there (.dsaved): the caller's V, and each [$80 + W]
-// unit it keeps.  A prologue not as it was written is described by
+// unit it keeps.  A prologue the passes changed (what was kept when the
+// function was written, CIR65Written::mbPrologue) is described by
 // following it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIR65Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWrittenFunction* pcWritten)
 {
-	SIR65Frame*	psFrame;
-	CChars		szPrologue;
-	CChars		szDirectives;
-	size		uiAt;
-	int32		iBelow;
-	int32		iUnit;
+	CIR65Written*	pcWritten65;
+	SIR65Frame*		psFrame;
+	CChars			szDirectives;
+	size			uiAt;
+	int32			iLines;
+	int32			iBelow;
+	int32			iUnit;
+	const char*		szEnd;
 
 	if (!pcWritten)
 	{
 		return;
 	}
-	psFrame = &((CIR65Written*)pcWritten)->msFrame;
+	pcWritten65 = (CIR65Written*)pcWritten;
+	psFrame = &pcWritten65->msFrame;
 	uiAt = CCPP65DebugWriter::FindAfterLabel(pszCode->Text(), (pcWritten->NumEntries() > 0) ? pcWritten->GetEntry(0) : szLabel);
 	if (uiAt == MAX_SIZE)
 	{
 		return;
 	}
-	szPrologue.Init();
-	AppendFramePrologue(&szPrologue, psFrame);
 	szDirectives.Init();
-	if (strncmp(pszCode->Text() + uiAt, szPrologue.Text(), szPrologue.Length()) != 0)
+	if (!pcWritten65->mbPrologue)
 	{
 		szDirectives.Append("\t\t.dframe none")->AppendNewLine();
 	}
 	else
 	{
-		uiAt += szPrologue.Length();
+		//After the prologue's lines, past the marker lines among them.
+		for (iLines = 0; (iLines < pcWritten65->miPrologueLines) && (pszCode->Text()[uiAt] != '\0'); )
+		{
+			if (!IRIsMarkerLine(pszCode->Text() + uiAt))
+			{
+				iLines++;
+			}
+			szEnd = strchr(pszCode->Text() + uiAt, '\n');
+			uiAt = szEnd ? (size)(szEnd - pszCode->Text()) + 1 : pszCode->Length();
+		}
 		iBelow = 4;
 		if (psFrame->bHomeV || !psFrame->bFrameless)
 		{
@@ -985,7 +1049,6 @@ void CIR65Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRWritte
 	}
 	pszCode->Insert(uiAt, &szDirectives);
 	szDirectives.Kill();
-	szPrologue.Kill();
 }
 
 

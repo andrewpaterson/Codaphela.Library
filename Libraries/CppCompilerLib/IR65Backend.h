@@ -237,11 +237,17 @@ struct SIR65Frame
 //pushed last first at their own size and the caller removes them, this in X for a thiscall, the result in A (all 8
 //bytes of a 64 bit one).  Labels are L and a number from the generator's
 //counter; the soft float routines called are added to its runtime list.
-//What the 65C64 back end keeps of a function it wrote (CIRBackend::TakeWritten): its frame, for a debugger.
+//What the 65C64 back end keeps of a function it wrote (CIRBackend::TakeWritten): its frame, for a debugger, and
+//whether the prologue that makes it is after the body's label as written (miPrologueLines lines) or the passes
+//changed it.
 class CIR65Written : public CIRWrittenFunction
 {
 public:
 	SIR65Frame	msFrame;
+	bool		mbPrologue;
+	int32		miPrologueLines;
+
+	void	Init(void);
 };
 
 
@@ -289,6 +295,8 @@ protected:
 	CIR65Code				mcCode;				//The function's body (from its label) as it is written and the passes change it (RunPasses).
 	CIR65Code				mcHead;				//A register function's label, stub and directive, before the body.
 	CIR65Code*				mpcWriting;			//The one of them being written.
+	bool					mbPrologue;			//The frame's prologue is after the body's label as written, after the passes...
+	int32					miPrologueLines;	//...in this many lines (KeepPrologue).
 	uint8					muiPending;			//The instruction being written (Line), not in the code yet (IR65M_Unknown for none)...
 	CChars					mszPending;			//...and its operands as far as they are written.
 	CIR65Flags				mcFlags;
@@ -328,6 +336,7 @@ protected:
 	bool				ConstantPtrAdd(SIRInstruction* psInstruction);
 	void				CopyAddresses(void);
 	void				RunPasses(void);
+	void				KeepPrologue(void);
 	void				CountLoaded(bool bLoaded);
 	void				Prologue(const char* szLabel);
 	int32				VariableSlotPlace(SIRInstruction* psSlot) override;

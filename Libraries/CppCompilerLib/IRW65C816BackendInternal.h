@@ -229,7 +229,6 @@ void		IR816AppendRegisterFrameEntry(CChars* psz, int32 iRegisterWords, int32 iFr
 void		IR816AppendFrameExit(CChars* psz, int32 iFrameBytes);
 void		IR816TidyExits(CChars* pszCode, bool bNoResult);
 int32		IR816CountLines(const char* szText);
-bool		IR816IsMarkerLine(const char* szLine);
 void		IR816TidyExits(CIRW65C816Code* pcCode, bool bNoResult);
 void		IR816CopyLines(CIRW65C816Code* pcTo, CIRW65C816Code* pcFrom, size uiFrom, size uiTo);
 void		IR816ClearExitCarries(CChars* pszCode, size uiStart);

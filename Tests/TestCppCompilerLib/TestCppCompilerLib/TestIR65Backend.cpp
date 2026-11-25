@@ -2190,6 +2190,7 @@ static void AssertIR65DescribedFrame(const char* szExpected, bool bHomeV, bool b
 	CIR65Backend	cBackend;
 	CIR65Written*	pcWritten;
 	CChars			szCode;
+	CIR65Code		cPrologue;
 
 	pcWritten = NewMalloc<CIR65Written>();
 	pcWritten->Init();
@@ -2198,6 +2199,13 @@ static void AssertIR65DescribedFrame(const char* szExpected, bool bHomeV, bool b
 	pcWritten->msFrame.iFrameBytes = iFrameBytes;
 	pcWritten->msFrame.uiSaved = uiSaved;
 	pcWritten->msFrame.SetFrameless(bFrameless);
+
+	//The prologue as written, as the back end keeps it (KeepPrologue).
+	cPrologue.Init();
+	CIR65Backend::FramePrologue(&cPrologue, &pcWritten->msFrame);
+	pcWritten->mbPrologue = true;
+	pcWritten->miPrologueLines = (int32)cPrologue.NumLines();
+	cPrologue.Kill();
 	szCode.Init("_F:\n");
 	if (szStub)
 	{

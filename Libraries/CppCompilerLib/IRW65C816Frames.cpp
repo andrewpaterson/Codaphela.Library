@@ -586,20 +586,6 @@ void CIRW65C816Backend::DropFrame(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the line at szLine is one a debugger's markers made: a source
-// marker, a place marker, or the label a place marker became
-// (CCPP65IRFrontEnd::DebugRanges).
-//
-//////////////////////////////////////////////////////////////////////////
-bool IR816IsMarkerLine(const char* szLine)
-{
-	return (strncmp(szLine, IR_SOURCE_MARKER, StrLen(IR_SOURCE_MARKER)) == 0) || (strncmp(szLine, IR_PLACE_MARKER, StrLen(IR_PLACE_MARKER)) == 0) ||
-		   (strncmp(szLine, IR_DEBUG_LABEL, StrLen(IR_DEBUG_LABEL)) == 0);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 // The lines in szText (each ending with a new line).
 //
 //////////////////////////////////////////////////////////////////////////
@@ -834,7 +820,7 @@ bool CIRW65C816Backend::AlignFrame(CChars* pszCode, const char* szLabel, CIRW65C
 	{
 		szEnd = strchr(szLine, '\n');
 		szEnd = szEnd ? szEnd + 1 : szLine + StrLen(szLine);
-		if (IR816IsMarkerLine(szLine))
+		if (IRIsMarkerLine(szLine))
 		{
 			//Not one of the code's lines the facts count: kept where it is.
 			sz.AppendSubString(szLine, szEnd);
@@ -941,7 +927,7 @@ void CIRW65C816Backend::DescribeFrame(CChars* pszCode, const char* szLabel, CIRW
 	{
 		szEnd = strchr(szLine, '\n');
 		szEnd = szEnd ? szEnd + 1 : szLine + StrLen(szLine);
-		if (IR816IsMarkerLine(szLine))
+		if (IRIsMarkerLine(szLine))
 		{
 			continue;
 		}

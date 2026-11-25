@@ -217,3 +217,17 @@ void CIRLineMarkers::Print(int32 iList, CChars* pszOut)
 		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether the line at szLine is one a debugger's markers made: a source
+// marker, a place marker, or the label a place marker became
+// (CCPP65IRFrontEnd::DebugRanges).
+//
+//////////////////////////////////////////////////////////////////////////
+bool IRIsMarkerLine(const char* szLine)
+{
+	return (strncmp(szLine, IR_SOURCE_MARKER, StrLen(IR_SOURCE_MARKER)) == 0) || (strncmp(szLine, IR_PLACE_MARKER, StrLen(IR_PLACE_MARKER)) == 0) ||
+		   (strncmp(szLine, IR_DEBUG_LABEL, StrLen(IR_DEBUG_LABEL)) == 0);
+}

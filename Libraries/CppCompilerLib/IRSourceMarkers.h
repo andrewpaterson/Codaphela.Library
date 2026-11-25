@@ -27,6 +27,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #define IR_NO_MARKERS	(-1)	//A line with no markers before it.
 
 
+bool	IRIsMarkerLine(const char* szLine);
+
+
 //The marker lines of a function's code (the source markers, IR_SOURCE_MARKER, and the debugger's place markers,
 //IR_PLACE_MARKER), kept as fields of the code's lines: each line has the list of markers written before it (a list
 //here, IR_NO_MARKERS for none), and they are printed before it.  The markers written since the last line (Add) are
