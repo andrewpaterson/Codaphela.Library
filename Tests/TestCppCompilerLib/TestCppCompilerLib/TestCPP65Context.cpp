@@ -99,7 +99,12 @@ bool TestCPP65Generate(CChars* pszAssembly, CChars* pszErrors, const char* szSou
 	cBuilder.Init();
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	cStatistics.Init();
-	bResult = CCPP65Builder::Generate(pszAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, bProgram, paszExternals, CPPT_65C64, NULL, NULL, false, bLineTable, false, true, &gcTestCPP65Options, &cStatistics);
+	cBuilder.GetBuild()->SetTarget(CPPT_65C64);
+	*cBuilder.GetBuild()->GetOptions() = gcTestCPP65Options;
+	cBuilder.GetBuild()->SetExternals(paszExternals);
+	cBuilder.GetBuild()->SetLineTable(bLineTable);
+	cBuilder.GetBuild()->SetStatistics(&cStatistics);
+	bResult = cBuilder.GetBuild()->Generate("Generated.cpp", szSource, bProgram, pszAssembly, pszErrors);
 	guiTestCPP65Written += (size)cStatistics.GetCount(CPPCC_Functions);
 	cStatistics.Kill();
 	cBuilder.Kill();

@@ -39,22 +39,12 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CppParser.h"
 #include "CPPUnit.h"
 #include "CPPCompileStatistics.h"
+#include "CPPBuild.h"
 
 
 //How many times a unit is generated again before its turn, having missed a function exported while it inlined
 //(after that it only waits for its turn).
 #define CPP65_STALE_ATTEMPTS	3
-
-
-struct SCPP65IncludeDirectory
-{
-	CChars	szDirectory;
-	bool	bIncludeSubDirectories;
-	bool	bSystem;
-};
-
-
-typedef CArrayTemplate<SCPP65IncludeDirectory>	CArrayCPP65IncludeDirectories;
 
 
 //A project library whose units are linked as a library: a unit is only linked if another object needs it.
@@ -176,10 +166,9 @@ typedef CArrayTemplate<SCPP65UnitReport>	CArrayCPP65UnitReports;
 class CCPP65Builder
 {
 protected:
-	CArrayCPP65IncludeDirectories	macIncludeDirectories;
+	CCPPBuild						mcBuild;			//What is built and how: the target, options, include directories, listings.
 	CArrayCPP65LinkLibraries		macLinkLibraries;
 	CProject						mcProject;
-	CCPPTarget*						mpcTarget;
 	size							muiUnits;
 	uint32							muiLimit;
 	uint32							muiTextAddress;
@@ -196,20 +185,12 @@ protected:
 	CChars							mszErrors;
 	CChars							mszWarnings;		//The generator's warnings for every unit compiled; they don't fail a build.
 	CIRImports						mcImports;			//The units' small functions, for inlining in the others.
-	CAsm65Profile*					mpcFrameProfile;	//Measured functions, for the W65C816's aligned frames, or NULL.
-	CChars							mszListings;		//Where each unit's listing is written (SetListingDirectory), empty for none.
-	CChars							mszLayouts;			//The file the classes' layouts are written to (SetLayoutsFile), empty for none...
-	CArrayChars						maszLayouts;		//...and the units' classes: a line each, sorted, each once.
 	CArrayChars						maszOutsideProjects;	//A project with a source outside its directory, and that
 	CArrayChars						maszOutsideLibraries;	//source's library (AddVisualStudioProject), each pair at an index.
-	bool							mbLineTable;		//Units are compiled with .line and .fingerprint (SetLineTable).
-	bool							mbNoFloats;			//No floating point (SetNoFloats).
 	bool							mbRuntime;			//The target's runtime units have been added (AddRuntime).
-	int64							mlliCompileTime;	//When SetLineTable was called (seconds since 1970).
 	CSpillStore*					mpcSpillStore;			//Where the units' functions' code waits to be assembled (SetSpillDirectory).
 	CMemorySpillStore				mcMemorySpillStore;
 	CIndexTreeSpillStore			mcIndexTreeSpillStore;
-	bool							mbLazyHeaders;			//Header declarations are parsed when a unit first uses them (SetLazyHeaders).
 	CCPPHeaderIndex					mcHeaderIndex;			//The header declarations the units have parsed.
 	CPPHeaderCache					mcHeaderCache;			//Headers' preprocessed output (SetHeaderCache).
 	size							muiLazySkipped;			//The units' header declarations left unparsed (SetLazyHeaders)...
@@ -228,9 +209,6 @@ protected:
 	CCPPCompileStatistics			mcStatistics;			//The units' counts and times, and the builder's own (linking).
 	CArrayChars						maszTested;				//The functions the compiled units call by name and test for an exception...
 	CArrayTemplate<CAsm65Object*>	mapcCompiled;			//...and the objects that were compiled from C++: a tested function must be in one (CheckTested).
-	CCPPCompileOptions				mcOptions;				//How the units are compiled where there is a choice (GetOptions).
-	CArrayChars						maszUnoptimised;		//The libraries (projects) whose units aren't optimised (SetUnoptimised)...
-	CCPPCompileOptions				mcUnoptimisedOptions;	//...as mcOptions without the optimiser, for a debugger.
 
 public:
 	void					Init(void);
@@ -302,9 +280,7 @@ public:
 	bool					GetSymbol(const char* szName, int64* plliValue);
 	CArrayUint8*			GetLazyImage(void);
 
-	static void				SetCheckDebugCode(bool bCheck);
-	static bool				Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget = CPPT_65C64, CChars* pszWarnings = NULL, CAsm65Profile* pcFrameProfile = NULL, bool bListing = false, bool bLineTable = false, bool bNoFloats = false, bool bMathTables = true, CCPPCompileOptions* pcOptions = NULL, CCPPCompileStatistics* pcStatistics = NULL, CArrayChars* paszTested = NULL, CArrayChars* paszLayouts = NULL);
-	CArrayCPP65IncludeDirectories*	GetIncludeDirectories(void);
+	CCPPBuild*				GetBuild(void);
 
 protected:
 	bool					CheckTested(void);
@@ -328,7 +304,6 @@ protected:
 	void					ContinueGenerating(SCPP65CompiledUnit* psUnit);
 	void					FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated);
 	void					InitGenerator(SCPP65CompiledUnit* psUnit);
-	CCPPCompileOptions*		UnitOptions(SCPP65CompiledUnit* psUnit);
 	void					Resume(SCPP65CompiledUnit* psUnit);
 	static void				ResumeUnit(void* pvBuilder, void* pvUnit, bool bStale);
 	static void				ResumeUnitJob(void* pvUnit);
@@ -341,10 +316,6 @@ protected:
 	static void				CompileUnitJob(void* pvUnit);
 	static void				CompileUnitAgainJob(void* pvUnit);
 	bool					GenerateSource(CChars* pszAssembly, const char* szName, const char* szSource);
-	bool					WriteLayouts(void);
-	bool					WriteListing(const char* szUnit, CChars* pszAssembly);
-	bool					WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly, CChars* pszErrors);
-	bool					ListingName(const char* szUnit, CChars* pszPath);
 	CAsm65Library*			GetLinkLibrary(CLibrary* pcLibrary);
 	void					ForbidFloats(void);
 	bool					LinkObjects(void);

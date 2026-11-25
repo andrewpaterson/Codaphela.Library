@@ -328,7 +328,7 @@ int __cdecl main(int argc, char** argv)
 
 	gbTestPartTimes = getenv("TEST_PART_TIMES") != NULL;
 	//Every compile with debug information also compiled without, the code compared (DebuggerFPlan.txt F1).
-	CCPP65Builder::SetCheckDebugCode(getenv("TEST_CPP65_SAME_CODE") != NULL);
+	CCPPBuild::SetCheckDebugCode(getenv("TEST_CPP65_SAME_CODE") != NULL);
 	BreakOnAllocation(0);
 	InitTotalStatistics();
 	NumberInit();

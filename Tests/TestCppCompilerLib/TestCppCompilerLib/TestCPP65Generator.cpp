@@ -4143,8 +4143,10 @@ void TestCPP65GeneratorListing(void)
 		szPlain.Init();
 		szListing.Init();
 		szErrors.Init();
-		AssertTrue(CCPP65Builder::Generate(&szPlain, &szErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, false, NULL, aeTargets[ui]));
-		AssertTrue(CCPP65Builder::Generate(&szListing, &szErrors, cBuilder.GetIncludeDirectories(), "Generated.cpp", szSource, false, NULL, aeTargets[ui], NULL, NULL, true));
+		cBuilder.GetBuild()->SetTarget(aeTargets[ui]);
+		AssertTrue(cBuilder.GetBuild()->Generate("Generated.cpp", szSource, false, &szPlain, &szErrors));
+		cBuilder.GetBuild()->SetListing(true);
+		AssertTrue(cBuilder.GetBuild()->Generate("Generated.cpp", szSource, false, &szListing, &szErrors));
 		AssertString("", szErrors.Text());
 		AssertFalse(szPlain.Contains("\t\t;"));
 

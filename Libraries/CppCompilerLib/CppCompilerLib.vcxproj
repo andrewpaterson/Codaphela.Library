@@ -287,6 +287,7 @@
     <ClCompile Include="IRTypes.cpp" />
     <ClCompile Include="IRThrows.cpp" />
     <ClCompile Include="IRVerifier.cpp" />
+    <ClCompile Include="CPPBuild.cpp" />
     <ClCompile Include="CPP65Builder.cpp" />
     <ClCompile Include="CPP65DebugValues.cpp" />
     <ClCompile Include="CPP65DebugWatch.cpp" />
@@ -592,6 +593,7 @@
     <ClInclude Include="IRTypes.h" />
     <ClInclude Include="IRThrows.h" />
     <ClInclude Include="IRVerifier.h" />
+    <ClInclude Include="CPPBuild.h" />
     <ClInclude Include="CPP65Builder.h" />
     <ClInclude Include="CPP65DebugValues.h" />
     <ClInclude Include="CPP65DebugWatch.h" />

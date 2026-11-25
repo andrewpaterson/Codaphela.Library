@@ -1706,7 +1706,7 @@ void TestCPP65C64DebugFrames(void)
 // programs with variables promoted out of their slots (loops, reassigned
 // locals, parameters, a variable only a phi holds) compiled with a line
 // table on both processors, each also compiled without markers and the
-// two compared (CCPP65Builder::SetCheckDebugCode).
+// two compared (CCPPBuild::SetCheckDebugCode).
 //
 //////////////////////////////////////////////////////////////////////////
 void TestCPP65DebugMarkersChangeNoCode(void)
@@ -1724,7 +1724,7 @@ void TestCPP65DebugMarkersChangeNoCode(void)
 	size				ui;
 	size				uj;
 
-	CCPP65Builder::SetCheckDebugCode(true);
+	CCPPBuild::SetCheckDebugCode(true);
 	for (uj = 0; uj < sizeof(aeTargets) / sizeof(ECPPTarget); uj++)
 	{
 		for (ui = 0; aszSources[ui]; ui++)
@@ -1733,14 +1733,16 @@ void TestCPP65DebugMarkersChangeNoCode(void)
 			TestCPP65AddIncludeDirectories(&cBuilder);
 			szAssembly.Init();
 			szErrors.Init();
-			AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", aszSources[ui], true, NULL, aeTargets[uj], NULL, NULL, false, true));
+			cBuilder.GetBuild()->SetTarget(aeTargets[uj]);
+			cBuilder.GetBuild()->SetLineTable(true);
+			AssertTrue(cBuilder.GetBuild()->Generate("Test.cpp", aszSources[ui], true, &szAssembly, &szErrors));
 			AssertString("", szErrors.Text());
 			szErrors.Kill();
 			szAssembly.Kill();
 			cBuilder.Kill();
 		}
 	}
-	CCPP65Builder::SetCheckDebugCode(getenv("TEST_CPP65_SAME_CODE") != NULL);
+	CCPPBuild::SetCheckDebugCode(getenv("TEST_CPP65_SAME_CODE") != NULL);
 }
 
 

@@ -4201,7 +4201,8 @@ void TestCPP816ConstantDivisions(void)
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	szAssembly.Init();
 	szErrors.Init();
-	AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, CPPT_W65C816));
+	cBuilder.GetBuild()->SetTarget(CPPT_W65C816);
+	AssertTrue(cBuilder.GetBuild()->Generate("Test.cpp", szSource, false, &szAssembly, &szErrors));
 	AssertString("", szErrors.Text());
 	AssertFalse(szAssembly.Contains("R816_SDiv") || szAssembly.Contains("R816_SRem") || szAssembly.Contains("R816_UDiv") || szAssembly.Contains("R816_URem"));
 	szErrors.Kill();
@@ -4229,7 +4230,8 @@ int TestCPP816CountInAssembly(const char* szSource, const char* szText)
 	TestCPP65AddIncludeDirectories(&cBuilder);
 	szAssembly.Init();
 	szErrors.Init();
-	AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, CPPT_W65C816));
+	cBuilder.GetBuild()->SetTarget(CPPT_W65C816);
+	AssertTrue(cBuilder.GetBuild()->Generate("Test.cpp", szSource, false, &szAssembly, &szErrors));
 	AssertString("", szErrors.Text());
 	szEnd = strstr(szAssembly.Text(), ".section text.R816_");
 	iCount = 0;
@@ -4926,7 +4928,10 @@ int TestCPP816CountWarnings(const char* szSource, const char* szWarning, ECPPTar
 	szAssembly.Init();
 	szErrors.Init();
 	szWarnings.Init();
-	AssertTrue(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, &szWarnings, NULL, false, false, false, true, &gcTestCPP816Options));
+	cBuilder.GetBuild()->SetTarget(eTarget);
+	*cBuilder.GetBuild()->GetOptions() = gcTestCPP816Options;
+	cBuilder.GetBuild()->SetWarnings(&szWarnings);
+	AssertTrue(cBuilder.GetBuild()->Generate("Test.cpp", szSource, false, &szAssembly, &szErrors));
 	AssertString("", szErrors.Text());
 
 	iCount = 0;
@@ -4962,7 +4967,10 @@ int TestCPP816CountErrors(const char* szSource, const char* szError)
 	szAssembly.Init();
 	szErrors.Init();
 	szWarnings.Init();
-	CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, CPPT_W65C816, &szWarnings, NULL, false, false, false, true, &gcTestCPP816Options);
+	cBuilder.GetBuild()->SetTarget(CPPT_W65C816);
+	*cBuilder.GetBuild()->GetOptions() = gcTestCPP816Options;
+	cBuilder.GetBuild()->SetWarnings(&szWarnings);
+	cBuilder.GetBuild()->Generate("Test.cpp", szSource, false, &szAssembly, &szErrors);
 
 	iCount = 0;
 	aszLines.Init();
@@ -5708,9 +5716,9 @@ void TestCPP816SizeLsizeBugs(void)
 	cBuilder.Init();
 	szAssembly.Init();
 	szErrors.Init();
-	AssertFalse(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp",
-		"void F(unsigned long* pul) { *pul = 7; }\n"
-		"int main(void) { unsigned short u; F(&u); return u; }\n", false, NULL, CPPT_W65C816));
+	cBuilder.GetBuild()->SetTarget(CPPT_W65C816);
+	AssertFalse(cBuilder.GetBuild()->Generate("Test.cpp", "void F(unsigned long* pul) { *pul = 7; }\n"
+		"int main(void) { unsigned short u; F(&u); return u; }\n", false, &szAssembly, &szErrors));
 	AssertNull(strstr(szErrors.Text(), "doesn't support"));
 	AssertNull(strstr(szErrors.Text(), "Unknown instruction"));
 	AssertNotNull(strstr(szErrors.Text(), "No function matches the arguments (unsigned short*): it takes (unsigned long*)"));
@@ -5722,10 +5730,10 @@ void TestCPP816SizeLsizeBugs(void)
 	cBuilder.Init();
 	szAssembly.Init();
 	szErrors.Init();
-	AssertFalse(CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp",
-		"void M(void* p, unsigned short u);\n"
+	cBuilder.GetBuild()->SetTarget(CPPT_W65C816);
+	AssertFalse(cBuilder.GetBuild()->Generate("Test.cpp", "void M(void* p, unsigned short u);\n"
 		"void M(void* p, unsigned long u);\n"
-		"int main(void) { char a[4]; M(a, 6); return 0; }\n", false, NULL, CPPT_W65C816));
+		"int main(void) { char a[4]; M(a, 6); return 0; }\n", false, &szAssembly, &szErrors));
 	AssertNull(strstr(szErrors.Text(), "doesn't support"));
 	AssertNotNull(strstr(szErrors.Text(), "The call is ambiguous"));
 	szErrors.Kill();

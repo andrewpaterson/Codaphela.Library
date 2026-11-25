@@ -152,7 +152,10 @@ static bool ConformanceCompiles(const char* szSource, ECPPTarget eTarget, bool b
 	cOptions.Init();
 	cOptions.mbExceptions = bExceptions;
 	szAssembly.Init();
-	bCompiled = CCPP65Builder::Generate(&szAssembly, pszErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", szSource, false, NULL, eTarget, pszWarnings, NULL, false, false, false, true, &cOptions) && pszErrors->Empty();
+	cBuilder.GetBuild()->SetTarget(eTarget);
+	*cBuilder.GetBuild()->GetOptions() = cOptions;
+	cBuilder.GetBuild()->SetWarnings(pszWarnings);
+	bCompiled = cBuilder.GetBuild()->Generate("Test.cpp", szSource, false, &szAssembly, pszErrors) && pszErrors->Empty();
 	szAssembly.Kill();
 	cBuilder.Kill();
 	return bCompiled;

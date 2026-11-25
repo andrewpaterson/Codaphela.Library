@@ -473,7 +473,8 @@ static void TestForwardingReference(const STestForwardingReference* psCase, ECPP
 	cBuilder.Init();
 	szAssembly.Init();
 	szErrors.Init();
-	bCompiled = CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", psCase->szSource, false, NULL, eTarget) && szErrors.Empty();
+	cBuilder.GetBuild()->SetTarget(eTarget);
+	bCompiled = cBuilder.GetBuild()->Generate("Test.cpp", psCase->szSource, false, &szAssembly, &szErrors) && szErrors.Empty();
 	if (!bCompiled)
 	{
 		pszNotDone->Append(psCase->szName);
@@ -536,10 +537,12 @@ static void TestForwardingReferenceRejected(ECPPTarget eTarget)
 	cBuilder.Init();
 	szAssembly.Init();
 	szErrors.Init();
-	CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", "int F(int& i) { return i; }\nint main() { return F(5); }\n", false, NULL, eTarget);
+	cBuilder.GetBuild()->SetTarget(eTarget);
+	cBuilder.GetBuild()->Generate("Test.cpp", "int F(int& i) { return i; }\nint main() { return F(5); }\n", false, &szAssembly, &szErrors);
 	AssertFalse(szErrors.Empty());
 	szErrors.Clear();
-	CCPP65Builder::Generate(&szAssembly, &szErrors, cBuilder.GetIncludeDirectories(), "Test.cpp", "int F(int*& p) { return *p; }\nint main() { int ai[2]; ai[0] = 1; return F(ai); }\n", false, NULL, eTarget);
+	cBuilder.GetBuild()->SetTarget(eTarget);
+	cBuilder.GetBuild()->Generate("Test.cpp", "int F(int*& p) { return *p; }\nint main() { int ai[2]; ai[0] = 1; return F(ai); }\n", false, &szAssembly, &szErrors);
 	AssertFalse(szErrors.Empty());
 	szErrors.Kill();
 	szAssembly.Kill();

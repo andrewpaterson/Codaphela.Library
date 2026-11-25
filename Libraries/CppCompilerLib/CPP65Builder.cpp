@@ -43,10 +43,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::Init(void)
 {
-	macIncludeDirectories.Init();
+	mcBuild.Init();
 	macLinkLibraries.Init();
 	mcProject.Init(false);
-	mpcTarget = GetCPPTarget(CPPT_65C64);
 	muiUnits = 0;
 	muiLimit = CPP65_HEAP_ADDRESS;
 	muiTextAddress = CPP65_PROGRAM_ADDRESS;
@@ -65,23 +64,17 @@ void CCPP65Builder::Init(void)
 	mszErrors.Init();
 	mszWarnings.Init();
 	maszTested.Init();
-	mszLayouts.Init();
-	maszLayouts.Init();
+	mcBuild.SetWarnings(&mszWarnings);
+	mcBuild.SetTested(&maszTested);
 	mapcCompiled.Init();
 	mcImports.Init(IR_IMPORT_INSTRUCTIONS);
 	mcImports.SetResume(ResumeUnit, this);
 	mpcUnitJobs = NULL;
-	mpcFrameProfile = NULL;
-	mszListings.Init();
 	maszOutsideProjects.Init();
 	maszOutsideLibraries.Init();
-	mbLineTable = false;
-	mbNoFloats = false;
 	mbRuntime = false;
-	mlliCompileTime = 0;
 	mcMemorySpillStore.Init();
 	mpcSpillStore = &mcMemorySpillStore;
-	mbLazyHeaders = true;
 	mcHeaderIndex.Init();
 	mcHeaderCache.Init();
 	mcProject.SetHeaderCache(&mcHeaderCache);
@@ -97,9 +90,6 @@ void CCPP65Builder::Init(void)
 	mapcWorkspaces.Init();
 	mbUnitReports = false;
 	mcStatistics.Init();
-	mcOptions.Init();
-	mcUnoptimisedOptions.Init();
-	maszUnoptimised.Init();
 	masUnitReports.Init();
 }
 
@@ -127,12 +117,9 @@ void CCPP65Builder::Kill(void)
 	mcHeaderIndex.Kill();
 	maszOutsideLibraries.Kill();
 	maszOutsideProjects.Kill();
-	mszListings.Kill();
 	mcImports.Kill();
 	mapcCompiled.Kill();
 	maszTested.Kill();
-	maszLayouts.Kill();
-	mszLayouts.Kill();
 	mszWarnings.Kill();
 	mszErrors.Kill();
 	mcLinker.Kill();
@@ -145,12 +132,7 @@ void CCPP65Builder::Kill(void)
 	}
 	macLinkLibraries.Kill();
 	mcProject.Kill();
-	for (i = 0; i < macIncludeDirectories.NumElements(); i++)
-	{
-		macIncludeDirectories.Get(i)->szDirectory.Kill();
-	}
-	macIncludeDirectories.Kill();
-	maszUnoptimised.Kill();
+	mcBuild.Kill();
 }
 
 
@@ -162,12 +144,7 @@ void CCPP65Builder::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem)
 {
-	SCPP65IncludeDirectory*	psInclude;
-
-	psInclude = macIncludeDirectories.Add();
-	psInclude->szDirectory.Init(szDirectory);
-	psInclude->bIncludeSubDirectories = bIncludeSubDirectories;
-	psInclude->bSystem = bSystem;
+	mcBuild.AddIncludeDirectory(szDirectory, bIncludeSubDirectories, bSystem);
 	return mcProject.AddIncludeDirectory((char*)szDirectory, bIncludeSubDirectories, bSystem);
 }
 
@@ -195,7 +172,7 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 	if (!pcLibrary)
 	{
 		pcLibrary = mcProject.AddLibrary((char*)szLibrary, (char*)szDirectory, false);
-		mpcTarget->AddDefines(pcLibrary->AddConfiguration((char*)mpcTarget->GetConfigurationName()), &mcOptions);
+		mcBuild.GetTarget()->AddDefines(pcLibrary->AddConfiguration((char*)mcBuild.GetTarget()->GetConfigurationName()), mcBuild.GetOptions());
 		if (bLinkAsLibrary)
 		{
 			psLinkLibrary = macLinkLibraries.Add();
@@ -219,11 +196,11 @@ void CCPP65Builder::AddUnit(const char* szLibrary, const char* szDirectory, cons
 			cFileUtil.RemoveLastFromPath(&szPath);
 			if (pcLinkLibrary)
 			{
-				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text(), mbLineTable ? szSourceFile.Text() : NULL);
+				Assemble(pcLinkLibrary->AddObject(szFile), cFile.Text(), szPath.Text(), mcBuild.HasLineTable() ? szSourceFile.Text() : NULL);
 			}
 			else
 			{
-				AddObject(szFile, cFile.Text(), false, szPath.Text(), mbLineTable ? szSourceFile.Text() : NULL);
+				AddObject(szFile, cFile.Text(), false, szPath.Text(), mcBuild.HasLineTable() ? szSourceFile.Text() : NULL);
 			}
 			szSourceFile.Kill();
 		}
@@ -273,7 +250,7 @@ void CCPP65Builder::AddMathTables(const char* szLibc65Directory)
 	CFileUtil		cFileUtil;
 	size			i;
 
-	paszUnits = mpcTarget->GetMathTableUnits();
+	paszUnits = mcBuild.GetTarget()->GetMathTableUnits();
 	if (!paszUnits)
 	{
 		return;
@@ -302,7 +279,7 @@ void CCPP65Builder::AddRuntime(const char* szLibc65Directory)
 	const char**	paszUnits;
 	size			i;
 
-	paszUnits = mpcTarget->GetRuntimeUnits(mcOptions.mbMathTables);
+	paszUnits = mcBuild.GetTarget()->GetRuntimeUnits(mcBuild.GetOptions()->mbMathTables);
 	if (!paszUnits || mbRuntime)
 	{
 		return;
@@ -327,7 +304,7 @@ void CCPP65Builder::AddLibc65(const char* szLibc65Directory)
 	const char**	paszUnits;
 	size			i;
 
-	paszUnits = mpcTarget->GetLibc65Units();
+	paszUnits = mcBuild.GetTarget()->GetLibc65Units();
 	if (!paszUnits)
 	{
 		return;
@@ -483,7 +460,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 	size		i;
 
 	pcLibrary = mcProject.GetLibrary((char*)szLibrary);
-	pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mpcTarget->GetConfigurationName()) : NULL;
+	pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mcBuild.GetTarget()->GetConfigurationName()) : NULL;
 	if (!pcConfig)
 	{
 		return false;
@@ -496,7 +473,7 @@ bool CCPP65Builder::AddDefine(const char* szLibrary, const char* szDefine)
 		if (StringCompare(maszOutsideProjects.GetText(i), szLibrary) == 0)
 		{
 			pcLibrary = mcProject.GetLibrary(maszOutsideLibraries.GetText(i));
-			pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mpcTarget->GetConfigurationName()) : NULL;
+			pcConfig = pcLibrary ? pcLibrary->GetConfig((char*)mcBuild.GetTarget()->GetConfigurationName()) : NULL;
 			if (pcConfig)
 			{
 				pcConfig->AddDefine(szDefine);
@@ -523,7 +500,7 @@ void CCPP65Builder::AddAssemblyUnit(const char* szLibrary, const char* szDirecto
 	CChars		szPath;
 	const char*	szExtension;
 
-	if (!mpcTarget->HasAssemblyUnits() || !mcOptions.mbAssemblyUnits)
+	if (!mcBuild.GetTarget()->HasAssemblyUnits() || !mcBuild.GetOptions()->mbAssemblyUnits)
 	{
 		return;
 	}
@@ -534,7 +511,7 @@ void CCPP65Builder::AddAssemblyUnit(const char* szLibrary, const char* szDirecto
 	}
 	szUnit.Init();
 	szUnit.Append(szSource, (size)(szExtension - szSource));
-	szUnit.Append(mpcTarget->GetAssemblyUnitSuffix());
+	szUnit.Append(mcBuild.GetTarget()->GetAssemblyUnitSuffix());
 	szPath.Init(szDirectory);
 	cFileUtil.AppendToPath(&szPath, szUnit.Text());
 	if (cFileUtil.Exists(szPath.Text()))
@@ -613,7 +590,7 @@ size CCPP65Builder::NumUnitsToCompile(void) const
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 {
-	mpcTarget = GetCPPTarget(eTarget);
+	mcBuild.SetTarget(eTarget);
 }
 
 
@@ -627,7 +604,7 @@ void CCPP65Builder::SetTarget(ECPPTarget eTarget)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetFrameProfile(CAsm65Profile* pcProfile)
 {
-	mpcFrameProfile = pcProfile;
+	mcBuild.SetFrameProfile(pcProfile);
 }
 
 
@@ -641,8 +618,7 @@ void CCPP65Builder::SetFrameProfile(CAsm65Profile* pcProfile)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 {
-	mszListings.Kill();
-	mszListings.Init(szDirectory ? szDirectory : "");
+	mcBuild.SetListingDirectory(szDirectory);
 }
 
 
@@ -658,8 +634,7 @@ void CCPP65Builder::SetListingDirectory(const char* szDirectory)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLayoutsFile(const char* szFile)
 {
-	mszLayouts.Kill();
-	mszLayouts.Init(szFile ? szFile : "");
+	mcBuild.SetLayoutsFile(szFile);
 }
 
 
@@ -673,7 +648,7 @@ void CCPP65Builder::SetLayoutsFile(const char* szFile)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLazyHeaders(bool bLazyHeaders)
 {
-	mbLazyHeaders = bLazyHeaders;
+	mcBuild.SetLazyHeaders(bLazyHeaders);
 }
 
 
@@ -741,7 +716,7 @@ CCPPCompileStatistics* CCPP65Builder::GetStatistics(void)
 //////////////////////////////////////////////////////////////////////////
 CCPPCompileOptions* CCPP65Builder::GetOptions(void)
 {
-	return &mcOptions;
+	return mcBuild.GetOptions();
 }
 
 
@@ -754,30 +729,7 @@ CCPPCompileOptions* CCPP65Builder::GetOptions(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetUnoptimised(const char* szLibrary)
 {
-	maszUnoptimised.AddIfUnique(szLibrary);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The options psUnit is compiled with: GetOptions, unless its library is
-// one SetUnoptimised named.
-//
-//////////////////////////////////////////////////////////////////////////
-CCPPCompileOptions* CCPP65Builder::UnitOptions(SCPP65CompiledUnit* psUnit)
-{
-	CLibrary*	pcLibrary;
-	size		ui;
-
-	pcLibrary = psUnit->pcFile->GetLibrary();
-	for (ui = 0; pcLibrary && (ui < maszUnoptimised.NumElements()); ui++)
-	{
-		if (pcLibrary->IsNamed(maszUnoptimised.GetText(ui)))
-		{
-			return &mcUnoptimisedOptions;
-		}
-	}
-	return &mcOptions;
+	mcBuild.SetUnoptimised(szLibrary);
 }
 
 
@@ -1015,8 +967,7 @@ bool CCPP65Builder::SetSpillDirectory(const char* szDirectory, lsize uiCacheSize
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetLineTable(bool bLineTable)
 {
-	mbLineTable = bLineTable;
-	mlliCompileTime = (int64)time(NULL);
+	mcBuild.SetLineTable(bLineTable);
 }
 
 
@@ -1031,7 +982,7 @@ void CCPP65Builder::SetLineTable(bool bLineTable)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetNoFloats(bool bNoFloats)
 {
-	mbNoFloats = bNoFloats;
+	mcBuild.SetNoFloats(bNoFloats);
 	if (bNoFloats)
 	{
 		ForbidFloats();
@@ -1052,11 +1003,11 @@ void CCPP65Builder::SetNoFloats(bool bNoFloats)
 //////////////////////////////////////////////////////////////////////////
 void CCPP65Builder::SetMathTables(bool bMathTables)
 {
-	if (mbRuntime && (mcOptions.mbMathTables != bMathTables))
+	if (mbRuntime && (mcBuild.GetOptions()->mbMathTables != bMathTables))
 	{
 		mszErrors.Append("CCPP65Builder::SetMathTables must be called before AddMathTables and AddLibc65.\n");
 	}
-	mcOptions.mbMathTables = bMathTables;
+	mcBuild.GetOptions()->mbMathTables = bMathTables;
 }
 
 
@@ -1157,7 +1108,7 @@ bool CCPP65Builder::AddStartUp(void)
 	bool	bResult;
 
 	szAssembly.Init();
-	mpcTarget->AppendStartUp(&szAssembly, mcOptions.mbExceptions);
+	mcBuild.GetTarget()->AppendStartUp(&szAssembly, mcBuild.GetOptions()->mbExceptions);
 	bResult = AddObject("start up", szAssembly.Text(), true);
 	szAssembly.Kill();
 	return bResult;
@@ -1194,12 +1145,12 @@ bool CCPP65Builder::GenerateSource(CChars* pszAssembly, const char* szName, cons
 {
 	bool	bResult;
 
-	bResult = Generate(pszAssembly, &mszErrors, &macIncludeDirectories, szName, szSource, false, NULL, mpcTarget->GetTarget(), &mszWarnings, mpcFrameProfile, !mszListings.Empty(), mbLineTable, mbNoFloats, mcOptions.mbMathTables, &mcOptions, NULL, &maszTested, mszLayouts.Empty() ? NULL : &maszLayouts);
-	if (!mszListings.Empty())
+	bResult = mcBuild.Generate(szName, szSource, false, pszAssembly, &mszErrors);
+	if (mcBuild.HasListingDirectory())
 	{
-		bResult &= WriteListing(szName, pszAssembly);
+		bResult &= mcBuild.WriteListing(szName, pszAssembly, &mszErrors);
 	}
-	return bResult & WriteLayouts();
+	return bResult & mcBuild.WriteLayouts(&mszErrors);
 }
 
 
@@ -1244,9 +1195,7 @@ bool CCPP65Builder::Compile(void)
 	mbCompiled = true;
 
 	//The options of the units SetUnoptimised names, set once before the units' threads read them.
-	mcUnoptimisedOptions = mcOptions;
-	mcUnoptimisedOptions.mbOptimise = false;
-	mcUnoptimisedOptions.mbDebuggable = true;
+	mcBuild.FixOptions();
 	bResult = CompileUnits();
 	return bResult && mszErrors.Empty();
 }
@@ -1300,7 +1249,7 @@ void CCPP65Builder::ResetLinker(void)
 	mcLinker.Init();
 	mcLinker.SetStubMissing(mbStubMissing);
 	mcLinker.SetRemoveUnused(mbRemoveUnused);
-	if (mbNoFloats)
+	if (mcBuild.HasNoFloats())
 	{
 		ForbidFloats();
 	}
@@ -1390,10 +1339,10 @@ bool CCPP65Builder::LinkObjects(void)
 	}
 	mcLinker.SetAddress(ASK65_Text, muiTextAddress);
 	mcLinker.SetLimit(muiLimit);
-	mcLinker.SetBankSize(mpcTarget->GetBankSize());
-	if (mpcTarget->GetStubOpcode() >= 0)
+	mcLinker.SetBankSize(mcBuild.GetTarget()->GetBankSize());
+	if (mcBuild.GetTarget()->GetStubOpcode() >= 0)
 	{
-		mcLinker.SetStubOpcode((uint8)mpcTarget->GetStubOpcode());
+		mcLinker.SetStubOpcode((uint8)mcBuild.GetTarget()->GetStubOpcode());
 	}
 	mcStatistics.Begin(CPPCP_Link);
 	bResult = mcLinker.Link();
@@ -1402,12 +1351,12 @@ bool CCPP65Builder::LinkObjects(void)
 	bResult &= CheckTested();
 
 	//A runtime routine isn't stubbed: its program would stop at the first multiply.
-	szPrefix = mpcTarget->GetRuntimePrefix();
+	szPrefix = mcBuild.GetTarget()->GetRuntimePrefix();
 	for (i = 0; szPrefix && (i < mcLinker.NumMissing()); i++)
 	{
 		if (strncmp(mcLinker.GetMissing(i), szPrefix, strlen(szPrefix)) == 0)
 		{
-			mszErrors.Append("The ")->Append(mpcTarget->GetConfigurationName())->Append(" runtime routine ")->Append(mcLinker.GetMissing(i))->Append(" isn't linked (CCPP65Builder::AddMathTables or AddLibc65 adds the runtime).\n");
+			mszErrors.Append("The ")->Append(mcBuild.GetTarget()->GetConfigurationName())->Append(" runtime routine ")->Append(mcLinker.GetMissing(i))->Append(" isn't linked (CCPP65Builder::AddMathTables or AddLibc65 adds the runtime).\n");
 			bResult = false;
 		}
 	}
@@ -1539,275 +1488,13 @@ void CCPP65Builder::GetMissingNames(CChars* pszDest)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What is built and how (CCPPBuild): what a test compiles one source with
+// (CCPPBuild::Generate), with the builder's include directories.
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayCPP65IncludeDirectories* CCPP65Builder::GetIncludeDirectories(void)
+CCPPBuild* CCPP65Builder::GetBuild(void)
 {
-	return &macIncludeDirectories;
-}
-
-
-static bool			gbCPP65CheckDebugCode = false;		//Generate compiles again without debug value markers and compares the code.
-static bool			gbCPP65CheckingDebugCode = false;	//It is doing so: no check of the check.
-//What debug value markers may change (and a fingerprint's time).
-static const char*	gaszCPP65MarkerDirectives[] = { ".dvariable", ".drange", ".dinline", ".dinspan", ".dtype", ".dmember", ".fingerprint", NULL };
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// For tests: each Generate with a line table also compiles the source
-// without debug value markers (CCPPCompileOptions::mbDebugMarkers), and it
-// is an error if the code differs: they must change no code
-// (DebuggerFPlan.txt F1).
-//
-//////////////////////////////////////////////////////////////////////////
-void CCPP65Builder::SetCheckDebugCode(bool bCheck)
-{
-	gbCPP65CheckDebugCode = bCheck;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The length of szPrefix if szLine starts with it, else 0.
-//
-//////////////////////////////////////////////////////////////////////////
-static size CPP65Prefix(const char* szLine, const char* szPrefix)
-{
-	size	i;
-
-	for (i = 0; szPrefix[i] != '\0'; i++)
-	{
-		if (szLine[i] != szPrefix[i])
-		{
-			return 0;
-		}
-	}
-	return i;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Whether an assembly line is one debug value markers may change: where
-// variables and inlined calls are and the types they have (.dvariable,
-// .drange, .dinline, .dinspan, .dtype, .dmember), a debug label
-// (IR_DEBUG_LABEL) or a comment.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool CPP65IsMarkerLine(const char* szLine)
-{
-	size	i;
-	size	uiLength;
-
-	while ((*szLine == ' ') || (*szLine == '\t'))
-	{
-		szLine++;
-	}
-	if ((*szLine == '\0') || (*szLine == ';') || (CPP65Prefix(szLine, IR_DEBUG_LABEL) != 0))
-	{
-		return true;
-	}
-	for (i = 0; gaszCPP65MarkerDirectives[i]; i++)
-	{
-		uiLength = CPP65Prefix(szLine, gaszCPP65MarkerDirectives[i]);
-		if ((uiLength != 0) && ((szLine[uiLength] == ' ') || (szLine[uiLength] == '\t') || (szLine[uiLength] == '\0')))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// szAssembly's lines that markers mustn't change (not CPP65IsMarkerLine):
-// the code, and the rest of what a debugger is told.
-//
-//////////////////////////////////////////////////////////////////////////
-static void CPP65CodeLines(const char* szAssembly, CArrayChars* paszDest)
-{
-	CArrayChars	aszLines;
-	size		i;
-
-	aszLines.Init();
-	aszLines.Split(szAssembly, '\n');
-	for (i = 0; i < aszLines.NumElements(); i++)
-	{
-		if (!CPP65IsMarkerLine(aszLines.GetText(i)))
-		{
-			paszDest->Add(aszLines.GetText(i));
-		}
-	}
-	aszLines.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// SetCheckDebugCode's check: the source compiled again without debug
-// value markers; an error naming the first line of code that differs.
-//
-//////////////////////////////////////////////////////////////////////////
-static bool CPP65CheckDebugCode(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, ECPPTarget eTarget, CAsm65Profile* pcFrameProfile, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions)
-{
-	CCPPCompileOptions	cOptions;
-	CChars				szPlain;
-	CChars				szPlainErrors;
-	CArrayChars			aszDebug;
-	CArrayChars			aszPlain;
-	size				i;
-	bool				bResult;
-
-	cOptions = pcOptions ? *pcOptions : *GetDefaultCPPCompileOptions();
-	cOptions.mbDebugMarkers = false;
-	szPlain.Init();
-	szPlainErrors.Init();
-	gbCPP65CheckingDebugCode = true;
-	bResult = CCPP65Builder::Generate(&szPlain, &szPlainErrors, pacIncludeDirectories, szName, szSource, bProgram, NULL, eTarget, NULL, pcFrameProfile, false, true, bNoFloats, bMathTables, &cOptions);
-	gbCPP65CheckingDebugCode = false;
-	aszDebug.Init();
-	aszPlain.Init();
-	CPP65CodeLines(pszAssembly->Text(), &aszDebug);
-	CPP65CodeLines(szPlain.Text(), &aszPlain);
-	for (i = 0; bResult && (i < aszDebug.NumElements()) && (i < aszPlain.NumElements()); i++)
-	{
-		if (!aszDebug.Get(i)->Equals(aszPlain.Get(i)))
-		{
-			pszErrors->Append("Debug value markers changed the code, line ")->Append((int)i + 1)->Append(": [")->Append(aszDebug.GetText(i))->Append("] without it [")->Append(aszPlain.GetText(i))->Append("]\n");
-			bResult = false;
-		}
-	}
-	if (bResult && (aszDebug.NumElements() != aszPlain.NumElements()))
-	{
-		pszErrors->Append("Debug value markers changed the code's length: ")->Append((int)aszDebug.NumElements())->Append(" lines without it ")->Append((int)aszPlain.NumElements())->Append("\n");
-		bResult = false;
-	}
-	aszPlain.Kill();
-	aszDebug.Kill();
-	szPlainErrors.Kill();
-	szPlain.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Preprocesses, parses and generates szSource with the include directories.  As a program (with its start up) if
-// bProgram, otherwise as an object.  The assembly is appended to pszAssembly and every stage's errors to
-// pszErrors.  The labels it uses but does not define are added to paszExternals if it isn't NULL.  On the W65C816,
-// pcFrameProfile's measured functions get aligned frames (NULL for none).  bListing gives the code comments with the
-// C++ source lines it is for (CCPPUnit::SetListing), bLineTable .line and .fingerprint directives
-// (CCPPUnit::SetLineTable), bNoFloats and bMathTables as SetNoFloats and SetMathTables.  The classes it lays out are
-// added to paszLayouts if it isn't NULL (CCPPUnit::GetLayouts).
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::Generate(CChars* pszAssembly, CChars* pszErrors, CArrayCPP65IncludeDirectories* pacIncludeDirectories, const char* szName, const char* szSource, bool bProgram, CArrayChars* paszExternals, ECPPTarget eTarget, CChars* pszWarnings, CAsm65Profile* pcFrameProfile, bool bListing, bool bLineTable, bool bNoFloats, bool bMathTables, CCPPCompileOptions* pcOptions, CCPPCompileStatistics* pcStatistics, CArrayChars* paszTested, CArrayChars* paszLayouts)
-{
-	CTranslationUnit				cFile;
-	CCPPPreprocessor					cPreprocessor;
-	CCPPTokeniser					cTokeniser;
-	CCPPSyntaxTree					cTree;
-	CCPPParser						cParser;
-	CCPPUnit					cGenerator;
-	CHeaderFileMap					cHeaderFileMap;
-	CArrayTemplate<CHeaderFiles>	acHeaderFiles;
-	SCPP65IncludeDirectory*			psInclude;
-	CConfig							cConfig;
-	CCPPCompileOptions				cOptions;
-	size							uiIncludes;
-	size							i;
-	bool							bResult;
-
-	cHeaderFileMap.Init();
-	uiIncludes = pacIncludeDirectories->NumElements();
-	//All added before any is used: the preprocessor keeps their addresses.
-	acHeaderFiles.Init();
-	for (i = 0; i < uiIncludes; i++)
-	{
-		acHeaderFiles.Add();
-	}
-	for (i = 0; i < uiIncludes; i++)
-	{
-		psInclude = pacIncludeDirectories->Get(i);
-		acHeaderFiles.Get(i)->Init(psInclude->szDirectory.Text(), &cHeaderFileMap, psInclude->bIncludeSubDirectories, psInclude->bSystem);
-	}
-
-	cConfig.Init((char*)GetCPPTarget(eTarget)->GetConfigurationName());
-	//The options given, or the defaults, with the maths tables as bMathTables says.
-	cOptions = pcOptions ? *pcOptions : *GetDefaultCPPCompileOptions();
-	cOptions.mbMathTables = bMathTables;
-	pcOptions = &cOptions;
-	GetCPPTarget(eTarget)->AddDefines(&cConfig, pcOptions);
-	cFile.Init((char*)szName, NULL, false);
-	cFile.SetContents((char*)szSource);
-	cPreprocessor.Init(&cConfig);
-	for (i = 0; i < uiIncludes; i++)
-	{
-		cPreprocessor.AddIncludeDirectory(acHeaderFiles.Get(i));
-	}
-	bResult = cPreprocessor.PreprocessTranslationUnit(&cFile);
-	pszErrors->Append(cPreprocessor.GetErrors()->Text());
-	if (pszWarnings)
-	{
-		pszWarnings->Append(cPreprocessor.GetWarnings()->Text());
-	}
-	cPreprocessor.Kill();
-
-	cTokeniser.Init();
-	bResult &= cTokeniser.Tokenise(cFile.GetTokens());
-	pszErrors->Append(cTokeniser.GetErrors()->Text());
-
-	cTree.Init(&cTokeniser);
-	cParser.Init(&cTokeniser, &cTree);
-	bResult &= cParser.Parse();
-	pszErrors->Append(cTree.GetErrors()->Text());
-	cParser.Kill();
-
-	cGenerator.Init(&cTree, eTarget);
-	cGenerator.SetOptions(pcOptions);
-	cGenerator.SetStatistics(pcStatistics);
-	cGenerator.SetFrameProfile(pcFrameProfile);
-	cGenerator.SetListing(bListing);
-	cGenerator.SetLayouts(paszLayouts != NULL);
-	cGenerator.SetLineTable(bLineTable, (int64)time(NULL));
-	cGenerator.SetNoFloats(bNoFloats);
-	bResult &= bProgram ? cGenerator.GenerateProgram(pszAssembly) : cGenerator.Generate(pszAssembly);
-	if (paszExternals)
-	{
-		cGenerator.GetExternals(paszExternals);
-	}
-	if (paszTested)
-	{
-		cGenerator.GetTestedCallees(paszTested);
-	}
-	if (paszLayouts)
-	{
-		cGenerator.GetLayouts(paszLayouts);
-	}
-	pszErrors->Append(cGenerator.GetErrors()->Text());
-	if (pszWarnings)
-	{
-		pszWarnings->Append(cGenerator.GetWarnings()->Text());
-	}
-	cGenerator.Kill();
-	if (bResult && bLineTable && gbCPP65CheckDebugCode && !gbCPP65CheckingDebugCode)
-	{
-		bResult = CPP65CheckDebugCode(pszAssembly, pszErrors, pacIncludeDirectories, szName, szSource, bProgram, eTarget, pcFrameProfile, bNoFloats, bMathTables, pcOptions);
-	}
-
-	cTree.Kill();
-	cTokeniser.Kill();
-	cFile.Kill();
-	cConfig.Kill();
-	for (i = 0; i < uiIncludes; i++)
-	{
-		acHeaderFiles.Get(i)->Kill();
-	}
-	acHeaderFiles.Kill();
-	cHeaderFileMap.Kill();
-	return bResult;
+	return &mcBuild;
 }
 
 
@@ -1883,7 +1570,7 @@ bool CCPP65Builder::Assemble(CAsm65Object* pcObject, const char* szAssembly, con
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65Builder::Assemble(CAsm65Object* pcObject, CAsm65Source* pcSource, const char* szDirectory, CChars* pszErrors, const char* szSourceFile)
 {
-	return mpcTarget->Assemble(pcSource, pcObject, szDirectory, szSourceFile, pszErrors);
+	return mcBuild.GetTarget()->Assemble(pcSource, pcObject, szDirectory, szSourceFile, pszErrors);
 }
 
 
@@ -1904,120 +1591,6 @@ CAsm65Library* CCPP65Builder::GetLinkLibrary(CLibrary* pcLibrary)
 		}
 	}
 	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Writes the classes laid out so far to the layouts file (SetLayoutsFile),
-// if there is one and there are any.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::WriteLayouts(void)
-{
-	CTextFile	cFile;
-	size		i;
-	bool		bResult;
-
-	if (mszLayouts.Empty() || (maszLayouts.NumElements() == 0))
-	{
-		return true;
-	}
-	cFile.Init();
-	for (i = 0; i < maszLayouts.NumElements(); i++)
-	{
-		cFile.mcText.Append(maszLayouts.GetText(i));
-		cFile.mcText.AppendNewLine();
-	}
-	bResult = cFile.Write(mszLayouts.Text());
-	cFile.Kill();
-	if (!bResult)
-	{
-		mszErrors.Append("Can't write the classes' layouts to ")->Append(mszLayouts)->AppendNewLine();
-	}
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Writes a unit's assembly (with its source comments) to the listings
-// directory as the unit's name with .lst for its extension.  A unit with
-// no code (all of it left out by #if) has no listing.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::WriteListing(const char* szUnit, CChars* pszAssembly)
-{
-	CTextFile	cFile;
-	CChars		szPath;
-	bool		bResult;
-
-	if (pszAssembly->Empty())
-	{
-		return true;
-	}
-	szPath.Init();
-	ListingName(szUnit, &szPath);
-	cFile.Init(pszAssembly->Text());
-	bResult = cFile.Write(szPath.Text());
-	cFile.Kill();
-	if (!bResult)
-	{
-		mszErrors.Append("Can't write the listing ");
-		mszErrors.Append(szPath);
-		mszErrors.AppendNewLine();
-	}
-	szPath.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// As WriteListing(CChars*), a line at a time, with its error in pszErrors.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::WriteListing(const char* szUnit, CCPP65Assembly* pcAssembly, CChars* pszErrors)
-{
-	CChars	szPath;
-	bool	bResult;
-
-	if (pcAssembly->IsEmpty())
-	{
-		return true;
-	}
-	szPath.Init();
-	ListingName(szUnit, &szPath);
-	bResult = pcAssembly->Write(szPath.Text());
-	if (!bResult)
-	{
-		pszErrors->Append("Can't write the listing ");
-		pszErrors->Append(szPath);
-		pszErrors->AppendNewLine();
-	}
-	szPath.Kill();
-	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// The listings directory (made if it isn't there) and the unit's name with
-// .lst for its extension.
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCPP65Builder::ListingName(const char* szUnit, CChars* pszPath)
-{
-	CFileUtil	cFileUtil;
-	CChars		szName;
-
-	szName.Init(szUnit);
-	cFileUtil.RemoveExtension(&szName);
-	szName.Append(".lst");
-	pszPath->Append(mszListings);
-	cFileUtil.AppendToPath(pszPath, szName.Text());
-	szName.Kill();
-	return cFileUtil.TouchDir(mszListings.Text());
 }
 
 
@@ -2060,9 +1633,9 @@ bool CCPP65Builder::CompileUnits(void)
 	}
 
 	mcProject.CreatePost();
-	if (!mszListings.Empty())
+	if (mcBuild.HasListingDirectory())
 	{
-		cFileUtil.TouchDir(mszListings.Text());
+		cFileUtil.TouchDir(mcBuild.GetListingDirectory());
 	}
 	pcJobs = UnitJobs(&cSerialJobs);
 	mpcUnitJobs = pcJobs;
@@ -2071,7 +1644,7 @@ bool CCPP65Builder::CompileUnits(void)
 	bResult = true;
 	uiTurn = 0;
 	apsUnits.Init();
-	for (pcFile = mcProject.Start(&sIter, (char*)mpcTarget->GetConfigurationName()); pcFile; pcFile = mcProject.Iterate(&sIter))
+	for (pcFile = mcProject.Start(&sIter, (char*)mcBuild.GetTarget()->GetConfigurationName()); pcFile; pcFile = mcProject.Iterate(&sIter))
 	{
 		psUnit = NewMalloc<SCPP65CompiledUnit>();
 		StartUnit(psUnit, pcFile, uiTurn, mpcSpillStore != &mcIndexTreeSpillStore);
@@ -2090,7 +1663,7 @@ bool CCPP65Builder::CompileUnits(void)
 
 	//The units that call functions exported after they were compiled, compiled again in order.  A unit decides in its
 	//turn if it calls only functions not yet exported (a unit before it may export one).
-	if (bResult && mpcTarget->InlinesAcrossUnits())
+	if (bResult && mcBuild.GetTarget()->InlinesAcrossUnits())
 	{
 		for (ui = 0; ui < apsUnits.NumElements(); ui++)
 		{
@@ -2141,10 +1714,7 @@ bool CCPP65Builder::CompileUnits(void)
 		{
 			mapcCompiled.Add(&psUnit->pcObject);
 		}
-		for (uj = 0; uj < psUnit->aszLayouts.NumElements(); uj++)
-		{
-			maszLayouts.InsertIntoSorted(psUnit->aszLayouts.Get(uj));
-		}
+		mcBuild.AddLayouts(&psUnit->aszLayouts);
 		psUnit->aszLayouts.Kill();
 		psUnit->aszTested.Kill();
 		psUnit->aszMissing.Kill();
@@ -2154,7 +1724,7 @@ bool CCPP65Builder::CompileUnits(void)
 	}
 	KillWorkspaces();
 	mpcUnitJobs = NULL;
-	bResult &= WriteLayouts();
+	bResult &= mcBuild.WriteLayouts(&mszErrors);
 
 	if (apsUnits.NumElements() != muiUnits)
 	{
@@ -2179,13 +1749,13 @@ CJobs* CCPP65Builder::UnitJobs(CSerialJobs* pcSerialJobs)
 	{
 		return pcSerialJobs;
 	}
-	if ((mpcSpillStore == &mcIndexTreeSpillStore) || mcOptions.mbPrintIR || (mcOptions.muiFunctionLimit != CPP_NO_FUNCTION_LIMIT))
+	if ((mpcSpillStore == &mcIndexTreeSpillStore) || mcBuild.GetOptions()->mbPrintIR || (mcBuild.GetOptions()->muiFunctionLimit != CPP_NO_FUNCTION_LIMIT))
 	{
 		return pcSerialJobs;
 	}
 
 	//Built before the units, which only look them up.
-	mpcTarget->PrepareForThreads();
+	mcBuild.GetTarget()->PrepareForThreads();
 	return mpcJobs;
 }
 
@@ -2508,7 +2078,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	psCompile->pcWorkspace = TakeWorkspace();
 	psUnit->pcFile->GetTokens()->SetMallocators(psCompile->pcWorkspace->GetPreprocessedTokensMallocators());
 
-	szConfiguration = (char*)mpcTarget->GetConfigurationName();
+	szConfiguration = (char*)mcBuild.GetTarget()->GetConfigurationName();
 	psUnit->cStatistics.Begin(CPPCP_Preprocess);
 	if (bReport)
 	{
@@ -2534,7 +2104,7 @@ void CCPP65Builder::CompileUnit(SCPP65CompiledUnit* psUnit, bool bReport)
 	psUnit->szErrors.Append(psCompile->cTokeniser.GetErrors()->Text());
 	psCompile->cTree.Init(&psCompile->cTokeniser, psCompile->pcWorkspace->GetSyntaxTreeMallocators());
 	psCompile->cParser.Init(&psCompile->cTokeniser, &psCompile->cTree);
-	if (mbLazyHeaders)
+	if (mcBuild.HasLazyHeaders())
 	{
 		psCompile->cParser.SetHeaderIndex(&mcHeaderIndex);
 	}
@@ -2560,19 +2130,19 @@ void CCPP65Builder::InitGenerator(SCPP65CompiledUnit* psUnit)
 
 	psCompile = psUnit->psCompile;
 	psCompile->cAssembly.Init(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
-	psCompile->cGenerator.Init(&psCompile->cTree, mpcTarget->GetTarget());
+	psCompile->cGenerator.Init(&psCompile->cTree, mcBuild.GetTarget()->GetTarget());
 	psCompile->cGenerator.SetStatistics(&psUnit->cStatistics);
-	psCompile->cGenerator.SetOptions(UnitOptions(psUnit));
+	psCompile->cGenerator.SetOptions(mcBuild.LibraryOptions(psUnit->pcFile->GetLibrary()));
 	psCompile->cGenerator.SetSpillStore(psUnit->pcSpillStore, (uint32)psUnit->uiTurn);
-	if (mpcTarget->InlinesAcrossUnits())
+	if (mcBuild.GetTarget()->InlinesAcrossUnits())
 	{
 		psCompile->cGenerator.SetImports(&mcImports, psUnit->uiTurn);
-		psCompile->cGenerator.SetFrameProfile(mpcFrameProfile);
+		psCompile->cGenerator.SetFrameProfile(mcBuild.GetFrameProfile());
 	}
-	psCompile->cGenerator.SetListing(!mszListings.Empty());
-	psCompile->cGenerator.SetLayouts(!mszLayouts.Empty());
-	psCompile->cGenerator.SetLineTable(mbLineTable, mlliCompileTime);
-	psCompile->cGenerator.SetNoFloats(mbNoFloats && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
+	psCompile->cGenerator.SetListing(mcBuild.HasListingDirectory());
+	psCompile->cGenerator.SetLayouts(mcBuild.HasLayouts());
+	psCompile->cGenerator.SetLineTable(mcBuild.HasLineTable(), mcBuild.GetCompileTime());
+	psCompile->cGenerator.SetNoFloats(mcBuild.HasNoFloats() && (GetLinkLibrary(psUnit->pcFile->GetLibrary()) == NULL));
 	psCompile->cGenerator.SetCompiledBefore(!psCompile->bFirst);
 }
 
@@ -2595,7 +2165,7 @@ void CCPP65Builder::StartGenerating(SCPP65CompiledUnit* psUnit)
 	psCompile = psUnit->psCompile;
 	InitGenerator(psUnit);
 	psCompile->bGenerated = psCompile->cGenerator.GenerateBeforeTurn();
-	if (!mpcTarget->InlinesAcrossUnits())
+	if (!mcBuild.GetTarget()->InlinesAcrossUnits())
 	{
 		ContinueGenerating(psUnit);
 		return;
@@ -2681,14 +2251,14 @@ void CCPP65Builder::FinishCompile(SCPP65CompiledUnit* psUnit, bool bGenerated)
 	psUnit->szErrors.Append(psCompile->cGenerator.GetErrors()->Text());
 	psUnit->szWarnings.Append(psCompile->cGenerator.GetWarnings()->Text());
 	psCompile->cGenerator.Kill();
-	if (mpcTarget->InlinesAcrossUnits())
+	if (mcBuild.GetTarget()->InlinesAcrossUnits())
 	{
 		//Its turn is over even if it didn't get to it (an error before the unit was finished).
 		mcImports.EndTurn(psUnit->uiTurn);
 	}
-	if (!mszListings.Empty())
+	if (mcBuild.HasListingDirectory())
 	{
-		bResult &= WriteListing(psUnit->pcFile->ShortName(), &psCompile->cAssembly, &psUnit->szErrors);
+		bResult &= mcBuild.WriteListing(psUnit->pcFile->ShortName(), &psCompile->cAssembly, &psUnit->szErrors);
 	}
 	psUnit->uiLazySkipped += psCompile->cParser.NumLazySkipped();
 	psUnit->uiLazyLoaded += psCompile->cParser.NumLazyLoaded();
