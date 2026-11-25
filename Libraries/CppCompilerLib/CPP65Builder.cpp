@@ -951,6 +951,18 @@ size CCPP65Builder::NumImportsStale(void) const
 
 //////////////////////////////////////////////////////////////////////////
 //
+// How many times a unit waited for its turn without a thread (CIRImports::
+// Arrive).
+//
+//////////////////////////////////////////////////////////////////////////
+size CCPP65Builder::NumImportsParked(void) const
+{
+	return mcImports.NumParked();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // For testing: every unit is generated twice, as if it missed an
 // imported function the first time.  The code is the same.
 //

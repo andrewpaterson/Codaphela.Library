@@ -41,6 +41,7 @@ void CIRImports::Init(size uiMaxInstructions)
 	mcModuleLock.Init();
 	muiMissed = 0;
 	muiStale = 0;
+	muiParked = 0;
 	mbForceMisses = false;
 	masParked.Init();
 	mfResume = NULL;
@@ -279,6 +280,7 @@ EIRArrival CIRImports::Arrive(size uiTurn, void* pvUnit, CArrayChars* paszNotFou
 	}
 	else
 	{
+		muiParked++;
 		psParked = masParked.Add();
 		psParked->uiTurn = uiTurn;
 		psParked->pvUnit = pvUnit;
@@ -343,6 +345,17 @@ void CIRImports::Exported(const char* szName)
 size CIRImports::NumStale(void) const
 {
 	return muiStale;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How many times a unit waited for its turn without a thread (Arrive).
+//
+//////////////////////////////////////////////////////////////////////////
+size CIRImports::NumParked(void) const
+{
+	return muiParked;
 }
 
 

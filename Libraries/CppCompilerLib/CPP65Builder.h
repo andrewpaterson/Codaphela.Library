@@ -257,6 +257,7 @@ public:
 	const CPPHeaderCache*	GetHeaderCache(void) const;
 	size					NumImportsMissed(void) const;
 	size					NumImportsStale(void) const;
+	size					NumImportsParked(void) const;
 	void					SetForceImportsMissed(bool bForce);
 	void					SetLineTable(bool bLineTable);
 	void					SetNoFloats(bool bNoFloats);

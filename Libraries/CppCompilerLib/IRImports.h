@@ -82,6 +82,7 @@ protected:
 	CMutex				mcModuleLock;	//Held shared by units finding functions before their turn, exclusive to export.
 	size				muiMissed;		//Turns a unit missed a function exported after it looked (Missed).
 	size				muiStale;		//Units that found they had missed one before their turn (Arrive).
+	size				muiParked;		//Units that waited for their turn without a thread (Arrive).
 	CArrayIRParkedUnits	masParked;		//Units waiting for their turns (Arrive).
 	IRImportsResume		mfResume;
 	void*				mpvResumeContext;
@@ -102,6 +103,7 @@ public:
 	EIRArrival		Arrive(size uiTurn, void* pvUnit, CArrayChars* paszNotFound);
 	size			NumMissed(void) const;
 	size			NumStale(void) const;
+	size			NumParked(void) const;
 	void			SetForceMisses(bool bForceMisses);
 
 	bool			Export(CIRModule* pcModule, CIRFunction* pcFunction);
