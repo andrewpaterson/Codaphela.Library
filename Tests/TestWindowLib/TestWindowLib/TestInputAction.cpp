@@ -68,8 +68,10 @@ class CActionTestCounter
 {
 public:
 	int		miCalls;
+	bool	mbPasses;
 
 	void Count(SComponentInputEvent* psEvent) { miCalls++; }
+	void CountOrPass(SComponentInputEvent* psEvent) { miCalls++; psEvent->bPass = mbPasses; }
 };
 
 
@@ -339,6 +341,103 @@ void TestInputActionEnabled(void)
 		AssertInt(1, cParentLefts.miCalls);
 
 		pLeft = NULL;
+		pChild = NULL;
+		pGrid = NULL;
+		ORoot()->Remove(pTestWindow);
+		pTestWindow = NULL;
+		pTick = NULL;
+		szLog.Kill();
+	}
+
+	pNativeFactory = NULL;
+	AssertSize(0, gcObjects.NumFreeObjects());
+	AssertTrue(ORoot()->RemoveAll());
+	AssertSize(2, gcObjects.NumMemoryIndexes());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An action that goes first is called before the component's others,
+// though it was added after them, and what it takes they aren't given;
+// what it passes they are, and so is everything once it no longer goes
+// first.  It doesn't keep a command from the parent that the component's
+// own actions don't take.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestInputActionGoesFirst(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>					pTestWindow;
+		Ptr<CTickTestRefWindow>			pTick;
+		SDataTestRefWindow				cData;
+		CPointer						pNull;
+		Ptr<CGridContainer>				pGrid;
+		Ptr<CActionShapeTestComponent>	pChild;
+		Ptr<CInputAction>				pFirst;
+		CChars							szLog;
+		CActionTestCounter				cFirst;
+		CActionTestCounter				cParentCopies;
+
+		szLog.Init();
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 64, 32, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("First Window", &pNativeFactory, pTick, pNull, CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pGrid = OMalloc<CGridContainer>(pTestWindow);
+		pTestWindow->SetContainer(pGrid);
+		pChild = OMalloc<CActionShapeTestComponent>(pTestWindow, &szLog);
+		AssertTrue(pGrid->AddComponent(pChild, 0, 0, 1, 1, 1, 1));
+		pTestWindow->Layout();
+		cFirst.miCalls = 0;
+		cFirst.mbPasses = false;
+		cParentCopies.miCalls = 0;
+
+		pChild->AddInputAction(CIC_Left, &pChild, &CActionShapeTestComponent::Left);
+		pFirst = pChild->AddInputAction(CIC_Left, &cFirst, &CActionTestCounter::CountOrPass);
+		pGrid->AddInputAction(CIC_Copy, &cParentCopies, &CActionTestCounter::Count);
+		pTestWindow->GetFocus()->SetFocus(pChild);
+		AssertFalse(pFirst->GoesFirst());
+
+		//As any action: both are called.
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("Left;");
+		AssertInt(1, cFirst.miCalls);
+
+		//Going first, it takes the command and the component's own action isn't called.
+		pFirst->SetGoesFirst(true);
+		AssertTrue(pFirst->GoesFirst());
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("");
+		AssertInt(2, cFirst.miCalls);
+
+		//Passing it, the component's own is called after it.
+		cFirst.mbPasses = true;
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("Left;");
+		AssertInt(3, cFirst.miCalls);
+
+		//A command it isn't for still goes on to the parent.
+		pTestWindow->InputCommand(CIC_Copy, true);
+		AssertLog("");
+		AssertInt(3, cFirst.miCalls);
+		AssertInt(1, cParentCopies.miCalls);
+
+		//Turned off it is as if it weren't there; not going first again, both are called.
+		cFirst.mbPasses = false;
+		pFirst->SetEnabled(false);
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("Left;");
+		AssertInt(3, cFirst.miCalls);
+		pFirst->SetEnabled(true);
+		pFirst->SetGoesFirst(false);
+		pTestWindow->InputCommand(CIC_Left, true);
+		AssertLog("Left;");
+		AssertInt(4, cFirst.miCalls);
+
+		pFirst = NULL;
 		pChild = NULL;
 		pGrid = NULL;
 		ORoot()->Remove(pTestWindow);
@@ -1031,6 +1130,7 @@ void TestInputAction(void)
 	TestInputActionMatching();
 	TestInputActionShapes();
 	TestInputActionEnabled();
+	TestInputActionGoesFirst();
 	TestInputActionUnhandledCommands();
 	TestInputActionDispatch();
 	TestInputActionUndoChords(true);

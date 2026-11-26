@@ -36,6 +36,7 @@ void CInputAction::Init(EInputActionFilter eFilter, const char* szName, ECompone
 	msCall = *psCall;
 	mbEnabled = true;
 	mbKeepsLayout = false;
+	mbGoesFirst = false;
 
 	PostInit();
 }
@@ -53,6 +54,7 @@ void CInputAction::Class(void)
 	U_Unknown(SMemberCall, msCall);
 	U_Bool(mbEnabled);
 	U_Bool(mbKeepsLayout);
+	U_Bool(mbGoesFirst);
 }
 
 
@@ -155,5 +157,7 @@ bool CInputAction::IsEnabled(void) const { return mbEnabled; }
 //////////////////////////////////////////////////////////////////////////
 void CInputAction::SetKeepsLayout(bool bKeepsLayout) { mbKeepsLayout = bKeepsLayout; }
 bool CInputAction::KeepsLayout(void) { return mbKeepsLayout; }
+void CInputAction::SetGoesFirst(bool bGoesFirst) { mbGoesFirst = bGoesFirst; }
+bool CInputAction::GoesFirst(void) const { return mbGoesFirst; }
 EInputActionFilter CInputAction::GetFilter(void) const { return meFilter; }
 EComponentInputCommand CInputAction::GetCommand(void) const { return meCommand; }

@@ -208,7 +208,9 @@ bool CComponent::CanDoCommand(EComponentInputCommand eCommand)
 // Calls every action that matches, in the order they were added.  Returns
 // true if any did, then the event goes no further, unless every one that
 // did set the event's bPass.  An action can remove actions, as taking a
-// dragged tab off its group takes its context menu's away.
+// dragged tab off its group takes its context menu's away.  The actions
+// that go first (CInputAction::SetGoesFirst) are called before the rest,
+// which aren't called if one of those took the event.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
@@ -217,23 +219,30 @@ bool CComponent::CallInputActions(SComponentInputEvent* psEvent)
 	size				i;
 	bool				bTaken;
 	bool				bLayoutKept;
+	bool				bFirst;
 
 	bTaken = false;
 	bLayoutKept = true;
-	for (i = 0; i < maInputActions.NumElements(); i++)
+	bFirst = true;
+	do
 	{
-		pAction = maInputActions.Get(i);
-		if (pAction.IsNotNull() && pAction->Matches(psEvent))
+		for (i = 0; i < maInputActions.NumElements(); i++)
 		{
-			psEvent->bPass = false;
-			pAction->Call(psEvent);
-			if (!psEvent->bPass)
+			pAction = maInputActions.Get(i);
+			if (pAction.IsNotNull() && (pAction->GoesFirst() == bFirst) && pAction->Matches(psEvent))
 			{
-				bTaken = true;
-				bLayoutKept = bLayoutKept && pAction->KeepsLayout();
+				psEvent->bPass = false;
+				pAction->Call(psEvent);
+				if (!psEvent->bPass)
+				{
+					bTaken = true;
+					bLayoutKept = bLayoutKept && pAction->KeepsLayout();
+				}
 			}
 		}
+		bFirst = !bFirst;
 	}
+	while (!bFirst && !bTaken);
 	psEvent->bPass = false;
 	if (bTaken)
 	{

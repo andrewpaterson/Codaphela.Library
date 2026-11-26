@@ -103,6 +103,12 @@ and y.  All of a component's actions that match are called.  An action that can'
 [`SComponentInputEvent::bPass`] so it goes on to the parent, and a disabled action ([`CInputAction::SetEnabled`])
 matches nothing.
 
+An action that goes first ([`CInputAction::SetGoesFirst`]) is called before the component's actions that don't,
+whenever it was added, and when it takes the event those aren't called.  It is for something outside a component that
+sometimes has a use for one of its keys: the IDE's Quick Documentation takes an editor's Page Up and Page Down to
+scroll itself while it shows more than fits, and passes them to the editor otherwise
+([`TestWindowLib/TestInputAction.cpp`]).
+
 An action that keeps its component's layout, or lays it out again itself, says so
 ([`CInputAction::SetKeepsLayout`]); when every action that took an event keeps the layout, the window only paints.
 A key that types a character also keeps it.  Anything else lays the window out again before the next paint.

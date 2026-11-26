@@ -66,6 +66,10 @@ void InputActionCallPointer(void* pvObject, uint8* pucFunction, void* pvArgument
 //
 //A command's function can take the event, nothing, or the pointer's x and y relative to the component; the others'
 //take the event.
+//
+//An action that goes first (SetGoesFirst) is called before its component's actions that don't, whenever they were
+//added, and when it takes the event (it doesn't set the event's bPass) those aren't called: something outside the
+//component that sometimes has a use for one of its keys, as a popup an editor's Page Down scrolls while it is shown.
 class CInputAction : public CObject
 {
 CONSTRUCTABLE(CInputAction);
@@ -77,6 +81,7 @@ protected:
 	SMemberCall				msCall;
 	bool					mbEnabled;  //A disabled action matches nothing, so its input goes on to the parent.
 	bool					mbKeepsLayout;  //Its function lays its component out again itself if what it changes moves anything.
+	bool					mbGoesFirst;  //Called before the actions that don't; what it takes they aren't given.
 
 public:
 	template<class M, class O>
@@ -98,6 +103,8 @@ public:
 	bool					IsEnabled(void) const;
 	void					SetKeepsLayout(bool bKeepsLayout);
 	bool					KeepsLayout(void);
+	void					SetGoesFirst(bool bGoesFirst);
+	bool					GoesFirst(void) const;
 
 	EInputActionFilter		GetFilter(void) const;
 	EComponentInputCommand	GetCommand(void) const;
