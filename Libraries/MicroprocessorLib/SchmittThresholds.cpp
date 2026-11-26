@@ -32,11 +32,11 @@ static SSchmittThreshold gasSchmittThresholds[] =
 	{ "LVC",	"14",	3.0f,	1.60f,	1.15f },
 	{ "LVC",	"14",	3.6f,	1.60f,	1.15f },
 	//74LVC1G17 (Nexperia): typical.
-	{ "LVC",	"17",	1.8f,	1.0f,	0.6f },
-	{ "LVC",	"17",	2.3f,	1.2f,	0.8f },
-	{ "LVC",	"17",	3.0f,	1.5f,	1.0f },
-	{ "LVC",	"17",	4.5f,	2.1f,	1.5f },
-	{ "LVC",	"17",	5.5f,	2.5f,	1.8f },
+	{ "LVC",	"1G17",	1.8f,	1.0f,	0.6f },
+	{ "LVC",	"1G17",	2.3f,	1.2f,	0.8f },
+	{ "LVC",	"1G17",	3.0f,	1.5f,	1.0f },
+	{ "LVC",	"1G17",	4.5f,	2.1f,	1.5f },
+	{ "LVC",	"1G17",	5.5f,	2.5f,	1.8f },
 	//74VHCT14 (Fairchild): VT+ at most 1.9V (2.1V), VT- at least 0.5V (0.6V), the hysteresis at least 0.4V, so VT+
 	//from 0.9V to 1.9V and VT- from 0.5V to 1.5V; the middle of each.
 	{ "VHCT",	"14",	4.5f,	1.40f,	1.00f },

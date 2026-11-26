@@ -343,12 +343,12 @@ void TestRCFilterSchmitt(void)
 	int64							iCrossing;
 
 	cBoard.Init();
-	pcSchmitt = cBoard.mcStore.GetPart("LVC", "17");
+	pcSchmitt = cBoard.mcStore.GetPart("LVC", "1G17");
 	AssertNotNull(pcSchmitt);
-	AssertString("LVC 17", pcSchmitt->GetFamily());
-	AssertTrue(pcSchmitt == cBoard.mcStore.GetPart("LVC", "17"));
+	AssertString("LVC 1G17", pcSchmitt->GetFamily());
+	AssertTrue(pcSchmitt == cBoard.mcStore.GetPart("LVC", "1G17"));
 	AssertTrue(cBoard.mcStore.GetPart("LVC", "04") == cBoard.mcStore.Get("LVC"));
-	AssertNull(cBoard.mcStore.GetPart("XYZ", "17"));
+	AssertNull(cBoard.mcStore.GetPart("XYZ", "1G17"));
 	AssertFloat(1.62f, pcSchmitt->GetHighVoltageIn(3.3f), 3);
 	AssertFloat(1.1f, pcSchmitt->GetLowVoltageIn(3.3f), 3);
 	AssertFloat(3.1f, pcSchmitt->GetVoltageOut(true, 3.3f), 3);

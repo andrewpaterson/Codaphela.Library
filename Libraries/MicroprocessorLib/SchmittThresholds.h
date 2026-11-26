@@ -25,8 +25,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //The input thresholds of the Schmitt trigger parts a logic family has: rising, an input switches at VT+, falling at
 //VT-, from each part's datasheet (HCP65/Datasheets): typical figures where it gives them, else the middle of what its
-//minimums, maximums and hysteresis allow.  A part is a 74 series part type in its family ("14", "17": a family's 17
-//is its single gate 1G17).  Between the datasheet's VCCs the thresholds are interpolated, beyond them scaled with
+//minimums, maximums and hysteresis allow.  A part is a 74 series part type in its family as a part number has it
+//("14", "1G17").  Between the datasheet's VCCs the thresholds are interpolated, beyond them scaled with
 //VCC.  An input's unsettled band, between VIL and VIH, already ignores a slow input until it passes the threshold on
 //its way, so a Schmitt part is its family with VIL VT- and VIH VT+ (CFamilyVoltageConfigurationStore::GetPart), taken
 //at each VCC the family has figures for; between those the family interpolates, as it does its other figures.
