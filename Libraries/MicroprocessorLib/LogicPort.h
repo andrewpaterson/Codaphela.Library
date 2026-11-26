@@ -92,6 +92,7 @@ public:
 			void							RemoveEvents(CTimeline* pcTimeline);
 	virtual void							TraceConnected(CTimeline* pcTimeline);
 	virtual void							TraceUndriven(CTimeline* pcTimeline);
+	virtual void							SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage);
 	virtual void							Reset(void);
 	virtual bool							IsLogicPort(void) const;
 	virtual float32							GetVoltageOut(int64 iTime);

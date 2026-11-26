@@ -22,21 +22,48 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __POWER_SOURCE_H__
 #include "Passive.h"
 #include "PowerOutPort.h"
+#include "PowerInPort.h"
 
 
-//Logicim's PowerSource: drives its Power port's trace with a fixed voltage.
+#define POWER_PIN_FEED		"In"
+
+
+//Logicim's PowerSource: drives its Power port's trace with a supply's voltage.  It is switched on and off, and ramps
+//over its rise time, see CPowerOutPort.  When the simulation starts it is on, or off if it isn't on at start; on, it
+//rises from 0V over its rise time (at once with none, as Logicim's).
+//
+//A supply fed by another, a regulator, has a power in port, In, on its feed's trace: it is on while its feed is at
+//its voltage plus its dropout or above, and off below it, whatever it was told at start.
 class CPowerSource : public CPassive
 {
 CONSTRUCTABLE(CPowerSource);
 protected:
 	CPowerOutPort*	mpcPowerOutPort;
+	bool			mbOnAtStart;
+	CPowerInPort*	mpcFeedPort;  //NULL unless it is fed.
+	float32			mfDropout;
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, float32 fVoltage);
 			void			Class(void) override;
 
 	virtual const char*		GetType(void);
+	virtual void			SimulationStarted(CTimeline* pcTimeline);
+	virtual void			TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
+
+			void			Switch(CTimeline* pcTimeline, bool bOn);
+			bool			IsOn(void) const;
+			void			SetOnAtStart(bool bOnAtStart);
+			bool			IsOnAtStart(void) const;
+			void			SetRiseTime(int64 iRiseTime);
+			int64			GetRiseTime(void) const;
+			void			SetFeed(float32 fDropout);
+			CPowerInPort*	GetFeedPort(void) const;
+			float32			GetDropout(void) const;
 			CPowerOutPort*	GetPowerOutPort(void) const;
+
+protected:
+			void			FollowFeed(CTimeline* pcTimeline);
 };
 
 

@@ -507,6 +507,32 @@ void CLogicPort::VccChanged(CTimeline* pcTimeline, float32 fOldVcc)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A supply on the port's trace has stepped from fOldVoltage, as an input
+// tied to a rail sees it ramp: the chip is told if it reads another level.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage)
+{
+	int64	iTime;
+	float32	fVcc;
+	float32	fVoltage;
+
+	if ((mpcTrace == NULL) || (mpcVoltageConfigurationSource == NULL))
+	{
+		return;
+	}
+	iTime = pcTimeline->GetTime();
+	fVcc = GetVCC(iTime);
+	fVoltage = mpcTrace->GetVoltage(iTime);
+	if (mpcVoltageConfigurationSource->GetValue(fOldVoltage, fVcc) != mpcVoltageConfigurationSource->GetValue(fVoltage, fVcc))
+	{
+		CreateTransitionEventFromVoltage(pcTimeline, fVoltage);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // A transition next tick if fVoltage is at a valid level for this port.
 // Returns true if one was scheduled.
 //

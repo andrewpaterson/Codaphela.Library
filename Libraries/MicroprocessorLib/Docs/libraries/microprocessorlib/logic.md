@@ -53,7 +53,7 @@ A [`CPort`] joins a [`CPortHolder`] (a chip's pins or a passive) to a trace:
 | Port | Is |
 |---|---|
 | [`CPowerInPort`] | a chip's VCC or GND, reading its trace |
-| [`CPowerOutPort`] | a power supply, driving its trace with a fixed voltage |
+| [`CPowerOutPort`] | a power supply, driving its trace with its voltage, see Supplies below |
 | [`CTracePort`] | a passive connection, a wire's or a splitter's end, that neither drives nor reads |
 | [`CLogicPort`] | a chip's input or output |
 
@@ -78,6 +78,20 @@ Driving and undriving are changes the ports must see:
   Logicim lets an earlier write's slew drive the trace again.
 - A chip with no power slews forever (its slew time is the largest [`int64`]); such a slew drives nothing and its
   transition isn't worked out, where Logicim would never finish working it out.
+
+## Supplies
+
+A supply ([`CPowerSource`], its [`CPowerOutPort`]) is switched on and off ([`CPowerSource::Switch`]).  Switched on, it
+rises from where it is to its voltage over its rise time, and switched off it falls to 0V the same way: a regulator
+charging the rail's capacitors and the load discharging them.  It moves in steps of 0.1V (`#!text POWER_STEP_VOLTAGE`),
+each a [`CPowerStepEvent`] that tells the ports on its trace ([`CPort::SupplyChanged`]): a chip's power port tells the
+chip, which starts, writes again at its new VCC or stops, and a logic port tied to the rail tells its chip when it reads
+another level.  Its voltage at a time is worked out from when it was last switched and the voltage it had then.  With
+no rise time it switches at once, the next tick, and when the simulation starts it is on at its voltage, as Logicim's
+was.  With a rise time it starts at 0V and rises, or stays off if it isn't on at start.
+
+A supply fed by another, a regulator ([`CPowerSource::SetFeed`]), has a power in port on its feed's rail: it is on
+while its feed is at its voltage plus its dropout or above, and off below it.
 
 ## Ideal and analog signals
 

@@ -23,19 +23,59 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "Port.h"
 
 
-//Logicim's PowerOutPort: drives its trace with a fixed voltage, as a power supply does.
+#define POWER_STEP_VOLTAGE	0.1f
+
+
+//Logicim's PowerOutPort: drives its trace with a supply's voltage.  Logicim's is fixed and there from the moment it is
+//connected.  Here a supply is switched on and off: switched on it rises from where it is to its voltage over its rise
+//time, and switched off falls to 0V the same way, a regulator charging and its load discharging the rail's
+//capacitors.  It moves in steps of POWER_STEP_VOLTAGE, each a CPowerStepEvent that tells the trace's other ports
+//(CPort::SupplyChanged), so a chip powered from it starts, writes again at its new VCC or stops
+//(CIntegratedCircuit::PowerChanged), and its holder (CPortHolder::TraceConnected).  With no rise time it switches at
+//once, the next tick.
+//
+//It is on from before the simulation starts, at its voltage, until Start (as the simulation starts) or Switch says
+//otherwise.  Its voltage at a time is worked out from when it was last switched and the voltage it had then.
+class CPowerStepEvent;
 class CPowerOutPort : public CPort
 {
 CONSTRUCTABLE(CPowerOutPort);
 protected:
-	float32		mfVoltage;
+	float32				mfVoltage;  //When on.
+	int64				miRiseTime;  //From 0V to mfVoltage; 0 switches at once.
+	bool				mbOn;
+	int64				miSwitchTime;
+	float32				mfSwitchVoltage;  //The voltage when it was last switched.
+	float32				mfToldVoltage;  //The voltage the trace's ports were last told of.
+	CPowerStepEvent*	mpcStepEvent;
 
 public:
-			void	Init(const char* szName, CPortHolder* pcHolder, float32 fVoltage);
+			void		Init(const char* szName, CPortHolder* pcHolder, float32 fVoltage);
 
-	virtual float32	GetVoltageOut(int64 iTime);
-	virtual void	AppendDescription(CChars* psz);
-	virtual void	AppendDebugString(CChars* psz);
+	virtual void		Reset(void);
+	virtual float32		GetVoltageOut(int64 iTime);
+			void		Start(CTimeline* pcTimeline, bool bOn);
+			void		Switch(CTimeline* pcTimeline, bool bOn);
+			void		SetSwitched(CTimeline* pcTimeline, bool bOn, int64 iSwitchTime, float32 fSwitchVoltage);
+			void		Step(CTimeline* pcTimeline);
+			void		StepNextTick(CTimeline* pcTimeline);
+			void		StepRemoved(CPowerStepEvent* pcEvent);
+
+			float32		GetVoltage(void) const;
+			void		SetRiseTime(int64 iRiseTime);
+			int64		GetRiseTime(void) const;
+			bool		IsOn(void) const;
+			int64		GetSwitchTime(void) const;
+			float32		GetSwitchVoltage(void) const;
+			int64		CalculateStepTime(void) const;
+	virtual void		AppendDescription(CChars* psz);
+	virtual void		AppendDebugString(CChars* psz);
+
+protected:
+			void		SetSwitch(bool bOn, int64 iSwitchTime, float32 fSwitchVoltage);
+			void		RemoveStep(CTimeline* pcTimeline);
+			void		ScheduleNextStep(CTimeline* pcTimeline);
+			bool		HasArrived(float32 fVoltage) const;
 };
 
 

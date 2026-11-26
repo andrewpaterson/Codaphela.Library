@@ -37,6 +37,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //Logicim's OutputPortHelper.getPortOutputVoltage is GetVoltageOut here: the voltage the port drives its trace with,
 //NaN for ports that don't drive.
+//
+//SupplyChanged tells a port that a supply on its trace has stepped, as it ramps (CPowerOutPort): a power port tells its
+//holder, so a chip sees its power change; a logic port tells its chip if its trace is now at another level.
 class CTimeline;
 class CTrace;
 class CPortHolder;
@@ -61,6 +64,7 @@ public:
 			void			TraceKilled(void);
 	virtual void			TraceConnected(CTimeline* pcTimeline);
 	virtual void			TraceUndriven(CTimeline* pcTimeline);
+	virtual void			SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage);
 	virtual void			Reset(void);
 
 	virtual bool			IsLogicPort(void) const;
