@@ -38,6 +38,7 @@ void CPull::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const 
 	mpcSignalPort = NewMalloc<CPullPort>();
 	mpcSignalPort->Init(PULL_PIN_SIGNAL, this, mpcSupplyPort, fResistance);
 	mfSupplyVoltage = NoVoltage();
+	mfCapacitance = 0.0f;
 	PostInit();
 }
 
@@ -53,6 +54,7 @@ void CPull::Class(void)
 	U_Pointer(mpcSupplyPort);
 	U_Pointer(mpcSignalPort);
 	U_Float32(mfSupplyVoltage);
+	U_Float32(mfCapacitance);
 }
 
 
@@ -63,13 +65,15 @@ void CPull::Class(void)
 void CPull::SimulationStarted(CTimeline* pcTimeline)
 {
 	mfSupplyVoltage = mpcSupplyPort->GetVoltageIn(pcTimeline->GetTime());
+	SetCapacitance(mfCapacitance);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // The supply has moved, or a port was connected or cut: if only pulls
-// hold the signal its ports are told.
+// hold the signal its ports are told.  The signal connected, its trace
+// takes the capacitance given.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPull::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
@@ -78,6 +82,14 @@ void CPull::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
 	float32		fSupplyVoltage;
 	CTrace*		pcSignal;
 
+	if (pcPort == mpcSignalPort)
+	{
+		if ((mfCapacitance > 0.0f) && (mpcSignalPort->GetTrace() != NULL))
+		{
+			mpcSignalPort->GetTrace()->SetCapacitance(mfCapacitance);
+		}
+		return;
+	}
 	if (pcPort != mpcSupplyPort)
 	{
 		return;
@@ -100,4 +112,19 @@ void CPull::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
 const char* CPull::GetType(void) { return "Pull"; }
 CPowerInPort* CPull::GetSupplyPort(void) const { return mpcSupplyPort; }
 CPullPort* CPull::GetSignalPort(void) const { return mpcSignalPort; }
+float32 CPull::GetCapacitance(void) const { return mfCapacitance; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPull::SetCapacitance(float32 fCapacitance)
+{
+	mfCapacitance = fCapacitance;
+	if ((mfCapacitance > 0.0f) && (mpcSignalPort->GetTrace() != NULL))
+	{
+		mpcSignalPort->GetTrace()->SetCapacitance(mfCapacitance);
+	}
+}
 

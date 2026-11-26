@@ -84,7 +84,8 @@ Driving and undriving are changes the ports must see:
 - [`CPort::Disconnect`] is the reverse: the port sees undriven, and if the trace is left undriven so do its other
   ports ([`CTrace::NotifyUndriven`]).  A drive of NaN, and a slew from a chip without power, notify the same way.
 - A strong driver letting go of a pulled trace, or its pulls' level moving, sends it along an RC curve to its pulls'
-  voltage, R their resistance in parallel and C the trace's capacitance (3pF unless set, [`CTrace::SetCapacitance`]),
+  voltage, R their resistance in parallel and C the trace's capacitance (3pF unless set, [`CTrace::SetCapacitance`]; a
+  pull given its net's, [`CPull::SetCapacitance`], sets it),
   and its logic ports are told as of a slew ([`CTrace::NotifyVoltageChanged`]): a 10k pull on 10pF crosses VIH 87ns
   after it is let go.  A driver taking a pulled trace slews from where the curve has got to, and ends it.  An input held only by
   supplies and pulls is read as its chip starts ([`CIntegratedCircuit::Reset`]): no slew will tell it.

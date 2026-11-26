@@ -32,7 +32,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //A pull-up or pull-down: a resistor from a supply (its Supply port) to a signal (its Signal port, a CPullPort), which
 //gives the signal the supply's voltage while nothing drives it strongly.  When the supply moves, as it ramps, the
 //signal's ports are told if only pulls hold it; the voltage they are told it moved from is the supply's last, which
-//is the signal's when this is the only pull on it.
+//is the signal's when this is the only pull on it.  A capacitance given it (SetCapacitance, an importer's estimate of
+//the net's) is its signal trace's once connected, for the trace's curve when it is let go.
 class CPull : public CPassive
 {
 CONSTRUCTABLE(CPull);
@@ -40,6 +41,7 @@ protected:
 	CPowerInPort*	mpcSupplyPort;
 	CPullPort*		mpcSignalPort;
 	float32			mfSupplyVoltage;  //The supply's voltage when the signal's ports were last told.
+	float32			mfCapacitance;  //Farads, 0 to leave the signal trace's as it is.
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, float32 fResistance);
@@ -51,6 +53,8 @@ public:
 
 			CPowerInPort*	GetSupplyPort(void) const;
 			CPullPort*		GetSignalPort(void) const;
+			void			SetCapacitance(float32 fCapacitance);
+			float32			GetCapacitance(void) const;
 };
 
 
