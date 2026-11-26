@@ -156,9 +156,10 @@ Built
 2026-11-26, all eleven steps, with the decisions above: MicroprocessorLib (supplies, chips' power, the power-up
 state, the DS1813 on PullsPlan's weak drive; TestPower, TestPull), LogicimLib and LogiCim (supply views, rails,
 the supervisor's view, Power On/Off, the power-up setting, fast-forward), KicadImporterLib (rails, regulators as fed
-supplies, the DS1813; TestKicadSchemPower runs Power and Reset and the Processor Reset Device).  Left: LVC has no
-figures above 3.3V in the propagation times, so LVC parts on a 5V rail don't drive; series resistors aren't joined
-yet (ResistorsPlan part 1), so the Processor Reset Device's reset stops at R1.
+supplies, the DS1813; TestKicadSchemPower runs Power and Reset and the Processor Reset Device).  LVC's 5V figures
+were added then (the user), from the single gates' datasheets, so Power and Reset's 74LVC1G17 buffers the reset at
+5V.  Left: series resistors aren't joined yet (ResistorsPlan part 1), so the Processor Reset Device's reset stops at
+R1.
 
 Order
 -----
