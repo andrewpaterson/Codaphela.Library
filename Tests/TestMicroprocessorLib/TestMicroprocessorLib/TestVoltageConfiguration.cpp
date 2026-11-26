@@ -314,7 +314,7 @@ void TestVoltageConfigurationStoreLoad(void)
 	pcFamily = cStore.GetDefaultFamily();
 	AssertNotNull(pcFamily);
 	AssertString(DEFAULT_FAMILY, pcFamily->GetFamily());
-	AssertSize(3, pcFamily->NumConfigurations());
+	AssertSize(4, pcFamily->NumConfigurations());
 
 	//"LVC",3.3,"TTL","tPD",1.0,2.9,5.1,2.0,0.8,3.1,0.2 with tEN 3.5 and tDIS 3.3.
 	pcConfiguration = pcFamily->GetDefaultVoltageConfiguration(LOGIC_LEVEL_TTL);
@@ -342,6 +342,17 @@ void TestVoltageConfigurationStoreLoad(void)
 	AssertLong(7884, pcConfiguration->GetHighToEnableSlewTime());
 	AssertLong(2508, pcConfiguration->GetLowToDisableHoldTime());
 	AssertNull(pcFamily->GetDefaultVoltageConfiguration(LOGIC_LEVEL_CMOS));
+
+	//"LVC",5.0,,"tPD",0.5,1.6,3.7,3.5,1.5,4.9,0.1 with tEN 2.1 and tDIS 2.2: the single gates', which run to 5.5V.
+	pcConfiguration = pcFamily->Get(5.0f);
+	AssertNotNull(pcConfiguration);
+	AssertFloat(3.5f, pcConfiguration->GetHighVoltageIn(), 3);
+	AssertFloat(1.5f, pcConfiguration->GetLowVoltageIn(), 3);
+	AssertFloat(4.9f, pcConfiguration->GetHighVoltageOut(), 3);
+	AssertFloat(0.1f, pcConfiguration->GetLowVoltageOut(), 3);
+	AssertLong(819, pcConfiguration->GetHighToLowHoldTime());
+	AssertLong(1638, pcConfiguration->GetLowToHighSlewTime());
+	AssertTrue(pcFamily->GetVoltsPerTimeLowToHigh(5.0f) != InfiniteVoltsPerTime());
 
 	//LVT's TTL row is at 2.7V; Logicim would carry it on to 3.3V.
 	pcFamily = cStore.Get("LVT");
