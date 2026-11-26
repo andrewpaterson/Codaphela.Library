@@ -146,7 +146,7 @@ void CCPPOverloads::Kill(void)
 bool CCPPOverloads::IsOverloadOf(CCPPClass* pcClass, CCPPFunction* pcFunction, int64 lliName)
 {
 	CCPPFunction*	pcOwn;
-	SCPPUsing*	psUsing;
+	SCPPUsing*		psUsing;
 	size			i;
 	bool			bUsed;
 
@@ -1083,7 +1083,7 @@ void CCPPOverloads::AddNamespaceOf(CCPPScope* pcScope, CCPPOverloadScopes* papcN
 //////////////////////////////////////////////////////////////////////////
 void CCPPOverloads::AddAssociatedNamespaces(SCPP65Type* psType, CCPPOverloadScopes* papcNamespaces, int iDepth)
 {
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	SCPPBinding*	psBinding;
 	size			i;
 	size			j;
@@ -1329,7 +1329,7 @@ CCPPFunction* CCPPOverloads::FindAddressedFunction(CCPPSyntaxName* pcName, int64
 {
 	CCPPFunction*	pcFunction;
 	CCPPFunction*	pcFound;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	CCPPOverloadScopes	apcNamespaces;
 	bool			bQualified;
 	bool			bAmbiguous;
@@ -2348,7 +2348,7 @@ int CCPPOverloads::CompareArgument(CCPPFunction* pcFirst, CCPPFunction* pcSecond
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliName, size uiArguments, ECPPCalledObject eObject)
 {
-	CArrayCPPTemplates	apcCandidates;
+	CArrayCPPTemplates		apcCandidates;
 	CCPPTemplate*			pcTemplate;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_FindMemberTemplate);
@@ -2368,7 +2368,7 @@ CCPPTemplate* CCPPOverloads::FindMemberTemplate(CCPPClass* pcClass, int64 lliNam
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPPOverloads::ChooseMemberTemplate(CCPPClass* pcClass, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CArraySyntax* papcExplicit, ECPPCalledObject eObject)
 {
-	CArrayCPPTemplates	apcCandidates;
+	CArrayCPPTemplates		apcCandidates;
 	CCPPTemplate*			pcTemplate;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_ChooseMemberTemplate);
@@ -2423,7 +2423,7 @@ void CCPPOverloads::GetMemberTemplates(CCPPClass* pcClass, int64 lliName, size u
 //////////////////////////////////////////////////////////////////////////
 CCPPTemplate* CCPPOverloads::GetCallTemplate(CCPPSymbol* pcSymbol, int64 lliName, CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, CArraySyntax* papcExplicit)
 {
-	CArrayCPPTemplates	apcCandidates;
+	CArrayCPPTemplates		apcCandidates;
 	CCPPOverloadScopes		apcNamespaces;
 	CCPPTemplate*			pcTemplate;
 	size					i;
@@ -2516,8 +2516,8 @@ CCPPTemplate* CCPPOverloads::ChooseTemplate(CArrayCPPTemplates* papcCandidates, 
 	CCPPTemplate*				pcTemplate;
 	CCPPSyntaxFunctionSuffix*	pcSuffix;
 	size						uiArguments;
-	size					uiBetter;
-	size					i;
+	size						uiBetter;
+	size						i;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_ChooseTemplate);
 	apcChosen.Init();

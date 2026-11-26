@@ -76,7 +76,7 @@ public:
 	CCPPScope*		mpcMembers;			//The members of a namespace, class or enum, or of the class a typedef names.
 	CCPPSymbol*		mpcNext;			//Another declaration of the name in the same scope, such as an overload.
 	CCPPSyntaxLazyDeclaration*	mpcLazy;	//A header declaration not parsed yet: this symbol stands for its name.
-	CCPPLazyLoader*				mpcLoader;	//Parses mpcLazy.
+	CCPPLazyLoader*	mpcLoader;	//Parses mpcLazy.
 
 	void	Init(int64 lliName, ECPPSymbolKind eKind, CCPPSyntax* pcDeclaration, CCPPScope* pcScope);
 	bool	IsType(void) const;

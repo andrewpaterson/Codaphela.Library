@@ -223,7 +223,7 @@ CCPPClass* CCPPNames::GetComponentClass(CCPPSyntaxNameComponent* pcComponent, CC
 	CCPPTemplate*	pcTemplate;
 	CCPPTemplateArguments*	pcBindings;
 	SCPPBinding*	psBinding;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	SCPP65Type*		psType;
 	int64			lliName;
 
@@ -347,7 +347,7 @@ CCPPScope* CCPPNames::ComponentLookup(CCPPSyntaxNameComponent* pcComponent)
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPNames::FindBaseInstance(CCPPClass* pcClass, CCPPTemplate* pcTemplate)
 {
-	CCPPClass*	pcBase;
+	CCPPClass*		pcBase;
 	size			i;
 
 	mpcUnit->GetStatistics()->Count(CPPCC_BaseWalks);
@@ -455,7 +455,7 @@ CCPPClass* CCPPNames::QualifierClass(CCPPClass* pcClass, CCPPSyntaxNameComponent
 CCPPSymbol* CCPPNames::QualifiedMember(CCPPSyntaxName* pcName, ECPPSymbolKind eKind, CCPPSyntax* pcNode, CCPPClass** ppcClass)
 {
 	CCPPSyntaxNameComponent*	pcQualifier;
-	CCPPClass*				pcClass;
+	CCPPClass*					pcClass;
 	CCPPSymbol*					pcSymbol;
 	bool						bAmbiguous;
 

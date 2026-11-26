@@ -75,7 +75,7 @@ void CTranslationUnit::Kill(void)
 	mcTokens.Kill();
 
 	SafeKill(mpcLogs);
-	
+
 	CSourceFile::Kill();
 }
 

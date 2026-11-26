@@ -41,7 +41,7 @@ class CCPPDiagnostics;
 class CCPPDeduction
 {
 protected:
-	CCPPUnit*	mpcUnit;
+	CCPPUnit*			mpcUnit;
 	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPPTemplate*		mpcTemplate;
 	CArrayCPP65Types	mapsDeduced;

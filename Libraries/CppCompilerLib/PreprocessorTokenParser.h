@@ -31,8 +31,8 @@ struct SPPHolderMark
 	int						iTokenIndex;
 	CPPTokenListHolder*		pcHolder;
 
-	void Init(CPPTokenListHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex);
-	void Kill(void);
+	void	Init(CPPTokenListHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex);
+	void	Kill(void);
 };
 
 
@@ -43,8 +43,8 @@ struct SPPTPPosition
 {
 	CArrayPPHolderMark	acPPHolders;
 
-	void Init(CArrayPPHolderMark* pacPPHolders);
-	void Kill(void);
+	void	Init(CArrayPPHolderMark* pacPPHolders);
+	void	Kill(void);
 };
 
 
@@ -58,23 +58,23 @@ public:
 	CArrayPPHolderMark		macPPHolderMark;
 	SPPHolderMark*			mpsCurrent;
 
-	void 		Init(void);
-	void 		Init(CPPTokenListHolder* pcLine);
-	void 		Kill(void);
+	void		Init(void);
+	void		Init(CPPTokenListHolder* pcLine);
+	void		Kill(void);
 	void		Bump(void);
 	void		MarkDown(CPPTokenListHolder* pcHolder);
 	void		MarkUp(void);
-	bool 		GetIdentifier(CExternalString* pcIdentifier);
+	bool		GetIdentifier(CExternalString* pcIdentifier);
 	bool		GetNumber(CExternalString* pcIdentifier);
-	bool 		GetExactDecorator(char c, bool bSkipWhitespace = true);
+	bool		GetExactDecorator(char c, bool bSkipWhitespace = true);
 	bool		GetExactDecorator(char* sz, bool bSkipWhitespace = true);
-	bool 		GetExactIdentifier(char* szIdentifier, bool bCaseSensitive, bool bSkipWhitespace);
-	void 		SkipWhitespace(void);
-	bool 		NextToken(void);
+	bool		GetExactIdentifier(char* szIdentifier, bool bCaseSensitive, bool bSkipWhitespace);
+	void		SkipWhitespace(void);
+	bool		NextToken(void);
 	void		NextToken(int iNumToSkip);
-	void 		PushPosition(void);
-	void 		PopPosition(void);
-	void 		PassPosition(void);
+	void		PushPosition(void);
+	void		PopPosition(void);
+	void		PassPosition(void);
 	int			Line(void);
 	int			Column(void);
 	void		AppendRemaining(CChars* psz);

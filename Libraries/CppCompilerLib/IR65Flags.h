@@ -30,7 +30,7 @@ enum EIR65FlagKind
 	IR65FK_None,		//Nothing known.
 	IR65FK_Value,		//n and z are iRegister's value at uiBits (and iCopy's, which a cpy copied it from).
 	IR65FK_Compare,		//All four are what the cmp at line iCompare left, its operands unchanged (and n and z are
-						//iRegister's value at uiBits when it was cmp R, 0).
+	//iRegister's value at uiBits when it was cmp R, 0).
 };
 
 

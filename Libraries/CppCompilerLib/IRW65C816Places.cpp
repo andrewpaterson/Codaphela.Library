@@ -1041,7 +1041,7 @@ static void IR816AddRanges(SIR816PackEvents* psEvents, size uiBlocks, size uiTem
 //////////////////////////////////////////////////////////////////////////
 int32 CIRW65C816Places::PackTemporaries(void)
 {
-	CIRW65C816LiveRanges		cRanges;
+	CIRW65C816LiveRanges	cRanges;
 	CIRLiveSets				cSets;
 	SIR816PackEvents		sEvents;
 	CArrayTemplate<int32>	aiOrder;
@@ -1645,7 +1645,7 @@ void CIRW65C816Places::PlaceTemporary(CIRW65C816LiveRanges* pcRanges, int32 iTem
 //////////////////////////////////////////////////////////////////////////
 int32 CIRW65C816Places::PlaceTemporaries(CIRW65C816LiveRanges* pcRanges, CArrayTemplate<int32>* paiOrder, CArrayTemplate<bool>* pabParameter)
 {
-	CIRW65C816Groups			cGroups;
+	CIRW65C816Groups		cGroups;
 	CArrayTemplate<bool>	abPlaced;		//Per group.
 	size					ui;
 	int32					iTemporary;

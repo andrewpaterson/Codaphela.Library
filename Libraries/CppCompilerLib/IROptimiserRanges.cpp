@@ -396,7 +396,7 @@ bool CIRRangePasses::NarrowMultiplies(void)
 	SIRType								sType;
 	SIRType								sShort;
 	uint64								ulliConstant;
-	SIRValueRange							sRange;
+	SIRValueRange						sRange;
 	int64								lliMultiple;
 	int									iBits;
 	size								ui;
@@ -514,7 +514,7 @@ bool CIRRangePasses::BoundIndices(void)
 	SIRReference	sNarrow;
 	SIRType			sWide;
 	SIRType			sShort;
-	SIRValueRange		sRange;
+	SIRValueRange	sRange;
 	int64			lliConstant;
 	uint16			uiBaseFlags;
 	size			ui;

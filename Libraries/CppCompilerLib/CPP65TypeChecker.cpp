@@ -908,7 +908,7 @@ SCPP65Type* CCPP65TypeChecker::ConstantValue(CCPPSyntax* pcExpression)
 {
 	SCPP65Type*		psType;
 	CCPPSymbol*		pcSymbol;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	int64			lliValue;
 	double			dValue;
 	size			uiErrors;
@@ -1944,7 +1944,7 @@ bool CCPP65TypeChecker::Condition(CCPPSyntax* pcExpression)
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	SCPP65Type*					psLeft;
 	SCPP65Type*					psRight;
-	CCPPBoundConversion		cBound;
+	CCPPBoundConversion			cBound;
 
 	pcExpression = CPPSkipParentheses(pcExpression);
 	if (!pcExpression)
@@ -2305,7 +2305,7 @@ bool CCPP65TypeChecker::ParameterArguments(CArrayCPP65Types* papsParameters, CAr
 SCPP65Type* CCPP65TypeChecker::Builtin(CCPPSyntaxCallExpression* pcCall, CArraySyntax* papcArguments, int64 lliName)
 {
 	static const char*		aszArguments[] = { "no arguments", "one argument", "two arguments", "three arguments", "four arguments" };
-	const SCPPBuiltin*	psBuiltin;
+	const SCPPBuiltin*		psBuiltin;
 	SCPP65Type*				psType;
 	SCPP65Type*				psVoidPointer;
 	CChars					szError;
@@ -2781,7 +2781,7 @@ SCPP65Type* CCPP65TypeChecker::Place(CCPPSyntax* pcExpression)
 SCPP65Type* CCPP65TypeChecker::PlaceType(CCPPSyntax* pcExpression)
 {
 	CCPPSyntaxIdExpression*		pcId;
-	CCPPBoundName					cBound;
+	CCPPBoundName				cBound;
 	CCPPSyntaxUnaryExpression*	pcUnary;
 	CCPPSyntaxBinaryExpression*	pcBinary;
 	SCPP65Type*					psType;
@@ -4076,9 +4076,9 @@ bool CCPP65TypeChecker::Initialise(SCPP65Type* psType, CCPPSyntax* pcInitialiser
 	CCPPSyntaxIdExpression*		pcFunctionName;
 	SCPP65Type*					psElement;
 	SCPP65Type*					psValue;
-	size			i;
-	bool			bResult;
-	bool			bDirect;
+	size						i;
+	bool						bResult;
+	bool						bDirect;
 
 	psElement = psType->InnermostElement();
 	if (psElement->IsClass())

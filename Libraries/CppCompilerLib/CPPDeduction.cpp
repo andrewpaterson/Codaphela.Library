@@ -743,7 +743,7 @@ CCPPTemplateArguments* CCPPDeduction::AliasArguments(CCPPSymbol* pcTemplate, SCP
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPDeduction::FindInstanceBase(CCPPClass* pcClass, CCPPSymbol* pcTemplate)
 {
-	CCPPClass*	pcFound;
+	CCPPClass*		pcFound;
 	size			i;
 
 	if (pcClass->mpcTemplate && (pcClass->mpcTemplate->mpcPrimary->mpcSymbol == pcTemplate))

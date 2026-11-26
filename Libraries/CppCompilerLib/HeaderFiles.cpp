@@ -352,7 +352,7 @@ void CHeaderFiles::Dump(void)
 	sz.Init();
 	bResult = mcFileNames.StartIteration(&sIter, (void**)&szName, NULL, (void**)&pcHeader, NULL);
 	while (bResult)
-	{	
+	{
 		sz.Append(szName);
 		sz.AppendNewLine();
 		bResult = mcFileNames.Iterate(&sIter, (void**)&szName, NULL, (void**)&pcHeader, NULL);

@@ -225,9 +225,9 @@ friend class CIRW65C816Folds;
 friend class CIRW65C816Places;
 protected:
 	CArrayIRRegisterArguments	masArguments;		//The function's hidden result pointer (if any) and parameters, as passed.
-	SIRW65C816Frame				msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
+	SIRW65C816Frame			msFrame;			//Its frame (FunctionArguments, Layout and GenerateBody).
 	CArrayIRW65C816Temporaries	masTemporaries;	//What is known of each temporary of the function being written (GrowTemporaries)...
-	CIRFunction*				mpcTemporariesOf;	//...which is this one.
+	CIRFunction*			mpcTemporariesOf;	//...which is this one.
 	CArrayIRCopies			masCopies;			//A jump's phi copies (EdgeCopies)...
 	CArrayIRCopySteps		masCopySteps;		//...in the order they are written (ParallelCopy).
 	CArrayTemplate<int32>	maiParameters;		//Per parameter: its place (D + offset).

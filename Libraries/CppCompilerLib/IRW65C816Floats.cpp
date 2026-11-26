@@ -133,7 +133,7 @@ void CIRW65C816Selector::FrameOperandCall(const char* szName, SIRInstruction* ps
 int32 CIRW65C816Selector::SoftFloatCall(const char* szName, SIRReference* asValues, SIRType* asTypes, int iValues, int iExtended, bool bSigned, bool bHidden, int32 iHiddenOffset)
 {
 	CArrayIRRegisterArguments	asArguments;
-	SIRRegisterArgument*			psArgument;
+	SIRRegisterArgument*	psArgument;
 	SIRReference			asRegisters[IR816_ARGUMENT_REGISTERS];
 	int						aiWords[IR816_ARGUMENT_REGISTERS];
 	int32					aiHidden[IR816_ARGUMENT_REGISTERS];

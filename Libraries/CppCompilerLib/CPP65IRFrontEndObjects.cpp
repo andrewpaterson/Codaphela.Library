@@ -356,7 +356,7 @@ bool CCPP65IRFrontEnd::InlineMemcpy(CArraySyntax* papcArguments, SCPP65Type* psR
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction)
 {
-	CCPPClass*					pcClass;
+	CCPPClass*						pcClass;
 	CArraySyntax*					papcInitialisers;
 	CCPPSyntaxMemberInitializer*	pcMember;
 	CCPPSyntaxMemberInitializer*	pcFound;
@@ -365,7 +365,7 @@ bool CCPP65IRFrontEnd::ConstructorStart(CCPPSyntaxFunctionDefinition* pcFunction
 	SCPPVirtualBase*				psVirtual;
 	SCPP65IRPlace					sPlace;
 	CCPPSyntax*						pcInitialiser;
-	CCPPClass*					pcNamed;
+	CCPPClass*						pcNamed;
 	size							ui;
 	size							uiMember;
 	size							uiAt;
@@ -659,7 +659,7 @@ bool CCPP65IRFrontEnd::DestroyBase(SIRReference sAddress, CCPPClass* pcBase)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::StoreVtables(SIRReference sObject, CCPPClass* pcClass, bool bConstruction)
 {
-	CArrayCPPVtableEntries	asEntries;
+	CArrayCPPVtableEntries		asEntries;
 	SCPPVtableEntry*			psEntry;
 	CChars						szLabel;
 	SIRReference				sLabel;
@@ -2028,8 +2028,8 @@ bool CCPP65IRFrontEnd::CopyArray(SCPP65IRPlace* psPlace, SIRReference sSource)
 //////////////////////////////////////////////////////////////////////////
 bool CCPP65IRFrontEnd::ObjectValue(CCPPSyntax* pcExpression, SCPP65IRValue* psValue)
 {
-	SCPP65IRMade	sTemporary;
-	bool			bTemporary = false;
+	SCPP65IRMade					sTemporary;
+	bool							bTemporary = false;
 	SCPP65IRPlace					sPlace;
 	SCPP65IRValue					sLeft;
 	CCPPSyntaxConstructExpression*	pcConstruct;

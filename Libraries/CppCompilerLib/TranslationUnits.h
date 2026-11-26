@@ -35,8 +35,8 @@ protected:
 	CLibrary*				mpcLibrary;
 
 public:
-	void 				Init(CLibrary* pcLibrary);
-	void 				Kill(void);
+	void				Init(CLibrary* pcLibrary);
+	void				Kill(void);
 
 	void				AddAllFiles(CChars* pszBaseDir, bool bLogIncludes = false);
 	CTranslationUnit*	AddFile(char* szRelativeFileName, bool bLogIncludes = false);

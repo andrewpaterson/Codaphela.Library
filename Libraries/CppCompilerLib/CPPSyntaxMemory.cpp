@@ -112,9 +112,9 @@ CCPPSyntax* CCPPSyntaxMemory::CreateKind(ECPPSyntax eKind, CCPPSyntax* pcParent)
 	switch (eKind)
 	{
 #define CPP_SYNTAX_CREATE(N)	case CPPS_##N: return Create<CCPPSyntax##N>(pcParent);
-	CPP_SYNTAX_KINDS(CPP_SYNTAX_CREATE)
+		CPP_SYNTAX_KINDS(CPP_SYNTAX_CREATE)
 #undef CPP_SYNTAX_CREATE
-	default:
-		return NULL;
+		default:
+			return NULL;
 	}
 }

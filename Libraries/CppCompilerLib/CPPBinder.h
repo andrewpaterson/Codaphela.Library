@@ -44,7 +44,7 @@ enum ECPPBoundCall
 {
 	CPPBC_Failed,			//It can't be: an error says why.
 	CPPBC_Member,			//A member function, on the object (this's if there is none): object.f(), pointer->f(), Class::f(), f(); and
-							//object(), which is its operator().
+	//object(), which is its operator().
 	CPPBC_Destructor,		//object.~X(), pointer->~X() or ~X(): the class's destructor, or nothing if it has none.
 	CPPBC_PseudoDestructor,	//object.~T() and pointer->~T() of a type that isn't a class: only the object's expression is worked out.
 	CPPBC_MemberPointer,	//(object.*pointer)() and (pointer->*pointer)().
@@ -119,7 +119,7 @@ public:
 	CCPPClass*		mpcQualifier;	//...looked up in this base of the object's class that the name's qualifier names (d.B::a), or NULL...
 	CCPPClass*		mpcVirtualBase;	//...in this virtual base of that class, which the object says where it is (or NULL).
 	SCPPLambdaCapture*	mpsCapture;	//CPPBN_Capture: the capture (mpcClass is the closure's, mpsField its field).
-	CCPPSyntax*			mpcArgument;	//CPPBN_TemplateArgument.
+	CCPPSyntax*		mpcArgument;	//CPPBN_TemplateArgument.
 };
 
 
@@ -198,29 +198,29 @@ public:
 	bool	BindOperator(ECppTokens eOperator, CCPPSyntax* pcLeft, CCPPSyntax* pcRight, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 	bool	BindOwnOperator(ECppTokens eOperator, CCPPSyntax* pcObject, CCPPSyntax* pcArgument, CCPPSyntax* pcNode, CCPPBoundCall* pcBound, bool bReport);
 
-	void	BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
-	bool	BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
-	bool	HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
-	bool	HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode);
+	void			BindName(CCPPSyntaxIdExpression* pcId, CCPPBoundName* pcBound);
+	bool			BindMember(CCPPClass* pcClass, CCPPSyntaxName* pcName, CCPPSyntax* pcNode, CCPPBoundName* pcBound);
+	bool			HasOneBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool			HasOneMember(CCPPClass* pcClass, CCPPClass* pcLookup, CCPPClass* pcDeclaring, CCPPSyntax* pcNode);
 	bool			HasOneMeaning(CCPPClass* pcClass, int64 lliName, CCPPSyntax* pcNode);
-	bool	ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
-	bool	ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode);
-	void	CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
+	bool			ReachesBase(CCPPClass* pcClass, CCPPClass* pcBase, CCPPSyntax* pcNode);
+	bool			ReachesDestructor(CCPPClass* pcClass, CCPPSyntax* pcNode);
+	void			CheckTypeName(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode);
 	bool			IsConvertible(SCPP65Type* psTo, SCPP65Type* psFrom);
 	bool			IsConstructible(SCPP65Type* psType, CArrayCPP65Types* papsArguments);
 	bool			IsAssignable(SCPP65Type* psTo, SCPP65Type* psFrom);
 	CCPPFunction*	BindRangeFunction(int64 lliName, CCPPClass* pcClass, CCPPSyntax* pcRange, CCPPSyntax* pcNode);
-	bool	BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport);
-	bool	IsCopyInitialiser(CCPPSyntax* pcValue);
-	bool	ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	bool	HasMemberMadeByCode(CCPPClass* pcClass);
-	bool	IsCopyDeleted(CCPPClass* pcClass);
-	bool	IsMoveDeleted(CCPPClass* pcClass);
-	bool	ReachesMember(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode);
-	bool	UsingReaches(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing);
-	bool	CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* pcInit);
-	void	BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound);
-	void	BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode, CCPPBoundConversion* pcBound);
+	bool			BindConstruction(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode, CCPPBoundConstruction* pcBound, bool bReport);
+	bool			IsCopyInitialiser(CCPPSyntax* pcValue);
+	bool			ConstructsWithoutBraces(CCPPClass* pcClass, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	bool			HasMemberMadeByCode(CCPPClass* pcClass);
+	bool			IsCopyDeleted(CCPPClass* pcClass);
+	bool			IsMoveDeleted(CCPPClass* pcClass);
+	bool			ReachesMember(CCPPSymbol* pcSymbol, CCPPClass* pcNaming, CCPPSyntax* pcNode);
+	bool			UsingReaches(CCPPSymbol* pcSymbol, CCPPSyntax* pcUsing);
+	bool			CopyInitialises(CCPPClass* pcClass, CCPPSyntaxInitDeclarator* pcInit);
+	void			BindConversion(CCPPSyntax* pcExpression, SCPP65Type* psTo, bool bExplicit, CCPPBoundConversion* pcBound);
+	void			BindObjectConversion(CCPPClass* pcClass, SCPP65Type* psTo, bool bExplicit, CCPPSyntax* pcNode, CCPPBoundConversion* pcBound);
 
 	//What isn't a call expression's: these choose a function and remember nothing.
 	CCPPFunction*	FindAddressedFunction(CCPPSyntaxName* pcName, int64 lliName, SCPP65Type* psTarget, CCPPSyntax* pcNode, bool* pbOverloaded);
@@ -232,7 +232,7 @@ public:
 	CCPPFunction*	InitializerListConstructor(CCPPClass* pcClass, CCPPSyntax* pcList);
 	CCPPFunction*	FindArrowOperator(CCPPClass* pcClass, CCPPSyntax* pcObject, CCPPSyntax* pcNode);
 	CCPPFunction*	ConversionToClass(CCPPClass* pcClass, CCPPSyntax* pcSource, CCPPSyntax* pcNode);
-	bool					ConvertsByConstructor(CCPPClass* pcClass, CCPPSyntax* pcSource);
+	bool			ConvertsByConstructor(CCPPClass* pcClass, CCPPSyntax* pcSource);
 	CCPPFunction*	FindAllocation(CCPPSyntaxNewExpression* pcNew, SCPP65Type* psType, CArraySyntax* papcArguments, bool* pbFailed);
 	bool			IsBuiltinPlacement(CArraySyntax* papcArguments);
 	bool			IsReservedPlacement(CCPPFunction* pcFunction);

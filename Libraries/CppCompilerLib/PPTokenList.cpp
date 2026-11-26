@@ -38,8 +38,8 @@ void CPPTokenList::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenList::Kill(void)
 {
-	CPPToken**	ppcToken;
-	CPPToken*	pcToken;
+	CPPToken**		ppcToken;
+	CPPToken*		pcToken;
 	size			i;
 	size			iNumTokens;
 
@@ -74,8 +74,8 @@ void CPPTokenList::Add(CPPToken* pcToken)
 //////////////////////////////////////////////////////////////////////////
 char* CPPTokenList::Print(CChars* psz, bool bShowFileAndLine)
 {
-	CPPToken**	ppcToken;
-	CPPToken*	pcToken;
+	CPPToken**		ppcToken;
+	CPPToken*		pcToken;
 	size			i;
 	size			iNumTokens;
 
@@ -132,7 +132,7 @@ void CPPTokenList::SavageAppend(CChars* psz, size iDepth)
 		if (pcToken->IsTokenListHolder())
 		{
 			pcHolder = (CPPTokenListHolder*)pcToken;
-			pcHolder->GetTokenList()->SavageAppend(psz, iDepth+1);
+			pcHolder->GetTokenList()->SavageAppend(psz, iDepth + 1);
 		}
 		else
 		{

@@ -57,9 +57,9 @@ enum ECPPBuiltinOperand
 struct SCPPBuiltin
 {
 	const char*				szName;			//Without __builtin_.
-	ECPPBuiltin			eBuiltin;
+	ECPPBuiltin				eBuiltin;
 	int						iArguments;
-	ECPPBuiltinOperand	eOperand;
+	ECPPBuiltinOperand		eOperand;
 	const char*				szDecimalModeOnly;	//The error on a target with no decimal mode (CCPPTarget::HasDecimalMode), NULL if the builtin is every target's.
 };
 
@@ -79,7 +79,7 @@ public:
 
 	bool					IsIntrinsic(int64 lliName);
 	bool					IsBuiltin(int64 lliName);
-	const SCPPBuiltin*	FindBuiltin(int64 lliName);
+	const SCPPBuiltin*		FindBuiltin(int64 lliName);
 	SCPP65Type*				BuiltinOperandType(const SCPPBuiltin* psBuiltin);
 	char*					BuiltinName(int64 lliName, int* piLength);
 	bool					IsInlineMemcpy(int64 lliName, CArraySyntax* papcArguments);

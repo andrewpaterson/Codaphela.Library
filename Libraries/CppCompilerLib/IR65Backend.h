@@ -181,8 +181,8 @@ typedef CArrayTemplate<SIR65Weight>	CArrayIR65Weights;
 #define IR65_SAVED_UNIT(iUnit)	(IR65_PSEUDO_SAVED + IR65_PSEUDO_UNIT_BYTES * (iUnit))
 #define IR65_REGISTER_GAIN		3			//The cycles a use of a value in a register saves over one in a pseudo register or the frame.
 #define IR65_KEPT_COST			40			//What a kept pseudo register costs in a function with V as a home, as weight (PaysV): its push and
-										//pull are 10 cycles, but a weight counts a loop as 8 passes and the loops that hold such values (calls
-										//in them) make far fewer; 40 is the measured best across the three suites, 2026-11-13.
+//pull are 10 cycles, but a weight counts a loop as 8 passes and the loops that hold such values (calls
+//in them) make far fewer; 40 is the measured best across the three suites, 2026-11-13.
 #define IR65_V_WEIGHT			3			//The least weight of a class not live across a call that is worth saving V for.
 #define IR65_INLINE_RETURN		3			//The most instructions an epilogue has to be written at each return rather than jumped to.
 #define IR65_HOME_B_TRIES		3			//The most times a function's code is written again with B as a home (GenerateFunction).

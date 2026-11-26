@@ -41,13 +41,13 @@ public:
 	CExternalString		mcText;
 
 	PP_TOKEN_CONSTRUCT(CPPText);
-	void 			Init(int iLine, int iColumn, char* szFileName);
-	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, int iLength);
-	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, const char* szEndExclusive);
-	void 			Kill(void);
-	bool 			IsText(void) const;
-	char* 			Print(CChars* psz);
-	void 			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
+	void			Init(int iLine, int iColumn, char* szFileName);
+	void			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, int iLength);
+	void			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, const char* szStart, const char* szEndExclusive);
+	void			Kill(void);
+	bool			IsText(void) const;
+	char*			Print(CChars* psz);
+	void			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	virtual bool	HasSource(void) const;
 	virtual	const char*	TextStart(void);
 	virtual	const char*	TextEndInclusive(void);

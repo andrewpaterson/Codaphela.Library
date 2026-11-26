@@ -88,8 +88,8 @@ void CPPBlock::SetNext(size iTokenIndex, size iBlockIndex)
 void CPPBlock::DumpPointersAsChars(CArrayIntAndPointer* papc)
 {
 	size		i;
-	char*	sz;
-	CChars	sz2;
+	char*		sz;
+	CChars		sz2;
 
 	sz2.Init();
 	for (i = 0; i < papc->NumElements(); i++)

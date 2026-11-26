@@ -29,9 +29,9 @@ struct SPPTokenBlockIndex
 	size	iTokenIndex;
 	size	iBlockIndex;
 
-	void Init(size iTokenIndex, size iBlockIndex);
-	void Print(CChars* psz);
-	void Dump(void);
+	void	Init(size iTokenIndex, size iBlockIndex);
+	void	Print(CChars* psz);
+	void	Dump(void);
 };
 
 

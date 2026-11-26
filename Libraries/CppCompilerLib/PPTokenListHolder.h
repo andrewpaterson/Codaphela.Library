@@ -30,13 +30,13 @@ protected:
 	CPPTokenList	mcTokens;
 
 public:
-	void 				Init(int iLine, int iColumn, char* szFileName);
-	void 				Kill(void);
+	void				Init(int iLine, int iColumn, char* szFileName);
+	void				Kill(void);
 	void				Fake(CPPTokenList* pcTokens);
-	bool 				IsTokenListHolder(void) const;
+	bool				IsTokenListHolder(void) const;
 	char*				Print(CChars* psz);
-	void 				Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
-	int	 				TokenLength(void) const;
+	void				Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
+	int					TokenLength(void) const;
 	CPPToken*			Get(int iIndex);
 	bool				IsEmpty(void);
 	CPPTokenList*		GetTokenList(void);

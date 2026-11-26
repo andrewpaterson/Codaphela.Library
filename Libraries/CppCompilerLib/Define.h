@@ -52,11 +52,11 @@ protected:
 	bool			mbBodyConverted;
 
 public:
-	void 			Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap);
-	void 			Kill(void);
-	void 			AddArgument(CExternalString* pcName);
+	void			Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap);
+	void			Kill(void);
+	void			AddArgument(CExternalString* pcName);
 	void			SetVariadic(void);
-	void 			AddReplacementToken(CPPToken* pcToken);
+	void			AddReplacementToken(CPPToken* pcToken);
 	const char*		GetName(void) const;
 	size			GetNameLength(void) const;
 	int64			GetID(void) const;

@@ -91,7 +91,7 @@ void CSpecialOperator::Dump(void)
 	sz.Init();
 	sz.Append(mszName);
 	sz.Append(" -> ");
-	
+
 	switch (meType)
 	{
 	case PPSO_Defined:

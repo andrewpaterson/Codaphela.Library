@@ -29,10 +29,10 @@ public:
 	char	mcChar;  //This represents a char literal ie: 'c'
 
 	CPP_TOKEN_CONSTRUCT(CCTChar);
-	void Init(void);
-	void Init(char c);
-	void Kill(void);
-	bool IsChar(void) const;
+	void	Init(void);
+	void	Init(char c);
+	void	Kill(void);
+	bool	IsChar(void) const;
 };
 
 

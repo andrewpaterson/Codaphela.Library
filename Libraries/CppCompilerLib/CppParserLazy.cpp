@@ -495,7 +495,7 @@ void CCPPParser::LoadDeclaration(CCPPSyntaxLazyDeclaration* pcLazy)
 	bool							bFailed;
 	int								iPack;
 	CArrayDeferredBodies			acDeferred;
-	size						uiDeferredNext;
+	size							uiDeferredNext;
 	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
 	CCPPScope*						pcRecordScope;
 	CCPPSyntaxDeclaration*			pcDeclaration;

@@ -84,7 +84,7 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogIncludes)
 		pszFile->StripWhitespace();
 
 		iIndex = pszFile->Find(0, ".");
-		szExtension = pszFile->Text(iIndex+1);
+		szExtension = pszFile->Text(iIndex + 1);
 
 		aszFileNames.Init();
 		cFileUtil.FindFilesWithExtension(pszBaseDir->Text(), szExtension, &aszFileNames);
@@ -92,14 +92,14 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogIncludes)
 		for (j = 0; j < aszFileNames.NumElements(); j++)
 		{
 			szFile = aszFileNames.Get(j);
-			AddFile(szFile->Text(iBaseDirLen+1), bLogIncludes);
+			AddFile(szFile->Text(iBaseDirLen + 1), bLogIncludes);
 		}
 
 		aszFileNames.Kill();
 	}
 
 	szTemp.Kill();
-	aszTemp.Kill();	
+	aszTemp.Kill();
 }
 
 

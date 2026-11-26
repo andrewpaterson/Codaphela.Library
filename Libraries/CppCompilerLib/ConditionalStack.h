@@ -50,21 +50,21 @@ public:
 	CArrayConditionals	mcStack;
 	bool				mbParsing;
 
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 
-	bool IsParsing(void) const;
-	bool IsElseIfEvaluated(void);
-	bool IsParentParsing(void);
-	void CalculateIsParsing(void);
-	void PushIfNotDefined(bool bEvaluated);  //bEvaluated is the the value that the macro conditional evaluated too.
-	void PushIfDefined(bool bEvaluated);
-	void SwapForElse(void);
-	void SwapForElseIf(bool bEvaluated);  //The else portion of bEvaluated will be calculated, don't include it in bEvaluated.
-	void Swap(EConditionalType eType, bool bEvaluated);
-	bool IsInElse(void);
-	void PushIf(bool bEvaluated);
-	void PopEndIf(void);
+	bool	IsParsing(void) const;
+	bool	IsElseIfEvaluated(void);
+	bool	IsParentParsing(void);
+	void	CalculateIsParsing(void);
+	void	PushIfNotDefined(bool bEvaluated);  //bEvaluated is the the value that the macro conditional evaluated too.
+	void	PushIfDefined(bool bEvaluated);
+	void	SwapForElse(void);
+	void	SwapForElseIf(bool bEvaluated);  //The else portion of bEvaluated will be calculated, don't include it in bEvaluated.
+	void	Swap(EConditionalType eType, bool bEvaluated);
+	bool	IsInElse(void);
+	void	PushIf(bool bEvaluated);
+	void	PopEndIf(void);
 
 	void Push(EConditionalType eType, bool bEvaluated, bool bElseIfPassed);
 };

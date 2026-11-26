@@ -85,8 +85,8 @@ public:
 	bool					IsCheckedExpression(CCPPSyntax* pcNode);
 	void					Resolved(CCPPSyntaxName* pcName, CCPPSymbol* pcSymbol);
 	void					Resolved(CCPPSyntaxName* pcName, CCPPFunction* pcFunction);
-	void				CheckTemplatesAsThemselves(void);
-	bool				IsCheckedAsWritten(void) const;
+	void					CheckTemplatesAsThemselves(void);
+	bool					IsCheckedAsWritten(void) const;
 	void					Typed(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void					PlaceTyped(CCPPSyntax* pcExpression, SCPP65Type* psType);
 	void					Changed(CCPPSyntax* pcExpression, uint8 uiChanges);

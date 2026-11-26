@@ -59,10 +59,10 @@ enum ECPP65IRCleanup
 enum ECPP65IRPart
 {
 	CPP65IRP_Destroy,		//A part made so far (a base, a member, an element, a delegated constructor's object): sPlace, with
-							//pcBaseObject's base version of its destructor when it is a base.
+	//pcBaseObject's base version of its destructor when it is a base.
 	CPP65IRP_Deallocate,	//A new expression's memory, sPlace.sAddress, while its object is made: given back to pcFunction (the
-							//matching operator delete, called as pcFor's, with asValues after the pointer), or the runtime's
-							//szRuntime.  [expr.new] 20
+	//matching operator delete, called as pcFor's, with asValues after the pointer), or the runtime's
+	//szRuntime.  [expr.new] 20
 	CPP65IRP_FreeException,	//A thrown object being made, sPlace.sAddress (the runtime's __FreeException).
 	CPP65IRP_Elements,		//new T[n]'s elements of sPlace.psType from sPlace.sAddress, as many as the count in sCount's slot.
 	CPP65IRP_Guard,			//A static local being made: its guard byte, sPlace.sAddress, goes back to 0.  [stmt.dcl] 4

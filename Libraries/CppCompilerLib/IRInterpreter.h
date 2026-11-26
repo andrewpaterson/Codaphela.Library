@@ -26,7 +26,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 
 #define IR_INTERPRETER_STEPS	1048576		//Full-expressions evaluated (IRF_FullExpression) before a value is given up on.  [implimits]
 #define IR_INTERPRETER_INSTRUCTIONS_PER_STEP	64	//Instructions and jumps run for each step allowed: what stops a loop
-												//whose full-expressions write nothing (for (;;) {}), or IR with no marks.
+//whose full-expressions write nothing (for (;;) {}), or IR with no marks.
 #define IR_INTERPRETER_DEPTH	512			//Calls inside calls.
 #define IR_VALUE_BYTES			8
 

@@ -158,7 +158,7 @@ CCPPClass* CCPPClasses::GetClass(CCPPSymbol* pcSymbol, CCPPSyntax* pcNode, CCPPC
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPClasses::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	CCPPTemplateArguments*	pcBindings;
 	CCPPSyntax*		pcParent;
 	size			i;
@@ -199,8 +199,8 @@ CCPPClass* CCPPClasses::GetUnnamedClass(CCPPSyntaxClassSpecifier* pcSpecifier)
 //////////////////////////////////////////////////////////////////////////
 CCPPClass* CCPPClasses::FindClass(int64 lliName, CCPPScope* pcLookup)
 {
-	CCPPClass*	pcClass;
-	CCPPClass*	pcFound;
+	CCPPClass*		pcClass;
+	CCPPClass*		pcFound;
 	size			i;
 
 	pcFound = NULL;
@@ -535,7 +535,7 @@ bool CCPPClasses::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 	CCPPSyntaxInitDeclarator*		pcInit;
 	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
 	CCPPSyntaxClassSpecifier*		pcClassSpecifier;
-	SCPPField*					psField;
+	SCPPField*						psField;
 	CCPPVariable*					pcVariable;
 	CCPPFunction*					pcFunction;
 	SCPP65Type*						psType;
@@ -757,8 +757,8 @@ bool CCPPClasses::ClassMember(CCPPClass* pcClass, CCPPSyntax* pcMember)
 void CCPPClasses::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcUsing)
 {
 	CCPPSyntaxName*	pcName;
-	CCPPClass*	pcBase;
-	SCPPUsing*	psUsing;
+	CCPPClass*		pcBase;
+	SCPPUsing*		psUsing;
 	int64			lliName;
 	CCPPSymbol*		pcSymbol;
 	CCPPClass*		pcDeclaring;
@@ -821,7 +821,7 @@ void CCPPClasses::ClassUsing(CCPPClass* pcClass, CCPPSyntaxUsingDeclaration* pcU
 //////////////////////////////////////////////////////////////////////////
 void CCPPClasses::InheritConstructors(CCPPClass* pcClass)
 {
-	CCPPClass*	pcBase;
+	CCPPClass*		pcBase;
 	CCPPFunction*	pcInherited;
 	CCPPFunction*	pcOwn;
 	CCPPFunction*	pcFunction;
@@ -1224,7 +1224,7 @@ bool CCPPClasses::CheckVirtSpecifiers(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
 	CCPPClass*						pcClass;
 	CCPPSyntax*						pcMember;
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxDeclSpecifiers*		pcSpecifiers;
 	size							i;
 	bool							bResult;
 

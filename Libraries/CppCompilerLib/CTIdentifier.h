@@ -29,10 +29,10 @@ public:
 	int32	miIdentifier;		//Its ID in the tokeniser's identifiers.
 
 	CPP_TOKEN_CONSTRUCT(CCTIdentifier);
-	void Init(void);
-	void Init(int64 lliIdentifier);
-	void Kill(void);
-	bool IsIdentifier(void) const;
+	void	Init(void);
+	void	Init(int64 lliIdentifier);
+	void	Kill(void);
+	bool	IsIdentifier(void) const;
 };
 
 

@@ -168,11 +168,11 @@ public:
 	CCPPErrors*			GetWarnings(void);
 
 public:
-	void 				Init(CConfig* pcConfig);
+	void				Init(CConfig* pcConfig);
 	void				EmitPragmaPack(CPreprocessorTokenParser* pcParser);
-	void 				Kill(void);
+	void				Kill(void);
 	void				InitPlatformSpecific(void);
-	void				AddConfigDefines(CConfig* pcConfig);	
+	void				AddConfigDefines(CConfig* pcConfig);
 	void				LogIncludes(CChars* pszIncludesLog);
 	void				LogDumping(bool bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
@@ -180,7 +180,7 @@ public:
 
 	CDefine*			GetDefine(CExternalString* pcString);
 	CDefine*			GetDefine(char* szName);
-	CDefine* 			AddDefine(const char* szDefine);
+	CDefine*			AddDefine(const char* szDefine);
 	CDefine*			AddDefine(const char* szDefine, const char* szReplacement, CPPTokenMemory* pcTokenMemory);
 	CDefine*			AddSpecialDefine(char* szDefine);
 	CDefine*			AddNumberDefine(char* szDefine, int64 lliValue);
@@ -232,13 +232,13 @@ protected:
 	//Directives.
 	bool				ProcessDirective(CPPDirective* pcDirective);
 	bool				ProcessConditional(CPPDirective* pcDirective);
-	bool 				ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
+	bool				ProcessHashDefine(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
 	bool				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
-	bool 				ProcessHashUndef(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
-	bool 				ProcessHashInclude(CPPDirective* pcDirective, bool bNext);
-	bool 				ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning);
-	bool 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
-	bool 				ProcessHashUnknown(CPPDirective* pcDirective);
+	bool				ProcessHashUndef(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser);
+	bool				ProcessHashInclude(CPPDirective* pcDirective, bool bNext);
+	bool				ProcessHashError(CPPDirective* pcDirective, CPreprocessorTokenParser* pcParser, bool bWarning);
+	bool				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
+	bool				ProcessHashUnknown(CPPDirective* pcDirective);
 	TRISTATE			EvaluateCondition(CPPDirective* pcDirective);
 	static const char*	AlternativeOperator(const char* szName, size uiLength);
 	bool				CheckReplacementList(CDefine* pcDefine, SPreprocessorPosition* psPos);

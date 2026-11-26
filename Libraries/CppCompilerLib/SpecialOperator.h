@@ -44,9 +44,9 @@ public:
 	EPreprocessorSpecialOperator	meType;
 	int64							mlliID;
 
-	void 							Init(char* pcName, EPreprocessorSpecialOperator eType, int64 lliID);
-	void 							Kill(void);
-	bool 							Equals(CSpecialOperator* pcOther);
+	void							Init(char* pcName, EPreprocessorSpecialOperator eType, int64 lliID);
+	void							Kill(void);
+	bool							Equals(CSpecialOperator* pcOther);
 	const char*						GetName(void) const;
 	EPreprocessorSpecialOperator	GetType(void) const;
 	void							Dump(void);

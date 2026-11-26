@@ -60,7 +60,7 @@ typedef CHashMapLongTemplate<uint8>				CMapCPPNodeChanges;
 #define CPPEC_TO_OTHER		0	//pcNode is a value of the enum given to psTo, another type: it needs a cast to psTo.
 #define CPPEC_TO_ENUM		1	//pcNode is another type's value (psFrom) given to the enum: it needs a cast to the enum.
 #define CPPEC_ARITHMETIC	2	//pcNode is an operator's expression (binary, unary, an assignment like +=, a subscript)
-								//with the enum's value as an operand: each such operand needs a cast to an integer.
+//with the enum's value as an operand: each such operand needs a cast to an integer.
 #define CPPEC_COMPARE		3	//pcNode compares the enum's value with another type's: it needs a cast to an integer.
 #define CPPEC_CONDITION		4	//pcNode is the enum's value used as a condition.
 #define CPPEC_INCREMENT		5	//pcNode steps the enum's value with ++ or --: no cast makes that an enum class's.

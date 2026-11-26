@@ -29,10 +29,10 @@ public:
 	bool	mcBool;
 
 	CPP_TOKEN_CONSTRUCT(CCTBoolean);
-	void Init(void);
-	void Init(bool bBool);
-	void Kill(void);
-	bool IsBool(void) const;
+	void	Init(void);
+	void	Init(bool bBool);
+	void	Kill(void);
+	bool	IsBool(void) const;
 };
 
 

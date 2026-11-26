@@ -38,13 +38,13 @@ public:
 	void					Kill(void) override;
 	CPP_SYNTAX_NODE(Name)
 	void					PrettyPrint(CChars* pszDest, int iDepth) override;
-	void					VisitFields(CCPPSyntaxFields* pcFields) override;
+	void						VisitFields(CCPPSyntaxFields* pcFields) override;
 	CCPPSyntaxNameComponent*	GetLast(void);
 	CCPPSyntaxNameComponent*	GetQualifier(void);
 	bool						IsQualifiedByClass(void);
 	bool						IsQualifiedByDecltype(void);
 	bool						IsQualifiedByInstance(void);
-	bool					IsSimple(void);
+	bool						IsSimple(void);
 };
 
 

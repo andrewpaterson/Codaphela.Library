@@ -104,7 +104,7 @@ bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 
 	pcBlockSet = NULL;
 	mpcPrev = NULL;
-	szEnd = szPos + iLength-1;
+	szEnd = szPos + iLength - 1;
 	mcParser.Init(szPos, szEnd, mszFileName);
 	mcParser.SetComments(mpacComments);
 	if ((iLength >= 3) && (memcmp(szPos, "\xEF\xBB\xBF", 3) == 0))
@@ -200,7 +200,7 @@ void CPreprocessorTokeniser::TokeniseDefine(CPPTokenList* pcHolder, char* sz, CP
 //////////////////////////////////////////////////////////////////////////
 EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 {
-	CPreprocessorDirective* pcDirective;
+	CPreprocessorDirective*	pcDirective;
 	CExternalString			cName;
 	const char*				szName;
 	const char*				szEnd;

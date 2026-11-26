@@ -236,8 +236,8 @@ class CCPP65IRFrontEnd : public CIRInlineProfile, public CIRUnitFunctions
 protected:
 	CIRFunction*			mpcProfiledCaller;	//The caller CallCount last looked at...
 	bool					mbProfiledCaller;	//...and whether the profile has it, as it is now (its fingerprint).
-	CCPPUnit*		mpcUnit;
-	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
+	CCPPUnit*				mpcUnit;
+	CCPPDiagnostics*		mpcDiagnostics;	//Where its errors go: the unit's.
 	CCPP65Types*			mpcTypes;
 
 	CIRModule				mcModule;			//The unit's functions written as IR.

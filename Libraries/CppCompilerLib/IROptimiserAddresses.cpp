@@ -255,7 +255,7 @@ bool CIRAddressPasses::BiasSignedIndices(void)
 	int64					lliScaleBy;
 	int64					lliExtra;
 	int64					lliBias;
-	SIRValueRange				sRange;
+	SIRValueRange			sRange;
 	size					ui;
 	size					uj;
 	uint16					uiScaleOpcode;

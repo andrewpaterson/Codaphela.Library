@@ -33,8 +33,8 @@ struct STULog
 	CChars	szIncludesLog;
 	bool	bLogIncludes;
 
-	void Init(bool bLogIncludes);
-	void Kill(void);
+	void	Init(bool bLogIncludes);
+	void	Kill(void);
 };
 
 

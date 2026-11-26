@@ -39,8 +39,8 @@ protected:
 	CIndexPrimitiveTemplate<int64, D>	mcIDToValueIndex;
 
 public:
-	void 	Init(void);
-	void 	Kill(void);
+	void	Init(void);
+	void	Kill(void);
 	D*		Get(CExternalString* pcName);
 	D*		Get(CChars* pszName);
 	D*		Get(char* szName);

@@ -150,7 +150,7 @@ CTranslationUnit* CLibrary::GetNextTranslationUnit(SCFileIter* psIter)
 	{
 		return NULL;
 	}
-	
+
 	psIter->pcLast = mcTranslationUnits.GetNext(psIter->pcLast);
 	if (psIter->pcLast)
 	{

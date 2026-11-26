@@ -29,9 +29,9 @@ public:
 	float mcValue;
 
 	CPP_TOKEN_CONSTRUCT(CCTFloat);
-	void Init(void);
-	void Init(float f);
-	void Kill(void);
+	void	Init(void);
+	void	Init(float f);
+	void	Kill(void);
 };
 
 

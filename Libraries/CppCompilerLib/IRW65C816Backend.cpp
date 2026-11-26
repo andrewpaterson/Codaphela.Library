@@ -1368,7 +1368,7 @@ void CIRW65C816Backend::KeepSlots(CIRW65C816Code* pcCode)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FindZeroWords(void)
 {
-	size				uiTemporary;
+	size			uiTemporary;
 	size			uiBlock;
 	size			ui;
 	CIRBlock*		pcBlock;
@@ -1449,7 +1449,7 @@ void CIRW65C816Backend::FindZeroWords(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FindLowByteUses(void)
 {
-	size				uiTemporary;
+	size			uiTemporary;
 	size			uiBlock;
 	size			ui;
 	size			uiArgument;
@@ -1649,7 +1649,7 @@ void CIRW65C816Backend::GrowTemporaries(void)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::FindSingleUses(void)
 {
-	size				uiTemporary;
+	size					uiTemporary;
 	CArrayTemplate<int32>	aiCount;
 	CIRBlock*				pcBlock;
 	SIRPhi*					psPhi;

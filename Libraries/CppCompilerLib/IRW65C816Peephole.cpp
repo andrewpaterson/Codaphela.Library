@@ -486,7 +486,7 @@ void CIRW65C816Backend::PeepholeTransfers(CChars* pszDest, size uiStart)
 void CIRW65C816Backend::PeepholeTransfers(CIRW65C816Code* pcCode)
 {
 	CArrayTemplate<uint8>	abRemove;
-	SIRW65C816Line				sLine;
+	SIRW65C816Line			sLine;
 	size					ui;
 	size					uiScan;
 	size					uiTransfer;
@@ -566,11 +566,11 @@ void CIRW65C816Backend::PeepholeRegisters(CChars* pszDest, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::PeepholeRegisters(CIRW65C816Code* pcCode)
 {
-	CArrayTemplate<uint8>	abRemove;
+	CArrayTemplate<uint8>		abRemove;
 	SIRW65C816Line				sLine;
 	SIRW65C816Held				asHeld[3];
-	int						iRegister;
-	size					ui;
+	int							iRegister;
+	size						ui;
 
 	abRemove.Init(CIRW65C816Backend::GetScratch());
 	abRemove.GrowToAtLeastNumElements(pcCode->NumLines(), true, 0);

@@ -41,8 +41,8 @@ protected:
 	CMutex				mcMutex;
 
 public:
-	void 			Init(void);
-	void 			Kill(void);
+	void			Init(void);
+	void			Kill(void);
 
 	CHeaderFile*	AddFile(char* szAbsoluteFileName, bool bSystem);
 	CHeaderFile*	GetFile(char* szAbsoluteFileName);

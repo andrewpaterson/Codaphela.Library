@@ -23,7 +23,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "PPTokenList.h"
 
 
-struct SDefineArgument 
+struct SDefineArgument
 {
 	int64				mlliDefineID;
 	CArrayPPTokenLists	macTokenArguments;
@@ -39,8 +39,8 @@ protected:
 	CArrayDefineArgument	mcDefineToArguments;
 
 public:
-	void 					Init(void);
-	void 					Kill(void);
+	void					Init(void);
+	void					Kill(void);
 	SDefineArgument*		Get(int64 lliDefineID);
 	SDefineArgument*		Add(int64 lliDefineID);
 	void					Remove(int64 lliDefineID);

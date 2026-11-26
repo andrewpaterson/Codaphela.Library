@@ -304,7 +304,7 @@ void CCPPCheck::CheckClasses(CArraySyntax* papcDeclarations)
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPSyntaxClassSpecifier*		pcClassSpecifier;
 	CCPPSymbol*						pcSymbol;
-	CCPPClass*					pcClass;
+	CCPPClass*						pcClass;
 
 	for (i = 0; i < papcDeclarations->NumElements(); i++)
 	{
@@ -1004,7 +1004,7 @@ bool CCPPCheck::CheckCaseInSwitch(CCPPSyntax* pcCase)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPCheck::CheckLocalClass(CCPPSyntax* pcDeclaration)
 {
-	CCPPSyntaxDeclSpecifiers*	pcSpecifiers;
+	CCPPSyntaxDeclSpecifiers*			pcSpecifiers;
 	bool								bResult;
 
 	pcSpecifiers = (pcDeclaration && (pcDeclaration->GetKind() == CPPS_SimpleDeclaration)) ? ((CCPPSyntaxSimpleDeclaration*)pcDeclaration)->mpcSpecifiers : NULL;

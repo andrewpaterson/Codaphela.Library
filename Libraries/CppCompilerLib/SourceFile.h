@@ -63,7 +63,7 @@ public:
 	virtual bool				IsSystemFile(void) const =0;
 			void				Path(CChars* pszPath);
 			const char*			GetContents(void) const;
-			size					GetContentsLength(void) const;
+			size				GetContentsLength(void) const;
 			size_t				GetTokenMemoryUsed(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);

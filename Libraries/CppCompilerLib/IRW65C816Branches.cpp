@@ -392,10 +392,10 @@ class CIR816BranchCode : public CIRBranchCode
 {
 protected:
 	CIRW65C816Code*				mpcCode;
-	CArrayTemplate<size>	mauiLabelLines;		//Per local label number: its line + 1, 0 for none.
-	CArrayTemplate<uint8>	mabRemoved;			//Per line.
-	CArrayTemplate<uint8>	mabNamed;			//Per local label number: named by a line that isn't a branch to it.
-	bool					mbRemoved;
+	CArrayTemplate<size>		mauiLabelLines;		//Per local label number: its line + 1, 0 for none.
+	CArrayTemplate<uint8>		mabRemoved;			//Per line.
+	CArrayTemplate<uint8>		mabNamed;			//Per local label number: named by a line that isn't a branch to it.
+	bool						mbRemoved;
 
 public:
 	void		Init(CIRW65C816Code* pcCode);
@@ -689,8 +689,8 @@ void CIRW65C816Backend::PeepholeBranches(CIRW65C816Code* pcCode)
 	CIR816BranchCode		cBranches;
 	CArrayTemplate<uint8>	abUsed;
 	CArrayTemplate<size>	auiLabelLines;
-	SIRW65C816Line				sLine;
-	SIRW65C816Line				sLine2;
+	SIRW65C816Line			sLine;
+	SIRW65C816Line			sLine2;
 	char					szLabel[32];
 	char					szLabel2[32];
 	size					ui;

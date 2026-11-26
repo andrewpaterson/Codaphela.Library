@@ -33,10 +33,10 @@ public:
 	bool			mbChar32;	//U'x', a char32_t.
 
 	CPP_TOKEN_CONSTRUCT(CCTInt);
-	void Init(void);
-	void Init(unsigned int i);
-	void Kill(void);
-	bool IsSigned(void) const;
+	void	Init(void);
+	void	Init(unsigned int i);
+	void	Kill(void);
+	bool	IsSigned(void) const;
 };
 
 

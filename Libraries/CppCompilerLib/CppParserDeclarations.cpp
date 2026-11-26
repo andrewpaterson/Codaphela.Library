@@ -34,7 +34,7 @@ void CCPPParser::ParseDeclarations(CArraySyntax* papcDeclarations, CCPPSyntax* p
 	SCPPParserState				sState;
 	CCPPSyntaxDeclaration*		pcSkipped;
 	bool						bRecord;
-	CArrayTemplate<CCPPSymbol*>		apcDeclared;
+	CArrayTemplate<CCPPSymbol*>	apcDeclared;
 	CArrayTemplate<CCPPSymbol*>*	papcRecorded;
 	CCPPScope*					pcRecordScope;
 

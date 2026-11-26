@@ -176,7 +176,7 @@ bool CIRRanges::SignedRange(SIRReference sValue, SIRValueRange* psRange, uint8 u
 	int				iBits;
 	uint64			ulliBound;
 	int64			lliConstant;
-	SIRValueRange		sArgument;
+	SIRValueRange	sArgument;
 	SIRPhi*			psPhi;
 	size			ui;
 

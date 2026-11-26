@@ -54,7 +54,7 @@ class CCPPDiagnostics;
 class CCPPAccess
 {
 protected:
-	CCPPUnit*	mpcUnit;
+	CCPPUnit*			mpcUnit;
 	CCPPDiagnostics*	mpcDiagnostics;	//Where its errors go: the unit's.
 
 public:

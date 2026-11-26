@@ -99,8 +99,8 @@ public:
 	void					SetLineTable(bool bLineTable);
 	void					SetNoFloats(bool bNoFloats);
 	void					SetMathTables(bool bMathTables);
-	CAsm65LineTable*	GetLineTable(void);
-	CAsm65DebugInfo*	GetDebugInfo(void);
+	CAsm65LineTable*		GetLineTable(void);
+	CAsm65DebugInfo*		GetDebugInfo(void);
 
 	bool					AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	void					AddUnit(const char* szLibrary, const char* szDirectory, const char* szFile, bool bLinkAsLibrary = false);

@@ -64,7 +64,7 @@ public:
 	bool		IsPPNumberContinuation(void) const;
 	bool		IsPPNumberStart(void) const;
 	void		AddRelevantToken(void);
-	CPPText* 	AddText(EPreprocessorText eType, const char* szStart, const char* szEndExclusive);
+	CPPText*	AddText(EPreprocessorText eType, const char* szStart, const char* szEndExclusive);
 	void		NullAll(void);
 	bool		IsDigraphHash(void);
 	void		MarkStart(void);

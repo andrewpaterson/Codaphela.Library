@@ -34,12 +34,12 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPReplacement);
-	void 	Init(int iLine, int iColumn, char* szFileName);
-	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, bool bVariadic);
-	void 	Kill(void);
-	bool 	IsReplacement(void) const;
-	char* 	Print(CChars* psz);
-	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
+	void	Init(int iLine, int iColumn, char* szFileName);
+	void	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, bool bVariadic);
+	void	Kill(void);
+	bool	IsReplacement(void) const;
+	char*	Print(CChars* psz);
+	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	IsEmpty(void);
 	bool	IsVariadic(void) const;
 };

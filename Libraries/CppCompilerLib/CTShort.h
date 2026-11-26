@@ -31,10 +31,10 @@ public:
 	bool				mbChar16;	//u'x', a char16_t, rather than L'x', a wchar_t.
 
 	CPP_TOKEN_CONSTRUCT(CCTShort);
-	void Init(void);
-	void Init(unsigned short int s);
-	void Kill(void);
-	bool IsSigned(void) const;
+	void	Init(void);
+	void	Init(unsigned short int s);
+	void	Kill(void);
+	bool	IsSigned(void) const;
 };
 
 

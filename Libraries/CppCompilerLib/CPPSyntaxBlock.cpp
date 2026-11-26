@@ -659,7 +659,7 @@ uint16 CCPPSyntaxBlockWriting::Symbol(CCPPSymbol* pcSymbol)
 			break;
 		}
 	}
-	if ((pcOther != pcSymbol) || (bPosition && (iColumn > CPP_SYNTAX_BLOCK_MOST)) ||(sExternal.uiScope == CPP_SYNTAX_BLOCK_NULL) || (sExternal.uiName == CPP_SYNTAX_BLOCK_NULL))
+	if ((pcOther != pcSymbol) || (bPosition && (iColumn > CPP_SYNTAX_BLOCK_MOST)) || (sExternal.uiScope == CPP_SYNTAX_BLOCK_NULL) || (sExternal.uiName == CPP_SYNTAX_BLOCK_NULL))
 	{
 		if (meResult == CPPSB_Written)
 		{
@@ -1034,9 +1034,9 @@ public:
 	CCPPSyntaxTree*			mpcTree;
 	int						miFirstToken;
 	int						miTokens;
-	CArraySyntax				mapcNodes;
+	CArraySyntax			mapcNodes;
 	CArraySyntaxBlockStrings	masStrings;
-	CArrayTemplate<int64>		malliNames;		//By string: its identifier, -2 until it is a name.
+	CArrayTemplate<int64>	malliNames;		//By string: its identifier, -2 until it is a name.
 	CArrayScopes			mapcScopes;
 	CArraySymbols			mapcSymbols;
 	CArrayScopes			mapcExternalScopes;		//By external: the scope it is, or NULL.

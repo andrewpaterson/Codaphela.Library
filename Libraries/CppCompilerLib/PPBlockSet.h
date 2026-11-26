@@ -42,8 +42,8 @@ protected:
 	CArrayPPBlocks		mapcBlocks;
 
 public:
-	void 				Init(int iLine, int iBlock, bool bTextBlocks);
-	void 				Kill(void);
+	void				Init(int iLine, int iBlock, bool bTextBlocks);
+	void				Kill(void);
 	void				AddBlock(CPPBlock* pcBlock);
 	bool				IsDirective(void) const;
 	CPPTokenList*		GetUnprocssedTokens(void);

@@ -148,7 +148,7 @@ SCPP65Type* CCPPDeclarators::GetDeclaratorType(SCPP65Type* psType, CCPPSyntaxDec
 	CCPPSyntaxPointerOperator*	pcPointer;
 	CCPPSyntax*					pcSuffix;
 	CCPPSyntaxArraySuffix*		pcArray;
-	CCPPClass*				pcClass;
+	CCPPClass*					pcClass;
 	size						i;
 	int64						lliCount;
 
@@ -716,9 +716,9 @@ SCPP65Type* CCPPDeclarators::AliasTemplateType(CCPPSyntaxName* pcName, CCPPSynta
 //////////////////////////////////////////////////////////////////////////
 SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers, CCPPSyntax* pcNode)
 {
-	CCPPSymbol*					pcMember;
-	CCPPClass*				pcMemberClass;
-	SCPP65Type*					psMemberType;
+	CCPPSymbol*							pcMember;
+	CCPPClass*							pcMemberClass;
+	SCPP65Type*							psMemberType;
 	uint32								uiKeywords;
 	bool								bSigned;
 	CCPPSyntaxTypeSpecifier*			pcType;
@@ -726,7 +726,7 @@ SCPP65Type* CCPPDeclarators::GetBaseType(CCPPSyntaxDeclSpecifiers* pcSpecifiers,
 	CCPPSyntaxClassSpecifier*			pcClassSpecifier;
 	CCPPSyntaxElaboratedTypeSpecifier*	pcElaborated;
 	CCPPSymbol*							pcSymbol;
-	CCPPClass*						pcClass;
+	CCPPClass*							pcClass;
 	SCPPBinding*						psBinding;
 
 	if (!pcSpecifiers)

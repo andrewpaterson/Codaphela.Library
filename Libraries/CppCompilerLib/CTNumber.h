@@ -41,8 +41,8 @@ class CCTNumber : public CCPPToken
 public:
 	ECTNumberType	meType;
 
-			bool IsNumber(void) const;
-	virtual bool IsSigned(void) const;
+			bool	IsNumber(void) const;
+	virtual bool	IsSigned(void) const;
 };
 
 

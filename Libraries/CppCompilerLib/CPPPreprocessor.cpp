@@ -87,8 +87,8 @@ void SPPSource::Kill(void)
 bool CCPPPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 {
 	CCPPPreprocessor		cPreprocessor;
-	CTranslationUnit	cFile;
-	bool				bResult;
+	CTranslationUnit		cFile;
+	bool					bResult;
 
 	cFile.Init("", NULL, false);
 	cFile.SetContents(szSource);
@@ -1051,15 +1051,15 @@ CSpecialOperator* CCPPPreprocessor::AddSpecialOperator(char* szSpecialOperator, 
 CDefine* CCPPPreprocessor::AddDefine(const char* szDefine, const char* szReplacement, CPPTokenMemory* pcTokenMemory)
 {
 	CDefine*				pcDefine;
-	size						iLen;
+	size					iLen;
 	char*					sz;
 	CPPText					pcText;
 	CPreprocessorTokeniser	cTokeniser;
 
 	iLen = strlen(szReplacement);
 	pcDefine = mcDefines.AddDefine(szDefine);
-	sz = (char*)mcDefineStrings.Add(iLen+1);
-	memcpy(sz, szReplacement, iLen+1);
+	sz = (char*)mcDefineStrings.Add(iLen + 1);
+	memcpy(sz, szReplacement, iLen + 1);
 
 	cTokeniser.Init(GetFileName());
 	cTokeniser.TokeniseDefine(pcDefine->GetReplacement()->GetTokenList(), sz, pcTokenMemory);
@@ -1082,6 +1082,10 @@ static bool IsPaste(CPPToken* pcToken)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static void DefineSpelling(CDefine* pcDefine, CChars* psz)
 {
 	CPPTokenList*	pcTokens;
@@ -1243,7 +1247,7 @@ bool CCPPPreprocessor::ProcessHashDefine(CPPDirective* pcDirective, CPreprocesso
 				return false;
 			}
 		}
-		
+
 		pcTokenMemory = GetTokenMemory();
 		pcDefine->SetFile(mpcCurrentFile);
 		pcDefine->SetPosition(pcDirective->Line(), pcDirective->Column());
@@ -2890,10 +2894,10 @@ void CCPPPreprocessor::ExpandSpecial(CDefine* pcDefine, SPreprocessedToken* psTo
 	time_t			tNow;
 	struct tm		sTime;
 	struct tm*		psTime;
-	char			szTime[64];
-	size			i;
-	static char*	aszMonths[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	static char*	aszDays[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	char					szTime[64];
+	size					i;
+	static char*			aszMonths[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	static char*			aszDays[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	EPreprocessedTokenKind	eKind;
 	SMacroExpansion*		psExpansion;
 	int						iLine;
@@ -3704,6 +3708,10 @@ static const SCppAttribute	gasCppAttributes[] =
 };
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static int64 CppAttributeVersion(const char* szName, size uiLength)
 {
 	size	i;

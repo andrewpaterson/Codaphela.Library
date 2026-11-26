@@ -101,6 +101,10 @@ static void IR816SetLive(SIR816LiveBytes* psLive, int32 iByte, int iBytes, bool 
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static bool IR816AnyLive(SIR816LiveBytes* psLive, int32 iByte, int iBytes)
 {
 	int		i;
@@ -118,6 +122,10 @@ static bool IR816AnyLive(SIR816LiveBytes* psLive, int32 iByte, int iBytes)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static bool IR816NoneLive(SIR816LiveBytes* psLive)
 {
 	size	ui;
@@ -1223,16 +1231,16 @@ bool CIRW65C816Backend::PeepholeFlowRegisters(CIRW65C816Code* pcCode)
 	CArrayTemplate<SIR816FlowBlock>	asBlocks;
 	CArrayTemplate<int>				aiBlockOf;
 	CArrayTemplate<bool>			abRemove;
-	CArrayTemplate<SIRW65C816Held>		asIn;		//Three per block: what A, X and Y hold at its start.
-	CArrayTemplate<SIRW65C816Held>		asOut;		//And at its end.
+	CArrayTemplate<SIRW65C816Held>	asIn;		//Three per block: what A, X and Y hold at its start.
+	CArrayTemplate<SIRW65C816Held>	asOut;		//And at its end.
 	CArrayTemplate<bool>			abDone;		//Whether its end is worked out yet.
 	CArrayTemplate<int>				aiFromStart;	//Per block (and one more): where its blocks gone to from start in aiFrom.
 	CArrayTemplate<int>				aiFrom;
 	CArrayTemplate<int>				aiFill;
 	SIR816FlowLine*					psLine;
 	SIR816FlowBlock*				psBlock;
-	SIRW65C816Held						asHeld[3];
-	SIRW65C816Held						asNone[3];
+	SIRW65C816Held					asHeld[3];
+	SIRW65C816Held					asNone[3];
 	size							ui;
 	size							uj;
 	int								i;

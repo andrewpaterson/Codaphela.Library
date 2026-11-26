@@ -228,7 +228,7 @@ char* CSourceFile::ShortName(void)
 	}
 	else
 	{
-		return mszFullName.Text(iIndex+1);
+		return mszFullName.Text(iIndex + 1);
 	}
 }
 
@@ -296,6 +296,10 @@ static char TrigraphCharacter(const char* sz, const char* szEnd)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static bool IsTrigraphNameCharacter(char c)
 {
 	return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '_') || ((uint8)c >= 0x80);

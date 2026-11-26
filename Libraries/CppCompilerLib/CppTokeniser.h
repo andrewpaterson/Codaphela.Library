@@ -57,9 +57,9 @@ public:
 	int64					mlliMemcpy;				//memcpy and __builtin_memcpy, which the compiler may write as a copy (CCPPUnit::IsInlineMemcpy).
 	int64					mlliBuiltinMemcpy;
 
-	void 				Init(CMallocator* pcTokens = NULL);
-	void 				Kill(void);
-	bool 				Tokenise(CPreprocessedTokens* pcSource);
+	void				Init(CMallocator* pcTokens = NULL);
+	void				Kill(void);
+	bool				Tokenise(CPreprocessedTokens* pcSource);
 
 	size				NumTokens(void) const;
 	CCPPToken*			Get(size iIndex);

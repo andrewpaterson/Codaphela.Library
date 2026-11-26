@@ -438,7 +438,7 @@ bool CCPPConstantFolder::ConstexprFloat(CCPPSyntaxIdExpression* pcId, SCPPConsta
 	CCPPSyntax*		pcInitialiser;
 	SCPPConstant	sInitialiser;
 	CCPPBoundName	cBound;
-	CCPPSyntaxInitDeclarator*		pcInit;
+	CCPPSyntaxInitDeclarator*	pcInit;
 	CCPPSyntaxSimpleDeclaration*	pcDeclaration;
 
 	//S::d, a static member of a class (a field's name in it), is the variable its name is bound to.

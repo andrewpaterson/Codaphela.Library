@@ -40,7 +40,7 @@ struct SIRFoundDivision
 	CIRBlock*		pcBlock;
 	size			uiInstruction;
 	uint8			uiKind;			//EIRConstantDivision.
-	SIRValueRange		sRange;			//The dividend's.
+	SIRValueRange	sRange;			//The dividend's.
 	SIRReciprocal	sReciprocal;	//IRCD_Reciprocal.
 };
 

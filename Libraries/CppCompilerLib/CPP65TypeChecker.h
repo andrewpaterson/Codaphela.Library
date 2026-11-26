@@ -172,7 +172,7 @@ public:
 	bool					MakesObject(CCPPSyntax* pcExpression);
 	bool					IsMadeObject(CCPPSyntax* pcExpression, CCPPClass* pcClass);
 	bool					IsObject(CCPPSyntax* pcExpression);
-	CCPPClass*			ObjectClass(CCPPSyntax* pcExpression);
+	CCPPClass*				ObjectClass(CCPPSyntax* pcExpression);
 	SCPP65Type*				PlaceOf(CCPPSyntax* pcExpression);
 	CCPPSyntax*				CommaResult(CCPPSyntax* pcExpression);
 	bool					IsReturnedLocal(CCPPSyntaxIdExpression* pcId);

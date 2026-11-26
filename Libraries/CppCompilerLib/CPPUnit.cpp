@@ -970,7 +970,7 @@ CCPPFunction* CCPPUnit::AddFunction(CCPPClass* pcClass, int64 lliName, ECPPFunct
 {
 	CCPPFunction*			pcFunction;
 	SCPPFunctionsOfName*	psOfName;
-	SCPPFunctionsOfName	sOfName;
+	SCPPFunctionsOfName		sOfName;
 
 	pcFunction = NewMalloc<CCPPFunction>();
 	pcFunction->Init(pcClass, lliName, eKind, psReturn);
@@ -1589,8 +1589,8 @@ bool CCPPUnit::AllocateLocals(CCPPSyntax* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPUnit::AnonymousLocal(CCPPSyntaxClassSpecifier* pcSpecifier)
 {
-	CCPPClass*	pcClass;
-	SCPPField*	psField;
+	CCPPClass*		pcClass;
+	SCPPField*		psField;
 	CCPPVariable*	pcVariable;
 	size			i;
 

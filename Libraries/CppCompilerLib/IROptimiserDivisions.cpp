@@ -118,7 +118,7 @@ bool CIRDivisionPasses::BoundDivisions(void)
 	SIRType								sType;
 	uint64								ulliDivisor;
 	uint64								ulliBound;
-	SIRValueRange							sRange;
+	SIRValueRange						sRange;
 	size								ui;
 	size								uiInstruction;
 	bool								bChanged;
@@ -371,7 +371,7 @@ bool CIRDivisionPasses::DivisibilityTests(void)
 	uint64			ulliOdd;
 	uint64			ulliInverse;
 	uint64			ulliMask;
-	SIRValueRange		sRange;
+	SIRValueRange	sRange;
 	size			ui;
 	size			uj;
 	int				iBits;
@@ -487,7 +487,7 @@ bool CIRDivisionPasses::ConstantDivisions(void)
 	SIRType								sType;
 	SIRType								sWork;
 	int64								lliDivisor;
-	SIRValueRange							sRange;
+	SIRValueRange						sRange;
 	int									iShift;
 	size								ui;
 	size								uiInstruction;

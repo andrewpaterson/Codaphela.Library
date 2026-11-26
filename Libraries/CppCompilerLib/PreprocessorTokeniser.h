@@ -40,9 +40,9 @@ protected:
 	CArrayPPComments*		mpacComments;
 
 public:
-	void 					Init(char* szFileName);
+	void					Init(char* szFileName);
 	void					SetComments(CArrayPPComments* pacComments);
-	void 					Kill(void);
+	void					Kill(void);
 
 	bool					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, const char* szPos, int iLength);
 	void					TokeniseDefine(CPPTokenList* pcHolder, char* sz, CPPTokenMemory* pcTokens);

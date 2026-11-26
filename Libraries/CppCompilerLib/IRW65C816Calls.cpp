@@ -126,7 +126,7 @@ void CIRW65C816Calls::Call(CIRBlock* pcBlock, SIRInstruction* psInstruction)
 	int						iRegisters;
 	CChars					sz;
 	CArrayIRRegisterArguments	asArguments;
-	SIRRegisterArgument*			psPlaced;
+	SIRRegisterArgument*	psPlaced;
 	SIRInstruction*			psThrown;
 	size					uiIndex;
 	int32					iThrown;
@@ -520,8 +520,8 @@ bool CIRW65C816Calls::Forwarder(CIRW65C816Code* pcJump)
 	size					uiAdjustedArgument;	//The callee's argument it is, or ARRAY_ELEMENT_NOT_FOUND.
 	CIRW65C816Code			cAdjust;
 	int32					iLabel;
-	SIRRegisterArgument*			psPlaced;
-	SIRRegisterArgument*			psOwn;
+	SIRRegisterArgument*	psPlaced;
+	SIRRegisterArgument*	psOwn;
 	size					ui;
 	size					uj;
 	size					uiFirst;

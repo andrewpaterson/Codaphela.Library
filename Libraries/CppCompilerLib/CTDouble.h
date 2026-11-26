@@ -29,9 +29,9 @@ public:
 	double mcValue;
 
 	CPP_TOKEN_CONSTRUCT(CCTDouble);
-	void Init(void);
-	void Init(double d);
-	void Kill(void);
+	void	Init(void);
+	void	Init(double d);
+	void	Kill(void);
 };
 
 

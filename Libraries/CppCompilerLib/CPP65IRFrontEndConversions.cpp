@@ -140,8 +140,8 @@ bool CCPP65IRFrontEnd::IsReinterpretCast(CCPPSyntax* pcCast)
 bool CCPP65IRFrontEnd::DynamicCastExpression(CCPPSyntaxNamedCastExpression* pcCast, SCPP65IRValue* psValue)
 {
 	SCPP65Type*		psTo;
-	CCPPClass*	pcFrom;
-	CCPPClass*	pcTarget;
+	CCPPClass*		pcFrom;
+	CCPPClass*		pcTarget;
 
 	psTo = mpcUnit->GetDeclarators()->GetTypeIdType(pcCast->mpcType);
 	if (!psTo)

@@ -501,7 +501,7 @@ SPPValue CPreprocessorExpression::Primary(bool bEvaluate)
 SPPValue CPreprocessorExpression::Number(void)
 {
 	SPPValue			sValue;
-	SNumberLiteral			sLiteral;
+	SNumberLiteral		sLiteral;
 	ENumberLiteralResult	eResult;
 	char*				szStart;
 	char				c;

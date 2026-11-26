@@ -119,6 +119,6 @@ const char* CPPTextWithSource::TextEndInclusive(void)
 	int	iLen;
 
 	iLen = (int)strlen(mszText);
-	return mszText + iLen-1;
+	return mszText + iLen - 1;
 }
 

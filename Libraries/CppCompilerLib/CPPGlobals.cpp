@@ -98,7 +98,7 @@ bool CCPPGlobals::GlobalDeclaration(CCPPSyntaxSimpleDeclaration* pcDeclaration, 
 	SCPP65Type*					psElement;
 	CChars						szLabel;
 	CCPPSyntaxName*				pcName;
-	CCPPClass*				pcClass;
+	CCPPClass*					pcClass;
 	int64						lliName;
 	bool						bResult;
 	CCPPErrors*					pcErrors;

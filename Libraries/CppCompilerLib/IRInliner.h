@@ -43,7 +43,7 @@ typedef CArrayTemplate<SIRInlineReturn>	CArrayIRInlineReturns;
 #define IR_INLINE_UNKNOWN			((uint64)-1)
 #define IR_INLINE_THUNK_INSTRUCTIONS	2	//A callee no bigger than a forwarder (its arguments, a 'this' moved and the call, or a load).
 #define IR_INLINE_MAX_CALLER		4096	//No function grows past this many instructions by inlining (a W65C816 function
-										//must fit in a 64KB bank).
+//must fit in a 64KB bank).
 
 
 //How often calls were made, from a profile of the program (CAsm65Profile): what a profile guided inliner asks.

@@ -68,8 +68,8 @@ struct SCPPLambda
 	CCPPErrors*					pcErrors;		//...and what was said making it, said again each time it is asked for (the diagnostics' to free).
 	CCPPFunction*				pcCall;			//operator() when it isn't generic.
 	CChars						szName;			//In a function every unit may write: the function's label, __L and the lambda's number in its
-												//definition, so the closure is one type, with the same labels, in every unit.  Else empty: the
-												//unit's own (Unnamed<n>).  [expr.prim.lambda] 3, [basic.def.odr] 6
+	//definition, so the closure is one type, with the same labels, in every unit.  Else empty: the
+	//unit's own (Unnamed<n>).  [expr.prim.lambda] 3, [basic.def.odr] 6
 };
 
 

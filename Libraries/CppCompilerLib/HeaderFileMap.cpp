@@ -72,7 +72,7 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, bool bSystem)
 	CHeaderFile**		ppcHeader;
 	CHeaderFile*		pcHeader;
 	bool				bResult;
-	
+
 	ppcHeader = mcFileMap.Get(szAbsoluteFileName);
 	if (!ppcHeader)
 	{

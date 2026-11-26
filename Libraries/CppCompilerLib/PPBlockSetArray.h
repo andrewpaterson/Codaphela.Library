@@ -34,7 +34,7 @@ protected:
 	bool				mbRawProcessed;
 
 public:
-	void 				Init(void);
+	void				Init(void);
 	void				Kill(void);
 	void				RawProcessed(void);
 	bool				IsRawProcessed(void) const;

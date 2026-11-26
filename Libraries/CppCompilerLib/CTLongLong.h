@@ -26,14 +26,14 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 class CCTLongLong : public CCTNumber
 {
 public:
-	uint64	mcValue;
+	uint64					mcValue;
 	bool					mbSigned;
 
 	CPP_TOKEN_CONSTRUCT(CCTLongLong);
-	void Init(void);
-	void Init(uint64 ulli);
-	void Kill(void);
-	bool IsSigned(void) const;
+	void	Init(void);
+	void	Init(uint64 ulli);
+	void	Kill(void);
+	bool	IsSigned(void) const;
 };
 
 

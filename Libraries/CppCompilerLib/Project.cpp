@@ -272,7 +272,7 @@ bool CProject::ProcessUnit(CTranslationUnit* pcFile, char* szConfiguration, CCha
 {
 	CConfig*			pcConfig;
 	bool				bResult;
-	CCPPPreprocessor		cPreprocessor;
+	CCPPPreprocessor	cPreprocessor;
 
 	DumpProcessedCPPFileName(pcFile);
 

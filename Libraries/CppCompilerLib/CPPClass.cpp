@@ -221,8 +221,8 @@ bool CCPPClass::HasBase(CCPPClass* pcBase)
 //////////////////////////////////////////////////////////////////////////
 SCPPField* CCPPClass::FindField(int64 lliName, int* piOffset, CCPPClass** ppcVirtual)
 {
-	SCPPField*	psField;
-	SCPPField*	psMember;
+	SCPPField*		psField;
+	SCPPField*		psMember;
 	SCPPBase*		psBase;
 	size			i;
 	int				iOffset;
@@ -309,8 +309,8 @@ CCPPClass* CCPPClass::FindFieldClass(SCPPField* psField)
 //////////////////////////////////////////////////////////////////////////
 SCPPField* CCPPClass::FindFieldSymbol(CCPPSymbol* pcSymbol, int* piOffset, CCPPClass** ppcVirtual)
 {
-	SCPPField*	psField;
-	SCPPField*	psMember;
+	SCPPField*		psField;
+	SCPPField*		psMember;
 	SCPPBase*		psBase;
 	size			i;
 	int				iOffset;
@@ -426,7 +426,7 @@ SCPPField* CCPPClass::AggregateField(size uiValue)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::NeedsConstructor(void)
 {
-	SCPPField*	psField;
+	SCPPField*		psField;
 	SCPP65Type*		psType;
 	size			i;
 
@@ -491,7 +491,7 @@ bool CCPPClass::HasVirtualDestructor(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPClass::NeedsDestructor(void)
 {
-	SCPPField*	psField;
+	SCPPField*		psField;
 	SCPP65Type*		psType;
 	size			i;
 

@@ -100,7 +100,7 @@ void CPPBlockSet::Print(CChars* psz)
 void CPPBlockSet::Dump(void)
 {
 	CChars			sz;
-			
+
 	sz.Init();
 	Print(&sz);
 	sz.DumpKill();

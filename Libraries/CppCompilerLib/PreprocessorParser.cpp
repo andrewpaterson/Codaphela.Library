@@ -39,7 +39,7 @@ void CPreprocessorParser::Init(const char* szStart, const char* szEnd, char* szF
 	if (!szEnd)
 	{
 		iLen = (int)strlen(szStart);
-		mszEndOfText = szStart+iLen-1;
+		mszEndOfText = szStart + iLen - 1;
 	}
 	else
 	{
@@ -123,7 +123,7 @@ void CPreprocessorParser::StepRight(int iDist)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorParser::SkipWhitespace(void)
 {
-	char	cCurrent;		
+	char	cCurrent;
 
 	for (;;)
 	{
@@ -180,7 +180,7 @@ void CPreprocessorParser::SkipWhitespace(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorParser::SkipCStyleComment(void)
 {
-	char		cCurrent;		
+	char		cCurrent;
 	const char*	szStart;
 
 	//It's assumed that the initial /* has already been consumed.  Comments do not nest.

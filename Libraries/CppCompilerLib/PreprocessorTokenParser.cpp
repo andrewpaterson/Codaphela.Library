@@ -452,7 +452,7 @@ bool CPreprocessorTokenParser::NextToken(void)
 	if (mpsCurrent->pcCurrentToken)
 	{
 		pcHolder = mpsCurrent->pcHolder;
-		iIndex = mpsCurrent->iTokenIndex+1;
+		iIndex = mpsCurrent->iTokenIndex + 1;
 		if (iIndex < pcHolder->TokenLength())
 		{
 			AssignCurrent(pcHolder->Get(iIndex), iIndex);
@@ -564,7 +564,7 @@ int CPreprocessorTokenParser::Column(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::AppendRemaining(CChars* psz)
 {
-	SPPHolderMark*	psMark;
+	SPPHolderMark*			psMark;
 	CPPTokenListHolder*		pcHolder;
 
 	psMark = macPPHolderMark.Get(0);

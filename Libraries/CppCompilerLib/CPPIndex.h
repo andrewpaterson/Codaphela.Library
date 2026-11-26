@@ -68,11 +68,11 @@ enum ECPPUsageType
 //SCPPIndexLocation::uiFlags
 #define CPPIF_AMBIGUOUS		0x01	//A call the parser can't tell the overload of: it is a reference of each it could be.
 #define CPPIF_MACRO			0x02	//A name a macro made, where the macro was used: the text there is the macro's name,
-									//ARRAY_BLOCK, not the symbol's, CArrayBlock (as BaseLib's arrays were made).
+//ARRAY_BLOCK, not the symbol's, CArrayBlock (as BaseLib's arrays were made).
 #define CPPIF_C_LINKAGE		0x04	//A declaration inside extern "C": a function's or variable's label is only its name.
 #define CPPIF_INSTANCE		0x08	//A name in a template's declaration that the type checker resolved, which it does in the
-									//template's instances: mp->Init() in CHolder<M> is CFoo::Init in CHolder<CFoo>, and a
-									//reference of whatever else it is in another instance (CCPPIndex::FindFamily).
+//template's instances: mp->Init() in CHolder<M> is CFoo::Init in CHolder<CFoo>, and a
+//reference of whatever else it is in another instance (CCPPIndex::FindFamily).
 
 
 //Where a symbol is named in a file.

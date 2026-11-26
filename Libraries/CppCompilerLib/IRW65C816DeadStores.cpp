@@ -283,7 +283,7 @@ void CIRW65C816Backend::RemoveUnreadStores(CChars* pszDest, size uiStart)
 //////////////////////////////////////////////////////////////////////////
 void CIRW65C816Backend::RemoveUnreadStores(CIRW65C816Code* pcCode)
 {
-	SIRW65C816Line				sLine;
+	SIRW65C816Line			sLine;
 	uint8					abRead[IR816_DIRECT_PAGE];
 	size					ui;
 	CArrayTemplate<uint8>	abRemove;
@@ -341,7 +341,7 @@ void CIRW65C816Backend::RemoveDeadStores(CChars* pszDest, size uiStart)
 void CIRW65C816Backend::RemoveDeadStores(CIRW65C816Code* pcCode)
 {
 	CArrayTemplate<uint8>	abRemove;
-	SIRW65C816Line				sLine;
+	SIRW65C816Line			sLine;
 	size					ui;
 	bool					bRemoved;
 

@@ -29,12 +29,12 @@ public:
 	int32	miReservedWord;
 
 	CPP_TOKEN_CONSTRUCT(CCTReservedWord);
-	void Init(void);
-	void Init(int64 iReservedWord);
-	void Kill(void);
-	bool IsReservedWord(void) const;
-	bool Is(ECppTokens eToken);
-	ECppTokens GetToken(void) const;
+	void	Init(void);
+	void	Init(int64 iReservedWord);
+	void	Kill(void);
+	bool	IsReservedWord(void) const;
+	bool	Is(ECppTokens eToken);
+	ECppTokens	GetToken(void) const;
 };
 
 

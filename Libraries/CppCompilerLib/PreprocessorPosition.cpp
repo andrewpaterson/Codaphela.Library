@@ -51,7 +51,7 @@ void SPreprocessorPosition::Init(CPreprocessorTokenParser* pcParser, char* szSho
 	{
 		Init(-1, -1, szShortName);
 	}
-	
+
 }
 
 

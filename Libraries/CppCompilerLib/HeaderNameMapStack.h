@@ -29,8 +29,8 @@ class CHeaderNameMapDirectory
 public:
 	CHeaderFiles*		mpcHeaderNameMap;
 
-	void Init(CHeaderFiles* pcHeaderNameMap);
-	void Kill(void);
+	void	Init(CHeaderFiles* pcHeaderNameMap);
+	void	Kill(void);
 };
 
 

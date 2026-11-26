@@ -1479,7 +1479,7 @@ bool CCPPInstantiator::ExplicitInstantiation(CCPPSyntax* pcDeclaration, bool bEx
 	CCPPSyntaxSimpleDeclaration*	pcSimple;
 	CCPPSyntaxTypeSpecifier*		pcType;
 	CCPPSyntaxName*					pcName;
-	CCPPClass*					pcClass;
+	CCPPClass*						pcClass;
 	CCPPFunction*					pcFunction;
 	CArrayCPPFunctions				apcDefined;
 	size							i;
@@ -2511,7 +2511,7 @@ CCPPClass* CCPPInstantiator::InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTempl
 {
 	CCPPTemplateArguments*	pcSpecialised;
 	CCPPTemplate*	pcSpecialisation;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	size			i;
 
 	for (i = 0; i < mpcUnit->GetClasses()->GetClassList()->NumElements(); i++)
@@ -2729,7 +2729,7 @@ CCPPClass* CCPPInstantiator::UndefinedInstance(CCPPSymbol* pcSymbol, CArraySynta
 {
 	CCPPSyntax*		pcDeclaration;
 	CCPPTemplateArguments*	pcBindings;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	CChars			szArguments;
 	size			i;
 

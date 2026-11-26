@@ -87,7 +87,7 @@ struct SCPP65Type
 	ECPP65IntegerKind	eInteger;	//An integer: which one (CCPP65Types' builtins), an enum's underlying one; else CPP65IK_None.
 	SCPP65Type*		psBase;		//The type pointed to, the element type or the return type.
 	int				iCount;		//Array elements.
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 	CArrayTemplatePtr<SCPP65Type>*	papsParameters;		//A function type's parameters.
 	bool			bVariadic;
 	bool			bConstFunction;	//A function type: a member function's that is const (int() const), a type of its own.  [dcl.fct] 6
@@ -102,26 +102,26 @@ struct SCPP65Type
 	SCPP65Type*		psUnqualified;	//The type without const and volatile (itself when it is neither).
 	SCPP65Type*		psNextSameBase;	//The next type made of its kind and base (CCPP65Types::mcByBase), NULL if none.
 
-	bool	IsInteger(void) const;
-	bool	IsScalar(void) const;
-	bool	IsPointer(void) const;
-	bool	IsArray(void) const;
-	bool	IsFunction(void) const;
-	bool	IsVoid(void) const;
-	bool	IsClass(void) const;
-	bool	IsReference(void) const;
-	bool	IsRvalueReference(void) const;
-	bool	IsLvalueReference(void) const;
-	bool	IsMemberPointer(void) const;
-	bool	IsMemberFunctionPointer(void) const;
+	bool		IsInteger(void) const;
+	bool		IsScalar(void) const;
+	bool		IsPointer(void) const;
+	bool		IsArray(void) const;
+	bool		IsFunction(void) const;
+	bool		IsVoid(void) const;
+	bool		IsClass(void) const;
+	bool		IsReference(void) const;
+	bool		IsRvalueReference(void) const;
+	bool		IsLvalueReference(void) const;
+	bool		IsMemberPointer(void) const;
+	bool		IsMemberFunctionPointer(void) const;
 	const char*	FunctionEnd(void) const;
-	bool	IsNullPointer(void) const;
-	bool	IsFloat(void) const;
-	bool	IsSupported(void) const;
-	bool	IsWide(void) const;
-	bool	Equals(SCPP65Type* psOther);
-	bool	HasQualifiersOf(SCPP65Type* psFrom);
-	bool	Same(SCPP65Type* psOther);
+	bool		IsNullPointer(void) const;
+	bool		IsFloat(void) const;
+	bool		IsSupported(void) const;
+	bool		IsWide(void) const;
+	bool		Equals(SCPP65Type* psOther);
+	bool		HasQualifiersOf(SCPP65Type* psFrom);
+	bool		Same(SCPP65Type* psOther);
 	SCPP65Type*	Unqualified(void);
 	bool		IsScopedEnum(void) const;
 	SCPP65Type*	WithoutReference(void);
@@ -129,8 +129,8 @@ struct SCPP65Type
 	SCPP65Type*	InnermostElement(void);
 	int64		Least(void) const;
 	int64		Most(void) const;
-	int		GetElementBytes(void) const;
-	void	Append(CChars* psz);
+	int			GetElementBytes(void) const;
+	void		Append(CChars* psz);
 };
 
 
@@ -172,13 +172,13 @@ protected:
 		static bool			TypesEqual(const void* pvKey, const void* pvEntryKey);
 	};
 
-	CArrayCPP65Types					mapsTypes;
+	CArrayCPP65Types						mapsTypes;
 	CHashMapLongTemplate<SCPP65TypeChain>	mcByBase;		//The types made of a kind and base (Add, MemberPointer).
 	CHashSetTemplate<SCPP65Type*, SHashOfFunction>	mcFunctions;	//The function types (Function), each made once.
 	CHashMapLongTemplate<SCPP65Type*>		mcClasses;		//A class's type, by its CCPPClass.
 	CHashMapLongTemplate<SCPP65Type*>		mcEnums;		//An enum's type, by its symbol.
 	CHashMapLongTemplate<SCPP65Type*>		mcQualified;	//A type's const and volatile copies, by the unqualified type and the qualifiers (QualifiedKey).
-	int									miPointerBytes;	//The target's pointers, references and pointers to members.
+	int										miPointerBytes;	//The target's pointers, references and pointers to members.
 
 public:
 	SCPP65Type			msVoid;

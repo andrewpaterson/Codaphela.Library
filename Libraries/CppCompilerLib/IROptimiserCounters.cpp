@@ -235,8 +235,8 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 	size			uiOutside;
 	size			uiStep;
 	int64			lliStep;
-	SIRValueRange		sInitialRange;
-	SIRValueRange		sBoundRange;
+	SIRValueRange	sInitialRange;
+	SIRValueRange	sBoundRange;
 	bool			bRoundOnTrue;
 	bool			bUp;
 	bool			bBoundFirst;
@@ -365,7 +365,7 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 		asExits.Kill();
 		return false;
 	}
-	bInclusive =(uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe);
+	bInclusive = (uiOpcode == IRO_SLe) || (uiOpcode == IRO_SGe);
 	bStartSpare = (!sCompared.Equals(sCounter) || (mpcContext->mcDefinitions.NumUses(sStepped) > (bRewritten ? 2u + asExits.NumElements() : 1u))) && !NarrowLoopGuarded(uiLoop, uiOpcode, sInitial, sBound);
 	if ((sInitialRange.lliMin < -32768) || (sInitialRange.lliMax > 32767) || (sBoundRange.lliMin < -32768) || (sBoundRange.lliMax > 32767) ||
 		(bUp && ((bStartSpare && (sInitialRange.lliMax > 32766)) || (bInclusive && (sBoundRange.lliMax > 32766)))) ||
@@ -443,7 +443,7 @@ bool CIRCounterPasses::NarrowCounter(size uiLoop, CIRBlock* pcBlock)
 //////////////////////////////////////////////////////////////////////////
 bool CIRCounterPasses::LoopGuarded(size uiLoop, uint16 uiOpcode, SIRReference sInitial, SIRReference sBound)
 {
-	CIRBlock*		pcBlock;
+	CIRBlock*			pcBlock;
 	CIRBlock*			pcFrom;
 	CIRBlock*			pcPredecessor;
 	SIREdgeCondition	sGuard;

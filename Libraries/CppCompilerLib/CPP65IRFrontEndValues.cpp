@@ -773,10 +773,10 @@ bool CCPP65IRFrontEnd::FunctionAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type*
 bool CCPP65IRFrontEnd::MemberAddress(CCPPSyntaxIdExpression* pcId, SCPP65Type* psTarget, SCPP65IRValue* psValue, bool* pbMember)
 {
 	CCPPSyntaxName*		pcName;
-	CCPPClass*		pcClass;
-	CCPPClass*		pcFoundClass;
+	CCPPClass*			pcClass;
+	CCPPClass*			pcFoundClass;
 	CCPPFunction*		pcFound;
-	SCPPField*		psField;
+	SCPPField*			psField;
 	SIRReference		sSymbol;
 	CChars				szThunk;
 	int64				lliName;
@@ -840,7 +840,7 @@ bool CCPP65IRFrontEnd::MemberPointerObject(CCPPSyntaxBinaryExpression* pcBinary,
 {
 	SCPP65IRValue	sPointer;
 	SCPP65IRPlace	sPlace;
-	CCPPClass*	pcClass;
+	CCPPClass*		pcClass;
 
 	*ppsMember = mpcUnit->GetTypeChecker()->TypeOf(pcBinary->mpcRight);
 	if (!*ppsMember || !(*ppsMember)->IsMemberPointer())

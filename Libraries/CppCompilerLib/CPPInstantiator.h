@@ -141,7 +141,7 @@ struct SCPPTemplateForm
 class CCPPInstantiator
 {
 protected:
-	CCPPUnit*				mpcUnit;
+	CCPPUnit*						mpcUnit;
 	CArrayCPPOutsideDefinitions		masOutsideDefinitions;	//The definitions written outside their class template, in the order seen, to give each instance.
 	CArrayCPPPacks					mapapsPacks;			//The packs' types (NewPack).
 	CArrayCPPValuePacks				mapalliPacks;			//The non-type packs' values (NewValuePack).
@@ -200,7 +200,7 @@ public:
 	CCPPTemplate*			GetTemplate(CCPPSymbol* pcSymbol);
 	CCPPTemplate*			GetTemplateByName(int64 lliName, ECPPSyntax eDefinition, CCPPScope* pcLookup);
 	CCPPTemplate*			GetComponentTemplate(CCPPSyntaxNameComponent* pcComponent);
-	CCPPTemplateArguments*			BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced = NULL, CArrayCPPDeducedPacks* pasPacks = NULL);
+	CCPPTemplateArguments*	BindArguments(CCPPSyntaxTemplateDeclaration* pcTemplate, CArraySyntax* papcArguments, CArrayCPP65Types* papsDeduced, CChars* pszArguments, CCPPSyntax* pcNode, CArrayInt64* palliDeduced = NULL, CArrayCPPDeducedPacks* pasPacks = NULL);
 	bool					ValueArgumentFits(CCPPSyntaxParameter* pcParameter, SCPPExpandedArgument* psArgument, int64 lliValue, CCPPTemplateArguments* pcBindings);
 	bool					ConstantFits(SCPP65Type* psType, int64 lliValue);
 	SCPP65Type*				ValueParameterType(CCPPSymbol* pcParameter, SCPP65Type* psOtherwise);
@@ -208,29 +208,29 @@ public:
 	bool					BindEntity(SCPPBinding* psBinding, SCPPExpandedArgument* psArgument, CChars* pszArguments);
 	bool					BindTemplate(SCPPBinding* psBinding, CCPPSyntax* pcArgument, CCPPTemplate* pcDeduced, CCPPSyntax* pcNode, CChars* pszArguments);
 	bool					BindTypePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CArrayCPP65Types* papsDeduced, CChars* pszArguments);
-	bool							SameReturnWritten(CCPPSyntaxDeclSpecifiers* pcFirst, CCPPSyntaxDeclSpecifiers* pcSecond);
-	bool							TemplateParametersMatch(CCPPSyntaxTemplateDeclaration* pcParameter, CCPPSyntaxTemplateDeclaration* pcArgument);
-	bool							IsPackParameter(CCPPSyntaxTemplateDeclaration* pcTemplate, size uiIndex);
-	bool							BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedPacks* pasPacks, size uiParameter, CChars* pszArguments);
+	bool					SameReturnWritten(CCPPSyntaxDeclSpecifiers* pcFirst, CCPPSyntaxDeclSpecifiers* pcSecond);
+	bool					TemplateParametersMatch(CCPPSyntaxTemplateDeclaration* pcParameter, CCPPSyntaxTemplateDeclaration* pcArgument);
+	bool					IsPackParameter(CCPPSyntaxTemplateDeclaration* pcTemplate, size uiIndex);
+	bool					BindDeducedPack(SCPPBinding* psBinding, CArrayCPPDeducedPacks* pasPacks, size uiParameter, CChars* pszArguments);
 	bool					BindValuePack(SCPPBinding* psBinding, CArrayCPPExpandedArguments* pasArguments, size uiFirst, CChars* pszArguments);
 	void					AppendMangledValue(CChars* pszArguments, int64 lliValue);
 	SCPPBinding*			FindBinding(CCPPSymbol* pcParameter);
-	CCPPClass*			InstantiateClass(CCPPTemplate* pcTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
-	CCPPClass*			InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
-	CCPPClass*			PlaceholderClass(CCPPSymbol* pcParameter);
+	CCPPClass*				InstantiateClass(CCPPTemplate* pcTemplate, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	CCPPClass*				InstanceOfClass(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
+	CCPPClass*				PlaceholderClass(CCPPSymbol* pcParameter);
 	CCPPTemplateArguments*	BindAsItself(CCPPSyntaxTemplateDeclaration* pcDeclaration, CChars* pszArguments, CCPPSyntax* pcNode);
-	CCPPClass*			InstantiateClassAsItself(CCPPTemplate* pcTemplate);
-	CCPPFunction*		InstantiateFunctionAsItself(CCPPTemplate* pcTemplate);
-	CCPPClass*			UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
+	CCPPClass*				InstantiateClassAsItself(CCPPTemplate* pcTemplate);
+	CCPPFunction*			InstantiateFunctionAsItself(CCPPTemplate* pcTemplate);
+	CCPPClass*				UndefinedInstance(CCPPSymbol* pcSymbol, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPTemplate*			FindSpecialisation(CCPPTemplate* pcPrimary, CCPPTemplateArguments* pcArguments, CCPPTemplateArguments** ppcBindings, CCPPSyntax* pcNode);
 	bool					SpecialisationAtLeastAs(CCPPTemplate* pcFirst, CCPPTemplate* pcSecond, CCPPTemplate* pcPrimary, CCPPSyntax* pcNode, bool* pbKnown);
-	CCPPTemplateArguments*			NewBindings(void);
+	CCPPTemplateArguments*	NewBindings(void);
 	CCPPFunction*			InstantiateFunction(CCPPTemplate* pcTemplate, CArraySyntax* papcExplicit, CArraySyntax* papcArguments, CCPPSyntax* pcNode);
 	CCPPFunction*			InstantiateFunctionFor(CCPPTemplate* pcTemplate, SCPP65Type* psFunction, CCPPSyntax* pcNode);
-	CCPPFunction*		InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
+	CCPPFunction*			InstanceOfFunction(CCPPTemplate* pcTemplate, CCPPTemplateArguments* pcBindings, CChars* pszArguments, CCPPSyntax* pcNode);
 	void					AddMemberTemplateSpecialisations(CCPPTemplate* pcPrimary);
 	CCPPTemplate*			FindFunctionSpecialisation(CCPPTemplate* pcPrimary, CChars* pszArguments, CCPPSyntax* pcNode);
-	CCPPTemplateArguments*			RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
+	CCPPTemplateArguments*	RenameBindings(CCPPClass* pcClass, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	CCPPTemplateArguments*	RenamedBindings(CCPPTemplateArguments* pcFrom, CCPPSyntaxTemplateDeclaration* pcDeclaration);
 	bool					IsClassTemplateDefinition(CCPPSyntax* pcDeclaration);
 	CCPPSyntaxClassSpecifier*	MemberClassDefinition(CCPPSymbol* pcSymbol, CCPPSyntaxTemplateDeclaration** ppcDeclaration);

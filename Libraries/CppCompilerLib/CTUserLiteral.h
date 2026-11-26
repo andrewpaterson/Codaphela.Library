@@ -33,11 +33,11 @@ public:
 	int32		miSuffix;		//The suffix's ID in the tokeniser's identifiers.
 
 	CPP_TOKEN_CONSTRUCT(CCTUserLiteral);
-	void Init(void);
-	void Init(CCPPToken* pcLiteral, int64 lliSuffix);
-	void Kill(void);
-	bool IsUserLiteral(void) const;
-	bool IsUserString(void) override;
+	void	Init(void);
+	void	Init(CCPPToken* pcLiteral, int64 lliSuffix);
+	void	Kill(void);
+	bool	IsUserLiteral(void) const;
+	bool	IsUserString(void) override;
 };
 
 

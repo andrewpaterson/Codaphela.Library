@@ -82,7 +82,7 @@ CPPBlockSet* CPPBlockSetArray::Add(int iLine, bool bTextBlocks)
 	CPPBlockSet* pcBlockSet;
 
 	pcBlockSet = __CArrayPPBlockSet::Add();
-	pcBlockSet->Init(iLine, (int)miUsedElements-1, bTextBlocks);
+	pcBlockSet->Init(iLine, (int)miUsedElements - 1, bTextBlocks);
 	return pcBlockSet;
 }
 

@@ -375,7 +375,7 @@ SCPPLiteralCall* CCPPDesugarings::GetLiteralCall(CCPPSyntax* pcLiteral)
 	int64							lliName;
 	int64							lliValue;
 	double							dValue;
-	size								i;
+	size							i;
 
 	ppsCall = mcLiteralCalls.Get((int64)(size)pcLiteral);
 	if (ppsCall)

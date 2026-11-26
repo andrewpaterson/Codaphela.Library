@@ -172,17 +172,17 @@ protected:
 	CArrayChars				maszRuntime;		//The runtime routines' labels the unit calls: linked (soft float), or written into the unit (AppendRuntime).
 	CCPPDiagnostics			mcDiagnostics;		//The errors, the warnings, and when nothing is said.
 
-	CArrayCPPVariables	mapcGlobals;
-	CArrayCPPFunctions	mapcFunctions;
+	CArrayCPPVariables		mapcGlobals;
+	CArrayCPPFunctions		mapcFunctions;
 	CMapCPPFunctionsOfNames	mcFunctionsOfNames;	//mapcFunctions by name (FirstFunctionOfName).
-	CArrayCPPTemplates	mapcTemplates;
+	CArrayCPPTemplates		mapcTemplates;
 	CArrayCPPTemplateArguments	mapcAllBindings;
 	CArrayCPPSymbols		mapcHiddenSymbols;	//The symbols of the variables made for range-for statements.
 	CHashMapLongTemplate<char>	mcExplicitInstances;	//The classes and functions explicitly instantiated (ExplicitlyInstantiatedOnce).
 	CCPPTemplate*			mpcInitializerList;	//std::initializer_list, once it is found (InitializerListTemplate).
 	CCPPClass*				mpcTypeInfo;		//std::type_info, once it is found (TypeInfoClass).
 	CArrayCPPVariables		mapcVariableInstances;	//Variable templates' instances (VariableInstance), in mapcGlobals too.
-	CArrayCPPFunctions	mapcQueue;			//Functions to generate, first queued first...
+	CArrayCPPFunctions		mapcQueue;			//Functions to generate, first queued first...
 	size					muiQueueNext;		//...from this one: those before it have been.
 	CArrayChars				maszEmitted;		//Labels of the functions, vtables, thunks and runtime routines written.
 	bool					mbPureVirtual;
