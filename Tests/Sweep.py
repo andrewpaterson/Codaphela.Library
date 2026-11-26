@@ -7,7 +7,8 @@
 # builder doing its items one after another, and up to -builds of them (3 unless given) build at once: two builds of
 # one configuration would share the libraries' intermediate folders (BaseLib\Release\ and so on), two of different
 # configurations don't.  A built item's suites run as soon as nothing else is running in their directories (a suite
-# writes Log.txt and Output\ where it runs, so one suite's configurations take turns) and the suites running weigh no
+# writes Log.txt and Output\ where it runs, so one suite's configurations take turns; a *65 suite's are its own and its
+# non-65 suite's, which it copies) and the suites running weigh no
 # more than -cores (12 unless given; TestCppCompilerLib and the *65 suites weigh 4: they run 4 processes or threads).
 # Among the built items the one whose suites took longest last time runs first, and each configuration builds those
 # first.  Builds wait for BUILD_FREE memory free and runs for RUN_FREE.  Each item's result is a line in
@@ -42,6 +43,18 @@ from RunParallel import FreeMemory
 #(name, the directory it runs in, its exe's name, its arguments).  A configuration list of None is every one.
 def Suite(szRepo, szTest, aszArgs=None):
 	return (szTest, os.path.join(ROOT, szRepo, "Tests", szTest, szTest), szTest, aszArgs or [])
+
+
+#The *65 suites copy their non-65 suite's directory (TestProject65CopyDirectory), so they don't run beside it.
+COPIES = {"TestBaseLib65": "TestBaseLib", "TestStandardLib65": "TestStandardLib", "TestSupportLib65": "TestSupportLib"}	#By exe.
+
+
+def SuiteDirs(sSuite):
+	#The directories a suite works in: the one it runs in, and the one it copies.
+	asDirs = set([sSuite[1]])
+	if sSuite[2] in COPIES:
+		asDirs.add(Suite("CommonLibraries", COPIES[sSuite[2]])[1])
+	return asDirs
 
 
 def Items():
@@ -182,7 +195,7 @@ class CSweep:
 		for sBuilt in self.aBuilt:
 			_, aRun = self.Suites(sBuilt[0], sBuilt[3])
 			iWeight = max([WEIGHTS.get(sSuite[2], 1) for sSuite in aRun] + [0])
-			if aRun and (not bMemory or (self.iRunning and (self.iWeight + iWeight > self.iCores)) or any(sSuite[1] in self.asRunDirs for sSuite in aRun)):
+			if aRun and (not bMemory or (self.iRunning and (self.iWeight + iWeight > self.iCores)) or any(SuiteDirs(sSuite) & self.asRunDirs for sSuite in aRun)):
 				continue
 			if (sPick is None) or (self.aOrder[sBuilt[0]][4] > self.aOrder[sPick[0][0]][4]):
 				sPick = (sBuilt, aRun, iWeight)
@@ -237,7 +250,8 @@ class CSweep:
 				if bFailed and (szConfig in RELEASE):
 					self.asFailed.add(szSolution)
 				Record(szKey, szBegan, "; ".join(aszParts))
-				self.asRunDirs -= set(sSuite[1] for sSuite in aRun)
+				for sSuite in aRun:
+					self.asRunDirs -= SuiteDirs(sSuite)
 				self.iWeight -= iWeight
 				self.iRunning -= 1
 				self.iFinished += 1
@@ -260,7 +274,8 @@ class CSweep:
 					continue
 				sBuilt, aRun, iWeight = sPick
 				self.aBuilt.remove(sBuilt)
-				self.asRunDirs |= set(sSuite[1] for sSuite in aRun)
+				for sSuite in aRun:
+					self.asRunDirs |= SuiteDirs(sSuite)
 				self.iWeight += iWeight
 				self.iRunning += 1
 				cRunner = threading.Thread(target=self.RunItem, args=(sBuilt, aRun, iWeight))

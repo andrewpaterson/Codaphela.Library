@@ -86,6 +86,7 @@ static const char* TestProject65ProfileFile(void)
 static const char* gaszTestProject65Libc65[] = { "string.cpp", "string.asm", "stdlib.cpp", "ctype.cpp", "time.cpp", "math.cpp", "softfloat.cpp", "softfloat.asm", "new.cpp", "exception.cpp", "signal.cpp", "stdio.cpp", "host.cpp", NULL };
 static const char* gaszTestProjectW65C816Suffixes[] = { "W65C816.asm", "W65C816_16.asm", NULL };
 static const char* gaszTestProjectW65C816Libc65[] = { "stdlibW65C816.asm", NULL };		//W65C816 assembly no 65C64 unit has: the heap's kernal call.
+static const char* gaszTestProject65NotCopied[] = { "Output", "Debug", "Release", "x64", "Win32", "Log.txt", NULL };	//What the test project's own runs and builds write, while a program here may be copying it.
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -296,8 +297,30 @@ static void TestProject65OutputDirectory(STestProject65* psProject, CChars* pszD
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A copy of the test project's directory (without its Output) for the programs to read and write (uiWorker's own,
-// see TestProject65OutputDirectory).
+// Whether szName, a file or directory in the test project's directory, is one the project's own runs and builds write
+// (gaszTestProject65NotCopied): its Log.txt, Output and build folders.
+//
+//////////////////////////////////////////////////////////////////////////
+static bool TestProject65IsNotCopied(CChars* pszName)
+{
+	size	i;
+
+	for (i = 0; gaszTestProject65NotCopied[i]; i++)
+	{
+		if (pszName->Equals(gaszTestProject65NotCopied[i]))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A copy of the test project's directory (without what TestProject65IsNotCopied names) for the programs to read and
+// write (uiWorker's own, see TestProject65OutputDirectory).  The test project's suite or build may be running beside
+// this one, writing what isn't copied.
 //
 //////////////////////////////////////////////////////////////////////////
 static void TestProject65CopyDirectory(STestProject65* psProject, size uiWorker)
@@ -321,7 +344,7 @@ static void TestProject65CopyDirectory(STestProject65* psProject, size uiWorker)
 	{
 		szName.Init(aszEntries.GetText(i));
 		cFileUtil.RemovePath(&szName);
-		if (!szName.Equals("Output"))
+		if (!TestProject65IsNotCopied(&szName))
 		{
 			szDest.Init(szOutput);
 			cFileUtil.AppendToPath(&szDest, szName.Text());
@@ -344,10 +367,13 @@ static void TestProject65CopyDirectory(STestProject65* psProject, size uiWorker)
 	{
 		szName.Init(aszEntries.GetText(i));
 		cFileUtil.RemovePath(&szName);
-		szDest.Init(szOutput);
-		cFileUtil.AppendToPath(&szDest, szName.Text());
-		AssertTrue(cFileUtil.Copy(aszEntries.GetText(i), szDest.Text()));
-		szDest.Kill();
+		if (!TestProject65IsNotCopied(&szName))
+		{
+			szDest.Init(szOutput);
+			cFileUtil.AppendToPath(&szDest, szName.Text());
+			AssertTrue(cFileUtil.Copy(aszEntries.GetText(i), szDest.Text()));
+			szDest.Kill();
+		}
 		szName.Kill();
 	}
 	aszEntries.Kill();
