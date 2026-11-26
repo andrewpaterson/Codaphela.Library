@@ -137,6 +137,9 @@ Questions for the user (put one at a time, recommendation first)
      minutes to watch and the DS1813's 150ms a week.  Decided (the user: "Fast-forward"): LogiCim runs flat out,
      without pacing, until every supply has arrived and every supervisor has let go, then at its speed; the timings
      stay real, and the reset time can still be shortened per simulation (step 7).
+  4. Found while building (2026-11-26): the DS1813 needs PullsPlan.txt's weak drive, not built.  Decided (the user:
+     "Build the weak drive now"): PullsPlan's simulation part first (a released line going to its pull level at
+     once until ResistorsPlan's RC curve exists), then the DS1813 on it; the importer's pulls and their drawing later.
 
 
 Order
