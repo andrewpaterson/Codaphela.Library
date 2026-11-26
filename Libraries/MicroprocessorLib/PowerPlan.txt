@@ -52,9 +52,17 @@ The model (decided)
   - A chip works at or above its family's lowest VCC in PropagationTimes.csv (LVC 1.8V), GND at 0, not at any VCC
     above zero.  Below it the chip is off: it drives nothing and ignores its inputs.
   - Power coming, by any way (a supply switched on or rising past the working voltage, a wire to VCC or GND
-    connected while running), starts a chip: its state at power-up (question 1), SimulationStarted, WriteOutputs.
+    connected while running), starts a chip: its state at power-up (below), SimulationStarted, WriteOutputs.
     Power going stops it: its outputs undriven (their traces' other ports told, CTrace::NotifyUndriven), its events
     off the timeline, its state forgotten.
+  - What a chip remembers when its power comes (a flip-flop's bit, a counter, a register) is a setting of the
+    simulation, the power-up state (the user, 2026-11-26):
+      Random        each bit high or low from a seed the simulation keeps: as a real part comes up, the same seed
+                    giving the same run, another seed showing whether reset sets everything.  LogiCim's default.
+      Zero          every bit low, as ResetState gives now.  For tests, and for logic without power-up noise.
+      Half supply   each output a chip drives from what it remembers at VCC/2 until the chip is reset or clocked:
+                    neither high nor low, so whatever reset doesn't set shows.  An input reads VCC/2 as unsettled,
+                    which is ignored, so a flip-flop fed back to itself never starts in this mode.
   - Not modelled: a chip powered through its inputs' clamp diodes, inrush current, a rail sagging under load, brown
     out glitches.
 
@@ -74,32 +82,42 @@ MicroprocessorLib (with logic.md's sections on voltages, traces and chips, and i
    WriteOutputs.
 4. Start at power-up.  CIntegratedCircuit::Reset at the simulation's start starts only powered chips; the others
    start when their power comes.
-5. Tests: a chip starting when its rail's ramp passes the working voltage, at the time worked out by hand; its high
+5. The power-up state.  CCircuitSimulation keeps the setting and the seed (Zero unless set, so the tests and every
+   caller keep what they do now) and a random number generator from the seed, drawn in a fixed order (the chips'
+   order in the circuit) so a run repeats.  ResetState is given the state: Zero as now, Random its bits from the
+   generator, Half supply a mark that WriteOutputs drives VCC/2 (the family's VCC at that time halved) until the
+   chip's next reset or clock sets it.  The seed and setting saved with a simulation's state.
+6. Tests: the power-up state: Zero as now; Random the same twice from one seed and different from another; Half
+   supply driving VCC/2, read as unsettled by an input, until a reset or clock.  A chip starting when its rail's ramp passes the working voltage, at the time worked out by hand; its high
    output rising with the rail; power cut, its outputs undriven and its traces' readers told; a VCC wire connected
    while running starting a chip; a regulator fed by a ramping rail switching on after its dropout.
 
 Supervisors (after LogiCim's PullsPlan.txt: the DS1813's output is a pull)
 
-6. A reset supervisor chip (the DS1813-10's figures; its trip voltage and reset time properties): ~{RST} low while
+7. A reset supervisor chip (the DS1813-10's figures; its trip voltage and reset time properties): ~{RST} low while
    VCC is under the trip voltage, and for the reset time after it passes it; pulled low from outside, low for the
    reset time after the pull ends; its output open drain with its 5.5k internal pull-up (PullsPlan's weak drive).
    The reset time is the datasheet's 150ms by default; a simulation may set it shorter, since running 150ms of the
    HCP65's clocks is millions of edges.
-7. Tests: reset released the reset time after VCC passes the trip voltage; a 1us pushbutton pulse holding reset for
+8. Tests: reset released the reset time after VCC passes the trip voltage; a 1us pushbutton pulse holding reset for
    the reset time; VCC dipping under the trip voltage asserting reset at once.
 
 LogicimLib
 
-8. A supply's view gets a switch, clicked to turn it on and off while running, and its rise time and feed in its
+9. A supply's view gets a switch, clicked to turn it on and off while running, and its rise time and feed in its
    properties; a ramping rail coloured by its voltage as any trace is.  The supervisor drawn as a chip with its pins.
    Saved and loaded in a circuit's XML and a simulation's state, as every other component is.
+   The power-up state is a project's setting (Random, Zero or Half supply, and the seed), chosen beside the
+   simulation's run controls and saved in the circuits file, not the user's Settings.xml, so a project runs the
+   same for whoever opens it.  New projects are Random; a circuits file saved before this has none and loads as
+   Zero, as it ran then.
 
 KicadImporterLib
 
-9. Supplies get the imported rise time.  A regulator (today the implied supply of the chips its output reaches)
+10. Supplies get the imported rise time.  A regulator (today the implied supply of the chips its output reaches)
    becomes a supply fed by its input's net, with its datasheet's dropout.  A DS1813 becomes a supervisor, found by a
    list of part numbers as ResistorsPlan's comparators are.
-10. Tests: Power and Reset imported and switched on: 12V, then 5V and 3.3V rising, ~{Reset}_{5V} going high the
+11. Tests: Power and Reset imported and switched on: 12V, then 5V and 3.3V rising, ~{Reset}_{5V} going high the
     reset time after 5V passes 4.35V, plus the 74LVC1G17's delay.  The Processor Reset Device: ~{Reset} high after
     the DS1813, the two 74LVC14s and the 20 ohm and 10pF; a software reset (IC8 driving ~{Reset Switch} low) giving a
     reset 150ms long.  The expected circuits regenerated (supplies' new properties only); TestMicroprocessorLib,
@@ -109,11 +127,8 @@ KicadImporterLib
 Questions for the user (put one at a time, recommendation first)
 ------------------------------------------------------------------
 
-  1. What a chip remembers when its power comes (a flip-flop's bit, a counter, a register): recommended random from
-     a seed the simulation keeps (a real part comes up random; the same seed gives the same run, so a failure can be
-     repeated, and another seed shows whether reset really sets everything).  Or zero, as ResetState gives now
-     (repeatable, but hides a chip reset doesn't set).  Or unknown until reset or clocked (shows it most plainly, but
-     the unknown spreads, and a flip-flop fed back to itself never starts).
+  1. What a chip remembers when its power comes: decided 2026-11-26 (the user: "Put it in the PowerPlan.txt
+     please"), a setting, the power-up state (the model, step 5, step 9), Random by default in LogiCim.
   2. A supply placed by hand, and every circuit saved before this: recommended on from time 0 with no rise, as now,
      so the tests and saved circuits keep their timing; imported boards rise over 1ms.  Or every supply rises over
      1ms, the timing of every test moving by it.
@@ -122,5 +137,5 @@ Questions for the user (put one at a time, recommendation first)
 Order
 -----
 
-Steps 1 to 5 can be built at any time.  The supervisor (6, 7) after LogiCim's PullsPlan.txt; the views and the
-importer (8 to 10) after the supervisor.
+Steps 1 to 6 can be built at any time.  The supervisor (7, 8) after LogiCim's PullsPlan.txt; the views and the
+importer (9 to 11) after the supervisor.
