@@ -77,6 +77,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 - StandardLib object code doesn't include `BaseLib/SetString.h` (its `SSetIterator` clashes with StandardLib's): use
   `CMapStringInt`.
 - Text drawing uses SupportLib's fonts (`CFontFamily`, `CFont`): extend them rather than writing another.
+- MicroprocessorLib's processors each have a cycle level and a fast simulator that must agree: a change to an
+  instruction goes in both (`65C64.cpp` and `Fast65C64.cpp`; the W65C816's `W65CCore` and `FastW65C816.cpp`), then
+  run TestMicroprocessorLib.  Where the 65C64's documents don't say what an instruction does, ask the user.
 - MicroprocessorLib depends on BaseLib and StandardLib only.  WorldLib has rotted: leave it out of surveys and builds.
   DirectXLib is dead code kept as a reference: don't delete it or port it.
 - Optimised g++ builds contract `a * b + c` into FMA, so Release and Debug floats differ in the last bits: compare

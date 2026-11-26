@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{e906fab8-86e4-49e2-b1bc-79269e7ff501}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\microprocessorlib">
+      <UniqueIdentifier>{04b6d4ca-4767-45e8-80e2-29d6ce31ed57}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{3185b6c8-34a7-420f-ba0b-e2177c163239}</UniqueIdentifier>
     </Filter>
@@ -1447,6 +1453,17 @@
   <ItemGroup>
     <None Include="Docs\65c64\emulator.md">
       <Filter>Docs\65c64</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\microprocessorlib\index.md">
+      <Filter>Docs\libraries\microprocessorlib</Filter>
+    </None>
+    <None Include="Docs\libraries\microprocessorlib\simulators.md">
+      <Filter>Docs\libraries\microprocessorlib</Filter>
+    </None>
+    <None Include="Docs\libraries\microprocessorlib\logic.md">
+      <Filter>Docs\libraries\microprocessorlib</Filter>
     </None>
   </ItemGroup>
 </Project>

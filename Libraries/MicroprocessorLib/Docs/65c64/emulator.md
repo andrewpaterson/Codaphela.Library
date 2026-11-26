@@ -1,7 +1,8 @@
 # 65C64 Emulator
 
 The 65C64 only exists in software.  Two simulators run its programs, and both are C++ classes
-in MicroprocessorLib: there is no stand alone emulator program yet.
+in MicroprocessorLib.  The X65C64 Emulator (HCP65's `X65C64-Emulator`), a console program, runs a program in them,
+and the IDE debugs programs in it.
 
 | Class | Simulates | Speed |
 |---|---|---|

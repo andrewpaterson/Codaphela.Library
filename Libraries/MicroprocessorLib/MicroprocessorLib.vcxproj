@@ -643,6 +643,11 @@
   <ItemGroup>
     <None Include="Docs\65c64\emulator.md" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\microprocessorlib\index.md" />
+    <None Include="Docs\libraries\microprocessorlib\simulators.md" />
+    <None Include="Docs\libraries\microprocessorlib\logic.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
