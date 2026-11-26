@@ -14,6 +14,9 @@
 #include "DataTestRefWindow.h"
 
 
+void	Click(Ptr<CWindow> pWindow);
+
+
 Ptr<CFont>			GenerateMenuFont(Ptr<CWindow> pWindow);
 Ptr<CFontFamily>	CreateMonoTextAreaFamily(float32 fDefaultPixelSize);
 
@@ -537,13 +540,27 @@ void TestPromptPopup(void)
 }
 
 
+class CTestInfoListener
+{
+public:
+	int		miPressed;
+	size	muiPosition;
+
+	void Init(void) { miPressed = 0; muiPosition = MAX_SIZE; }
+	void Pressed(CInfoPopup* pcPopup, size uiPosition) { miPressed++; muiPosition = uiPosition; }
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // An info popup shows a few lines of text at a point of the window, under
 // it or over it, and is kept inside the window; the pointer passes
 // through it and it takes no keys.  Setting its text while it is shown
 // sizes it again.  Hidden, a popup opened over it stays open; a press
-// anywhere closes it as it does any popup.
+// anywhere closes it as it does any popup.  With a maximum height taller
+// text scrolls, by lines and by pages; taking the pointer, the wheel
+// scrolls it and a press on it calls its press event and leaves it open,
+// the keys taken from what had them.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestInfoPopup(void)
@@ -564,6 +581,14 @@ void TestInfoPopup(void)
 		SInt32Vec2					sPoint;
 		SInt32Vec2					sSize;
 		SInt32Vec2					sWide;
+		CTestInfoListener			cListener;
+		Ptr<CScrollPane>			pPane;
+		Ptr<CTextArea>				pText;
+		CInt32Rect					cLine;
+		CChars						szLines;
+		int32						iLine;
+		int32						iMaximum;
+		int							i;
 
 		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 800, 600, (char*)NULL);
 		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
@@ -654,6 +679,122 @@ void TestInfoPopup(void)
 		AssertTrue(pInfo->Hide());
 		AssertSize(0, pTestWindow->NumPopups());
 
+		//Text that fits doesn't scroll, with a maximum height or without.
+		AssertInt(-1, pInfo->GetMaximumHeight());
+		pInfo->SetText("one\ntwo");
+		pInfo->Show(sPoint, false);
+		AssertFalse(pInfo->IsScrolling());
+		AssertInt(0, pInfo->GetScrollPosition());
+		AssertFalse(pInfo->Scroll(1));
+		AssertFalse(pInfo->ScrollPages(1));
+		AssertTrue(pInfo->Hide());
+		pText = pInfo->GetTextArea();
+		pInfo->SetMaximumHeight(100);
+		AssertInt(100, pInfo->GetMaximumHeight());
+		pInfo->Show(sPoint, false);
+		pTestWindow->Layout();
+		AssertFalse(pInfo->IsScrolling());
+		AssertTrue(pInfo->GetPopup()->GetActualSize().y < 100);
+		AssertTrue(pInfo->Hide());
+
+		//Forty lines in a hundred pixels: the popup is as tall as its maximum and its insets, and the text scrolls a
+		//line at a time, a page at a time, and no further than its ends.
+		szLines.Init();
+		for (i = 0; i < 40; i++)
+		{
+			szLines.Append("line ");
+			szLines.Append(i);
+			szLines.Append('\n');
+		}
+		pInfo->SetText(szLines.Text());
+		szLines.Kill();
+		pInfo->Show(sPoint, false);
+		pTestWindow->Layout();
+		AssertTrue(pInfo->IsScrolling());
+		sSize = pInfo->GetPopup()->GetActualSize();
+		AssertTrue(sSize.y >= 100);
+		AssertTrue(sSize.y < 120);
+		pPane = pInfo->GetPopup()->GetScrollPane();
+		AssertTrue(pPane.IsNotNull());
+		AssertTrue(pText->GetLineBounds(0, &cLine));
+		iLine = cLine.GetHeight();
+		iMaximum = pPane->GetMaximumScrollPosition().y;
+		AssertTrue(iMaximum > 20 * iLine);
+		AssertInt(0, pPane->GetScrollPosition().y);
+		AssertInt(0, pInfo->GetScrollPosition());
+		AssertTrue(pInfo->Scroll(2));
+		AssertInt(2 * iLine, pPane->GetScrollPosition().y);
+		AssertInt(2 * iLine, pInfo->GetScrollPosition());
+		AssertTrue(pInfo->Scroll(-1));
+		AssertInt(iLine, pPane->GetScrollPosition().y);
+		AssertTrue(pInfo->Scroll(-5));
+		AssertInt(0, pPane->GetScrollPosition().y);
+		AssertTrue(pInfo->ScrollPages(1));
+		AssertTrue(pPane->GetScrollPosition().y > 2 * iLine);
+		AssertTrue(pPane->GetScrollPosition().y <= 100);
+		AssertTrue(pInfo->ScrollPages(100));
+		AssertInt(iMaximum, pPane->GetScrollPosition().y);
+		AssertTrue(pInfo->ScrollPages(-100));
+		AssertInt(0, pPane->GetScrollPosition().y);
+
+		//The pointer still passes through it, so the wheel over it isn't its own and a press calls nothing.
+		cListener.Init();
+		pInfo->GetPressEvent()->Add(&cListener, &CTestInfoListener::Pressed);
+		AssertFalse(pInfo->IsTakesPointer());
+		AssertTrue(pInfo->GetPopup()->FindComponentAt(110, 230).IsNull());
+
+		//Taking the pointer, the wheel over it scrolls it, and a press on a character of its text calls the press
+		//event with where the character is, and it stays open.  Nothing has the keys after: it can't, and what had
+		//them was pressed away from.
+		pInfo->SetTakesPointer(true);
+		AssertTrue(pInfo->IsTakesPointer());
+		AssertTrue(pInfo->GetPopup()->FindComponentAt(110, 230).IsNotNull());
+		pTestWindow->PointerMoved(110, 230);
+		pTestWindow->InputCommand(CIC_WheelDown, true);
+		pTestWindow->Layout();
+		AssertTrue(pPane->GetScrollPosition().y > 0);
+		AssertTrue(pInfo->ScrollPages(-100));
+		pTestWindow->Layout();
+		pTestWindow->PointerMoved(pText->GetPosition().x + (pText->GetPositionX(1, false) + pText->GetPositionX(2, false)) / 2, pText->GetPosition().y + iLine + iLine / 2);
+		Click(pTestWindow);
+		AssertInt(1, cListener.miPressed);
+		AssertSize(8, cListener.muiPosition);  //The 'i' of "line 1": "line 0" and its line feed are seven.
+		AssertTrue(pInfo->IsShown());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent().IsNull());
+		pTestWindow->GetFocus()->SetFocus(pOwner);
+
+		//After the end of its first line, which is shorter than its last, a press says that no character was pressed.
+		i = pText->GetPositionX(1, false) - pText->GetPositionX(0, false);
+		pTestWindow->PointerMoved(pText->GetPosition().x + 6 * i + i / 2, pText->GetPosition().y + iLine / 2);
+		Click(pTestWindow);
+		AssertInt(2, cListener.miPressed);
+		AssertSize(MAX_SIZE, cListener.muiPosition);
+		AssertTrue(pInfo->IsShown());
+		pTestWindow->GetFocus()->SetFocus(pOwner);
+
+		//Letting the pointer pass again, a press where it is is not its own: it closes it, as a press anywhere does.
+		pInfo->SetTakesPointer(false);
+		pTestWindow->PointerMoved(pText->GetPosition().x + i / 2, pText->GetPosition().y + iLine / 2);
+		Click(pTestWindow);
+		AssertInt(2, cListener.miPressed);
+		AssertFalse(pInfo->IsShown());
+		pInfo->Show(sPoint, false);
+		pTestWindow->Layout();
+
+		//Without a maximum again it is as tall as its text, and scrolls nothing.
+		pInfo->GetPressEvent()->Remove(&cListener);
+		AssertTrue(pInfo->Hide());
+		pInfo->SetMaximumHeight(-1);
+		pInfo->SetText("one\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten");
+		pInfo->Show(sPoint, false);
+		pTestWindow->Layout();
+		AssertFalse(pInfo->IsScrolling());
+		AssertTrue(pInfo->GetPopup()->GetActualSize().y > 9 * iLine);
+		AssertTrue(pInfo->Hide());
+		AssertSize(0, pTestWindow->NumPopups());
+
+		pPane = NULL;
+		pText = NULL;
 		pPrompt = NULL;
 		pInfo = NULL;
 		pOwner = NULL;

@@ -36,6 +36,9 @@ void CInfoPopup::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFontF
 	mpTheme = pTheme;
 	msPoint.Init(0, 0);
 	mbAbove = false;
+	miMaximumHeight = -1;
+	mbTakesPointer = false;
+	mcPressed.Init();
 	mpText = OMalloc<CTextArea>(pWindow, pTheme, pFamily, "");
 	mpText->SetEditable(false);
 	mpText->SetSelectable(false);
@@ -56,6 +59,9 @@ void CInfoPopup::Class(void)
 	M_Pointer(mpPopup);
 	U_Data(SInt32Vec2, msPoint);
 	U_Bool(mbAbove);
+	U_Int32(miMaximumHeight);
+	U_Bool(mbTakesPointer);
+	U_Unknown(CInfoPopupPressEvent, mcPressed);
 }
 
 
@@ -70,12 +76,13 @@ void CInfoPopup::Free(void)
 	if (mpPopup.IsNotNull())
 	{
 		mpPopup->GetClosedEvent()->Remove(this);
-		mpPopup = NULL;
+		Closed();
 		if (mpWindow.IsNotNull())
 		{
 			mpWindow->CloseOnePopup(mpText);
 		}
 	}
+	mcPressed.Kill();
 }
 
 
@@ -127,6 +134,10 @@ void CInfoPopup::Show(SInt32Vec2 sPoint, bool bAbove)
 	iPaddingX = mpTheme->GetMetric(TM_ToolTipPaddingX);
 	iPaddingY = mpTheme->GetMetric(TM_ToolTipPaddingY);
 	sSize = mpText->GetRequiredSize();
+	if ((miMaximumHeight >= 0) && (sSize.y > miMaximumHeight))
+	{
+		sSize.y = miMaximumHeight;
+	}
 	sSize.x += 2 * (iPaddingX + 1);
 	sSize.y += 2 * (iPaddingY + 1);
 	sWindow = mpWindow->GetCanvas()->GetActualSize();
@@ -152,10 +163,15 @@ void CInfoPopup::Show(SInt32Vec2 sPoint, bool bAbove)
 		return;
 	}
 	mpPopup = mpWindow->OpenPopup(mpText, sPosition, NULL);
-	mpPopup->SetPointerPasses(true);
+	mpPopup->SetPointerPasses(!mbTakesPointer);
+	if (miMaximumHeight >= 0)
+	{
+		mpPopup->SetMaximumHeight(miMaximumHeight, mpTheme);
+	}
 	sInsets.Init(iPaddingY + 1, iPaddingX + 1, iPaddingY + 1, iPaddingX + 1);  //The border is a pixel inside the insets.
 	mpPopup->SetLook(mpTheme->GetColour(TC_ToolTip), mpTheme->GetColour(TC_ToolTipBorder), &sInsets);
 	mpPopup->GetClosedEvent()->Add(this, &CInfoPopup::PopupClosed);
+	mpWindow->GetFocus()->GetPressEvent()->Add(this, &CInfoPopup::FocusPressed);
 }
 
 
@@ -172,7 +188,7 @@ bool CInfoPopup::Hide(void)
 		return false;
 	}
 	mpPopup->GetClosedEvent()->Remove(this);
-	mpPopup = NULL;
+	Closed();
 	mpWindow->CloseOnePopup(mpText);
 	return true;
 }
@@ -188,11 +204,186 @@ void CInfoPopup::PopupClosed(void)
 	if (mpPopup.IsNotNull())
 	{
 		mpPopup->GetClosedEvent()->Remove(this);
-		mpPopup = NULL;
+		Closed();
 	}
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+// It is no longer shown: the window's presses aren't listened to.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInfoPopup::Closed(void)
+{
+	mpPopup = NULL;
+	if (mpWindow.IsNotNull())
+	{
+		mpWindow->GetFocus()->GetPressEvent()->Remove(this);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The text is shown no taller than iHeight pixels, scrolling if it is
+// taller; -1 for as tall as it is.  It holds from when it is next shown.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInfoPopup::SetMaximumHeight(int32 iHeight)
+{
+	miMaximumHeight = iHeight;
+	if (mpPopup.IsNotNull())
+	{
+		mpPopup->SetMaximumHeight(iHeight, mpTheme);
+		Show(msPoint, mbAbove);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With bTakesPointer the pointer finds the popup, not what is under it:
+// the wheel scrolls it and a press on its text calls the press event.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInfoPopup::SetTakesPointer(bool bTakesPointer)
+{
+	mbTakesPointer = bTakesPointer;
+	if (mpPopup.IsNotNull())
+	{
+		mpPopup->SetPointerPasses(!bTakesPointer);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A press somewhere in the window, before it is given to anything: on the
+// popup while it takes the pointer, the press event is called with the
+// character under the pointer, MAX_SIZE if none is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CInfoPopup::FocusPressed(void)
+{
+	Ptr<CComponent>	pOver;
+	CInt32Rect		cBounds;
+	SInt32Vec2		sPointer;
+	size			uiPosition;
+
+	if (!mbTakesPointer || mpPopup.IsNull())
+	{
+		return;
+	}
+	pOver = mpWindow->GetFocus()->GetMouseOverComponent();
+	if (pOver.IsNull() || ((pOver != mpPopup) && !pOver->IsWithin(mpPopup)))
+	{
+		return;
+	}
+	mpText->GetActualBounds(&cBounds);
+	sPointer = mpWindow->GetFocus()->GetPointer();
+	if (!mpText->FindCharacterAt(sPointer.x - cBounds.GetLeft(), sPointer.y - cBounds.GetTop(), &uiPosition))
+	{
+		uiPosition = MAX_SIZE;
+	}
+	mcPressed.Call(this, uiPosition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Scrolled down iLines of its text (up, if negative), or a view's height
+// less a line for each of iPages, as far as its ends.  False if it isn't
+// shown or all of its text fits: there is nothing to scroll.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInfoPopup::Scroll(int32 iLines)
+{
+	CInt32Rect	cLine;
+
+	if (!IsScrolling() || !mpText->GetLineBounds(0, &cLine))
+	{
+		return false;
+	}
+	return ScrollBy(iLines * cLine.GetHeight());
+}
+
+
+bool CInfoPopup::ScrollPages(int32 iPages)
+{
+	CInt32Rect	cLine;
+	CInt32Rect	cView;
+	int32		iPage;
+
+	if (!IsScrolling() || !mpText->GetLineBounds(0, &cLine) || !mpPopup->GetScrollPane()->GetScrollView(&cView))
+	{
+		return false;
+	}
+	iPage = cView.GetHeight() - cLine.GetHeight();
+	if (iPage < cLine.GetHeight())
+	{
+		iPage = cLine.GetHeight();
+	}
+	return ScrollBy(iPages * iPage);
+}
+
+
+bool CInfoPopup::ScrollBy(int32 iPixels)
+{
+	Ptr<CScrollPane>	pPane;
+	SInt32Vec2			sMaximum;
+	int32				iY;
+
+	pPane = mpPopup->GetScrollPane();
+	sMaximum = pPane->GetMaximumScrollPosition();
+	iY = pPane->GetScrollPosition().y + iPixels;
+	if (iY > sMaximum.y)
+	{
+		iY = sMaximum.y;
+	}
+	if (iY < 0)
+	{
+		iY = 0;
+	}
+	pPane->SetScrollPosition(SBO_Vertical, iY);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// It is shown with more text than its maximum height shows.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CInfoPopup::IsScrolling(void)
+{
+	if (mpPopup.IsNull() || mpPopup->GetScrollPane().IsNull())
+	{
+		return false;
+	}
+	mpWindow->Layout();
+	return mpPopup->GetScrollPane()->GetMaximumScrollPosition().y > 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How far down its text is scrolled, in pixels; 0 when it isn't shown.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CInfoPopup::GetScrollPosition(void)
+{
+	if (mpPopup.IsNull() || mpPopup->GetScrollPane().IsNull())
+	{
+		return 0;
+	}
+	return mpPopup->GetScrollPane()->GetScrollPosition().y;
+}
+
+
+int32 CInfoPopup::GetMaximumHeight(void) const { return miMaximumHeight; }
+bool CInfoPopup::IsTakesPointer(void) const { return mbTakesPointer; }
+CInfoPopupPressEvent* CInfoPopup::GetPressEvent(void) { return &mcPressed; }
 bool CInfoPopup::IsShown(void) { return mpPopup.IsNotNull(); }
 SInt32Vec2 CInfoPopup::GetPoint(void) const { return msPoint; }
 bool CInfoPopup::IsAbove(void) const { return mbAbove; }

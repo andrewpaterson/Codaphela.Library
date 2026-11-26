@@ -312,7 +312,7 @@ is forgotten ([`CFocus::Forget`] passes it on).  Times are passed in, as for the
 | [`CColourField`] | A colour chosen by its numbers: red, green, blue, hue, saturation, value and hex. |
 | [`CProgressBar`] | A thin bar filling from the left. |
 | [`CChooserPopup`] | A popup list to choose one of, filtered as you type, as IntelliJ's usages popup. |
-| [`CInfoPopup`] | A few lines of text by something in the window, as a parameter hint. |
+| [`CInfoPopup`] | A few lines of text by something in the window, as a parameter hint.  It takes no keys and the pointer passes through it; with a maximum height ([`CInfoPopup::SetMaximumHeight`]) more text scrolls ([`CInfoPopup::Scroll`], [`CInfoPopup::ScrollPages`]), and taking the pointer ([`CInfoPopup::SetTakesPointer`]) the wheel scrolls it and a press on it calls its press event with the character pressed. |
 | [`CPromptPopup`] | A popup asking for one line of text, as Go to Line. |
 | [`CGoToDialog`], [`CFindInFilesDialog`], [`CPasteHistoryDialog`], [`CSettingsDialog`] | IntelliJ's Go to, Find in Files, Paste from History and Settings dialogs. |
 
