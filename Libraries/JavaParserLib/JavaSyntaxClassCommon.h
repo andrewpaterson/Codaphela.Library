@@ -19,7 +19,7 @@
 //  Code Block ( {, ...  }; )
 //    class (final, abstract, static, package, strictfp)
 //      ClassBlock
-//  
+//
 
 class CJavaSyntaxClassCommon : public CJavaSyntaxStatement
 {
@@ -28,8 +28,8 @@ protected:
 	CJavaModifiers	mcModifiers;
 
 public:
-	void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 				Kill(void);
+	void				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void				Kill(void);
 
 	char*				GetType(void) override;
 	void				TypePrint(CChars* pszDest, int iDepth) override;

@@ -22,9 +22,9 @@ protected:
 	EJavaTokenCharacterType	meType;
 
 public:
-	void 	Init(STextPosition* psPosition, char c);
-	void 	Init(STextPosition* psPosition, char16 c);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, char c);
+	void	Init(STextPosition* psPosition, char16 c);
+	void	Kill(void);
 
 	char*	GetType(void);
 	bool	Is(char8 c);

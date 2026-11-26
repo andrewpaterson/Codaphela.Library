@@ -44,7 +44,7 @@ bool CJavaTokenIdentifier::Is(char* szIdentifier)
 	int	iLength = (int)StrLen(szIdentifier);
 
 	if (miLength != iLength)
-	{ 
+	{
 		return false;
 	}
 	else

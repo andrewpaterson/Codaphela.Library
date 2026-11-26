@@ -2,7 +2,7 @@
 #define __JAVA_SYNTAX_VARIABLE_COMMON_H__
 #include "JavaSyntaxStatement.h"
 
-// X x = y;  
+// X x = y;
 // X (Assignment)
 
 class CJavaSyntaxVariableCommon : public CJavaSyntaxStatement
@@ -11,8 +11,8 @@ NAMED_CLASS(CJavaSyntaxVariableCommon);
 protected:
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void	Kill(void);
 
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;

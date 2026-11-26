@@ -28,8 +28,8 @@ protected:
 	CJavaTokenSeparatorDefinition*	mpcSeparator;
 
 public:
-	void 	Init(STextPosition* psPosition, CJavaTokenSeparatorDefinition* pcSeparator);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, CJavaTokenSeparatorDefinition* pcSeparator);
+	void	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
@@ -46,8 +46,8 @@ protected:
 	CChars			mszName;
 
 public:
-	void 			Init(EJavaTokenSeparator eSeparator, char* szName);
-	void 			Kill(void);
+	void			Init(EJavaTokenSeparator eSeparator, char* szName);
+	void			Kill(void);
 
 	EJavaTokenSeparator	Get(void);
 	char*			GetName(void);

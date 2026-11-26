@@ -23,8 +23,8 @@ protected:
 	CJavaTokenScopeDefinition*	mpcScope;
 
 public:
-	void 	Init(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric);
+	void	Kill(void);
 
 	bool	IsScope(void);
 	void	Print(CChars* pszDest);
@@ -41,8 +41,8 @@ protected:
 	CChars		mszName;
 
 public:
-	void 			Init(EJavaTokenScope eGeneric, char* szName);
-	void 			Kill(void);
+	void			Init(EJavaTokenScope eGeneric, char* szName);
+	void			Kill(void);
 
 	char*			GetName(void);
 	EJavaTokenScope	Get(void);

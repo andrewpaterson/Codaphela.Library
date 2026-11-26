@@ -75,7 +75,7 @@ void CJavaTokenParser::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::Parse(void)
-{	
+{
 	CJavaToken*			pcCurrent;
 	CJavaToken*			pcPrevious;
 	CJavaTokenNull		pcNull;
@@ -506,7 +506,7 @@ int CJavaTokenParser::ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndTok
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenParser::PrintLine(CChars* pszDest, CJavaToken* pcStartToken ,CJavaToken* pcEndToken)
+void CJavaTokenParser::PrintLine(CChars* pszDest, CJavaToken* pcStartToken , CJavaToken* pcEndToken)
 {
 	CJavaToken*		pcToken;
 	CJavaToken*		pcNextToken;
@@ -1241,7 +1241,7 @@ TRISTATE CJavaTokenParser::ParseString(CJavaToken** ppcCurrent)
 		else if (iWidth == 2)
 		{
 			*ppcCurrent = mpcTokens->CreateString(&sPos, (char16*)sz, (int)iLength);
-			return TRITRUE;;	
+			return TRITRUE;;
 		}
 		else
 		{

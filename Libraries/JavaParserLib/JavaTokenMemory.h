@@ -56,4 +56,3 @@ public:
 
 #endif // !__JAVA_TOKEN_MEMORY_H__
 
-	

@@ -17,7 +17,7 @@ public:
 	void				Init(char* szFilename, char* szText, bool bBreakOnError);
 	void				Init(char* szFilename, char* szText, int iTextLen, bool bBreakOnError);
 	void				Kill(void);
-	
+
 	bool				Parse(bool bFailOnError = true);
 	CJavaTokenParser*	GetParser(void);
 	char*				GetOutput(int* piLength = NULL);

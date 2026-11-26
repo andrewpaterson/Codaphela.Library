@@ -9,13 +9,13 @@ class CJavaSyntaxImport : public CJavaSyntax
 {
 NAMED_CLASS(CJavaSyntaxImport);
 protected:
-	CIdentifierArray	mapcIdentifiers;
+	CIdentifierArray						mapcIdentifiers;
 	bool									mbStatic;
 	bool									mbWild;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void	Kill(void);
 
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;

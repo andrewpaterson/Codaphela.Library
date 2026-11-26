@@ -11,8 +11,8 @@ protected:
 	CJavaSyntaxGeneric*		mpcGeneric;
 
 public:
-	void 					Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 					Kill(void);
+	void					Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void					Kill(void);
 
 	char*					GetType(void) override;
 	void					TypePrint(CChars* pszDest, int iDepth) override;
@@ -24,7 +24,7 @@ public:
 };
 
 
-typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxType,6>	CTypeArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxType, 6>	CTypeArray;
 
 
 #endif // !__JAVA_SYNTAX_TYPE_H__

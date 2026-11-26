@@ -8,8 +8,8 @@ class CJavaTokenNull : public CJavaTokenLiteral
 {
 NAMED_CLASS(CJavaTokenNull);
 public:
-	void 	Init(STextPosition* psPosition);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition);
+	void	Kill(void);
 
 	void	Print(CChars* pszDest);
 	bool	IsNull(void);

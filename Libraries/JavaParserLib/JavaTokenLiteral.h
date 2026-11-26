@@ -22,8 +22,8 @@ protected:
 	EJavaTokenLiteralType	meLiteralType;
 
 public:
-			void 	Init(STextPosition* psPosition, EJavaTokenLiteralType eType);
-			void 	Kill(void);
+			void	Init(STextPosition* psPosition, EJavaTokenLiteralType eType);
+			void	Kill(void);
 
 			char*	GetType(void) override;
 			bool	IsLiteralType(EJavaTokenLiteralType eType);

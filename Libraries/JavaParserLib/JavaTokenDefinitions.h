@@ -65,8 +65,8 @@ protected:
 	CScopeDefinitions		mcScopes;
 
 public:
-	void 						Init(void);
-	void 						Kill(void);
+	void						Init(void);
+	void						Kill(void);
 
 	CKeywordDefinitions*		GetKeywords(void);
 	CSeparatorDefinitions*		GetSeparators(void);
@@ -75,10 +75,10 @@ public:
 	CScopeDefinitions*			GetScopes(void);
 
 	CJavaTokenKeywordDefinition*		GetKeyword(EJavaTokenKeyword eKeyword);
-	CJavaTokenOperatorDefinition*	GetOperator(EJavaTokenOperator eOperator);
-	CJavaTokenSeparatorDefinition*	GetSeparator(EJavaTokenSeparator eSeparator);
-	CCJavaTokenAmbiguousDefinition*	GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous);
-	CJavaTokenScopeDefinition*		GetScope(EJavaTokenScope eGeneric);
+	CJavaTokenOperatorDefinition*		GetOperator(EJavaTokenOperator eOperator);
+	CJavaTokenSeparatorDefinition*		GetSeparator(EJavaTokenSeparator eSeparator);
+	CCJavaTokenAmbiguousDefinition*		GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous);
+	CJavaTokenScopeDefinition*			GetScope(EJavaTokenScope eGeneric);
 
 protected:
 	void						InitKeywords(void);

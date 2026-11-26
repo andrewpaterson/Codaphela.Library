@@ -54,7 +54,7 @@ protected:
 
 public:
 	void				Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser);
-	void 				Kill(void);
+	void				Kill(void);
 
 	bool				Parse(void);
 	bool				Parse(bool bFailOnError);

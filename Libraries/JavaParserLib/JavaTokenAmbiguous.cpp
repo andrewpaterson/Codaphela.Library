@@ -37,9 +37,9 @@ bool CCJavaTokenAmbiguous::Is(ECJavaTokenAmbiguous eAmbiguous)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCJavaTokenAmbiguous::IsAmbiguous(void) 
-{ 
-	return true; 
+bool CCJavaTokenAmbiguous::IsAmbiguous(void)
+{
+	return true;
 }
 
 

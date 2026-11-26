@@ -9,7 +9,7 @@ enum EJavaTokenFloatType
 {
 	JFT_float32,
 	JFT_float64,
-	 
+
 	JFT_Unknown = -1
 };
 
@@ -22,9 +22,9 @@ protected:
 	EJavaTokenFloatType		meType;
 
 public:
-	void 	Init(STextPosition* psPosition, float32 fValue);
-	void 	Init(STextPosition* psPosition, float64 fValue);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, float32 fValue);
+	void	Init(STextPosition* psPosition, float64 fValue);
+	void	Kill(void);
 
 	char*	GetType(void);
 	bool	Is(float32 fValue);

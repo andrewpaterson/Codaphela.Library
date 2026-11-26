@@ -12,8 +12,8 @@ protected:
 	int		miLength;
 
 public:
-	void 	Init(STextPosition* psPosition, char* szAnnotation, int iLength);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, char* szAnnotation, int iLength);
+	void	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);

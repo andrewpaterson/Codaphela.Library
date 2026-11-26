@@ -44,7 +44,7 @@ void CTokenParserEnvironment::Kill(void)
 	mcTokenDefinitions.Kill();
 	mcLogger.Kill();
 	mcMemoryLog.Kill();
-	
+
 }
 
 

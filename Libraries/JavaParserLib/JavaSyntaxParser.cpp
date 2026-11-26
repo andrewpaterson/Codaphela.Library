@@ -193,7 +193,7 @@ bool CJavaSyntaxParser::Parse(bool bFailOnError)
 		szError.Append(&mszFilename);
 		szError.Append("] Syntax error:");
 		szError.AppendNewLine();
-//		mcParser.PrintPosition(&szError);
+		//		mcParser.PrintPosition(&szError);
 		szError.DumpKill();
 
 		return false;
@@ -251,7 +251,7 @@ void CJavaSyntaxParser::Dump(bool bIncludeType)
 bool CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword)
 {
 	CJavaTokenKeyword* pcKeyword;
-	
+
 	if (pcToken && pcToken->IsKeyword())
 	{
 		pcKeyword = (CJavaTokenKeyword*)pcToken;
@@ -268,7 +268,7 @@ bool CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeywor
 bool CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator)
 {
 	CJavaTokenSeparator* pcSeparator;
-	
+
 	if (pcToken && pcToken->IsSeparator())
 	{
 		pcSeparator = (CJavaTokenSeparator*)pcToken;
@@ -400,7 +400,7 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(CJavaSyntax* pcParent)
 		{
 			return Error<CJavaSyntaxPackage>(OUT_OUF_MEMORY);
 		}
-			
+
 		for (;;)
 		{
 			pcIdentifier = GetIdentifier();
@@ -903,9 +903,9 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 {
 	// 5, 'a', 6.0f, "st", true, null
 	// new
-	// super(), this()					//Constructor call:	
+	// super(), this()					//Constructor call:
 	// *, +, <<, ? ... :, ==
-	// ( ... )							//Parentheses:		
+	// ( ... )							//Parentheses:
 	// method( ... )					//Method call:		Sinternal.InterfaceInAClassInAClass.InnerFace.LetOut()
 	// x								//Variable:			valu3_Pr0p
 	// x[ ]								//Variable Array:	array[3, 5]
@@ -987,7 +987,7 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 		{
 			return Error<CJavaSyntaxValueExpression>();
 		}
-		
+
 		if (iCount > 0)
 		{
 			PassPosition();
@@ -1059,7 +1059,7 @@ CJavaSyntaxOperator* CJavaSyntaxParser::ParsePrefixOperator(CJavaSyntax* pcParen
 	CJavaSyntaxOperator*	pcSyntaxOperator;
 
 	PushPosition();
-	
+
 	pcTokenOperator = GetPrefixOperator();
 	if (pcTokenOperator)
 	{
@@ -1081,8 +1081,8 @@ CJavaSyntaxOperator* CJavaSyntaxParser::ParsePrefixOperator(CJavaSyntax* pcParen
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxOperator* CJavaSyntaxParser::ParseOperator(CJavaSyntax* pcParent)
 {
-	CJavaTokenOperator* pcTokenOperator;
-	CJavaSyntaxOperator* pcSyntaxOperator;
+	CJavaTokenOperator*		pcTokenOperator;
+	CJavaSyntaxOperator*	pcSyntaxOperator;
 
 	PushPosition();
 
@@ -1412,7 +1412,7 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(CJavaSyntax* pcParent)
 			{
 				continue;
 			}
-			
+
 			if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
 			{
 				pcScopeAngleBracketLeft = CreateScope(pcAmbiguousAngleBracketLeft->GetPosition(), JG_AngleBracketLeft);
@@ -1565,7 +1565,7 @@ CJavaSyntaxExtent* CJavaSyntaxParser::ParseExtent(CJavaSyntax* pcParent)
 
 	pcExtent->SetExtends(pcType);
 
-	PassPosition(); 
+	PassPosition();
 	return pcExtent;
 }
 
@@ -1659,7 +1659,7 @@ CJavaTokenKeyword* CJavaSyntaxParser::GetModifierKeyword(void)
 CJavaTokenKeyword* CJavaSyntaxParser::GetPrimitveKeyword(void)
 {
 	CJavaTokenKeyword* pcKeyword;
-	
+
 	if (mpcCurrentToken && mpcCurrentToken->IsKeyword())
 	{
 		pcKeyword = (CJavaTokenKeyword*)mpcCurrentToken;
@@ -1933,7 +1933,7 @@ bool CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcRep
 CJavaTokenScope* CJavaSyntaxParser::CreateScope(STextPosition* psPosition, EJavaTokenScope eScope)
 {
 	CJavaTokenScope*				pcScope;
-	CJavaTokenScopeDefinition*	pcDefinition;
+	CJavaTokenScopeDefinition*		pcDefinition;
 
 	pcDefinition = mpcDefinitions->GetScope(JG_Asterisk);
 	pcScope = mpcTokens->CreateScope(psPosition, pcDefinition);
@@ -1949,7 +1949,7 @@ void CJavaSyntaxParser::PrivateError(char* szError)
 {
 	PassPosition();
 
-	STextPosition* psPos;
+	STextPosition*			psPos;
 	CTextPositionPrinter	cPrinter;
 	CChars					sz;
 	STextPosition			sPos;

@@ -75,7 +75,7 @@ bool CJavaSyntaxLiteral::IsNull(void) { return mpcLiteral != NULL && mpcLiteral-
 //
 //////////////////////////////////////////////////////////////////////////
 CJavaTokenCharacter* CJavaSyntaxLiteral::GetCharacter(void)
-{ 
+{
 	if (IsCharacter())
 	{
 		return (CJavaTokenCharacter*)mpcLiteral;

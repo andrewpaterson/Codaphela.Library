@@ -77,8 +77,8 @@ protected:
 	CJavaTokenOperatorDefinition*	mpcOperator;
 
 public:
-	void 	Init(STextPosition* psPosition, CJavaTokenOperatorDefinition* pcOperator);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, CJavaTokenOperatorDefinition* pcOperator);
+	void	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
@@ -92,11 +92,11 @@ class CJavaTokenOperatorDefinition
 protected:
 	EJavaTokenOperator		meOperator;
 	EJavaTokenOperatorType	meType;
-	CChars				mszName;
+	CChars					mszName;
 
 public:
-	void 				Init(EJavaTokenOperatorType meType, EJavaTokenOperator eOperator, char* szName);
-	void 				Kill(void);
+	void				Init(EJavaTokenOperatorType meType, EJavaTokenOperator eOperator, char* szName);
+	void				Kill(void);
 	EJavaTokenOperatorType	GetType(void);
 	char*				GetName(void);
 	bool				Is(EJavaTokenOperator eOperator);

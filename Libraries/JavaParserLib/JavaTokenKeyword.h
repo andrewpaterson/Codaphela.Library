@@ -8,14 +8,14 @@ enum EJavaTokenKeyword
 {
 	JK_abstract,
 	JK_assert,
-	JK_boolean,	
+	JK_boolean,
 	JK_break,
 	JK_byte,
-	JK_case,	
-	JK_catch,	
+	JK_case,
+	JK_catch,
 	JK_char,
-	JK_class,	
-	JK_const,	
+	JK_class,
+	JK_const,
 	JK_continue,
 	JK_default,
 	JK_do,
@@ -38,19 +38,19 @@ enum EJavaTokenKeyword
 	JK_native,
 	JK_new,
 	JK_package,
-	JK_private,	
+	JK_private,
 	JK_protected,
 	JK_public,
 	JK_return,
 	JK_short,
-	JK_static,	
+	JK_static,
 	JK_strictfp,
 	JK_super,
-	JK_switch,	
+	JK_switch,
 	JK_synchronized,
 	JK_this,
 	JK_throw,
-	JK_throws,	
+	JK_throws,
 	JK_transient,
 	JK_try,
 	JK_void,
@@ -67,8 +67,8 @@ protected:
 	CJavaTokenKeywordDefinition*	mpcKeyword;
 
 public:
-	void 	Init(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword);
+	void	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
@@ -85,8 +85,8 @@ protected:
 	CChars			mszName;
 
 public:
-	void 			Init(EJavaTokenKeyword eKeyword, char* szName);
-	void 			Kill(void);
+	void			Init(EJavaTokenKeyword eKeyword, char* szName);
+	void			Kill(void);
 
 	char*			GetName(void);
 	EJavaTokenKeyword	Get(void);

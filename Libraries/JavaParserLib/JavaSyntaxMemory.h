@@ -68,7 +68,7 @@ protected:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<class M>	
+template<class M>
 M* CJavaSyntaxMemory::Create(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	M* pcSyntax;

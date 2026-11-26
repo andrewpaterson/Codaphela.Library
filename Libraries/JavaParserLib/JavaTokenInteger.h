@@ -22,9 +22,9 @@ protected:
 	EJavaTokenIntegerType	meType;
 
 public:
-	void 	Init(STextPosition* psPosition, int32 iValue);
-	void 	Init(STextPosition* psPosition, int64 iValue);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, int32 iValue);
+	void	Init(STextPosition* psPosition, int64 iValue);
+	void	Kill(void);
 
 	char*	GetType(void);
 	bool	Is(int32 i);

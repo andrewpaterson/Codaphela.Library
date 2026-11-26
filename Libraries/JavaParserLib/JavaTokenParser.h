@@ -42,8 +42,8 @@ protected:
 
 public:
 	void					Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText);
-	void 					Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen);
-	void 					Kill(void);
+	void					Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen);
+	void					Kill(void);
 
 	TRISTATE				Parse(void);
 	bool					Parse(bool bFailOnError);

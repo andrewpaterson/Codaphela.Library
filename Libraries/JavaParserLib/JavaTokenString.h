@@ -23,9 +23,9 @@ protected:
 	int						miLength;
 
 public:
-	void 	Init(STextPosition* psPosition, char* sz, int iLength);
-	void 	Init(STextPosition* psPosition, char16* sz, int iLength);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, char* sz, int iLength);
+	void	Init(STextPosition* psPosition, char16* sz, int iLength);
+	void	Kill(void);
 
 	char*	GetType(void);
 	bool	Is(char* szString);

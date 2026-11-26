@@ -23,23 +23,23 @@ protected:
 	uint8	muiModifiers;
 
 public:
-	void Init(void);
-	void Kill(void);
-	void ReInit(void);
+	void	Init(void);
+	void	Kill(void);
+	void	ReInit(void);
 
 	void Set(EJavaModifier eModifier);
 
-	bool IsNone(void);
-	bool IsPublic(void);
-	bool IsProtected(void);
-	bool IsPrivate(void);
-	bool IsStatic(void);
-	bool IsAbstract(void);
-	bool IsFinal(void);
-	bool IsStrictfp(void);
+	bool	IsNone(void);
+	bool	IsPublic(void);
+	bool	IsProtected(void);
+	bool	IsPrivate(void);
+	bool	IsStatic(void);
+	bool	IsAbstract(void);
+	bool	IsFinal(void);
+	bool	IsStrictfp(void);
 
-	bool IsPackageModifier(void);
-	bool IsValid(void);
+	bool	IsPackageModifier(void);
+	bool	IsValid(void);
 
 	void Print(CChars* pszDest);
 };

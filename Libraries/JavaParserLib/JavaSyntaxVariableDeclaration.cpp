@@ -27,7 +27,7 @@ void CJavaSyntaxVariableDeclaration::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* 
 void CJavaSyntaxVariableDeclaration::Kill(void)
 {
 	mpcInitialiser = NULL;
-		
+
 	mpcPrimitiveType = NULL;
 	mpcName = NULL;
 	mpcGeneric = NULL;
@@ -64,7 +64,7 @@ void CJavaSyntaxVariableDeclaration::TypePrint(CChars* pszDest, int iDepth)
 		mpcPrimitiveType->Print(pszDest);
 		pszDest->Append(' ');
 	}
-	
+
 	if (mapcType.IsNotEmpty())
 	{
 		PrintTokenArray(pszDest, &mapcType);

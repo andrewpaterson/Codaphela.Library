@@ -51,7 +51,7 @@ void CJavaSyntaxExtent::TypePrint(CChars* pszDest, int iDepth)
 	{
 		pszDest->Append('?');
 	}
-	if (mpcName) 
+	if (mpcName)
 	{
 		mpcName->Print(pszDest);
 	}

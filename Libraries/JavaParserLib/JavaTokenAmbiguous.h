@@ -23,8 +23,8 @@ protected:
 	CCJavaTokenAmbiguousDefinition*	mpcDefinition;
 
 public:
-	void 	Init(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcDefinition);
-	void 	Kill(void);
+	void	Init(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcDefinition);
+	void	Kill(void);
 
 	bool	IsAmbiguous(void);
 	void	Print(CChars* pszDest);
@@ -41,8 +41,8 @@ protected:
 	CChars			mszName;
 
 public:
-	void 			Init(ECJavaTokenAmbiguous eAmbiguous, char* szName);
-	void 			Kill(void);
+	void			Init(ECJavaTokenAmbiguous eAmbiguous, char* szName);
+	void			Kill(void);
 
 	char*			GetName(void);
 	ECJavaTokenAmbiguous	Get(void);
