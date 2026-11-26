@@ -149,5 +149,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 - Put decisions to the user one at a time, each explained plainly (what changes, what it costs), with the
   recommended option first, especially outside their speciality.
 - Show images as full `file://` paths to the real files; don't make enlarged copies.
+- Every tracked file says what it is (`HCP65/Website/tools/check_files.py`, in the website's build): an item of its
+  project (plans and notes too), test data, or a row of the `README.md` of a folder above it, whose table
+  (`| Files | Are | From |`) says source, generated (with the command and its inputs) or third-party (with where from
+  and which version).
 - Code files are LF.  `.sln`, `.vcxproj` and `.filters` are CRLF with a BOM: edit them as bytes and check `git diff
   --stat` shows only your lines.  Test `Input` files are kept byte for byte.
