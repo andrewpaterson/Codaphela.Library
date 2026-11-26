@@ -503,7 +503,15 @@
     <ClCompile Include="ColourRampBar.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Container.txt" />
+    <None Include="Docs\libraries\windowlib\index.md" />
+    <None Include="Docs\libraries\windowlib\layout.md" />
+    <None Include="Docs\libraries\windowlib\components.md" />
+    <None Include="Docs\libraries\windowlib\docking.md" />
+    <None Include="Docs\libraries\windowlib\text-area.md" />
+    <None Include="Docs\libraries\windowlib\diff-view.md" />
+    <None Include="Docs\libraries\windowlib\drawing.md" />
+    <None Include="Docs\libraries\windowlib\input.md" />
+    <None Include="Docs\libraries\windowlib\backends.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

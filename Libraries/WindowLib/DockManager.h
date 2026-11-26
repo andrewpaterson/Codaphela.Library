@@ -88,7 +88,7 @@ public:
 //Visual Studio's docking: tool panes and documents in groups of tabs, split beside each other and around the document
 //well, floated in windows of their own, auto hidden on the main window's edges, or hidden; dragged between all of
 //these with docking guides showing where they would go; and the layout written to and read from an XML file.  See
-//WindowLib/Docking.txt.
+//WindowLib's design page Docs/libraries/windowlib/docking.md.
 //
 //The application puts the manager's dock area (GetArea) in its window, adds its panes (AddPane) and listens for what
 //happens to them (SetListener).  Everything that moves panes goes through the manager: the panes' menus, their title

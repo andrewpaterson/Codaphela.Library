@@ -40,8 +40,14 @@
     <Filter Include="Source\Image\Canvas">
       <UniqueIdentifier>{2190efe2-7dfa-4008-88d5-8be093761a41}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Container\Design">
-      <UniqueIdentifier>{1bb6ec67-4d55-4a6a-b0f8-3d0df0991247}</UniqueIdentifier>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{445bacb5-e35a-4aab-9788-d410ec582bca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{1790bcd9-5a86-4840-81d9-42c65d36f0e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\windowlib">
+      <UniqueIdentifier>{58fd36cf-89bb-47ce-a6a1-2045dc6580c4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Component\Container\Fill">
       <UniqueIdentifier>{a0d22856-0add-4538-a148-43c20c260192}</UniqueIdentifier>
@@ -1045,8 +1051,32 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Container.txt">
-      <Filter>Source\Component\Container\Design</Filter>
-    </Text>
+    <None Include="Docs\libraries\windowlib\index.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\layout.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\components.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\docking.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\text-area.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\diff-view.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\drawing.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\input.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+    <None Include="Docs\libraries\windowlib\backends.md">
+      <Filter>Docs\libraries\windowlib</Filter>
+    </None>
   </ItemGroup>
 </Project>
