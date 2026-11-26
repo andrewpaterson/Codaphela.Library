@@ -8,13 +8,14 @@
 #include "ThreadStateNotifier.h"
 #include "ThreadStarter.h"
 #include "BaseLib/NativeThread.h"
+#include "AtomicInt.h"
 
 
 class CThread : public CConstructable, public CKillable
 {
 friend class CStandAloneThreadStarter;
 private:
-	EThreadState										meState;
+	CAtomicInt											miState;		//An EThreadState, changed by the thread and by TryStop from others.
 	int													miThreadId;
 	CNativeThread										mcNativeThread;
 	bool												mbDelete;
@@ -41,6 +42,9 @@ public:
 protected:
 	virtual void	Run(void) =0;
 			void	ChangeState(EThreadState eState);
+
+private:
+			void	NotifyState(EThreadState eState);
 };
 
 

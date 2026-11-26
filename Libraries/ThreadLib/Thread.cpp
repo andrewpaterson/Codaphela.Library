@@ -11,7 +11,7 @@ CThread::CThread()
 {
 	mapcNotifiers.Init();
 	mpcStarter = &gcStandAloneThreadStarter;
-	meState = TS_Waiting;
+	miState.Set(TS_Waiting);
 	miThreadId = 0;
 	mcNativeThread.Init();
 	mbDelete = false;
@@ -27,7 +27,7 @@ CThread::CThread(CThreadStarter* pcStarter, CThreadStateNotifer* pcNotify)
 	mapcNotifiers.Init();
 	mapcNotifiers.AddPtr(pcNotify);
 	mpcStarter = pcStarter;
-	meState = TS_Waiting;
+	miState.Set(TS_Waiting);
 	miThreadId = 0;
 	mcNativeThread.Init();
 	mbDelete = false;
@@ -49,7 +49,7 @@ void CThread::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CThread::Kill(void)
 {
-	meState = TS_Killed;
+	miState.Set(TS_Killed);
 	mcNativeThread.Join();
 	mcNativeThread.Kill();
 	miThreadId = 0;
@@ -75,7 +75,12 @@ void CThread::Start(int iThreadId, bool bDelete)
 {
 	miThreadId = iThreadId;
 	mbDelete = bDelete;
-	ChangeState(TS_Running);
+
+	//A TryStop before the thread began left it TS_Stopping: it runs once (seeing it is to stop) rather than running on.
+	if (miState.CompareExchange(TS_Waiting, TS_Running))
+	{
+		NotifyState(TS_Running);
+	}
 	Run();
 	ChangeState(TS_Stopped);
 }
@@ -87,7 +92,7 @@ void CThread::Start(int iThreadId, bool bDelete)
 //////////////////////////////////////////////////////////////////////////
 bool CThread::IsDone(void) const
 {
-	return meState == TS_Stopped;
+	return miState.Get() == TS_Stopped;
 }
 
 
@@ -97,7 +102,7 @@ bool CThread::IsDone(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CThread::IsRunning(void) const
 {
-	return meState == TS_Running;
+	return miState.Get() == TS_Running;
 }
 
 
@@ -123,13 +128,26 @@ void CThread::AddNotifier(CThreadStateNotifer* pcNotify)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Asks a waiting or running thread to stop.  One that hasn't begun yet stops too: Start(int, bool) keeps the
+// TS_Stopping instead of making it TS_Running, so the request isn't lost however late the thread is scheduled.
 //
 //////////////////////////////////////////////////////////////////////////
 void CThread::TryStop(void)
 {
-	if (meState == TS_Running)
+	int		iState;
+
+	for (;;)
 	{
-		ChangeState(TS_Stopping);
+		iState = miState.Get();
+		if ((iState != TS_Waiting) && (iState != TS_Running))
+		{
+			return;
+		}
+		if (miState.CompareExchange(iState, TS_Stopping))
+		{
+			NotifyState(TS_Stopping);
+			return;
+		}
 	}
 }
 
@@ -140,10 +158,20 @@ void CThread::TryStop(void)
 //////////////////////////////////////////////////////////////////////////
 void CThread::ChangeState(EThreadState eState)
 {
+	miState.Set(eState);
+	NotifyState(eState);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CThread::NotifyState(EThreadState eState)
+{
 	size					i;
 	CThreadStateNotifer*	pcNotifier;
 
-	meState = eState;
 	for (i = mapcNotifiers.NumElements(); i > 0; i--)
 	{
 		pcNotifier = (CThreadStateNotifer*)mapcNotifiers.GetPtr(i - 1);
