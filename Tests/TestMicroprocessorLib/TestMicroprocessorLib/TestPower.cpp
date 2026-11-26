@@ -467,6 +467,8 @@ void TestPowerSupervisor(void)
 	AssertInt(TV_Low, cBoard.Value(pcReset));
 	cBoard.mpcTimeline->RunToTime(NanosecondsToTime((int64)20));
 	AssertFalse(pcSupervisor->IsAsserting());
+	AssertTrue(pcReset->GetVoltage(cBoard.mpcTimeline->GetTime()) < 5.0f);
+	cBoard.mpcTimeline->RunToTime(NanosecondsToTime((int64)100));
 	AssertFloat(5.0f, pcReset->GetVoltage(cBoard.mpcTimeline->GetTime()), 3);
 	AssertFalse(cBoard.mpSimulation->IsPoweringUp());
 

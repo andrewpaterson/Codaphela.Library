@@ -83,8 +83,10 @@ Driving and undriving are changes the ports must see:
   circuit before it runs.
 - [`CPort::Disconnect`] is the reverse: the port sees undriven, and if the trace is left undriven so do its other
   ports ([`CTrace::NotifyUndriven`]).  A drive of NaN, and a slew from a chip without power, notify the same way.
-- A strong driver letting go of a pulled trace leaves it at its pulls' voltage at once, and its ports are told it moved
-  ([`CTrace::NotifyVoltageChanged`]); a driver taking a pulled trace slews from the pulled level.  An input held only by
+- A strong driver letting go of a pulled trace, or its pulls' level moving, sends it along an RC curve to its pulls'
+  voltage, R their resistance in parallel and C the trace's capacitance (3pF unless set, [`CTrace::SetCapacitance`]),
+  and its logic ports are told as of a slew ([`CTrace::NotifyVoltageChanged`]): a 10k pull on 10pF crosses VIH 87ns
+  after it is let go.  A driver taking a pulled trace slews from where the curve has got to, and ends it.  An input held only by
   supplies and pulls is read as its chip starts ([`CIntegratedCircuit::Reset`]): no slew will tell it.
 - [`CLogicPort::WriteImpedance`] drops the port's pending slews and drives after it, so the last write wins;
   Logicim lets an earlier write's slew drive the trace again.
@@ -227,7 +229,7 @@ That is the glitch filtering of the boards' RC filters.
 | [`TestMicroprocessorLib/TestStandardIntegratedCircuits.cpp`] | truth tables, gates made of NANDs, a 4 bit ripple adder over all 256 sums, latches, flip-flops and counters on LVC at 3.3V, live wiring |
 | [`TestMicroprocessorLib/TestGroupIntegratedCircuits.cpp`] | the generic 74 series parts |
 | [`TestMicroprocessorLib/TestPower.cpp`] | supplies switching and ramping, regulators, chips starting and stopping with their power, the power-up states, the DS1813 |
-| [`TestMicroprocessorLib/TestPull.cpp`] | pulls holding, dividing and losing to a strong driver, an open drain's pull-up, a pull on a ramping rail |
+| [`TestMicroprocessorLib/TestPull.cpp`] | pulls holding, dividing and losing to a strong driver, an open drain's pull-up, a pull on a ramping rail, a released line's curve crossing VIH at the time worked out by hand |
 | [`TestMicroprocessorLib/TestRCFilter.cpp`] | RC curves crossing thresholds at times worked out by hand, a short pulse filtered out, the diode's fast direction, holding, the comparator against a fixed voltage, a Schmitt part's thresholds |
 | [`TestMicroprocessorLib/TestProcessorChips.cpp`] | the same program on a meta processor and on a chip with a test RAM: registers and memory must match (the W65C816S's fails without releasing the data bus) |
 
@@ -262,5 +264,6 @@ The test circuits are built on a board in [`TestMicroprocessorLib/TestCircuitBoa
 - Logicim's user interface parts (voltage colours, oscilloscope colours, the bidirectional port map, the editor's
   ports and traces, checking subcircuit simulations against the editor's views), which are LogiCim's if anywhere.
 - The circuit simulation isn't saved as an object ([`CCircuitSimulation::Save`] returns false): LogiCim saves its
-  state as XML.
+  state as XML.  A pulled trace's curve in progress isn't in it: loaded, the trace is at its pulls' voltage at once,
+  though its readers' pending transitions still come.
 - A W65C02S chip.

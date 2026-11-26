@@ -19,6 +19,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 ** ------------------------------------------------------------------------ **/
 #include "Voltage.h"
+#include "LongTime.h"
+#include "Timeline.h"
+#include "LogicPort.h"
 #include "Trace.h"
 
 
@@ -45,6 +48,8 @@ void CTrace::Init(int64 iID)
 {
 	mapcConnectedPorts.Init();
 	miID = iID;
+	mfCapacitance = TRACE_CAPACITANCE;
+	mcWeakCurve.Init();
 	if (iID >= giNextTraceID)
 	{
 		giNextTraceID = iID + 1;
@@ -73,7 +78,8 @@ void CTrace::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The average of the strong drives, or with none the weak drives' voltages
-// weighted by their conductance; NaN when nothing drives the trace.
+// weighted by their conductance, or where the curve to that has got to;
+// NaN when nothing drives the trace.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CTrace::GetVoltage(int64 iTime)
@@ -83,28 +89,16 @@ float32 CTrace::GetVoltage(int64 iTime)
 	float32	fResistance;
 	float32	fDrivenVoltage;
 	size	uiDrivers;
-	float32	fWeakCurrent;
-	float32	fWeakConductance;
 
 	fDrivenVoltage = 0;
 	uiDrivers = 0;
-	fWeakCurrent = 0;
-	fWeakConductance = 0;
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
 		fVoltage = mapcConnectedPorts.GetPtr(i)->GetDrive(iTime, &fResistance);
-		if (IsVoltage(fVoltage))
+		if (IsVoltage(fVoltage) && (fResistance == 0.0f))
 		{
-			if (fResistance == 0.0f)
-			{
-				fDrivenVoltage += fVoltage;
-				uiDrivers++;
-			}
-			else
-			{
-				fWeakCurrent += fVoltage / fResistance;
-				fWeakConductance += 1.0f / fResistance;
-			}
+			fDrivenVoltage += fVoltage;
+			uiDrivers++;
 		}
 	}
 
@@ -116,10 +110,45 @@ float32 CTrace::GetVoltage(int64 iTime)
 	{
 		return fDrivenVoltage / uiDrivers;
 	}
+	if (mcWeakCurve.IsSlew() && mcWeakCurve.ForTime(iTime))
+	{
+		return mcWeakCurve.GetVoltage(iTime);
+	}
+	return GetWeakVoltage(iTime, &fResistance);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The weak drives' voltages weighted by their conductance, and their
+// resistance in parallel; NaN with no weak drives.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CTrace::GetWeakVoltage(int64 iTime, float32* pfResistance)
+{
+	size	i;
+	float32	fVoltage;
+	float32	fResistance;
+	float32	fWeakCurrent;
+	float32	fWeakConductance;
+
+	fWeakCurrent = 0;
+	fWeakConductance = 0;
+	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
+	{
+		fVoltage = mapcConnectedPorts.GetPtr(i)->GetDrive(iTime, &fResistance);
+		if (IsVoltage(fVoltage) && (fResistance > 0.0f))
+		{
+			fWeakCurrent += fVoltage / fResistance;
+			fWeakConductance += 1.0f / fResistance;
+		}
+	}
 	if (fWeakConductance > 0.0f)
 	{
+		*pfResistance = 1.0f / fWeakConductance;
 		return fWeakCurrent / fWeakConductance;
 	}
+	*pfResistance = 0.0f;
 	return NoVoltage();
 }
 
@@ -205,6 +234,10 @@ float32 CTrace::GetMinimumVoltage(int64 iTime)
 	bool	bStrong;
 
 	bStrong = HasStrongDriver(iTime);
+	if (!bStrong && mcWeakCurve.IsSlew() && mcWeakCurve.ForTime(iTime))
+	{
+		return GetVoltage(iTime);
+	}
 	fMinimum = NoVoltage();
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
@@ -236,6 +269,10 @@ float32 CTrace::GetMaximumVoltage(int64 iTime)
 	bool	bStrong;
 
 	bStrong = HasStrongDriver(iTime);
+	if (!bStrong && mcWeakCurve.IsSlew() && mcWeakCurve.ForTime(iTime))
+	{
+		return GetVoltage(iTime);
+	}
 	fMaximum = NoVoltage();
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
@@ -309,22 +346,69 @@ void CTrace::NotifyUndriven(CTimeline* pcTimeline, CPort* pcExcept)
 //////////////////////////////////////////////////////////////////////////
 //
 // The trace's voltage has moved from fOldVoltage without a slew; its
-// ports but pcExcept are told, see CPort::TraceVoltageChanged.
+// ports but pcExcept are told, see CPort::TraceVoltageChanged.  Held only
+// weakly, it curves from fOldVoltage (or where a curve it is already on
+// has got to) to its weak voltage, R x C, R the weak drives' in parallel
+// and C its capacitance, and its logic ports are told of the curve as of
+// a slew (CLogicPort::TraceSlew).
 //
 //////////////////////////////////////////////////////////////////////////
 void CTrace::NotifyVoltageChanged(CTimeline* pcTimeline, float32 fOldVoltage, CPort* pcExcept)
 {
 	size	i;
 	CPort*	pcPort;
+	int64	iTime;
+	int64	iTimeConstant;
+	float32	fWeakVoltage;
+	float32	fResistance;
+	float32	fStartVoltage;
+
+	iTime = pcTimeline->GetTime();
+	iTimeConstant = 0;
+	if (!HasStrongDriver(iTime))
+	{
+		fWeakVoltage = GetWeakVoltage(iTime, &fResistance);
+		fStartVoltage = (mcWeakCurve.IsSlew() && mcWeakCurve.ForTime(iTime)) ? mcWeakCurve.GetVoltage(iTime) : fOldVoltage;
+		if (IsVoltage(fWeakVoltage) && IsVoltage(fStartVoltage) && (fStartVoltage != fWeakVoltage))
+		{
+			iTimeConstant = NanosecondsToTime((float64)fResistance * mfCapacitance * 1e9);
+		}
+		if (iTimeConstant >= 1)
+		{
+			mcWeakCurve.InitSlew(iTime, fStartVoltage, fWeakVoltage, RC_CURVE_TIME_CONSTANTS * iTimeConstant, iTimeConstant);
+		}
+		else
+		{
+			mcWeakCurve.Init();
+		}
+	}
 
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
 		pcPort = mapcConnectedPorts.GetPtr(i);
 		if (pcPort != pcExcept)
 		{
-			pcPort->TraceVoltageChanged(pcTimeline, fOldVoltage);
+			if ((iTimeConstant >= 1) && pcPort->IsLogicPort())
+			{
+				((CLogicPort*)pcPort)->TraceSlew(pcTimeline, &mcWeakCurve);
+			}
+			else
+			{
+				pcPort->TraceVoltageChanged(pcTimeline, fOldVoltage);
+			}
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A strong driver has taken the trace: the curve to its weak voltage ends.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrace::StopWeakCurve(void)
+{
+	mcWeakCurve.Init();
 }
 
 
@@ -380,4 +464,7 @@ void CTrace::ResetNextID(void)
 size CTrace::NumConnectedPorts(void) const { return mapcConnectedPorts.NumElements(); }
 CPort* CTrace::GetConnectedPort(size uiIndex) { return mapcConnectedPorts.SafeGetPtr(uiIndex); }
 int64 CTrace::GetID(void) const { return miID; }
+void CTrace::SetCapacitance(float32 fCapacitance) { mfCapacitance = fCapacitance; }
+float32 CTrace::GetCapacitance(void) const { return mfCapacitance; }
+CPortOutput* CTrace::GetWeakCurve(void) { return &mcWeakCurve; }
 

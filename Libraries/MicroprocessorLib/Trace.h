@@ -22,16 +22,29 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #define __TRACE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "Port.h"
+#include "PortOutput.h"
+
+
+//A trace's capacitance unless whoever builds the circuit knows better: a few centimetres of track and its pads.
+#define TRACE_CAPACITANCE	3e-12f
 
 
 //Logicim's Trace: an analog wire.  Its voltage is the average of what the ports connected to it drive it with, NaN
 //when nothing drives it.  Only strong drives count while there are any; with none its weak drives (pulls, see
-//CPort::GetDrive) set it, sharing by conductance as a divider does.  When it stops being driven its ports are told, see NotifyUndriven.  It doesn't own its ports.  Every trace gets the next id unless it is given one.
+//CPort::GetDrive) set it, sharing by conductance as a divider does.  When it stops being driven its ports are told,
+//see NotifyUndriven.  It doesn't own its ports.  Every trace gets the next id unless it is given one.
+//
+//Let go by its last strong driver, or its pulls' level moving, a weakly held trace doesn't jump: it curves from where
+//it was to its pulls' level, an RC curve of the pulls' resistance in parallel and its capacitance (SetCapacitance), and
+//its logic ports are told as for a slew, so each transitions where the curve crosses its threshold (see
+//NotifyVoltageChanged).  A strong driver taking it ends the curve.
 class CTrace
 {
 protected:
 	CArrayPortPtr	mapcConnectedPorts;
 	int64			miID;
+	float32			mfCapacitance;  //Farads.
+	CPortOutput		mcWeakCurve;  //None while there is no curve.
 
 public:
 	void			Init(void);
@@ -43,6 +56,11 @@ public:
 	float32			GetMinimumVoltage(int64 iTime);
 	float32			GetMaximumVoltage(int64 iTime);
 	bool			HasStrongDriver(int64 iTime);
+	float32			GetWeakVoltage(int64 iTime, float32* pfResistance);
+	void			SetCapacitance(float32 fCapacitance);
+	float32			GetCapacitance(void) const;
+	CPortOutput*	GetWeakCurve(void);
+	void			StopWeakCurve(void);
 	bool			HasLogicDriver(int64 iTime);
 	void			AppendVoltage(CChars* psz, int64 iTime);
 

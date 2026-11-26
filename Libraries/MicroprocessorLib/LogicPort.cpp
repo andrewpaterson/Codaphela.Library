@@ -284,6 +284,10 @@ void CLogicPort::DriveEvent(CTimeline* pcTimeline, CDriveEvent* pcDriveEvent)
 
 	fVoltageBefore = (mpcTrace != NULL) ? mpcTrace->GetVoltage(pcTimeline->GetTime()) : NoVoltage();
 	pcDriveEvent->CopyOutput(&mcOutput);
+	if ((mpcTrace != NULL) && IsVoltage(mcOutput.GetEndVoltage()))
+	{
+		mpcTrace->StopWeakCurve();
+	}
 	NotifyTraceChange(pcTimeline, fVoltageBefore);
 }
 
@@ -359,6 +363,10 @@ void CLogicPort::SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent)
 	}
 
 	mcOutput = cSlew;
+	if ((mpcTrace != NULL) && (cSlew.GetSlewTime() != MAX_INT64))
+	{
+		mpcTrace->StopWeakCurve();
+	}
 	NotifyTraceChange(pcTimeline, fVoltageBefore);
 }
 
