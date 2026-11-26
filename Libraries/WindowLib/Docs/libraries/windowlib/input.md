@@ -444,6 +444,9 @@ editor-paste-history), with a detached clipboard; LogiCim's check which command 
 
 ## Decisions
 
+- Events, not listener interfaces (the user, 2026-11-05): a component offers a [`CComponentEvent`] per thing that
+  happens ([`CButton::GetClickEvent`], [`CScrollPane::GetScrollEvent`]); a handler is added with the object and its
+  member function and removed by the object before it goes.  The listener classes were taken out.
 - Raw input on Windows, not window messages, for the keys and buttons (the user, 2026-10-21): one stream for every
   device, with the device it came from, as InputLib wants.
 - Clicking the background, where nothing under the pointer can take the focus, clears the focus; a pointer event's
