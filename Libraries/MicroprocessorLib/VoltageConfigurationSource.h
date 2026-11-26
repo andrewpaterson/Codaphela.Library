@@ -25,11 +25,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 
 //Logicim's VoltageConfigurationSource: the input thresholds, output voltages and timings of a logic family at a
-//supply voltage, VCC.  See CFamilyVoltageConfiguration and CFixedVoltageConfiguration.
+//supply voltage, VCC.  See CFamilyVoltageConfiguration and CFixedVoltageConfiguration.  IsPowered says whether a
+//part of the family works at a VCC.
 class CVoltageConfigurationSource
 {
 public:
 	virtual CVoltageConfiguration*	Get(float32 fVcc) =0;
+
+	virtual bool					IsPowered(float32 fVcc) =0;
 
 	virtual float32					GetLowVoltageIn(float32 fVcc) =0;
 	virtual float32					GetHighVoltageIn(float32 fVcc) =0;

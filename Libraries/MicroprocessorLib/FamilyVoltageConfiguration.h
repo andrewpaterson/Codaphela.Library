@@ -65,6 +65,8 @@ public:
 			CVoltageConfiguration*	GetConfiguration(size uiIndex);
 			const char*				GetFamily(void) const;
 
+	virtual bool					IsPowered(float32 fVcc);
+
 	virtual float32					GetLowVoltageIn(float32 fVcc);
 	virtual float32					GetHighVoltageIn(float32 fVcc);
 	virtual float32					GetVoltageOut(bool bValue, float32 fVcc);

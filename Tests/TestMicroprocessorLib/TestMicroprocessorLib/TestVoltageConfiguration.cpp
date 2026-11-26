@@ -164,6 +164,8 @@ void TestVoltageConfigurationFamily(void)
 	AssertNull(cFamily.Get(3.3f));
 	AssertFalse(IsVoltage(cFamily.GetHighVoltageIn(3.3f)));
 	AssertLong(MAX_INT64, cFamily.CalculateHoldTime(3.1f, 0.2f, 3.3f));
+	AssertTrue(cFamily.IsPowered(0.1f));
+	AssertFalse(cFamily.IsPowered(0.0f));
 
 	AssertTrue(cConfiguration.Init(3.3f, 0.8f, 2.0f, 0.2f, 3.1f, 3000, 3000));
 	AssertTrue(cFamily.Add(&cConfiguration, "ttl"));
@@ -214,6 +216,13 @@ void TestVoltageConfigurationFamily(void)
 	AssertFloat(0.8f, cFamily.GetVoltageOut(true, 0.9f), 3);
 	AssertFloat(2.0f * 5.0f / 3.3f, cFamily.GetHighVoltageIn(5.0f), 3);
 	AssertFloat(0.8f * 5.0f / 3.3f, cFamily.GetLowVoltageIn(5.0f), 3);
+
+	//Parts work from the lowest VCC up.
+	AssertTrue(cFamily.IsPowered(1.8f));
+	AssertTrue(cFamily.IsPowered(5.0f));
+	AssertFalse(cFamily.IsPowered(1.7f));
+	AssertFalse(cFamily.IsPowered(0.0f));
+	AssertFalse(cFamily.IsPowered(NoVoltage()));
 
 	//No power.
 	AssertFalse(IsVoltage(cFamily.GetHighVoltageIn(0.0f)));
@@ -267,6 +276,9 @@ void TestVoltageConfigurationFixed(void)
 	AssertFloat(2.9f / 2001, cFixed.GetVoltsPerTimeLowToHigh(0.0f), 7);
 	AssertFloat(2.9f / 1000, cFixed.GetVoltsPerTimeHighToLow(0.0f), 7);
 	AssertLong(1001, cFixed.CalculateHoldTime(3.1f, 0.2f, 0.0f));
+	AssertTrue(cFixed.IsPowered(0.1f));
+	AssertFalse(cFixed.IsPowered(0.0f));
+	AssertFalse(cFixed.IsPowered(NoVoltage()));
 	cFixed.Kill();
 
 	AssertTrue(cConfiguration.Init(5.0f, 0.8f, 2.0f, 0.1f, 4.9f, 100, 100));

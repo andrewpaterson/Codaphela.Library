@@ -233,17 +233,56 @@ float32 CIntegratedCircuit::GetGND(int64 iTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// VCC is above zero and GND is zero.
+// GND is zero and VCC is one the chip's family works at, see
+// CVoltageConfigurationSource::IsPowered; any VCC above zero for a chip
+// with no family.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIntegratedCircuit::IsPowered(int64 iTime)
 {
-	float32	fVcc;
-	float32	fGnd;
+	float32							fVcc;
+	float32							fGnd;
+	CVoltageConfigurationSource*	pcSource;
 
-	fVcc = GetVCC(iTime);
 	fGnd = GetGND(iTime);
-	return (IsVoltage(fVcc) && (fVcc > 0.0f)) && (IsVoltage(fGnd) && (fGnd == 0.0f));
+	if (!IsVoltage(fGnd) || (fGnd != 0.0f))
+	{
+		return false;
+	}
+	fVcc = GetVCC(iTime);
+	pcSource = GetVoltageConfigurationSource();
+	if (pcSource != NULL)
+	{
+		return pcSource->IsPowered(fVcc);
+	}
+	return IsVoltage(fVcc) && (fVcc > 0.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The family of the chip's first logic port that has one, or NULL.
+//
+//////////////////////////////////////////////////////////////////////////
+CVoltageConfigurationSource* CIntegratedCircuit::GetVoltageConfigurationSource(void)
+{
+	size							i;
+	CPort*							pcPort;
+	CVoltageConfigurationSource*	pcSource;
+
+	for (i = 0; i < mpPins->NumPorts(); i++)
+	{
+		pcPort = mpPins->GetPort(i);
+		if (pcPort->IsLogicPort())
+		{
+			pcSource = ((CLogicPort*)pcPort)->GetVoltageConfigurationSource();
+			if (pcSource != NULL)
+			{
+				return pcSource;
+			}
+		}
+	}
+	return NULL;
 }
 
 

@@ -129,6 +129,27 @@ CVoltageConfiguration* CFamilyVoltageConfiguration::Get(float32 fVcc)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A part works from the family's lowest VCC up, the lowest it has data
+// for; a family with none works at any VCC above zero.  Below it the
+// voltages are still worked out (from zero) but nothing slews.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFamilyVoltageConfiguration::IsPowered(float32 fVcc)
+{
+	if (!IsVoltage(fVcc) || (fVcc <= 0.0f))
+	{
+		return false;
+	}
+	if (macConfigurations.NumElements() == 0)
+	{
+		return true;
+	}
+	return fVcc >= macConfigurations.Get(0)->GetVcc();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The configuration with the lowest VCC at or above fVcc, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////

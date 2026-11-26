@@ -36,7 +36,9 @@ A [`CVoltageConfiguration`] is a logic family at one supply voltage: the input t
 or above, unsettled between), the output voltages, and the hold and slew times for each kind of change, an output
 holding its old voltage for the hold time and then slewing over the slew time.  A [`CFamilyVoltageConfiguration`]
 holds a family at each VCC it has data for and interpolates between them; below the lowest the voltages come from
-zero, above the highest they scale with VCC, and with no VCC there is no power.  [`CFixedVoltageConfiguration`] is
+zero, above the highest they scale with VCC, and with no VCC there is no power.  A part works from its family's
+lowest VCC up ([`CVoltageConfigurationSource::IsPowered`]): a chip is powered while its GND is zero and its VCC is one
+its family works at ([`CIntegratedCircuit::IsPowered`]); below it nothing it drives slews.  [`CFixedVoltageConfiguration`] is
 one configuration at any VCC, for tests and simple circuits; both are a [`CVoltageConfigurationSource`].
 
 [`CFamilyVoltageConfigurationStore`] loads the families from a CSV file, Logicim's

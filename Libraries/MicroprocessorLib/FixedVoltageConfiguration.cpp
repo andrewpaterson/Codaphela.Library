@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "Voltage.h"
 #include "FixedVoltageConfiguration.h"
 
 
@@ -58,6 +59,14 @@ void CFixedVoltageConfiguration::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CVoltageConfiguration* CFixedVoltageConfiguration::Get(float32 fVcc) { return &mcConfiguration; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Any VCC above zero.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFixedVoltageConfiguration::IsPowered(float32 fVcc) { return IsVoltage(fVcc) && (fVcc > 0.0f); }
 float32 CFixedVoltageConfiguration::GetLowVoltageIn(float32 fVcc) { return mcConfiguration.GetLowVoltageIn(); }
 float32 CFixedVoltageConfiguration::GetHighVoltageIn(float32 fVcc) { return mcConfiguration.GetHighVoltageIn(); }
 float32 CFixedVoltageConfiguration::GetVoltageOut(bool bValue, float32 fVcc) { return mcConfiguration.GetVoltageOut(bValue); }

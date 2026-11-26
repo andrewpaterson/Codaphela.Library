@@ -49,6 +49,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 class CIntegratedCircuitEvent;
 class CXMLWriter;
 class CMarkupTag;
+class CVoltageConfigurationSource;
 class CIntegratedCircuit : public CCircuitComponent
 {
 CONSTRUCTABLE(CIntegratedCircuit);
@@ -57,42 +58,43 @@ protected:
 	CArrayEventPtr	mapcEvents;
 
 public:
-			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CPins> pPins);
-			void			Class(void) override;
-			void			Free(void) override;
+			void							Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CPins> pPins);
+			void							Class(void) override;
+			void							Free(void) override;
 
-	virtual void			ExecuteTick(CTimeline* pcTimeline);
-	virtual void			TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
-	virtual void			Disconnect(CTimeline* pcTimeline);
-	virtual void			Reset(CTimeline* pcTimeline);
-	virtual void			ResetState(void);
-	virtual void			WriteOutputs(CTimeline* pcTimeline);
+	virtual void							ExecuteTick(CTimeline* pcTimeline);
+	virtual void							TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
+	virtual void							Disconnect(CTimeline* pcTimeline);
+	virtual void							Reset(CTimeline* pcTimeline);
+	virtual void							ResetState(void);
+	virtual void							WriteOutputs(CTimeline* pcTimeline);
 
-	virtual void			SimulationStarted(CTimeline* pcTimeline) =0;
-	virtual void			InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
-	virtual const char*		GetType(void) =0;
+	virtual void							SimulationStarted(CTimeline* pcTimeline) =0;
+	virtual void							InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
+	virtual const char*						GetType(void) =0;
 
-	virtual const char*		GetStateXMLName(void) const;
-	virtual void			SaveXML(CXMLWriter* pcWriter);
-	virtual bool			LoadXML(CMarkupTag* pcTag);
+	virtual const char*						GetStateXMLName(void) const;
+	virtual void							SaveXML(CXMLWriter* pcWriter);
+	virtual bool							LoadXML(CMarkupTag* pcTag);
 
-	virtual size			NumPorts(void);
-	virtual CPort*			GetPort(size uiIndex);
-	virtual CPort*			GetPort(const char* szName);
+	virtual size							NumPorts(void);
+	virtual CPort*							GetPort(size uiIndex);
+	virtual CPort*							GetPort(const char* szName);
 
-			CPins*			GetPins(void);
+			CPins*							GetPins(void);
 
-			float32			GetVCC(int64 iTime);
-			float32			GetGND(int64 iTime);
-			bool			IsPowered(int64 iTime);
+			float32							GetVCC(int64 iTime);
+			float32							GetGND(int64 iTime);
+			bool							IsPowered(int64 iTime);
+			CVoltageConfigurationSource*	GetVoltageConfigurationSource(void);
 
-			void			Add(CIntegratedCircuitEvent* pcEvent);
-			bool			Remove(CIntegratedCircuitEvent* pcEvent);
-			size			NumEvents(void) const;
-			CEvent*			GetEvent(size uiIndex);
+			void							Add(CIntegratedCircuitEvent* pcEvent);
+			bool							Remove(CIntegratedCircuitEvent* pcEvent);
+			size							NumEvents(void) const;
+			CEvent*							GetEvent(size uiIndex);
 
 protected:
-			void			ResetEventsAndPorts(void);
+			void							ResetEventsAndPorts(void);
 };
 
 
