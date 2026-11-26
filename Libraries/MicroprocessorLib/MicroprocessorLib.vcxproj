@@ -225,6 +225,8 @@
     <ClCompile Include="Constant.cpp" />
     <ClCompile Include="ProbePins.cpp" />
     <ClCompile Include="Probe.cpp" />
+    <ClCompile Include="ResetSupervisorPins.cpp" />
+    <ClCompile Include="ResetSupervisor.cpp" />
     <ClCompile Include="ClockOscillatorPins.cpp" />
     <ClCompile Include="ClockOscillator.cpp" />
     <ClCompile Include="DTypeFlipFlopPins.cpp" />
@@ -462,6 +464,8 @@
     <ClInclude Include="Constant.h" />
     <ClInclude Include="ProbePins.h" />
     <ClInclude Include="Probe.h" />
+    <ClInclude Include="ResetSupervisorPins.h" />
+    <ClInclude Include="ResetSupervisor.h" />
     <ClInclude Include="ClockOscillatorPins.h" />
     <ClInclude Include="ClockOscillator.h" />
     <ClInclude Include="DTypeFlipFlopPins.h" />

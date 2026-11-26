@@ -309,4 +309,5 @@ CSubcircuitInstanceSimulation* CCircuitSimulation::GetInstanceSimulation(size ui
 void CCircuitSimulation::SetPowerUpState(EPowerUpState ePowerUpState) { mePowerUpState = ePowerUpState; }
 EPowerUpState CCircuitSimulation::GetPowerUpState(void) const { return mePowerUpState; }
 uint32 CCircuitSimulation::GetPowerUpSeed(void) const { return muiPowerUpSeed; }
+bool CCircuitSimulation::IsPoweringUp(void) { return mpCircuit->IsPoweringUp(); }
 

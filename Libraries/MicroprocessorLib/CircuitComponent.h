@@ -38,6 +38,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //To take a component out of a running simulation, as Logicim's editor does, call Disconnect and DisconnectPorts, so
 //the ports on its traces see them go undriven, then remove it from the circuit.
+//
+//IsPoweringUp says the component is still coming up from power on: a supply ramping, a supervisor holding reset.
+//An application can run the simulation flat out until nothing is (CCircuit::IsPoweringUp).
 class CTimeline;
 class CPort;
 class CCircuit;
@@ -67,6 +70,7 @@ public:
 
 			void					DisconnectPorts(CTimeline* pcTimeline);
 
+	virtual bool					IsPoweringUp(void);
 	virtual char*					GetComponentName(void);  //Not GetName, that is the object's name.
 	virtual void					AppendDescription(CChars* psz);
 			CSubcircuitSimulation*	GetContainingSubcircuitSimulation(void) const;

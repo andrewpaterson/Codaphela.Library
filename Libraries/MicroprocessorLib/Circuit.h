@@ -46,6 +46,7 @@ public:
 	bool				IsEmpty(void);
 
 	void				SimulationStarted(CTimeline* pcTimeline);
+	bool				IsPoweringUp(void);
 	void				GetIntegratedCircuits(const char* szType, CArrayIntegratedCircuitPtr* papcIntegratedCircuits);
 	size				NumIntegratedCircuits(void);
 	CIntegratedCircuit*	GetIntegratedCircuit(size uiIndex);

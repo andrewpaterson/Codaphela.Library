@@ -280,6 +280,34 @@ void CCircuit::SimulationStarted(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Whether any component is still coming up from power on, see
+// CCircuitComponent::IsPoweringUp.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuit::IsPoweringUp(void)
+{
+	size	i;
+
+	for (i = 0; i < maPassives.NumElements(); i++)
+	{
+		if (GetPassive(i)->IsPoweringUp())
+		{
+			return true;
+		}
+	}
+	for (i = 0; i < maIntegratedCircuits.NumElements(); i++)
+	{
+		if (GetIntegratedCircuit(i)->IsPoweringUp())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Adds the chips of type szType to papcIntegratedCircuits.
 //
 //////////////////////////////////////////////////////////////////////////

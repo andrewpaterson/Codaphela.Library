@@ -100,6 +100,10 @@ was.  With a rise time it starts at 0V and rises, or stays off if it isn't on at
 A supply fed by another, a regulator ([`CPowerSource::SetFeed`]), has a power in port on its feed's rail: it is on
 while its feed is at its voltage plus its dropout or above, and off below it.
 
+A component still coming up from power on, a supply ramping or a supervisor holding its power-on reset, says so
+([`CCircuitComponent::IsPoweringUp`]), so an application can run the simulation flat out until nothing is
+([`CCircuitSimulation::IsPoweringUp`]).
+
 ## Ideal and analog signals
 
 The processors' pins don't hold traces: they hold a [`CLogicSignal`] for each signal and a [`CLogicBus`] for each
@@ -120,8 +124,8 @@ The circuit holds its components and owns its traces.  A component ([`CCircuitCo
 
 - a chip, [`CIntegratedCircuit`], with its [`CPins`] (always VCC and GND, then its logic ports);
 - a passive, [`CPassive`], which holds its own ports and does nothing while the simulation runs: [`CPowerSource`],
-  [`CPin`] (a circuit's input or output, a trace port per bit), [`CSplitter`] and [`CSubcircuitInstance`] (a
-  subcircuit placed in a circuit, a list of trace ports per pin).
+  [`CPull`] (a pull-up or pull-down), [`CPin`] (a circuit's input or output, a trace port per bit), [`CSplitter`] and
+  [`CSubcircuitInstance`] (a subcircuit placed in a circuit, a list of trace ports per pin).
 
 Circuits, components and pins are StandardLib objects, made with [`OMalloc`] and kept by [`Ptr`]s: the circuit
 simulation is kept under the root, the circuit by the simulation, the components by the circuit and the pins by
@@ -167,6 +171,7 @@ undriven inputs and keeps the output.
 | [`CConstant`], [`CProbe`], [`CClockOscillator`], [`COscilloscope`] | a fixed value, inputs read from outside the simulation, a clock, sampled traces |
 | [`CDTypeFlipFlop`], [`CCounter`] | Logicim's flip-flop and counter (a 74161, optionally with its synchronous load) |
 | [`CGateArray`], [`CBusBuffer`], [`CBusTransceiver`], [`CRegister`], [`CFlipFlopArray`], [`CDecoder`], [`CMultiplexer`], [`CAdder`], [`CComparator`] | generic 74 series parts, groups of bits whose pins are a [`CGroupPins`] (a 74LVC16373 is two groups of an 8 bit latch) |
+| [`CResetSupervisor`] | a power-on reset supervisor, a DS1813: reset low while VCC is under its trip voltage and for its reset time after, or after a button pulls it low; its open drain reset has its own levels and pull-up ([`CResetSupervisorPins`]) |
 | [`CW65C816Chip`], [`C65C64Chip`] | the processors |
 
 ### Processors as chips

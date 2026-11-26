@@ -50,6 +50,7 @@ public:
 	virtual const char*		GetType(void);
 	virtual void			SimulationStarted(CTimeline* pcTimeline);
 	virtual void			TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
+	virtual bool			IsPoweringUp(void);
 
 			void			Switch(CTimeline* pcTimeline, bool bOn);
 			bool			IsOn(void) const;

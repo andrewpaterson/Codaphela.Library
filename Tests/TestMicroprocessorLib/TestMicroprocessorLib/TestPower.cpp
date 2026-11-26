@@ -1,6 +1,7 @@
 #include "MicroprocessorLib/PowerOutPort.h"
 #include "MicroprocessorLib/GroupPins.h"
 #include "MicroprocessorLib/Register.h"
+#include "MicroprocessorLib/ResetSupervisor.h"
 #include "TestCircuitBoard.h"
 #include "TestLib/Assert.h"
 
@@ -415,6 +416,91 @@ void TestPowerUpState(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A DS1813 on a 5V rail rising 0.1V every 100ns, its reset time 1us:
+// reset low from when it has power, while VCC is under 4.35V, and for
+// the reset time after; then high through its pull-up.  A reset button
+// held low and let go gives a reset the reset time long.  VCC dipping
+// under the trip voltage resets at once.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPowerSupervisor(void)
+{
+	CTestBoard			cBoard;
+	CTrace*				pcRail;
+	CTrace*				pcReset;
+	CTrace*				pcButtonTrace;
+	CPowerSource*		pcSupply;
+	CResetSupervisor*	pcSupervisor;
+	CConstant*			pcButton;
+	CLogicPort*			pcButtonOutput;
+	int64				iStep;
+	int64				iResetTime;
+
+	cBoard.Init();
+	pcRail = cBoard.NewTrace();
+	pcSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "5V", 5.0f);
+	pcSupply->SetRiseTime(NanosecondsToTime((int64)5000));
+	pcSupply->GetPowerOutPort()->Connect(pcRail);
+	pcSupervisor = &OMalloc<CResetSupervisor>(cBoard.mpcTop, "IC3", OMalloc<CResetSupervisorPins>());
+	AssertFloat(4.35f, pcSupervisor->GetTripVoltage(), 3);
+	AssertLong(NanosecondsToTime((int64)150000000), pcSupervisor->GetResetTime());
+	iResetTime = NanosecondsToTime((int64)1000);
+	pcSupervisor->SetResetTime(iResetTime);
+	pcSupervisor->GetPins()->GetVoltageCommon()->Connect(pcRail);
+	pcSupervisor->GetPins()->GetVoltageGround()->Connect(cBoard.mpcGND);
+	pcReset = cBoard.NewTrace();
+	pcSupervisor->GetResetSupervisorPins()->GetReset()->Connect(pcReset);
+	pcButton = cBoard.Input("Button", 1, 1, &pcButtonTrace);
+	pcButtonOutput = pcButton->GetConstantPins()->GetOutput(0);
+	iStep = NanosecondsToTime((int64)100);
+	cBoard.Start();
+	AssertTrue(cBoard.mpSimulation->IsPoweringUp());
+
+	cBoard.mpcTimeline->RunToTime(20 * iStep + NanosecondsToTime((int64)50));
+	AssertTrue(pcSupervisor->IsAsserting());
+	AssertInt(TV_Low, cBoard.Value(pcReset));
+	cBoard.mpcTimeline->RunToTime(24 * iStep);
+	AssertFloat(4.4f, pcRail->GetVoltage(cBoard.mpcTimeline->GetTime()), 3);
+	AssertTrue(pcSupervisor->IsAsserting());
+	AssertInt(TV_Low, cBoard.Value(pcReset));
+	cBoard.mpcTimeline->RunToTime(iResetTime - NanosecondsToTime((int64)60));
+	AssertInt(TV_Low, cBoard.Value(pcReset));
+	cBoard.mpcTimeline->RunToTime(NanosecondsToTime((int64)20));
+	AssertFalse(pcSupervisor->IsAsserting());
+	AssertFloat(5.0f, pcReset->GetVoltage(cBoard.mpcTimeline->GetTime()), 3);
+	AssertFalse(cBoard.mpSimulation->IsPoweringUp());
+
+	//The button pulls the line low; while it does reset stays low, and for the reset time after.
+	pcButtonOutput->Disconnect(cBoard.mpcTimeline);
+	AssertTrue(pcButtonOutput->ConnectLive(pcReset, cBoard.mpcTimeline));
+	cBoard.Write(pcButton, false);
+	cBoard.Run();
+	AssertInt(TV_Low, cBoard.Value(pcReset));
+	AssertFalse(pcSupervisor->IsAsserting());
+	pcButtonOutput->WriteImpedance(cBoard.mpcTimeline);
+	cBoard.mpcTimeline->RunToTime(NanosecondsToTime((int64)50));
+	AssertTrue(pcSupervisor->IsAsserting());
+	AssertInt(TV_Low, cBoard.Value(pcReset));
+	AssertFalse(cBoard.mpSimulation->IsPoweringUp());
+	cBoard.Run();
+	AssertFalse(pcSupervisor->IsAsserting());
+	AssertInt(TV_High, cBoard.Value(pcReset));
+
+	//The supply switched off: at 4.3V reset goes low at once.
+	pcSupply->Switch(cBoard.mpcTimeline, false);
+	cBoard.mpcTimeline->RunToTime(6 * iStep + NanosecondsToTime((int64)50));
+	AssertFloat(4.4f, pcRail->GetVoltage(cBoard.mpcTimeline->GetTime()), 3);
+	AssertFalse(pcSupervisor->IsAsserting());
+	cBoard.mpcTimeline->RunToTime(iStep);
+	AssertTrue(pcSupervisor->IsAsserting());
+	AssertInt(TV_Low, cBoard.Value(pcReset));
+
+	cBoard.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPower(void)
@@ -428,6 +514,7 @@ void TestPower(void)
 	TestPowerTiedInput();
 	TestPowerRegulator();
 	TestPowerUpState();
+	TestPowerSupervisor();
 
 	TestStatistics();
 }

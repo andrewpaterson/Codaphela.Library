@@ -657,6 +657,12 @@
     <ClCompile Include="Probe.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="ResetSupervisorPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ResetSupervisor.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="ClockOscillatorPins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -1362,6 +1368,12 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="Probe.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ResetSupervisorPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ResetSupervisor.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="ClockOscillatorPins.h">

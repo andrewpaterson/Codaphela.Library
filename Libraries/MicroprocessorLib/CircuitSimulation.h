@@ -95,6 +95,7 @@ public:
 	void							SetPowerUpSeed(uint32 uiSeed);
 	uint32							GetPowerUpSeed(void) const;
 	bool							NextPowerUpBit(void);
+	bool							IsPoweringUp(void);
 
 	static void						ResetNextID(void);
 };
