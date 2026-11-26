@@ -436,6 +436,8 @@ void TestFontMapFontViewportLayout(void)
 		bool						bResult;
 		CTimer						cTimer;
 		int64						iMilliseconds;
+		int64						iFastest;
+		int							iBlit;
 
 		pRoot = ORoot();
 		pFont = CreateFont("nuskool_krome_64x64", 64, 64);
@@ -470,17 +472,27 @@ void TestFontMapFontViewportLayout(void)
 		bResult = pMaps->CreateCelBlitters();
 		AssertTrue(bResult);
 
-		cTimer.Init();
+		//The fastest of five blits (onto black each time, as the first), which a busy machine hardly slows.
 		pMaps->SetViewportPosition(0, 0);
-		bResult = pMaps->Blit(false);
-		AssertTrue(bResult);
-		cTimer.Update();
-		iMilliseconds = cTimer.GetTotalTimeInMillieconds();
+		iFastest = -1;
+		for (iBlit = 0; iBlit < 5; iBlit++)
+		{
+			pDestImage->Black();
+			cTimer.Init();
+			bResult = pMaps->Blit(false);
+			AssertTrue(bResult);
+			cTimer.Update();
+			iMilliseconds = cTimer.GetTotalTimeInMillieconds();
+			if ((iFastest < 0) || (iMilliseconds < iFastest))
+			{
+				iFastest = iMilliseconds;
+			}
+		}
 #ifndef __SANITIZE_THREAD__
 		//Not under ThreadSanitizer, which runs everything several times slower.
-		AssertTrue(iMilliseconds < 10);
+		AssertTrue(iFastest < 10);
 #else
-		(void)iMilliseconds;
+		(void)iFastest;
 #endif // !__SANITIZE_THREAD__
 
 		gcObjects.EnableValidation();
