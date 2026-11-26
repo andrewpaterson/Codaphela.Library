@@ -32,8 +32,8 @@ class CActions
 public:
 	CSetActions		mlcActions;
 
-	void 		Init(void);
-	void 		Kill(void);
+	void		Init(void);
+	void		Kill(void);
 
 	CAction*	AddAction(const char* szName);
 	CAction*	GetAction(const char* szName);

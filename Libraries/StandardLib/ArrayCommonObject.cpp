@@ -120,8 +120,8 @@ void CArrayCommonObject::Free(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 {
-	size 				i;
-	size 				uiNumElements;
+	size				i;
+	size				uiNumElements;
 	CEmbeddedObject*	pcPointedTo;
 
 	//Saved in order, and so read back in order: its members keep their indexes.
@@ -144,9 +144,9 @@ bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Load(CObjectReader* pcFile)
 {
-	size 				i;
-	uint16 				iFlags;
-	size 				uiNumElements;
+	size				i;
+	uint16				iFlags;
+	size				uiNumElements;
 	CEmbeddedObject**	pcPointedTo;
 
 	KillMemberLocations();
@@ -265,8 +265,8 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 
 	CArrayEmbeddedObjectPtr		apcObjects;
 	CEmbeddedObject*			pcObject;
-	size 						i;
-	size 						uiNumElements;
+	size						i;
+	size						uiNumElements;
 	bool						bIgnoreNull;
 	bool						bAllAdded;
 
@@ -426,8 +426,8 @@ bool CArrayCommonObject::ClearPointerTos(bool bFree)
 	OBJECTS_INSIDE();
 
 	CBaseObject*	pcPointedTo;
-	size 			i;
-	size 			uiNumElements;
+	size			i;
+	size			uiNumElements;
 	bool			bResult;
 
 	bResult = true;
@@ -490,9 +490,9 @@ size CArrayCommonObject::NonNullElements(void)
 size CArrayCommonObject::BaseNumPointerTos(void)
 {
 	CBaseObject*	pcPointedTo;
-	size 			i;
-	size 			iCount;
-	size 			uiNumElements;
+	size			i;
+	size			iCount;
+	size			uiNumElements;
 
 	uiNumElements = mcArray.UnsafeNumElements();
 	iCount = 0;
@@ -532,8 +532,8 @@ void CArrayCommonObject::RemovePointerTo(CEmbeddedObject* pcTo)
 void CArrayCommonObject::BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos)
 {
 	CEmbeddedObject*	pcPointedTo;
-	size 				i;
-	size 				uiNumElements;
+	size				i;
+	size				uiNumElements;
 	size				uiFirst;
 
 	uiFirst = papcTos->NumElements();
@@ -568,9 +568,9 @@ size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject
 {
 	OBJECTS_INSIDE();
 
-	size 				iCount;
-	size 				i;
-	size 				uiNumElements;
+	size				iCount;
+	size				i;
+	size				uiNumElements;
 	CPointerLocations*	pcLocations;
 
 	if (pcOld == pcNew)
@@ -666,8 +666,8 @@ void CArrayCommonObject::TouchAll(void)
 
 	CBaseObject*	pcObject;
 	CPointer		pObject;
-	size 			i;
-	size 			uiNumElements;
+	size			i;
+	size			uiNumElements;
 
 	uiNumElements = mcArray.UnsafeNumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -690,9 +690,9 @@ void CArrayCommonObject::KillAll(void)
 	//Killing an Object removes it from this array (and can kill other Objects in it) so always look for the first Object left.
 
 	CBaseObject*	pcObject;
-	size 			i;
-	size 			uiStart;
-	size 			uiNumElements;
+	size			i;
+	size			uiStart;
+	size			uiNumElements;
 
 	uiStart = 0;
 	for (;;)

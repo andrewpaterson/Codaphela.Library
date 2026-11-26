@@ -78,7 +78,7 @@ bool CObjectIdentifier::IsNamed(void) const
 	{
 		return false;
 	}
-	
+
 	if (mszObjectName.Empty())
 	{
 		return false;

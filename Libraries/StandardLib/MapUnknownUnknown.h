@@ -31,7 +31,7 @@ CONSTRUCTABLE(CMapUnknownUnknown)
 private:
 	CMapPtrPtr	mcMap;
 
-public:	
+public:
 	void		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Init(bool bKillElements, bool bOverwriteExisting, DataCompare fKeyCompare);
@@ -75,7 +75,7 @@ public:
 	void		Dump(void);
 	size		Sort(void);
 	bool		IsSorted(void);
-	CMapPtrPtr* GetPointerMap(void);
+	CMapPtrPtr*	GetPointerMap(void);
 
 protected:
 	void		FreeData(void* pvData) override;

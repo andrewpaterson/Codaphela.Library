@@ -163,9 +163,9 @@ void	ObjectsNotLocking(void);
 //For the tests that every way in has its guard (TestObjectsThreadsEveryWayIn), and that threads which aren't to use
 //objects don't.
 size	ObjectsNumWaysIn(void);				//How many times the running thread has come into the object system from outside
-											//it: taken the lock when it didn't hold it, or read (ObjectsThreads.h).
+//it: taken the lock when it didn't hold it, or read (ObjectsThreads.h).
 size	ObjectsNumThreadErrors(void);		//How many times a thread has been told it used the object system wrongly: its
-											//machinery reached without the lock, or objects used by a thread that isn't registered.
+//machinery reached without the lock, or objects used by a thread that isn't registered.
 
 
 class CObjects;

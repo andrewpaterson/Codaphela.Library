@@ -52,8 +52,8 @@ bool CSerialisedObject::IsNamed(void) const
 ////////////////////////////////////////////////////////////////////////////
 bool CSerialisedObject::IsIndexed(void) const
 {
-	bool bIndexed;
-	bool bNamed;
+	bool	bIndexed;
+	bool	bNamed;
 
 	bIndexed = meType == OBJECT_POINTER_ID;
 	if (bIndexed)

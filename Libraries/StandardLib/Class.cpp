@@ -595,7 +595,7 @@ CClass* CClass::GetClass(EPrimitiveType eType)
 CField* CClass::AddField(size uiFieldSize, const char* szName)
 {
 	size	uiNameLength;
-	CField* pcField;
+	CField*	pcField;
 
 	uiNameLength = StrLen(szName) + 1;
 	pcField = (CField*)macFields.Add(uiFieldSize + uiNameLength);

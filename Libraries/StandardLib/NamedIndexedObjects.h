@@ -30,7 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNamedIndexedObjects
 {
 protected:
-	CIndexTreeMemory 	mcMemoryNames;
+	CIndexTreeMemory	mcMemoryNames;
 	CIndexedObjects		mcMemoryIndexedObjects;
 
 public:
@@ -43,7 +43,7 @@ public:
 	bool				Has(OIndex oi);
 	bool				Has(const char* szName);
 	bool				CanAdd(CBaseObject* pcObject);
-		bool				Add(CBaseObject* pcObject);
+		bool			Add(CBaseObject* pcObject);
 	bool				RemoveIndex(OIndex oi);
 	bool				RemoveName(const char* szName);
 	size				NumIndexed(void) const;

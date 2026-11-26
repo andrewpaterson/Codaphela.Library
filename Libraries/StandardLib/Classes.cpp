@@ -71,7 +71,7 @@ void CClasses::Kill(void)
 
 	mmcpClassesByName.Kill();
 	mmcpClassesByType.Kill();
-	
+
 	pcClass = (CClass*)maClasses.StartIteration(&sIter);
 	while (pcClass)
 	{

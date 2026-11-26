@@ -40,7 +40,7 @@ public:
 
 			using CPointer::operator =;
 			Ptr&	operator = (const Ptr& cPointer) { CPointer::operator = (cPointer); return *this; };
-	
+
 	M*		operator -> ();
 	M*		operator & ();  //The address of the object this points to, as CPointer's.
 
@@ -125,7 +125,7 @@ Ptr<M> Ptr<M>::operator + (const char* sz)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M>::operator bool() const 
+Ptr<M>::operator bool() const
 {
 	return IsNotNull();
 }

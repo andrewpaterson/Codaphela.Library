@@ -31,20 +31,20 @@ private:
 	CClasses* mpcClasses;
 
 protected:
-	CClass* mpcInt8;
-	CClass* mpcInt16;
-	CClass* mpcInt32;
-	CClass* mpcInt64;
-	CClass* mpcUInt8;
-	CClass* mpcUInt16;
-	CClass* mpcUInt32;
-	CClass* mpcUInt64;
-	CClass* mpcFloat32;
-	CClass* mpcFloat64;
-	CClass* mpcBool;
-	CClass* mpcVoid;
-	CClass* mpcChar8;
-	CClass* mpcChar16;
+	CClass*	mpcInt8;
+	CClass*	mpcInt16;
+	CClass*	mpcInt32;
+	CClass*	mpcInt64;
+	CClass*	mpcUInt8;
+	CClass*	mpcUInt16;
+	CClass*	mpcUInt32;
+	CClass*	mpcUInt64;
+	CClass*	mpcFloat32;
+	CClass*	mpcFloat64;
+	CClass*	mpcBool;
+	CClass*	mpcVoid;
+	CClass*	mpcChar8;
+	CClass*	mpcChar16;
 
 public:
 	void		Init(CClasses* pcClasses);

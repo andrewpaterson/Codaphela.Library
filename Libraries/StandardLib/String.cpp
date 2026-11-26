@@ -406,9 +406,9 @@ size  CString::Find(size iPos, Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CString::GetChars(void) 
-{ 
-	return &msz; 
+CChars* CString::GetChars(void)
+{
+	return &msz;
 }
 
 

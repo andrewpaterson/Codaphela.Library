@@ -36,7 +36,7 @@ class CObjectReader : public CFileReader
 protected:
 	CDependentReadObjects*	mpcDependents;
 	CFileBasic				mcFile;
-	
+
 public:
 	bool			Init(CAbstractFile* pcFile, CDependentReadObjects* pcDependents);
 	void			Kill(void);

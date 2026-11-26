@@ -228,8 +228,8 @@ CStackPointer* CStackPointer::Remove(EStackPointerType eType, void* pvPointer, C
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::RemoveAll(CFreeList* pcFreeList)
 {
-	CStackPointer* pcNext;
-	CStackPointer* pcThis;
+	CStackPointer*	pcNext;
+	CStackPointer*	pcThis;
 
 	pcNext = this;
 	while (pcNext != NULL)

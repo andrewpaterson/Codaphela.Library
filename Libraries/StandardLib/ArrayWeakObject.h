@@ -44,7 +44,7 @@ public:
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;
 
-	void		ClearWeak(size uiSlot) override;
+	void				ClearWeak(size uiSlot) override;
 	void				RemapWeak(size uiSlot, CEmbeddedObject* pcObject) override;
 	CEmbeddedObject*	GetWeak(size uiSlot) override;
 

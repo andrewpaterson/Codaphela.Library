@@ -377,7 +377,7 @@ void CArrayCommonUnknown::Sort(void)
 bool CArrayCommonUnknown::Contains(CUnknown* pcUnknown)
 {
 	size		iIndex;
-	
+
 	iIndex = Find(pcUnknown);
 	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{

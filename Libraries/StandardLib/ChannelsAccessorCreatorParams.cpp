@@ -228,7 +228,7 @@ bool CChannelsAccessorCreatorParams::CalculateChannelByteAligned(void)
 	{
 		psAccess = masAccesses.Get(i);
 		pcChannel = mpcChannels->GetChannel(psAccess->iChannel);
-		
+
 		if (pcChannel->miByteSize == CHANNEL_NON_ALIGNED_BYTES)
 		{
 			return false;

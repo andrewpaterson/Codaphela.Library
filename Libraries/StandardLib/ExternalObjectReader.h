@@ -32,8 +32,8 @@ public:
 			void				Kill(void) override;
 
 	virtual bool				Begin(void);
-	virtual CSerialisedObject*  Read(const char* szObjectName) =0;
-	virtual CSerialisedObject*  Read(OIndex oi) =0;
+	virtual CSerialisedObject*	Read(const char* szObjectName) =0;
+	virtual CSerialisedObject*	Read(OIndex oi) =0;
 	virtual bool				End(void);
 
 protected:

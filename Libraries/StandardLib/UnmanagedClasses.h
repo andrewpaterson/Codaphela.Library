@@ -31,47 +31,47 @@ private:
 	size		muiNumUnmanagedClasses;
 
 protected:
-	CClass* mpcUndefined;
-	CClass* mpcVoidPointer;
+	CClass*	mpcUndefined;
+	CClass*	mpcVoidPointer;
 
-	CClass* mpcInt8;
-	CClass* mpcInt16;
-	CClass* mpcInt32;
-	CClass* mpcInt64;
-	CClass* mpcUInt8;
-	CClass* mpcUInt16;
-	CClass* mpcUInt32;
-	CClass* mpcUInt64;	
-	CClass* mpcFloat32;
-	CClass* mpcFloat64;
-	CClass* mpcM2float32;
-	CClass* mpcM3float32;
-	CClass* mpcM4float32;
-	CClass* mpcM2float64;
-	CClass* mpcM3float64;
-	CClass* mpcM4float64;
-	CClass* mpcM2int32;
-	CClass* mpcM3int32;	
-	CClass* mpcM4int32;	
-	CClass* mpcM4x4float32;
-	CClass* mpcBool; 	
-	CClass* mpcVoid;	
-	CClass* mpcChar8;
-	CClass* mpcChar16;
+	CClass*	mpcInt8;
+	CClass*	mpcInt16;
+	CClass*	mpcInt32;
+	CClass*	mpcInt64;
+	CClass*	mpcUInt8;
+	CClass*	mpcUInt16;
+	CClass*	mpcUInt32;
+	CClass*	mpcUInt64;
+	CClass*	mpcFloat32;
+	CClass*	mpcFloat64;
+	CClass*	mpcM2float32;
+	CClass*	mpcM3float32;
+	CClass*	mpcM4float32;
+	CClass*	mpcM2float64;
+	CClass*	mpcM3float64;
+	CClass*	mpcM4float64;
+	CClass*	mpcM2int32;
+	CClass*	mpcM3int32;
+	CClass*	mpcM4int32;
+	CClass*	mpcM4x4float32;
+	CClass*	mpcBool;
+	CClass*	mpcVoid;
+	CClass*	mpcChar8;
+	CClass*	mpcChar16;
 
-	CClass* mpcString;
-	CClass* mpcStringImmutable;
-	CClass* mpcNumber;
-	CClass* mpcDate;
-	CClass* mpcDateTime;
-	CClass* mpcEnum;
+	CClass*	mpcString;
+	CClass*	mpcStringImmutable;
+	CClass*	mpcNumber;
+	CClass*	mpcDate;
+	CClass*	mpcDateTime;
+	CClass*	mpcEnum;
 
-	CClass* mpcBit;
-	CClass* mpcCrumb;
-	CClass* mpcTribble;
-	CClass* mpcNybble;	
-	CClass* mpcNickle;	
-	CClass* mpcSixbits;
+	CClass*	mpcBit;
+	CClass*	mpcCrumb;
+	CClass*	mpcTribble;
+	CClass*	mpcNybble;
+	CClass*	mpcNickle;
+	CClass*	mpcSixbits;
 
 public:
 	void		Init(CClasses* pcClasses);

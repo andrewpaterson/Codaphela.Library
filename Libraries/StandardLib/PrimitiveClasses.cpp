@@ -52,7 +52,7 @@ CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldTyp
 void CPrimitiveClasses::Init(CClasses* pcClasses)
 {
 	mpcClasses = pcClasses;
-	
+
 	mpcInt8 = AddClassWithConstructorAndIO<Int8>(PT_int8);
 	mpcInt16 = AddClassWithConstructorAndIO<Int16>(PT_int16);
 	mpcInt32 = AddClassWithConstructorAndIO<Int32>(PT_int32);
@@ -85,7 +85,7 @@ void CPrimitiveClasses::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size uiFieldOffset) 
+CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, size uiFieldOffset)
 {
 	CUnmanagedField*	pcField;
 	CClass*				pcClass;
@@ -110,7 +110,7 @@ CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, E
 CClass* CPrimitiveClasses::AddVoid(void)
 {
 	Void	cVoid;
-	CClass* pcClass;
+	CClass*	pcClass;
 
 	pcClass = mpcClasses->Add(cVoid.ClassName(), cVoid.ClassSize());
 	pcClass->Primitive();

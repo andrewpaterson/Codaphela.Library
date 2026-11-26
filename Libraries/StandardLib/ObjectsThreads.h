@@ -110,7 +110,7 @@ struct SObjectsReader
 	bool	bHome;		//It is the home thread, whose stack froms are on the objects.
 	int32	iReads;		//How many times it has read and done what it came for,
 	int32	iLocks;		//and taken the lock from outside.  Its ways in, written by the thread and read by the tests of the
-						//ways in and by the home thread, which frees forwarding hollows by them (CObjects::FreeForwarders).
+	//ways in and by the home thread, which frees forwarding hollows by them (CObjects::FreeForwarders).
 };
 
 

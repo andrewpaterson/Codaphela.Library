@@ -66,7 +66,7 @@ void CObjects::ValidateObjectsConsistency(void)
 
 	CArrayBaseObjectPtr		apcObjects;
 
-	//Objects being Removed are flagged FREED but are still in memory while their Free() runs.  If Free() 
+	//Objects being Removed are flagged FREED but are still in memory while their Free() runs.  If Free()
 	//causes other objects to be killed (e.g. RemoveFreeObject) the graph is not yet consistent.
 	if (mbValidateConsistency && !mcRemovalContext.IsBusy())
 	{
@@ -290,12 +290,12 @@ bool CObjects::ValidateNoEmbedded(CArrayBaseObjectPtr* papcObjectPts)
 		if (pcKilled->IsEmbedded())
 		{
 			pcContainer = pcKilled->GetEmbeddingContainer();
-			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetIndex()),"] of class [", pcContainer->ClassName(), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetIndex()), "] of class [", pcContainer->ClassName(), "].", NULL);
 			return false;
 		}
 		else if (!pcKilled->IsAllocatedInObjects())
 		{
-			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is not allocated in Objects [0x", PointerToString(this),"].", NULL);
+			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is not allocated in Objects [0x", PointerToString(this), "].", NULL);
 			return false;
 		}
 	}

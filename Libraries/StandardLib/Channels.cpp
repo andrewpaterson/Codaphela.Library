@@ -1439,7 +1439,7 @@ const char* CChannels::GetChannelLongName(size iChannel)
 			return psDesc->mszLongName;
 		}
 	}
-	
+
 	return NULL;
 }
 

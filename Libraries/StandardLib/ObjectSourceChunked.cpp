@@ -162,7 +162,7 @@ bool CObjectSourceChunked::IsMultiSource(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CObjectSourceChunked::IsNative(void) const
 {
-	return true; 
+	return true;
 }
 
 

@@ -50,11 +50,11 @@ public:
 
 	bool					Contains(CPointer& pObject);
 
-	size 					NumElements(void) override;
-	size 					NonNullElements(void) override;
+	size					NumElements(void) override;
+	size					NonNullElements(void) override;
 	bool					IsEmpty(void) override;
 
-	size 					BaseNumPointerTos(void)  override;
+	size					BaseNumPointerTos(void)  override;
 	void					BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	bool					ClearPointerTos(bool bFree) override;
 
@@ -87,7 +87,7 @@ protected:
 	void					FreePointers(void) override;
 	void					Free(void) override;
 	void					RemovePointerTo(CEmbeddedObject* pcTo) override;
-	size 					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
+	size					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 
 
 	bool					InsertAt(size iIndex, CPointer& pObject);

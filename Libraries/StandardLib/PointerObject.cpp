@@ -425,6 +425,10 @@ static NO_INLINE CEmbeddedObject* PointerForwarded(CEmbeddedObject* pcObject)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static inline CEmbeddedObject* NotForwarding(CEmbeddedObject* pcObject)
 {
 	return OBJECTS_SELDOM(guiObjectsForwarders != 0) ? PointerForwarded(pcObject) : pcObject;
@@ -763,7 +767,7 @@ CEmbeddedObject* CPointer::Return(void)
 
 	CEmbeddedObject*	pOldObject;
 
-	//Call this method when you need to return a pointers object but no other 
+	//Call this method when you need to return a pointers object but no other
 	//pointers point to the object and this pointers destructor must not destroy the object.
 
 	pOldObject = mpcObject;

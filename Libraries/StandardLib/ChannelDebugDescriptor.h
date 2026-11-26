@@ -33,8 +33,8 @@ public:
 	char	mszLongName[CHANNEL_DEBUG_NAME_LENGTH];
 	char	mszShortName[CHANNEL_DEBUG_NAME_LENGTH];
 
-	void Init(const char* szLongName, const char* szShortName);
-	void Kill(void);
+	void	Init(const char* szLongName, const char* szShortName);
+	void	Kill(void);
 };
 
 

@@ -96,7 +96,7 @@ protected:
 	bool					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
-	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
+	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.
 	CStackPointers*			mpcStackPointers;	//The pointers on the stack to this's objects.
 	CObjectsSource			mcSource;			//An object found on disk will be deserialised and then placed in memory.
 	CClasses				mcClasses;
@@ -108,7 +108,7 @@ protected:
 	ObjectCallback			mAllocationCallback;
 	ObjectCallback			mHollowAllocationCallback;
 	ObjectCallback			mDestructionCallback;
-	
+
 	bool					mbValidateConsistency;
 	CObjectRemovalContext	mcRemovalContext;
 	CWeakFroms				mcWeakFroms;  //Every weakly held object's weak references (WeakReferencesPlan.txt).
@@ -246,7 +246,7 @@ protected:
 						CBaseObject*			GetFromSources(const char* szObjectName);
 						OIndex					GetNextIndex(void);
 						OIndex					NextIndex(void);
-						
+
 						void					FreeInternal(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveAllPointerTos(CArrayBaseObjectPtr* papcObjectPts);
 						void					RemoveAllHeapFroms(CArrayBaseObjectPtr* papcObjectPts);

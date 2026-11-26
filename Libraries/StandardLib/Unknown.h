@@ -34,7 +34,7 @@ protected:
 public:
 						CUnknown();
 			void		SetUnknowns(CUnknowns* pcUnknowns);
-			void 		Kill(void) override;
+			void		Kill(void) override;
 
 	virtual bool		Iterable(void);
 			bool		SaveHeader(CFileWriter* pcFile);

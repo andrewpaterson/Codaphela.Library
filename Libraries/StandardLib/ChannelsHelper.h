@@ -44,8 +44,8 @@ struct SChannelsChangingDesc
 	lsize			iSize;
 	void*			pvUserData;
 
-	void Init();
-	void Kill();
+	void	Init();
+	void	Kill();
 };
 
 

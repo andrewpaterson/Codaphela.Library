@@ -34,7 +34,7 @@ public:
 	void				Init(CFileBasic* pcFile);
 	void				Kill(void) override;
 
-	CSerialisedObject*  Read(const char* szObjectName) override;
+	CSerialisedObject*	Read(const char* szObjectName) override;
 	CSerialisedObject*	Read(OIndex oi) override;
 
 protected:

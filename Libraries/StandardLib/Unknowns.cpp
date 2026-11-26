@@ -525,7 +525,7 @@ void CUnknowns::Dump(void)
 
 	sz.Init();
 	sz.Append("------------------");
-	sz.AppendNewLine(); 
+	sz.AppendNewLine();
 	sz.Append("Num Unknowns: ");
 	sz.Append(miNumElements);
 	sz.AppendNewLine();

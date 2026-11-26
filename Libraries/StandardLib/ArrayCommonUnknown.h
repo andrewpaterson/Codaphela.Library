@@ -73,10 +73,10 @@ private:
 
 public:
 			void				_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
-			void 				Init(uint16 uiFlags, size iChunkSize = ARRAY_COMMON_DEFAULT_CHUNK_SIZE);
+			void				Init(uint16 uiFlags, size iChunkSize = ARRAY_COMMON_DEFAULT_CHUNK_SIZE);
 	static	uint16				Flags(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, bool bSortPointers);
-			void 				Kill(void) override;
-	virtual void 				ReInit(void);
+			void				Kill(void) override;
+	virtual void				ReInit(void);
 
 			bool				Save(CFileWriter* pcFile) override;
 			bool				Load(CFileReader* pcFile) override;

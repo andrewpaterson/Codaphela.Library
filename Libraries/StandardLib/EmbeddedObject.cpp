@@ -1376,7 +1376,7 @@ CEmbeddedObject* CEmbeddedObject::GetNesPointerFrom(size* piStart)
 			bHasNesToThis = pcFromObject->HasNesPointerToThis(this);
 			if (bHasNesToThis)
 			{
-				*piStart = j+1;
+				*piStart = j + 1;
 				return pcFromObject;
 			}
 		}

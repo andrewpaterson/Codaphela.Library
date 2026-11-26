@@ -60,10 +60,10 @@ public:
 
 	size		NumElements(void) const;
 	size		NonNullElements(void);
-	bool 		IsKillElements(void) const;
-	bool 		IsOverwriteExisting(void) const;
-	bool 		IsEmpty(void) const;
-	bool 		IsNotEmpty(void) const;
+	bool		IsKillElements(void) const;
+	bool		IsOverwriteExisting(void) const;
+	bool		IsEmpty(void) const;
+	bool		IsNotEmpty(void) const;
 
 	bool		StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
 	bool		Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);

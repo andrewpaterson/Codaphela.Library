@@ -38,8 +38,8 @@ protected:
 	CChars			mszName;
 
 public:
-	void 		Init(const char* szName);
-	void 		Kill(void) override;
+	void		Init(const char* szName);
+	void		Kill(void) override;
 
 	template<class M, class O>
 	void		Add(O* pcObject, void(M::*fFunction)(CAction* pcAction, void* pvContext));

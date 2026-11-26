@@ -53,8 +53,8 @@ class CObjectReader;
 
 class CPointer
 {
-template<class M> 
-friend class Ptr;
+	template<class M>
+	friend class Ptr;
 protected:
 	CEmbeddedObject*	mpcObject;
 	CObject*			mpcEmbedding;  //Collections do not embed pointer objects.  They manage their own pointers.
@@ -77,7 +77,7 @@ public:
 	bool				operator == (void* pcPointer);
 	bool				operator != (void* pcPointer);
 
-	void 				SetEmbedding(CObject* pcEmbedding);
+	void				SetEmbedding(CObject* pcEmbedding);
 
 	bool				IsNotNull(void) const;
 	bool				IsNull(void) const;

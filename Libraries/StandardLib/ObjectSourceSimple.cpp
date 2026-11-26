@@ -53,7 +53,7 @@ void CObjectSourceSimple::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjectSourceSimple::IsNative(void) const
 {
-	return true; 
+	return true;
 }
 
 

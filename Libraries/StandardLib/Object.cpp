@@ -556,10 +556,10 @@ void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 	{
 		pcPointer = GetPointerField(i);
 		pcPointedTo = pcPointer->Object();
-	
+
 		if (pcPointedTo == pcTo)
 		{
-			pcPointer->UnsafeClearObject();	
+			pcPointer->UnsafeClearObject();
 		}
 	}
 }

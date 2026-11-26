@@ -53,13 +53,13 @@ protected:
 
 	CNamedIndexedObjects*		mpcMemory;
 	bool						mbNamedHollows;
-	
+
 public:
 	void					Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects);
 	void					Kill(void);
 
 	CBaseObject*			Read(const char* szObjectName);
-			 
+
 	//Used by CObjectReader
 	CBaseObject*			AllocateForDeserialisation(CObjectHeader* pcHeader) override;
 
@@ -83,10 +83,10 @@ protected:
 	bool					Mark(OIndex oi);
 
 	CDependentReadObject*	GetObject(OIndex oi);
-		
+
 	size					NumPointers(void) const;
 	CDependentReadPointer*	GetPointer(size iIndex);
-		
+
 	void					AddIndexRemap(OIndex oiNew, OIndex oiOld);
 	size					NumObjects(void) const;
 };

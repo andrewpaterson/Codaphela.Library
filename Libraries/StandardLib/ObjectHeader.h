@@ -66,8 +66,8 @@ public:
 	uint16	miNumEmbedded;
 	uint16	miEmbeddedIndex;
 
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 };
 
 

@@ -30,7 +30,7 @@ void CBaseObject::ValidateFlagNotSet(uint16 iFlag, const char* szFlag)
 {
 	if (GetFlags() & iFlag)
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have flag [", szFlag,"] set.", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have flag [", szFlag, "] set.", NULL);
 	}
 }
 
@@ -43,7 +43,7 @@ void CBaseObject::ValidateFlagSet(uint16 iFlag, const char* szFlag)
 {
 	if (!(GetFlags() & iFlag))
 	{
-		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have flag [", szFlag,"] set (but it is not).", NULL);
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have flag [", szFlag, "] set (but it is not).", NULL);
 	}
 }
 
@@ -203,14 +203,14 @@ void CBaseObject::ValidateIndex(void)
 	{
 		if (moi != INVALID_O_INDEX)
 		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX), "].", NULL);
 		}
 	}
 	else
 	{
 		if (moi == INVALID_O_INDEX)
 		{
-			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX), "].", NULL);
 		}
 	}
 }

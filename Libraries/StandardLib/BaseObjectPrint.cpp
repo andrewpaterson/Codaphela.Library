@@ -156,7 +156,7 @@ void CBaseObject::PrintPointerTos(CChars* psz)
 	CEmbeddedObject**					ppcToObject;
 	size								iLength;
 	CChars								szLine;
-	CArrayEmbeddedObjectPtr		acTos;
+	CArrayEmbeddedObjectPtr				acTos;
 	CBaseObject*						pcToObject;
 	size								iTotalTos;
 
@@ -199,7 +199,7 @@ void CBaseObject::PrintPointerTos(CChars* psz)
 		{
 			ppcToObject = acTos.Get(j);  //A pointed to never comes back NULL.
 			sz.Append(" ");
-				
+
 			if ((*ppcToObject)->IsBaseObject())
 			{
 				pcToObject = (CBaseObject*)*ppcToObject;

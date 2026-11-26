@@ -409,7 +409,7 @@ bool CIndexObject::ClearPointerTos(bool bFree)
 
 	if (mcIndex.NumElements() == 0)
 	{
-		return true;  
+		return true;
 	}
 
 	bResult = true;
@@ -477,7 +477,7 @@ bool CIndexObject::Load(CObjectReader* pcFile)
 	{
 		return false;
 	}
-	
+
 	for (i = 0; i < iCount; i++)
 	{
 		//The index refuses keys longer than MAX_KEY_SIZE, so Save never writes one.
@@ -632,7 +632,7 @@ size CIndexObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNe
 	CBaseObject*					pcPointedTo;
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	CIndexTreeNodeMemory*			pcNode;
-	size 							iCount;
+	size							iCount;
 
 	if (GetMemberLocations() != NULL)
 	{

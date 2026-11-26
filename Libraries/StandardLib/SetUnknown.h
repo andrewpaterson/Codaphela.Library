@@ -29,9 +29,9 @@ class CSetUnknown : public CArrayCommonUnknown
 CONSTRUCTABLE(CSetUnknown)
 public:
 	void 		Init(bool bSortPointers);
-	void 		Init(size iChunkSize, bool bSortPointers);
-	void 		Init(bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize, bool bSortPointers);
-	void 		Kill(void) override;
+	void		Init(size iChunkSize, bool bSortPointers);
+	void		Init(bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize, bool bSortPointers);
+	void		Kill(void) override;
 
 	template<class M>
 	M*			Add(void);

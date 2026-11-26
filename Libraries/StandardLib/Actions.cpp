@@ -73,7 +73,7 @@ CAction* CActions::GetAction(const char* szName)
 		{
 			return pcAction;
 		}
-		bExists = mlcActions.Iterate(&sIter, &pcAction);	
+		bExists = mlcActions.Iterate(&sIter, &pcAction);
 	}
 	return NULL;
 }

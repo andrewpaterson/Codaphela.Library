@@ -68,7 +68,7 @@ public:
 	size				NumPointers(void) const;
 	CStackPointer*		FindLast(void);
 	CStackPointer*		GetNext(void) const;
-	
+
 	CStackPointer*		Remove(CPointer* pcPointer, CFreeList* pcFreeList, bool* pbRemoved);
 	CStackPointer*		Remove(CCollection* pcCollection, CFreeList* pcFreeList, bool* pbRemoved);
 	void				RemoveAll(CFreeList* pcFreeList);

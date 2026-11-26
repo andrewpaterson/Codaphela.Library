@@ -37,16 +37,16 @@ protected:
 	CChars	mszObjectBaseName;	//'/' separated, without a trailing '/'.
 
 public:
-			void Init(const char* szDirectory, const char* szBaseName);
-			void Kill(void) override;
+			void	Init(const char* szDirectory, const char* szBaseName);
+			void	Kill(void) override;
 
-	virtual bool Begin(void);
-	virtual bool Write(CSerialisedObject* pcSerialised) =0;
-	virtual bool End(void);
+	virtual bool	Begin(void);
+	virtual bool	Write(CSerialisedObject* pcSerialised) =0;
+	virtual bool	End(void);
 
 protected:
-			bool ObjectStartsWithBaseName(const char* szObjectName);
-			void RemainingName(CChars* pszRemainingName, const char* szObjectName);
+			bool	ObjectStartsWithBaseName(const char* szObjectName);
+			void	RemainingName(CChars* pszRemainingName, const char* szObjectName);
 };
 
 

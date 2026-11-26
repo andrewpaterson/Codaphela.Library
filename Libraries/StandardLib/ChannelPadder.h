@@ -28,8 +28,8 @@ class CChannelPadder
 public:
 	CChannels* mpcExternal;
 
-	void Init(CChannels* pcExternal);
-	bool OptimalPadding(void);
+	void	Init(CChannels* pcExternal);
+	bool	OptimalPadding(void);
 };
 
 

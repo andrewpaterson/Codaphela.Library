@@ -37,7 +37,7 @@ public:
 	CStackPointer*	Add(CCollection* pcCollection);
 
 	void			RemoveAll(CStackPointer* pcFirst);
-	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer, bool* pbRemoved);
+	CStackPointer*	Remove(CStackPointer* pcFirst, CPointer* pcPointer, bool* pbRemoved);
 	CStackPointer*	Remove(CStackPointer* pcFirst, CCollection* pcCollection, bool* pbRemoved);
 	void			ClearAllPointers(void);
 

@@ -37,7 +37,7 @@ bool CObjectReader::Init(CAbstractFile* pcFile, CDependentReadObjects* pcDepende
 	mpcDependents = pcDependents;
 	mcFile.Init(pcFile);
 	return true;
-} 
+}
 
 
 //////////////////////////////////////////////////////////////////////////

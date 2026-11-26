@@ -103,8 +103,8 @@ class CWeakPointer;
 class CWeakPointerField;
 class CBaseObject : public CEmbeddedObject
 {
-template<class M>
-friend class Ptr;
+	template<class M>
+	friend class Ptr;
 friend class CPointer;
 friend class CArrayCommonObject;
 friend class CIndexObject;
@@ -203,7 +203,7 @@ public:
 			CClass*					CompleteClass(CClasses* pcClasses);
 
 			bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
-			CEmbeddedObject* 		TestGetPointerTo(size iToIndex);
+			CEmbeddedObject*		TestGetPointerTo(size iToIndex);
 			void					SetFlag(uint16 uiFlag, bool bFlagValue);
 			void					EmbedIn(CBaseObject* pcContainer);
 			uint16					GetFlags(void);
@@ -243,7 +243,7 @@ public:
 			void					ValidateKillCalled(void);
 	virtual void					ValidateInternalConsistency(void);
 			void					ValidateNoStackPointerInside(CArrayVoidPtr* papvSortedStackPointers);
-	
+
 protected:
 			void					Allocate(CObjects* pcObjects) override;
 			void					PreClass(void);

@@ -54,7 +54,7 @@ void CDependentWriteObjects::Add(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
 	bool					bExists;
-	size 					iIndex;
+	size					iIndex;
 
 	cObject.Init(pcObject, false);
 

@@ -50,36 +50,36 @@ protected:
 	CMapIntChannelDescriptor*	mpmicChannelDebugs;
 
 public:
-	void 					Init(void);
-	void 					Init(lsize iSize, EPrimitiveType eType, size iFirst, ...);
-	void 					Init(lsize iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...);
+	void					Init(void);
+	void					Init(lsize iSize, EPrimitiveType eType, size iFirst, ...);
+	void					Init(lsize iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...);
 	void					Init(CChannels* pcSource);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	void					ReInit(void);
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void 					BeginChange(void);
+	void					BeginChange(void);
 
-	void 					SetSize(lsize iSize);
-	void 					AddChannel(SChannel* psChannel);
-	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel, EPrimitiveType eType, const char* szShortName, const char* szLongName = NULL, bool bReverse = false);
-	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannels(CArrayChannel* pasChannels);
-	void 					AddChannels(CChannels* pcSourceChannels);
+	void					SetSize(lsize iSize);
+	void					AddChannel(SChannel* psChannel);
+	void					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel, EPrimitiveType eType, const char* szShortName, const char* szLongName = NULL, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannels(CArrayChannel* pasChannels);
+	void					AddChannels(CChannels* pcSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	void					SetData(void* pvMem);
 	bool					CopyDataInto(void* pvUserData);
 	void					ByteAlign(void);
 	bool					RenameChannel(size iOldName, size iNewName);
 
-	bool 					EndChange(void);
+	bool					EndChange(void);
 
 	bool					IsChanging(void) const;
 	bool					IsSameFormat(CChannels* psOther);
@@ -101,7 +101,7 @@ public:
 
 	char*					GetData(void) const;
 	bool					IsUserAllocated(void) const;
-	CChannel*				GetChannel(size iChannel);		
+	CChannel*				GetChannel(size iChannel);
 	size					GetNumChannels(void) const;
 	CChannel*				GetChannelAtIndex(size iIndex);
 	void					GetNative(lsize iPos, CChannel* pcChannel, void* pvDest);

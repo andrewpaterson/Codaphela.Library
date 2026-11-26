@@ -35,9 +35,9 @@ protected:
 	uint16						muiFlags;
 
 public:
-			void 		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
-			void 		Init(bool bKillElements = true, bool bOverwriteExisting = true);
-			void 		Kill(void) override;
+			void		_Init(void);  //Valid but empty.  Allocates nothing.  Safe to walk before Init.
+			void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
+			void		Kill(void) override;
 
 			bool		Save(CFileWriter* pcFile) override =0;
 			bool		Load(CFileReader* pcFile) override =0;
@@ -46,10 +46,10 @@ public:
 	virtual size		GetSortedSize(void) const =0;
 	virtual size		GetHoldingSize(void) =0;
 
-			bool 		IsKillElements(void) const;
-			bool 		IsOverwriteExisting(void) const;
-			bool 		IsEmpty(void);
-			bool 		IsNotEmpty(void);
+			bool		IsKillElements(void) const;
+			bool		IsOverwriteExisting(void) const;
+			bool		IsEmpty(void);
+			bool		IsNotEmpty(void);
 };
 
 

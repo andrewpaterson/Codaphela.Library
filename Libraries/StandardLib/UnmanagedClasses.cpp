@@ -62,7 +62,7 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 	mpcChar16 = AddClassByPrettyName(PT_char16);
 
 	mpcBit = AddClassByPrettyName(PT_bit);
-	mpcCrumb = AddClassByPrettyName(PT_crumb);		
+	mpcCrumb = AddClassByPrettyName(PT_crumb);
 	mpcTribble = AddClassByPrettyName(PT_tribble);
 	mpcNybble = AddClassByPrettyName(PT_nybble);
 	mpcNickle = AddClassByPrettyName(PT_nickle);
@@ -97,7 +97,7 @@ void CUnmanagedClasses::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CClass* CUnmanagedClasses::AddClassByPrettyName(EPrimitiveType eType)
 {
-	const char* pszName;
+	const char*	pszName;
 	size		iSize;
 
 	TypesValidate();
@@ -137,7 +137,7 @@ CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType, const char* szName, si
 	pcClass->System();
 	pcClass->Unmanaged();
 	pcClass->Complete();
-	
+
 	muiNumUnmanagedClasses++;
 
 	return pcClass;

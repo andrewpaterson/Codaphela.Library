@@ -223,7 +223,7 @@ void CObjects::Kill(void)
 	mcClasses.Kill();
 	mcSource.Kill();
 	mcMemory.Kill();
-	
+
 	mpcUnknownsAllocatingFrom = NULL;
 }
 
@@ -406,7 +406,7 @@ bool CObjects::Flush(void)
 	OIndex				oi;
 	bool				bResult;
 	CBaseObject*		pcBaseObject;
-	bool				bCanFindRoot;	
+	bool				bCanFindRoot;
 	bool				bDirty;
 
 	if (mpcDataConnection)
@@ -2050,7 +2050,7 @@ CBaseObject* CObjects::GetFromSources(const char* szObjectName)
 	}
 	else
 	{
-		return NULL;	
+		return NULL;
 	}
 }
 
@@ -2601,7 +2601,7 @@ CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObject
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) 
+void CObjects::AppendHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded)
 {
 	size					i;
 	CHollowEmbeddedObject*	pcEmbeddedObject;

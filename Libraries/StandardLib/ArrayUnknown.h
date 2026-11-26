@@ -29,7 +29,7 @@ class CArrayUnknown : public CArrayCommonUnknown
 CONSTRUCTABLE(CArrayUnknown)
 public:
 	void 		Init(void);
-	void 		Kill(void) override;
+	void		Kill(void) override;
 
 	template<class M>
 	M*			Add(void);

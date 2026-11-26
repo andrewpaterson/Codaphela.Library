@@ -96,7 +96,7 @@ CBaseObject* CFreeObjects::Add(CPointer &p)
 //////////////////////////////////////////////////////////////////////////
 bool CFreeObjects::Remove(CBaseObject* pcObject)
 {
-	bool	bResult; 
+	bool	bResult;
 
 	if (pcObject == NULL)
 	{

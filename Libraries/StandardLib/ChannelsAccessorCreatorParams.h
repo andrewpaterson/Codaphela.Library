@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Channels.h"
 
 
-struct SChannelAccess 
+struct SChannelAccess
 {
 	size			iChannel;
 	EPrimitiveType	eType;
@@ -54,8 +54,8 @@ public:
 	void						Init(CChannels* pcChannels);
 	void						Kill(void);
 
-	bool 						AddAccess(size iChannel, EPrimitiveType eType = PT_Undefined);
-	bool 						AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType = PT_Undefined);
+	bool						AddAccess(size iChannel, EPrimitiveType eType = PT_Undefined);
+	bool						AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType = PT_Undefined);
 	bool						AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType = PT_Undefined);
 	bool						AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType = PT_Undefined);
 	bool						AddAccess(CArraySize* paiChannels, EPrimitiveType eType = PT_Undefined);

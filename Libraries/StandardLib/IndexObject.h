@@ -42,12 +42,12 @@ public:
 	bool				Put(const char* szKey, const CPointer& pObject);
 	bool				Put(uint8* pvKey, size iKeySize, const CPointer& pObject);
 
-	size 				NumElements(void) override;
-	size 				NonNullElements(void) override;
+	size				NumElements(void) override;
+	size				NonNullElements(void) override;
 	bool				IsEmpty(void) override;
 
 
-	size 				BaseNumPointerTos(void)  override;
+	size				BaseNumPointerTos(void)  override;
 	void				BaseGetPointerTos(CArrayEmbeddedObjectPtr* papcTos) override;
 	bool				ClearPointerTos(bool bFree) override;
 
@@ -73,10 +73,10 @@ public:
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
-	
+
 	void				TouchAll(void) override;
 	void				KillAll(void) override;
-	
+
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex) override;
 	CIndexUnknown*		GetIndexForTesting(void);
 
@@ -84,7 +84,7 @@ protected:
 	void				PreFields(void) override;
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo) override;
-	size 				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
+	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 
 	bool				CanLocateMembers(void) override;
 	void				AddMemberLocations(CPointerLocations* pcLocations) override;

@@ -60,7 +60,7 @@ CBaseObject::CBaseObject()
 //////////////////////////////////////////////////////////////////////////
 CBaseObject::~CBaseObject()
 {
-	//All the CBaseObject is pushed into its immediate sub-classes (anything : public CBaseObject).  
+	//All the CBaseObject is pushed into its immediate sub-classes (anything : public CBaseObject).
 	//  CCollection
 	//  CHollowObject
 	//  CObject
@@ -130,7 +130,7 @@ void CBaseObject::PreFields(void)
 CClass* CBaseObject::CompleteClass(CClasses* pcClasses)
 {
 	CClass*		pcClass;
-	const char* szClassName;
+	const char*	szClassName;
 
 	szClassName = ClassName();
 	pcClass = pcClasses->Get(szClassName);
@@ -253,7 +253,7 @@ void CBaseObject::ContainerPostInit(void)
 			SetDirty(true);
 		}
 		Initialised();
-	}		
+	}
 }
 
 
@@ -339,7 +339,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged, bool bFailNotEmbedded)
 		FailNotExpectedToBeEmbedded(__METHOD__);
 		return;
 	}
-	
+
 
 	CDistCalculator			cDistCalculator;
 	CArrayBaseObjectPtr*	papcKilled;
@@ -1151,7 +1151,7 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(size iToIndex)
 {
 	CEmbeddedObject**					ppTo;
 	CEmbeddedObject*					pTo;
-	CArrayEmbeddedObjectPtr		apcTos;
+	CArrayEmbeddedObjectPtr				apcTos;
 
 	apcTos.Init();
 	GetPointerTos(&apcTos);
@@ -1221,7 +1221,7 @@ bool CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 bool CBaseObject::Save(CObjectWriter* pcFile)
 {
 	return true;
-} 
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1265,7 +1265,7 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 		bResult = pcFile->WriteDependent(pcHeapFrom);
 		ReturnOnFalse(bResult);
 	}
-	
+
 	return true;
 }
 
@@ -1958,7 +1958,7 @@ void CBaseObject::GetNesPointerToThis(CArrayEmbeddedObjectPtrE8* papNesObjectsPo
 				continue;
 			}
 			break;
-		} 
+		}
 	}
 }
 

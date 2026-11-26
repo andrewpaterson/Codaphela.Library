@@ -410,7 +410,7 @@ bool CMapObject::Load(CObjectReader* pcFile)
 {
 	CEmbeddedObject**	pcPointedToKey;
 	CEmbeddedObject**	pcPointedToValue;
-	CMapPtrPtr*			pcMapPtrPtr; 
+	CMapPtrPtr*			pcMapPtrPtr;
 	size				uiNumElements;
 	size				i;
 
@@ -596,7 +596,7 @@ size CMapObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	CBaseObject*		pcPointedToKey;
 	CBaseObject*		pcPointedToValue;
 	SMapIterator		sMapIter;
-	size 				iCount;
+	size				iCount;
 	CEmbeddedObject*	pcValue;
 
 	if (pcOld == pcNew)

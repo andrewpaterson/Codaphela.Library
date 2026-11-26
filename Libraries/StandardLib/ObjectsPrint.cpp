@@ -354,7 +354,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	for (i = 0; i < uiNumTos; i++)
 	{
 		pcToObject = *apcTos.Get(i);
-		RecurseDumpGraph(psz, pcToObject, iLevel+1, false, bPointerMemory);
+		RecurseDumpGraph(psz, pcToObject, iLevel + 1, false, bPointerMemory);
 	}
 
 	if (pcBaseObject->IsObject())

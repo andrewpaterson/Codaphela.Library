@@ -35,7 +35,7 @@ public:
 	void				Kill(void) override;
 
 	CSerialisedObject*	Read(OIndex oi) override;
-	CSerialisedObject*  Read(const char* szObjectName) override;
+	CSerialisedObject*	Read(const char* szObjectName) override;
 };
 
 

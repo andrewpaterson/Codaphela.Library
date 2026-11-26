@@ -39,7 +39,7 @@ protected:
 	bool				mbZLib;
 	lsize				muiMaxOutput;
 	CBitReader			mcBits;
-	CArrayLargeUint8*		mpacOutput;
+	CArrayLargeUint8*	mpacOutput;
 	uint8*				mpuiOutput;
 	lsize				muiOutputUsed;
 	lsize				muiOutputStart;

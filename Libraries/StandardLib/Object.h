@@ -41,8 +41,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Object is abstract (due to Class() and Free) and should remaain that way.
 class CObject : public CBaseObject
 {
-template<class M>
-friend class Ptr;
+	template<class M>
+	friend class Ptr;
 friend class CPointer;
 friend class CObjects;
 friend class CExternalObjectDeserialiser;

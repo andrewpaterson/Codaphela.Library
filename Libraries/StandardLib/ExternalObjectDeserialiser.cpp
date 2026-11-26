@@ -257,8 +257,8 @@ bool CExternalObjectDeserialiser::Mark(OIndex oi)
 	pcDependent->SetRead();
 	return true;
 }
- 
- 
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 // The object found with (old) index oi, NULL if none was.
