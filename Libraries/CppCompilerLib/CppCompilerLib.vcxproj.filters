@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{971a67e4-d2ad-447f-b0f4-a457ca6694fd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{b8a314c4-62d9-4c4a-a75d-2fb4bd092e84}</UniqueIdentifier>
     </Filter>
@@ -2065,6 +2068,50 @@
   <ItemGroup>
     <None Include="Docs\compiler\design\test-suites.md">
       <Filter>Docs\compiler\design</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CodeGenerationHandoff.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="ConsolidationPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="ConstexprPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="Cpp14CompliancePlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="CppParserTodo.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="DeclarationsSpeedPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="ExceptionsPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="IR.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="OptimiserPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="SemanticLayerPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="Size16Plan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="SmellCheckFindings.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="W65C816.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="W65C816AlignmentPlan.txt">
+      <Filter>Plans</Filter>
     </None>
   </ItemGroup>
 </Project>

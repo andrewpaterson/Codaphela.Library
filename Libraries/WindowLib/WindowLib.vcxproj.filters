@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{d1f9d9b4-253d-432b-b22d-b96915d3d95f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Component\Docking">
       <UniqueIdentifier>{e9883f32-2e01-4c5e-bde3-bff35151b1a1}</UniqueIdentifier>
     </Filter>
@@ -1077,6 +1080,11 @@
     </None>
     <None Include="Docs\libraries\windowlib\backends.md">
       <Filter>Docs\libraries\windowlib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Vulkan.txt">
+      <Filter>Plans</Filter>
     </None>
   </ItemGroup>
 </Project>

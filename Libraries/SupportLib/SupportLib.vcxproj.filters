@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{c12517b5-3f67-4941-9fc0-10e4b1ac6066}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Docs">
       <UniqueIdentifier>{99dbbb89-138b-4273-9231-eb68b38224a7}</UniqueIdentifier>
     </Filter>
@@ -1950,6 +1953,20 @@
     </None>
     <None Include="Docs\libraries\supportlib\unwrapping.md">
       <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ScenePlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="ShapePlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="UnwrapPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="VirtualTexturePlan.txt">
+      <Filter>Plans</Filter>
     </None>
   </ItemGroup>
 </Project>

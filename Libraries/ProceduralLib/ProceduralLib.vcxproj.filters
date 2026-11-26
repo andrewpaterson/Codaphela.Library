@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{9b8780a2-8f47-4df6-9c11-626388e5b3fe}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Docs">
       <UniqueIdentifier>{06123036-e8f1-467d-b922-60cb085caeb1}</UniqueIdentifier>
     </Filter>
@@ -177,6 +180,14 @@
     </None>
     <None Include="Docs\libraries\procedurallib\textures.md">
       <Filter>Docs\libraries\procedurallib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Isosurface.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="TexturePlan.txt">
+      <Filter>Plans</Filter>
     </None>
   </ItemGroup>
 </Project>

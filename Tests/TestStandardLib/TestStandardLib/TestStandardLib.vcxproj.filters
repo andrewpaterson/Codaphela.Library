@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{f94c4f6e-d52a-486e-8c86-7c5cf46fc8c0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{76003f76-e2ce-4113-aec7-4d04752f37e7}</UniqueIdentifier>
     </Filter>
@@ -405,5 +408,10 @@
   <ItemGroup>
     <None Include="Log.txt" />
     <None Include="DebugDefines.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Kill.txt">
+      <Filter>Plans</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -478,6 +478,10 @@
     <None Include="Docs\libraries\standardlib\text-diff.md" />
     <None Include="Docs\libraries\standardlib\compression.md" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ThreadSafetyPlan.txt" />
+    <None Include="WeakReferencesPlan.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

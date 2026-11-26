@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{df17f0d7-9afe-4f3c-bb3c-710f41a61333}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Docs">
       <UniqueIdentifier>{ef618658-ae05-40e6-9ad2-cd2973bbab95}</UniqueIdentifier>
     </Filter>
@@ -1005,6 +1008,14 @@
     </None>
     <None Include="Docs\libraries\standardlib\compression.md">
       <Filter>Docs\libraries\standardlib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ThreadSafetyPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
+    <None Include="WeakReferencesPlan.txt">
+      <Filter>Plans</Filter>
     </None>
   </ItemGroup>
 </Project>

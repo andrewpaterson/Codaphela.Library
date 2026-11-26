@@ -1124,6 +1124,9 @@
     <None Include="Docs\libraries\baselib\parsers-and-markup.md" />
     <None Include="Docs\libraries\baselib\codabase.md" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="ArrayTemplatesPlan.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

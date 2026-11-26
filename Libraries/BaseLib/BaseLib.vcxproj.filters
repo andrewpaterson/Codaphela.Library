@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{7efd375e-61ab-4975-9e2a-f087ade05ecd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Docs">
       <UniqueIdentifier>{510f31f0-5402-4727-83a4-ac05545b3f9e}</UniqueIdentifier>
     </Filter>
@@ -3185,6 +3188,11 @@
     </None>
     <None Include="Docs\libraries\baselib\codabase.md">
       <Filter>Docs\libraries\baselib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ArrayTemplatesPlan.txt">
+      <Filter>Plans</Filter>
     </None>
   </ItemGroup>
 </Project>

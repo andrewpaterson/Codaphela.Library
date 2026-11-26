@@ -842,6 +842,22 @@
   <ItemGroup>
     <None Include="Docs\compiler\design\test-suites.md" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CodeGenerationHandoff.txt" />
+    <None Include="ConsolidationPlan.txt" />
+    <None Include="ConstexprPlan.txt" />
+    <None Include="Cpp14CompliancePlan.txt" />
+    <None Include="CppParserTodo.txt" />
+    <None Include="DeclarationsSpeedPlan.txt" />
+    <None Include="ExceptionsPlan.txt" />
+    <None Include="IR.txt" />
+    <None Include="OptimiserPlan.txt" />
+    <None Include="SemanticLayerPlan.txt" />
+    <None Include="Size16Plan.txt" />
+    <None Include="SmellCheckFindings.txt" />
+    <None Include="W65C816.txt" />
+    <None Include="W65C816AlignmentPlan.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

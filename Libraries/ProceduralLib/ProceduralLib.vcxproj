@@ -245,6 +245,10 @@
     <None Include="Docs\libraries\procedurallib\isosurface.md" />
     <None Include="Docs\libraries\procedurallib\textures.md" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Isosurface.txt" />
+    <None Include="TexturePlan.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
