@@ -960,6 +960,15 @@ void TestChooserPopupDriven(void)
 		pChooser->SetShorterFirst(true);
 		pChooser->Close();
 
+		//An item whose row has more than its name is matched by its name alone: "ed" is in SetSpeed's parameters only.
+		pChooser->AddItem("SetSpeed(int iSpeed, int iGear)", "void", -1, 15, 8);
+		pChooser->Open(sPosition, pOwner);
+		pChooser->SetFilterText("ig");
+		AssertString("", PrintChooserRows(pChooser, &szRows));
+		pChooser->SetFilterText("SS");
+		AssertString("SetSpeed(int iSpeed, int iGear)", PrintChooserRows(pChooser, &szRows));
+		pChooser->Close();
+
 		//It is driven or not from before it is first opened.
 		pChooser->SetDriven(false);
 		AssertTrue(pChooser->IsDriven());

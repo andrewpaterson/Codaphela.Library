@@ -82,6 +82,7 @@ protected:
 	CArray<CImageCel>		maIcons;
 	CChars					mszTitle;
 	CGoToItems				mcItems;  //Every item, in the order added.
+	CArrayInt				maiMatched;  //How much of each item's name the filter matches against, from its start; 0 for all of it.
 	CArrayInt				maiRows;  //The item each row shows.
 	CNameMatcher			mcMatcher;
 	bool					mbSortMatches;
@@ -118,7 +119,7 @@ public:
 	const char*		GetNote(void) const;
 
 	int32			AddIcon(Ptr<CImageCel> pIcon);
-	SGoToItem*		AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData);
+	SGoToItem*		AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData, size uiMatched = 0);
 	SGoToItem*		AddHeading(const char* szName);
 	void			RemoveAllItems(void);
 	void			ItemsChanged(void);

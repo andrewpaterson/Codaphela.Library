@@ -48,6 +48,7 @@ void CChooserPopup::Init(Ptr<CWindow> pWindow, SDialogLook* psLook, Ptr<CFont> p
 	maIcons.Init();
 	mszTitle.Init();
 	mcItems.Init();
+	maiMatched.Init();
 	maiRows.Init();
 	mcMatcher.Init("");
 	mbSortMatches = false;
@@ -92,6 +93,7 @@ void CChooserPopup::Class(void)
 	M_Embedded(maIcons);
 	U_String(mszTitle);
 	U_Unknown(CGoToItems, mcItems);
+	U_Unknown(CArrayInt, maiMatched);
 	U_Unknown(CArrayInt, maiRows);
 	U_Unknown(CNameMatcher, mcMatcher);
 	U_Bool(mbSortMatches);
@@ -144,6 +146,7 @@ void CChooserPopup::Free(void)
 	mcChosen.Kill();
 	mcMatcher.Kill();
 	maiRows.Kill();
+	maiMatched.Kill();
 	mcItems.Kill();
 	mszNote.Kill();
 	mszFilter.Kill();
@@ -275,7 +278,7 @@ int32 CChooserPopup::GetSortScore(size uiItem)
 	SGoToItem*	psItem;
 
 	psItem = mcItems.Get(uiItem);
-	return mbShorterFirst ? psItem->sMatch.iScore : psItem->sMatch.iScore + (int32)psItem->szName.Length();
+	return mbShorterFirst ? psItem->sMatch.iScore : psItem->sMatch.iScore + ((maiMatched.GetValue(uiItem) > 0) ? maiMatched.GetValue(uiItem) : (int32)psItem->szName.Length());
 }
 
 
@@ -348,11 +351,14 @@ int32 CChooserPopup::AddIcon(Ptr<CImageCel> pIcon)
 // An item: its name, where it is (NULL for nowhere), its icon (-1 for
 // none) and what it is to whoever added it, which mustn't be
 // CHOOSER_HEADING.  Items are added while the chooser is closed, or to an
-// open one that is then told (ItemsChanged).
+// open one that is then told (ItemsChanged).  The filter matches the first
+// uiMatched characters of its name, all of it for 0: a function's row
+// shows its parameters, "SetSpeed(int iSpeed)", which aren't its name.
 //
 //////////////////////////////////////////////////////////////////////////
-SGoToItem* CChooserPopup::AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData)
+SGoToItem* CChooserPopup::AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData, size uiMatched)
 {
+	maiMatched.Add((int)uiMatched);
 	return mcItems.Add(szName, szLocation, iIcon, uiData, NULL);
 }
 
@@ -365,6 +371,7 @@ SGoToItem* CChooserPopup::AddItem(const char* szName, const char* szLocation, in
 //////////////////////////////////////////////////////////////////////////
 SGoToItem* CChooserPopup::AddHeading(const char* szName)
 {
+	maiMatched.Add(0);
 	return mcItems.Add(szName, NULL, -1, CHOOSER_HEADING, NULL);
 }
 
@@ -376,6 +383,7 @@ SGoToItem* CChooserPopup::AddHeading(const char* szName)
 void CChooserPopup::RemoveAllItems(void)
 {
 	mcItems.Clear();
+	maiMatched.ReInit();
 	maiRows.ReInit();
 	miChosen = -1;
 }
@@ -713,7 +721,7 @@ void CChooserPopup::Filter(void)
 			memset(&psItem->sMatch, 0, sizeof(SNameMatch));
 			maiRows.Add((int)i);
 		}
-		else if (mcMatcher.Match(psItem->szName.Text(), &sMatch))
+		else if (mcMatcher.Match(psItem->szName.Text(), (maiMatched.GetValue(i) > 0) ? (size)maiMatched.GetValue(i) : psItem->szName.Length(), mcMatcher.GetPattern(), strlen(mcMatcher.GetPattern()), &sMatch))
 		{
 			memcpy(&psItem->sMatch, &sMatch, sizeof(SNameMatch));
 			if ((iHeading >= 0) && !mbSortMatches)
