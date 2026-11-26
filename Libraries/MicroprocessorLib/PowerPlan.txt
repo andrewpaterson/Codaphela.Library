@@ -143,6 +143,11 @@ Questions for the user (put one at a time, recommendation first)
   5. Found while building (2026-11-26): a click on a component in LogiCim selects or moves it.  Decided (the user:
      "Power command"): Simulation, Power On/Off, with a key, switches the selected supplies, or every supply when none
      is selected (the board's power switch), in place of clicking a supply.
+  6. Found while building (2026-11-26): an imported chip's power pins are hidden and each chip gets two private
+     supplies at its implied VCC (PowerPortsImplicitly), so there is no rail for a regulator to drive.  Decided (the
+     user: "Hidden power pins join their named rail"): a chip's hidden VCC and GND join the nets their KiCad power
+     pins are on, by name, as tunnels of that name would; each rail gets one supply, a regulator a fed supply on its
+     output rail.  The drawing doesn't change.
 
 
 Order
