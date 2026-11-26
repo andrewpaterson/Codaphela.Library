@@ -225,7 +225,7 @@ TRISTATE CXMLParser::ParseVersion(void)
 	{
 		return FailAlways(tResult, "=");
 	}
-	
+
 	acQuote[0] = '\0';
 	acQuote[1] = '\0';
 	tResult = mcParser.GetHFOpeningQuote(acQuote);
@@ -427,7 +427,7 @@ TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 {
-	TRISTATE	tResult;
+	TRISTATE		tResult;
 	const char*		szStart;
 
 	tResult = mcParser.GetExactCharacter('=', false);
@@ -584,7 +584,7 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifie
 		mcParser.PopPosition();
 		return TRIFALSE;
 	}
-	
+
 	mpcCurrent = mpcDoc->AppendTag(mpcCurrent, pszIdentifier->Text(), iLine, iColumn);
 
 	for (;;)
@@ -735,7 +735,7 @@ TRISTATE CXMLParser::ParseContent(void)
 		}
 		break;
 	}
- 	return TRITRUE;
+	return TRITRUE;
 }
 
 
@@ -1148,9 +1148,9 @@ TRISTATE CXMLParser::ParseDocType(void)
 			return TRIERROR;
 		}
 	}
-	
+
 	tResult = mcParser.GetExactCharacter('[');
-	if (tResult == TRIERROR) 
+	if (tResult == TRIERROR)
 	{
 		szRootName.Kill();
 		return TRIERROR;
@@ -1278,7 +1278,7 @@ TRISTATE CXMLParser::ParseEntity(void)
 	}
 	else
 	{
-		ParseInternalEntity(szEntityName.Text(),szContent.Text());
+		ParseInternalEntity(szEntityName.Text(), szContent.Text());
 	}
 
 	tResult = mcParser.GetExactCharacter('>');

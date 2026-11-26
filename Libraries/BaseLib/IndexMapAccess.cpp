@@ -96,7 +96,7 @@ void* CIndexMapAccess::Put(const void* pvKey, size iKeySize, const void* pvData,
 void* CIndexMapAccess::Get(const void* pvKey, size iKeySize, size* puiDataSize)
 {
 	bool	bResult;
-	void* pvData;
+	void*	pvData;
 
 	bResult = mpcIndex->Get((uint8*)pvKey, iKeySize, &pvData, puiDataSize);
 	if (bResult)

@@ -418,7 +418,7 @@ size CIndexTreeNode::GetAdditionalIndexes(size uiIndex)
 		uiLastIndex = muiLastIndex;
 	}
 
-	return (uiLastIndex - uiFirstIndex + 1);   //+1 because uiLast is inclusive.  -1 because CIndexTreeNodeMemory already includes 1.	
+	return (uiLastIndex - uiFirstIndex + 1);   //+1 because uiLast is inclusive.  -1 because CIndexTreeNodeMemory already includes 1.
 }
 
 
@@ -582,7 +582,7 @@ bool CIndexTreeNode::ContainsIndex(size uiIndex)
 	if ((uiIndex >= muiFirstIndex) && (uiIndex <= muiLastIndex))
 	{
 		return true;
-	}	
+	}
 	else
 	{
 		return false;

@@ -93,7 +93,7 @@ void CIndexedMap::NullCachedDescriptors(void)
 	OIndex*					poi;
 	CIndexedDataDescriptor*	pcDescriptor;
 	bool					bExists;
-	
+
 	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, NULL, (void**)&pcDescriptor, NULL);
 	while (bExists)
 	{
@@ -150,7 +150,7 @@ bool CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction)
 {
-	CIndexedDataDescriptor* pcExistingDescriptor;
+	CIndexedDataDescriptor*	pcExistingDescriptor;
 	bool					bUpdated;
 
 	pcExistingDescriptor = mcDescriptors.Get(oi);

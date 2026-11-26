@@ -42,7 +42,7 @@ protected:
 	EPackFileMode				meMode;
 	filePos						miNodes;
 	filePos						miNextNodesPtr;
-	
+
 	CPackFileNode*				mpsLastAccessed;
 	filePos						miPosition;
 
@@ -70,7 +70,7 @@ public:
 
 	bool					Unpack(const char* szDirectory);
 	void					FixParents(void);
-	const char*					GetFilename(void) const;
+	const char*				GetFilename(void) const;
 
 protected:
 	bool					BeginRead(void);

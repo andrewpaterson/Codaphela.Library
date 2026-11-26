@@ -31,8 +31,8 @@ public:
 	size			SizeOffset(void) override;
 
 public:
-	static CLifeInit<CMallocator> Create(void);
-	static CLifeInit<CMallocator> Create(CMemoryFreeListParams* pcFreeListParams);
+	static CLifeInit<CMallocator>	Create(void);
+	static CLifeInit<CMallocator>	Create(CMemoryFreeListParams* pcFreeListParams);
 };
 
 

@@ -39,7 +39,7 @@ bool CDurableFile::Init(CDurableFileController* pcController, const char* szFile
 {
 	CChars		szPath;
 	CFileUtil	cFileUtil;
-		
+
 	mbAddedToController = false;
 	mpcController = pcController;
 	InitBasic();
@@ -304,7 +304,7 @@ bool CDurableFile::OpenPrimaryForWrite(void)
 {
 	bool		bResult;
 	bool		bFileExists;
-	
+
 	if (!mbLogFileBegun)
 	{
 		bFileExists = mcLogFile.Begin();

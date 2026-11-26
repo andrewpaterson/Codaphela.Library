@@ -30,8 +30,8 @@ public:
 	size			SizeOffset(void) override;
 
 public:
-	static CLifeInit<CMallocator> Create(void);
-	static CLifeInit<CMallocator> Create(size uiChunkSize);
+	static CLifeInit<CMallocator>	Create(void);
+	static CLifeInit<CMallocator>	Create(size uiChunkSize);
 };
 
 

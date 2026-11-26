@@ -75,7 +75,7 @@ bool CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, uint8* pvDestKey
 
 	if (psIter->pcNode)
 	{
-		
+
 		psNode = mcDataOrder.GetNext(psIter->pcNode->GetListNode());
 		return IterateNode(psNode, psIter, pvDestKey, piKeySize, iDestKeySize, pvDestData, piDataSize, iDestDataSize);
 	}
@@ -93,7 +93,7 @@ bool CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, uint8* pvDestKey
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize)
 {
-	CIndexTreeDataNode* pcDataNode;
+	CIndexTreeDataNode*	pcDataNode;
 	CIndexTreeNode*		pcNode;
 	size				iKeySize;
 	size				iDataSize;

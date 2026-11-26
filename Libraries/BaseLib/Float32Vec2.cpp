@@ -406,9 +406,9 @@ void Float32Vec2InterpolateNormal(SFloat32Vec2* psVecDest, const SFloat32Vec2* p
 //////////////////////////////////////////////////////////////////////////
 void Float32Vec2RotateAboutNormalisedAxis(SFloat32Vec3* psVecDest, SFloat32Vec3 p, float32 fTheta, SFloat32Vec2 r)
 {
-	float32 fCosTheta;
-	float32 fSinTheta;
-	float32 fInvCosTheta;
+	float32	fCosTheta;
+	float32	fSinTheta;
+	float32	fInvCosTheta;
 
 	psVecDest->Zero();
 	fCosTheta = cosf(fTheta);

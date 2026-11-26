@@ -89,7 +89,7 @@ public:
 	CNumber*	E(bool bPositive = true);
 	CNumber*	Digit(char cValue);
 	CNumber*	Digit(int16 iDigit, char cValue);
-	CNumber* 	Copy(CNumber* pcNumber);
+	CNumber*	Copy(CNumber* pcNumber);
 	//Two
 	//Half
 	//All Initialisation functions must be prefixed with Init.
@@ -116,7 +116,7 @@ public:
 	CNumber*	BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Digit(char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Digit(int16 iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber* 	Copy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Copy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 
 	//Initialisation Errors
 	CNumber*	NotANumber(void);
@@ -258,7 +258,7 @@ public:
 	CNumber*	Floor(void);
 
 	//Conversion
-	int32  		IntValue(void);
+	int32		IntValue(void);
 	float32		FloatValue(void);
 	float64		DoubleValue(void);
 	uint64		ULongValue(void);

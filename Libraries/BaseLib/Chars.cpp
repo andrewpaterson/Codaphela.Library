@@ -1175,7 +1175,7 @@ template<class STRING, class TEXT>
 void CCharsBase<STRING, TEXT>::Insert(Count iPos, STRING* pszString)
 {
 	char*	pcNew;
-	Count uiInsertLen;
+	Count	uiInsertLen;
 
 	if (pszString == NULL || pszString->Empty())
 	{
@@ -1546,7 +1546,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING szString, Count iStartI
 	const char* pcPosition;
 
 	pcPosition = (char*)RemapSinglePointer((void*)szString.Text(), iStartInclusive);
-	return AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
+	return AppendSubString(pcPosition, iEndExclusive - iStartInclusive);
 }
 
 
@@ -1560,7 +1560,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(STRING* pszString, Count iStar
 	const char* pcPosition;
 
 	pcPosition = (char*)RemapSinglePointer((void*)pszString->Text(), iStartInclusive);
-	return AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
+	return AppendSubString(pcPosition, iEndExclusive - iStartInclusive);
 }
 
 
@@ -1574,7 +1574,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, Count iS
 	const char* pcPosition;
 
 	pcPosition = (char*)RemapSinglePointer((void*)szString, iStartInclusive);
-	return AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
+	return AppendSubString(pcPosition, iEndExclusive - iStartInclusive);
 }
 
 
@@ -1585,7 +1585,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szString, Count iS
 template<class STRING, class TEXT>
 STRING* CCharsBase<STRING, TEXT>::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
 {
-	return AppendSubString(szStartInclusive, (Count)(szEndExclusive-szStartInclusive));
+	return AppendSubString(szStartInclusive, (Count)(szEndExclusive - szStartInclusive));
 }
 
 
@@ -1848,7 +1848,7 @@ bool CCharsBase<STRING, TEXT>::Contains(const char* szString) const
 {
 	const char*	pc;
 
-	if (!szString) 
+	if (!szString)
 	{
 		return false;
 	}
@@ -1997,7 +1997,7 @@ bool CCharsBase<STRING, TEXT>::EndsWith(const char* szString) const
 
 	uiLen = CStringLength(szString);
 	if (uiLen > Length())
-	{ 
+	{
 		return false;
 	}
 
@@ -2113,8 +2113,8 @@ bool CCharsBase<STRING, TEXT>::SubStringEqualsIgnoreCase(Count iStart, const cha
 	Count	i;
 	Count	j;
 	Count	uiLen;
-	Count    c1;
-	Count    c2;
+	Count	c1;
+	Count	c2;
 	const char*	szText;
 
 	szText = Text();
@@ -2194,7 +2194,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::FindFromEnd(char c) const
 	{
 		return TEXT::SizePolicy::NotFound;
 	}
-	
+
 	return FindFromEnd(Length() - 1, c);
 
 }
@@ -2540,7 +2540,7 @@ typename TEXT::Count CCharsBase<STRING, TEXT>::StripWhitespace(bool bIncludeNewL
 	else
 	{
 		iLength = Length();
-		Remove(iEnd+1, iLength);
+		Remove(iEnd + 1, iLength);
 		Remove(0, iStart);
 	}
 	return iStart;
@@ -2898,7 +2898,7 @@ STRING* CCharsBase<STRING, TEXT>::AppendData(const char* szData, Count iDataLeng
 	Count	iLength;
 	uint8	c;
 	bool	bLastReadable;
-	
+
 	if (iDataLength > iMaxLength)
 	{
 		iLength = iMaxLength;
@@ -3317,9 +3317,9 @@ bool CCharsBase<STRING, TEXT>::ReadChars(CFileReader* pcReader)
 	else if (iLength != 0)
 	{
 		Init('@', iLength - 1);
-		if (!pcReader->ReadData(Text(), iLength)) 
-		{ 
-			return false; 
+		if (!pcReader->ReadData(Text(), iLength))
+		{
+			return false;
 		}
 		return true;
 	}

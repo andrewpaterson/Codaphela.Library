@@ -41,8 +41,8 @@ char	gszEmptyString[4] = { '\0', '\0', '\0', '\0' };
 ////////////////////////////////////////////////////////////////////////////////////
 int StringCompare(const char* ps1, const char* ps2)
 {
-	int s1;
-	int s2;
+	int	s1;
+	int	s2;
 
 	if ((ps1 == NULL) && (ps2 == NULL))
 	{
@@ -58,13 +58,13 @@ int StringCompare(const char* ps1, const char* ps2)
 		return 1;
 	}
 
-	do 
+	do
 	{
 		s1 = *ps1++;
 		s2 = *ps2++;
 		if (s1 == 0)
 			break;
-	} 
+	}
 	while (s1 == s2);
 
 	return (s1 < s2) ? -1 : (s1 > s2);
@@ -77,22 +77,22 @@ int StringCompare(const char* ps1, const char* ps2)
 ////////////////////////////////////////////////////////////////////////////////////
 int StringInsensitiveCompare(const char* ps1, const char* ps2)
 {
-	int s1;
-	int s2;
+	int	s1;
+	int	s2;
 
-    if ((ps1 == NULL) && (ps2 == NULL))
-    {
-        return 0;
-    }
+	if ((ps1 == NULL) && (ps2 == NULL))
+	{
+		return 0;
+	}
 
-    if (ps1 == NULL)
-    {
-        return -1;
-    }
-    if (ps2 == NULL)
-    {
-        return 1;
-    }
+	if (ps1 == NULL)
+	{
+		return -1;
+	}
+	if (ps2 == NULL)
+	{
+		return 1;
+	}
 
 	do
 	{
@@ -102,7 +102,7 @@ int StringInsensitiveCompare(const char* ps1, const char* ps2)
 			break;
 		s1 = ToLower(s1);
 		s2 = ToLower(s2);
-	} 
+	}
 	while (s1 == s2);
 
 	return (s1 < s2) ? -1 : (s1 > s2);
@@ -119,38 +119,38 @@ int MemICmp(const void* pv1, const void* pv2, size iLength)
 	uint8	c1;
 	uint8	c2;
 
-    if ((pv1 == NULL) && (pv2 == NULL))
-    {
-        return 0;
-    }
+	if ((pv1 == NULL) && (pv2 == NULL))
+	{
+		return 0;
+	}
 
-    if (pv1 == NULL)
-    {
-        return -1;
-    }
-    if (pv2 == NULL)
-    {
-        return 1;
-    }
+	if (pv1 == NULL)
+	{
+		return -1;
+	}
+	if (pv2 == NULL)
+	{
+		return 1;
+	}
 
 
-    if (iLength == 0)
-    {
-        return 0;
-    }
+	if (iLength == 0)
+	{
+		return 0;
+	}
 
-    for (i = 0; i < iLength; i++)
-    {
-        c1 = (uint8)ToLower(((char*)pv1)[i]);
-        c2 = (uint8)ToLower(((char*)pv2)[i]);
+	for (i = 0; i < iLength; i++)
+	{
+		c1 = (uint8)ToLower(((char*)pv1)[i]);
+		c2 = (uint8)ToLower(((char*)pv2)[i]);
 
-        if (c1 != c2)
-        {
-            return (c1 < c2) ? -1 : 1;
-        }
-    }
+		if (c1 != c2)
+		{
+			return (c1 < c2) ? -1 : 1;
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 
@@ -203,6 +203,12 @@ int MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2)
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #ifndef __W65C816__
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void MemSwp(const void* pv1, const void* pv2, lsize uiLength) noexcept
 {
 	lsize	i;
@@ -211,7 +217,7 @@ void MemSwp(const void* pv1, const void* pv2, lsize uiLength) noexcept
 	lsize	iRemainder;
 	char	cTemp;
 	lsize	iCharIndex;
-	
+
 	iIntLength = uiLength / sizeof(int);
 	iRemainder = uiLength % sizeof(int);
 	for (i = 0; i < iIntLength; i++)
@@ -482,40 +488,40 @@ char* StrRev(char* szString)
 ////////////////////////////////////////////////////////////////////////////////////
 const char* StrIStr(const char* ps1, const char* ps2)
 {
-	lsize iS1Len;
-	lsize iS2Len;
-	lsize iSearchCount;
-	lsize i;
+	lsize	iS1Len;
+	lsize	iS2Len;
+	lsize	iSearchCount;
+	lsize	i;
 
-    if ((ps1 == NULL) || (ps2 == NULL))
-    {
-        return NULL;
-    }
+	if ((ps1 == NULL) || (ps2 == NULL))
+	{
+		return NULL;
+	}
 
-    iS1Len = strlen32(ps1);
-    iS2Len = strlen32(ps2);
+	iS1Len = strlen32(ps1);
+	iS2Len = strlen32(ps2);
 
-    if ((iS1Len == 0) || (iS2Len == 0))
-    {
-        return NULL;
-    }
+	if ((iS1Len == 0) || (iS2Len == 0))
+	{
+		return NULL;
+	}
 
-    if (iS2Len > iS1Len)
-    {
-        //If the SearchFor string is longer than the string we're searching in then we can't find it.
-        return NULL;
-    }
+	if (iS2Len > iS1Len)
+	{
+		//If the SearchFor string is longer than the string we're searching in then we can't find it.
+		return NULL;
+	}
 
-    iSearchCount = iS1Len - iS2Len;
+	iSearchCount = iS1Len - iS2Len;
 
-    for (i = 0; i <= iSearchCount; i++)
-    {
-        if (MemICmpLarge(ps2, &ps1[i], iS2Len) == 0)
-        {
-            return &ps1[i];
-        }
-    }
-    return NULL;
+	for (i = 0; i <= iSearchCount; i++)
+	{
+		if (MemICmpLarge(ps2, &ps1[i], iS2Len) == 0)
+		{
+			return &ps1[i];
+		}
+	}
+	return NULL;
 }
 
 
@@ -654,7 +660,7 @@ char* StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piS
 
 	if (iLen >= iDestLength)
 	{
-		iLen = iDestLength-1;
+		iLen = iDestLength - 1;
 	}
 	memcpy(szDest, szSource, iLen);
 	szDest[iLen] = 0;
@@ -992,7 +998,7 @@ char* FlagsToString(char* szDest, size iDestLength, uint8* pvMem, size iByteCoun
 	}
 
 	iIndex = 0;
-	iByte = iByteCount-1;
+	iByte = iByteCount - 1;
 	iBitIndex = 0;
 	iBitMask = 0x80;
 	for (i = 0; i < iDestLength; i++)
@@ -1034,7 +1040,7 @@ char* FlagsToString(char* szDest, size iDestLength, uint8* pvMem, size iByteCoun
 		iIndex--;
 	}
 	szDest[iIndex] = '\0';
-	
+
 	return szDest;
 }
 

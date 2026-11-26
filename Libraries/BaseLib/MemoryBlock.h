@@ -18,7 +18,7 @@ public:
 	void*	Allocate(size uiSize);
 	size	GetSize(void) const;
 
-protected:	
+protected:
 	void*	Malloc(lsize uiSize);
 	void*	Realloc(void* pv, lsize uiSize);
 	void	Free(void* pv);

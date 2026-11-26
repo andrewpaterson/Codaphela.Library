@@ -65,8 +65,8 @@ struct SFunctionPointer
 		CCall_Void_Void				cCall;
 	};
 
-	bool IsNull(void) const;
-	void SetNull(void);
+	bool	IsNull(void) const;
+	void	SetNull(void);
 };
 
 

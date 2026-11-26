@@ -137,8 +137,8 @@ void* CListBlock::Add(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void* CListBlock::AddGetIndex(size* piIndex)
 {
-	void* pv;
-	void** ppv;
+	void*	pv;
+	void**	ppv;
 
 	pv = mcFreeList.Add();
 	if (pv != NULL)

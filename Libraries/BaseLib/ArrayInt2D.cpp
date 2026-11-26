@@ -130,7 +130,7 @@ void CArrayInt2D::SetColumns(size iNumColumns)
 		{
 			if (miWidth > 0)
 			{
-				InsertColumns(miWidth, iNumColumns-miWidth);
+				InsertColumns(miWidth, iNumColumns - miWidth);
 			}
 			else
 			{
@@ -139,7 +139,7 @@ void CArrayInt2D::SetColumns(size iNumColumns)
 		}
 		else if (iNumColumns < miWidth)
 		{
-			RemoveColumns(iNumColumns, miWidth-iNumColumns);
+			RemoveColumns(iNumColumns, miWidth - iNumColumns);
 		}
 	}
 }
@@ -161,7 +161,7 @@ void CArrayInt2D::SetRows(size iNumRows)
 		{
 			if (miHeight > 0)
 			{
-				InsertRows(miHeight, iNumRows-miHeight);
+				InsertRows(miHeight, iNumRows - miHeight);
 			}
 			else
 			{
@@ -170,8 +170,8 @@ void CArrayInt2D::SetRows(size iNumRows)
 		}
 		else if (iNumRows < miHeight)
 		{
-			RemoveRows(iNumRows, miHeight-iNumRows);
-		}	
+			RemoveRows(iNumRows, miHeight - iNumRows);
+		}
 	}
 }
 
@@ -250,7 +250,7 @@ void CArrayInt2D::RemoveColumns(size iColumn, size iCount)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt2D::RemoveRows(size iRow, size iCount)
 {
-	mcArray.RemoveRange(iRow * miWidth, (iRow+iCount) * miWidth, true);
+	mcArray.RemoveRange(iRow * miWidth, (iRow + iCount) * miWidth, true);
 	miHeight -= iCount;
 }
 
@@ -301,7 +301,7 @@ void CArrayInt2D::SafeSet(size x, size y, uint iValue)
 	}
 }
 
-	
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -320,7 +320,7 @@ void CArrayInt2D::Fill(size iX1, size iY1, size iX2, size iY2, uint iValue)
 	}
 }
 
-	
+
 //////////////////////////////////////////////////////////////////////////
 //
 //

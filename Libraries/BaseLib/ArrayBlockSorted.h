@@ -11,8 +11,8 @@ typedef CArrayTemplate<CArrayBlock> CArrayArrayBlock;
 
 struct SArraySortedIterator
 {
-	size iArrayBlock;
-	size iIndex;
+	size	iArrayBlock;
+	size	iIndex;
 };
 
 

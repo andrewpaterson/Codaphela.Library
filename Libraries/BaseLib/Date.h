@@ -40,14 +40,14 @@ public:
 	int8	mcMonth;
 	int8	mcDay;
 
-	void 	Init(void);  //Sets date to today.
-	void 	Init(int16 sYear, int8 cMonth, int8 cDay);
-	void 	Today(void);
-	void 	Tomorrow(void);
-	void 	Yesterday(void);
-	void 	AddDays(int iDays);
-	void 	SubtractDays(int iDays);
-	void 	ToStringCCYYMMDD(CChars* psz);
+	void	Init(void);  //Sets date to today.
+	void	Init(int16 sYear, int8 cMonth, int8 cDay);
+	void	Today(void);
+	void	Tomorrow(void);
+	void	Yesterday(void);
+	void	AddDays(int iDays);
+	void	SubtractDays(int iDays);
+	void	ToStringCCYYMMDD(CChars* psz);
 	size	DaysInYear(void);
 	size	YearsBetween(CDate* pcOther, EDateRounding eRounding);
 	size	MonthsBetween(CDate* pcOther, EDateRounding eRounding);
@@ -60,8 +60,8 @@ public:
 	bool	After(CDate* pcRight);
 	bool	Before(CDate* pcRight);
 
-	bool 	Save(CFileWriter* pcFileWriter);
-	bool 	Load(CFileReader* pcFileReader);
+	bool	Save(CFileWriter* pcFileWriter);
+	bool	Load(CFileReader* pcFileReader);
 };
 
 

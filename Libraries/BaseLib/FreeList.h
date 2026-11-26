@@ -110,7 +110,7 @@ public:
 	uint8		GetOffset(void) const;
 	uint8		GetAlignment(void) const;
 	void*		GetBitArray(SFNode* psNode);
-	SFNode* 	FindNode(void* pvData, bool bIsAllocated = true);
+	SFNode*		FindNode(void* pvData, bool bIsAllocated = true);
 	lsize		ByteSize(void);
 	void*		GetFirstNodeElement(SFNode* psNode);
 	void*		GetLastNodeElement(SFNode* psNode);

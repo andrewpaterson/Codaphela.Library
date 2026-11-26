@@ -118,7 +118,7 @@ public:
 	void	Dump(void);
 
 	//Each iteration call is locked, but an iteration may miss or see changes other threads make between its calls.
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	OIndex	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
 	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;

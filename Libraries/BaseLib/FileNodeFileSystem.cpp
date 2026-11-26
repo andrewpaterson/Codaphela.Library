@@ -75,6 +75,6 @@ void CFileNodeSystemFile::SetFullName(char* szFullName)
 //////////////////////////////////////////////////////////////////////////
 const char* CFileNodeSystemFile::GetExtension(void) const
 {
-	return mszFullPath.Text(miExtensionIndex+1);
+	return mszFullPath.Text(miExtensionIndex + 1);
 }
 

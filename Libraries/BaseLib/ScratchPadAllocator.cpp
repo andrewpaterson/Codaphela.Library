@@ -45,7 +45,7 @@ void* CScratchPadAllocator::Malloc(lsize uiSize)
 		BREAK();
 	}
 #endif // _DEBUG
-	
+
 	return mcScratchPad.Add(uiSize);
 }
 

@@ -24,7 +24,7 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSys
 {
 	switch (eFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
+	case FAT_FS_TYPE_FAT16:
 		{
 			if (uiFatSize < (((uiNoOfClusters * 2) + uiBytesPerSector - 1) / uiBytesPerSector))
 			{
@@ -32,7 +32,7 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSys
 			}
 			break;
 		}
-		case FAT_FS_TYPE_FAT32:
+	case FAT_FS_TYPE_FAT32:
 		{
 			if (uiFatSize < (((uiNoOfClusters * 4) + uiBytesPerSector - 1) / uiBytesPerSector))
 			{
@@ -40,8 +40,8 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSys
 			}
 			break;
 		}
-		default:
-			break;
+	default:
+		break;
 	}
 	return true;
 }
@@ -372,7 +372,7 @@ EFatCode CFatVolume::Unmount(void) noexcept
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::InitialiseFat32FileSystemInfo(void) noexcept
 {
-	SFatFileSystemInfo* psFileSystemInfo;
+	SFatFileSystemInfo*	psFileSystemInfo;
 	SFatCache			sInfoSector;
 
 	muiFileSystemInfoSector = muiHiddenSectors + muiFileSystemInfoSector;
@@ -444,7 +444,7 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, ui
 
 	psQuery->auiLongFilename[0] = 0;
 
-	if ((psDirectoryEntry == NULL) || 
+	if ((psDirectoryEntry == NULL) ||
 		(psDirectoryEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord == 0 && psDirectoryEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord == 0))
 	{
 		psQuery->uiCurrentCluster = GetRootCluster();
@@ -904,8 +904,8 @@ uint32 CFatVolume::AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseClust
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep) noexcept
 {
-	uint32 uiSector;
-	uint16 uiStepCount;
+	uint32	uiSector;
+	uint16	uiStepCount;
 
 	if (NumSectorsPerCluster() < uiPageSize)
 	{
@@ -930,13 +930,13 @@ fatEntry CFatVolume::GetEndOfClusterMarker(void) const noexcept
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
-			return FAT16_EOC;
+	case FAT_FS_TYPE_FAT16:
+		return FAT16_EOC;
 
-		case FAT_FS_TYPE_FAT32:
-			return FAT32_EOC;
-		default:
-			break;
+	case FAT_FS_TYPE_FAT32:
+		return FAT32_EOC;
+	default:
+		break;
 	}
 
 	return 0;
@@ -951,13 +951,13 @@ fatEntry CFatVolume::GetBadClusterMarker(void) const noexcept
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
-			return FAT16_BAD_CLUSTER;
+	case FAT_FS_TYPE_FAT16:
+		return FAT16_BAD_CLUSTER;
 
-		case FAT_FS_TYPE_FAT32:
-			return FAT32_BAD_CLUSTER;
-		default:
-			break;
+	case FAT_FS_TYPE_FAT32:
+		return FAT32_BAD_CLUSTER;
+	default:
+		break;
 	}
 
 	return 0;
@@ -1114,11 +1114,11 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 	memset(psEntries, 0, GetSectorSize());
 
 	InitialiseDottyDirectoryEntry(psEntries, ". ", uiCluster);
-	
+
 	psEntries++;
 
 	InitialiseDottyDirectoryEntry(psEntries, "..", GetEntryCluster(psDirectoryParent));
-	
+
 	DirtySector(sBuffer);
 
 	// when the parent is the root directory the dotdot entry always points to cluster 0, even in FAT32 when the root directory is not actually on
@@ -1280,16 +1280,16 @@ EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32
 	// mark the FAT as the the new 1st link of the cluster chain (or the end of the chain if we're only allocating 1 cluster)
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
+	case FAT_FS_TYPE_FAT16:
 		{
 			return WriteFat16Entry(uiOffsetInSector, uiPreviousEntryOffset, uiClusterIndexInTable, uiSector, uiPreviousSector, uiPreviousFatEntry);
 		}
-		case FAT_FS_TYPE_FAT32:
+	case FAT_FS_TYPE_FAT32:
 		{
 			return WriteFat32Entry(uiOffsetInSector, uiPreviousEntryOffset, uiClusterIndexInTable, uiSector, uiPreviousSector, uiPreviousFatEntry);
 		}
-		default:
-			break;
+	default:
+		break;
 	}
 
 	return FAT_UNKNOWN_ERROR;
@@ -1421,7 +1421,7 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 
 			CalculateFATIndexAndOffset(&uiOffsetInSector, uiCluster, &uiFirstClusterSector);
 
-		} 
+		}
 		while (uiCurrentSector == uiFirstClusterSector);
 	}
 }
@@ -1504,18 +1504,18 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 	// set the FAT entry
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
+	case FAT_FS_TYPE_FAT16:
 		{
 			eResult = SetFat16ClusterEntry(uiClusterInVolume, uiFirstClusterSector, uiOffsetInSector);
 			return eResult;
 		}
-		case FAT_FS_TYPE_FAT32:
+	case FAT_FS_TYPE_FAT32:
 		{
 			eResult = SetFat32ClusterEntry(uiClusterInVolume, uiFirstClusterSector, uiOffsetInSector);
 			return eResult;
 		}
-		default:
-			break;
+	default:
+		break;
 	}
 
 	return FAT_UNKNOWN_ERROR;
@@ -1636,20 +1636,20 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 
 			switch (meFileSystem)
 			{
-				case FAT_FS_TYPE_FAT16:
+			case FAT_FS_TYPE_FAT16:
 				{
 					eResult = IncreaseFat16ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
 					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
-				case FAT_FS_TYPE_FAT32:
+			case FAT_FS_TYPE_FAT32:
 				{
 					eResult = IncreaseFat32ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
 					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
-				default:
-					break;
+			default:
+				break;
 			}
 
 			if (FatIsEOFEntry(uiClusterIndex))
@@ -1725,13 +1725,13 @@ uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT) noexcept
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
-			return uiClusterIndexInFAT * 2;
+	case FAT_FS_TYPE_FAT16:
+		return uiClusterIndexInFAT * 2;
 
-		case FAT_FS_TYPE_FAT32:
-			return uiClusterIndexInFAT * 4;
-		default:
-			break;
+	case FAT_FS_TYPE_FAT32:
+		return uiClusterIndexInFAT * 4;
+	default:
+		break;
 	}
 
 	return 0xFFFFFFFF;
@@ -1800,13 +1800,13 @@ bool CFatVolume::FatIsEOFEntry(fatEntry uiFat) noexcept
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
-			return uiFat >= 0xFFF8;
+	case FAT_FS_TYPE_FAT16:
+		return uiFat >= 0xFFF8;
 
-		case FAT_FS_TYPE_FAT32:
-			return uiFat >= 0x0FFFFFF8;
-		default:
-			break;
+	case FAT_FS_TYPE_FAT32:
+		return uiFat >= 0x0FFFFFF8;
+	default:
+		break;
 	}
 
 	return false;
@@ -1879,19 +1879,19 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT16:
+	case FAT_FS_TYPE_FAT16:
 		{
 			eResult = ReadFat16Entry(uiOffsetInSector, uiSector, puiFatEntry);
 			break;
 		}
-		case FAT_FS_TYPE_FAT32:
+	case FAT_FS_TYPE_FAT32:
 		{
 			eResult = ReadFat32Entry(uiOffsetInSector, uiSector, puiFatEntry);
 			break;
 		}
-		default:
-			eResult = FAT_UNKNOWN_ERROR;
-			break;
+	default:
+		eResult = FAT_UNKNOWN_ERROR;
+		break;
 	}
 	return eResult;
 }
@@ -1942,9 +1942,9 @@ EFatCode CFatVolume::FreeFat32Chain(uint32* puiFreedClusterIndex, uint32 uiSecto
 EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex) noexcept
 {
 	EFatCode	eResult;
-	uint32		uiOffsetInSector;						
-	uint32		uiFirstClusterSector;					
-	uint32		uiCurrentSector;						
+	uint32		uiOffsetInSector;
+	uint32		uiFirstClusterSector;
+	uint32		uiCurrentSector;
 
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
@@ -1961,20 +1961,20 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex) noexcept
 
 			switch (meFileSystem)
 			{
-				case FAT_FS_TYPE_FAT16:
+			case FAT_FS_TYPE_FAT16:
 				{
 					eResult = FreeFat16Chain(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
 					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
-				case FAT_FS_TYPE_FAT32:
+			case FAT_FS_TYPE_FAT32:
 				{
 					eResult = FreeFat32Chain(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
 					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
-				default:
-					break;
+			default:
+				break;
 			}
 
 			SetTotalFreeClusters(GetTotalFreeClusters() + 1);
@@ -1998,14 +1998,14 @@ bool CFatVolume::IsFreeFat(fatEntry uifat) noexcept
 {
 	switch (meFileSystem)
 	{
-		case FAT_FS_TYPE_FAT32:
-			return (uifat & FAT32_CLUSTER_MASK) == 0;
+	case FAT_FS_TYPE_FAT32:
+		return (uifat & FAT32_CLUSTER_MASK) == 0;
 
-		case FAT_FS_TYPE_FAT16:
-			return (uifat & FAT16_CLUSTER_MASK) == 0;
+	case FAT_FS_TYPE_FAT16:
+		return (uifat & FAT16_CLUSTER_MASK) == 0;
 
-		default:
-			break;
+	default:
+		break;
 	}
 
 	return true;
@@ -2152,7 +2152,7 @@ EFatCode CFatVolume::FindFirstFATEntry(const char* szParentPath, uint8 uiAttribu
 	SFatDirectoryEntry	sParentEntry;
 
 	szParentPath = StepPathOverSlash(szParentPath);
-	
+
 	if (szParentPath != NULL)
 	{
 		eResult = GetFileEntry(szParentPath, &sParentEntry);
@@ -2283,7 +2283,7 @@ EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* ps
 			GenerateShortNameWithSuffix(uiNameSuffix, szShortName);
 			uiNameSuffix++;
 		}
-	} 
+	}
 	while (!bIsValidEntry);
 
 	sQuery.Kill(GetSectorCache());
@@ -2350,8 +2350,8 @@ void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, 
 //////////////////////////////////////////////////////////////////////////
 void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, const char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound) noexcept
 {
-	uint16 uiLFNIndex;
-	uint16 uiNameLength;
+	uint16	uiLFNIndex;
+	uint16	uiNameLength;
 
 	// set the required fields for this entry
 	psParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
@@ -2372,20 +2372,20 @@ void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, con
 	// copy the lfn chars
 	uiNameLength = (uint16)strlen(szName);
 	uiLFNIndex = ((iLFNEntriesFound - 1) * 13);
-	
+
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0], uiLFNIndex, uiNameLength, szName, 0x0);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2], uiLFNIndex, uiNameLength, szName, 0x1);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4], uiLFNIndex, uiNameLength, szName, 0x2);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6], uiLFNIndex, uiNameLength, szName, 0x3);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8], uiLFNIndex, uiNameLength, szName, 0x4);
-	
+
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0], uiLFNIndex, uiNameLength, szName, 0x5);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2], uiLFNIndex, uiNameLength, szName, 0x6);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4], uiLFNIndex, uiNameLength, szName, 0x7);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6], uiLFNIndex, uiNameLength, szName, 0x8);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8], uiLFNIndex, uiNameLength, szName, 0x9);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA], uiLFNIndex, uiNameLength, szName, 0xA);
-	
+
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0], uiLFNIndex, uiNameLength, szName, 0xB);
 	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2], uiLFNIndex, uiNameLength, szName, 0xC);
 }
@@ -3004,7 +3004,7 @@ EFatCode CFatVolume::GetFileEntry(const char* szPath, SFatDirectoryEntry* psEntr
 		}
 
 		psCurrentEntry = sQuery.psCurrentEntryRaw;
-	} 
+	}
 	while (szPath[0] != '\0');
 
 	if (eResult == FAT_SUCCESS)
@@ -3108,7 +3108,7 @@ EFatCode CFatVolume::Delete(const char* szFilename) noexcept
 	uint32				uiFirstCluster;
 	SFatDirectoryEntry	sEntry;
 	char				szPathPart[FAT_MAX_PATH];
-	const char*				szNamePart;
+	const char*			szNamePart;
 	uint8				uiChecksum;
 	SFatCache			sBuffer;
 
@@ -3181,12 +3181,12 @@ EFatCode CFatVolume::Rename(const char* szOriginalFilename, const char* szNewFil
 	EFatCode			eResult;
 	uint32				uiEntryCluster;
 	char				szNewParent[256];
-	const char*				szOriginalFilenamePart;
+	const char*			szOriginalFilenamePart;
 	SFatDirectoryEntry	sOriginalEntry;
 	SFatDirectoryEntry	sNewEntry;
 	uint8				uiChecksum = 0;
 	char				szOriginalParent[256];
-	const char*				szNewFilenamePart;
+	const char*			szNewFilenamePart;
 	SFatCache			sBuffer;
 
 	ParsePathAndFilename(szOriginalFilename, szOriginalParent, &szOriginalFilenamePart);

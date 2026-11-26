@@ -6,8 +6,8 @@ class CChars;
 class CKillable
 {
 public:
-	virtual void Kill(void) =0;
-	virtual void Print(CChars* psz);  //Killable includes Print because having a separate CPrintable changes the size of pointers to inheriting objects.
+	virtual void	Kill(void) =0;
+	virtual void	Print(CChars* psz);  //Killable includes Print because having a separate CPrintable changes the size of pointers to inheriting objects.
 };
 
 

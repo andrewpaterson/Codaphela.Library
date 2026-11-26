@@ -27,7 +27,7 @@ public:
 	virtual bool	Contains(const char* szName) =0;
 	virtual bool	Contains(CChars* szName) =0;
 
-	virtual OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) =0;
+	virtual OIndex	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) =0;
 	virtual OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) =0;
 	virtual bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) =0;
 	virtual bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) =0;

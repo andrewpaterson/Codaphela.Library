@@ -29,11 +29,11 @@ class CUnicodeReader : public CUnicode
 {
 protected:
 	uint32		muiUTF8ZWJBytes;
-	uint32      muiUTF16LEZWJBytes;
-	uint32      muiUTF16BEZWJBytes;
+	uint32		muiUTF16LEZWJBytes;
+	uint32		muiUTF16BEZWJBytes;
 	uint32		muiUTF8BOMBytes;
-	uint32      muiUTF16LEBOMBytes;
-	uint32      muiUTF16BEBOMBytes;
+	uint32		muiUTF16LEBOMBytes;
+	uint32		muiUTF16BEBOMBytes;
 
 public:
 	void	Init(void);

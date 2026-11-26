@@ -10,8 +10,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CNamedIndexedHeader::Init(const char* szName, int iNameLength, void* pvData, lsize uiDataSize)
 {
-	char* szDestName;
-	void* szDestData;
+	char*	szDestName;
+	void*	szDestData;
 
 	if (iNameLength > 0)
 	{

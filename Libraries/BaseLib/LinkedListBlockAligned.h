@@ -65,7 +65,7 @@ public:
 	void*				InsertAfterTail(lsize uiSize, uint16 iAlignment, int16 iOffset);
 	void*				InsertBeforeHead(lsize uiSize, uint16 iAlignment, int16 iOffset);
 	void*				InsertBeforeNode(void* psPos, lsize uiSize, uint16 iAlignment, int16 iOffset);
-	void*				InsertAfterNode(void* psPos, lsize uiSize, uint16 iAlignment, int16 iOffset); 
+	void*				InsertAfterNode(void* psPos, lsize uiSize, uint16 iAlignment, int16 iOffset);
 	void*				Add(lsize uiSize, uint16 iAlignment);
 
 	SLLAlignedNode*		AllocateDetached(lsize uiSize, uint16 iAlignment, int16 iOffset);
@@ -83,7 +83,7 @@ public:
 
 	lsize				ByteSize(void);
 
-protected:	
+protected:
 	lsize				GetNodeSize(void* pvMem);
 
 	bool				WriteHeader(CFileWriter* pcFileWriter);

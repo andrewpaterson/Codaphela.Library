@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FreeList.h"
 
 
-template <class M> 
+template <class M>
 class CFileNode;
 template <class M>
 class CFileNodeDirectory
@@ -36,8 +36,8 @@ protected:
 	CFreeList		maNodeFiles;  //Array of CFileNode.
 
 public:
-	void 			Init(void);
-	void 			Kill(void);
+	void			Init(void);
+	void			Kill(void);
 
 	CFileNode<M>*	Get(const char* szName);
 	CFileNode<M>*	AddFile(char* szName, CFileNode<M>* pcParent);

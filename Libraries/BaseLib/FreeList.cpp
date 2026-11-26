@@ -893,7 +893,7 @@ SFNode* CFreeList::FindNode(void* pvData, bool bIsAllocated)
 //////////////////////////////////////////////////////////////////////////
 lsize CFreeList::ByteSize(void)
 {
-	//This returns just the size of the allocated memory allocated blocks.  It does not include the free list 'header' or the link list 'header. 
+	//This returns just the size of the allocated memory allocated blocks.  It does not include the free list 'header' or the link list 'header.
 	//Slabs are always allocated whole.
 	if (mbSlabs)
 	{

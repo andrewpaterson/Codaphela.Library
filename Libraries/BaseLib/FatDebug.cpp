@@ -246,8 +246,8 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 //////////////////////////////////////////////////////////////////////////
 void PrintAttributes(CChars* psz, uint8 uiAttributes)
 {
-	uint	i;
-	const char* szAttribute;
+	uint		i;
+	const char*	szAttribute;
 
 	if (uiAttributes == FAT_ATTR_LONG_NAME)
 	{
@@ -311,7 +311,7 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 	uint32					uiSectorCount;
 	char					szShortName[13];
 	SFatCache				sCache;
-	
+
 	uiCluster = pcVolume->GetRootCluster();
 	uiSector = pcVolume->GetRootSector();
 
@@ -450,7 +450,7 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 //////////////////////////////////////////////////////////////////////////
 void PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume)
 {
-	
+
 }
 
 

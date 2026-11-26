@@ -193,7 +193,7 @@ CSystemFileNode* CFileSystem::Iterate(CFileSystemIterator* psIter)
 	SFileSystemIteratorPosition*	psCurrent;
 	int								iDirectoryElements;
 	CSystemFileNode*				pcChild;
-	
+
 	psCurrent = psIter->Peek();
 	if (!psCurrent)
 	{

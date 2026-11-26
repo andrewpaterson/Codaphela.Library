@@ -57,15 +57,15 @@ char GetEscapeCode(char cCurrent)
 	else if (cCurrent == 'a')
 	{
 		return '\a';
-	}				
+	}
 	else if (cCurrent == 'b')
 	{
 		return '\b';
-	}				
+	}
 	else if (cCurrent == 'f')
 	{
 		return '\f';
-	}				
+	}
 	else if (cCurrent == 'r')
 	{
 		return '\r';
@@ -90,10 +90,10 @@ char GetEscapeCode(char cCurrent)
 //////////////////////////////////////////////////////////////////////////
 void StrEscapeUnicode(char16 c, char* szDest)
 {
-	char c1;
-	char c2;
-	char c3;
-	char c4;
+	char	c1;
+	char	c2;
+	char	c3;
+	char	c4;
 
 	c1 = (c & 0xf);
 	c2 = (c & 0xf0) >> 4;
@@ -116,8 +116,8 @@ void StrEscapeUnicode(char16 c, char* szDest)
 //////////////////////////////////////////////////////////////////////////
 void StrEscapeHex(char c, char* szDest)
 {
-	char cRight;
-	char cLeft;
+	char	cRight;
+	char	cLeft;
 
 	cRight = (c & 0xf);
 	cLeft  = (c & 0xf0) >> 4;
@@ -212,7 +212,7 @@ char* GetEscapeString(uint8 cCurrent, char* szDest)
 		szDest[0] = cCurrent;
 		szDest[1] = '\0';
 	}
-	else 
+	else
 	{
 		StrEscapeHex(cCurrent, szDest);
 	}

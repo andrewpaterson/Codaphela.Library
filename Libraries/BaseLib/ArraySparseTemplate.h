@@ -33,9 +33,9 @@ struct SSparseNode
 {
 	size				iIndex;
 	size				iLeafDepth;
-	SSparseNode*	psParent;
-	SSparseNode*	psLeft;
-	SSparseNode*	psRight;
+	SSparseNode*		psParent;
+	SSparseNode*		psLeft;
+	SSparseNode*		psRight;
 
 	//Element data follows node.
 
@@ -47,16 +47,16 @@ template<class M>
 class __CArraySparseTemplate
 {
 private:
-	CFreeList		mcNodes;
+	CFreeList			mcNodes;
 	size				miElementSize;
-	SSparseNode*	mpsRoot;
+	SSparseNode*		mpsRoot;
 
 public:
-	void 			Init(uint16 iElementSize);
-	void 			Kill(void);
+	void			Init(uint16 iElementSize);
+	void			Kill(void);
 	M*				Set(size iElementPos, M* pvData);
 	SSparseNode*	Search(size iElementPos);
-	M* 				Set(size iElementPos);
+	M*				Set(size iElementPos);
 	M*				Get(size iElementPos);
 	void			Dump(void);
 	void			RecurseDump(size iDepth, SSparseNode* psNode, CChars* psz, bool bLeft);
@@ -172,7 +172,7 @@ void __CArraySparseTemplate<M>::RecurseIncreaseDepths(SSparseNode* psNode, size 
 		psNode->iLeafDepth = iLeafDepth;
 		if (psNode->psParent)
 		{
-			RecurseIncreaseDepths(psNode->psParent, iLeafDepth+1);
+			RecurseIncreaseDepths(psNode->psParent, iLeafDepth + 1);
 		}
 	}
 }
@@ -203,15 +203,15 @@ void __CArraySparseTemplate<M>::RecurseUpdateDepth(SSparseNode* psNode)
 			iRightDepth = -1;
 
 		if (iLeftDepth >= iRightDepth)
-			iNewDepth = iLeftDepth+1;
+			iNewDepth = iLeftDepth + 1;
 		else
-			iNewDepth = iRightDepth+1;
+			iNewDepth = iRightDepth + 1;
 
 		if (iNewDepth != psNode->iLeafDepth)
 		{
 			psNode->iLeafDepth = iNewDepth;
 			RecurseUpdateDepth(psNode->psParent);
-		}	
+		}
 	}
 };
 
@@ -501,8 +501,8 @@ void __CArraySparseTemplate<M>::RecurseDump(size iDepth, SSparseNode* psNode, CC
 		psz->Append("): ");
 		psz->Append(psNode->iLeafDepth);
 		psz->Append("\n");
-		RecurseDump(iDepth+1, psNode->psLeft, psz, true);
-		RecurseDump(iDepth+1, psNode->psRight, psz, false);
+		RecurseDump(iDepth + 1, psNode->psLeft, psz, true);
+		RecurseDump(iDepth + 1, psNode->psRight, psz, false);
 	}
 }
 

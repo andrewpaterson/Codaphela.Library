@@ -165,7 +165,7 @@ bool CMemoryQueue::Pop(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryQueue::GetFirst(void)
 {
-	SMemoryCacheDescriptor* psDesc;
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = GetFirstDescriptor();
@@ -180,7 +180,7 @@ void* CMemoryQueue::GetFirst(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryQueue::GetLast(void)
 {
-	SMemoryCacheDescriptor* psDesc;
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = GetLastDescriptor();

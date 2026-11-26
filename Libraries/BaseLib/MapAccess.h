@@ -81,7 +81,7 @@ public:
 			int16	GetKeyShort(void* pvKey, size iKeySize, int16 iNullValue = -1);
 			int32	GetKeyInt(void* pvKey, size iKeySize, int32 iNullValue = -1);
 			int64	GetKeyLong(void* pvKey, size iKeySize, int64 lliNullValue = -1);
-			
+
 			bool	HasShort(int16 iKey);
 			bool	HasInt(int32 iKey);
 			bool	HasLong(int64 lliKey);

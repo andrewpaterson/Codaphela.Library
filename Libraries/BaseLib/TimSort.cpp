@@ -38,7 +38,7 @@ void TimSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumEle
 	timsort(pvArray, uiNumElements, uiStride, fCompare);
 }
 
- /**
+/**
   * This is the minimum sized sequence that will be merged.  Shorter
   * sequences will be lengthened by calling binarySort.  If the entire
   * array is less than this length, no merges will be performed.
@@ -57,13 +57,13 @@ void TimSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumEle
   */
 #define MIN_MERGE 32
 
-  /**
+/**
    * When we get into galloping mode, we stay there until both runs win less
    * often than MIN_GALLOP consecutive times.
    */
 #define MIN_GALLOP 7
 
-   /**
+/**
 	* Maximum initial size of tmp array, which is used for merging.  The array
 	* can grow to accommodate demand.
 	*
@@ -72,17 +72,17 @@ void TimSort(DataCompare fCompare, void* pvArray, lsize uiStride, lsize uiNumEle
 	*/
 #define INITIAL_TMP_STORAGE_LENGTH 256
 
-	/**
+/**
 	 * Maximum stack size.  This depends on MIN_MERGE and sizeof(lsize).
 	 */
 #define MAX_STACK 85
 
-	 /**
+/**
 	  * Define MALLOC_STACK if you want to allocate the run stack on the heap.
 	  * Otherwise, 2* MAX_STACK * sizeof(lsize) ~ 1.3K gets reserved on the
 	  * call stack.
 	  */
-	  /* #undef MALLOC_STACK */
+/* #undef MALLOC_STACK */
 
 #if defined(_MSC_VER)
 # define DEFINE_TEMP(temp) void *temp = _alloca(WIDTH)
@@ -121,17 +121,19 @@ typedef int (*comparator) (const void* x, const void* y);
 #define TIMSORT timsort
 
 
-struct timsort_run {
-	void* base;
-	lsize len;
+struct timsort_run
+{
+	void*	base;
+	lsize	len;
 };
 
-struct timsort {
+struct timsort
+{
 	/**
 	 * The array being sorted.
 	 */
-	void* a;
-	lsize a_length;
+	void*	a;
+	lsize	a_length;
 
 	/**
 	 * The comparator for this sort.
@@ -148,8 +150,8 @@ struct timsort {
 	/**
 	 * Temp storage for merges.
 	 */
-	void* tmp;
-	lsize tmp_length;
+	void*	tmp;
+	lsize	tmp_length;
 
 	/**
 	 * A stack of pending runs yet to be merged.  Run i starts at
@@ -161,8 +163,8 @@ struct timsort {
 	 * so we could cut the storage for this, but it's a minor amount,
 	 * and keeping all the info explicit simplifies the code.
 	 */
-	lsize stackSize;	// Number of pending runs on stack
-	lsize stackLen;	// maximum stack size
+	lsize	stackSize;	// Number of pending runs on stack
+	lsize	stackLen;	// maximum stack size
 #ifdef MALLOC_STACK
 	struct timsort_run* run;
 #else
@@ -187,6 +189,12 @@ static void* ensureCapacity(struct timsort* ts, lsize minCapacity,
  * @param c the comparator to determine the order of the sort
  * @param width the element width
  */
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static int timsort_init(struct timsort* ts, void* a, lsize len,
 	CMPPARAMS(c, carg),
 	lsize width)
@@ -208,11 +216,13 @@ static int timsort_init(struct timsort* ts, void* a, lsize len,
 	// Allocate temp storage (which may be increased later if necessary)
 	ts->tmp_length = (len < 2 * INITIAL_TMP_STORAGE_LENGTH ?
 		len >> 1 : INITIAL_TMP_STORAGE_LENGTH);
-	if (ts->tmp_length) {
+	if (ts->tmp_length)
+	{
 		ts->tmp = malloc(ts->tmp_length * width);
 		err |= ts->tmp == NULL;
 	}
-	else {
+	else
+	{
 		ts->tmp = NULL;
 	}
 
@@ -227,7 +237,7 @@ static int timsort_init(struct timsort* ts, void* a, lsize len,
 	 * the MIN_MERGE declaration above for more information.
 	 */
 
-	 /* POP:
+	/* POP:
 	  * In listsort.txt, Tim argues that the run lengths form a decreasing
 	  * sequence, and each run length is greater than the previous two.
 	  * Thus, lower bounds on the minimum runLen numbers on the stack are:
@@ -287,7 +297,7 @@ static int timsort_init(struct timsort* ts, void* a, lsize len,
 	 * implementation.  The discrepancy might be because the Java
 	 * implementation uses a less accurate lower bound.
 	 */
-	 //stackLen = (len < 120 ? 5 : len < 1542 ? 10 : len < 119151 ? 19 : 40);
+	//stackLen = (len < 120 ? 5 : len < 1542 ? 10 : len < 119151 ? 19 : 40);
 
 	ts->run = malloc(ts->stackLen * sizeof(ts->run[0]));
 	err |= ts->run == NULL;
@@ -295,15 +305,22 @@ static int timsort_init(struct timsort* ts, void* a, lsize len,
 	ts->stackLen = MAX_STACK;
 #endif
 
-	if (!err) {
+	if (!err)
+	{
 		return SUCCESS;
 	}
-	else {
+	else
+	{
 		timsort_deinit(ts);
 		return FAILURE;
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static void timsort_deinit(struct timsort* ts)
 {
 	free(ts->tmp);
@@ -329,10 +346,17 @@ static void timsort_deinit(struct timsort* ts)
  * @param n the length of the array to be sorted
  * @return the length of the minimum run to be merged
  */
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static lsize minRunLength(lsize n)
 {
 	lsize r = 0;		// Becomes 1 if any 1 bits are shifted off
-	while (n >= MIN_MERGE) {
+	while (n >= MIN_MERGE)
+	{
 		r |= (n & 1);
 		n >>= 1;
 	}
@@ -345,6 +369,12 @@ static lsize minRunLength(lsize n)
  * @param runBase index of the first element in the run
  * @param runLen  the number of elements in the run
  */
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static void pushRun(struct timsort* ts, void* runBase, lsize runLen)
 {
 	assert(ts->stackSize < ts->stackLen);
@@ -362,10 +392,17 @@ static void pushRun(struct timsort* ts, void* runBase, lsize runLen)
  * @param minCapacity the minimum required capacity of the tmp array
  * @return tmp, whether or not it grew
  */
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 static void* ensureCapacity(struct timsort* ts, lsize minCapacity,
 	lsize width)
 {
-	if (ts->tmp_length < minCapacity) {
+	if (ts->tmp_length < minCapacity)
+	{
 		// Compute smallest power of 2 > minCapacity
 		lsize newSize = minCapacity;
 		newSize |= newSize >> 1;
@@ -374,12 +411,13 @@ static void* ensureCapacity(struct timsort* ts, lsize minCapacity,
 		newSize |= newSize >> 8;
 		newSize |= newSize >> 16;
 #ifdef _WIN64
-			newSize |= newSize >> 32;
+		newSize |= newSize >> 32;
 #endif // !_WIN64
 
 		newSize++;
 		newSize = MIN(newSize, ts->a_length >> 1);
-		if (newSize == 0) {	// (overflow) Not bloody likely!
+		if (newSize == 0)
+		{	// (overflow) Not bloody likely!
 			newSize = minCapacity;
 		}
 
@@ -408,9 +446,14 @@ static void* ensureCapacity(struct timsort* ts, lsize minCapacity,
 #undef WIDTH
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 int TIMSORT(void* a, lsize nel, lsize width, CMPPARAMS(c, carg))
 {
-	switch (width) {
+	switch (width)
+	{
 	case 4:
 		return timsort_4(a, nel, width, CMPARGS(c, carg));
 	case 8:

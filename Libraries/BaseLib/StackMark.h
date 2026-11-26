@@ -43,9 +43,9 @@ public:
 	CArrayStackMarks	mcMarks;
 	size				muiElements;
 
-	void Init(size iElements);
-	void Kill(void);
-	void Add(SStackMark sMark);
+	void	Init(size iElements);
+	void	Kill(void);
+	void	Add(SStackMark sMark);
 };
 
 

@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 template<class M>
 class CLinkedListTemplateFreeList : public CLinkedListTemplate<M>
 {
-protected:	
+protected:
 	CFreeList	mcFreeList;
 
 public:
@@ -37,7 +37,7 @@ public:
 	void	Init(int iChunkSize);
 	void	Kill(void);
 
-protected:	
+protected:
 	void*	Malloc(size_t tSize);
 	void	Free(void* pv);
 };

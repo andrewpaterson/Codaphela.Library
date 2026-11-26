@@ -20,10 +20,10 @@ bool CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirect
 	ReturnOnFalse(cController.Begin());
 
 	ReturnOnFalse(cIndexTreeFile.Init(&cController, NULL, IWT_Yes, pcIndexTreeMemory->ReverseKeys()));
-	
+
 	RecurseAllocate(pcIndexTreeMemory->GetRoot(), &cIndexTreeFile, cIndexTreeFile.GetRoot());
 	RecurseWrite(&cIndexTreeFile, cIndexTreeFile.GetRoot());
-	
+
 	ReturnOnFalse(cController.End());
 	cController.Kill();
 	cIndexTreeFile.Kill();
@@ -39,9 +39,9 @@ bool CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirect
 void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
 	size						i;
-	CIndexTreeNodeMemory*	pcMemoryChild;
-	CIndexTreeNodeFile*		pcFileChild;
-	void*					pvObject;
+	CIndexTreeNodeMemory*		pcMemoryChild;
+	CIndexTreeNodeFile*			pcFileChild;
+	void*						pvObject;
 	size						iChildFirstIndex;
 	size						iChildLastIndex;
 	size						iChildDataSize;
@@ -93,10 +93,10 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 bool CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
 	size						i;
-	CIndexTreeChildNode*	pcFileChild;
-	CIndexTreeNodeFile*		pcMemoryChild;
-	bool					bResult;
-	CIndexTreeChildNode*	apcChildren;
+	CIndexTreeChildNode*		pcFileChild;
+	CIndexTreeNodeFile*			pcMemoryChild;
+	bool						bResult;
+	CIndexTreeChildNode*		apcChildren;
 	size						iNumNodes;
 
 	if (pcFileNode->HasNodes())

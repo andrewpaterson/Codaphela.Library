@@ -102,8 +102,8 @@ bool CMapPtrPtr::Remove(void* pvKey)
 //////////////////////////////////////////////////////////////////////////
 bool CMapPtrPtr::StartIteration(SMapIterator* psIterator, void** ppcKey, void** ppcValue)
 {
-	void** ppcK;
-	void** ppcV;
+	void**		ppcK;
+	void**		ppcV;
 	bool		bResult;
 
 	bResult = CMapBlock::StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
@@ -122,8 +122,8 @@ bool CMapPtrPtr::StartIteration(SMapIterator* psIterator, void** ppcKey, void** 
 //////////////////////////////////////////////////////////////////////////
 bool CMapPtrPtr::Iterate(SMapIterator* psIterator, void** ppcKey, void** ppcValue)
 {
-	void**	ppcK;
-	void**	ppcV;
+	void**		ppcK;
+	void**		ppcV;
 	bool		bResult;
 
 	bResult = CMapBlock::Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);

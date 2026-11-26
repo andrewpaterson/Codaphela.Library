@@ -49,8 +49,8 @@ void 	SetFlagShort(uint16* psiDest, uint16 iFlag, bool iFlagValue);
 void 	SetFlagShort(int16* psiDest, int16 iFlag, bool iFlagValue);
 void 	SetFlagInt(uint32* piDest, uint32 iFlag, bool iFlagValue);
 void 	SetFlagInt(int32* piDest, int32 iFlag, bool iFlagValue);
-void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue); 
-void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue); 
+void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue);
+void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue);
 void 	SetFlagSize(size* piDest, size iFlag, bool iFlagValue);
 size 	FindFirstClearBit(void* pvArray, size iArraySize) noexcept;  //Libc65's stringW65C816_16.asm on the W65C816 (and the Last, uint32 and uint64 ones).
 size	FindFirstClearBit(uint32 uiBits) noexcept;  //32 if uiBits has no clear bit.

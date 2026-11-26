@@ -54,7 +54,7 @@ void CArrayIntAndPointer::AddIfUnique(void* pvData, uint uiType)
 			return;
 		}
 	}
-	
+
 	Add(pvData, uiType);
 }
 
@@ -198,7 +198,7 @@ void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElemen
 
 	if (bExists)
 	{
-		return GetPtr(iPos+1);
+		return GetPtr(iPos + 1);
 	}
 	else
 	{

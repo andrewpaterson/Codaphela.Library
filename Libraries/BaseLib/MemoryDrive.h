@@ -17,7 +17,7 @@ public:
 	bool	Read(uint64 uiSector, uint32 uiNumSectors, void* pvData) override;
 	bool	Write(uint64 uiSector, void* pvData) override;
 	bool	Write(uint64 uiSector, uint32 uiNumSectors, void* pvData) override;
-	bool    Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive) override;
+	bool	Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive) override;
 
 	bool    Erase(void);
 

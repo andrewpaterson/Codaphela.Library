@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CPackFileNode;
-struct SPackFileReadPtrPosition 
+struct SPackFileReadPtrPosition
 {
 	CPackFileNode*	psPackFile;
 	filePos			iLastReadPos;
@@ -41,7 +41,7 @@ class CPackFileReadArray
 {
 protected:
 	CArrayPackFileReadPtrs	maPtrs;
-	
+
 public:
 	void		Init(void);
 	void		Kill(void);

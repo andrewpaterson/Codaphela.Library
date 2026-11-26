@@ -33,10 +33,10 @@ struct SCSVRowEditable
 	filePos			iFileOffset;
 	CArrayChars		aszData;
 
-	void 		Init(void);
-	void 		Kill(void);
-	void 		Dump(void);
-	size	 	IndexOf(char* szString);
+	void		Init(void);
+	void		Kill(void);
+	void		Dump(void);
+	size		IndexOf(char* szString);
 	size		NumCells(void) const;
 	CChars*		Get(size iIndex);
 };
@@ -51,14 +51,14 @@ protected:
 	CArrayCSVRow	masCSVRows;
 
 public:
-	void 				Init(char cSeparator);
-	void 				Kill(void);
+	void				Init(char cSeparator);
+	void				Kill(void);
 
-	bool 				ReadLine(void);
+	bool				ReadLine(void);
 	bool				ReadLine(CChars* szString);
-	bool 				ReadLine(filePos iFileOffset, SCSVRowEditable* psCSVRow);
-	void 				ReadAllLines(void);
-	void 				Dump(void);
+	bool				ReadLine(filePos iFileOffset, SCSVRowEditable* psCSVRow);
+	void				ReadAllLines(void);
+	void				Dump(void);
 	size				NumRows(void) const;
 	SCSVRowEditable*	Get(size iRowNum);
 };

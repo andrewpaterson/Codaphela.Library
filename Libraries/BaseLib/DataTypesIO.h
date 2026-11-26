@@ -62,7 +62,7 @@ struct SIOData
 NAMED_CLASS(SIOData);
 	bool Save(CFileWriter* pcFileWriter)
 	{
-		return pcFileWriter->WriteData(this, 1); 
+		return pcFileWriter->WriteData(this, 1);
 	}
 
 	bool Load(CFileReader* pcFileReader)

@@ -12,8 +12,8 @@ struct SChunkFilenameIterator
 	bool							bDone;
 	CChars							szValue;
 
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 };
 
 

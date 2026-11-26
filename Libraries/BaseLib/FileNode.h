@@ -34,10 +34,10 @@ friend class CFileNodeDirectory<M>;
 protected:
 	union
 	{
-		CFileNodeDirectory<M>	msDirectory;		
+		CFileNodeDirectory<M>	msDirectory;
 		M						msFile;
 	} u;
-	
+
 public:
 	void					InitFile(const char* szName, CFileNode* pcParent);
 	void					InitDirectory(const char* szName, CFileNode* pcParent);

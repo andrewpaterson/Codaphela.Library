@@ -7,10 +7,10 @@ class CPackFiles;
 class CPackFilePacker
 {
 public:
-	bool Pack(const char* szDestPakFile, const char* szSourceDirectory, char* szPackDirectory = NULL);
-	bool Unpack(const char* szSourcePakFile, const char* szDestDirectory, bool bRemoveDestDir = false);
-	bool List(char* szSourcePakFile, CChars* pszDest);
-	void List(CPackFiles* pcPackFiles, CChars* pszDest);
+	bool	Pack(const char* szDestPakFile, const char* szSourceDirectory, char* szPackDirectory = NULL);
+	bool	Unpack(const char* szSourcePakFile, const char* szDestDirectory, bool bRemoveDestDir = false);
+	bool	List(char* szSourcePakFile, CChars* pszDest);
+	void	List(CPackFiles* pcPackFiles, CChars* pszDest);
 };
 
 

@@ -30,8 +30,8 @@ struct SHashText
 	const char*		sz;
 	size			uiLength;
 
-	void Init(const char* sz, size uiLength);
-	void Init(const char* sz);
+	void	Init(const char* sz, size uiLength);
+	void	Init(const char* sz);
 };
 
 

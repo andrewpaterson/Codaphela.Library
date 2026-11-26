@@ -315,14 +315,14 @@ bool CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 		pvData = pcNode->GetDataPtr();
 		uiDataSize = pcNode->GetDataSize();
 
-		// mpcIndexTreeEvictionCallback->IndexTreeNodeEvicted calls 
-        //   CIndexedDescriptorsFile::IndexTreeNodeEvicted 
+		// mpcIndexTreeEvictionCallback->IndexTreeNodeEvicted calls
+		//   CIndexedDescriptorsFile::IndexTreeNodeEvicted
 		//   CIndexedData::EvictData
 		//   CIndexedFilesEvicting::Evict
 		//     mpcEvictionCallback->DescriptorEvicted
 		//       CIndexedData::DescriptorEvicted (which tries to evict the node again)
 		//         mpcIndexedDataEvictionCallback->IndexEvicted
-		//    
+		//
 
 		bResult = mpcIndexTreeEvictionCallback->IndexTreeNodeEvicted(pvMem, iKeySize, pvData, uiDataSize);
 
@@ -416,6 +416,10 @@ bool CIndexTreeEvicting::HasDiagnosticCallback(void) const
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CIndexTreeDataOrderer* CIndexTreeEvicting::GetDataOrderer(void) const
 {
 	return mcIndexTree.GetDataOrderer();

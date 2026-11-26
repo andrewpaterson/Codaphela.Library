@@ -133,7 +133,7 @@ void ConvertScaleTruncate_uint8_To_uint16(uint16* psDest,	uint8* pi) { *psDest =
 void ConvertScaleTruncate_float64_To_int32	(int32* piDest,		float64* pf) 	{ *piDest = (int32)((float64)0xffffffff * *pf); }
 void ConvertScaleTruncate_float32_To_int32		(int32* piDest,		float32* pf) 	{ *piDest = (int32)((float32)0xffffffff * *pf); }
 void ConvertScaleTruncate_int64_To_int32		(int32* piDest,		int64* pi)		{ *piDest = (int32)(*pi / 0x100000001LL); }
-void ConvertScaleTruncate_int32_To_int32		(int32* piDest,		int32* pi)		{ *piDest = *pi; }	   
+void ConvertScaleTruncate_int32_To_int32		(int32* piDest,		int32* pi)		{ *piDest = *pi; }
 void ConvertScaleTruncate_int16_To_int32		(int32* piDest,		int16* pi) 		{ *piDest = ((int32)*pi << 16) | *pi; }
 void ConvertScaleTruncate_int8_To_int32		(int32* piDest,		int8* pi)		{ *piDest = ((int32)*pi << 24) | ((int32)*pi << 16) | ((int32)*pi << 8) | *pi; }
 void ConvertScaleTruncate_uint64_To_int32		(int32* piDest,		uint64* pi)		{ *piDest = (int32)(*pi / 0x100000001LL); }
@@ -214,9 +214,9 @@ void ConvertScaleTruncate_uint8_To_float64	(float64* pfDest,	uint8* pi)		{ *pfDe
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Sixbits' Conversions.
-void ConvertScaleTruncate_uint8_To_Sixbits	(uint8* psDest,  uint8* pi)		{ *psDest = *pi / (0xff/0x3f); }
-void ConvertScaleTruncate_uint16_To_Sixbits (uint8* psDest,  uint16* pi)	{ *psDest = *pi / (0xffff/0x3f); }
-void ConvertScaleTruncate_uint32_To_Sixbits	(uint8* psDest,  uint32* pi)	{ *psDest = *pi / (0xffffffff/0x3f); }
+void ConvertScaleTruncate_uint8_To_Sixbits	(uint8* psDest,  uint8* pi)		{ *psDest = *pi / (0xff / 0x3f); }
+void ConvertScaleTruncate_uint16_To_Sixbits (uint8* psDest,  uint16* pi)	{ *psDest = *pi / (0xffff / 0x3f); }
+void ConvertScaleTruncate_uint32_To_Sixbits	(uint8* psDest,  uint32* pi)	{ *psDest = *pi / (0xffffffff / 0x3f); }
 void ConvertScaleTruncate_float64_To_Sixbits(uint8* psDest,  float64* pf)	{ *psDest = (uint8)(*pf * (float64)0x3f); }
 void ConvertScaleTruncate_float32_To_Sixbits(uint8* psDest,  float32* pf)	{ *psDest = (uint8)(*pf * (float32)0x3f); }
 
@@ -227,9 +227,9 @@ void ConvertScaleTruncate_float32_To_Sixbits(uint8* psDest,  float32* pf)	{ *psD
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Nickle' Conversions.
-void ConvertScaleTruncate_uint8_To_Nickle	(uint8* psDest,  uint8* pi)		{ *psDest = *pi / (0xff/0x1f); }
-void ConvertScaleTruncate_uint16_To_Nickle	(uint8* psDest,  uint16* pi)	{ *psDest = *pi / (0xffff/0x1f); }
-void ConvertScaleTruncate_uint32_To_Nickle	(uint8* psDest,  uint32* pi)	{ *psDest = *pi / (0xffffffff/0x1f); }
+void ConvertScaleTruncate_uint8_To_Nickle	(uint8* psDest,  uint8* pi)		{ *psDest = *pi / (0xff / 0x1f); }
+void ConvertScaleTruncate_uint16_To_Nickle	(uint8* psDest,  uint16* pi)	{ *psDest = *pi / (0xffff / 0x1f); }
+void ConvertScaleTruncate_uint32_To_Nickle	(uint8* psDest,  uint32* pi)	{ *psDest = *pi / (0xffffffff / 0x1f); }
 void ConvertScaleTruncate_float64_To_Nickle	(uint8* psDest,  float64* pf)	{ *psDest = (uint8)(*pf * (float64)0x1f); }
 void ConvertScaleTruncate_float32_To_Nickle	(uint8* psDest,  float32* pf)	{ *psDest = (uint8)(*pf * (float32)0x1f); }
 
@@ -240,9 +240,9 @@ void ConvertScaleTruncate_float32_To_Nickle	(uint8* psDest,  float32* pf)	{ *psD
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Nybble' Conversions.
-void ConvertScaleTruncate_uint8_To_Nybble	(uint8* psDest,  uint8* pi)		{ *psDest = *pi / (0xff/0xf); }
-void ConvertScaleTruncate_uint16_To_Nybble	(uint8* psDest,  uint16* pi)	{ *psDest = *pi / (0xffff/0xf); }
-void ConvertScaleTruncate_uint32_To_Nybble	(uint8* psDest,  uint32* pi)	{ *psDest = *pi / (0xffffffff/0xf); }
+void ConvertScaleTruncate_uint8_To_Nybble	(uint8* psDest,  uint8* pi)		{ *psDest = *pi / (0xff / 0xf); }
+void ConvertScaleTruncate_uint16_To_Nybble	(uint8* psDest,  uint16* pi)	{ *psDest = *pi / (0xffff / 0xf); }
+void ConvertScaleTruncate_uint32_To_Nybble	(uint8* psDest,  uint32* pi)	{ *psDest = *pi / (0xffffffff / 0xf); }
 void ConvertScaleTruncate_float64_To_Nybble	(uint8* psDest,  float64* pf)	{ *psDest = (uint8)(*pf * (float64)0xf); }
 void ConvertScaleTruncate_float32_To_Nybble	(uint8* psDest,  float32* pf)	{ *psDest = (uint8)(*pf * (float32)0xf); }
 
@@ -317,30 +317,30 @@ void ConvertScaleTruncate_float32_To_Bit(uint8* psDest,  float32* pf)	{ *psDest 
 void ConvertScaleTruncate_Sixbits_To_uint16		(uint16* pDest, uint8* pi)	{ uint16 t = (*pi & 0x3f); *pDest =  (t << 10) + (t << 4) + (t >> 2); }
 void ConvertScaleTruncate_Nickle_To_uint16		(uint16* pDest, uint8* pi)	{ uint16 t = (*pi & 0x1f); *pDest = (t << 11) + (t << 6) + (t << 1) + (t >> 4); }
 void ConvertScaleTruncate_Nybble_To_uint16		(uint16* pDest, uint8* pi)	{ uint16 t = (*pi & 0x0f); *pDest = (t << 12) + (t << 8) + (t << 4) + t; }
-void ConvertScaleTruncate_ThreeBits_To_uint16	(uint16* pDest, uint8* pi)	{ *pDest = (uint16)((float32)*pi * (65535.0f/7.0f)); }
-void ConvertScaleTruncate_Crumb_To_uint16		(uint16* pDest, uint8* pi)	{ *pDest = (uint16)*pi * (0xffff/3); }
+void ConvertScaleTruncate_ThreeBits_To_uint16	(uint16* pDest, uint8* pi)	{ *pDest = (uint16)((float32)*pi * (65535.0f / 7.0f)); }
+void ConvertScaleTruncate_Crumb_To_uint16		(uint16* pDest, uint8* pi)	{ *pDest = (uint16)*pi * (0xffff / 3); }
 void ConvertScaleTruncate_Bit_To_uint16			(uint16* pDest, uint8* pi)	{ *pDest = (uint16)*pi * 0xffff; }
 
-void ConvertScaleTruncate_Sixbits_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f/63.0f)); }
-void ConvertScaleTruncate_Nickle_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f/31.0f)); }
-void ConvertScaleTruncate_Nybble_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f/15.0f)); }
-void ConvertScaleTruncate_ThreeBits_To_uint8	(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f/7.0f)); }
-void ConvertScaleTruncate_Crumb_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)*pi * (0xff/3); }
+void ConvertScaleTruncate_Sixbits_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f / 63.0f)); }
+void ConvertScaleTruncate_Nickle_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f / 31.0f)); }
+void ConvertScaleTruncate_Nybble_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f / 15.0f)); }
+void ConvertScaleTruncate_ThreeBits_To_uint8	(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)((float32)*pi * (255.0f / 7.0f)); }
+void ConvertScaleTruncate_Crumb_To_uint8		(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)*pi * (0xff / 3); }
 void ConvertScaleTruncate_Bit_To_uint8			(uint8* pDest,  uint8* pi)	{ *pDest = (uint8)*pi * 0xff; }
-									 
-void ConvertScaleTruncate_Sixbits_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f/63.0f)); }
-void ConvertScaleTruncate_Nickle_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f/31.0f)); }
-void ConvertScaleTruncate_Nybble_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f/15.0f)); }
-void ConvertScaleTruncate_ThreeBits_To_uint32	(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f/7.0f)); }
-void ConvertScaleTruncate_Crumb_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)*pi * (0xffffffff/3); }
+
+void ConvertScaleTruncate_Sixbits_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f / 63.0f)); }
+void ConvertScaleTruncate_Nickle_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f / 31.0f)); }
+void ConvertScaleTruncate_Nybble_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f / 15.0f)); }
+void ConvertScaleTruncate_ThreeBits_To_uint32	(uint32* pDest, uint8* pi)	{ *pDest = (uint32)((float32)*pi * (4294967295.0f / 7.0f)); }
+void ConvertScaleTruncate_Crumb_To_uint32		(uint32* pDest, uint8* pi)	{ *pDest = (uint32)*pi * (0xffffffff / 3); }
 void ConvertScaleTruncate_Bit_To_uint32			(uint32* pDest, uint8* pi)	{ *pDest = (uint32)*pi * 0xffffffff; }
-									 
-void ConvertScaleTruncate_Sixbits_To_float32	(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f/63.0f); }
-void ConvertScaleTruncate_Nickle_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f/31.0f); }
-void ConvertScaleTruncate_Nybble_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f/15.0f); }
-void ConvertScaleTruncate_ThreeBits_To_float32	(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f/7.0f); }
-void ConvertScaleTruncate_Crumb_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f/3.0f); }
-void ConvertScaleTruncate_Bit_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f/1.0f); }
+
+void ConvertScaleTruncate_Sixbits_To_float32	(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f / 63.0f); }
+void ConvertScaleTruncate_Nickle_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f / 31.0f); }
+void ConvertScaleTruncate_Nybble_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f / 15.0f); }
+void ConvertScaleTruncate_ThreeBits_To_float32	(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f / 7.0f); }
+void ConvertScaleTruncate_Crumb_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f / 3.0f); }
+void ConvertScaleTruncate_Bit_To_float32		(float32* pDest, uint8* pi)	{ *pDest = (float32)*pi * (1.0f / 1.0f); }
 
 void ConvertScaleTruncate_int32_To_Bit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
 void ConvertScaleTruncate_int32_To_Crumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
@@ -485,7 +485,7 @@ void CTypeConverter::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSour
 		mapvScaleTuncateConversion[eDest][eSource](pvDest, pvSource);
 		return;
 	}
-	gcUserError.Set("Conversion not defined for types (out of bounds)."); 
+	gcUserError.Set("Conversion not defined for types (out of bounds).");
 }
 
 

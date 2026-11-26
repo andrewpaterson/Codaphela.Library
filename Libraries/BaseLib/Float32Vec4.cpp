@@ -52,7 +52,7 @@ void SFloat32Vec4::Normalize(void)
 	f = Magnitude();
 	if (f != 0.0f)
 	{
-		f = 1.0f/f;
+		f = 1.0f / f;
 		x *= f;
 		y *= f;
 		z *= f;
@@ -188,7 +188,7 @@ void SFloat32Vec4::Print(CChars* psz, int iWholeNumbers, int iDecimals)
 	}
 
 	iWidth = iWholeNumbers + 1 + iDecimals;
-	
+
 	psz->Append('[');
 	szzz.Init();
 	szzz.Append(x, iDecimals);

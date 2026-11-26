@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseMemory.h"
 
 
-//CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns. 
+//CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns.
 //  It finds it's use mostly in CUnknowns.
 //  It It's not a replacement for malloc / free.
 class CGeneralMemory : public CBaseMemory

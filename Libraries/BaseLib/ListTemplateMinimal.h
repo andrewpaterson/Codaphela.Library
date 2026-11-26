@@ -7,9 +7,9 @@ template <class M>
 class CListTemplateMinimal
 {
 protected:
-	size	miNumElements;
+	size		miNumElements;
 	size		miRowLength;  //The number of characters in the string including all terminating zeros.
-	size	miTotalSize;
+	size		miTotalSize;
 
 	size	miUsedElements;
 	size	miUsedLength;
@@ -26,8 +26,8 @@ public:
 	M*		Get(size iIndex);
 	M*		Get(size iIndex, size* piSize);
 	M*		Add(const M* pv, size iSize);
-	size		NumElements(void) const;
-	size		AllocatedElements(void) const;
+	size	NumElements(void) const;
+	size	AllocatedElements(void) const;
 };
 
 

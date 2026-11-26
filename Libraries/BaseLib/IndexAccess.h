@@ -118,7 +118,7 @@ public:
 			bool	EvictKey(uint8* pvKey, size iKeySize);
 
 public:
-	virtual	CIndexTreeIterator* CreateIterator(void) =0;
+	virtual	CIndexTreeIterator*	CreateIterator(void) =0;
 	virtual	void				FreeIterator(CIndexTreeIterator* pcIter) =0;
 
 protected:

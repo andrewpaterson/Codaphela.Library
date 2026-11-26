@@ -32,15 +32,15 @@ class CChars;
 class CUserError
 {
 private:
-	char mszUserError[MAX_USER_ERROR_CHARS];
-	bool mbUserError;
+	char	mszUserError[MAX_USER_ERROR_CHARS];
+	bool	mbUserError;
 
 public:
-	void 	Init(void);
-	void 	Kill(void);
-	bool 	Set(const char* szError);
-	bool 	Set2(const char* szError, ...);
-	bool 	Set(CChars* pszError, bool bKillErrorString = true);
+	void	Init(void);
+	void	Kill(void);
+	bool	Set(const char* szError);
+	bool	Set2(const char* szError, ...);
+	bool	Set(CChars* pszError, bool bKillErrorString = true);
 	char*	Get(void);
 };
 

@@ -50,7 +50,7 @@ void SFloat32Vec3::Normalize(void)
 	f = Magnitude();
 	if (f != 0.0f)
 	{
-		f = 1.0f/f;
+		f = 1.0f / f;
 		x *= f;
 		y *= f;
 		z *= f;

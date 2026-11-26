@@ -122,7 +122,7 @@ void CMarkupBase::SetLineAndColumn(lsize iLine, lsize iColumn)
 size CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, size iDepth, size iLine, bool bAllowSameLine)
 {
 	size				iNewLines;
-	CChars			szPadding;
+	CChars				szPadding;
 
 	iNewLines = pszMutableSource->CountNewLines();
 	if ((iNewLines == 0) && (bAllowSameLine))

@@ -24,7 +24,7 @@ public:
 	void	QuickSort(void);
 
 	size	Find(M* pv);
-	void 	Push(M* pv);
+	void	Push(M* pv);
 	M*		Pop(void);
 };
 

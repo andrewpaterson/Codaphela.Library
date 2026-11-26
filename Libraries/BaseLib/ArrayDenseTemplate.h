@@ -42,16 +42,16 @@ struct SDenseNode
 	SDenseNode*		psLeftNode;  //NULL must always be marked as DENSE_NODE_LEFT_ELEMENT
 	SDenseNode*		psRightNode; //NULL must always be marked as DENSE_NODE_RIGHT_ELEMENT
 
-	void 			Set(size iLeftCount, bool bLeftElement, bool bRightElement);
-	size  			GetLeftCount(void) const;
-	void  			SetLeftCount(size iLeftCount);
+	void			Set(size iLeftCount, bool bLeftElement, bool bRightElement);
+	size			GetLeftCount(void) const;
+	void			SetLeftCount(size iLeftCount);
 	SDenseNode*		GetRight(void) const;
 	SDenseNode*		GetLeft(void) const;
 	SDenseNode**	GetParentPointer(void) const;
 	bool			IsLeftElement(void) const;
 	bool			IsRightElement(void) const;
-	void 			SetRightElement(bool bRightElement);
-	void 			SetLeftElement(bool bLeftElement);
+	void			SetRightElement(bool bRightElement);
+	void			SetLeftElement(bool bLeftElement);
 };
 
 
@@ -70,14 +70,14 @@ public:
 	void			Kill(void);
 	M*				Add(void);
 	M*				Add(M* pvData);
-	M* 				AddGetIndex(size* piPos);
+	M*				AddGetIndex(size* piPos);
 	void			Set(size iElementPos, M* pvData);
 	bool			SafeSet(size iElementPos, M* pvData);
-	M* 				InsertAt(size iElementPos);
+	M*				InsertAt(size iElementPos);
 	M*				InsertAt(M* pvData, size iElementPos);
-	void 			RemoveAt(size iElementPos);
+	void			RemoveAt(size iElementPos);
 	void			RemoveRange(size iStartPos, size iEndPos);
-	void 			RemoveTail(void);
+	void			RemoveTail(void);
 	M*				Get(size iElementPos);
 	M*				SafeGet(size iElementPos);
 	size			NumUsedElements(void);;
@@ -299,7 +299,7 @@ M* __CArrayDenseTemplate<M>::AddGetIndex(size* piPos)
 	M*	psElement;
 
 	psElement = Add();
-	*piPos = miUsedElements-1;
+	*piPos = miUsedElements - 1;
 	return psElement;
 }
 
@@ -1103,19 +1103,19 @@ void __CArrayDenseTemplate<M>::RecurseDump(size iDepth, SDenseNode* psNode, CCha
 		psz->Append(")\n");
 		if (!psNode->IsLeftElement())
 		{
-			RecurseDump(iDepth+1, psNode->GetLeft(), psz, true);
+			RecurseDump(iDepth + 1, psNode->GetLeft(), psz, true);
 		}
 		else
 		{
-			RecurseDumpElement(iDepth+1, (M*)psNode->GetLeft(), psz, true);
+			RecurseDumpElement(iDepth + 1, (M*)psNode->GetLeft(), psz, true);
 		}
 		if (!psNode->IsRightElement())
 		{
-			RecurseDump(iDepth+1, psNode->GetRight(), psz, false);
+			RecurseDump(iDepth + 1, psNode->GetRight(), psz, false);
 		}
 		else
 		{
-			RecurseDumpElement(iDepth+1, (M*)psNode->GetRight(), psz, false);
+			RecurseDumpElement(iDepth + 1, (M*)psNode->GetRight(), psz, false);
 		}
 	}
 }

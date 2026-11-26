@@ -308,7 +308,7 @@ int64 CNamedIndexes::NumElementsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Flush(void) 
+bool CNamedIndexes::Flush(void)
 {
 	return mcIndexTree.Flush();
 }

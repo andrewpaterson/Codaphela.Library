@@ -406,7 +406,7 @@ CMarkupTag* CMarkupTag::GetTagFromIndex(const char* szTagName, STagIterator* psI
 			pcRefDoc = (CMarkupRefDoc*)pcBase;
 			if (pcRefDoc->Is(szTagName))
 			{
-				pcTag = pcRefDoc->GetRootTag(); 
+				pcTag = pcRefDoc->GetRootTag();
 				psIter->iIndex = i;
 				psIter->mpcCurrent = pcTag;
 				return pcTag;
@@ -445,7 +445,7 @@ CMarkupTag* CMarkupTag::GetTagFromIndex(STagIterator* psIter)
 		else if (pcBase->IsRefDoc())
 		{
 			pcRefDoc = (CMarkupRefDoc*)pcBase;
-			pcTag = pcRefDoc->GetRootTag(); 
+			pcTag = pcRefDoc->GetRootTag();
 			psIter->iIndex = i;
 			psIter->mpcCurrent = pcTag;
 			return pcTag;
@@ -715,7 +715,7 @@ bool CMarkupTag::AddStringAttribute(const char* szAttribute, const char* szStrin
 			return false;
 		}
 	}
-	
+
 	szAllocatedName = MallocString(szAttribute);
 	szAllocatedString = MallocString(szString);
 
@@ -1010,7 +1010,7 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 	uiNumBases = macBases.NumElements();
 	uiNumOrderedAttributes = mcAttributes.NumElements();
 	bNameEmpty = mszName.Empty();
-	
+
 	miLine = iLine;
 	miColumn = (lsize)iDepth * 2;
 

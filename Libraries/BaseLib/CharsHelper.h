@@ -30,10 +30,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCharsHelper
 {
 public:
-	static void GenerateRandomNumbersCharList(size iNum);
-	static void GenerateBitStream(uint8* ucBytes, size iByteCount);
-	static void Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
-	static void InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
+	static void	GenerateRandomNumbersCharList(size iNum);
+	static void	GenerateBitStream(uint8* ucBytes, size iByteCount);
+	static void	Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
+	static void	InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight);
 };
 
 

@@ -34,19 +34,19 @@ protected:
 	using CArrayTemplateEmbedded<M, I>::miUsedElements;
 
 public:
-	M 		GetValue(size iIndex);
+	M		GetValue(size iIndex);
 	M		SafeGetValue(size iIndex, M iNotFound);
 	M 		operator[](size iIndex);
 	void	SetValue(size iIndex, M iElement);
-	void 	Add(M iElement);
-	void 	Add(M* paElements, size iNumElements);
+	void	Add(M iElement);
+	void	Add(M* paElements, size iNumElements);
 	void	InsertAt(M iElement, size iIndex);
-	void 	SetArrayValues(M iValue);
+	void	SetArrayValues(M iValue);
 	void	SetArrayValues(M iStart, M iIncrement);
 	void	QuickSort(void);
 	void	BubbleSort(void);
-	size 	Find(M iValue);
-	size 	AddIfUnique(M iValue);
+	size	Find(M iValue);
+	size	AddIfUnique(M iValue);
 	void	Swap(size iIndex1, size iIndex2);
 	void	InsertIntoSorted(M iElement, bool bOverwriteExisting);
 	bool	RemoveFromSorted(M iElement);
@@ -56,10 +56,10 @@ public:
 	bool	IsSorted(void);
 	size	FindFinalContiguousInSorted(void);
 	M		Pop(void);
-	void 	Push(M iElement);
+	void	Push(M iElement);
 
 	void	AddRemap(size iElementPos, M iRemapNum);
-	void 	AddList(M iStop, ...);
+	void	AddList(M iStop, ...);
 	void	RemoveRemap(size iElementPos);
 };
 
@@ -365,35 +365,35 @@ bool CArrayTemplateEmbeddedPrimitive<M, I>::RemoveDuplicatesFromSorted(void)
 	M		iValue;
 	M		iCurrent;
 	bool	bAnyRemoved;
-	size  iWrite;
+	size	iWrite;
 	size	uiNumElements;
 
 	bAnyRemoved = false;
-    if (this->NumElements() > 0)
-    {
-        iCurrent = GetValue(0);
-        iWrite = 1;
-        uiNumElements = this->NumElements();
-        for (i = 1; i < uiNumElements; i++)
-        {
-            iValue = GetValue(i);
-            if (iValue != iCurrent)
-            {
-                SetValue(iWrite, iValue);
-                iCurrent = iValue;
-                iWrite++;
-            }
-            else
-            {
-                bAnyRemoved = true;
-            }
-        }
+	if (this->NumElements() > 0)
+	{
+		iCurrent = GetValue(0);
+		iWrite = 1;
+		uiNumElements = this->NumElements();
+		for (i = 1; i < uiNumElements; i++)
+		{
+			iValue = GetValue(i);
+			if (iValue != iCurrent)
+			{
+				SetValue(iWrite, iValue);
+				iCurrent = iValue;
+				iWrite++;
+			}
+			else
+			{
+				bAnyRemoved = true;
+			}
+		}
 
-        if (bAnyRemoved)
-        {
-            this->Resize(iWrite);
-        }
-    }
+		if (bAnyRemoved)
+		{
+			this->Resize(iWrite);
+		}
+	}
 	return bAnyRemoved;
 }
 
@@ -610,7 +610,7 @@ void CArrayTemplateEmbeddedPrimitive<M, I>::RemoveRemap(size iElementPos)
 			{
 				break;
 			}
-		} 
+		}
 		while (iIndex != 0);
 	}
 	if (iCutDown != this->NumElements())

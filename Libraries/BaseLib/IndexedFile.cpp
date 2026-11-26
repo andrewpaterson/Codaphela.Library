@@ -94,7 +94,7 @@ bool CIndexedFile::IsFull(void) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
- filePos CIndexedFile::Write(const void* pvData)
+filePos CIndexedFile::Write(const void* pvData)
 {
 	return Write(pvData, 1);
 }

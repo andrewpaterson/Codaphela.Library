@@ -204,7 +204,7 @@ void CSafeArrayBlock::Copy(CArrayBlock* pcTemplateArray)
 //////////////////////////////////////////////////////////////////////////
 void CSafeArrayBlock::Copy(CSafeArrayBlock* pcTemplateArray)
 {
-	CStackMemory<>	cTemp;
+	CStackMemory<>		cTemp;
 	size				iNumElements;
 
 	iNumElements = pcTemplateArray->Copy(&cTemp);
@@ -223,8 +223,8 @@ void CSafeArrayBlock::Copy(CSafeArrayBlock* pcTemplateArray)
 //////////////////////////////////////////////////////////////////////////
 size CSafeArrayBlock::Copy(CStackMemory<>* pcTemp)
 {
-	size_t	iByteSize;
-	void*	pv;
+	size_t		iByteSize;
+	void*		pv;
 	size		iUsedElements;
 
 	m.Lock();

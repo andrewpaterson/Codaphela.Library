@@ -90,7 +90,7 @@ bool CCalculatorSymbols::ValidateSymbols(void)
 	uiMaxPrecedence = 0;
 	if (!mbValidated)
 	{
-		for (i = CO_Invalid+1; i <= CO_Assignment; i++)
+		for (i = CO_Invalid + 1; i <= CO_Assignment; i++)
 		{
 			pcOperator = macOperators.SafeGet(i);
 			eOp = pcOperator->GetOperator();

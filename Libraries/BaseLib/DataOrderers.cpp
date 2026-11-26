@@ -59,7 +59,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	char						szName[1024];
 	CIndexTreeDataOrderer**		ppcDataOrderer;
 	CIndexTreeDataOrderer*		pcDataOrderer;
-	
+
 	if (!MemoryValidate() || !DataOrderersValidate())
 	{
 		return NULL;

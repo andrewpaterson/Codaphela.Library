@@ -11,16 +11,16 @@ protected:
 	CChars	mszBadNode;
 
 public:
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 
-	void GenerateBad(CIndexTreeNode* pcCurrent, CArrayChar* acKey);
-	const char* GetBadKey(void) const;
-	const char* GetBadNode(void) const;
+	void		GenerateBad(CIndexTreeNode* pcCurrent, CArrayChar* acKey);
+	const char*	GetBadKey(void) const;
+	const char*	GetBadNode(void) const;
 
 protected:
-	void GenerateBadNode(CIndexTreeNode* pcCurrent, bool bHex);
-	bool GenerateBadKey(CArrayChar* acKey);
+	void	GenerateBadNode(CIndexTreeNode* pcCurrent, bool bHex);
+	bool	GenerateBadKey(CArrayChar* acKey);
 };
 
 

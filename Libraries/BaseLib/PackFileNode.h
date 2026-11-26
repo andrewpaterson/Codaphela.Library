@@ -33,10 +33,10 @@ protected:
 	bool		mbNameWritten;
 
 public:
-	void 		Init(void);
-	void 		Kill(void);
-	bool 		Load(CFileReader* pcReader);
-	bool 		Save(CFileWriter* pcWriter);
+	void		Init(void);
+	void		Kill(void);
+	bool		Load(CFileReader* pcReader);
+	bool		Save(CFileWriter* pcWriter);
 
 	filePos		FilePos(void);
 	filePos		Size(void);

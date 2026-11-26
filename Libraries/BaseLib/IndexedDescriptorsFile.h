@@ -42,7 +42,7 @@ public:
 	bool			Evict(OIndex oi);
 	bool			Flush(OIndex oi);
 
-	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex			StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 
 	bool			IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) override;

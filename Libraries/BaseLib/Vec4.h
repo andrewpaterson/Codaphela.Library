@@ -62,22 +62,22 @@ public:
 			SVec4<M, N>		operator / (M) const;
 
 			bool			operator == (const SVec4<M, N>&) const;
-			bool			operator != (const SVec4<M, N>&) const;	
+			bool			operator != (const SVec4<M, N>&) const;
 
-			void 			Init(M x, M y, M z, M w);
-			void 			Init(const SVec4<M, N>& v);
+			void			Init(M x, M y, M z, M w);
+			void			Init(const SVec4<M, N>& v);
 			void			Init(SVec4* pv);
-			void 			Zero(void);
+			void			Zero(void);
 
-			bool 			Save(CFileWriter* pcFileWriter);
-			bool 			Load(CFileReader* pcFileReader);
+			bool			Save(CFileWriter* pcFileWriter);
+			bool			Load(CFileReader* pcFileReader);
 
 			void			Add(const SVec4<M, N>& v);
 			void			Add(SVec4<M, N>* pv);
 			void			Subtract(const SVec4<M, N>& v);
 			void			Subtract(SVec4<M, N>* pv);
-			N 				SquareMagnitude(void);
-			M 				Magnitude(void);
+			N				SquareMagnitude(void);
+			M				Magnitude(void);
 };
 
 

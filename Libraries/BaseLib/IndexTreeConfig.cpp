@@ -26,7 +26,7 @@ void CIndexTreeConfig::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeConfig::Init(CFileReader* pcFileReader)
 {
-	
+
 	return Read(pcFileReader);
 }
 

@@ -25,7 +25,7 @@ char* CFilePathBuilder::Build(const char* szElements, ...)
 			szValue = va_arg(vaMarker, char*);
 		}
 		va_end(vaMarker);
-	} 
+	}
 	return szPath.Text();
 }
 

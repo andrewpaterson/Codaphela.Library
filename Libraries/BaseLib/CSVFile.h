@@ -35,13 +35,13 @@ protected:
 	CFileBasic	mcFile;
 	filePos		miFileSize;
 	char		mcSeparator;
-	
-public:
-	void 	Init(char cSeparator);
-	void 	Kill(void);
 
-	void 	Open(CAbstractFile* pcFile);
-	void 	Close(void);
+public:
+	void	Init(char cSeparator);
+	void	Kill(void);
+
+	void	Open(CAbstractFile* pcFile);
+	void	Close(void);
 
 	bool	ReadLine(CChars* szString);
 	bool	ReadLine(char* szString, size iMaxLength);

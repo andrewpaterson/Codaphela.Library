@@ -349,7 +349,7 @@ char* CMapAccess::GetLongString(int64 lliKey)
 int16 CMapAccess::GetLongShort(int64 lliKey, int16 iNullValue)
 {
 	int16*	pi;
-	
+
 	pi = (int16*)Get(&lliKey, sizeof(int64), NULL);
 	if (pi)
 	{
@@ -369,7 +369,7 @@ int16 CMapAccess::GetLongShort(int64 lliKey, int16 iNullValue)
 int32 CMapAccess::GetLongInt(int64 lliKey, int32 iNullValue)
 {
 	int32*	pi;
-	
+
 	pi = (int32*)Get(&lliKey, sizeof(int64), NULL);
 	if (pi)
 	{

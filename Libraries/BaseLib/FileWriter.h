@@ -38,7 +38,7 @@ public:
 	//Strings.
 						bool	WriteString(const char* szString);
 
-	//Helpers.		
+	//Helpers.
 						bool	WriteInt(int i);
 						bool	WriteInt(uint i);
 						bool	WriteInt8(int8 i);

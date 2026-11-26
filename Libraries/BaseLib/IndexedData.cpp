@@ -169,8 +169,8 @@ bool CIndexedData::Flush(bool bClearDataCache)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedData::IsFlushed(void)
 {
-	bool bIndicesFlushed;
-	bool bDataFlushed;
+	bool	bIndicesFlushed;
+	bool	bDataFlushed;
 
 	bIndicesFlushed = mcIndices.IsFlushed();
 	bDataFlushed = mcData.IsFlushed();

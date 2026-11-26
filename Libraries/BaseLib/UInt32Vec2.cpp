@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SUInt32Vec2::Print(CChars* psx, uint32 iWholeNumbers)
 {
-	CChars		szzz;
+	CChars			szzz;
 	uint32			iWidth;
 
 	if (iWholeNumbers == MAX_UINT32)

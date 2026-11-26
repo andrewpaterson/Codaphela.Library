@@ -21,7 +21,7 @@ public:
 	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) const =0;
 	virtual EIndexWriteThrough						GetWriteThrough(void) const =0;
 	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) const =0;
-	virtual const char*									GetSubDirectory(void) const =0;
+	virtual const char*								GetSubDirectory(void) const =0;
 	virtual CLifeInit<CIndexTreeDataOrderer>		GetIndexTreeDataOrderer(void) const =0;
 };
 

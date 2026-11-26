@@ -86,7 +86,7 @@ bool CIndexTreeMemoryAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size
 {
 	bool	bResult;
 
-	bResult = mpcTree->Get(pvKey, iKeySize, pvData,piDataSize, uiMaxDataSize);
+	bResult = mpcTree->Get(pvKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 	return bResult;
 }
 

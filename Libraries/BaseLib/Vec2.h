@@ -73,7 +73,7 @@ public:
 			void			Add(SVec2<M, N>* pv);
 			void			Subtract(const SVec2<M, N>& v);
 			void			Subtract(SVec2<M, N>* pv);
-			N	 			SquareMagnitude(void);
+			N				SquareMagnitude(void);
 			M				Magnitude(void);
 			void			Maximise(const SVec2<M, N>& v);
 			void			Maximise(SVec2<M, N>* pv);

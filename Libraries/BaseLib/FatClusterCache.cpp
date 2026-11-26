@@ -354,7 +354,7 @@ bool CFatClusterCache::FlushAndInvalidate(SClusterCache* psCluster) noexcept
 	bool bResult;
 
 	bResult = Flush(psCluster);
-	
+
 	Invalidate(psCluster);
 
 	return bResult;;

@@ -201,24 +201,24 @@ uint32 CUnicode::GetUTF8ElementUint32(uint32 uiCodePoint)
 		return muiError;
 	}
 
-	if (uiCodePoint <= 0x7F) 
+	if (uiCodePoint <= 0x7F)
 	{
 		return uiCodePoint;
 	}
-	else if (uiCodePoint <= 0x7FF) 
+	else if (uiCodePoint <= 0x7FF)
 	{
 		uiLow = 0xC0 | (uiCodePoint >> 6);
 		ui2 = 0x80 | (uiCodePoint & 0x3F);
 		return  (uint32)ui2 << 8 | uiLow;
 	}
-	else if (uiCodePoint <= 0xFFFF) 
+	else if (uiCodePoint <= 0xFFFF)
 	{
 		uiLow = 0xE0 | (uiCodePoint >> 12);
 		ui2 = 0x80 | ((uiCodePoint >> 6) & 0x3F);
 		ui3 = 0x80 | (uiCodePoint & 0x3F);
 		return  (uint32)ui3 << 16 | (uint32)ui2 << 8 | uiLow;
 	}
-	else 
+	else
 	{
 		uiLow = 0xF0 | (uiCodePoint >> 18);
 		ui2 = 0x80 | ((uiCodePoint >> 12) & 0x3F);
@@ -290,20 +290,20 @@ uint32 CUnicode::GetUTF16ElementUint32(uint32 uiCodePoint)
 	uint16	uiHighSurrogate;
 	uint16	uiLowSurrogate;
 
-	if (uiCodePoint > 0x10FFFF) 
+	if (uiCodePoint > 0x10FFFF)
 	{
 		return muiError;
 	}
 
-	if (uiCodePoint <= 0xFFFF) 
+	if (uiCodePoint <= 0xFFFF)
 	{
-		if (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF) 
+		if (uiCodePoint >= 0xD800 && uiCodePoint <= 0xDFFF)
 		{
 			return muiError;
 		}
 		return uiCodePoint;
 	}
-	else 
+	else
 	{
 		uiCodePoint &= 0xFFFF;
 		uiHighSurrogate = 0xD800 + (uiCodePoint >> 10);

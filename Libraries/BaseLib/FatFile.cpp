@@ -32,10 +32,10 @@
 #ifndef __W65C816_ASSEMBLY__
 
 
- //////////////////////////////////////////////////////////////////////////
- //
- //
- //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFatFile::Init(CFatVolume* pcVolume) noexcept
 {
 	memset(&msFile, 0, sizeof(SFatFile));
@@ -130,7 +130,7 @@ EFatCode CFatFile::Open(const char* szFilename, uint8 uiAccessFlags) noexcept
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			uiAccessFlags = uiAccessFlags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
-			
+
 			msFile.uiFileSize = 0;
 			msFile.uiAccessFlags = uiAccessFlags;
 			msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
@@ -345,25 +345,25 @@ EFatCode CFatFile::CalculateSeekPosition(uint32 offset, EFatSeek eSeekMode, uint
 {
 	switch (eSeekMode)
 	{
-		case FAT_SEEK_START:
+	case FAT_SEEK_START:
 		{
 			*puiBytePositionInFile = offset;
 			return FAT_SUCCESS;
 		}
 
-		case FAT_SEEK_CURRENT:
+	case FAT_SEEK_CURRENT:
 		{
 			*puiBytePositionInFile = msFile.uiFilePosition + offset;
 			return FAT_SUCCESS;
 		}
 
-		case FAT_SEEK_END:
+	case FAT_SEEK_END:
 		{
 			*puiBytePositionInFile = msFile.uiFileSize - offset;
 			return FAT_SUCCESS;
 		}
 
-		default:
+	default:
 		{
 			*puiBytePositionInFile = 0;
 			return FAT_SEEK_FAILED;
@@ -401,13 +401,13 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek eSeekMode) noexcept
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	msFile.bBusy = true;
-	
+
 	if (uiBytePositionInFile > msFile.uiFileSize)
 	{
 		msFile.bBusy = false;
 		return FAT_SEEK_FAILED;
 	}
-	
+
 	uiClusterIndex = mpcVolume->BytesToClusters(uiBytePositionInFile);
 
 	//The end of a file that fills its last cluster: its cluster is the last one, unless a write has added one after it.
@@ -680,8 +680,8 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, lsize* puiBytesRead
 		msFile.uiFilePosition += uiBytesRead;
 		if (msFile.uiFilePosition >= msFile.uiFileSize)
 		{
-			 msFile.uiFilePosition = msFile.uiFileSize;
-			 uiBytesRemaining = 0;
+			msFile.uiFilePosition = msFile.uiFileSize;
+			uiBytesRemaining = 0;
 		}
 
 		if (!bSuccess)

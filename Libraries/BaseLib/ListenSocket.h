@@ -37,8 +37,8 @@ public:
 	//Listen on one address only, for example "127.0.0.1" for the loopback network.
 	//A port of 0 lets the operating system choose a free port; see GetPort.
 	//It is listening when Init returns so connections made before Accept wait.
-	bool Init(const char* szAddress, int iPort);
-	void Kill(void);
+	bool	Init(const char* szAddress, int iPort);
+	void	Kill(void);
 
 	//Accepts one connection into this socket and stops listening.
 	bool Listen(void);
@@ -51,9 +51,9 @@ public:
 	int  GetPort(void);
 
 protected:
-	bool Bind(const char* szAddress, int iPort);
-	bool StartListening(void);
-	void CloseListenSocket(void);
+	bool	Bind(const char* szAddress, int iPort);
+	bool	StartListening(void);
+	void	CloseListenSocket(void);
 };
 
 

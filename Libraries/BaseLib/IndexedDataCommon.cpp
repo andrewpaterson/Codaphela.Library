@@ -279,7 +279,7 @@ bool CIndexedDataCommon::Remove(OIndex oi)
 //
 //////////////////////////////////////////////////////////////////////////
 lsize CIndexedDataCommon::NumDataCached(void)
- {
+{
 	return mcData.NumCached();
 }
 

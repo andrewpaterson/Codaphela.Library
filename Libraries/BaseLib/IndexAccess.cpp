@@ -708,9 +708,9 @@ CChars CIndexAccess::GetStringString(const char* pszKey, size uiMaxDataSize)
 //////////////////////////////////////////////////////////////////////////
 int32 CIndexAccess::GetStringInt(const char* pszKey, int32 iNullValue)
 {
-	bool	bResult;
+	bool		bResult;
 	int32		i;
-	size	uiDataSize;
+	size		uiDataSize;
 
 	bResult = Get((uint8*)pszKey, StrKeySize(pszKey), &i, &uiDataSize, sizeof(int32));
 	if (bResult && (uiDataSize == sizeof(int32)))

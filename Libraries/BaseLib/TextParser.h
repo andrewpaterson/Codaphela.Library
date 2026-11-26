@@ -47,13 +47,13 @@ public:
 	ETextParseError		meError;
 	STextParserConfig	msConfig;
 
-	bool 			Init(const char* szText, lsize iTextLen);
-	bool 			Init(const char* szText);
-	bool 			Init(CChars* szText);
+	bool			Init(const char* szText, lsize iTextLen);
+	bool			Init(const char* szText);
+	bool			Init(CChars* szText);
 	bool			Init(void);
 	bool			Init(const char* szText, STextParserConfig* psConfig);
 	bool			Init(const char* szText, lsize iTextLen, STextParserConfig* psConfig);
-	void 			Kill(void);
+	void			Kill(void);
 	bool			IsEmpty(void) const;
 
 	void			SetStringParser(TextParserParseString fParseString);
@@ -61,10 +61,10 @@ public:
 	void			SetExactIdentifierParser(TextParserParseExactIdentifier fParseExactIdentifier);
 
 	//These functions do not set errors...
-	void 			StepRight(void);
-	void 			StepLeft(void);
+	void			StepRight(void);
+	void			StepLeft(void);
 	void			TestEnd(void);
-	void 			SkipWhitespace(void);
+	void			SkipWhitespace(void);
 	void			SkipNewLine(void);
 	void			Restart(void);
 	void			SaveState(SParseState* psTextPosition);
@@ -86,8 +86,8 @@ public:
 	lsize			UsedLength(void);
 	lsize			SearchLength(void);
 
-	TRISTATE 		GetExactCharacter(char c, bool bSkipWhitespace = true);
-	TRISTATE 		GetExactCaseInsensitiveCharacter(char c, bool bSkipWhitespace = true);
+	TRISTATE		GetExactCharacter(char c, bool bSkipWhitespace = true);
+	TRISTATE		GetExactCaseInsensitiveCharacter(char c, bool bSkipWhitespace = true);
 	TRISTATE		GetEnumeratedCharacter(char* szCharacters, char* c, bool bSkipWhitespace = true);
 	TRISTATE		GetCharacter(char* pc);
 	TRISTATE		GetEscapeCode(char* c);
@@ -170,7 +170,7 @@ protected:
 	TRISTATE	GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* piCharacterWidth);
 	uint16		ChangeWidth(uint16 iWidth, uint16 iOldWidth, void* szDest, size uiDestByteLength, size iLength);
 	TRISTATE	GetFloatSuffix(uint16* piSuffix, uint16 iAllowedSuffix);
-	float128		MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber);
+	float128	MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber);
 };
 
 

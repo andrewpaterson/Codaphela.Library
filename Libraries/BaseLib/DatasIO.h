@@ -58,7 +58,7 @@ template<class Class>
 void CDatasIO::Add(void)
 {
 	Class			m;
-	SDataIO*	psIO;
+	SDataIO*		psIO;
 	bool(Class::*	fSpecificClassFileSave)(CFileWriter*);
 	bool(Class::*	fSpecificClassFileLoad)(CFileReader*);
 

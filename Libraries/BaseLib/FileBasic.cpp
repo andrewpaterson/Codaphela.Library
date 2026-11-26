@@ -58,19 +58,19 @@ void CFileBasic::Kill(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::Open
-// 
+//
 //  Parameters   : pvFile -		the name of the file to open or
 // 								a pointer to the block of memory to use or
-// 
+//
 //                 iMode      - the mode to open the file as.
 //                              flags are : EFM_Read, EFM_BINARY
-// 
+//
 //  Returns      : true if successful, false if not.
-// 
+//
 //  Description  : Opens the file specified with a specific mode.
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Open(EFileMode eMode)
 {
@@ -79,15 +79,15 @@ bool CFileBasic::Open(EFileMode eMode)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::Close
-// 
+//
 //  Parameters   : -
-// 
+//
 //  Returns      : true if successful, false if not.
-// 
+//
 //  Description  : Closes the file (if it is already open)
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Close()
 {
@@ -96,17 +96,17 @@ bool CFileBasic::Close()
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::Write
-// 
+//
 //  Parameters   : pBuffer - pointer to a buffer of memory to write to the file
 //                 iElementSize - the size of each element to write (in the buffer)
 //                 iNumElements - the number of elements to write (in the buffer)
-// 
+//
 //  Returns      : the number of elements actually written.
-// 
+//
 //  Description  : writes a buffer from memory to a file
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 lsize CFileBasic::Write(const void* pvSource, lsize iSize, lsize iCount)
 {
@@ -115,17 +115,17 @@ lsize CFileBasic::Write(const void* pvSource, lsize iSize, lsize iCount)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::Read
-// 
+//
 //  Parameters   : pBuffer - pointer to a buffer of memory to read into from the file
 //                 iElementSize - the size of each element to read (in the buffer)
 //                 iNumElements - the number of elements to read (in the buffer)
-// 
+//
 //  Returns      : the number of elements actually read.
-// 
+//
 //  Description  : Reads from file into a memory buffer
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 lsize CFileBasic::Read(void* pvDest, lsize iSize, lsize iCount)
 {
@@ -134,17 +134,17 @@ lsize CFileBasic::Read(void* pvDest, lsize iSize, lsize iCount)
 
 //////////////////////////////////////////////////////////////////////////
 
-// 
+//
 //  Function Name: CFileBasic::Seek
-// 
+//
 //  Parameters   : iOffset - the offset to seek to within the file
 //                 iOrigin - specifies the origin of the seek.
 //                           values are EFSO_SET, EFSO_END, EFSO_CURRENT
-// 
+//
 //  Returns      : -
-// 
+//
 //  Description  : Seeks to an offset relative to an origin within the file.
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 {
@@ -153,17 +153,17 @@ bool CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::Seek
-// 
+//
 //  Parameters   : iOffset - the offset to seek to within the file
 //                 iOrigin - specifies the origin of the seek.
 //                           values are EFSO_SET, EFSO_END, EFSO_CURRENT
-// 
+//
 //  Returns      : -
-// 
+//
 //  Description  : Seeks to an offset relative to an origin within the file.
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Seek(filePos iOffset)
 {
@@ -172,15 +172,15 @@ bool CFileBasic::Seek(filePos iOffset)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::Flush
-// 
+//
 //  Parameters   : -
-// 
+//
 //  Returns      : -
-// 
+//
 //  Description  : Flush the file cache to disk.
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Flush(void)
 {
@@ -189,13 +189,13 @@ bool CFileBasic::Flush(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::IsOpen()
-// 
+//
 //  Returns      : true if a file is currently open.
-// 
+//
 //  Description  : Seeks to an offset relative to an origin within the file.
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::IsOpen(void) const
 {
@@ -211,13 +211,13 @@ bool CFileBasic::IsOpen(void) const
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::FileLength
-// 
+//
 //  Returns      : the length of the currently open file
-// 
+//
 //  Description  : gets the length (in bytes) of the file
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 filePos CFileBasic::GetFileLength(void) const
 {
@@ -226,13 +226,13 @@ filePos CFileBasic::GetFileLength(void) const
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::FileLength
-// 
+//
 //  Returns      : the length of the currently open file
-// 
+//
 //  Description  : gets the length (in bytes) of the file
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 filePos CFileBasic::Size(void)
 {
@@ -241,8 +241,8 @@ filePos CFileBasic::Size(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
-// 
+//
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Truncate(filePos iSize)
 {
@@ -251,13 +251,13 @@ bool CFileBasic::Truncate(filePos iSize)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::FilePos
-// 
+//
 //  Returns      : integer position in the file
-// 
+//
 //  Description  : the position in the current file we are currently at
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 filePos CFileBasic::GetFilePos()
 {
@@ -266,13 +266,13 @@ filePos CFileBasic::GetFilePos()
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
+//
 //  Function Name: CFileBasic::FilePos
-// 
+//
 //  Returns      : integer position in the file
-// 
+//
 //  Description  : the position in the current file we are currently at
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 filePos CFileBasic::Tell()
 {
@@ -281,8 +281,8 @@ filePos CFileBasic::Tell()
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
-// 
+//
+//
 //////////////////////////////////////////////////////////////////////////
 bool CFileBasic::Delete(void)
 {
@@ -291,8 +291,8 @@ bool CFileBasic::Delete(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-// 
-// 
+//
+//
 //////////////////////////////////////////////////////////////////////////
 const char* CFileBasic::GetFilename(void) const
 {

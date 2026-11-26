@@ -397,33 +397,33 @@ bool CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveDuplicatesFromSorted(void)
 	M							iValue;
 	M							iCurrent;
 	bool						bAnyRemoved;
-	typename TEMPLATE::Count  iWrite;
+	typename TEMPLATE::Count	iWrite;
 
 	bAnyRemoved = false;
-    if (miUsedElements > 0)
-    {
-        iCurrent = GetValue(0);
-        iWrite = 1;
-        for (i = 1; i < miUsedElements; i++)
-        {
-            iValue = GetValue(i);
-            if (iValue != iCurrent)
-            {
-                SetValue(iWrite, iValue);
-                iCurrent = iValue;
-                iWrite++;
-            }
-            else
-            {
-                bAnyRemoved = true;
-            }
-        }
+	if (miUsedElements > 0)
+	{
+		iCurrent = GetValue(0);
+		iWrite = 1;
+		for (i = 1; i < miUsedElements; i++)
+		{
+			iValue = GetValue(i);
+			if (iValue != iCurrent)
+			{
+				SetValue(iWrite, iValue);
+				iCurrent = iValue;
+				iWrite++;
+			}
+			else
+			{
+				bAnyRemoved = true;
+			}
+		}
 
-        if (bAnyRemoved)
-        {
-            Resize(iWrite);
-        }
-    }
+		if (bAnyRemoved)
+		{
+			Resize(iWrite);
+		}
+	}
 	return bAnyRemoved;
 }
 
@@ -636,7 +636,7 @@ void CArrayTemplatePrimitiveBase<M, TEMPLATE>::RemoveRemap(Count iElementPos)
 			{
 				break;
 			}
-		} 
+		}
 		while (iIndex != 0);
 	}
 	if (iCutDown != miUsedElements)

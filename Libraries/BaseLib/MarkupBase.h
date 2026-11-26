@@ -50,10 +50,10 @@ public:
 	lsize			miColumn;
 
 public:
-			void 	Init(EMarkupType eType, CMarkupTag* pcParent);
+			void	Init(EMarkupType eType, CMarkupTag* pcParent);
 
-			bool 	IsTag(void) const;
-			bool 	IsText(void) const;
+			bool	IsTag(void) const;
+			bool	IsText(void) const;
 			bool	IsRefDoc(void) const;
 			bool	IsRefText(void) const;
 			bool	IsNamedRef(void) const;

@@ -171,7 +171,7 @@ bool CArrayBlockBase<SIZE>::SafeSet(Count iIndex, void* pvData)
 		{
 			return false;
 		}
-		SIZE::Set(Get(iOldLength), 0, (Count)((iIndex-iOldLength) * miElementSize));
+		SIZE::Set(Get(iOldLength), 0, (Count)((iIndex - iOldLength) * miElementSize));
 		Set(iIndex, pvData);
 		return true;
 	}
@@ -582,7 +582,7 @@ void CArrayBlockBase<SIZE>::PrivateRemoveRange(Count iStartIndex, Count iEndInde
 			pv = Get(miUsedElements - iNumToRemove);
 			SIZE::Move(pvStart, pv, iNumToRemove*iDataSize);
 		}
-		SetUsedElements(miUsedElements-iNumToRemove);
+		SetUsedElements(miUsedElements - iNumToRemove);
 	}
 }
 
@@ -785,7 +785,7 @@ void CArrayBlockBase<SIZE>::One(void)
 template<class SIZE>
 void CArrayBlockBase<SIZE>::Copy(CArrayBlockBase<SIZE>* pcArray)
 {
-	//Assumes the array is initialised.  
+	//Assumes the array is initialised.
 	if (pcArray->miNumElements != miNumElements)
 	{
 		if (!SetArraySize(pcArray->miUsedElements))
@@ -818,7 +818,7 @@ void* CArrayBlockBase<SIZE>::PushCopy(void)
 		{
 			return NULL;
 		}
-		pSource = Get(miUsedElements-2);
+		pSource = Get(miUsedElements - 2);
 		SIZE::Copy(pDest, pSource, miElementSize);
 		return pDest;
 	}
@@ -1265,7 +1265,7 @@ void CArrayBlockBase<SIZE>::Reverse(void)
 	Count	i;
 	Count	iCount;
 
-	iCount = miUsedElements/2;
+	iCount = miUsedElements / 2;
 	for (i = 0; i < iCount; i++)
 	{
 		Swap(i, miUsedElements - i - 1);
@@ -1865,9 +1865,9 @@ bool CArrayBlockBase<SIZE>::WriteHeader(CFileWriter* pcFileWriter, Count uiFileE
 	sHeader.miElementSize = uiFileElementSize;
 	sHeader.miUsedElements = miUsedElements;
 
-	if (!sHeader.Write(pcFileWriter)) 
-	{ 
-		return false; 
+	if (!sHeader.Write(pcFileWriter))
+	{
+		return false;
 	}
 
 	return true;
@@ -1905,9 +1905,9 @@ bool CArrayBlockBase<SIZE>::Write(CFileWriter* pcFileWriter)
 
 	if (miUsedElements != 0)
 	{
-		if (!pcFileWriter->WriteData(mpvArray, ByteSize())) 
-		{ 
-			return false; 
+		if (!pcFileWriter->WriteData(mpvArray, ByteSize()))
+		{
+			return false;
 		}
 	}
 	return true;
@@ -1936,9 +1936,9 @@ bool CArrayBlockBase<SIZE>::ReadHeader(CFileReader* pcFileReader, CMallocator* p
 {
 	SArrayHeaderBase<SIZE>	sHeader;
 
-	if (!sHeader.Read(pcFileReader)) 
-	{ 
-		return false; 
+	if (!sHeader.Read(pcFileReader))
+	{
+		return false;
 	}
 
 	if (uiFileElementSize == SIZE::Max)
@@ -2010,9 +2010,9 @@ bool CArrayBlockBase<SIZE>::Read(CFileReader* pcFileReader)
 
 	if (miUsedElements != 0)
 	{
-		if (!pcFileReader->ReadData(mpvArray, ByteSize())) 
-		{ 
-			return false; 
+		if (!pcFileReader->ReadData(mpvArray, ByteSize()))
+		{
+			return false;
 		}
 	}
 	return true;
@@ -2041,7 +2041,7 @@ bool CArrayBlockBase<SIZE>::IsSorted(DataCompare fCompare)
 	for (ui = 0; ui < uiNumElements; ui++)
 	{
 		pvLeft = Get(ui);
-		pvRight = Get(ui+1);
+		pvRight = Get(ui + 1);
 		iResult = fCompare(pvLeft, pvRight);
 		if (iResult > 0)
 		{

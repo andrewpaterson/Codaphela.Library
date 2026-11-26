@@ -66,7 +66,7 @@ CFileDataIndex CFilePosIndex::ToFileDataIndex(uint32 muiDataSize)
 	filePos			iIndex;
 	filePos			iRemainder;
 	CFileDataIndex	cFileDataIndex;
-	
+
 	if (HasFile())
 	{
 		iIndex = mulliFilePos / muiDataSize;

@@ -120,7 +120,7 @@ public:
 	bool	Flush(bool bClearCache) override;
 	bool	IsWriteThrough(void) override;
 
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	OIndex	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
 	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;

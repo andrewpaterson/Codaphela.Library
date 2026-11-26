@@ -327,8 +327,8 @@ SFloat64Vec3* Float64Vec3TransformNormal(SFloat64Vec3* pOut, SFloat64Vec3* pV, S
 void Float64Vec3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, size iNumPoints)
 {
 	size		i;
-	SFloat64Vec3* psOut;
-	SFloat64Vec3* psIn;
+	SFloat64Vec3*	psOut;
+	SFloat64Vec3*	psIn;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
@@ -346,8 +346,8 @@ void Float64Vec3TransformCoords(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec
 void Float64Vec3TransformNormals(SFloat64Vec3* asOut, int iOutStride, SFloat64Vec3* asIn, int iInStride, SFloat4x4* psMat, size iNumPoints)
 {
 	size		i;
-	SFloat64Vec3* psOut;
-	SFloat64Vec3* psIn;
+	SFloat64Vec3*	psOut;
+	SFloat64Vec3*	psIn;
 
 	for (i = 0; i < iNumPoints; i++)
 	{
@@ -379,7 +379,7 @@ void Float64Vec3Swap(SFloat64Vec3* ps1, SFloat64Vec3* ps2)
 void Float64Vec3MinMax(SFloat64Vec3* psMin, SFloat64Vec3* psMax, SFloat64Vec3* asIn, int iInStride, size iNumPoints)
 {
 	size		i;
-	SFloat64Vec3* psIn;
+	SFloat64Vec3*	psIn;
 
 	if (iNumPoints > 0)
 	{

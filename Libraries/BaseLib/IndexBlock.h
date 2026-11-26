@@ -17,7 +17,7 @@ class CIndexBlock : public CDataIO, public CIndexTreeDataSize, public CDataFree
 friend class CIndexBlockDataFree;
 protected:
 	CIndexTreeMemory	mcIndex;
-	
+
 public:
 	void	Init(void);
 	void	Init(CLifeInit<CMallocator> cMalloc);

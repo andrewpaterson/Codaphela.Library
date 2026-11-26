@@ -50,7 +50,7 @@ public:
 	void				SetData(const void* pvObject, size uiSize);
 
 	size				GetDataSize(void) const;
-	CIndexTreeDataNode* GetNodeData(void) const;
+	CIndexTreeDataNode*	GetNodeData(void) const;
 	void*				GetDataPtr(void) const;
 	bool				HasData(void) const;
 	void				SetData(bool bHasData);
@@ -64,7 +64,7 @@ public:
 	CIndexTree*			GetIndexTree(void) const;
 
 	size				NumIndexes(void) const;
-	static size		NumIndexes(size uiFirstIndex, size uiLastIndex);
+	static size			NumIndexes(size uiFirstIndex, size uiLastIndex);
 	size				GetAdditionalIndexes(size uiIndex);
 
 	bool				IsEmpty(void) const;

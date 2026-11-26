@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SIndexedFileDataDescriptor
 {
 public:
-	uint32	muiDataSize;
+	uint32			muiDataSize;
 	CFilePosIndex	mcFileIndex;
 };
 
@@ -46,9 +46,9 @@ private:
 	lsize						muiCacheDataSize;
 
 public:
-	void 					Init(lsize uiDataSize, CFilePosIndex* pcFilePosIndex);
-	void 					Init(lsize uiDataSize, void* pvCache);
-	void 					Init(lsize uiFileDataSize, CFilePosIndex* pcFilePosIndex, lsize uiCacheDataSize, void* pvCache);
+	void					Init(lsize uiDataSize, CFilePosIndex* pcFilePosIndex);
+	void					Init(lsize uiDataSize, void* pvCache);
+	void					Init(lsize uiFileDataSize, CFilePosIndex* pcFilePosIndex, lsize uiCacheDataSize, void* pvCache);
 
 	lsize					GetFileDataSize(void) const;
 	lsize					GetCacheDataSize(void) const;

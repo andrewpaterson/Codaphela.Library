@@ -31,31 +31,31 @@ class CUTF16 : public CUnicodeReader
 protected:
 	uint16*		mszText;  //underlying wide char array.
 	size		muiTextLength;  //count of uint16s (not bytes).
-    bool        mbLittleEndian;
+	bool		mbLittleEndian;
 
 	size		muiPos;
 
 public:
-    void    Init(uint16* sz, size uiLength);
-    void    Kill(void) override;
-    void    Reset(uint16* sz, size uiLengthShorts);
-    void    Reset(uint32* sz, size uiLengthLongs);
-    void    Reset(uint8* sz, size uiByteLength);
-    void    SetBigEndian(void);
+	void	Init(uint16* sz, size uiLength);
+	void	Kill(void) override;
+	void	Reset(uint16* sz, size uiLengthShorts);
+	void	Reset(uint32* sz, size uiLengthLongs);
+	void	Reset(uint8* sz, size uiByteLength);
+	void	SetBigEndian(void);
 
-    bool    GetByteOrderMark(void) override;
-    void*   GetCurrentData(void) const override;
+	bool	GetByteOrderMark(void) override;
+	void*	GetCurrentData(void) const override;
 
-    uint16  GetCodePointUint16(void) override;
-    uint32  GetCodePointUint32(void) override;
-    size    GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
+	uint16	GetCodePointUint16(void) override;
+	uint32	GetCodePointUint32(void) override;
+	size	GetCodePointMulti(uint8* puiBuffer, size uiBufferLength) override;
 
-    size	PeekUTFBytes(void) override;
+	size	PeekUTFBytes(void) override;
 
-    size    GetPosition(void) const override;
+	size    GetPosition(void) const override;
 
 protected:
-    size	GetUTF16ElementLength(void) const;
+	size	GetUTF16ElementLength(void) const;
 };
 
 

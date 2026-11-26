@@ -122,7 +122,7 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 	int		iSendResult;
 
 	iSendResult = send(SocketHandle(maSocket), (char*)pvBuffer, iBufferLength, 0);
-	if (iSendResult == SOCKET_ERROR) 
+	if (iSendResult == SOCKET_ERROR)
 	{
 		gcLogger.Error2(__METHOD__, " send failed [", LastSocketErrorToString(), "].", NULL);
 		return SOCKET_RESULT_ERROR;
@@ -266,8 +266,8 @@ bool SocketsInit(void)
 	WSADATA		wsaData;
 
 	// Initialize Winsock
-	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-	if (iResult != 0) 
+	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0)
 	{
 		//printf("WSAStartup failed with error: %d\n", iResult);
 		return false;

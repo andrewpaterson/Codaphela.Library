@@ -231,7 +231,7 @@ CMarkupSubstitute* CMarkup::GetSubstitute(char* szName)
 	CMarkupSubText*		pcText;
 	size				ui;
 	size				uiNumElements;
-	
+
 	uiNumElements = mapcSubDocs.NumElements();
 	for (ui = 0; ui < uiNumElements; ui++)
 	{

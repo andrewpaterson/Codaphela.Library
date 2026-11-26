@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //////////////////////////////////////////////////////////////////////////
 void SCSVRowImmutable::Dump(void)
-{	
+{
 	size		i;
 	CChars		szString;
 	CChars		szLeft;
@@ -109,7 +109,7 @@ SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 	for (iLength = 0;; iLength++)
 	{
 		c = szText[iLength];
-		
+
 		//Check for the end of the row.
 		if ((c == 0) || (c == '\n') || (c == '\r'))
 		{
@@ -236,7 +236,7 @@ void CCSVFileImmutable::ReadAllLines(void)
 	{
 		bResult = ReadLine();
 		iRow++;
-	} 
+	}
 	while (bResult);
 }
 

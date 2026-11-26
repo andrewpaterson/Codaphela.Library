@@ -4,8 +4,8 @@
 #include "FreeList.h"
 
 
-//Elements in an CListBlock are always of the same size.  List elements are indexed from the start of the list.  
-//Elements in a CListVariable can be different sizes.  List elements are indexed from the start of the list.  
+//Elements in an CListBlock are always of the same size.  List elements are indexed from the start of the list.
+//Elements in a CListVariable can be different sizes.  List elements are indexed from the start of the list.
 class CListBlock
 {
 protected:
@@ -21,34 +21,34 @@ public:
 	size	NumElements(void) const;
 	bool	IsEmpty(void) const;
 	bool	IsNotEmpty(void) const;
-	size 	ElementSize(void) const;
+	size	ElementSize(void) const;
 	size	NumBlocks(void);
 	size	NumElementsFromFreeList(void) const;
 
 	void*	Add(void);
 	void*	Add(void* pvData);
-	void* 	AddGetIndex(size* piIndex);
+	void*	AddGetIndex(size* piIndex);
 
 	void*	Get(size iIndex);
 	void*	SafeGet(size iIndex);
 	size	GetIndex(void* pvElement);
 	void*	Tail(void);
 
-	void* 	InsertAt(size iIndex);
-	void* 	InsertAt(void* pvData, size iIndex);
+	void*	InsertAt(size iIndex);
+	void*	InsertAt(void* pvData, size iIndex);
 
 	bool	Pop(void* pvData);
 	bool	Pop(void);
-	void* 	Push(void* pvElement);
+	void*	Push(void* pvElement);
 	void*	Push(void);
 
 	void	Reverse(void);
 
 	bool	Contains(void* pvData);
 
-	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
+	void	RemoveAt(size iIndex, bool bPreserveOrder = true);
 	void	RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder = true);
-	void 	RemoveTail(void);
+	void	RemoveTail(void);
 
 	bool	Set(size iIndex, void* pvData);
 	bool	SafeSet(size iIndex, void* pvData);

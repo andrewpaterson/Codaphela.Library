@@ -353,7 +353,7 @@ bool CLogFile::Commit(CAbstractFile* pcFile)
 		if (!bResult)
 		{
 			ExecuteCommandErrorString(&szError, __METHOD__, psCommand, pcFile);
-			gcLogger.Error(szError.Text()); 
+			gcLogger.Error(szError.Text());
 			szError.Kill();
 			return false;
 		}
@@ -773,7 +773,7 @@ lsize CLogFile::Read(void* pvDest, lsize iSize, lsize iCount)
 			return uiBytesRead;
 		}
 
-		uiWriteIndex = FindNextWriteCommand(uiWriteIndex+1);
+		uiWriteIndex = FindNextWriteCommand(uiWriteIndex + 1);
 		while (uiWriteIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			uiBytesRead = ReadNextTouchingWrites(uiWriteIndex, pvDest, iSize, iCount);
@@ -781,7 +781,7 @@ lsize CLogFile::Read(void* pvDest, lsize iSize, lsize iCount)
 			{
 				return 0;
 			}
-			uiWriteIndex = FindNextWriteCommand(uiWriteIndex+1);
+			uiWriteIndex = FindNextWriteCommand(uiWriteIndex + 1);
 		}
 
 		if (miPosition >= miLength)

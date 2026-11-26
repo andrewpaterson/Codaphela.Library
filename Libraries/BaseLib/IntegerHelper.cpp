@@ -222,21 +222,21 @@ void SetBitLarge(lsize iBit, void* pvBitArray, bool bBit)
 //
 //  https://en.wikipedia.org/wiki/Hamming_weight
 //
-//  This uses fewer arithmetic operations than any other known  
+//  This uses fewer arithmetic operations than any other known
 //  implementation on machines with slow multiplication.
 //  This algorithm uses 17 arithmetic operations.
 //
 //////////////////////////////////////////////////////////////////////////
 size CountBits_PopCount64(uint64 x)
 {
-	const uint64 m1 = 0x5555555555555555LL;
-	const uint64 m2 = 0x3333333333333333LL;
-	const uint64 m4 = 0x0f0f0f0f0f0f0f0fLL;
-	const uint64 m5 = 0x0101010101010101LL;
+	const uint64	m1 = 0x5555555555555555LL;
+	const uint64	m2 = 0x3333333333333333LL;
+	const uint64	m4 = 0x0f0f0f0f0f0f0f0fLL;
+	const uint64	m5 = 0x0101010101010101LL;
 
 	x = x - ((x >> 1) & m1);        //put count of each 2 bits into those 2 bits
-	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
-	x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+	x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
+	x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
 	return (x * m5) >> 56;
 }
 
@@ -248,9 +248,9 @@ size CountBits_PopCount64(uint64 x)
 //////////////////////////////////////////////////////////////////////////
 size CountBits_PopCount32(uint32 i)
 {
-	const uint32 m1 = 0x55555555;
-	const uint32 m2 = 0x33333333;
-	const uint32 m4 = 0x0f0f0f0f;
+	const uint32	m1 = 0x55555555;
+	const uint32	m2 = 0x33333333;
+	const uint32	m4 = 0x0f0f0f0f;
 
 	i = i - ((i >> 1) & m1);
 	i = (i & m2) + ((i >> 2) & m2);
@@ -265,9 +265,9 @@ size CountBits_PopCount32(uint32 i)
 //////////////////////////////////////////////////////////////////////////
 size CountBits_PopCount16(uint16 i)
 {
-	const uint16 m1 = 0x5555;
-	const uint16 m2 = 0x3333;
-	const uint16 m4 = 0x0f0f;
+	const uint16	m1 = 0x5555;
+	const uint16	m2 = 0x3333;
+	const uint16	m4 = 0x0f0f;
 
 	i = i - ((i >> 1) & m1);
 	i = (i & m2) + ((i >> 2) & m2);
@@ -409,7 +409,7 @@ size CountBits(void* pvBitArray, size iBitLength)
 	}
 	else if (iBitLength == 128)
 	{
-		return CountBits_PopCount64(*((uint64*)pvBitArray)) + 
+		return CountBits_PopCount64(*((uint64*)pvBitArray)) +
 		       CountBits_PopCount64(((uint64*)pvBitArray)[1]);
 	}
 	else if (iBitLength == 8)
@@ -827,7 +827,7 @@ size FindLastClearBit(void* pvArray, size iArraySize) noexcept
 {
 	size	i;
 	bool	iBit;
-	
+
 	if (iArraySize != 0)
 	{
 		i = iArraySize;
@@ -1323,7 +1323,7 @@ void SwapByte(uint8* pc1, uint8* pc2)
 	char c3;
 
 	c3 = *pc1;
-	*pc1= *pc2;
+	*pc1 = *pc2;
 	*pc2 = c3;
 }
 
@@ -1615,8 +1615,8 @@ int CompareLongReverse(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 uint8 GetCrumb(size iCrumb, void* pvArray)
 {
-	size iBytePos;
-	size iCrumbInByte;
+	size	iBytePos;
+	size	iCrumbInByte;
 
 	iBytePos = iCrumb / 4;
 	iCrumbInByte = iCrumb % 4;
@@ -1631,8 +1631,8 @@ uint8 GetCrumb(size iCrumb, void* pvArray)
 //////////////////////////////////////////////////////////////////////////
 uint8 GetNybble(size iNybble, void* pvArray)
 {
-	size iBytePos;
-	size iNybbleInByte;
+	size	iBytePos;
+	size	iNybbleInByte;
 
 	iBytePos = iNybble / 2;
 	iNybbleInByte = iNybble % 2;
@@ -1804,7 +1804,7 @@ void ReverseBytes(void* pv, size iSize)
 {
 	size	i;
 	size	iHalf;
-	
+
 	iHalf = iSize / 2;
 	for (i = 0; i < iHalf; i++)
 	{
@@ -1900,7 +1900,7 @@ int32 LargestInt(int32* pInts, uint32 iCount)
 
 	iLargest = pInts[0];
 	for (i = 1; i < iCount; i++)
-	{	
+	{
 		if (pInts[i] > iLargest)
 		{
 			iLargest = pInts[i];
@@ -2046,10 +2046,10 @@ int64 Absolute(int64 i)
 //////////////////////////////////////////////////////////////////////////
 int16 SquareRoot(int16 i)
 {
-	int16 iLeft = 0;
-	int16 iRight = i;
-	int16 iAns = 0;
-	int16 iMid;
+	int16	iLeft = 0;
+	int16	iRight = i;
+	int16	iAns = 0;
+	int16	iMid;
 
 	if (i < 0)
 	{
@@ -2073,7 +2073,7 @@ int16 SquareRoot(int16 i)
 			iAns = iMid;
 			iLeft = iMid + 1;
 		}
-		else 
+		else
 		{
 			iRight = iMid - 1;
 		}
@@ -2088,10 +2088,10 @@ int16 SquareRoot(int16 i)
 //////////////////////////////////////////////////////////////////////////
 int32 SquareRoot(int32 i)
 {
-	int32 iLeft = 0;
-	int32 iRight = i;
-	int32 iAns = 0;
-	int32 iMid;
+	int32	iLeft = 0;
+	int32	iRight = i;
+	int32	iAns = 0;
+	int32	iMid;
 
 	if (i < 0)
 	{
@@ -2115,7 +2115,7 @@ int32 SquareRoot(int32 i)
 			iAns = iMid;
 			iLeft = iMid + 1;
 		}
-		else 
+		else
 		{
 			iRight = iMid - 1;
 		}
@@ -2130,10 +2130,10 @@ int32 SquareRoot(int32 i)
 //////////////////////////////////////////////////////////////////////////
 int64 SquareRoot(int64 i)
 {
-	int64 iLeft = 0;
-	int64 iRight = i;
-	int64 iAns = 0;
-	int64 iMid;
+	int64	iLeft = 0;
+	int64	iRight = i;
+	int64	iAns = 0;
+	int64	iMid;
 
 	if (i < 0)
 	{
@@ -2157,7 +2157,7 @@ int64 SquareRoot(int64 i)
 			iAns = iMid;
 			iLeft = iMid + 1;
 		}
-		else 
+		else
 		{
 			iRight = iMid - 1;
 		}

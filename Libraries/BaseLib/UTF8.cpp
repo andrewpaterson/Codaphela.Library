@@ -106,7 +106,7 @@ uint16 CUTF8::GetCodePointUint16(void)
 		muiPos += 1;
 		return c;
 	}
-		
+
 	if ((c & 0xE0) == 0xC0)
 	{
 		if (muiPos + 1 >= muiTextLength)
@@ -171,7 +171,7 @@ uint32 CUTF8::GetCodePointUint32(void)
 		return c32;
 	}
 
-	if ((c & 0xF0) == 0xE0) 
+	if ((c & 0xF0) == 0xE0)
 	{
 		if (muiPos + 2 >= muiTextLength)
 		{
@@ -195,7 +195,7 @@ uint32 CUTF8::GetCodePointUint32(void)
 		return c32;
 	}
 
-	if ((c & 0xF8) == 0xF0) 
+	if ((c & 0xF8) == 0xF0)
 	{
 		if (muiPos + 3 >= muiTextLength)
 		{
@@ -291,7 +291,7 @@ size CUTF8::GetCodePointMulti(uint8* puiBuffer, size uiBufferLength)
 					uiBufferPos = AppendCodePoint(c32, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
 					uiUsedBuffer += uiCodePointLength;
 				}
-				
+
 				uiTotalElementLength += uiLength;
 			}
 			else
@@ -388,7 +388,7 @@ size CUTF8::GetUTF8ElementLength(void) const
 	{
 		return 1;
 	}
-		
+
 	if ((c & 0xE0) == 0xC0)
 	{
 		if (muiPos + 1 >= muiTextLength)
@@ -398,7 +398,7 @@ size CUTF8::GetUTF8ElementLength(void) const
 		return 2;
 	}
 
-	if ((c & 0xF0) == 0xE0) 
+	if ((c & 0xF0) == 0xE0)
 	{
 		if (muiPos + 2 >= muiTextLength)
 		{
@@ -426,7 +426,7 @@ size CUTF8::GetUTF8ElementLength(void) const
 		return 3;
 	}
 
-	if ((c & 0xF8) == 0xF0) 
+	if ((c & 0xF8) == 0xF0)
 	{
 		if (muiPos + 3 >= muiTextLength)
 		{

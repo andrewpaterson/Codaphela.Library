@@ -507,7 +507,7 @@ TRISTATE CTypeParser::ParseFloat4(SFloat32Vec4* pDest, char cOpen, char cSplit, 
 	mpcParser->PassPosition();
 	return TRITRUE;}
 
-  
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -654,7 +654,7 @@ TRISTATE CTypeParser::ParseBool(bool* pDest)
 		return TRITRUE;
 	}
 	ReturnOnError(tResult);
-	
+
 	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("true");
 	if (tResult == TRITRUE)
 	{
@@ -721,7 +721,7 @@ TRISTATE CTypeParser::ParseString(CCharsImmutable* pDest)
 	return TRITRUE;
 }
 
-  
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -731,7 +731,7 @@ TRISTATE CTypeParser::ParseNumber(CNumber* pDest)
 	return TRIERROR;
 }
 
-	
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -750,146 +750,146 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 {
 	switch (eType)
 	{
-		case PT_int32:
-			if (iDestLength >= INT_BYTE_SIZE)
-			{
-				return ParseInt((int32*)pvDest);
-			}
-			break;
-		case PT_int16:
-			if (iDestLength >= SHORT_BYTE_SIZE)
-			{
-				return ParseShort((int16*)pvDest);
-			}
-			break;
-		case PT_char8:
-			if (iDestLength >= CHAR_BYTE_SIZE)
-			{
-				return ParseChar((char8*)pvDest);
-			}
-			break;
-		case PT_float32:
-			if (iDestLength >= FLOAT_BYTE_SIZE)
-			{
-				return ParseFloat((float32*)pvDest);
-			}
-			break;		
-		case PT_float64:
-			if (iDestLength >= DOUBLE_BYTE_SIZE)
-			{
-				return ParseDouble((float64*)pvDest);
-			}
-			break;		
-		case PT_uint32:
-			if (iDestLength >= INT_BYTE_SIZE)
-			{
-				return ParseUInt((uint32*)pvDest);
-			}
-			break;
-		case PT_uint16:
-			if (iDestLength >= SHORT_BYTE_SIZE)
-			{
-				return ParseUShort((uint16*)pvDest);
-			}
-			break;
-		case PT_uint8:
-			if (iDestLength >= BYTE_BYTE_SIZE)
-			{
-				return ParseUChar((uint8*)pvDest);
-			}
-			break;
-		case PT_int64:
-			if (iDestLength >= LONG_BYTE_SIZE)
-			{
-				return ParseLong((int64*)pvDest);
-			}
-			break;
-		case PT_uint64:
-			if (iDestLength >= LONG_BYTE_SIZE)
-			{
-				return ParseULong((uint64*)pvDest);
-			}
-			break;
-		case PT_M2float32:
-			if (iDestLength >= FLOAT2_BYTE_SIZE)
-			{
-				return ParseFloat2((SFloat32Vec2*)pvDest);
-			}
-			break;
-		case PT_M3float32:
-			if (iDestLength >= FLOAT3_BYTE_SIZE)
-			{
-				return ParseFloat3((SFloat32Vec3*)pvDest);
-			}
-			break;
-		case PT_M4float32:
-			if (iDestLength >= FLOAT4_BYTE_SIZE)
-			{
-				return ParseFloat4((SFloat32Vec4*)pvDest);
-			}
-			break;
-		case PT_M2int32:
-			if (iDestLength >= INT2_BYTE_SIZE)
-			{
-				return ParseInt2((SIntVec2*)pvDest);
-			}
-			break;
-		case PT_M3int32:
-			if (iDestLength >= INT3_BYTE_SIZE)
-			{
-				return ParseInt3((SInt32Vec3*)pvDest);
-			}
-			break;
-		case PT_M4int32:
-			if (iDestLength >= INT4_BYTE_SIZE)
-			{
-				return ParseInt4((SIntVec4*)pvDest);
-			}
-			break;
-		case PT_bool: 
-			if (iDestLength >= BOOL_BYTE_SIZE)
-			{
-				return ParseBool((bool*)pvDest);
-			}
-			break;
-		case PT_String:
-			if (iDestLength >= sizeof(CChars))
-			{
-				return ParseString((CChars*)pvDest);
-			}
-			break;		
-		case PT_StringImmutable:
-			if (iDestLength >= sizeof(CCharsImmutable))
-			{
-				return ParseString((CCharsImmutable*)pvDest);
-			}
-			break;
-		case PT_Number:
-			if (iDestLength >= sizeof(CNumber))
-			{
-				return ParseNumber((CNumber*)pvDest);
-			}
-			break;
-		case PT_Date:
-			if (iDestLength >= sizeof(CDate))
-			{
-				return ParseDate((CDate*)pvDest);
-			}
-			break;
-		case PT_bit:
-		case PT_crumb:
-		case PT_tribble:
-		case PT_nybble:
-		case PT_nickle:
-		case PT_sixbits:
-			if (iDestLength >= BYTE_BYTE_SIZE)
-			{
-				return ParseUChar((uint8*)pvDest);
-			}
-			break;
+	case PT_int32:
+		if (iDestLength >= INT_BYTE_SIZE)
+		{
+			return ParseInt((int32*)pvDest);
+		}
+		break;
+	case PT_int16:
+		if (iDestLength >= SHORT_BYTE_SIZE)
+		{
+			return ParseShort((int16*)pvDest);
+		}
+		break;
+	case PT_char8:
+		if (iDestLength >= CHAR_BYTE_SIZE)
+		{
+			return ParseChar((char8*)pvDest);
+		}
+		break;
+	case PT_float32:
+		if (iDestLength >= FLOAT_BYTE_SIZE)
+		{
+			return ParseFloat((float32*)pvDest);
+		}
+		break;
+	case PT_float64:
+		if (iDestLength >= DOUBLE_BYTE_SIZE)
+		{
+			return ParseDouble((float64*)pvDest);
+		}
+		break;
+	case PT_uint32:
+		if (iDestLength >= INT_BYTE_SIZE)
+		{
+			return ParseUInt((uint32*)pvDest);
+		}
+		break;
+	case PT_uint16:
+		if (iDestLength >= SHORT_BYTE_SIZE)
+		{
+			return ParseUShort((uint16*)pvDest);
+		}
+		break;
+	case PT_uint8:
+		if (iDestLength >= BYTE_BYTE_SIZE)
+		{
+			return ParseUChar((uint8*)pvDest);
+		}
+		break;
+	case PT_int64:
+		if (iDestLength >= LONG_BYTE_SIZE)
+		{
+			return ParseLong((int64*)pvDest);
+		}
+		break;
+	case PT_uint64:
+		if (iDestLength >= LONG_BYTE_SIZE)
+		{
+			return ParseULong((uint64*)pvDest);
+		}
+		break;
+	case PT_M2float32:
+		if (iDestLength >= FLOAT2_BYTE_SIZE)
+		{
+			return ParseFloat2((SFloat32Vec2*)pvDest);
+		}
+		break;
+	case PT_M3float32:
+		if (iDestLength >= FLOAT3_BYTE_SIZE)
+		{
+			return ParseFloat3((SFloat32Vec3*)pvDest);
+		}
+		break;
+	case PT_M4float32:
+		if (iDestLength >= FLOAT4_BYTE_SIZE)
+		{
+			return ParseFloat4((SFloat32Vec4*)pvDest);
+		}
+		break;
+	case PT_M2int32:
+		if (iDestLength >= INT2_BYTE_SIZE)
+		{
+			return ParseInt2((SIntVec2*)pvDest);
+		}
+		break;
+	case PT_M3int32:
+		if (iDestLength >= INT3_BYTE_SIZE)
+		{
+			return ParseInt3((SInt32Vec3*)pvDest);
+		}
+		break;
+	case PT_M4int32:
+		if (iDestLength >= INT4_BYTE_SIZE)
+		{
+			return ParseInt4((SIntVec4*)pvDest);
+		}
+		break;
+	case PT_bool:
+		if (iDestLength >= BOOL_BYTE_SIZE)
+		{
+			return ParseBool((bool*)pvDest);
+		}
+		break;
+	case PT_String:
+		if (iDestLength >= sizeof(CChars))
+		{
+			return ParseString((CChars*)pvDest);
+		}
+		break;
+	case PT_StringImmutable:
+		if (iDestLength >= sizeof(CCharsImmutable))
+		{
+			return ParseString((CCharsImmutable*)pvDest);
+		}
+		break;
+	case PT_Number:
+		if (iDestLength >= sizeof(CNumber))
+		{
+			return ParseNumber((CNumber*)pvDest);
+		}
+		break;
+	case PT_Date:
+		if (iDestLength >= sizeof(CDate))
+		{
+			return ParseDate((CDate*)pvDest);
+		}
+		break;
+	case PT_bit:
+	case PT_crumb:
+	case PT_tribble:
+	case PT_nybble:
+	case PT_nickle:
+	case PT_sixbits:
+		if (iDestLength >= BYTE_BYTE_SIZE)
+		{
+			return ParseUChar((uint8*)pvDest);
+		}
+		break;
 
-		default:
-			break;
+	default:
+		break;
 	}
 	return TRIERROR;
 }

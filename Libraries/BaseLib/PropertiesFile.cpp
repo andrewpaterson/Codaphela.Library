@@ -79,7 +79,7 @@ bool CPropertiesFile::Read(void)
 	CChars			szValue;
 	CChars			szProperty;
 	TRISTATE		tResult;
-	const char*			szStartOfValue;
+	const char*		szStartOfValue;
 
 	cFile.Init();
 	if (!cFile.Read(mszName.Text()))
@@ -110,7 +110,7 @@ bool CPropertiesFile::Read(void)
 		}
 
 		tResult = cParser.GetExactCharacter('=');
-		if (tResult == TRITRUE) 
+		if (tResult == TRITRUE)
 		{
 			cParser.SkipWhitespace();
 			szStartOfValue = cParser.mszParserPos;
@@ -170,7 +170,7 @@ bool CPropertiesFile::Write(void)
 	while (bResult)
 	{
 		cFile.mcText.Append(szProperty);
-		
+
 		if (!StrEmpty(szValue))
 		{
 			cFile.mcText.Append(" = ");
@@ -216,7 +216,7 @@ void CPropertiesFile::Print(CChars* pszDest)
 	while (bResult)
 	{
 		pszDest->Append(szProperty);
-		
+
 		if (!StrEmpty(szValue))
 		{
 			pszDest->Append(" = ");

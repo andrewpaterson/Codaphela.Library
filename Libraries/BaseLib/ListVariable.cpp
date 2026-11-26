@@ -166,7 +166,7 @@ void* CListVariable::Add(void* pvElement, lsize iElementSize)
 	{
 		memcpy(pvDest, pvElement, iElementSize);
 	}
-	
+
 	return pvDest;
 }
 

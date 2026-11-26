@@ -103,7 +103,7 @@ public:
 	uint32					GetRootSector(void) const noexcept;
 	uint32					GetPageSize(void) const noexcept;
 	CFatInfoSectorCache*	GetSectorCache(void) noexcept;
-	
+
 protected:
 	EFatCode				InitialiseFat32FileSystemInfo(void) noexcept;
 	uint8					PowerOfTwoShift(uint32 uiSize) noexcept;

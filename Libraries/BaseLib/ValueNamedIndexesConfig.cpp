@@ -133,7 +133,7 @@ CLifeInit<CNamedIndexesConfig> CValueNamedIndexesConfig::Create(const char* szSu
 //////////////////////////////////////////////////////////////////////////
 CLifeInit<CNamedIndexesConfig> CValueNamedIndexesConfig::Create(char* szSubDirectory, lsize uiIndexCacheSize, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, EIndexWriteThrough eWriteThrough, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer)
 {
-	
+
 	CLifeInit<CNamedIndexesConfig> cLife = LifeAlloc<CValueNamedIndexesConfig, CNamedIndexesConfig>(szSubDirectory, uiIndexCacheSize, cEvictionStrategy, eWriteThrough, pcEvictionCallback, cIndexTreeDataOrderer);
 	return cLife;
 }

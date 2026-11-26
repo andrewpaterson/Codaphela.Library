@@ -38,17 +38,17 @@ public:
 	float	mfUpdateTime;
 	float	mfUpdatesPerSecond;
 
-	void Init(void);
-	void Update(void);
-	void Reset(void);
-	void Kill(void);
+	void	Init(void);
+	void	Update(void);
+	void	Reset(void);
+	void	Kill(void);
 
-	float GetUpdateTimeInSeconds(void) const;
-	float GetUpdatesPerSecond(void) const;
-	float GetTotalTimeInSeconds(void) const;
+	float	GetUpdateTimeInSeconds(void) const;
+	float	GetUpdatesPerSecond(void) const;
+	float	GetTotalTimeInSeconds(void) const;
 
-	int64 GetUpdateTimeInMillieconds(void) const;
-	int64 GetTotalTimeInMillieconds(void) const;
+	int64	GetUpdateTimeInMillieconds(void) const;
+	int64	GetTotalTimeInMillieconds(void) const;
 
 	void HumanReadable(CChars* psz);
 };

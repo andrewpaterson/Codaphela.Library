@@ -43,7 +43,7 @@ public:
 						bool	ReadStringChars(char* szString, size iLength);
 						bool	ReadString(char* szString, size iMaxLength);
 
-	//Helpers.		
+	//Helpers.
 						bool	ReadInt8(int8* pi);
 						bool	ReadInt8(uint8* pi);
 						bool	ReadInt16(int16* pi);

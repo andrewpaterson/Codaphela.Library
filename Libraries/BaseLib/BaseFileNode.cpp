@@ -28,7 +28,7 @@ void CBaseFileNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
- char* CBaseFileNode::GetName(void)
+char* CBaseFileNode::GetName(void)
 {
 	return mszName.Text();
 }
@@ -38,7 +38,7 @@ void CBaseFileNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
- char* CBaseFileNode::GetFullName(CChars* pszDest)
+char* CBaseFileNode::GetFullName(CChars* pszDest)
 {
 	CBaseFileNode*	pcCurrent;
 	CChars			szName;

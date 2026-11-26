@@ -83,7 +83,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 	// Resolve the server address and port
 	psResult = NULL;
 	iResult = getaddrinfo(szAddress, mszPortNumber.Text(), &psHints, &psResult);
-	if (iResult != 0) 
+	if (iResult != 0)
 	{
 		gcLogger.Error2(__METHOD__, " getaddrinfo failed for port [", mszPortNumber.Text(), "] [", WindowsErrorCodeToString(iResult), "].", NULL);
 		return false;
@@ -91,7 +91,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 
 	// Create a SOCKET for connecting to server
 	hListenSocket = socket(psResult->ai_family, psResult->ai_socktype, psResult->ai_protocol);
-	if (hListenSocket == INVALID_SOCKET) 
+	if (hListenSocket == INVALID_SOCKET)
 	{
 		gcLogger.Error2(__METHOD__, " socket failed [", LastSocketErrorToString(), "].", NULL);
 		freeaddrinfo(psResult);
@@ -100,7 +100,7 @@ bool CListenSocket::Bind(const char* szAddress, int iPort)
 
 	// Setup the TCP listening socket
 	iResult = bind(hListenSocket, psResult->ai_addr, (int)psResult->ai_addrlen);
-	if (iResult == SOCKET_ERROR) 
+	if (iResult == SOCKET_ERROR)
 	{
 		gcLogger.Error2(__METHOD__, " bind failed [", LastSocketErrorToString(), "].", NULL);
 		freeaddrinfo(psResult);
@@ -144,7 +144,7 @@ bool CListenSocket::Listen(void)
 
 	hListenSocket = SocketHandle(maListenSocket);
 	iResult = listen(hListenSocket, SOMAXCONN);
-	if (iResult == SOCKET_ERROR) 
+	if (iResult == SOCKET_ERROR)
 	{
 		gcLogger.Error2(__METHOD__, " listen failed [", LastSocketErrorToString(), "].", NULL);
 		CloseListenSocket();
@@ -154,7 +154,7 @@ bool CListenSocket::Listen(void)
 	// Accept a client socket
 	hSocket = accept(hListenSocket, NULL, NULL);  //This blocks
 	SocketHandle(maSocket) = hSocket;
-	if (hSocket == INVALID_SOCKET) 
+	if (hSocket == INVALID_SOCKET)
 	{
 		gcLogger.Error2(__METHOD__, " accept failed [", LastSocketErrorToString(), "].", NULL);
 		CloseListenSocket();

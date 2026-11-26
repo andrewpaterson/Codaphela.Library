@@ -176,20 +176,20 @@ TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 
 		bValid = false;
 		//The first character of an identifier must be one of these...
-		if (((cCurrent >= 'a') && (cCurrent <= 'z')) || 
+		if (((cCurrent >= 'a') && (cCurrent <= 'z')) ||
 			((cCurrent >= 'A') && (cCurrent <= 'Z')))
 		{
 			bValid = true;
 		}
 
-		if ((cCurrent == ':') || 
-			(cCurrent == '_') || 
+		if ((cCurrent == ':') ||
+			(cCurrent == '_') ||
 			((uint8)cCurrent == 0xf8))
 		{
 			bValid = true;
 		}
 
-		if ((((uint8)cCurrent >= 0xc0) && ((uint8)cCurrent <= 0xd6)) || 
+		if ((((uint8)cCurrent >= 0xc0) && ((uint8)cCurrent <= 0xd6)) ||
 			(((uint8)cCurrent >= 0xd8) && ((uint8)cCurrent <= 0xf6)))
 		{
 			bValid = true;
@@ -200,7 +200,7 @@ TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 			pcTextParser->StepRight();
 			return TRITRUE;
 		}
-				
+
 		//Additional characters can also be...
 		if (!bFirst)
 		{
@@ -208,8 +208,8 @@ TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFi
 			{
 				bValid = true;
 			}
-			if ((cCurrent == '-') || 
-				(cCurrent == '.') || 
+			if ((cCurrent == '-') ||
+				(cCurrent == '.') ||
 				((uint8)cCurrent == 0xb7))
 			{
 				bValid = true;

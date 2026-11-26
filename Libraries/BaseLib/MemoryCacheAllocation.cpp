@@ -10,7 +10,7 @@ void CMemoryCacheAllocation::Init(uint32 uiSize)
 {
 	mapEvictedCacheDescriptors.Init();
 	muiSize = uiSize;
-	
+
 	mpsDescriptor = NULL;
 	miCachedSize = 0;
 }

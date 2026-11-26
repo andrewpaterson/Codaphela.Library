@@ -39,9 +39,9 @@ struct SLinkedListBlockDesc
 	size	iNumElements;
 	size	uiNodeSize;
 
-	void Init(size iNumElements, size uiNodeSize);
-	bool Write(CFileWriter* pcFileWriter);
-	bool Read(CFileReader* pcFileReader);
+	void	Init(size iNumElements, size uiNodeSize);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 
@@ -51,9 +51,9 @@ struct SLinkedListTemplateDesc
 	size	uiNodeSize;
 	lsize	uiDataSize;
 
-	void Init(size iNumElements, size uiNodeSize, lsize uiDataSize);
-	bool Write(CFileWriter* pcFileWriter);
-	bool Read(CFileReader* pcFileReader);
+	void	Init(size iNumElements, size uiNodeSize, lsize uiDataSize);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 
@@ -71,12 +71,12 @@ public:
 	void*		InsertAfterTail(lsize uiDataSize);
 	void*		InsertBeforeHead(lsize uiDataSize);
 	void*		InsertBeforeNode(lsize uiDataSize, void* psPos);
-	void*		InsertAfterNode(lsize uiDataSize, void* psPos); 
+	void*		InsertAfterNode(lsize uiDataSize, void* psPos);
 
-	void* 		GetHead(void);
-	void* 		GetTail(void);
-	void* 		GetNext(void* pvData);
-	void* 		GetPrev(void* pvData);
+	void*		GetHead(void);
+	void*		GetTail(void);
+	void*		GetNext(void* pvData);
+	void*		GetPrev(void* pvData);
 
 	void		RemoveTail(void);
 	void		Remove(void* pvData);
@@ -103,7 +103,7 @@ public:
 	void		BubbleSort(DataCompare fCompare);
 	void		InsertDetachedIntoSorted(DataCompare fCompare, void* pvData);
 
-protected:	
+protected:
 	SLLNode*	AllocateDetached(lsize uiDataSize);
 
 	void		Swap(void* psData1, void* psData2);

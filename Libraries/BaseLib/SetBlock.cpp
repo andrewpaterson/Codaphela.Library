@@ -591,7 +591,7 @@ bool CSetBlock::Read(CFileReader* pcFileReader, DataCompare fCompare, CDataIO* p
 	{
 		return false;
 	}
-	
+
 	return ReadSetBlockElements(pcFileReader);
 }
 
@@ -607,7 +607,7 @@ bool CSetBlock::ReadSetBlockElements(CFileReader* pcFileReader)
 	SSNode*		psNode;
 	bool		bResult;
 
-	
+
 	iNumElements = mapArray.GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
 	{
@@ -635,7 +635,7 @@ bool CSetBlock::WriteData(CFileWriter* pcFileWriter, void* pvData)
 {
 	bool		bResult;
 	SSNode*		psNode;
-	
+
 	psNode = (SSNode*)pvData;
 	pvData = RemapSinglePointer(psNode, sizeof(SSNode));
 	bResult = pcFileWriter->WriteData(pvData, psNode->iDataSize);

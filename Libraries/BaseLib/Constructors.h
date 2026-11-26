@@ -124,7 +124,7 @@ M* CConstructors::Add(void)
 		return NULL;
 	}
 	pvM = (M*)mcConstructors.Get(szClassName);
-	cStack.Kill(); 
+	cStack.Kill();
 	return pvM;
 }
 

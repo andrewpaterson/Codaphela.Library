@@ -32,9 +32,9 @@ class CTypeConverter
 	ConversionFunc	mapvScaleTuncateConversion[PRIMTIVE_CONVERTER_END][PRIMTIVE_CONVERTER_END];  //Dest, source
 
 public:
-	void Init(void);
-	void Kill(void);
-	void Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSource, void* pvSource);
+	void	Init(void);
+	void	Kill(void);
+	void	Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSource, void* pvSource);
 };
 
 

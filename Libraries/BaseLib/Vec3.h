@@ -61,20 +61,20 @@ public:
 			bool			operator == (const SVec3<M, N>&) const;
 			bool			operator != (const SVec3<M, N>&) const;
 
-			void 			Init(M x, M y, M z);
-			void 			Init(const SVec3<M, N>& v);
+			void			Init(M x, M y, M z);
+			void			Init(const SVec3<M, N>& v);
 			void			Init(SVec3* pv);
-			void 			Zero(void);
+			void			Zero(void);
 
-			bool 			Save(CFileWriter* pcFileWriter);
-			bool 			Load(CFileReader* pcFileReader);
+			bool			Save(CFileWriter* pcFileWriter);
+			bool			Load(CFileReader* pcFileReader);
 
 			void			Add(const SVec3<M, N>& v);
 			void			Add(SVec3<M, N>* pv);
 			void			Subtract(const SVec3<M, N>& v);
 			void			Subtract(SVec3<M, N>* pv);
-			N 				SquareMagnitude(void);
-			M 				Magnitude(void);
+			N				SquareMagnitude(void);
+			M				Magnitude(void);
 };
 
 

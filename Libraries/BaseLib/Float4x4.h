@@ -40,24 +40,24 @@ public:
 	SFloat32Vec4		z;
 	SFloat32Vec4		pos;
 
-	void 			Init(void);
-	void 			Init(SFloat32Vec3* psX, SFloat32Vec3* psY, SFloat32Vec3* psZ, SFloat32Vec3* psPos);
+	void			Init(void);
+	void			Init(SFloat32Vec3* psX, SFloat32Vec3* psY, SFloat32Vec3* psZ, SFloat32Vec3* psPos);
 	void			Zero(void);
 
-	bool 			Save(CFileWriter* pcFileWriter);
-	bool 			Load(CFileReader* pcFileReader);
+	bool			Save(CFileWriter* pcFileWriter);
+	bool			Load(CFileReader* pcFileReader);
 
-	void 			Fix(void);
+	void			Fix(void);
 	void			Identity(void);
-	bool 			Inverse(SFloat4x4* psOut, float* pfDeterminant);
-	void 			Adjoint(SFloat4x4* psOut);
+	bool			Inverse(SFloat4x4* psOut, float* pfDeterminant);
+	void			Adjoint(SFloat4x4* psOut);
 	float			Determinant(void);
 	SFloat32Vec3*	At(void);
 	SFloat32Vec3*	Up(void);
 	SFloat32Vec3*	Across(void);
 	SFloat32Vec3*	Pos(void);
 	void			Print(CChars* psz, bool bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
-	void 			Dump(void);
+	void			Dump(void);
 };
 
 

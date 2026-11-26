@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 extern CMemoryFreeListParams gcDataMemoryFreeListParams;
 
 
-//CDataMemory is designed to sit behind multiple collections with similar allocation patterns. 
+//CDataMemory is designed to sit behind multiple collections with similar allocation patterns.
 //  It finds it's use mostly in CUnknowns.
 //  It It's not a replacement for malloc / free.
 //

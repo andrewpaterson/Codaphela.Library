@@ -18,18 +18,18 @@ public:
 
 	M*		Add(void);
 	M*		Add(M* pvData);
-	M* 		AddGetIndex(size* piIndex);
+	M*		AddGetIndex(size* piIndex);
 
 	M*		Get(size iIndex);
 	M*		SafeGet(size iIndex);
 	size	GetIndex(M* pvElement);
 	M*		Tail(void);
 
-	M* 		InsertAt(size iIndex);
-	M* 		InsertAt(M* pvData, size iIndex);
+	M*		InsertAt(size iIndex);
+	M*		InsertAt(M* pvData, size iIndex);
 
 	void	Pop(M* pvData);
-	M*	 	Push(M* pvElement);
+	M*		Push(M* pvElement);
 	M*		Push(void);
 
 	bool	Contains(M* pvData);

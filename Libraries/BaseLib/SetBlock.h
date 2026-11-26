@@ -17,7 +17,7 @@ class CSetBlock : public CMalloc, public CDataIO
 {
 friend struct SSNode;
 protected:
-	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SSNode*.  
+	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SSNode*.
 	size				miLargestDataSize;
 	bool				mbOverwrite;
 	CDataFree*			mpcDataFree;

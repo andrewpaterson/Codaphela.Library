@@ -38,7 +38,7 @@ public:
 	void		Kill(void);
 
 	bool		Open(EFileMode eMode);
-	bool 		Close();
+	bool		Close();
 
 	bool		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
 	bool		Seek(filePos iOffset);

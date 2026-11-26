@@ -33,8 +33,8 @@ public:
 	static size	TotalSize(size iNumElements, size iRowLength);
 
 	void		Init(size iNumElements, size iRowLength);
-	
-	size 		IndexOf(char* szString);
+
+	size		IndexOf(char* szString);
 
 	void		Add(char* sz);
 	void		Add(const char* sz, size iSize);

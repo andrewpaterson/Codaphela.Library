@@ -515,7 +515,7 @@ size CCharsImmutable::FindFromEnd(size iIndex, const char* szString) const
 		{
 			return i;
 		}
-	} 
+	}
 	while (i != 0);
 	return ARRAY_ELEMENT_NOT_FOUND;
 }
@@ -555,7 +555,7 @@ size CCharsImmutable::FindFromEnd(size iIndex, char c) const
 		{
 			return i;
 		}
-	} 
+	}
 	while (i != 0);
 	return ARRAY_ELEMENT_NOT_FOUND;
 }
@@ -758,8 +758,8 @@ bool CCharsImmutable::SubStringEqualsIgnoreCase(size iStart, const char* szStrin
 	size	i;
 	size	j;
 	size	uiLen;
-	size    c1;
-	size    c2;
+	size	c1;
+	size	c2;
 	const char*	szText;
 
 	szText = Text();

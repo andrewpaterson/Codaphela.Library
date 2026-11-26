@@ -381,7 +381,7 @@ char* PrimitiveTypeToString(EPrimitiveType eType)
 {
 	CChars	sz;
 	char*	psz;
-	
+
 	sz.Init();
 	PrintPrimitiveType(eType, &sz);
 	psz = StringToString(sz.Text());

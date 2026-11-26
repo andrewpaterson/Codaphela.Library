@@ -6,8 +6,8 @@
 
 struct SDataTypeIO
 {
-	bool Save(CFileWriter* pcFileWriter);
-	bool Load(CFileReader* pcFileReader);
+	bool	Save(CFileWriter* pcFileWriter);
+	bool	Load(CFileReader* pcFileReader);
 };
 
 
@@ -25,8 +25,8 @@ struct SDataIO
 class CDataIO
 {
 public:
-	virtual bool WriteData(CFileWriter* pcFileWriter, void* pvData) =0;
-	virtual bool ReadData(CFileReader* pcFileReader, void* pvData) =0;
+	virtual bool	WriteData(CFileWriter* pcFileWriter, void* pvData) =0;
+	virtual bool	ReadData(CFileReader* pcFileReader, void* pvData) =0;
 };
 
 

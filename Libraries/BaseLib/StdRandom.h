@@ -13,7 +13,7 @@ public:
 	void	Init(void);
 	void	Init(uint32 iSeed);
 	void	Kill(void);
-		
+
 	int32	Next(int32 iMin, int32 iMaxInclusive);
 };
 

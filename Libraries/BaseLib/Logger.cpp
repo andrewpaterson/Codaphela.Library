@@ -228,7 +228,7 @@ void CLogger::Break(void)
 	if (msConfig.bBreakOnError)
 	{
 		BREAK();
-	} 
+	}
 }
 
 
@@ -298,7 +298,7 @@ bool CLogger::Warning(const char* szText)
 bool CLogger::Warning2(const char* szText, ...)
 {
 	va_list		vaMarker;
-	char* sz;
+	char*		sz;
 	CChars		szError;
 
 	if (szText)

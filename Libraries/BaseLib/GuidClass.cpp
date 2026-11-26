@@ -46,7 +46,7 @@ TRISTATE CGuidClass::Init(char8* sz)
 	TRISTATE	tOpenCurly;
 	TRISTATE	tOpenRound;
 	TRISTATE	tResult;
-	uint64		uiValue;		
+	uint64		uiValue;
 	uint16		iLength;
 	bool		bResult;
 

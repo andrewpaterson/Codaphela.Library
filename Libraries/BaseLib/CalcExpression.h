@@ -31,8 +31,8 @@ class CCalcExpression : public CCalcObject
 {
 public:
 	virtual CNumber		Evaluate(void) =0;
-			bool 		IsExpression(void) const override;
-			bool 		IsOperator(void) const override;
+			bool		IsExpression(void) const override;
+			bool		IsOperator(void) const override;
 			bool		IsVariableDefinition(void) const override;
 	virtual bool		IsParentheses(void) const;
 	virtual bool		IsBinaryExpression(void) const;

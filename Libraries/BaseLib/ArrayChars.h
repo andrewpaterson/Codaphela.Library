@@ -35,19 +35,19 @@ public:
 	__CArrayChars	mcArray;
 	bool			mbFaked;
 
-	void 		_Init(void);
-	void 		Init(void);
-	void 		Init(CMallocator* pcMalloc);
-	void 		Init(const char* szFirst, ...);
-	void 		Init(CArrayChars* pasz);
-	void 		Fake(void);
-	void 		ReInit(void);
-	void 		Kill(void);
+	void		_Init(void);
+	void		Init(void);
+	void		Init(CMallocator* pcMalloc);
+	void		Init(const char* szFirst, ...);
+	void		Init(CArrayChars* pasz);
+	void		Fake(void);
+	void		ReInit(void);
+	void		Kill(void);
 
 	size		NumElements(void) const;
-	CChars*	 	Add(CChars cChars);
+	CChars*		Add(CChars cChars);
 	CChars*		Add(CChars* pcChars);
-	CChars*	 	Add(const char* szString);
+	CChars*		Add(const char* szString);
 	CChars*		Add(void);
 	CChars*		Add(const char* szString, size iStartInclusive, size iEndExclusive);
 	CChars*		Add(const char* szText, char* szLastCharInclusive);
@@ -57,12 +57,12 @@ public:
 	void		AddList(const char* sz, ...);
 	CChars*		InsertIntoSorted(char* szText, char* szLastCharInclusive);
 	CChars*		InsertIntoSorted(CChars* psz);
-	void 		Remove(CChars* pcChars);
-	void 		Remove(const char* szString);
-	void 		Remove(size iIndex);
+	void		Remove(CChars* pcChars);
+	void		Remove(const char* szString);
+	void		Remove(size iIndex);
 	bool		RemoveTail(void);
-	CChars* 	Get(size iIndex);
-	CChars* 	Tail(void);
+	CChars*		Get(size iIndex);
+	CChars*		Tail(void);
 	char*		GetText(size iIndex);
 	size		GetIndex(const char* szStart, size iLen);
 	size		GetIndex(const char* szStart);

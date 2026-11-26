@@ -57,7 +57,7 @@ void* CCountingAllocator::Malloc(lsize uiSize)
 	lsize						tOffset;
 	lsize						tAllocSize;
 	lsize						tSystemSize;
-	
+
 	tOffset = mpcAlloc->SizeOffset();
 	if (tOffset == 0)
 	{

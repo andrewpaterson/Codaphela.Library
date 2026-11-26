@@ -422,11 +422,11 @@ void CFileUtil::SplitPath(const char* szPathName, CChars* szDestFilename, CChars
 			if (iIndex > 1)
 			{
 				szDestDirectory->Append(szTemp.Text(), iIndex);
-				szDestFilename->AppendSubString(szTemp.Text(), iIndex+1, szTemp.Length());
+				szDestFilename->AppendSubString(szTemp.Text(), iIndex + 1, szTemp.Length());
 			}
 			else
 			{
-				szDestFilename->AppendSubString(szTemp.Text(), iIndex+1, szTemp.Length());
+				szDestFilename->AppendSubString(szTemp.Text(), iIndex + 1, szTemp.Length());
 			}
 		}
 		else
@@ -626,7 +626,7 @@ void CFileUtil::AppendToPath(CChars* szPathName, const char* szItem)
 	{
 		return;
 	}
-	
+
 	if ((!szPathName->Empty()) && (!szPathName->EndsWith(FILE_SEPARATOR)))
 	{
 		szPathName->Append(FILE_SEPARATOR);
@@ -680,11 +680,11 @@ void CFileUtil::PrependToPath(CChars* szPathName, const char* szItem)
 	{
 		szPathName->Append(FILE_SEPARATOR);
 	}
-	
+
 	szPathName->Append(szItem);
 	szPathName->Append(FILE_SEPARATOR);
 	szPathName->Append(&szTemp);
-	
+
 	szTemp.Kill();
 }
 
@@ -766,7 +766,7 @@ void CFileUtil::RemovePath(CChars* szPathName)
 		return;
 	}
 
-	szPathName->RemoveFromStart(iIndex+1);
+	szPathName->RemoveFromStart(iIndex + 1);
 }
 
 
@@ -786,7 +786,7 @@ bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension, boo
 		{
 			return StringInsensitiveCompare(&szFilename[iExtension + 1], szExtension) == 0;
 		}
-		sz1.Fake((char*)&szFilename[iExtension+1]);
+		sz1.Fake((char*)&szFilename[iExtension + 1]);
 		return sz1.Equals(szExtension);
 	}
 	else
@@ -1014,7 +1014,7 @@ bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 	szPath.Set(szDirectory);
 
 	CollapsePath(&szPath);
-	
+
 	if (szPath.Empty())
 	{
 		szPath.Kill();

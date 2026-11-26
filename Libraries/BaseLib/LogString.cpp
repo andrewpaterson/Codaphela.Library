@@ -18,7 +18,7 @@ thread_local size giLogToStringCount = 0;
 size IncrementLogToStringCount(void)
 {
 	size	uiCount;
-	
+
 	uiCount = giLogToStringCount;
 	giLogToStringCount++;
 	if (giLogToStringCount >= LOG_TO_STRING_SCRATCH_PAD_SIZE)
@@ -262,7 +262,7 @@ char* IntToFlags(uint32 iInt)
 //////////////////////////////////////////////////////////////////////////
 char* ShortToFlags(uint16 iShort)
 {
-	char* sz;
+	char*	sz;
 	size	uiCount;
 
 	uiCount = IncrementLogToStringCount();
@@ -401,7 +401,7 @@ char* MethodToString(const char* szFile, size iLine, const char* szFunction)
 char* StringToString(const char* szSource)
 {
 	size	uiCount;
-	char* sz;
+	char*	sz;
 	if (szSource != NULL)
 	{
 

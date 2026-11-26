@@ -8,7 +8,7 @@ class CMemoryCacheAllocation
 friend class CMemoryCache;
 protected:
 	uint32						muiSize;
-	CArrayVoidPtr				mapEvictedCacheDescriptors; 
+	CArrayVoidPtr				mapEvictedCacheDescriptors;
 	SMemoryCacheDescriptor*		mpsDescriptor;
 	uint32						miCachedSize;
 

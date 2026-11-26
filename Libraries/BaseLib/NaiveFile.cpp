@@ -230,7 +230,7 @@ filePos CNaiveFile::Length(void) const
 int CNaiveFile::Compare(void* pvOther, size iSize)
 {
 	int		iResult;
-	
+
 	if ((!pvOther && mpvMem) || (pvOther && !mpvMem))
 	{
 		return -1;

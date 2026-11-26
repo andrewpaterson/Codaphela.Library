@@ -397,7 +397,7 @@ filePos CDiskFile::Size(void)
 	if (IsOpen())
 	{
 		uiFileSize = GetFileSize(GetHandle(this), NULL);
-		return uiFileSize;	
+		return uiFileSize;
 	}
 	else
 	{

@@ -36,7 +36,7 @@ protected:
 	CIndexTreeEvicting			mcIndexTree;
 	CLife<CNamedIndexesConfig>	mcConfig;
 	CNamedIndexesConfig*		mpcConfig;
-	
+
 public:
 	void	Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
 	void	Kill(void);

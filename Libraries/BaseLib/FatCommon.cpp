@@ -10,47 +10,47 @@ char gszFatSuccess[] = "SUCCESS";
 char gszFatBad[] = "BAD_FAT_CODE";
 
 char gaszFatErrors[][34] = {"UNKNOWN_ERROR" ,
-							"CANNOT_READ_MEDIA",
-							"CANNOT_WRITE_MEDIA",
-							"NOT_A_DIRECTORY",
-							"INVALID_FILENAME",
-							"FILENAME_ALREADY_EXISTS",
-							"INVALID_PATH",
-							"CORRUPTED_FILE",
-							"ILLEGAL_FILENAME",
-							"FILENAME_TOO_LONG",
-							"NOT_A_FILE",
-							"FILE_NOT_FOUND",
-							"DIRECTORY_DOES_NOT_EXIST",
-							"INSUFFICIENT_DISK_SPACE",
-							"FEATURE_NOT_SUPPORTED",
-							"OPERATION_IN_PROGRESS",
-							"SECTOR_SIZE_NOT_SUPPORTED",
-							"LFN_GENERATED",
-							"SHORT_LFN_GENERATED",
-							"SEEK_FAILED",
-							"FILE_NOT_OPENED_FOR_WRITE_ACCESS",
-							"INVALID_HANDLE",
-							"INVALID_CLUSTER",
-							"INVALID_FAT_VOLUME",
-							"INVALID_VOLUME_LABEL",
-							"INVALID_FORMAT_PARAMETERS",
-							"ROOT_DIRECTORY_LIMIT_EXCEEDED",
-							"DIRECTORY_LIMIT_EXCEEDED",
-							"INVALID_PARAMETERS",
-							"FILE_HANDLE_IN_USE",
-							"FILE_BUFFER_NOT_SET",
-							"MISALIGNED_IO",
-							"AWAITING_DATA",
-							"BUFFER_TOO_BIG"};
+	"CANNOT_READ_MEDIA",
+	"CANNOT_WRITE_MEDIA",
+	"NOT_A_DIRECTORY",
+	"INVALID_FILENAME",
+	"FILENAME_ALREADY_EXISTS",
+	"INVALID_PATH",
+	"CORRUPTED_FILE",
+	"ILLEGAL_FILENAME",
+	"FILENAME_TOO_LONG",
+	"NOT_A_FILE",
+	"FILE_NOT_FOUND",
+	"DIRECTORY_DOES_NOT_EXIST",
+	"INSUFFICIENT_DISK_SPACE",
+	"FEATURE_NOT_SUPPORTED",
+	"OPERATION_IN_PROGRESS",
+	"SECTOR_SIZE_NOT_SUPPORTED",
+	"LFN_GENERATED",
+	"SHORT_LFN_GENERATED",
+	"SEEK_FAILED",
+	"FILE_NOT_OPENED_FOR_WRITE_ACCESS",
+	"INVALID_HANDLE",
+	"INVALID_CLUSTER",
+	"INVALID_FAT_VOLUME",
+	"INVALID_VOLUME_LABEL",
+	"INVALID_FORMAT_PARAMETERS",
+	"ROOT_DIRECTORY_LIMIT_EXCEEDED",
+	"DIRECTORY_LIMIT_EXCEEDED",
+	"INVALID_PARAMETERS",
+	"FILE_HANDLE_IN_USE",
+	"FILE_BUFFER_NOT_SET",
+	"MISALIGNED_IO",
+	"AWAITING_DATA",
+	"BUFFER_TOO_BIG"};
 
 char gaszFatAttributes[][10] = {"READ_ONLY",
-								"HIDDEN",
-								"SYSTEM",
-								"VOLUME_ID",
-								"DIRECTORY",
-								"ARCHIVE",
-								"LONG_NAME"};
+	"HIDDEN",
+	"SYSTEM",
+	"VOLUME_ID",
+	"DIRECTORY",
+	"ARCHIVE",
+	"LONG_NAME"};
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -188,12 +188,12 @@ const char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 	{
 		return "NULL";
 	}
-		
+
 	uiCluster = GetFirstClusterFromFatEntry(&psFatEntry->sRaw, bFat32Volume);
 
 	iCount = IncrementLogToStringCount();
 
-	
+
 	memset(gaszLogToStringScratchPad[iCount], 0, LOG_TO_STRING_MAX_LENGTH);
 	StrCpySafe(gaszLogToStringScratchPad[iCount], "cluster: ", LOG_TO_STRING_MAX_LENGTH);
 	IntToString(szTemp, LOG_TO_STRING_MAX_LENGTH, uiCluster);

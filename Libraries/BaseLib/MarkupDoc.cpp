@@ -132,7 +132,7 @@ size CMarkupDoc::Print(CChars* psz, size iDepth, size iLine)
 {
 	if (!mpcRootTag)
 	{
-		psz->Append(' ', (iDepth+1)*2);
+		psz->Append(' ', (iDepth + 1)*2);
 		psz->Append("No root element!\n");
 		iLine++;
 	}

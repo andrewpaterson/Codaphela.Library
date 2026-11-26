@@ -223,7 +223,7 @@ void CCSVFileEditable::ReadAllLines(void)
 	do
 	{
 		bResult = ReadLine();
-	} 
+	}
 	while (bResult);
 }
 

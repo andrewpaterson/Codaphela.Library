@@ -32,8 +32,8 @@ protected:
 	int			miExtensionIndex;
 
 public:
-	void 		Init(void);
-	void 		Kill(void);
+	void		Init(void);
+	void		Kill(void);
 
 	const char*	GetFullName(void) const;
 	void		SetFullName(char* szFullName);

@@ -55,7 +55,7 @@ void CCalcUnaryExpression::Kill(void)
 CNumber	CCalcUnaryExpression::Evaluate(void)
 {
 	CNumber	cNumber;
-	CNumber cAnswer;
+	CNumber	cAnswer;
 
 	cNumber = mpcExpression->Evaluate();
 

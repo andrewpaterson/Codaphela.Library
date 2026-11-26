@@ -69,7 +69,7 @@ void CCalculator::Kill(void)
 {
 	mcVariables.Kill();
 	mcErrors.Kill();
-	
+
 	mpcSymbols = NULL;
 }
 
@@ -161,7 +161,7 @@ void CCalculator::ConvertToUnaryOperators(CCalcObjectArray* papcExpressions)
 			}
 			pcPrevious = pcObject;
 
-		} 
+		}
 		while (i != 0);
 
 		if (pcPrevious != NULL)
@@ -229,7 +229,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 		if (pcOperator->IsUnary())
 		{
 			//For the time being always assume Right-to-Left associativity.
-			pcObject = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex+1);
+			pcObject = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex + 1);
 			if (pcObject)
 			{
 				if (pcObject->IsExpression())
@@ -297,7 +297,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 			return NULL;
 		}
 	}
-	
+
 	szStart.Kill();
 	if (papcExpressions->NumElements() == 1)
 	{
@@ -633,7 +633,7 @@ void CCalculator::Add(CCalcObject* pcObject)
 void CCalculator::Dump(CCalcObjectArray* papcExpressions)
 {
 	CChars	sz;
-	
+
 	sz.Init();
 	Print(&sz, papcExpressions);;
 	sz.DumpKill();

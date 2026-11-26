@@ -103,8 +103,8 @@ void CArrayBlockSorted::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::Add(void* pv)
 {
-	bool bUpdateSortedArray;
-	bool bAdded;
+	bool	bUpdateSortedArray;
+	bool	bAdded;
 
 	if (maaHoldingArrays.NumElements() > 0)
 	{
@@ -426,7 +426,7 @@ void* CArrayBlockSorted::Get(void* pv)
 	{
 		return pvFound;
 	}
-	else 
+	else
 	{
 		pvFound = FindInHoldingArrays(pv);
 		if (pvFound)
@@ -857,7 +857,7 @@ void* CArrayBlockSorted::GetInHolding(size iArray, size iIndex)
 	{
 		return NULL;
 	}
-	
+
 	return paHoldingArray->SafeGet(iIndex);
 }
 
@@ -960,7 +960,7 @@ bool CArrayBlockSorted::IsSorted(void)
 		return false;
 	}
 
-	CArrayBlock* paHoldingArray;
+	CArrayBlock*	paHoldingArray;
 	size			i;
 	size			uiNumElements;
 

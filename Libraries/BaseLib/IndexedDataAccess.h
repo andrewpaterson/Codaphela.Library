@@ -16,7 +16,7 @@ public:
 	bool				ValidateIndex(void) override;
 	void				Dump(void) override;
 
-	CIndexTreeIterator* CreateIterator(void) override;
+	CIndexTreeIterator*	CreateIterator(void) override;
 	void				FreeIterator(CIndexTreeIterator* pcIter) override;
 
 protected:

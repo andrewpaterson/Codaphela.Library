@@ -6,15 +6,15 @@
 class CValueSequenceConfig : public CSequenceConfig
 {
 protected:
-	const char* mszDirectory;
+	const char*		mszDirectory;
 	EDurableSync	meSync;
 	size			muiBlockSize;
 	OIndex			moiFirst;
 	OIndex			moiEnd;
 
 public:
-	void 								Init(const char* szSubDirectory, EDurableSync eSync, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
-	void 								Init(const char* szSubDirectory, EDurableSync eSync, OIndex oiFirst, OIndex oiEnd, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
+	void								Init(const char* szSubDirectory, EDurableSync eSync, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
+	void								Init(const char* szSubDirectory, EDurableSync eSync, OIndex oiFirst, OIndex oiEnd, size uiBlockSize = SEQUENCE_BLOCK_SIZE);
 	void								Kill(void) override;
 
 	const char*								Getdirectory(void) override;

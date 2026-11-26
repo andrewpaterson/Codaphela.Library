@@ -48,12 +48,12 @@ private:
 	CMapStringInt		mmsziCppNames;
 
 public:
-	void 				Init(void);
-	void 				Kill(void);
+	void				Init(void);
+	void				Kill(void);
 
-	const char* 		GetPrettyName(EPrimitiveType eType);
-	const char* 		GetCPPName(EPrimitiveType eType);
-	const char* 		GetPrimitiveName(EPrimitiveType eType);
+	const char*			GetPrettyName(EPrimitiveType eType);
+	const char*			GetCPPName(EPrimitiveType eType);
+	const char*			GetPrimitiveName(EPrimitiveType eType);
 	EPrimitiveType		GetTypeFromPrettyName(const char* szPrettyName);
 	EPrimitiveType		GetTypeFromCPPName(const char* szPrettyName);
 	size				GetByteSize(EPrimitiveType eType);

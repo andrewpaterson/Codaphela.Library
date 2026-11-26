@@ -279,7 +279,7 @@ float32 Float32ToleranceForDecimals(int32 iDecimals)
 	float64 fTolerance;
 
 	fTolerance = pow(10.0, (double)iDecimals);
-	fTolerance = 1.0/fTolerance;
+	fTolerance = 1.0 / fTolerance;
 	return (float32)fTolerance;
 }
 
@@ -559,7 +559,7 @@ float64 Float64ToleranceForDecimals(int32 iDecimals)
 	float128 fTolerance;
 
 	fTolerance = powl(10.0, (float128)iDecimals);
-	fTolerance = 1.0f/fTolerance;
+	fTolerance = 1.0f / fTolerance;
 	return fTolerance;
 }
 
@@ -608,7 +608,7 @@ void SwapFloat(float32* f1, float32* f2)
 float32 Float32NotANumber(void)
 {
 	uint32	i = 0xffffffff;
-	float32 f = *((float32*)((void*)&i));
+	float32	f = *((float32*)((void*)&i));
 	return f;
 }
 
@@ -620,7 +620,7 @@ float32 Float32NotANumber(void)
 float64 Float64NotANumber(void)
 {
 	uint64	i = 0xffffffffffffffffLL;
-	float64 f = *((float64*)((void*)&i));
+	float64	f = *((float64*)((void*)&i));
 	return f;
 }
 
@@ -795,22 +795,22 @@ void CosSinDegrees(float64 fDegrees, float64* pfCos, float64* pfSin)
 	{
 		switch (((int64)fQuarters % 4 + 4) % 4)
 		{
-			case 0:
-				*pfCos = 1;
-				*pfSin = 0;
-				return;
-			case 1:
-				*pfCos = 0;
-				*pfSin = 1;
-				return;
-			case 2:
-				*pfCos = -1;
-				*pfSin = 0;
-				return;
-			default:
-				*pfCos = 0;
-				*pfSin = -1;
-				return;
+		case 0:
+			*pfCos = 1;
+			*pfSin = 0;
+			return;
+		case 1:
+			*pfCos = 0;
+			*pfSin = 1;
+			return;
+		case 2:
+			*pfCos = -1;
+			*pfSin = 0;
+			return;
+		default:
+			*pfCos = 0;
+			*pfSin = -1;
+			return;
 		}
 	}
 	fRadians = fDegrees * N_PI_64 / 180.0;

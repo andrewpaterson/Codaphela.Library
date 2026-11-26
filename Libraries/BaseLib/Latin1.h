@@ -37,7 +37,7 @@ protected:
 
 public:
 	void	Init(const char* sz);
-	void    Init(uint8* sz, size uiLength);
+	void	Init(uint8* sz, size uiLength);
 	void	Kill(void) override;
 
 	bool	GetByteOrderMark(void) override;

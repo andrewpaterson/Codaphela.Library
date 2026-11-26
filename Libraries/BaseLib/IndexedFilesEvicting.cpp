@@ -60,7 +60,7 @@ bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistin
 	bool					bResult;
 	void*					pvCache;
 	CIndexedCacheResult		cResult;
-	lsize			uiDataSize;
+	lsize					uiDataSize;
 	CFileDataIndex			cDataIndex;
 
 	//The descriptor has always been set prior to calling this.
@@ -287,7 +287,7 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 				mcDataFiles.Delete(&cDataIndex);
 			}
 		}
-		else 
+		else
 		{
 			gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
 			return;
@@ -318,7 +318,7 @@ bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 	CIndexedDataDescriptor	cResultDescriptor;
 	CFilePosIndex			cPosIndex;
 	lsize					uiFileDataSize;
-	
+
 	if (mbCaching && mcDataCache.CanCache(uiDataSize))
 	{
 		pvNewCache = SetCacheData(oi, pcDescriptor, pvData, uiDataSize);
@@ -371,7 +371,7 @@ bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 	bResult |= mpcEvictionCallback->SetDescriptor(oi, &cResultDescriptor);
 	return bResult;
 }
-		
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -392,7 +392,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 		pvExistingCache = NULL;
 	}
 
-	//Data not cached.  
+	//Data not cached.
 	if (pvExistingCache == NULL)
 	{
 		//Data not cached.  File not written.  (New Data).
@@ -518,7 +518,7 @@ bool CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 {
 	void*			pvData;
 	bool			bResult;
-	lsize	uiDataSize;
+	lsize			uiDataSize;
 
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
@@ -571,7 +571,7 @@ bool CIndexedFilesEvicting::EvictWriteData(CIndexedDataDescriptor* pcDescriptor,
 		}
 		else if (eClearCache == CC_YesDontInvalidate)
 		{
-			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL, 0); 
+			return mpcEvictionCallback->UpdateDescriptorCache(psCached->oi, NULL, 0);
 		}
 		return true;
 	}
@@ -618,7 +618,7 @@ bool CIndexedFilesEvicting::WriteEvictedData2(CIndexedDataDescriptor* pcDescript
 {
 	CFilePosIndex			cFilePosIndex;
 	CIndexedDataDescriptor	cResultDescriptor;
-	lsize			uiDataSize;
+	lsize					uiDataSize;
 
 	uiDataSize = pcDescriptor->GetCacheDataSize();
 	if (uiDataSize == 0)

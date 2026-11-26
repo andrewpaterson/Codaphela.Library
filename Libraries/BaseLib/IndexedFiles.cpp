@@ -63,7 +63,7 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, const cha
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedFiles::Kill(void)
 {
-	size			i; 
+	size			i;
 	CIndexedFile*	pcIndexedFile;
 	size			uiNumElements;
 

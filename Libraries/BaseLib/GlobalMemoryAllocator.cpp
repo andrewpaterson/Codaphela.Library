@@ -27,7 +27,7 @@ void* CGlobalMemoryAllocator::Malloc(lsize uiSize)
 		BREAK();
 	}
 #endif // _DEBUG
-	
+
 	return gcMemory.Add(uiSize);
 }
 

@@ -36,8 +36,8 @@ struct SFreeListDesc
 	CFreeList*	pcFreeList;
 	size		iStride;
 
-	void Init(size iStride);
-	void Init(CFreeList* pcFreeList, int iStride);
+	void	Init(size iStride);
+	void	Init(CFreeList* pcFreeList, int iStride);
 };
 
 
@@ -48,8 +48,8 @@ struct SAlignedFreeListDesc : SFreeListDesc
 	uint8	iAlignment;
 	int8	iOffset;
 
-	void Init(size iStride, uint16 iAlignment, int16 iOffset);
-	void Init(CFreeList* pcFreeList, int iStride, uint16 iAlignment, int16 iOffset);
+	void	Init(size iStride, uint16 iAlignment, int16 iOffset);
+	void	Init(CFreeList* pcFreeList, int iStride, uint16 iAlignment, int16 iOffset);
 };
 
 
@@ -72,9 +72,9 @@ struct SMemory
 	lsize	uiAllocCount;
 	lsize	uiSize;
 
-	void Init(void);
-	void Set(SGeneralMemoryAllocation* psAllocation);
-	void Set(SDataMemoryAllocation* psAllocation);
+	void	Init(void);
+	void	Set(SGeneralMemoryAllocation* psAllocation);
+	void	Set(SDataMemoryAllocation* psAllocation);
 };
 
 

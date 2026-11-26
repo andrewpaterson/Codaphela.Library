@@ -83,7 +83,7 @@ bool CConnectSocket::Connect(void)
 	// Resolve the server address and port
 	sResult = NULL;
 	iResult = getaddrinfo(mszServer.Text(), mszPortNumber.Text(), &hints, &sResult);
-	if (iResult != 0) 
+	if (iResult != 0)
 	{
 		gcLogger.Error2(__METHOD__, " getaddrinfo failed for [", mszServer.Text(), ":", mszPortNumber.Text(), "] [", gai_strerror(iResult), "].", NULL);
 		return false;
@@ -92,11 +92,11 @@ bool CConnectSocket::Connect(void)
 	// Attempt to connect to an address until one succeeds
 	iSocket = INVALID_SOCKET_DESCRIPTOR;
 	iError = 0;
-	for (pAddrInfo = sResult; pAddrInfo != NULL; pAddrInfo = pAddrInfo->ai_next) 
+	for (pAddrInfo = sResult; pAddrInfo != NULL; pAddrInfo = pAddrInfo->ai_next)
 	{
 		// Create a socket for connecting to server
 		iSocket = socket(pAddrInfo->ai_family, pAddrInfo->ai_socktype, pAddrInfo->ai_protocol);
-		if (iSocket == INVALID_SOCKET_DESCRIPTOR) 
+		if (iSocket == INVALID_SOCKET_DESCRIPTOR)
 		{
 			gcLogger.Error2(__METHOD__, " socket failed [", LastSocketErrorToString(), "].", NULL);
 			freeaddrinfo(sResult);
@@ -119,7 +119,7 @@ bool CConnectSocket::Connect(void)
 	freeaddrinfo(sResult);
 	SocketHandle(maSocket) = iSocket;
 
-	if (iSocket == INVALID_SOCKET_DESCRIPTOR) 
+	if (iSocket == INVALID_SOCKET_DESCRIPTOR)
 	{
 		gcLogger.Error2(__METHOD__, " Could not connect to [", mszServer.Text(), ":", mszPortNumber.Text(), "] [", LinuxErrorCodeToString(iError), "].", NULL);
 		return false;

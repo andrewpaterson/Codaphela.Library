@@ -67,15 +67,15 @@ template<class Class>
 class CPostMalloc
 {
 public:
-	Class* 		PostMalloc(Class* pv);
-	Class* 		PostMalloc(Class* pv, lsize iNumElements, lsize iStride);
+	Class*		PostMalloc(Class* pv);
+	Class*		PostMalloc(Class* pv, lsize iNumElements, lsize iStride);
 
 	template<class Subclass>
 	Class* 		PostMalloc(Subclass* pv);
 	template<class Subclass>
 	Class* 		PostMalloc(Subclass* pv, lsize iNumElements, lsize iStride);
 
-	bool 		RequiresVirtualFunctionTable(void);
+	bool		RequiresVirtualFunctionTable(void);
 };
 
 

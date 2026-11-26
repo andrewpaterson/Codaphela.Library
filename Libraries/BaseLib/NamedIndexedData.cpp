@@ -121,7 +121,7 @@ bool CNamedIndexedData::Add(OIndex oi, const char* szName, int iNameLength, void
 		sSize = NamedIndexedHeaderSize(iNameLength, uiDataSize);
 		pcHeader = (CNamedIndexedHeader*)cStack.Init(sSize);
 		pcHeader->Init(szName, iNameLength, pvData, uiDataSize);
-		
+
 		bResult = mcData.Add(oi, pcHeader, sSize);
 		if (!bResult)
 		{
@@ -291,7 +291,7 @@ bool CNamedIndexedData::Set(OIndex oi, const char* szName, int iNameLength, void
 				if (iNameLength != iOldNameLength)
 				{
 					cStackGet.Kill();
-					return gcLogger.Error2(__METHOD__, " Old Name [", pcHeaderGet->GetName() ,"] may not be different to set Name [", szName,"].", NULL);
+					return gcLogger.Error2(__METHOD__, " Old Name [", pcHeaderGet->GetName() , "] may not be different to set Name [", szName, "].", NULL);
 				}
 			}
 			sSize = NamedIndexedHeaderSize(iNameLength, uiDataSize);
@@ -414,7 +414,7 @@ bool CNamedIndexedData::Put(OIndex oi, const char* szName, int iNameLength, void
 //////////////////////////////////////////////////////////////////////////
 lsize CNamedIndexedData::Size(OIndex oi)
 {
-	lsize			uiDataSize;
+	lsize					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader		cNamedIndexedHeader;
 
@@ -582,7 +582,7 @@ bool CNamedIndexedData::Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize u
 		if (pvData)
 		{
 			pvHeaderData = pcHeader->GetData();
-			
+
 			memcpy(pvData, pvHeaderData, MinDataSize(uiDataSize, uiMaxDataSize));
 		}
 		cStack.Kill();
@@ -606,7 +606,7 @@ bool CNamedIndexedData::GetName(OIndex oi, CChars* szName)
 	lsize					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
-	
+
 	pcHeader = (CNamedIndexedHeader*)cStack.Init();
 	bResult = mcData.Get(oi, &uiDataSize, pcHeader, cStack.GetStackSize());
 	if (bResult)
@@ -863,7 +863,7 @@ bool CNamedIndexedData::Flush(bool bClearCache)
 //////////////////////////////////////////////////////////////////////////
 int64 CNamedIndexedData::NumIndices(void)
 {
-	return mcData.NumElements();	
+	return mcData.NumElements();
 }
 
 
@@ -1105,7 +1105,7 @@ bool CNamedIndexedData::ValidateConfigKilled(void)
 	bResult = mcData.ValidateConfigKilled();
 	bResult |= mcNames.ValidateConfigKilled();
 
-	return bResult; 
+	return bResult;
 }
 
 
@@ -1192,7 +1192,7 @@ OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator
 			memcpy(pvData, pvHeaderData, MinDataSize(iDataSize, iMaxDataSize));
 		}
 	}
-	
+
 	cStack.Kill();
 	return oi;
 }
@@ -1205,8 +1205,8 @@ OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator
 OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize)
 {
 	CStackMemory<8 KB>		cStack;
-	CNamedIndexedHeader* pcHeader;
-	void* pvHeaderData;
+	CNamedIndexedHeader*	pcHeader;
+	void*					pvHeaderData;
 	lsize					iMaxDataAndHeaderSize;
 	OIndex					oi;
 	lsize					iDataSize;

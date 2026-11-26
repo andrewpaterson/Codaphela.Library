@@ -85,20 +85,20 @@ struct SFatPartitionEntry
 #pragma pack(push, 1)
 struct SFatBIOSParameterBlock
 {
-	uint8	uiJumpInstrustion[3];	
-	char	szOEMName[8];			
-	uint16	uiBytsPerSector;		
-	uint8	uiSectorsPerCluster;	
-	uint16	uiReservedSectorCount;	
+	uint8	uiJumpInstrustion[3];
+	char	szOEMName[8];
+	uint16	uiBytsPerSector;
+	uint8	uiSectorsPerCluster;
+	uint16	uiReservedSectorCount;
 	uint8	uiNumFileAllocationTables;
-	uint16	uiRootEntryCount;		
-	uint16	uiTotalSectorsFat16;	
-	uint8	uiMediaType;			
-	uint16	uiFATSzFat16;			
-	uint16	uiSectorsPerTrack;		
-	uint16	uiNumHeads;				
-	uint32	uiNumHiddenSectors;		
-	uint32	uiTotalSectorsFat32;	
+	uint16	uiRootEntryCount;
+	uint16	uiTotalSectorsFat16;
+	uint8	uiMediaType;
+	uint16	uiFATSzFat16;
+	uint16	uiSectorsPerTrack;
+	uint16	uiNumHeads;
+	uint32	uiNumHiddenSectors;
+	uint32	uiTotalSectorsFat32;
 	union
 	{
 		struct SFat16BPB
@@ -228,7 +228,7 @@ enum EFatCode
 	FAT_LFN_GENERATED					= 0x20 + 0x12,
 	FAT_SHORT_LFN_GENERATED				= 0x20 + 0x13,
 	FAT_SEEK_FAILED						= 0x20 + 0x14,
-	FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS= 0x20 + 0x15,
+	FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS = 0x20 + 0x15,
 	FAT_INVALID_HANDLE					= 0x20 + 0x16,
 	FAT_INVALID_CLUSTER					= 0x20 + 0x17,
 	FAT_INVALID_FAT_VOLUME				= 0x20 + 0x18,

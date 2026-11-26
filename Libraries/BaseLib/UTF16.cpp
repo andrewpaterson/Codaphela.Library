@@ -7,11 +7,11 @@
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::Init(uint16* sz, size uiLength)
 {
-    CUnicodeReader::Init();
-    mszText = sz;
-    muiTextLength = uiLength;
-    muiPos = 0;
-    mbLittleEndian = true;
+	CUnicodeReader::Init();
+	mszText = sz;
+	muiTextLength = uiLength;
+	muiPos = 0;
+	mbLittleEndian = true;
 }
 
 
@@ -21,10 +21,10 @@ void CUTF16::Init(uint16* sz, size uiLength)
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::Kill(void)
 {
-    mszText = NULL;
-    muiTextLength = 0;
-    muiPos = 0;
-    CUnicodeReader::Kill();
+	mszText = NULL;
+	muiTextLength = 0;
+	muiPos = 0;
+	CUnicodeReader::Kill();
 }
 
 
@@ -34,9 +34,9 @@ void CUTF16::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::Reset(uint16* sz, size uiLengthShorts)
 {
-    mszText = sz;
-    muiTextLength = uiLengthShorts;
-    muiPos = 0;
+	mszText = sz;
+	muiTextLength = uiLengthShorts;
+	muiPos = 0;
 }
 
 
@@ -46,9 +46,9 @@ void CUTF16::Reset(uint16* sz, size uiLengthShorts)
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::Reset(uint32* sz, size uiLengthLongs)
 {
-    mszText = (uint16*)sz;
-    muiTextLength = uiLengthLongs * 2;
-    muiPos = 0;
+	mszText = (uint16*)sz;
+	muiTextLength = uiLengthLongs * 2;
+	muiPos = 0;
 }
 
 
@@ -58,9 +58,9 @@ void CUTF16::Reset(uint32* sz, size uiLengthLongs)
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::Reset(uint8* pc, size uiByteLength)
 {
-    mszText = (uint16*)pc;
-    muiTextLength = uiByteLength / 2;
-    muiPos = 0;
+	mszText = (uint16*)pc;
+	muiTextLength = uiByteLength / 2;
+	muiPos = 0;
 }
 
 
@@ -70,7 +70,7 @@ void CUTF16::Reset(uint8* pc, size uiByteLength)
 //////////////////////////////////////////////////////////////////////////
 void CUTF16::SetBigEndian(void)
 {
-    mbLittleEndian = false;
+	mbLittleEndian = false;
 }
 
 
@@ -80,24 +80,24 @@ void CUTF16::SetBigEndian(void)
 //////////////////////////////////////////////////////////////////////////
 bool CUTF16::GetByteOrderMark(void)
 {
-    uint16  uiBOM;
+	uint16  uiBOM;
 
-    uiBOM = mszText[muiPos];
-    if (uiBOM == UTF16_BIG_ENDIAN_BOM)
-    {
-        SetBigEndian();
-        muiPos += 1;
-        return true;
-    }
-    else if (uiBOM == UTF16_LITTLE_ENDIAN_BOM)
-    {
-        muiPos += 1;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	uiBOM = mszText[muiPos];
+	if (uiBOM == UTF16_BIG_ENDIAN_BOM)
+	{
+		SetBigEndian();
+		muiPos += 1;
+		return true;
+	}
+	else if (uiBOM == UTF16_LITTLE_ENDIAN_BOM)
+	{
+		muiPos += 1;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -107,7 +107,7 @@ bool CUTF16::GetByteOrderMark(void)
 //////////////////////////////////////////////////////////////////////////
 void* CUTF16::GetCurrentData(void) const
 {
-    return (&mszText[muiPos]);
+	return (&mszText[muiPos]);
 }
 
 
@@ -117,23 +117,23 @@ void* CUTF16::GetCurrentData(void) const
 //////////////////////////////////////////////////////////////////////////
 uint16 CUTF16::GetCodePointUint16(void)
 {
-    uint16  c;
+	uint16  c;
 
-    if (muiPos >= muiTextLength)
-    {
-        return 0;
-    }
+	if (muiPos >= muiTextLength)
+	{
+		return 0;
+	}
 
-    c = mszText[muiPos];
-    if (!(c >= 0xD800 && c <= 0xDBFF))
-    {
-        muiPos += 1;
-        return c;
-    }
-    else
-    {
-        return muiTooSmall;
-    }
+	c = mszText[muiPos];
+	if (!(c >= 0xD800 && c <= 0xDBFF))
+	{
+		muiPos += 1;
+		return c;
+	}
+	else
+	{
+		return muiTooSmall;
+	}
 }
 
 
@@ -143,40 +143,40 @@ uint16 CUTF16::GetCodePointUint16(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CUTF16::GetCodePointUint32(void)
 {
-    uint16  c;
-    uint16  c2;
-    uint32  c32;
+	uint16	c;
+	uint16	c2;
+	uint32	c32;
 
-    if (muiPos >= muiTextLength)
-    {
-        return 0;
-    }
+	if (muiPos >= muiTextLength)
+	{
+		return 0;
+	}
 
-    c = mszText[muiPos];
-    if (!(c >= 0xD800 && c <= 0xDBFF))
-    {
-        muiPos += 1;
-        return c;
-    }
-    else
-    {
-        if (muiPos + 1 >= muiTextLength)
-        {
-            return muiError;
-        }
+	c = mszText[muiPos];
+	if (!(c >= 0xD800 && c <= 0xDBFF))
+	{
+		muiPos += 1;
+		return c;
+	}
+	else
+	{
+		if (muiPos + 1 >= muiTextLength)
+		{
+			return muiError;
+		}
 
-        c2 = mszText[muiPos + 1];
-        if (c2 >= 0xDC00 && c2 <= 0xDFFF)
-        {
-            c32 = 0x10000 + (((uint32)(c & 0x03FF) << 10) | (c2 & 0x03FF));
-            muiPos += 2;
-            return c32;
-        }
-        else
-        {
-            return muiError;
-        }
-    }
+		c2 = mszText[muiPos + 1];
+		if (c2 >= 0xDC00 && c2 <= 0xDFFF)
+		{
+			c32 = 0x10000 + (((uint32)(c & 0x03FF) << 10) | (c2 & 0x03FF));
+			muiPos += 2;
+			return c32;
+		}
+		else
+		{
+			return muiError;
+		}
+	}
 }
 
 
@@ -186,86 +186,86 @@ uint32 CUTF16::GetCodePointUint32(void)
 //////////////////////////////////////////////////////////////////////////
 size CUTF16::GetCodePointMulti(uint8* puiBuffer, size uiBufferLength)
 {
-    size	uiLength;
-    bool	bLastZWJ;
-    size	uiStartPos;
-    size	uiTotalElementLength;
-    size	uiUsedBuffer;
-    size	uiBufferPos;
-    size	uiCodePointLength;
-    uint32	c32;
-    uint32	c16;
+	size	uiLength;
+	bool	bLastZWJ;
+	size	uiStartPos;
+	size	uiTotalElementLength;
+	size	uiUsedBuffer;
+	size	uiBufferPos;
+	size	uiCodePointLength;
+	uint32	c32;
+	uint32	c16;
 
-    if (muiPos >= muiTextLength)
-    {
-        return 0;
-    }
+	if (muiPos >= muiTextLength)
+	{
+		return 0;
+	}
 
-    bLastZWJ = true;
-    uiStartPos = muiPos;
-    uiTotalElementLength = 0;
-    uiUsedBuffer = 0;
-    uiBufferPos = 0;
-    for (;;)
-    {
-        uiLength = GetUTF16ElementLength();
-        if (uiLength == muiError)
-        {
-            muiPos = uiStartPos;
-            return muiError;
-        }
+	bLastZWJ = true;
+	uiStartPos = muiPos;
+	uiTotalElementLength = 0;
+	uiUsedBuffer = 0;
+	uiBufferPos = 0;
+	for (;;)
+	{
+		uiLength = GetUTF16ElementLength();
+		if (uiLength == muiError)
+		{
+			muiPos = uiStartPos;
+			return muiError;
+		}
 
-        if (uiLength == UNICODE_ZWJ)
-        {
-            if (bLastZWJ)
-            {
-                muiPos = uiStartPos;
-                return muiError;
-            }
+		if (uiLength == UNICODE_ZWJ)
+		{
+			if (bLastZWJ)
+			{
+				muiPos = uiStartPos;
+				return muiError;
+			}
 
-            muiPos += 1;
-            uiTotalElementLength += 1;
-            bLastZWJ = true;
-            uiBufferPos = AppendCodePoint((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);
-            uiUsedBuffer += 1;
-        }
-        else
-        {
-            if (bLastZWJ)
-            {
-                if (uiLength <= 1)
-                {
-                    c16 = GetCodePointUint16();
-                    uiCodePointLength = GetUnicodeCodePointLength(c16);
-                    uiBufferPos = AppendCodePoint(c16, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
-                    uiUsedBuffer += uiCodePointLength;
-                }
-                else
-                {
-                    c32 = GetCodePointUint32();
-                    uiCodePointLength = GetUnicodeCodePointLength(c32);
-                    uiBufferPos = AppendCodePoint(c32, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
-                    uiUsedBuffer += uiCodePointLength;
-                }
+			muiPos += 1;
+			uiTotalElementLength += 1;
+			bLastZWJ = true;
+			uiBufferPos = AppendCodePoint((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);
+			uiUsedBuffer += 1;
+		}
+		else
+		{
+			if (bLastZWJ)
+			{
+				if (uiLength <= 1)
+				{
+					c16 = GetCodePointUint16();
+					uiCodePointLength = GetUnicodeCodePointLength(c16);
+					uiBufferPos = AppendCodePoint(c16, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
+					uiUsedBuffer += uiCodePointLength;
+				}
+				else
+				{
+					c32 = GetCodePointUint32();
+					uiCodePointLength = GetUnicodeCodePointLength(c32);
+					uiBufferPos = AppendCodePoint(c32, uiCodePointLength, puiBuffer, uiBufferPos, uiBufferLength);
+					uiUsedBuffer += uiCodePointLength;
+				}
 
-                uiTotalElementLength += uiLength;
-            }
-            else
-            {
-                if (uiTotalElementLength > 0)
-                {
-                    if (uiBufferLength < uiTotalElementLength)
-                    {
-                        muiPos = uiStartPos;
-                        return muiError;
-                    }
-                }
-                AppendCodePoint((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);  //Append a final trailing 0 if possible but don't include it in the buffer size.
-                return uiUsedBuffer;
-            }
-            bLastZWJ = false;
-        }
-    }
+				uiTotalElementLength += uiLength;
+			}
+			else
+			{
+				if (uiTotalElementLength > 0)
+				{
+					if (uiBufferLength < uiTotalElementLength)
+					{
+						muiPos = uiStartPos;
+						return muiError;
+					}
+				}
+				AppendCodePoint((uint16)0, 1, puiBuffer, uiBufferPos, uiBufferLength);  //Append a final trailing 0 if possible but don't include it in the buffer size.
+				return uiUsedBuffer;
+			}
+			bLastZWJ = false;
+		}
+	}
 }
 
 
@@ -275,50 +275,50 @@ size CUTF16::GetCodePointMulti(uint8* puiBuffer, size uiBufferLength)
 //////////////////////////////////////////////////////////////////////////
 size CUTF16::PeekUTFBytes(void)
 {
-    size	uiLength;
-    bool	bLastZWJ;
-    size	uiStartPos;
-    size	uiTotalLength;
+	size	uiLength;
+	bool	bLastZWJ;
+	size	uiStartPos;
+	size	uiTotalLength;
 
-    bLastZWJ = true;
-    uiStartPos = muiPos;
-    uiTotalLength = 0;
-    for (;;)
-    {
-        uiLength = GetUTF16ElementLength();
-        if (uiLength == muiError)
-        {
-            //What isn't valid after a whole character only ends it.
-            muiPos = uiStartPos;
-            return bLastZWJ ? muiError : uiTotalLength * sizeof(uint16);
-        }
+	bLastZWJ = true;
+	uiStartPos = muiPos;
+	uiTotalLength = 0;
+	for (;;)
+	{
+		uiLength = GetUTF16ElementLength();
+		if (uiLength == muiError)
+		{
+			//What isn't valid after a whole character only ends it.
+			muiPos = uiStartPos;
+			return bLastZWJ ? muiError : uiTotalLength * sizeof(uint16);
+		}
 
-        if (uiLength == UNICODE_ZWJ)
-        {
-            if (bLastZWJ)
-            {
-                muiPos = uiStartPos;
-                return muiError;
-            }
-            muiPos += 1;
-            uiTotalLength += 1;
-            bLastZWJ = true;
-        }
-        else
-        {
-            if (bLastZWJ)
-            {
-                uiTotalLength += uiLength;
-                muiPos += uiLength;
-            }
-            else
-            {
-                muiPos = uiStartPos;
-                return uiTotalLength * sizeof(uint16);
-            }
-            bLastZWJ = false;
-        }
-    }
+		if (uiLength == UNICODE_ZWJ)
+		{
+			if (bLastZWJ)
+			{
+				muiPos = uiStartPos;
+				return muiError;
+			}
+			muiPos += 1;
+			uiTotalLength += 1;
+			bLastZWJ = true;
+		}
+		else
+		{
+			if (bLastZWJ)
+			{
+				uiTotalLength += uiLength;
+				muiPos += uiLength;
+			}
+			else
+			{
+				muiPos = uiStartPos;
+				return uiTotalLength * sizeof(uint16);
+			}
+			bLastZWJ = false;
+		}
+	}
 }
 
 
@@ -328,41 +328,41 @@ size CUTF16::PeekUTFBytes(void)
 //////////////////////////////////////////////////////////////////////////
 size CUTF16::GetUTF16ElementLength(void) const
 {
-    uint16  c;
-    uint16  c2;
+	uint16	c;
+	uint16	c2;
 
-    if (muiPos >= muiTextLength)
-    {
-        return 0;
-    }
+	if (muiPos >= muiTextLength)
+	{
+		return 0;
+	}
 
-    c = mszText[muiPos];
-    if (c == UNICODE_ZWJ)
-    {
-        return UNICODE_ZWJ;
-    }
+	c = mszText[muiPos];
+	if (c == UNICODE_ZWJ)
+	{
+		return UNICODE_ZWJ;
+	}
 
-    if (!(c >= 0xD800 && c <= 0xDBFF))
-    {
-        return 1;
-    }
-    else
-    {
-        if (muiPos + 1 >= muiTextLength)
-        {
-            return muiError;
-        }
+	if (!(c >= 0xD800 && c <= 0xDBFF))
+	{
+		return 1;
+	}
+	else
+	{
+		if (muiPos + 1 >= muiTextLength)
+		{
+			return muiError;
+		}
 
-        c2 = mszText[muiPos + 1];
-        if (c2 >= 0xDC00 && c2 <= 0xDFFF)
-        {
-            return 2;
-        }
-        else
-        {
-            return muiError;
-        }
-    }
+		c2 = mszText[muiPos + 1];
+		if (c2 >= 0xDC00 && c2 <= 0xDFFF)
+		{
+			return 2;
+		}
+		else
+		{
+			return muiError;
+		}
+	}
 }
 
 

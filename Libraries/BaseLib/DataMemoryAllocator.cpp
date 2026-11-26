@@ -45,7 +45,7 @@ void* CDataMemoryAllocator::Malloc(lsize uiSize)
 		BREAK();
 	}
 #endif // _DEBUG
-	
+
 	return mcMemory.Add(uiSize);
 }
 

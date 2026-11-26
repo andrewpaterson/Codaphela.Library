@@ -36,9 +36,9 @@ protected:
 	uint16			miPrecedence;
 
 public:
-	void Init(const char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
-	void Init(void);
-	void Kill(void);
+	void	Init(const char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
+	void	Init(void);
+	void	Kill(void);
 
 	const char*		GetSymbol(void) const;
 	ECalcOperator	GetOperator(void) const;

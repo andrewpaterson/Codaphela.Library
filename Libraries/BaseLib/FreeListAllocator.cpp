@@ -59,7 +59,7 @@ void* CFreeListAllocator::Malloc(lsize uiSize)
 	{
 		return NULL;
 	}
-	
+
 	return mcFreeList.Add();
 }
 
@@ -146,7 +146,7 @@ bool CFreeListAllocator::Write(CFileWriter* pcFileWriter)
 	SFreeListParams	sParams;
 
 	mcFreeList.GetParams(&sParams);
-	
+
 	if (!pcFileWriter->WriteData(&sParams, sizeof(SFreeListParams)))
 	{
 		return false;

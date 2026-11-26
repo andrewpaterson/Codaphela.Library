@@ -71,7 +71,7 @@ bool CTextParser::Init(void)
 bool CTextParser::Init(const char* szText, lsize iTextLen)
 {
 	STextParserConfig	sConfig;
-		
+
 	sConfig.Init(SkipCPPWhitespace, ParseCPPString, ParseCPPExactIdentifier, ParseCPPIdentifier);
 
 	return Init(szText, iTextLen, &sConfig);
@@ -909,7 +909,7 @@ bool CTextParser::IsDigit(char cCurrent, uint16 uiBase)
 			return true;
 		}
 		else
-			{
+		{
 			return false;
 		}
 	}
@@ -1423,7 +1423,7 @@ TRISTATE CTextParser::GetFloatLiteral(float128* pldf, uint16 iAllowedPrefix, uin
 	uint64		ulliWholeNumber;
 	uint64		ulliDecimalNumber;
 	int64		lliExponentNumber;
-	float128		ldf;
+	float128	ldf;
 	uint16		iNumWholeDigits;
 	uint16		iNumDecimalDigits;
 	uint16		iNumExponentDigits;
@@ -2246,7 +2246,7 @@ TRISTATE CTextParser::GetNumber(CNumber* pcNumber, int16 cMaxWholeNumbers, int16
 {
 	//This should be a part of the STextParserConfig.
 
-	const char*		szStart;
+	const char*	szStart;
 	double		fIgnored;
 	TRISTATE	tResult;
 	int16		iLength;
@@ -2309,7 +2309,7 @@ void CTextParser::LoadState(SParseState* psParserState)
 TRISTATE CTextParser::FindExactIdentifier(char* szIdentifier)
 {
 	const char*		szPosition;
-	TRISTATE	result;
+	TRISTATE		result;
 
 	PushPosition();
 	SkipWhitespace();
@@ -2346,7 +2346,7 @@ TRISTATE CTextParser::FindExactIdentifier(char* szIdentifier)
 TRISTATE CTextParser::FindExactCharacterSequence(const char* szSequence)
 {
 	const char*		szPosition;
-	TRISTATE	result;
+	TRISTATE		result;
 
 	PushPosition();
 	for (;;)
@@ -2713,7 +2713,7 @@ void CTextParser::PopPositions(size iNum)
 {
 	STextPosition*	psTextPosition;
 
-	psTextPosition = masPositions.Get(masPositions.NumElements()-iNum-0);
+	psTextPosition = masPositions.Get(masPositions.NumElements()-iNum - 0);
 	miLine = psTextPosition->iLine;
 	miColumn = psTextPosition->iColumn;
 	mszParserPos = psTextPosition->szPos;
@@ -3324,7 +3324,7 @@ TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* 
 	}
 	else
 	{
-	return TRIERROR;
+		return TRIERROR;
 	}
 }
 
@@ -3486,11 +3486,11 @@ uint16 CTextParser::ChangeWidth(uint16 iWidth, uint16 iOldWidth, void* szDest, s
 //////////////////////////////////////////////////////////////////////////
 void CTextParser::GetLineLocationMarkerString(CChars* pszDest)
 {
-	STextPosition	sState;
-	TRISTATE		tResult;
+	STextPosition		sState;
+	TRISTATE			tResult;
 	const char*			szStartOfLine;
 	const char*			szEndOfLine;
-	CChars			szMarker;
+	CChars				szMarker;
 
 	GetPosition(&sState);
 

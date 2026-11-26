@@ -83,7 +83,7 @@ bool CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
- char* CFileHeader::GetEngineVersion(void)
+char* CFileHeader::GetEngineVersion(void)
 {
 	return mszEngineVersion;
 }
@@ -93,7 +93,7 @@ bool CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
- char* CFileHeader::GetWriterVersion(void)
+char* CFileHeader::GetWriterVersion(void)
 {
 	return mszWriterVersion;
 }
@@ -103,7 +103,7 @@ bool CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
- char* CFileHeader::GetWriterType(void)
+char* CFileHeader::GetWriterType(void)
 {
 	return mszWriterType;
 }

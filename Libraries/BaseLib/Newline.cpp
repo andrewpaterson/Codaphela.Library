@@ -75,12 +75,12 @@ lsize CountLineFeeds(char* szString, lsize uiLen)
 //////////////////////////////////////////////////////////////////////////
 lsize CountNewLines(char* szString, lsize uiLen)
 {
-	lsize iCarriageReturns;
-	lsize iLineFeeds;
+	lsize	iCarriageReturns;
+	lsize	iLineFeeds;
 
 	iCarriageReturns = CountCarriageReturns(szString, uiLen);
 	iLineFeeds = CountLineFeeds(szString, uiLen);
-	
+
 	if (iLineFeeds == 0)
 	{
 		iLineFeeds = iCarriageReturns;
@@ -119,7 +119,7 @@ lsize PassifyNewlines(char *szString)
 		return MAX_LSIZE;
 	}
 
-	szNewString	= (char*)malloc(uiLen-uiNumCarriageReturns+1);
+	szNewString	= (char*)malloc(uiLen - uiNumCarriageReturns + 1);
 
 	uiPos = 0;
 	for (i = 0; i <= uiLen; i++)

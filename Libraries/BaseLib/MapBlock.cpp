@@ -705,7 +705,7 @@ bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO
 	{
 		return false;
 	}
-	
+
 	return ReadMapBlockElements(pcFileReader);
 }
 
@@ -721,7 +721,7 @@ bool CMapBlock::ReadMapBlockElements(CFileReader* pcFileReader)
 	SMNode*		psNode;
 	bool		bResult;
 
-	
+
 	iNumElements = mapArray.GetSortedSize();
 	for (i = 0; i < iNumElements; i++)
 	{
@@ -751,7 +751,7 @@ bool CMapBlock::WriteData(CFileWriter* pcFileWriter, void* pvData)
 	SMNode*		psNode;
 	void*		pvValue;
 	void*		pvKey;
-	
+
 	psNode = (SMNode*)pvData;
 	RemapKeyAndData(psNode, &pvKey, &pvValue);
 	bResult = pcFileWriter->WriteData(pvKey, psNode->iKeySize);
@@ -975,11 +975,11 @@ void* CMapBlock::GetKey(SMNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 lsize CMapBlock::ByteSize(void)
 {
-	SMapIterator	sIter;
+	SMapIterator		sIter;
 	size				iKeySize;
 	size				iDataSize;
-	bool			bExists;
-	lsize			uiByteSize;
+	bool				bExists;
+	lsize				uiByteSize;
 
 	uiByteSize = 0;
 	bExists = StartIteration(&sIter, NULL, &iKeySize, NULL, &iDataSize);

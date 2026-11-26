@@ -17,7 +17,7 @@ class CMapBlock : public CMalloc, public CDataIO
 {
 friend struct SMNode;
 protected:
-	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SMNode*.  
+	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SMNode*.
 	size				miLargestKeySize;
 	bool				mbOverwrite;
 	CDataFree*			mpcDataFree;

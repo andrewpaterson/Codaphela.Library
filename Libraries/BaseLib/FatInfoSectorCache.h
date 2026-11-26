@@ -17,7 +17,7 @@ struct SFatCache
 	void	Clear(void) { pvCachedSector = NULL; uiTimeStamp = 0xffffffff; }
 	uint8*	Get(void) { return (uint8*)pvCachedSector; }
 	bool	IsValid(void) const { return pvCachedSector != NULL; }
-}; 
+};
 
 
 class CFatSectorCache

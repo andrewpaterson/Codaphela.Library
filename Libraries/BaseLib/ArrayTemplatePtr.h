@@ -12,9 +12,9 @@ public:
 	void	Init(CMallocator* pcMalloc);
 	void	Init(CMallocator* pcMalloc, size iChunkSize);
 	void	Kill(void);
-	
+
 	void	Add(M* pv);
-	
+
 	bool	Get(size iIndex, M** pv);
 	M**		Get(size iIndex);
 	M*		GetPtr(size iIndex);
@@ -36,7 +36,7 @@ public:
 	void	TimSort(DataCompare fCompare);
 
 	size	Find(M* pv);
-	void 	Push(M* pv);
+	void	Push(M* pv);
 	M*		Pop(void);
 
 	bool	ContainsVoidPtr(void* pv);

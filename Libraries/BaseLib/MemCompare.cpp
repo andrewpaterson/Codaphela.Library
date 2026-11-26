@@ -41,8 +41,8 @@ void Difference(CChars* psz1, filePos iPosition, char c)
 bool MemCompare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2)
 {
 	uint64			i;
-	uint8* pcMem1;
-	uint8* pcMem2;
+	uint8*			pcMem1;
+	uint8*			pcMem2;
 	int				iCount;
 
 	if (iLength1 != iLength2)

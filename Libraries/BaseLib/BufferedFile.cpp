@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 //////////////////////////////////////////////////////////////////////////
 //
-// 
+//
 //////////////////////////////////////////////////////////////////////////
 void CBufferedFile::Init(CAbstractFile* pcFile)
 {
@@ -178,7 +178,7 @@ lsize CBufferedFile::Read(void* pvDest, lsize iSize, lsize iCount)
 			}
 
 			CopyFromBuffer(pvDest, iByteSize, 0);
-			return iByteSize / iSize;			
+			return iByteSize / iSize;
 		}
 	}
 }
@@ -232,7 +232,7 @@ lsize CBufferedFile::Write(const void* pvSource, lsize iSize, lsize iCount)
 			else
 			{
 				memcpy(RemapSinglePointer(mpvMem, miBufferPos), pvSource, iRemainingBuffer);
-				
+
 				miBufferPos = miAllocatedSize;
 				bResult = WriteUnwritten();
 

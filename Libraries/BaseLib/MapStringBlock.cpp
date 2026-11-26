@@ -306,7 +306,7 @@ void CMapStringBlock::GetKeysAsString(CChars* pszDest, char* szSeparator)
 {
 	SMapIterator	sIter;
 	char*			szKey;
-	size				iStrLen;
+	size			iStrLen;
 	bool			bHasNext;
 	bool			bFirst;
 

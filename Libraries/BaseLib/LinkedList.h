@@ -27,10 +27,10 @@ public:
 	void		InsertBeforeNode(SLLNode* psExistingNode, SLLNode* psNewNode);
 	void		InsertAfterNode(SLLNode* psExistingNode, SLLNode* psNewNode);
 
-	SLLNode* 	GetHead(void) const;
-	SLLNode* 	GetTail(void) const;
-	SLLNode* 	GetNext(SLLNode* psExistingNode);
-	SLLNode* 	GetPrev(SLLNode* psExistingNode);
+	SLLNode*	GetHead(void) const;
+	SLLNode*	GetTail(void) const;
+	SLLNode*	GetNext(SLLNode* psExistingNode);
+	SLLNode*	GetPrev(SLLNode* psExistingNode);
 
 	void		RemoveHead(void);
 	void		RemoveTail(void);

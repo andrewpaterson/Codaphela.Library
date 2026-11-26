@@ -28,7 +28,7 @@ void* CNullAllocator::Malloc(lsize uiSize)
 		BREAK();
 	}
 #endif // _DEBUG
-	
+
 	return NULL;
 }
 

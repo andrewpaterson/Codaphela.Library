@@ -298,8 +298,8 @@ void* CBaseLinkedListBlock::InsertBeforeNode(lsize uiDataSize, void* psPos)
 //////////////////////////////////////////////////////////////////////////
 void* CBaseLinkedListBlock::InsertAfterNode(lsize uiDataSize, void* psPos)
 {
-	SLLNode* psNode;
-	SLLNode* psNodePos;
+	SLLNode*	psNode;
+	SLLNode*	psNodePos;
 
 	psNodePos = DataGetNode(psPos);
 	psNode = AllocateDetached(uiDataSize);
@@ -367,8 +367,8 @@ void CBaseLinkedListBlock::FreeDetached(void* psNodeData)
 //////////////////////////////////////////////////////////////////////////
 void CBaseLinkedListBlock::Swap(void* psData1, void* psData2)
 {
-	SLLNode* psNode1;
-	SLLNode* psNode2;
+	SLLNode*	psNode1;
+	SLLNode*	psNode2;
 
 	psNode1 = DataGetNode(psData1);
 	psNode2 = DataGetNode(psData2);

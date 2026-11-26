@@ -111,6 +111,12 @@ CNumber* CNumber::Init(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 	SetSign(1);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(void)
 {
 	PrivateInit();
@@ -166,6 +172,10 @@ CNumber* CNumber::Init(int32 iNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(int32 iNumber)
 {
 	return Init(iNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS);
@@ -237,7 +247,7 @@ CNumber* CNumber::Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 		AddBinaryOne(e);
 		for (iCount = 0; iCount < 23; iCount++)
 		{
-			iBitMask = (int32)1 << (22-iCount);
+			iBitMask = (int32)1 << (22 - iCount);
 			if (f & iBitMask)
 			{
 				AddBinaryOne(e - (int32)iCount - 1);
@@ -257,6 +267,12 @@ CNumber* CNumber::Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 	RoundSignificant(8);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(float32 ff)
 {
 	return Init(ff, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS);
@@ -418,12 +434,18 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	}
 	cStack.Kill();
 	SetFirstNonZerotDigit(iDecimalPoint);
-	SetLastNonZeroDigit(-(iPos-iDecimalPoint));
+	SetLastNonZeroDigit(-(iPos - iDecimalPoint));
 	SetSign(iSign);
 
 	Clean();
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(const char* szNumber, size iLen)
 {
 	return Init(szNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS, iLen);
@@ -447,6 +469,12 @@ CNumber* CNumber::Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDeci
 		return this;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Init(CNumber* pcNumber)
 {
 	if ((DEFAULT_WHOLE_NUMBERS == pcNumber->mcMaxWholeNumbers) && (DEFAULT_DECIMALS == pcNumber->mcMaxDecimals))
@@ -470,6 +498,12 @@ CNumber* CNumber::Zero(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	return Init(cMaxWholeNumbers, cMaxDecimals);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Zero(void)
 {
 	return Init();
@@ -489,6 +523,12 @@ CNumber* CNumber::One(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive
 	SetPositive(bPositive);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::One(bool bPositive)
 {
 	PrivateInit();
@@ -513,6 +553,12 @@ CNumber* CNumber::Two(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive
 	SetPositive(bPositive);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Two(bool bPositive)
 {
 	PrivateInit();
@@ -537,6 +583,12 @@ CNumber* CNumber::Half(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositiv
 	SetPositive(bPositive);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Half(bool bPositive)
 {
 	PrivateInit();
@@ -557,6 +609,12 @@ CNumber* CNumber::Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 	gcNumberControl.Pi(this, cMaxWholeNumbers, cMaxDecimals, bPositive);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Pi(bool bPositive)
 {
 	gcNumberControl.Pi(this, bPositive);
@@ -573,6 +631,12 @@ CNumber* CNumber::E(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 	gcNumberControl.E(this, cMaxWholeNumbers, cMaxDecimals, bPositive);
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::E(bool bPositive)
 {
 	gcNumberControl.E(this, bPositive);
@@ -588,6 +652,12 @@ CNumber* CNumber::Copy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDeci
 {
 	return Init(pcNumber, cMaxWholeNumbers, cMaxDecimals);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Copy(CNumber* pcNumber)
 {
 	return Init(pcNumber);
@@ -656,6 +726,12 @@ CNumber* CNumber::Digit(char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 	}
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Digit(char cValue)
 {
 	Zero();
@@ -698,6 +774,12 @@ CNumber* CNumber::Digit(int16 iDigit, char cValue, int16 cMaxWholeNumbers, int16
 	}
 	return this;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Digit(int16 iDigit, char cValue)
 {
 	Zero();
@@ -1339,8 +1421,8 @@ CNumber* CNumber::Integer(void)
 //////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Ceiling(void)
 {
-	CNumber* pcTemp;
-	CNumber* pcOne;
+	CNumber*	pcTemp;
+	CNumber*	pcOne;
 
 	pcTemp = gcNumberControl.Add(mcMaxWholeNumbers, mcMaxDecimals);
 	pcTemp->Init(this, mcMaxWholeNumbers, mcMaxDecimals);
@@ -2691,14 +2773,14 @@ void CNumber::PrivateIntegerFactorial(int16 iN, int16 cMaxWholeNumbers, int16 cM
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateIntegerRoot(CNumber* pcRoot)
 {
-	CNumber* 	pcX_k;
-	CNumber* 	pcX_k1;
-	CNumber* 	pcOne;
-	CNumber* 	pcOneOverRoot;
-	CNumber* 	pcRootMinusOne;
-	CNumber* 	pcX_kTimesRootMinusOne;
-	CNumber* 	pcX_kToPowerRootMinusOne;
-	CNumber* 	pcBaseOver;
+	CNumber*	pcX_k;
+	CNumber*	pcX_k1;
+	CNumber*	pcOne;
+	CNumber*	pcOneOverRoot;
+	CNumber*	pcRootMinusOne;
+	CNumber*	pcX_kTimesRootMinusOne;
+	CNumber*	pcX_kToPowerRootMinusOne;
+	CNumber*	pcBaseOver;
 	int32		iIterations;
 	int32		iDecimals;
 	CNumber*	pcThis;
@@ -3155,7 +3237,7 @@ CNumber* CNumber::Power(CNumber* pcExponentIn)
 	pcResult->Exponential();
 
 	Init(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
-	gcNumberControl.Remove(1+1);
+	gcNumberControl.Remove(1 + 1);
 	return this;
 }
 
@@ -3187,7 +3269,7 @@ CNumber* CNumber::Root(CNumber* pcRootIn)
 	pcResult->Exponential();
 
 	Init(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
-	gcNumberControl.Remove(1+1);
+	gcNumberControl.Remove(1 + 1);
 	return this;
 }
 
@@ -3367,7 +3449,7 @@ CNumber* CNumber::Logarithm(CNumber* pcBase)
 
 	if (pcResult->Equals(pcOne))
 	{
-		gcNumberControl.Remove(1+1);
+		gcNumberControl.Remove(1 + 1);
 		return Zero(mcMaxWholeNumbers, mcMaxDecimals);
 	}
 
@@ -3381,7 +3463,7 @@ CNumber* CNumber::Logarithm(CNumber* pcBase)
 	iInteger = 0;
 	if (pcBase->LessThan(pcOne))
 	{
-		gcNumberControl.Remove(1+1);
+		gcNumberControl.Remove(1 + 1);
 		return NotANumber();
 	}
 
@@ -3463,7 +3545,7 @@ CNumber* CNumber::NaturalLogarithm(void)
 	pcResult->Copy(this, mcMaxWholeNumbers, iDecimals);
 	pcResult->Logarithm(pcE);
 	Copy(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
-	gcNumberControl.Remove(1+1);
+	gcNumberControl.Remove(1 + 1);
 	return this;
 }
 
@@ -3776,7 +3858,7 @@ uint64 CNumber::DecimalValue(uint16* puiNumDecimals)
 	{
 		uiNumDecimals = 0;
 	}
-	
+
 	SafeAssign(puiNumDecimals, uiNumDecimals);
 
 	return iResult;
@@ -4203,8 +4285,8 @@ bool CNumber::PrintFloating(CChars* pcChars)
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-				c = GetDigitUnsafe(i) + ZERO;
-				pcChars->Append(c);
+			c = GetDigitUnsafe(i) + ZERO;
+			pcChars->Append(c);
 		}
 		pcChars->Append(DOT);
 	}

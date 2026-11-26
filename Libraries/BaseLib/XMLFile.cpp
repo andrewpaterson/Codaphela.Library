@@ -126,7 +126,7 @@ bool CXMLFile::Read(const char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirect
 	cXMLParser.Kill();
 	cTextFile.Kill();
 	szPath.Kill();
-	return true;	
+	return true;
 }
 
 
@@ -159,7 +159,7 @@ bool CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 			pcSubDoc = pcMarkup->AllocateSubDoc();
 			pcSubDoc->Init(pcEntity->mszName.Text(), pcDoc);
 			pcParentDoc->AddSubstitute(pcSubDoc);
-		
+
 			bResult = Read(pcEntity->mszValue.Text(), pcDoc, pszDirectory);
 			if (!bResult)
 			{

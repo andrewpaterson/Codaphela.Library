@@ -353,7 +353,7 @@ TRISTATE CJSONParser::ParseMember(void)
 		sString.Kill();
 		return TRIERROR;
 	}
-	
+
 	if (tResult == TRIFALSE)
 	{
 		sString.Kill();
@@ -387,7 +387,7 @@ TRISTATE CJSONParser::ParseMember(void)
 TRISTATE CJSONParser::ParseLiteral(const char* szElementName)
 {
 	TRISTATE	tResult;
-	
+
 	//true, false and null are bare (RFC 8259 3), and each is a whole name: "trueish" isn't true.
 	tResult = mcParser.GetExactIdentifier("true");
 	ReturnOnError(tResult);

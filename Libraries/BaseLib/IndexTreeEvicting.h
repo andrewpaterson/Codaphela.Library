@@ -23,7 +23,7 @@ private:
 	CIndexTreeEvictionCallback*			mpcIndexTreeEvictionCallback;
 	CLife<CIndexTreeEvictionStrategy>	mcEvictionStrategy;
 	CIndexTreeEvictionStrategy*			mpcEvictionStrategy;
-	
+
 public:
 	bool					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse);
 	bool					Init(CDurableFileController* pcDurableFileControl, const char* szSubDirectory, lsize uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse);

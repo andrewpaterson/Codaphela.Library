@@ -70,12 +70,12 @@ void CCSVFile::Close(void)
 
 
 ////////////////////////////////////////////////////////////////////////
-																		//
-																		//
+//
+//
 ////////////////////////////////////////////////////////////////////////
 bool CCSVFile::ReadLine(CChars* szString)
 {
-	char	sBuffer[CSV_FILE_LINE_BUFFER_LENGTH+1];
+	char	sBuffer[CSV_FILE_LINE_BUFFER_LENGTH + 1];
 	size	iLength;
 	bool	bDoneAnything;
 
@@ -99,12 +99,12 @@ bool CCSVFile::ReadLine(CChars* szString)
 
 
 ////////////////////////////////////////////////////////////////////////
-																		//
-																		//
+//
+//
 ////////////////////////////////////////////////////////////////////////
 bool CCSVFile::ReadLine(char* szBuffer, size iMaxLength)
 {
-	char	sChunk[CSV_FILE_LINE_BUFFER_LENGTH+1];
+	char	sChunk[CSV_FILE_LINE_BUFFER_LENGTH + 1];
 	size	iLength;
 	size	iCopy;
 	size	iPosition;
@@ -166,7 +166,7 @@ size CCSVFile::ReadLine(char* sBuffer)
 	iNewLinePosition = FindFirstByte((uint8*)sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
 	if (iNewLinePosition != ARRAY_LARGE_ELEMENT_NOT_FOUND)
 	{
-		if (sBuffer[iNewLinePosition-1] == '\r')
+		if (sBuffer[iNewLinePosition - 1] == '\r')
 		{
 			mcFile.Seek(iPosition + iNewLinePosition + 1, EFSO_SET);
 			iNewLinePosition--;

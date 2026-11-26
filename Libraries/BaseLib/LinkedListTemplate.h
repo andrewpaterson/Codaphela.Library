@@ -41,7 +41,7 @@ public:
 	M*				InsertAfterTail(void);
 	M*				InsertBeforeHead(void);
 	M*				InsertBeforeNode(M* psPos);
-	M*				InsertAfterNode(M* psPos); 
+	M*				InsertAfterNode(M* psPos);
 	M*				Add(void);
 
 	M*				GetHead(void);
@@ -59,7 +59,7 @@ public:
 
 	void			InsertDetachedAfterTail(M* pvData);
 
-protected:	
+protected:
 	SLLNode*		AllocateDetached(void);
 	SLLNode*		DataGetNode(M* pvData);
 
@@ -238,8 +238,8 @@ M* CLinkedListTemplate<M>::InsertBeforeHead(void)
 template<class M>
 M* CLinkedListTemplate<M>::InsertBeforeNode(M* psPos)
 {
-	SLLNode* psNode;
-	SLLNode* psNodePos;
+	SLLNode*	psNode;
+	SLLNode*	psNodePos;
 
 	psNodePos = DataGetNode(psPos);
 	psNode = AllocateDetached();
@@ -254,8 +254,8 @@ M* CLinkedListTemplate<M>::InsertBeforeNode(M* psPos)
 template<class M>
 M* CLinkedListTemplate<M>::InsertAfterNode(M* psPos)
 {
-	SLLNode* psNode;
-	SLLNode* psNodePos;
+	SLLNode*	psNode;
+	SLLNode*	psNodePos;
 
 	psNodePos = DataGetNode(psPos);
 	psNode = AllocateDetached();

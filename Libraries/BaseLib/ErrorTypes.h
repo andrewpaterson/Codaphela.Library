@@ -41,7 +41,7 @@ enum TRISTATE
 
 
 //Bad global right here.  Dunno how to get rid of it though.
-extern TRISTATE	gTriState; 
+extern TRISTATE	gTriState;
 #define TTV(line) gTriState
 
 

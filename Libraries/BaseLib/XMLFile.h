@@ -30,11 +30,11 @@ class CXMLFile
 {
 public:
 	CMarkup		mcMarkup;
-			
-	void 	Init(void);
-	void 	Kill(void);
-	bool 	Read(const char* szFilename, const char* szDirectory);
-	bool 	Write(char* szFilename, char* szDirectory);
+
+	void	Init(void);
+	void	Kill(void);
+	bool	Read(const char* szFilename, const char* szDirectory);
+	bool	Write(char* szFilename, char* szDirectory);
 
 private:
 	bool	Entities(CXMLParser* pcXMLParser, CChars* pszDirectory);

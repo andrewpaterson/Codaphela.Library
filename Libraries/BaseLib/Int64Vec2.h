@@ -33,7 +33,7 @@ public:
 	using SVec2<int64, int64>::SVec2;
 	using SVec2<int64, int64>::operator=;
 
-	void 	Print(CChars* psx, int iWholeNumbers = -1);
+	void	Print(CChars* psx, int iWholeNumbers = -1);
 
 	int		WholeNumbers(void);
 };

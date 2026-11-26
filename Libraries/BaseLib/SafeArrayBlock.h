@@ -8,31 +8,31 @@
 class CSafeArrayBlock
 {
 private:
-	CMutex	m;
+	CMutex		m;
 	CArrayBlock	c;
 
 public:
-	void 	Init(size iElementSize);
-	void 	Init(CMallocator* pcMalloc, size iElementSize);
+	void	Init(size iElementSize);
+	void	Init(CMallocator* pcMalloc, size iElementSize);
 	void	Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize);
-	void 	ReInit(void);
+	void	ReInit(void);
 
-	void 	Finalise(void);
-	void 	Kill(void);
+	void	Finalise(void);
+	void	Kill(void);
 
 	size	NumElements(void) const;
 	bool	IsEmpty(void) const;
 	bool	IsNotEmpty(void) const;
 	size	AllocatedElements(void) const;
-	size 	ElementSize(void) const;
+	size	ElementSize(void) const;
 
 	void	Add(void* pvData);
 	size	AddGetIndex(void* pvData);
-	size 	AddIfUnique(void* pData);
-	size 	AddIfUniqueKey(void* pData, size iKeyOffset, size iKeySize);
+	size	AddIfUnique(void* pData);
+	size	AddIfUniqueKey(void* pData, size iKeyOffset, size iKeySize);
 
-	void 	Copy(CArrayBlock* pcTemplateArray);
-	void 	Copy(CSafeArrayBlock* pcTemplateArray);
+	void	Copy(CArrayBlock* pcTemplateArray);
+	void	Copy(CSafeArrayBlock* pcTemplateArray);
 	size	Copy(CStackMemory<>* pcTemp);
 
 	bool	Get(size iIndex, void* pvDest);
@@ -43,7 +43,7 @@ public:
 
 	bool	Pop(void* pvDest);
 	bool	Pop(void);
-	void 	Push(void* pvData);
+	void	Push(void* pvData);
 	bool	PopFirst(void* pvData);
 	bool	PopFirst(void);
 
@@ -54,18 +54,18 @@ public:
 	void	Reverse(void);
 
 	bool	Contains(void* pData);
-	size 	Find(void* pData);
+	size	Find(void* pData);
 	bool	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), size* piIndex);
 
-	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
+	void	RemoveAt(size iIndex, bool bPreserveOrder = true);
 	void	RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder = true);
-	bool 	RemoveTail(void);
+	bool	RemoveTail(void);
 
 	void	Set(size iIndex, void* pvData);
 	void	Swap(size iIndex1, size iIndex2);
-	void 	Zero(void);
+	void	Zero(void);
 
-	size 	ByteSize(void);
+	size	ByteSize(void);
 	size	ChunkSize(void);
 	size	SetUsedElements(size iNumElements);
 

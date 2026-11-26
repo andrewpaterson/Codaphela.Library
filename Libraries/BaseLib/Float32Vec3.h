@@ -39,17 +39,17 @@ public:
 	using SVec3<float32, float64>::SVec3;
 	using SVec3<float32, float64>::operator =;
 
-	void 		Fix(void);
+	void		Fix(void);
 	int			WholeNumbers(void);
-	void 		Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
+	void		Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
 
-	void 		Copy(const SFloat32Vec4* ps);
-	void 		Copy(const SFloat32Vec3* ps);
-	void 		Copy(const SFloat32Vec2* ps);
+	void		Copy(const SFloat32Vec4* ps);
+	void		Copy(const SFloat32Vec3* ps);
+	void		Copy(const SFloat32Vec2* ps);
 
-	void 		Normalize(void);
-	bool 		CloselyEqual(SFloat32Vec3* ps);
-	bool 		CloselyEqual(SFloat32Vec3* ps, float32 fTolerance);
+	void		Normalize(void);
+	bool		CloselyEqual(SFloat32Vec3* ps);
+	bool		CloselyEqual(SFloat32Vec3* ps, float32 fTolerance);
 };
 
 

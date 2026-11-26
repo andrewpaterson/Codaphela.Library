@@ -89,17 +89,17 @@ public:
 	M*		InsertOnPath(size* psPos, size uiLevel, M* psData);
 
 	//Traversal functions.
-	M* 		StartTraversal(void);
-	M* 		TraverseFrom(M* psCurrent);
+	M*		StartTraversal(void);
+	M*		TraverseFrom(M* psCurrent);
 	M*		TraverseSubTreeFrom(STNode* psSubRoot, M* psCurrent);
 	M*		TraverseSubTreeFrom(M* psSubRoot, M* psCurrent);
-	M* 		TraversePath(size* auiPos, size uiLevel);
+	M*		TraversePath(size* auiPos, size uiLevel);
 
 	size	GetNumChildren(M* psPos);
-	M* 		GetRoot(void) const;
-	M* 		GetDown(M* psPos);
-	M* 		GetUp(M* psPos);
-	M* 		GetRight(M* psPos);
+	M*		GetRoot(void) const;
+	M*		GetDown(M* psPos);
+	M*		GetUp(M* psPos);
+	M*		GetRight(M* psPos);
 	size	GetPathTo(size* auiPath, M* psNode);
 	M*		GetChildNum(M* psParent, size iChildNum);
 	size	GetChildNum(M* psChild);
@@ -188,7 +188,7 @@ void CTreeTemplate<M>::Copy(CTreeTemplate<M>* pcTreeSrc)
 template<class M>
 M* CTreeTemplate<M>::TraversePath(size* auiPos, size uiLevel)
 {
-	STNode	*psNode;
+	STNode*	psNode;
 	size	iNumAcross;
 	size	i;
 	size	j;
@@ -198,7 +198,7 @@ M* CTreeTemplate<M>::TraversePath(size* auiPos, size uiLevel)
 	{
 		iNumAcross = auiPos[i];
 		psNode = psNode->psUp;
-		for (j = 0; j < iNumAcross;j++)
+		for (j = 0; j < iNumAcross; j++)
 		{
 			psNode = psNode->psAcross;
 		}
@@ -238,9 +238,9 @@ void CTreeTemplate<M>::InsertRoot(M* psData)
 template<class M>
 void CTreeTemplate<M>::InsertDetachedOnRightOfChildren(M* psParent, M* psChild)
 {
-	STNode* 	temp;
-	STNode* 	psPos;
-	STNode* 	psNode;
+	STNode*		temp;
+	STNode*		psPos;
+	STNode*		psNode;
 
 	psPos = DataGetHeader<STNode, M>(psParent);
 	psNode = DataGetHeader<STNode, M>(psChild);
@@ -248,7 +248,7 @@ void CTreeTemplate<M>::InsertDetachedOnRightOfChildren(M* psParent, M* psChild)
 	if (psPos->psUp != NULL)
 	{
 		psPos = psPos->psUp;
-		while(psPos->psAcross != NULL)
+		while (psPos->psAcross != NULL)
 		{
 			psPos = psPos->psAcross;
 		}
@@ -335,7 +335,7 @@ void CTreeTemplate<M>::InsertDetachedOnLeftOfChildren(M* psParent, M* psChild)
 template<class M>
 M* CTreeTemplate<M>::InsertOnLeftOfChildren(M* psParent)
 {
-	M *psNode;
+	M* psNode;
 
 	psNode = AllocateDetached();
 	InsertDetachedOnLeftOfChildren(psParent, psNode);
@@ -365,7 +365,7 @@ M* CTreeTemplate<M>::InsertOnLeftOfChildren(M* psParent, M* psData)
 template<class M>
 void CTreeTemplate<M>::InsertDetachedAtChildNum(M* psParent, size iChildNum, M* psChild)
 {
-	STNode* 	psPos;
+	STNode*		psPos;
 	STNode*		temp;
 	STNode*		psDown;
 	STNode*		psNode;
@@ -373,7 +373,7 @@ void CTreeTemplate<M>::InsertDetachedAtChildNum(M* psParent, size iChildNum, M* 
 
 	psPos = DataGetHeader<STNode, M>(psParent);
 	psNode = DataGetHeader<STNode, M>(psChild);
-	if (psPos->psUp!=NULL)
+	if (psPos->psUp != NULL)
 	{
 
 		temp = NULL;
@@ -386,7 +386,7 @@ void CTreeTemplate<M>::InsertDetachedAtChildNum(M* psParent, size iChildNum, M* 
 		psDown = psPos;
 		psPos = psPos->psUp;
 		uiCount = 0;
-		while(iChildNum != uiCount)
+		while (iChildNum != uiCount)
 		{
 			temp = psPos;
 			psPos = psPos->psAcross;
@@ -399,10 +399,10 @@ void CTreeTemplate<M>::InsertDetachedAtChildNum(M* psParent, size iChildNum, M* 
 	}
 	else
 	{
-		psPos->psUp=psNode;
-		psNode->psUp=NULL;
-		psNode->psAcross=NULL;
-		psNode->psDown=psPos;
+		psPos->psUp = psNode;
+		psNode->psUp = NULL;
+		psNode->psAcross = NULL;
+		psNode->psDown = psPos;
 	}
 	miNumElements++;
 }
@@ -415,7 +415,7 @@ void CTreeTemplate<M>::InsertDetachedAtChildNum(M* psParent, size iChildNum, M* 
 template<class M>
 M* CTreeTemplate<M>::InsertAtChildNum(M* psParent, size iChildNum)
 {
-	M	*psNode;
+	M*	psNode;
 
 	psNode = AllocateDetached();
 	InsertDetachedAtChildNum(psParent, iChildNum, psNode);
@@ -460,8 +460,8 @@ void CTreeTemplate<M>::InsertDetachedOnPath(size* auiPos, size uiLevel, M* psDat
 	}
 	else
 	{
-		psThing = TraversePath(auiPos, uiLevel-1);
-		InsertDetachedAtChildNum(psThing, auiPos[uiLevel-1], psData);
+		psThing = TraversePath(auiPos, uiLevel - 1);
+		InsertDetachedAtChildNum(psThing, auiPos[uiLevel - 1], psData);
 	}
 }
 
@@ -469,7 +469,7 @@ template<class M>
 void CTreeTemplate<M>::InsertDetachedOnPath(size* auiPos, size uiLevel, M* psData, size* aiOldPos, size uiOldLevel, M* psOldData)
 {
 	//If we're the root node or the new path is not exactly one right of the old path.
-	if ((uiLevel == 0) || (uiOldLevel != uiLevel) || (auiPos[uiLevel-1] != aiOldPos[uiLevel-1]+1))
+	if ((uiLevel == 0) || (uiOldLevel != uiLevel) || (auiPos[uiLevel - 1] != aiOldPos[uiLevel - 1] + 1))
 	{
 		//Then just call the general method.
 		InsertDetachedOnPath(auiPos, uiLevel, psData);
@@ -566,7 +566,7 @@ M* CTreeTemplate<M>::TraverseSubTreeFrom(STNode* psSubRoot, M* psCurrent)
 	{
 		while (psNode->psAcross == NULL)
 		{
-			psNode=psNode->psDown;
+			psNode = psNode->psDown;
 			miLevel--;
 			if ((psNode == psSubRoot) || (psNode == NULL))
 			{
@@ -619,8 +619,8 @@ template<class M>
 size CTreeTemplate<M>::GetNumChildren(M *psParent)
 {
 	size	iNumChildren;
-	STNode	*psTemp;
-	STNode	*psPos;
+	STNode*	psTemp;
+	STNode*	psPos;
 
 	psPos = DataGetHeader<STNode, M>(psParent);
 	iNumChildren = 0;
@@ -629,7 +629,7 @@ size CTreeTemplate<M>::GetNumChildren(M *psParent)
 	{
 		iNumChildren++;
 		psPos = psPos->psUp;
-		while(psPos->psAcross!=NULL)
+		while (psPos->psAcross != NULL)
 		{
 			iNumChildren++;
 			psPos = psPos->psAcross;
@@ -1311,14 +1311,14 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 	}
 
 	iElementSize = sizeof(M);
-	if (!pcFileWriter->WriteSize(iElementSize)) 
-	{ 
-		return false; 
+	if (!pcFileWriter->WriteSize(iElementSize))
+	{
+		return false;
 	}
 
-	if (!WriteTreeObject(pcFileWriter)) 
-	{ 
-		return false; 
+	if (!WriteTreeObject(pcFileWriter))
+	{
+		return false;
 	}
 
 	if (NumElements() != 0)
@@ -1329,23 +1329,23 @@ bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 			uiPathSize = GetPathTo(auiPath, pvData);
 			if (uiPathSize >= MAX_TREE_DEPTH)
 			{
-				return false; 
+				return false;
 			}
-			if (!pcFileWriter->WriteSize(uiPathSize)) 
-			{ 
-				return false; 
+			if (!pcFileWriter->WriteSize(uiPathSize))
+			{
+				return false;
 			}
 
 			if (uiPathSize != 0)
 			{
-				if (!pcFileWriter->WriteSizes(auiPath, uiPathSize)) 
-				{ 
-					return false; 
+				if (!pcFileWriter->WriteSizes(auiPath, uiPathSize))
+				{
+					return false;
 				}
 			}
 			if (!pcFileWriter->WriteData(pvData, sizeof(M)))
-			{ 
-				return false; 
+			{
+				return false;
 			}
 
 			pvData = TraverseFrom(pvData);
@@ -1379,9 +1379,9 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 	}
 
 	Init(pcMalloc);
-	if (!pcFileReader->ReadSize(&iElementSize)) 
-	{ 
-		return false; 
+	if (!pcFileReader->ReadSize(&iElementSize))
+	{
+		return false;
 	}
 
 	if (iElementSize != sizeof(M))
@@ -1389,9 +1389,9 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 		return false;
 	}
 
-	if (!ReadTreeObject(pcFileReader, &uiNumElements)) 
-	{ 
-		return false; 
+	if (!ReadTreeObject(pcFileReader, &uiNumElements))
+	{
+		return false;
 	}
 
 	iPathNum = 0;
@@ -1400,22 +1400,22 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 
 	for (i = 0; i < uiNumElements; i++)
 	{
-		if (!pcFileReader->ReadSize(&uiPathSize[iPathNum])) 
-		{ 
-			return false; 
+		if (!pcFileReader->ReadSize(&uiPathSize[iPathNum]))
+		{
+			return false;
 		}
 
 		if (uiPathSize[iPathNum] != 0)
 		{
-			if (!pcFileReader->ReadSizes(auiPath[iPathNum], uiPathSize[iPathNum])) 
-			{ 
-				return false; 
+			if (!pcFileReader->ReadSizes(auiPath[iPathNum], uiPathSize[iPathNum]))
+			{
+				return false;
 			}
 		}
 		pvData[iPathNum] = InsertOnPath(auiPath[iPathNum], uiPathSize[iPathNum], auiPath[iOldPath], uiPathSize[iOldPath], pvData[iOldPath]);
-		if (!pcFileReader->ReadData(pvData[iPathNum], sizeof(M))) 
-		{ 
-			return false; 
+		if (!pcFileReader->ReadData(pvData[iPathNum], sizeof(M)))
+		{
+			return false;
 		}
 
 		iOldPath = iPathNum;

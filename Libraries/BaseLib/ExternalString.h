@@ -27,7 +27,7 @@ class CExternalString
 {
 public:
 	const char*	msz;
-	size	miLen;
+	size		miLen;
 
 	void	Init(void);
 	void	Init(const char* sz, size iLen);

@@ -39,8 +39,8 @@ private:
 	bool						mbSizeIndicesValid;
 
 public:
-	void Init(size iHeaderSize, bool bDefaultFreeListParams = true);
-	void Kill(void);
+	void	Init(size iHeaderSize, bool bDefaultFreeListParams = true);
+	void	Kill(void);
 
 	void					AddParamBlock(size iFreeListSize, size iPrevSize, size iChunkSize);
 	void					AddParamBlock(SMemoryFreeListParams* psParam);

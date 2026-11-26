@@ -60,7 +60,7 @@ size CArrayEmbeddedInt::FindUnusedInSorted(void)
 void CArrayEmbeddedInt::Dump(void)
 {
 	size	iIndex;
-	int	iValue;
+	int		iValue;
 	char	sz[32];
 	size	uiNumElements;
 

@@ -64,7 +64,7 @@ void CPackFileIterator::Pop(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackFileIterator::SetCurrent(CFileNodePackFileNode* pcNode)
 {
-	mpcCurrent = pcNode;	
+	mpcCurrent = pcNode;
 }
 
 

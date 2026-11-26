@@ -58,7 +58,7 @@ CNumber	CCalcBinaryExpression::Evaluate(void)
 {
 	CNumber	cNumberLeft;
 	CNumber	cNumberRight;
-	CNumber cAnswer;
+	CNumber	cAnswer;
 
 	cNumberLeft = mpcLeft->Evaluate();
 	cNumberRight = mpcRight->Evaluate();

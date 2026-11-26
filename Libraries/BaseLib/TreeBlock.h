@@ -55,7 +55,7 @@ public:
 	void	Remove(void* psNodeData);
 
 	lsize	ByteSize(void);
-	
+
 	bool	WriteTreeUnknown(CFileWriter* pcFileWriter);
 	bool	ReadTreeUnknown(CFileReader* pcFileReader);
 

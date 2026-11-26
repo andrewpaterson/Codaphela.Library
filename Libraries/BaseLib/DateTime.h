@@ -33,7 +33,7 @@ public:
 	CDate		mcDate;
 	int64		miNanosecondsInDay;
 
-	void 	Init(void);  //Sets date/time to now.
+	void	Init(void);  //Sets date/time to now.
 	bool	Save(CFileWriter* pcFileWriter);
 	bool	Load(CFileReader* pcFileReader);
 };

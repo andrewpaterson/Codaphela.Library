@@ -32,10 +32,10 @@ class CYAMLFile
 public:
 	CMarkup		mcMarkup;
 
-	void 	Init(void);
-	void 	Kill(void);
-	bool 	Read(const char* szFilename, const char* szDirectory);
-	bool 	Read(const char* szFilename, const char* szDirectory, CLogger* pcLogger);
+	void	Init(void);
+	void	Kill(void);
+	bool	Read(const char* szFilename, const char* szDirectory);
+	bool	Read(const char* szFilename, const char* szDirectory, CLogger* pcLogger);
 };
 
 

@@ -46,7 +46,7 @@ public:
 	CSystemFileNode*		StartIteration(CFileSystemIterator* psIter);
 	CSystemFileNode*		Iterate(CFileSystemIterator* psIter);
 	void					StopIteration(CFileSystemIterator* psIter);
-	
+
 protected:
 	void					ReadDirectory(void);
 };

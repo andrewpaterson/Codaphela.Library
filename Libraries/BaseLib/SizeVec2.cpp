@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SSizeVec2::Print(CChars* psx, size iWholeNumbers)
 {
-	CChars		szzz;
+	CChars			szzz;
 	size			iWidth;
 
 	if (iWholeNumbers == MAX_SIZE)
@@ -180,7 +180,7 @@ void SizeVec2Swap(SSizeVec2* ps1, SSizeVec2* ps2)
 void SizeVec2MinMax(SSizeVec2* psMin, SSizeVec2* psMax, SSizeVec2* asIn, size iInStride, size iNumPoints)
 {
 	size			i;
-	SSizeVec2*	psIn;
+	SSizeVec2*		psIn;
 
 	if (iNumPoints > 0)
 	{

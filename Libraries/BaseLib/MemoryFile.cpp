@@ -194,7 +194,7 @@ bool CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	lsize		uiNumElements;
 	filePos		iTemp;
-	
+
 	uiNumElements = mcArray.NumElements();
 
 	if (iSeekOrigin == EFSO_SET)

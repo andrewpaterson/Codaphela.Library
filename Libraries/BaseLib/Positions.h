@@ -54,7 +54,7 @@ typedef CArrayTemplate<CPositionColumn>	CArrayPositionColumn;
 class CPositions
 {
 protected:
-	CArrayPositionColumn	macColumns;
+	CArrayPositionColumn		macColumns;
 	CHashMapIntTemplate<size>	mcColumnIndices;
 
 public:

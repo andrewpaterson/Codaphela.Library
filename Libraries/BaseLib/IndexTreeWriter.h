@@ -12,8 +12,8 @@ public:
 	bool Write(CIndexTreeMemory* pcIndexTree, char* szDirectory);
 
 protected:
-	void RecurseAllocate(CIndexTreeNodeMemory* pcNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
-	bool RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
+	void	RecurseAllocate(CIndexTreeNodeMemory* pcNode, CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
+	bool	RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
 };
 
 #endif // __INDEX_TREE_WRITER_H__

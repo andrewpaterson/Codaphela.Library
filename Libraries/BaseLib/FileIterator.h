@@ -12,7 +12,7 @@ public:
 	CFileSystemIterator		mcFileSystemIterator;
 	bool					mbMoveOn;
 	bool					mbFileSystem;
-	
+
 	CFileIteratorReturn		mcCurrent;
 	bool					mbHasCurrent;
 

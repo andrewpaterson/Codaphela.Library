@@ -453,7 +453,7 @@ bool CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
 	CPackFile*		pcPackFile;
 	CFileCopier		cCopier;
 	bool			bResult;
-	
+
 	pcPackFile = WriteOpen(szFilename);
 	if (!pcPackFile)
 	{
@@ -558,7 +558,7 @@ bool CPackFiles::BeginRead(void)
 
 	ReturnOnFalse(ReadHeader());
 	ReturnOnFalse(ReadNodes());
-	
+
 	return true;
 }
 
@@ -648,7 +648,7 @@ bool CPackFiles::ReadHeader(void)
 
 	miPosition = mcFile.GetFilePos();
 	miNextNodesPtr = miPosition - sizeof(filePos);
-	
+
 	return true;
 }
 

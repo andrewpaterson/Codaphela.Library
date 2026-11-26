@@ -201,7 +201,7 @@ public:
 	char*		FindLineContaining(const char* szPosition, Count* piLineNumber);
 
 	void		Dump(void) const;
-	static void Dump(const char* szString);
+	static void	Dump(const char* szString);
 
 protected:
 	char*		PrivateGrow(Count iNumberOfCharacters);

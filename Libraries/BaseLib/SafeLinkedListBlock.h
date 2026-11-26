@@ -19,7 +19,7 @@ public:
 	void*		InsertAfterTail(lsize uiDataSize);
 	void*		InsertBeforeHead(lsize uiDataSize);
 	void*		InsertBeforeNode(lsize uiDataSize, void* psPos);
-	void*		InsertAfterNode(lsize uiDataSize, void* psPos); 
+	void*		InsertAfterNode(lsize uiDataSize, void* psPos);
 	void*		Add(lsize uiDataSize);
 
 	lsize		ByteSize(void);
@@ -32,10 +32,10 @@ public:
 	void*		DetachHead(void);
 	void*		DetachTail(void);
 
-	void* 		GetHead(void);
-	void* 		GetTail(void);
-	void* 		GetNext(void* pvData);
-	void* 		GetPrev(void* pvData);
+	void*		GetHead(void);
+	void*		GetTail(void);
+	void*		GetNext(void* pvData);
+	void*		GetPrev(void* pvData);
 
 	void		RemoveTail(void);
 	void		Remove(void* pvData);

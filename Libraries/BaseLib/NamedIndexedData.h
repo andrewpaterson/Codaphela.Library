@@ -33,8 +33,8 @@ protected:
 	CNamedIndexes	mcNames;
 
 public:
-	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
-	void 			Kill(void);
+	void			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
+	void			Kill(void);
 
 	bool			Add(OIndex oi, void* pvData, lsize uiDataSize);
 	bool			Add(OIndex oi, const char* szName, void* pvData, lsize uiDataSize);
@@ -71,12 +71,12 @@ public:
 	bool			Remove(OIndex oi);
 	bool			Remove(const char* szName);
 	bool			Remove(CChars* szName);
-	lsize	Size(OIndex oi);
+	lsize			Size(OIndex oi);
 
 	bool			Flush(void);
 	bool			Flush(bool bClearCache);
 
-	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
+	OIndex			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
 	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize);
 	bool			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);

@@ -48,9 +48,9 @@ public:
 	bool			WriteIndexedFileDescriptors(void);
 	bool			DataFilename(char* szFile1, char* szFile2, lsize iDataSize, uint32 iFileNum);
 
-	CIndexedFile* 	GetOrCreateFile(lsize uiDataSize);
-	CIndexedFile* 	GetFile(lsize uiDataSize, uint32 iFileNum);
-	CIndexedFile* 	GetFile(uint32 uiFileIndex);
+	CIndexedFile*	GetOrCreateFile(lsize uiDataSize);
+	CIndexedFile*	GetFile(lsize uiDataSize, uint32 iFileNum);
+	CIndexedFile*	GetFile(uint32 uiFileIndex);
 	uint32			GetUniqueFileNumber(lsize iDataSize);
 	void			GetFiles(CArrayIndexedFilePtr* pac);
 	lsize			GetFileDataSize(uint32 uiFileIndex);
@@ -66,7 +66,7 @@ public:
 	bool			WriteExisting(CFileDataIndex* pcDataIndex, const void* pvData, lsize iDataSize);
 
 	bool			IsDurable(void) const;
-	
+
 	void			Dump(void);
 };
 

@@ -94,7 +94,7 @@ public:
 	uint32					NumElements(void);
 	bool					IsWriteThrough(void) const;
 	bool					HasDiagnosticCallback(void) const;
-	CDurableFileController* GetController(void) const;
+	CDurableFileController*	GetController(void) const;
 
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 	void					Dump(void) override;
@@ -116,8 +116,8 @@ protected:
 	size					GetNodeDataSize(CIndexTreeNode* pcNode) override;
 	size					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize) override;
 
-	CListTemplateMinimal<char>* GetNodesKeys(CArrayVoidPtr* apvNodes);
-	CListCharsMinimal*		GetNodesStringKeys(CArrayVoidPtr* apvNodes);
+	CListTemplateMinimal<char>*	GetNodesKeys(CArrayVoidPtr* apvNodes);
+	CListCharsMinimal*			GetNodesStringKeys(CArrayVoidPtr* apvNodes);
 	size						GetNodeKeysSize(CArrayVoidPtr* apvNodes);
 
 	bool					ValidateIndexTree(bool bReadNodes);
@@ -148,7 +148,7 @@ protected:
 	bool					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, size uiIndexInParent);
 	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, size c);
 	bool					HasMemoryNodes(CIndexTreeNodeFile* pcNode);
-	
+
 	bool					Write(CIndexTreeNodeFile* pcNode);
 	bool					Delete(CIndexTreeNodeFile* pcNode);
 

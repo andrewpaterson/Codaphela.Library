@@ -10,7 +10,7 @@ protected:
 
 public:
 			void	Init(void);
-	
+
 	virtual bool	CanKill(void);
 	virtual void	ReferenceAdded(void);
 	virtual void	ReferenceFreed(void);

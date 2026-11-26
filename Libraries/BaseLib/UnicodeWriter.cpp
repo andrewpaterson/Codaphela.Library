@@ -114,7 +114,7 @@ size CUnicodeWriter::WriteUTF16LE(CUnicodeReader* pcUnicodeReader, CArrayUint16*
 	size	uiCodePointsLength;
 	size	uiCodePointLength;
 	size	uiNumWritten;
-	
+
 	uiNumWritten = 0;
 	uiUTFLength = pcUnicodeReader->PeekUTFBytes();
 	while ((uiUTFLength != 0) && (uiNumWritten < uiMaxToWrite))

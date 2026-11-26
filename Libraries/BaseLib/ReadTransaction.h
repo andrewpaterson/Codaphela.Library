@@ -40,7 +40,7 @@ public:
 	bool	Contains(const char* szName) override;
 	bool	Contains(CChars* szName) override;
 
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
+	OIndex	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
 	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, lsize* piDataSize, lsize iMaxDataSize) override;
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi) override;

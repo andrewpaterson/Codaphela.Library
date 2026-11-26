@@ -455,6 +455,10 @@ void CTextEditing::SelectBlockStart(void) { MoveToBlock(false, true); }
 void CTextEditing::SelectBlockEnd(void) { MoveToBlock(true, true); }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CTextEditing::MoveToBlock(bool bEnd, bool bSelect)
 {
 	size	uiOpen;
@@ -2020,6 +2024,10 @@ bool CTextEditing::ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayC
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CTextEditing::ReplaceRanges(STextRange* asRanges, size uiNumRanges, CArrayChars* paszTexts, const char* szText)
 {
 	size	i;

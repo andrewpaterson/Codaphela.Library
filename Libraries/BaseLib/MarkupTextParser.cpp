@@ -51,7 +51,7 @@ bool CMarkupTextParser::ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool b
 {
 	CChars			szFloat;
 	CTextParser		cTextParser;
-	double 			fValue;
+	double			fValue;
 	TRISTATE		tResult;
 
 	szFloat.Init();
@@ -212,7 +212,7 @@ void CMarkupTextParser::LogErrorTagWasEmpty(CMarkupTag* pcTag)
 //////////////////////////////////////////////////////////////////////////
 void CMarkupTextParser::TagToError(CChars* psz, CMarkupTag* pcParentTag)
 {
-	CMarkupTag* pcTag;
+	CMarkupTag*	pcTag;
 	CChars		szTemp;
 
 	if (pcParentTag)

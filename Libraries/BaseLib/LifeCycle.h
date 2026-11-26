@@ -91,7 +91,7 @@ CLifeInit<SuperClass> LifeAlloc(Args&& ... args)
 
 	pcLife = NewMalloc<SpecificClass>();
 	pcLife->Init(args...);
-	cLife.Init(pcLife, true, true); 
+	cLife.Init(pcLife, true, true);
 	return cLife;
 }
 

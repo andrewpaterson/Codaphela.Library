@@ -114,17 +114,17 @@ bool CFileUtil::DesktopDirectory(CChars* szDest)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::MakeDir(const char*szPathName)
 {
-    int iResult;
+	int iResult;
 
 	//The process umask decides the final permissions, as the default security descriptor does on Windows.
 	iResult = mkdir(szPathName, 0777);
 	if (iResult == 0)
 	{
-	    return true;
+		return true;
 	}
 	else
 	{
-	    return false;
+		return false;
 	}
 }
 
@@ -135,19 +135,19 @@ bool CFileUtil::MakeDir(const char*szPathName)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::RemoveDir(const char*szPathName)
 {
-    CChars  sz;
-    bool    bResult;
+	CChars	sz;
+	bool	bResult;
 
-    if (IsRootDirectory(szPathName))
-    {
-        return gcLogger.Error2(__METHOD__, " Aborting RemoveDir.  Tried to delete root directory.", NULL);
-    }
+	if (IsRootDirectory(szPathName))
+	{
+		return gcLogger.Error2(__METHOD__, " Aborting RemoveDir.  Tried to delete root directory.", NULL);
+	}
 
-    sz.Init(szPathName);
-    FullPath(&sz);
-    bResult = RecurseRemoveDir(sz.Text());
-    sz.Kill();
-    return bResult;
+	sz.Init(szPathName);
+	FullPath(&sz);
+	bResult = RecurseRemoveDir(sz.Text());
+	sz.Kill();
+	return bResult;
 }
 
 
@@ -157,56 +157,56 @@ bool CFileUtil::RemoveDir(const char*szPathName)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::RecurseRemoveDir(const char*szPathName)
 {
-    DIR*                pDIR;
-    struct dirent*      pDirEnt;
-	CChars              szTemp;
-	CChars              szDirectory;
-    struct stat         sBuffer;
-    int                 iStatus;
-    bool                bDeleted;
+	DIR*                pDIR;
+	struct dirent*      pDirEnt;
+	CChars	szTemp;
+	CChars	szDirectory;
+	struct stat         sBuffer;
+	int		iStatus;
+	bool	bDeleted;
 
 	szDirectory.Init(szPathName);
 	RemoveLastSeparator(&szDirectory);
 
-    pDIR = opendir(szPathName);
+	pDIR = opendir(szPathName);
 
-    if (pDIR == NULL)
-    {
-        //A directory that does not exist is already removed, matching Windows.
-        szDirectory.Kill();
-        return errno == ENOENT;
-    }
+	if (pDIR == NULL)
+	{
+		//A directory that does not exist is already removed, matching Windows.
+		szDirectory.Kill();
+		return errno == ENOENT;
+	}
 
 	//Like Windows only the deletion of files decides the result.
 	bDeleted = true;
-    pDirEnt = readdir(pDIR);
-    while (pDirEnt != NULL)
-    {
-        if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
-        {
-            szTemp.Init(szDirectory);
-            szTemp.Append(FILE_SEPARATOR);
-            szTemp.Append(pDirEnt->d_name);
+	pDirEnt = readdir(pDIR);
+	while (pDirEnt != NULL)
+	{
+		if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
+		{
+			szTemp.Init(szDirectory);
+			szTemp.Append(FILE_SEPARATOR);
+			szTemp.Append(pDirEnt->d_name);
 
-            //lstat so that a symbolic link to a directory is removed, not followed.
-            iStatus = lstat(szTemp.Text(), &sBuffer);
-            if ((iStatus == 0) && S_ISDIR(sBuffer.st_mode))
-            {
+			//lstat so that a symbolic link to a directory is removed, not followed.
+			iStatus = lstat(szTemp.Text(), &sBuffer);
+			if ((iStatus == 0) && S_ISDIR(sBuffer.st_mode))
+			{
 				RemoveDir(szTemp.Text());
 			}
-            else
-            {
-                if ((unlink(szTemp.Text()) != 0) && (errno != ENOENT))
-                {
-                    bDeleted = false;
-                }
-            }
-            szTemp.Kill();
+			else
+			{
+				if ((unlink(szTemp.Text()) != 0) && (errno != ENOENT))
+				{
+					bDeleted = false;
+				}
+			}
+			szTemp.Kill();
 		}
 		pDirEnt = readdir(pDIR);
 	}
 
-    closedir(pDIR);
+	closedir(pDIR);
 	rmdir(szDirectory.Text());
 	szDirectory.Kill();
 	return bDeleted;
@@ -285,10 +285,10 @@ bool CFileUtil::IsDirectory(const char* szPathName)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Touch(const char*szFilename)
 {
-    int     iHandle;
+	int     iHandle;
 
 	//Creates the file, or empties it if it exists, like Windows CREATE_ALWAYS.
-    iHandle = open(szFilename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	iHandle = open(szFilename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (iHandle != -1)
 	{
 		close(iHandle);
@@ -304,18 +304,18 @@ bool CFileUtil::Touch(const char*szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::SyncFile(const char* szFilename)
 {
-    int     iHandle;
-    int     iResult;
+	int	iHandle;
+	int	iResult;
 
-    iHandle = open(szFilename, O_RDONLY);
-    if (iHandle == -1)
-    {
-        return false;
-    }
+	iHandle = open(szFilename, O_RDONLY);
+	if (iHandle == -1)
+	{
+		return false;
+	}
 
-    iResult = fsync(iHandle);
-    close(iHandle);
-    return iResult == 0;
+	iResult = fsync(iHandle);
+	close(iHandle);
+	return iResult == 0;
 }
 
 
@@ -325,19 +325,19 @@ bool CFileUtil::SyncFile(const char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::SyncDirectory(const char* szDirectory)
 {
-    int     iHandle;
-    int     iResult;
+	int	iHandle;
+	int	iResult;
 
 	//Makes files created, deleted or renamed in the directory survive a power loss.
-    iHandle = open(szDirectory, O_RDONLY | O_DIRECTORY);
-    if (iHandle == -1)
-    {
-        return false;
-    }
+	iHandle = open(szDirectory, O_RDONLY | O_DIRECTORY);
+	if (iHandle == -1)
+	{
+		return false;
+	}
 
-    iResult = fsync(iHandle);
-    close(iHandle);
-    return iResult == 0;
+	iResult = fsync(iHandle);
+	close(iHandle);
+	return iResult == 0;
 }
 
 
@@ -347,16 +347,16 @@ bool CFileUtil::SyncDirectory(const char* szDirectory)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Delete(const char*szFilename)
 {
-    int     iResult;
+	int     iResult;
 
 	iResult = unlink(szFilename);
 	if ((iResult == 0) || (errno == ENOENT))
 	{
-	    return true;
+		return true;
 	}
 	else
 	{
-	    return false;
+		return false;
 	}
 }
 
@@ -367,7 +367,7 @@ bool CFileUtil::Delete(const char*szFilename)
 //////////////////////////////////////////////////////////////////////////
 bool CFileUtil::Exists(const char* szFilename)
 {
-    struct stat     sBuffer;
+	struct stat     sBuffer;
 
 	//True for files and directories whether or not they can be read, like Windows PathFileExists.
 	return stat(szFilename, &sBuffer) == 0;
@@ -381,21 +381,21 @@ bool CFileUtil::Exists(const char* szFilename)
 //////////////////////////////////////////////////////////////////////////
 filePos CFileUtil::Size(const char*szFilename)
 {
-    struct stat         sBuffer;
-    int                 iStatus;
-    CChars              sz;
+	struct stat         sBuffer;
+	int		iStatus;
+	CChars	sz;
 
-    sz.Init(szFilename);
-    FullPath(&sz);
-    iStatus = stat(sz.Text(), &sBuffer);
-    sz.Kill();
+	sz.Init(szFilename);
+	FullPath(&sz);
+	iStatus = stat(sz.Text(), &sBuffer);
+	sz.Kill();
 
-    //Windows cannot open a directory as a file so it has no size either.
-    if ((iStatus == -1) || S_ISDIR(sBuffer.st_mode))
-    {
-        return -1;
-    }
-    return sBuffer.st_size;
+	//Windows cannot open a directory as a file so it has no size either.
+	if ((iStatus == -1) || S_ISDIR(sBuffer.st_mode))
+	{
+		return -1;
+	}
+	return sBuffer.st_size;
 }
 
 
@@ -464,12 +464,12 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 {
 	struct dirent**     apDirEnts;
 	struct dirent*      pDirEnt;
-	int                 iNumDirEnts;
-	size                i;
-    CChars				szTemp;
+	int					iNumDirEnts;
+	size				i;
+	CChars				szTemp;
 	bool				bValid;
-    CChars				szDirectory;
-	int                 iStatus;
+	CChars				szDirectory;
+	int					iStatus;
 	struct stat         sBuffer;
 	bool                bDirectory;
 
@@ -479,7 +479,7 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 	iNumDirEnts = scandir(szDirectory.Text(), &apDirEnts, NULL, CompareDirEntsNTFS);
 	if (iNumDirEnts < 0)
 	{
-	    szDirectory.Kill();
+		szDirectory.Kill();
 		return false;
 	}
 
@@ -495,24 +495,24 @@ bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInN
 
 		szTemp.Init(szDirectory);
 		szTemp.Append(FILE_SEPARATOR);
-        szTemp.Append(pDirEnt->d_name);
+		szTemp.Append(pDirEnt->d_name);
 		iStatus = stat(szTemp.Text(), &sBuffer);
 		szTemp.Kill();
 
 		//An entry that cannot be stat'ed (e.g. a broken symbolic link) is listed as a file, as Windows lists it.
-        bDirectory = (iStatus == 0) && S_ISDIR(sBuffer.st_mode);
+		bDirectory = (iStatus == 0) && S_ISDIR(sBuffer.st_mode);
 		bValid = IsFindMatch(pDirEnt->d_name, bDirectory, bDirs, szInName, szExtension);
 
-        if (bValid)
-        {
-            if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
-            {
-                szTemp.Init(szDirectory);
-                AppendToPath(&szTemp, pDirEnt->d_name);
-                paszFiles->Add(szTemp.Text());
-                szTemp.Kill();
-            }
-        }
+		if (bValid)
+		{
+			if (!((StringCompare(pDirEnt->d_name, ".") == 0) || (StringCompare(pDirEnt->d_name, "..") == 0)))
+			{
+				szTemp.Init(szDirectory);
+				AppendToPath(&szTemp, pDirEnt->d_name);
+				paszFiles->Add(szTemp.Text());
+				szTemp.Kill();
+			}
+		}
 	}
 
 	FreeDirEnts(apDirEnts, (size)iNumDirEnts);

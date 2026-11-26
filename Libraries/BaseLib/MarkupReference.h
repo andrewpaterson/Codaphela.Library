@@ -37,8 +37,8 @@ class CMarkupRefText : public CMarkupReference
 public:
 	CMarkupSubText*	mpcRef;
 
-	void 	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
-	void 	Kill(void) override;
+	void	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
+	void	Kill(void) override;
 
 	size	Print(CChars* psz, size iDepth, size iLine) override;
 };
@@ -50,8 +50,8 @@ class CMarkupRefDoc : public CMarkupReference
 public:
 	CMarkupSubDoc*	mpcRef;
 
-	void 			Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
-	void 			Kill(void) override;
+	void			Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
+	void			Kill(void) override;
 
 	bool			Is(const char* szName);
 	CMarkupTag*		GetRootTag(void) const;
@@ -64,8 +64,8 @@ class CMarkupNamedRef : public CMarkupReference
 public:
 	CCharsImmutable		mszName;
 
-	void 		Init(const char* szName, CMarkupTag* pcParent);
-	void 		Kill(void) override;
+	void		Init(const char* szName, CMarkupTag* pcParent);
+	void		Kill(void) override;
 
 	size		Print(CChars* psz, size iDepth, size iLine) override;
 };

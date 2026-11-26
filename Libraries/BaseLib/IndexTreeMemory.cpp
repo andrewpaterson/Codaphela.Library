@@ -99,6 +99,10 @@ void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CInde
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer, this, this, NULL	);
@@ -149,7 +153,7 @@ void CIndexTreeMemory::ReInit(void)
 	CLifeInit<CMallocator>				cMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
 	EIndexKeyReverse					eKeyReverse;
-	size								iMaxDataSize; 
+	size								iMaxDataSize;
 	size								iMaxKeySize;
 
 	// This have never been tested.
@@ -632,9 +636,9 @@ void CIndexTreeMemory::RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndex
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, size uiIndexInParent)
 {
-	CIndexTreeNodeMemory* pcNew;
-	CIndexTreeNodeMemory* pcChildNodeOnParent;
-	CIndexTreeNodeMemory* pcReallocedParent;
+	CIndexTreeNodeMemory*	pcNew;
+	CIndexTreeNodeMemory*	pcChildNodeOnParent;
+	CIndexTreeNodeMemory*	pcReallocedParent;
 
 	pcChildNodeOnParent = pcParent->Get(uiIndexInParent);
 	if (pcChildNodeOnParent == NULL)
@@ -1485,7 +1489,7 @@ bool CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 			pvData = pcChild->GetDataPtr();
 			if (pvData != NULL)
 			{
-				return true; 
+				return true;
 			}
 		}
 		else
@@ -1852,7 +1856,7 @@ size CIndexTreeMemory::RecurseSize(CIndexTreeNodeMemory* pcNode)
 	CIndexTreeNodeMemory*	pcChild;
 	size					uiNumIndexes;
 	size					uiCount;
-	
+
 	uiCount = 0;
 
 	if (pcNode != NULL)

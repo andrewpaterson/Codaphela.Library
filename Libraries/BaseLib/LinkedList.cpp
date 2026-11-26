@@ -79,8 +79,8 @@ void CLinkedList::InsertBeforeHead(SLLNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedList::InsertBeforeNode(SLLNode* psExistingNode, SLLNode* psNewNode)
 {
-	SLLNode* psPos;
-	SLLNode* psNode;
+	SLLNode*	psPos;
+	SLLNode*	psNode;
 
 	if ((psExistingNode == NULL) || (psNewNode == NULL))
 	{
@@ -111,8 +111,8 @@ void CLinkedList::InsertBeforeNode(SLLNode* psExistingNode, SLLNode* psNewNode)
 //////////////////////////////////////////////////////////////////////////
 void CLinkedList::InsertAfterNode(SLLNode* psExistingNode, SLLNode* psNewNode)
 {
-	SLLNode* psPos;
-	SLLNode* psNode;
+	SLLNode*	psPos;
+	SLLNode*	psNode;
 
 	if ((psExistingNode == NULL) || (psNewNode == NULL))
 	{
@@ -345,7 +345,7 @@ SLLNode* CLinkedList::Get(size iNum)
 size CLinkedList::IndexOf(SLLNode* psNode)
 {
 	size			iIndex;
-	SLLNode*	psCurrent;
+	SLLNode*		psCurrent;
 
 	iIndex = 0;
 
@@ -458,21 +458,21 @@ void CLinkedList::Swap(SLLNode* psNode1, SLLNode* psNode2)
 		psNode1->psPrev = sNodeTemp2.psPrev;
 		psNode2->psNext = sNodeTemp1.psNext;
 		psNode2->psPrev = sNodeTemp1.psPrev;
-	} 
-	else if (psNode1->psNext==psNode2)
+	}
+	else if (psNode1->psNext == psNode2)
 	{
-		if (sNodeTemp1.psPrev)	{ sNodeTemp1.psPrev->psNext=psNode2; } else { mpsHead=psNode2; }
-		if (sNodeTemp2.psNext)	{ sNodeTemp2.psNext->psPrev=psNode1; } else { mpsTail=psNode1; }
+		if (sNodeTemp1.psPrev)	{ sNodeTemp1.psPrev->psNext = psNode2; } else { mpsHead = psNode2; }
+		if (sNodeTemp2.psNext)	{ sNodeTemp2.psNext->psPrev = psNode1; } else { mpsTail = psNode1; }
 
 		psNode1->psNext = sNodeTemp2.psNext;
 		psNode1->psPrev = psNode2;
 		psNode2->psNext = psNode1;
 		psNode2->psPrev = sNodeTemp1.psPrev;
 	}
-	else if (psNode1->psPrev==psNode2)
+	else if (psNode1->psPrev == psNode2)
 	{
-		if (sNodeTemp1.psNext)	{ sNodeTemp1.psNext->psPrev=psNode2; } else { mpsTail=psNode2; }
-		if (sNodeTemp2.psPrev)	{ sNodeTemp2.psPrev->psNext=psNode1; } else { mpsHead=psNode1; }
+		if (sNodeTemp1.psNext)	{ sNodeTemp1.psNext->psPrev = psNode2; } else { mpsTail = psNode2; }
+		if (sNodeTemp2.psPrev)	{ sNodeTemp2.psPrev->psNext = psNode1; } else { mpsHead = psNode1; }
 
 		psNode1->psNext = psNode2;
 		psNode1->psPrev = sNodeTemp2.psPrev;

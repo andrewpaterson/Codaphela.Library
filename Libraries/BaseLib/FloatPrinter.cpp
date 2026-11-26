@@ -6,7 +6,7 @@
 #include "FloatPrinter.h"
 
 
-int8	giPow2DigitsToPow10Digits[64] = { 0,1,1,1,2,2,2,3,3,3,4,4,4,4,5,5,5,6,6,6,7,7,7,7,8,8,8,9,9,9,10,10,10,10,11,11,11,12,12,12,13,13,13,13,14,14,14,15,15,15,16,16,16,16,17,17,17,18,18,18,19,19,19,19 };
+int8	giPow2DigitsToPow10Digits[64] = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 19 };
 char	szCommonLogarithmOfTwo[] = "0.3010299956639811952137388947244930267653"; 		//X.Init(2, 2, 40) X.CommonLogarithm();
 
 
@@ -347,7 +347,7 @@ char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxD
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
 char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, const char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
-{	
+{
 	uint8*		pui;
 	INTEGER		iMantissa;
 	bool		bNegative;

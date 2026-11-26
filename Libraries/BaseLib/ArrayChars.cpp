@@ -165,7 +165,7 @@ void CArrayChars::Fake(void)
 void CArrayChars::Kill(void)
 {
 	size		i;
-	CChars*	pcChars;
+	CChars*		pcChars;
 	size		uiElements;
 
 	if (!mbFaked)
@@ -337,17 +337,17 @@ CChars* CArrayChars::Add(const char* szText, char* szLastCharInclusive)
 	pcChars2 = mcArray.Add();
 	if (StringMallocator())
 	{
-		InitChars(pcChars2, szText, (size)(szLastCharInclusive-szText)+1);
+		InitChars(pcChars2, szText, (size)(szLastCharInclusive - szText)+1);
 	}
 	else if (!mbFaked)
 	{
-		pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
+		pcChars2->Init(szText, 0, (size)(szLastCharInclusive - szText)+1);
 	}
 	else
 	{
-		pcChars2->Fake(szText, 0, (size)(szLastCharInclusive-szText)+1);
+		pcChars2->Fake(szText, 0, (size)(szLastCharInclusive - szText)+1);
 	}
-	return pcChars2;	
+	return pcChars2;
 }
 
 
@@ -419,7 +419,7 @@ CChars* CArrayChars::AddIfUnique(CChars cChars)
 	size		uiElements;
 
 	if (!mbFaked)
-	{	
+	{
 		uiElements = mcArray.NumElements();
 		for (i = 0; i < uiElements; i++)
 		{
@@ -466,13 +466,13 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 		pcChars2 = mcArray.InsertAt(iIndex);
 		if (StringMallocator())
 		{
-			InitChars(pcChars2, szText, (size)(szLastCharInclusive-szText)+1);
+			InitChars(pcChars2, szText, (size)(szLastCharInclusive - szText)+1);
 		}
 		else
 		{
-			pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
+			pcChars2->Init(szText, 0, (size)(szLastCharInclusive - szText)+1);
 		}
-		return pcChars2;	
+		return pcChars2;
 	}
 }
 
@@ -1023,7 +1023,7 @@ size CArrayChars::GetLongestChars(void)
 //////////////////////////////////////////////////////////////////////////
 char CArrayChars::GetCharAt(size x, size y)
 {
-	CChars* psz;
+	CChars*	psz;
 	char	c;
 
 	psz = mcArray.SafeGet(y);

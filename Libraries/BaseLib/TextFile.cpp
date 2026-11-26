@@ -75,8 +75,8 @@ void CTextFile::KillExceptBuffer(void)
 bool CTextFile::Read(const char* szFilename)
 {
 	CDiskFile*	pcDiskFile;
-	
-    if (szFilename)
+
+	if (szFilename)
 	{
 		mszFilename.Kill();
 		mszFilename.Init(szFilename);

@@ -27,7 +27,7 @@ public:
 	bool			IsLocal(void) const override;
 	size			SizeOffset(void) override;
 
-	//This looks very wrong. 
+	//This looks very wrong.
 	const char*		ShortName(void) override;
 };
 

@@ -65,7 +65,7 @@ bool CPackFilePacker::Unpack(const char* szSourcePakFile, const char* szDestDire
 		{
 			cFileUtil.RemoveDir(szDestDirectory);
 		}
-	
+
 		cPackFiles.Init(pcDiskFile, PFM_Read);
 		bResult = cPackFiles.Unpack(szDestDirectory);
 		cPackFiles.Kill();
@@ -109,7 +109,7 @@ void CPackFilePacker::List(CPackFiles* pcPackFiles, CChars* pszDest)
 		pcFileNode = *acFileNodes.Get(i);
 		pcPackFileNode = pcFileNode->File();
 
-		iSize = pcPackFileNode->Size()/1024;
+		iSize = pcPackFileNode->Size() / 1024;
 		if (iSize == 0)
 		{
 			iSize = 1;

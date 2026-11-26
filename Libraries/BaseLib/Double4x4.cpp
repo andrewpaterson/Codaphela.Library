@@ -197,7 +197,7 @@ bool SDouble4x4::Inverse(SDouble4x4* psOut, double* pfDeterminant)
 	/* scale the adjoint matrix to get the inverse */
 	fDetInv = 1.0f / fDet;
 	sOut.x *= fDetInv;
-	sOut.y *=fDetInv;
+	sOut.y *= fDetInv;
 	sOut.z *= fDetInv;
 	sOut.pos *= fDetInv;
 
@@ -213,8 +213,8 @@ bool SDouble4x4::Inverse(SDouble4x4* psOut, double* pfDeterminant)
 //////////////////////////////////////////////////////////////////////////
 void SDouble4x4::Adjoint(SDouble4x4* psOut)
 {
-	double a1, a2, a3, a4, b1, b2, b3, b4;
-	double c1, c2, c3, c4, d1, d2, d3, d4;
+	double	a1, a2, a3, a4, b1, b2, b3, b4;
+	double	c1, c2, c3, c4, d1, d2, d3, d4;
 
 	//assign to individual variable names to aid
 	//selecting correct values
@@ -259,8 +259,8 @@ void SDouble4x4::Adjoint(SDouble4x4* psOut)
 //////////////////////////////////////////////////////////////////////////
 double SDouble4x4::Determinant(void)
 {
-	double ans;
-	double a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4;
+	double	ans;
+	double	a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4;
 
 	//assign to individual variable names to aid selecting
 	//correct elements
@@ -443,12 +443,20 @@ void Double4x4Translation(SDouble4x4* psOut, double x, double y, double z)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn)
 {
 	return psIn->Inverse(psOut, pfDeterminant);
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, const SFloat64Vec3* psAt, const SFloat64Vec3* psUp)
 {
 	//zaxis = normal(Eye - At)
@@ -460,9 +468,9 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, cons
 	//xaxis.z           yaxis.z           zaxis.z          0
 	//-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
 
-	SFloat64Vec3 sZAxis;
-	SFloat64Vec3 sXAxis;
-	SFloat64Vec3 sYAxis;
+	SFloat64Vec3	sZAxis;
+	SFloat64Vec3	sXAxis;
+	SFloat64Vec3	sYAxis;
 
 	sZAxis.Copy(psEye);
 	sZAxis -= *psAt;
@@ -473,18 +481,18 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, cons
 
 	Float64Vec3Cross(&sYAxis, &sZAxis, &sXAxis);
 
-	psOut->x.x = sXAxis.x;	
-	psOut->x.y = sYAxis.x;	
+	psOut->x.x = sXAxis.x;
+	psOut->x.y = sYAxis.x;
 	psOut->x.z = sZAxis.x;
 	psOut->x.w = 0.0f;
 
-	psOut->y.x = sXAxis.y;	
-	psOut->y.y = sYAxis.y;	
+	psOut->y.x = sXAxis.y;
+	psOut->y.y = sYAxis.y;
 	psOut->y.z = sZAxis.y;
 	psOut->y.w = 0.0f;
 
-	psOut->z.x = sXAxis.z;	
-	psOut->z.y = sYAxis.z;	
+	psOut->z.x = sXAxis.z;
+	psOut->z.y = sYAxis.z;
 	psOut->z.z = sZAxis.z;
 	psOut->z.w = 0.0f;
 
@@ -497,6 +505,10 @@ SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SFloat64Vec3* psEye, cons
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fAspect, double fZNear, double fZFar)
 {
 	//yScale = cot(fovY/2)
@@ -507,13 +519,13 @@ SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fA
 	//0          0      zf/(zn-zf)        -1
 	//0          0      zn*zf/(zn-zf)      0
 
-	double fXScale;
-	double fYScale;
+	double	fXScale;
+	double	fYScale;
 
-	fYScale = 1.0f / tan(fFovY/2.0f);
+	fYScale = 1.0f / tan(fFovY / 2.0f);
 	fXScale = fYScale / fAspect;
 
-	psOut->x.x = fXScale;	
+	psOut->x.x = fXScale;
 	psOut->x.y = 0.0f;
 	psOut->x.z = 0.0f;
 	psOut->x.w = 0.0f;
@@ -525,12 +537,12 @@ SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fA
 
 	psOut->z.x = 0.0f;
 	psOut->z.y = 0.0f;
-	psOut->z.z = fZFar / (fZNear-fZFar);
+	psOut->z.z = fZFar / (fZNear - fZFar);
 	psOut->z.w = -1.0f;
 
 	psOut->pos.x = 0.0f;
 	psOut->pos.y = 0.0f;
-	psOut->pos.z = fZNear * (fZFar / (fZNear-fZFar));
+	psOut->pos.z = fZNear * (fZFar / (fZNear - fZFar));
 	psOut->pos.w = 0.0f;
 
 	return psOut;

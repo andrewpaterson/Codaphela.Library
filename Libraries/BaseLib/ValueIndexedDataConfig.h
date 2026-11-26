@@ -17,11 +17,11 @@ protected:
 	CLifeInit<CIndexTreeDataOrderer>		mcIndexTreeDataOrderer;
 
 public:
-	void 									Init(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
-	void 									Init(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer);
+	void									Init(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
+	void									Init(const char* szSubDirectory, lsize uiDataCacheSize, lsize uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcIndexTreeEvictionUserCallback, CIndexedDataEvictionCallback* pcIndexedDataEvictionUserCallback, CLifeInit<CIndexTreeDataOrderer> cIndexTreeDataOrderer);
 	void									Kill(void) override;
 
-	const char*									GetSubdirectory(void) const override;
+	const char*								GetSubdirectory(void) const override;
 	lsize									GetDataCacheSize(void) const override;
 	lsize									GetIndexCacheSize(void) const override;
 	EIndexWriteThrough						GetWriteThrough(void) const override;

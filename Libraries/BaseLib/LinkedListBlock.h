@@ -51,7 +51,7 @@ public:
 	void*			InsertBeforeNode(lsize uiDataSize, void* psPos);
 	void*			InsertAfterNode(lsize uiDataSize, void* psPos);
 
-protected:	
+protected:
 	lsize			GetNodeSize(void* psData);
 	lsize			GetDataSize(void* pvData);
 	SLLBlockNode*	AllocateDetached(lsize uiDataSize);

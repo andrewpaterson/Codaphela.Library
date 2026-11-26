@@ -26,8 +26,8 @@
 #include "FatFormat.h"
 
 
- // structure of the disk size to sectors per
- // cluster lookup table
+// structure of the disk size to sectors per
+// cluster lookup table
 struct SDiskSizeToSectorsPerCluster
 {
 	uint32	DiskSize;
@@ -47,15 +47,15 @@ struct SDiskSizeToSectorsPerCluster
 //* to be changed otherwise the cluster count may be to low for FAT16.
 static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
 {
-   { 8400, 0 }, 		/* disks up to 4.1 MB, the 0 value for SecPerClusVal trips an error */
-   { 32680, 2 },  		/* disks up to 16 MB, 1k cluster */
-   { 262144, 4 },		/* disks up to 128 MB, 2k cluster */
-   { 524288, 8 },		/* disks up to 256 MB, 4k cluster */
-   { 1048576, 16 },		/* disks up to 512 MB, 8k cluster */
-   /* The entries after this point are not used unless FAT16 is forced */
-   { 2097152, 32 },		/* disks up to 1 GB, 16k cluster */
-   { 4194304, 64 },		/* disks up to 2 GB, 32k cluster */
-   { 0xFFFFFFFF, 0 }	/* any disk greater than 2GB, 0 value for SecPerClusVal trips an error */
+	{ 8400, 0 }, 		/* disks up to 4.1 MB, the 0 value for SecPerClusVal trips an error */
+	{ 32680, 2 },  		/* disks up to 16 MB, 1k cluster */
+	{ 262144, 4 },		/* disks up to 128 MB, 2k cluster */
+	{ 524288, 8 },		/* disks up to 256 MB, 4k cluster */
+	{ 1048576, 16 },		/* disks up to 512 MB, 8k cluster */
+	/* The entries after this point are not used unless FAT16 is forced */
+	{ 2097152, 32 },		/* disks up to 1 GB, 16k cluster */
+	{ 4194304, 64 },		/* disks up to 2 GB, 32k cluster */
+	{ 0xFFFFFFFF, 0 }	/* any disk greater than 2GB, 0 value for SecPerClusVal trips an error */
 };
 
 
@@ -69,7 +69,7 @@ static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
 // must be 2. Any of these values being different may require the first
 // table entries DiskSize value to be changed otherwise the cluster count
 // may be to low for FAT32.
- 
+
 
 static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat32[] =
 {
@@ -149,24 +149,24 @@ void SetFatVolumeLabel(char* szDestination, const char* szVolumeLabel)
 //////////////////////////////////////////////////////////////////////////
 void CalcuateFatTableSizeInSectorsAndNumberOfClusters(uint32* puiNoOfClusters, uint32* puiFatTableSizeInSectors, EFatFileSystemType fs_type, uint32 uiBytesPerSector, uint32 uiNoOfReservedSectors, uint32 uiNoOfFatTables, uint32 uiTotalSectors, uint32 uiSectorsPerCluster)
 {
-// calculate the FAT table size (ignoring the fact that it won't fit
-// since we're allocating all disk space to clusters
+	// calculate the FAT table size (ignoring the fact that it won't fit
+	// since we're allocating all disk space to clusters
 	for (;;)
 	{
 		switch (fs_type)
 		{
-			case FAT_FS_TYPE_FAT16:
+		case FAT_FS_TYPE_FAT16:
 			{
 				*puiFatTableSizeInSectors = (((*puiNoOfClusters + 2) * 2) + uiBytesPerSector - 1) / uiBytesPerSector;
 				break;
 			}
-			case FAT_FS_TYPE_FAT32:
+		case FAT_FS_TYPE_FAT32:
 			{
 				*puiFatTableSizeInSectors = (((*puiNoOfClusters + 2) * 4) + uiBytesPerSector - 1) / uiBytesPerSector;
 				break;
 			}
-			default:
-				break;
+		default:
+			break;
 		}
 
 		// if the FAT table fits then we're done
@@ -294,7 +294,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	// check that the filesystem type/cluster size supplied is correct.
 	switch (fs_type)
 	{
-		case FAT_FS_TYPE_FAT16:
+	case FAT_FS_TYPE_FAT16:
 		{
 			if (uiNoOfClusters > FAT16_MAX_CLUSTERS || uiNoOfClusters < (FAT12_MAX_CLUSTERS + 1))
 			{
@@ -302,7 +302,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 			}
 			break;
 		}
-		case FAT_FS_TYPE_FAT32:
+	case FAT_FS_TYPE_FAT32:
 		{
 			if (uiNoOfClusters < (FAT16_MAX_CLUSTERS + 1))
 			{
@@ -310,8 +310,8 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 			}
 			break;
 		}
-		default:
-			break;
+	default:
+		break;
 	}
 
 	root_cluster = 3;
@@ -321,15 +321,15 @@ EFatCode FatFormat(EFatFileSystemType fs_type, const char* const volume_label, u
 	// will roll back to zero
 	switch (fs_type)
 	{
-		case FAT_FS_TYPE_FAT16: 
-			root_entry_offset = root_cluster * ((uint32)2); 
-			break;
+	case FAT_FS_TYPE_FAT16:
+		root_entry_offset = root_cluster * ((uint32)2);
+		break;
 
-		case FAT_FS_TYPE_FAT32: 
-			root_entry_offset = root_cluster * ((uint32)4); 
-			break;
-		default:
-			break;
+	case FAT_FS_TYPE_FAT32:
+		root_entry_offset = root_cluster * ((uint32)4);
+		break;
+	default:
+		break;
 	}
 
 	root_entry_sector = (root_entry_offset / uiBytesPerSector);

@@ -38,7 +38,7 @@ public:
 				CNaiveFile();
 
 	CNaiveFile*	Init(void);
-	CNaiveFile* Init(void* pvMem, size iSize);
+	CNaiveFile*	Init(void* pvMem, size iSize);
 	void		Kill(void);
 	void		KillExceptBuffer(void);
 

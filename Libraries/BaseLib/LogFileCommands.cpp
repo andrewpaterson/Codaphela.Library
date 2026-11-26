@@ -104,8 +104,8 @@ void CLogFileCommandOpen::Init(EFileMode eMode)
 //////////////////////////////////////////////////////////////////////////
 bool CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 {
-	bool		bResult;
-	CFileUtil	cFileUtil;
+	bool			bResult;
+	CFileUtil		cFileUtil;
 	const char*		szFilename;
 
 	if (IsFileModeCreate(eMode))

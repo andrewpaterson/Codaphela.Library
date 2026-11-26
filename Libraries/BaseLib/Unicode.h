@@ -61,7 +61,7 @@ class CUnicode : public CKillable
 protected:
 	uint16	muiError;
 	uint16	muiTooSmall;
-	
+
 	uint16	muiZWJ;
 
 public:

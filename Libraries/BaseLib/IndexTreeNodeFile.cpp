@@ -507,7 +507,7 @@ size CIndexTreeNodeFile::WriteToBuffer(void* pvBuffer, size uiBufferSize, CIndex
 		gcLogger.Error2(__METHOD__, " Could not write IndexTreeNodeFile size [", SizeToString(uiFileSize), "] to buffer size [", SizeToString(uiBufferSize), "].  Buffer to small.", NULL);
 		return 0;
 	}
-	
+
 	pucMemory = (uint8*)pvBuffer;
 	uiPos = 0;
 	uiDataSize = GetDataSize();

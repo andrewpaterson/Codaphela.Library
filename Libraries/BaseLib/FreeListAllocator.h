@@ -31,9 +31,9 @@ public:
 	size			SizeOffset(void) override;
 
 public:
-	static CLifeInit<CMallocator> Create(int iElementSize);
-	static CLifeInit<CMallocator> Create(int iElementSize, int iAlignment);
-	static CLifeInit<CMallocator> Create(int iElementSize, int iAlignment, int iOffset);
+	static CLifeInit<CMallocator>	Create(int iElementSize);
+	static CLifeInit<CMallocator>	Create(int iElementSize, int iAlignment);
+	static CLifeInit<CMallocator>	Create(int iElementSize, int iAlignment, int iOffset);
 };
 
 

@@ -32,9 +32,9 @@ class CGuidClass
 {
 public:
 	uint32	muiData1;
-	uint16	muiData2; 
+	uint16	muiData2;
 	uint16	muiData3;
-	uint8	maubData4[8];	
+	uint8	maubData4[8];
 
 	TRISTATE	Init(char8* sz);
 	void		Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, uint8* paubData4);

@@ -167,7 +167,7 @@ bool CConstructors::ValidateNotAdded(const char* szClassName)
 //////////////////////////////////////////////////////////////////////////
 bool CConstructors::Contains(const char* szName)
 {
-	void*	pcConstructor;
+	void*		pcConstructor;
 	size		iSize;
 
 	pcConstructor = mcConstructors.Get(szName, &iSize);

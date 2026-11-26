@@ -125,8 +125,8 @@ void* CLinkedListBlock::InsertBeforeHead(lsize uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertBeforeNode(lsize uiDataSize, void* psPos)
 {
-	SLLBlockNode* psNode;
-	SLLBlockNode* psNodePos;
+	SLLBlockNode*	psNode;
+	SLLBlockNode*	psNodePos;
 
 	psNodePos = DataGetNode(psPos);
 	psNode = AllocateDetached(uiDataSize);
@@ -140,8 +140,8 @@ void* CLinkedListBlock::InsertBeforeNode(lsize uiDataSize, void* psPos)
 //////////////////////////////////////////////////////////////////////////
 void* CLinkedListBlock::InsertAfterNode(lsize uiDataSize, void* psPos)
 {
-	SLLBlockNode* psNode;
-	SLLBlockNode* psNodePos;
+	SLLBlockNode*	psNode;
+	SLLBlockNode*	psNodePos;
 
 	psNodePos = DataGetNode(psPos);
 	psNode = AllocateDetached(uiDataSize);

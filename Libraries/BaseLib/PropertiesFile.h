@@ -34,8 +34,8 @@ protected:
 	CCharsImmutable		mszName;
 
 public:
-	void 	Init(const char* szFilename);
-	void 	Kill(void);
+	void	Init(const char* szFilename);
+	void	Kill(void);
 	char*	Get(const char* szProperty);
 	void	Set(const char* szProperty, const char* szValue);
 	bool	Read(void);

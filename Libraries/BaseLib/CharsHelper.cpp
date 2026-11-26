@@ -44,7 +44,7 @@ void CCharsHelper::GenerateRandomNumbersCharList(size iNum)
 		r = cRandom.Next(0, 255);
 		sz.Append("0x");
 		sz.AppendHexHiLo(&r, 1);
-		if (i != iNum-1)
+		if (i != iNum - 1)
 		{
 			sz.Append(", ");
 		}
@@ -133,7 +133,7 @@ void CCharsHelper::Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArra
 //////////////////////////////////////////////////////////////////////////
 void CCharsHelper::InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight)
 {
-	CArrayChars aszIntersection;
+	CArrayChars	aszIntersection;
 	size		i;
 	CChars*		psz;
 	size		iIndex;

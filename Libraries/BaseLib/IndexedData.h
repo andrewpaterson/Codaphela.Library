@@ -50,8 +50,8 @@ protected:
 	CIndexedDataConfig*			mpcConfig;
 
 public:
-	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig);
-	void 			Kill(void) override;
+	void			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig);
+	void			Kill(void) override;
 
 	bool			CanKill(void);
 
@@ -71,7 +71,7 @@ public:
 
 	bool			FlushKey(OIndex oi);
 
-	CDurableFileController* GetDurableFileControl(void) const;
+	CDurableFileController*	GetDurableFileControl(void) const;
 	lsize			GetIndiciesSystemMemorySize(void);
 	lsize			GetDataSystemMemorySize(void);
 	size			GetRootFlags(void) const;
@@ -86,7 +86,7 @@ public:
 
 	bool			TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, lsize* piDataSize, lsize iMaxDataSize);
+	OIndex			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, lsize* piDataSize, lsize iMaxDataSize);
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, lsize* piDataSize, lsize iMaxDataSize);
 
 protected:

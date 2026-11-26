@@ -149,7 +149,7 @@ void CCircularMemoryList::RemapDifferentMemory(void* pvNewCache, lsize uiCacheSi
 			psNewPrev = psNew;
 			psNew = (SMemoryCacheDescriptor*)RemapSinglePointer(psNew, uiSize);
 			psCacheBasedDescriptor = GetNextDescriptor(psCacheBasedDescriptor);
-		} 
+		}
 		while (!IsFirst(psCacheBasedDescriptor));
 
 		mpvCache = (SMemoryCacheDescriptor*)pvNewCache;
@@ -188,7 +188,7 @@ void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 	SMemoryCacheDescriptor*		psNew;
 	lsize						uiSize;
 	lsize						uiRemaining;
-	
+
 	mpsDetail->muiCacheSize = uiCacheSize;
 	if (mpvCache == GetFirst() || mpsDetail->mpsHead == NULL)
 	{
@@ -208,7 +208,7 @@ void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 			}
 		}
 		psCacheBasedDescriptor = GetNextDescriptor(psCacheBasedDescriptor);
-	} 
+	}
 	while (!IsFirst(psCacheBasedDescriptor));
 
 	if (psLargest == NULL)
@@ -237,9 +237,9 @@ void CCircularMemoryList::RemapSameMemory(lsize uiCacheSize)
 		GetPrevDescriptor(psNew)->SetNext(MapFromCacheBasedToZeroBased(psNew));
 
 		psLargest = psNew;
-		
+
 		psCacheBasedDescriptor = GetNextDescriptor(psCacheBasedDescriptor);
-	} 
+	}
 	while (!IsFirst(psCacheBasedDescriptor));
 
 	mpsDetail->mpsTail = MapFromCacheBasedToZeroBased(psLargest);
@@ -335,7 +335,7 @@ lsize CCircularMemoryList::GetCacheSize(void) const
 //////////////////////////////////////////////////////////////////////////
 lsize CCircularMemoryList::GetAllocatedSize(void)
 {
-	SMemoryCacheDescriptor* psIter;
+	SMemoryCacheDescriptor*	psIter;
 	lsize					uiSize;
 
 	uiSize = 0;
@@ -418,7 +418,7 @@ lsize CCircularMemoryList::GetSize(void* pvCacheBasedData)
 //////////////////////////////////////////////////////////////////////////
 lsize CCircularMemoryList::NumElements(void)
 {
-	SMemoryCacheDescriptor*		psDescriptor;
+	SMemoryCacheDescriptor*			psDescriptor;
 	lsize							iNum;
 
 	if (IsEmpty())
@@ -645,8 +645,8 @@ SMemoryCacheDescriptor* CCircularMemoryList::OneAllocation(void)
 //////////////////////////////////////////////////////////////////////////
 SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* psCacheBasedDescriptor)
 {
-	SMemoryCacheDescriptor* psTail;
-	SMemoryCacheDescriptor* psHead;
+	SMemoryCacheDescriptor*	psTail;
+	SMemoryCacheDescriptor*	psHead;
 
 	if (IsEmpty())
 	{
@@ -850,7 +850,7 @@ bool CCircularMemoryList::ValidateCache(void)
 
 		iCount++;
 		psCacheBasedDescriptor = GetNextDescriptor(psCacheBasedDescriptor);
-	} 
+	}
 	while (!IsFirst(psCacheBasedDescriptor));
 	return true;
 }
@@ -916,8 +916,8 @@ SMemoryCacheDescriptor* CCircularMemoryList::MapFromCacheBasedToZeroBased(void* 
 //////////////////////////////////////////////////////////////////////////
 void CCircularMemoryList::SetEndsForPostAllocate(SMemoryCacheDescriptor* psCacheBasedDescriptor, SMemoryCacheDescriptor* psFirstOverlap, SMemoryCacheDescriptor* psLastOverlap)
 {
-	SMemoryCacheDescriptor* psFirstPrev;
-	SMemoryCacheDescriptor* psNextAfterLast;;
+	SMemoryCacheDescriptor*	psFirstPrev;
+	SMemoryCacheDescriptor*	psNextAfterLast;;
 
 	psFirstPrev = GetPrevDescriptor(psFirstOverlap);
 	psFirstPrev->SetNext(MapFromCacheBasedToZeroBased(psCacheBasedDescriptor));
@@ -999,7 +999,7 @@ size CCircularMemoryList::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedN
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::StartIteration(void)
 {
-	SMemoryCacheDescriptor* psDesc;
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = StartDescriptorIteration();
@@ -1014,7 +1014,7 @@ void* CCircularMemoryList::StartIteration(void)
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::Iterate(void* psCurrent)
 {
-	SMemoryCacheDescriptor* psDesc; 
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = GetDescriptorNoRemap(psCurrent);
@@ -1030,7 +1030,7 @@ void* CCircularMemoryList::Iterate(void* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::GetFirst(void)
 {
-	SMemoryCacheDescriptor* psDesc;
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = GetFirstDescriptor();
@@ -1045,7 +1045,7 @@ void* CCircularMemoryList::GetFirst(void)
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::GetLast(void)
 {
-	SMemoryCacheDescriptor* psDesc; 
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = GetLastDescriptor();
@@ -1060,12 +1060,12 @@ void* CCircularMemoryList::GetLast(void)
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::GetNext(void* psCurrent)
 {
-	SMemoryCacheDescriptor* psDesc; 
+	SMemoryCacheDescriptor*	psDesc;
 	void*					pvData;
 
 	psDesc = GetDescriptorNoRemap(psCurrent);
 	psDesc = GetNextDescriptor(psDesc);
-	pvData = GetData(psDesc); 
+	pvData = GetData(psDesc);
 	return pvData;
 }
 
@@ -1076,8 +1076,8 @@ void* CCircularMemoryList::GetNext(void* psCurrent)
 //////////////////////////////////////////////////////////////////////////
 void* CCircularMemoryList::GetPrev(void* psCurrent)
 {
-	SMemoryCacheDescriptor* psDesc;
-	void* pvData;
+	SMemoryCacheDescriptor*	psDesc;
+	void*					pvData;
 
 	psDesc = GetDescriptorNoRemap(psCurrent);
 	psDesc = GetPrevDescriptor(psDesc);

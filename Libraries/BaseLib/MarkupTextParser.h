@@ -29,17 +29,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMarkupTextParser
 {
 public:
-	static CMarkupTag* GetTag(CMarkupTag* pcParentTag, char* szTagName, bool bLogErrors = true);
-	static bool 		ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool bLogErrors = true);
-	static bool 		ReadInteger(CMarkupTag* pcIntTag, int64* pcInt, bool bLogErrors = true);
-	static bool 		ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogErrors = true);
+	static CMarkupTag*	GetTag(CMarkupTag* pcParentTag, char* szTagName, bool bLogErrors = true);
+	static bool			ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool bLogErrors = true);
+	static bool			ReadInteger(CMarkupTag* pcIntTag, int64* pcInt, bool bLogErrors = true);
+	static bool			ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogErrors = true);
 
-	static void 		LogError(CMarkupTag* pcTag, const char* szError);
-	static void 		LogErrorTagNotFound(CMarkupTag* pcParentTag, char* szExpectedTag);
-	static void 		LogErrorTagWasEmpty(CMarkupTag* pcTag);
+	static void			LogError(CMarkupTag* pcTag, const char* szError);
+	static void			LogErrorTagNotFound(CMarkupTag* pcParentTag, char* szExpectedTag);
+	static void			LogErrorTagWasEmpty(CMarkupTag* pcTag);
 
 private:
-	static void 		TagToError(CChars* psz, CMarkupTag* pcParentTag);
+	static void			TagToError(CChars* psz, CMarkupTag* pcParentTag);
 };
 
 

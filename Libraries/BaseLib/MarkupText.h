@@ -31,9 +31,9 @@ class CMarkupText : public CMarkupBase
 public:
 	CChars		mszText;
 
-	void 	Init(CMarkupTag* pcParent);
-	void 	Init(const char* szText, CMarkupTag* pcParent);
-	void 	Kill(void) override;
+	void	Init(CMarkupTag* pcParent);
+	void	Init(const char* szText, CMarkupTag* pcParent);
+	void	Kill(void) override;
 
 	char*	Text(void);
 	size	Print(CChars* psz, size iDepth, size iLine) override;

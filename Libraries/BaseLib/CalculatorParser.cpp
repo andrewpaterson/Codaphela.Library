@@ -339,7 +339,7 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	pacOperators = mpcCalculator->GetOperators();
 	uiNumOperators = CO_NumExplicitOperators;
 
-	for (i = CO_Invalid+1; i <= uiNumOperators; i++)
+	for (i = CO_Invalid + 1; i <= uiNumOperators; i++)
 	{
 		pcDefinition = pacOperators->Get(i);
 		eOp = pcDefinition->GetOperator();

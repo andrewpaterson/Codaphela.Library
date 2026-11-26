@@ -57,7 +57,7 @@ protected:
 	void	BecomeEmbedded(size iUsedElements);
 
 public:
-	//Appease the constructor gods.  
+	//Appease the constructor gods.
 	//Shouldn't you use the using keyword?  What you doing?
 	CArrayTemplateEmbedded() {}
 	CArrayTemplateEmbedded(CArrayTemplateEmbedded &&) {}
@@ -73,7 +73,7 @@ public:
 						M*		Add(M* pvData);
 						void	AddPtr(void* pv);
 
-						size 	ByteSize(void) const;
+						size	ByteSize(void) const;
 						size	EmbeddedSize(void);
 
 						M*		Get(size iIndex);
@@ -83,14 +83,14 @@ public:
 
 						size	GetIndex(M* pvElement);
 
-						size 	Find(M* pvElement);
+						size	Find(M* pvElement);
 
 						void	Set(size iIndex, M* pvData);
 						void	SafeSet(size iIndex, M* pvData);
 
 						size	AddNum(size iNumElements);
 
-						M* 		InsertAt(size iIndex);
+						M*		InsertAt(size iIndex);
 						M*		InsertAt(M* pvData, size iIndex);
 
 						size	Resize(size iNumElements);
@@ -103,13 +103,13 @@ public:
 						size	NumElements(void) const;
 
 						bool	Remove(M* pvElement, bool bPreserveOrder = true);
-						void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
-						bool 	RemoveTail(void);
+						void	RemoveAt(size iIndex, bool bPreserveOrder = true);
+						bool	RemoveTail(void);
 						bool	RemoveFirst(void);
 
 	template<int8 J>	void	Copy(CArrayTemplateEmbedded<M, J>* pcArrayTemplateEmbedded);
 						bool	TestInternalConsistency(void);
-						void 	Zero(void);
+						void	Zero(void);
 
 						bool	Write(CFileWriter* pcFileWriter);
 						bool	Read(CFileReader* pcFileReader);
@@ -122,7 +122,7 @@ public:
 
 						bool	Pop(M* pvDest);
 						bool	Pop(void);
-						void 	Push(M* pvData);
+						void	Push(M* pvData);
 						M*		Push(void);
 						M*		PushCopy(void);
 };

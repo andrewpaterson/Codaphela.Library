@@ -57,8 +57,8 @@ protected:
 	EFatCode	FlushCacheUpdateAccess(void) noexcept;
 
 	const char*		GetShortFileName(void) const noexcept;
-	EFatCode	ValidateCanRead(void) noexcept;
-	EFatCode	ValidateCanWrite(void) noexcept;
+	EFatCode		ValidateCanRead(void) noexcept;
+	EFatCode		ValidateCanWrite(void) noexcept;
 
 	EFatCode	PotentiallyAllocateClusters(uint32 uiLength) noexcept;
 	EFatCode	CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster) noexcept;

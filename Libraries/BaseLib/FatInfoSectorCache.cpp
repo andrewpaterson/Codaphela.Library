@@ -321,7 +321,7 @@ bool CFatInfoSectorCache::Unlock(uint32 uiSector) noexcept
 {
 	SFatCache			sSectorCache;
 	CFatSectorCache*	pcCachedSector;
-	
+
 	sSectorCache = FindCachedSector(uiSector);
 	if (sSectorCache.IsValid())
 	{

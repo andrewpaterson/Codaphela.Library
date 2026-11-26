@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SCSVRowImmutable : public CListCharsMinimal
 {
-	void 		Dump(void);
+	void		Dump(void);
 };
 
 
@@ -38,16 +38,16 @@ class CCSVFileImmutable : public CCSVFile
 public:
 	CArrayIntAndPointer		mapsCSVRows;
 
-	void 				Init(char cSeparator);
-	void 				Kill(void);
+	void				Init(char cSeparator);
+	void				Kill(void);
 
-	bool 				ReadLine(void);
+	bool				ReadLine(void);
 	bool				ReadLine(char* szString, int32 iMaxLength);
-	bool 				ReadLine(filePos iFileOffset, SCSVRowImmutable** ppsCSVRow);
+	bool				ReadLine(filePos iFileOffset, SCSVRowImmutable** ppsCSVRow);
 	SCSVRowImmutable*	AllocateRow(char* szText);
 	void				FreeRow(SCSVRowImmutable* psCSVRow);
-	void 				ReadAllLines(void);
-	void 				Dump(void);
+	void				ReadAllLines(void);
+	void				Dump(void);
 	size				NumRows(void) const;
 	SCSVRowImmutable*	Get(size iRowNum);
 };

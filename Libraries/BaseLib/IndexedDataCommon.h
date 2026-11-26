@@ -8,7 +8,7 @@
 #include "IndexedDataEvictionCallback.h"
 
 
-class CIndexedDataCommon 
+class CIndexedDataCommon
 {
 protected:
 	CIndexedFilesEvicting			mcData;
@@ -22,7 +22,7 @@ public:
 			bool			IsCaching(void) const;
 			bool			IsWriteThrough(void) const;
 			bool			IsFlushed(void);
-	
+
 			bool			Add(OIndex oi, void* pvData, lsize uiDataSize);
 
 			bool			Set(OIndex oi, void* pvData);
@@ -33,7 +33,7 @@ public:
 			bool			Get(OIndex oi, void* pvData, lsize uiMaxSize = 0);
 			bool			Get(OIndex oi, lsize* puiDataSize, void* pvData, lsize uiMaxSize);
 
-			lsize	Size(OIndex oi);
+			lsize			Size(OIndex oi);
 			bool			Contains(OIndex oi);
 
 			int64			NumElements(void);

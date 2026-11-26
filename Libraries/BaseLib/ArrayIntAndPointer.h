@@ -30,9 +30,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>
 {
 public:
-	void 	Add(void* pvData, uint uiType);
-	void 	AddIfUnique(void* pvData, uint uiType);
-	bool 	Get(size iElementPos, void** pvData, uint* uiType);
+	void	Add(void* pvData, uint uiType);
+	void	AddIfUnique(void* pvData, uint uiType);
+	bool	Get(size iElementPos, void** pvData, uint* uiType);
 	void*	GetPtr(size iElementPos);
 	void*	SafeGetPtr(size iElementPos);
 	uint	GetType(size iElementPos);

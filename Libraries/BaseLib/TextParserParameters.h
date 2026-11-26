@@ -12,8 +12,8 @@ struct SParseState
 	STextPosition		sCurrent;
 	CArrayTextPosition	asPrev;
 
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 };
 
 

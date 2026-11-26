@@ -20,7 +20,7 @@ void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParen
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiIndexInParent)
 {
- 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
+	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
 }
 
 
@@ -287,7 +287,7 @@ bool CIndexTreeNodeMemory::Uncontain(size uiIndex)
 		MoveNodesLeft(uiNextFirstIndex);
 		return true;
 	}
-	
+
 	if (uiIndex == muiLastIndex)
 	{
 		muiLastIndex = (uint8)FindPrevLastIndex();

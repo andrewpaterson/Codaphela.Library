@@ -51,7 +51,7 @@ private:
 
 	CFileBasic					mcPrimaryFile;
 	CFileBasic					mcRewriteFile;
-	
+
 	CDiskFile					mcPrimaryDiskFile;
 	CDiskFile					mcRewriteDiskFile;
 

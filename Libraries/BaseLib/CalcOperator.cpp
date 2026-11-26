@@ -70,97 +70,97 @@ void CCalcOperator::Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* 
 
 	switch (meOp)
 	{
-		case CO_EqualTo:
-			if (pcNumberLeft->Equals(pcNumberRight))
-				pcAnswer->One();
-			else
-				pcAnswer->Zero();
-			break;
-		case CO_NotEqualTo:
-			if (!pcNumberLeft->Equals(pcNumberRight))
-				pcAnswer->One();
-			else
-				pcAnswer->Zero();
-			break;
-		case CO_GreaterThanEqualTo:
-			if (pcNumberLeft->GreaterThanOrEquals(pcNumberRight))
-				pcAnswer->One();
-			else
-				pcAnswer->Zero();
-			break;
-		case CO_LessThanEqualTo:
-			if (pcNumberLeft->LessThanOrEquals(pcNumberRight))
-				pcAnswer->One();
-			else
-				pcAnswer->Zero();
-			break;
-		case CO_LogicalOr:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->LogicalOr(pcNumberRight);
-			break;
-		case CO_LogicalAnd:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->LogicalAnd(pcNumberRight);
-			break;
-		case CO_Add:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->Add(pcNumberRight);
-			break;
-		case CO_Subtract:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->Subtract(pcNumberRight);
-			break;
-		case CO_Multiply:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->Multiply(pcNumberRight);
-			break;
-		case CO_Divide:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->Divide(pcNumberRight);
-			break;
-		case CO_Modulus:
-			pcAnswer->Init(pcNumberLeft);
-			pcAnswer->Modulus(pcNumberRight);
-			break;
-		case CO_LessThan:
-			if (pcNumberLeft->LessThan(pcNumberRight))
-				pcAnswer->One();
-			else
-				pcAnswer->Zero();
-			break;
-		case CO_GreaterThan:
-			if (pcNumberLeft->GreaterThan(pcNumberRight))
-				pcAnswer->One();
-			else
-				pcAnswer->Zero();
-			break;
-		case CO_LeftShift:
-				iLeft = pcNumberLeft->IntValue();
-				iRight = pcNumberRight->IntValue();
-				pcAnswer->Init(iLeft << iRight);
-			break;
-		case CO_RightShift:
-				iLeft = pcNumberLeft->IntValue();
-				iRight = pcNumberRight->IntValue();
-				pcAnswer->Init(iLeft >> iRight);
-			break;
-		case CO_BitwiseAnd:
-				iLeft = pcNumberLeft->IntValue();
-				iRight = pcNumberRight->IntValue();
-				pcAnswer->Init(iLeft & iRight);
-			break;
-		case CO_BitwiseOr:
-							iLeft = pcNumberLeft->IntValue();
-				iRight = pcNumberRight->IntValue();
-				pcAnswer->Init(iLeft | iRight);
-			break;
-		case CO_BitwiseXor:
-				iLeft = pcNumberLeft->IntValue();
-				iRight = pcNumberRight->IntValue();
-				pcAnswer->Init(iLeft ^ iRight);
-			break;
-		default:
-			gcUserError.Set("Unknown binary operator in CCalcOperator::Evaluate");
+	case CO_EqualTo:
+		if (pcNumberLeft->Equals(pcNumberRight))
+			pcAnswer->One();
+		else
+			pcAnswer->Zero();
+		break;
+	case CO_NotEqualTo:
+		if (!pcNumberLeft->Equals(pcNumberRight))
+			pcAnswer->One();
+		else
+			pcAnswer->Zero();
+		break;
+	case CO_GreaterThanEqualTo:
+		if (pcNumberLeft->GreaterThanOrEquals(pcNumberRight))
+			pcAnswer->One();
+		else
+			pcAnswer->Zero();
+		break;
+	case CO_LessThanEqualTo:
+		if (pcNumberLeft->LessThanOrEquals(pcNumberRight))
+			pcAnswer->One();
+		else
+			pcAnswer->Zero();
+		break;
+	case CO_LogicalOr:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->LogicalOr(pcNumberRight);
+		break;
+	case CO_LogicalAnd:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->LogicalAnd(pcNumberRight);
+		break;
+	case CO_Add:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->Add(pcNumberRight);
+		break;
+	case CO_Subtract:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->Subtract(pcNumberRight);
+		break;
+	case CO_Multiply:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->Multiply(pcNumberRight);
+		break;
+	case CO_Divide:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->Divide(pcNumberRight);
+		break;
+	case CO_Modulus:
+		pcAnswer->Init(pcNumberLeft);
+		pcAnswer->Modulus(pcNumberRight);
+		break;
+	case CO_LessThan:
+		if (pcNumberLeft->LessThan(pcNumberRight))
+			pcAnswer->One();
+		else
+			pcAnswer->Zero();
+		break;
+	case CO_GreaterThan:
+		if (pcNumberLeft->GreaterThan(pcNumberRight))
+			pcAnswer->One();
+		else
+			pcAnswer->Zero();
+		break;
+	case CO_LeftShift:
+		iLeft = pcNumberLeft->IntValue();
+		iRight = pcNumberRight->IntValue();
+		pcAnswer->Init(iLeft << iRight);
+		break;
+	case CO_RightShift:
+		iLeft = pcNumberLeft->IntValue();
+		iRight = pcNumberRight->IntValue();
+		pcAnswer->Init(iLeft >> iRight);
+		break;
+	case CO_BitwiseAnd:
+		iLeft = pcNumberLeft->IntValue();
+		iRight = pcNumberRight->IntValue();
+		pcAnswer->Init(iLeft & iRight);
+		break;
+	case CO_BitwiseOr:
+		iLeft = pcNumberLeft->IntValue();
+		iRight = pcNumberRight->IntValue();
+		pcAnswer->Init(iLeft | iRight);
+		break;
+	case CO_BitwiseXor:
+		iLeft = pcNumberLeft->IntValue();
+		iRight = pcNumberRight->IntValue();
+		pcAnswer->Init(iLeft ^ iRight);
+		break;
+	default:
+		gcUserError.Set("Unknown binary operator in CCalcOperator::Evaluate");
 	}
 }
 

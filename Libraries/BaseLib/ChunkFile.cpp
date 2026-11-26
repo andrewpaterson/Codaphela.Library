@@ -624,7 +624,7 @@ bool CChunkFile::ReadChunkBegin(lsize iChunkIndex)
 			CFileBasic::Seek(psIndex->miChunkDataPos - sizeof(CChunkHeader), EFSO_SET);
 			return __PrivateReadChunkBegin();
 		}
-	}	
+	}
 	return false;
 }
 
@@ -667,7 +667,7 @@ bool CChunkFile::ReadChunkEnd(void)
 bool CChunkFile::ReadChunkEnd(size iNumChunksToEnd)
 {
 	size		i;
-	bool	bResult;
+	bool		bResult;
 
 	bResult = true;
 	for (i = 0; i < iNumChunksToEnd; i++)
@@ -700,7 +700,7 @@ bool CChunkFile::ReadChunkNames(void)
 
 	iMax = CFN_Error;
 	bResult = mmsziNames.StartIteration(&sIter, NULL, NULL, (void**)&piVal, NULL);
-	while(bResult)
+	while (bResult)
 	{
 		if (*piVal > iMax)
 		{

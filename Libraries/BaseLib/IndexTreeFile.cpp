@@ -191,9 +191,9 @@ void CIndexTreeFile::ReInit(void)
 void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 {
 	size						i;
-	CIndexTreeChildNode*	pcChild;
-	CIndexTreeNodeFile*		pcChildNode;
-	CIndexTreeChildNode*	apcChildren;
+	CIndexTreeChildNode*		pcChild;
+	CIndexTreeNodeFile*			pcChildNode;
+	CIndexTreeChildNode*		apcChildren;
 	size						iNumNodes;
 
 	if (pcNode != NULL)
@@ -233,7 +233,7 @@ bool CIndexTreeFile::InitRoot(const char* szSubDirectory)
 	CFileDataIndex		cRootDataIndex;
 	CIndexedFile*		pcRootIndexFile;
 	CStackMemory<4 KB>	cTemp;
-	size					iFileSize;
+	size				iFileSize;
 	void*				pvBuffer;
 	bool				bResult;
 	CFilePathBuilder	cWrite;
@@ -330,7 +330,7 @@ bool CIndexTreeFile::WriteRootFileIndex(CFileDataIndex* pcRootIndex)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(void)
 {
-	CIndexTreeNodeFile*		pcNode;
+	CIndexTreeNodeFile*			pcNode;
 	size						iRootNodeSize;
 
 	iRootNodeSize = CalculateRootNodeSize();
@@ -346,7 +346,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(void)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNodeFile* CIndexTreeFile::AllocateRoot(CFileDataIndex cFileIndex)
 {
-	CIndexTreeNodeFile*		pcNode;
+	CIndexTreeNodeFile*			pcNode;
 	size						iAdditionalSize;
 
 	iAdditionalSize = CalculateRootNodeSize();
@@ -405,7 +405,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeFromBuffer(CIndexTreeNodeFile* p
 	uint8					uiLastIndex;
 	CIndexTreeNodeFile*		pcNode;
 	size					uiSize;
-	size						iBufferRead;
+	size					iBufferRead;
 
 	pucMemory = (uint8*)pvBuffer;
 	iPos = 0;
@@ -428,7 +428,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateNodeFromBuffer(CIndexTreeNodeFile* p
 	{
 		pcNode->Init(this, pcParent, uiFirstIndex, uiLastIndex, uiDataSize, uiIndexInParent);
 	}
-	
+
 	iBufferRead = pcNode->InitFromBuffer(pvBuffer, iMaxBufferSize, mpcDataCallback);
 	if (iBufferRead > 0)
 	{
@@ -515,7 +515,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetMemoryNode(uint8* pvKey, size iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	uint8					c;
-	size						i;
+	size					i;
 	bool					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
@@ -864,7 +864,7 @@ bool CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
 	else if (meWriteThrough == IWT_No)
 	{
 	}
-	else 
+	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
 		return false;
@@ -1346,7 +1346,7 @@ bool CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 	else if (meWriteThrough == IWT_Yes)
 	{
 	}
-	else 
+	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to evict data with Write Through [IWT_Unknown].", NULL);
 		return false;
@@ -1425,8 +1425,8 @@ bool CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 bool CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 {
 	bool				bResult;
-	CIndexTreeNodeFile* pcCurrent;
-	CIndexTreeNodeFile* pcDirty;
+	CIndexTreeNodeFile*	pcCurrent;
+	CIndexTreeNodeFile*	pcDirty;
 	bool				bDeleted;
 	bool				bDirty;
 
@@ -1569,7 +1569,7 @@ void CIndexTreeFile::RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, uint8 ui
 void CIndexTreeFile::ClearNodesFlags(CArrayVoidPtr* papNodes, uint8 uiFlags)
 {
 	size						i;
-	CIndexTreeNodeFile*		pcNode;
+	CIndexTreeNodeFile*			pcNode;
 	size						iNumNodes;
 
 	iNumNodes = papNodes->NumElements();
@@ -1687,7 +1687,7 @@ lsize CIndexTreeFile::NumMemoryElements(size iSize)
 bool CIndexTreeFile::Flush(void)
 {
 	bool	bResult;
-	
+
 	if (meWriteThrough == IWT_Yes)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot flush an index tree that is write through.", NULL);
@@ -1871,7 +1871,7 @@ bool CIndexTreeFile::IsFlushed(void)
 	{
 		return true;
 	}
-	else 
+	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
 		return false;
@@ -2093,7 +2093,7 @@ bool CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterat
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** pvData, size* piDataSize)
 {
-	void*	pvDataTemp;
+	void*		pvDataTemp;
 	size		iKeySize;
 
 	if (StepNext(psIterator))
@@ -2107,7 +2107,7 @@ bool CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, uin
 		{
 			*piDataSize = psIterator->pcNode->GetDataSize();
 		}
-		if (pvKey) 
+		if (pvKey)
 		{
 			iKeySize = GetNodeKey(psIterator->pcNode, pvKey, iMaxKeySize);
 			if (piKeySize)
@@ -2158,7 +2158,7 @@ bool CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, voi
 size CIndexTreeFile::GetNodeKeysSize(CArrayVoidPtr* apvNodes)
 {
 	size								i;
-	CIndexTreeNodeFile*				pcNode;
+	CIndexTreeNodeFile*					pcNode;
 	size								iKeySize;
 	size								iNumKeys;
 	size								iKeysSize;
@@ -2183,13 +2183,13 @@ size CIndexTreeFile::GetNodeKeysSize(CArrayVoidPtr* apvNodes)
 CListTemplateMinimal<char>* CIndexTreeFile::GetNodesKeys(CArrayVoidPtr* apvNodes)
 {
 	size								i;
-	CIndexTreeNodeFile*				pcNode;
-	char							szKey[MAX_KEY_SIZE];
+	CIndexTreeNodeFile*					pcNode;
+	char								szKey[MAX_KEY_SIZE];
 	size								iKeySize;
 	size								iNumKeys;
 	size								iTotalSize;
 	size								iKeysSize;
-	CListTemplateMinimal<char>*		paszKeyNames;
+	CListTemplateMinimal<char>*			paszKeyNames;
 
 	iNumKeys = apvNodes->NumElements();
 	iKeysSize = GetNodeKeysSize(apvNodes);
@@ -2217,13 +2217,13 @@ CListTemplateMinimal<char>* CIndexTreeFile::GetNodesKeys(CArrayVoidPtr* apvNodes
 CListCharsMinimal* CIndexTreeFile::GetNodesStringKeys(CArrayVoidPtr* apvNodes)
 {
 	size						i;
-	CIndexTreeNodeFile*		pcNode;
-	char					szKey[MAX_KEY_SIZE];
+	CIndexTreeNodeFile*			pcNode;
+	char						szKey[MAX_KEY_SIZE];
 	size						iKeySize;
 	size						iNumKeys;
 	size						iTotalSize;
 	size						iKeysSize;
-	CListCharsMinimal*		paszKeyNames;
+	CListCharsMinimal*			paszKeyNames;
 
 	iNumKeys = apvNodes->NumElements();
 	iKeysSize = GetNodeKeysSize(apvNodes);
@@ -2312,8 +2312,8 @@ CIndexTreeNodeFile* CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
 {
-	CIndexTreeNodeFile* pcChildNode;
-	CIndexTreeNodeFile* pcParent;
+	CIndexTreeNodeFile*	pcChildNode;
+	CIndexTreeNodeFile*	pcParent;
 	size				iCount;
 
 	iCount = 0;
@@ -2452,7 +2452,7 @@ bool CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, bool bRea
 		if (pcNode->HasNodes())
 		{
 			uiFirstIndex = pcNode->GetFirstIndex();
-			uiLastIndex= pcNode->GetLastIndex();
+			uiLastIndex = pcNode->GetLastIndex();
 			for (i = uiFirstIndex; i <= uiLastIndex; i++)
 			{
 				pcChild = ReadNode(pcNode, i, bReadNodes);
@@ -2725,7 +2725,7 @@ bool CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor,
 		{
 			sz.Init();
 			pcCursor->GenerateBad();
-			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected TRANSIENT_FLAGS [", pcNode->GetFlagsString(&sz),"].", NULL);
+			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected TRANSIENT_FLAGS [", pcNode->GetFlagsString(&sz), "].", NULL);
 			sz.Kill();
 			return false;
 		}
@@ -2952,7 +2952,7 @@ bool CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, bo
 						pcCursor->GenerateBad();
 						return gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] parent index [", SizeToString(uiIndexInParent), "] is different points to the index in the parent [", SizeToString(i), "].", NULL);
 					}
-					
+
 					pcShouldBeChild = (((CIndexTreeNodeFile*)pcNode)->GetNode(uiIndexInParent));
 					if (pcShouldBeChild->IsMemory())
 					{
@@ -3188,7 +3188,7 @@ bool CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 bool CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 {
 	bool				bWrite;
-	CIndexTreeNodeFile* pcParent;
+	CIndexTreeNodeFile*	pcParent;
 	CFileDataIndex		cOldIndex;
 	CFileDataIndex*		pcNewIndex;
 
@@ -3234,7 +3234,7 @@ bool CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 bool CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 {
 	bool				bWrite;
-	CIndexTreeNodeFile* pcParent;
+	CIndexTreeNodeFile*	pcParent;
 	CFileDataIndex		cOldIndex;
 	CFileDataIndex*		pcNewIndex;
 
@@ -3284,7 +3284,7 @@ bool CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 {
-	CIndexTreeNodeFile* pcParent;
+	CIndexTreeNodeFile*	pcParent;
 	bool				bChildWithDirtyPath;
 	bool				bDirtyNode;
 	bool				bDirtyPath;
@@ -3322,7 +3322,7 @@ bool CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
 {
-	CIndexTreeNodeFile* pcParent;
+	CIndexTreeNodeFile*	pcParent;
 	bool				bChildWithDeletedPath;
 	bool				bDeletedNode;
 	bool				bDeletedPath;
@@ -3440,7 +3440,7 @@ uint32 CIndexTreeFile::RecurseNumNodes(CIndexTreeRecursor* pcCursor)
 //////////////////////////////////////////////////////////////////////////
 lsize CIndexTreeFile::NumMemoryNodes(void)
 {
-	CIndexTreeRecursor	cCursor;
+	CIndexTreeRecursor		cCursor;
 	lsize					iResult;
 
 	cCursor.Init(mpcRoot);
@@ -3511,7 +3511,7 @@ bool CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	CIndexTreeNodeFile*		pcFileNode;
 	uint32					iFile;
 	uint32					uiIndex;
-	
+
 	iFile = pcChildNode->u.mcFile.miFile;
 	uiIndex = pcChildNode->u.mcFile.muiIndex;
 
@@ -3525,7 +3525,7 @@ bool CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 		gcLogger.Error2(__METHOD__, " Could not read tree node in file number [", IntToString(iFile), "] name [", StringToString(pcFile->GetFilename()), "] at index [", IntToString(uiIndex), "].", NULL);
 		return false;
 	}
-		
+
 	pcFileNode = AllocateNodeFromBuffer(pcFileNodeParent, uiIndexInParent, pvBuffer, iMaxBufferSize);
 	cTemp.Kill();
 
@@ -3653,7 +3653,7 @@ bool CIndexTreeFile::ValidateKey(uint8* pvKey, size iKeySize)
 			{
 				szKey.Init();
 				szKey.AppendData((char*)pvKey, iKeySize, 80);
-				gcLogger.Error2(__METHOD__, " Key [", szKey.Text(), "] memory indexes do not match file indexes at depth [", SizeToString(i + 1) ,"]:\n", szMemory.Text(), "\n", szFile.Text(), NULL);
+				gcLogger.Error2(__METHOD__, " Key [", szKey.Text(), "] memory indexes do not match file indexes at depth [", SizeToString(i + 1) , "]:\n", szMemory.Text(), "\n", szFile.Text(), NULL);
 				szKey.Kill();
 				return false;
 			}
@@ -4258,7 +4258,7 @@ size CIndexTreeFile::GetNodeDataSize(CIndexTreeNode* pcNode)
 size CIndexTreeFile::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize)
 {
 	size				iDataSize;
-	void*			pvData;
+	void*				pvData;
 
 	if (HasData((CIndexTreeNodeFile*)pcNode))
 	{
@@ -4292,7 +4292,7 @@ void CIndexTreeFile::DiagnosticFlushCallback(CIndexTreeNodeFile* pcNode)
 	GetNodeData(pcNode, pvData, uiDataSize);
 
 	iKeySize = GetNodeKeySize(pcNode);
-	pvKey = (char*)cStackKey.Init(iKeySize+1);
+	pvKey = (char*)cStackKey.Init(iKeySize + 1);
 	GetNodeKey(pcNode, (uint8*)pvKey, iKeySize + 1);
 
 	mpcDiagnosticCallback->Flush(pvKey, iKeySize, pvData, uiDataSize);

@@ -80,8 +80,8 @@ void SkipCPPWhitespace(CTextParser* pcTextParser)
 //////////////////////////////////////////////////////////////////////////
 bool IsCPPWhitespace(char c)
 {
-	return ((c == ' ')  || 
-			(c == '\n') || 
+	return ((c == ' ')  ||
+			(c == '\n') ||
 			(c == '\t') ||
 			(c == '\f') ||
 			(c == '\v') ||

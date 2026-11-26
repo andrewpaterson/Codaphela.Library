@@ -140,7 +140,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 	{
 		psLastOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(pcPreAllocated->mapEvictedCacheDescriptors.NumElements() -1));
 		psFirstOverlap = (SMemoryCacheDescriptor*)(pcPreAllocated->mapEvictedCacheDescriptors.GetPtr(0));
-		
+
 		if (mcMemoryList.IsLast(psLastOverlap))
 		{
 			psCacheBasedDescriptor = mcMemoryList.OneAllocation();  //If the last overlapping cache descriptor points to the last cache descriptor in the cache then everything is being evicted.
@@ -173,7 +173,7 @@ void* CMemoryCache::Allocate(lsize uiDataSize)
 	void*					pvCache;
 	size					i;
 	size					iNumEvictions;
-	SMemoryCacheDescriptor* psDescriptor;
+	SMemoryCacheDescriptor*	psDescriptor;
 	void*					pvEvictedData;
 
 	cPreAllocation.Init((uint32)uiDataSize);

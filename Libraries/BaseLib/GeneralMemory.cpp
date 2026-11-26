@@ -45,7 +45,7 @@ void CGeneralMemory::Init(uint16 iDefaultAlignment, bool bDefaultFreeListParams)
 	mcFreeLists.Init();
 	mcLargeList.Init();
 	miDefaultAlignment = (uint8)iDefaultAlignment;
- 	mcOrder.Init();
+	mcOrder.Init();
 	mcDefaultFreeLists.Init();
 	muiAllocCount = 0;
 	muiBreakAlloc = 0;
@@ -74,7 +74,7 @@ void CGeneralMemory::Kill(void)
 	mcDefaultFreeLists.Kill();
 
 	mcLargeList.Kill();
-	 
+
 	mcFreeListParams.Kill();
 }
 
@@ -174,15 +174,15 @@ SFNode* CGeneralMemory::GetNode(void* pv)
 //////////////////////////////////////////////////////////////////////////
 size CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 {
-	size							i;
+	size						i;
 	void*						pv;
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
 	SFNode*						psNode;
-	size							iNumElements;
-	size							iRemoved;
+	size						iNumElements;
+	size						iRemoved;
 	bool						bResult;
-	
+
 	pav->QuickSort();
 
 	iNumElements = pav->NumElements();
@@ -245,11 +245,11 @@ size CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 //////////////////////////////////////////////////////////////////////////
 size CGeneralMemory::RemoveNode(CArrayVoidPtr* pav, size i, SGeneralMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
 {
-	void*						pvLast;
-	SGeneralMemoryAllocation*	psPotentialLast;
+	void*							pvLast;
+	SGeneralMemoryAllocation*		psPotentialLast;
 	size							iNodeElements;
-	SGeneralMemoryAllocation*	psFirst;
-	SGeneralMemoryAllocation*	psLast;
+	SGeneralMemoryAllocation*		psFirst;
+	SGeneralMemoryAllocation*		psLast;
 	size							iNumElements;
 
 	iNumElements = pav->NumElements();
@@ -441,7 +441,7 @@ void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, size uiElementSi
 	psMemoryAllocation = (SGeneralMemoryAllocation*)pcFreeList->Add();
 	psMemoryAllocation->uiSize = uiElementSize;
 	psMemoryAllocation->uiAllocCount = muiAllocCount;
-	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2]= psMemoryAllocation->szDebug[3] = -1;
+	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2] = psMemoryAllocation->szDebug[3] = -1;
 	return RemapSinglePointer(psMemoryAllocation, sizeof(SGeneralMemoryAllocation));
 }
 
@@ -521,7 +521,7 @@ void* CGeneralMemory::AllocateInLargeList(lsize uiSize, uint16 iAlignment, int16
 	psMemoryAllocation = (SGeneralMemoryAllocation*)mcLargeList.InsertAfterTail(uiSize + sizeof(SGeneralMemoryAllocation), iAlignment, iOffset);
 	psMemoryAllocation->uiSize = uiSize;
 	psMemoryAllocation->uiAllocCount = muiAllocCount;
-	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2]= psMemoryAllocation->szDebug[3] = -1;
+	psMemoryAllocation->szDebug[0] = psMemoryAllocation->szDebug[1] = psMemoryAllocation->szDebug[2] = psMemoryAllocation->szDebug[3] = -1;
 	return RemapSinglePointer(psMemoryAllocation, sizeof(SGeneralMemoryAllocation));
 }
 
@@ -681,7 +681,7 @@ void CGeneralMemory::BreakOnAdd(size uiAllocCount)
 //////////////////////////////////////////////////////////////////////////
 size CGeneralMemory::NumElements(void)
 {
-	CFreeList*	pcBlock;
+	CFreeList*		pcBlock;
 	size			iCount;
 
 	iCount = 0;
@@ -736,7 +736,7 @@ SMemory CGeneralMemory::StartIteration(SMemoryIterator* psIterator)
 
 	psIterator->pcFreeList = mcFreeLists.GetHead();
 	pvLargeHead = mcLargeList.GetHead();
-	
+
 	if (psIterator->pcFreeList != NULL)
 	{
 		psIterator->bInFreeLists = true;
