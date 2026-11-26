@@ -80,7 +80,7 @@ void CInputVirtualDevice::UpdateChords(void)
 			mcChords.InputEvent(pcDeviceValue);
 		}
 	}
-}	
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -522,7 +522,7 @@ void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, const char* szFri
 void CInputVirtualDevice::AddActiveAction(CAction* pcAction, CInputCategoryGeneric* pcGeneric)
 {
 	CInputSourceEvaluator*		pcEvaluator;
-	
+
 	pcEvaluator = mcChords.AddEvaluator();
 	pcEvaluator->SetGenericSource(pcGeneric, ICT_Toggle);
 	AddSingleAction(pcAction, pcEvaluator, true);

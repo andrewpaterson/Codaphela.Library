@@ -85,8 +85,8 @@ protected:
 	float				mfDeltaSensitivity;
 
 public:
-	void 								Init(void);
-	void 								Kill(void);
+	void								Init(void);
+	void								Kill(void);
 	void								Copy(CInputSourceEvaluator* pcSource, CInputDevice* pcDevice);
 	void								ToString(CChars* psz);
 

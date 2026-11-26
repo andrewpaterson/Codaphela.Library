@@ -37,9 +37,9 @@ protected:
 	CInputDeviceVariableValue*		mpcCurrent;
 
 public:
-	void 						Init(CInputDeviceVariableDesc*	pcDesc);
-	void 						Kill(void);
-	void 						SetValue(CInputDeviceVariableValue* mpcValue);
+	void						Init(CInputDeviceVariableDesc*	pcDesc);
+	void						Kill(void);
+	void						SetValue(CInputDeviceVariableValue* mpcValue);
 	CInputDeviceVariableValue*	AddValue(CInputDeviceVariableValueDesc* pcVariableDesc);
 	CInputDeviceVariableValue*	GetCurrent(void) const;
 	void						SetCurrent(CInputDeviceVariableValue* pcCurrent);

@@ -91,13 +91,13 @@ public:
 	size						muiPendingStart;  //The pending chord's first input in the history.
 	size						muiPendingLength;  //How many inputs it uses up.
 
-	void 					Init(void);
-	void 					Kill(void);
+	void					Init(void);
+	void					Kill(void);
 	void					Copy(CInputChords* pcSource, CInputDeviceCopyContext* pcContext);
 	void					ToString(CChars* psz);
 	void					DumpHistory(void);
 
-	void 					InputEvent(CInputDeviceValue* psEvent);
+	void					InputEvent(CInputDeviceValue* psEvent);
 	CInputSourceEvaluator*	AddEvaluator(void);
 	CInputChord*			AddChord(CAction* pcAction, CInputChordDesc* pcDesc);
 	CInputChord*			FindMatchingChord(CInputChord* pcChord);

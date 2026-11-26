@@ -36,8 +36,8 @@ public:
 	CActions			mcActions;
 	CInputDevices*		mpcInputDevices;
 
-	void 		Init(CInputDevices* pcInputDevices);
-	void 		Kill(void);
+	void		Init(CInputDevices* pcInputDevices);
+	void		Kill(void);
 	CAction*	GetAction(const char* szName);
 
 	CAction*	AddAction(const char* szName);

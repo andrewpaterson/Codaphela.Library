@@ -36,15 +36,15 @@ public:
 	CArrayInputDeviceVariableValuePtr	mapConditions;
 	CInputChord*						mpcChord;  //Optional and only one chord per variable condition
 
-	void Init(void);
-	void Kill(void);
-	void Copy(CInputDeviceVariableCondition* pcSource, CInputDeviceCopyContext* pcContext);
-	void AddValueCondition(CInputDeviceVariableValue* pcValue);
-	void SetChordCondition(CInputChord* pcChord);
-	void ToString(CChars* psz);
-	bool ContainsChord(CInputChord* pcChord);
-	bool MatchCondition(CInputChord* pcChord);
-	bool MatchNonChordCondition(void);
+	void	Init(void);
+	void	Kill(void);
+	void	Copy(CInputDeviceVariableCondition* pcSource, CInputDeviceCopyContext* pcContext);
+	void	AddValueCondition(CInputDeviceVariableValue* pcValue);
+	void	SetChordCondition(CInputChord* pcChord);
+	void	ToString(CChars* psz);
+	bool	ContainsChord(CInputChord* pcChord);
+	bool	MatchCondition(CInputChord* pcChord);
+	bool	MatchNonChordCondition(void);
 };
 
 

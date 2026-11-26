@@ -40,14 +40,14 @@ protected:
 	CChars						mszActionName;
 
 public:
-	void 						Init(const char* szActionName);
-	void 						Kill(void);
+	void						Init(const char* szActionName);
+	void						Kill(void);
 
 	CInputChordActiveDesc*		AsActiveOrInactive(void);
-	void 						AsActive(CInputCategoryGeneric* pcGeneric);
-	void 						AsInactive(CInputCategoryGeneric* pcGeneric);
-	void 						AsActive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
-	void 						AsInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
+	void						AsActive(CInputCategoryGeneric* pcGeneric);
+	void						AsInactive(CInputCategoryGeneric* pcGeneric);
+	void						AsActive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
+	void						AsInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
 	CInputChordCollectiveDesc*	AsOrdered(void);
 	CInputChordCollectiveDesc*	AsGroup(void);
 	CInputChordCriteriaDesc*	GetRootCriteriaDesc(void) const;

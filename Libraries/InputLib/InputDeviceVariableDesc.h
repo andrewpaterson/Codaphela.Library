@@ -38,11 +38,11 @@ protected:
 	CInputDeviceDesc*					mpcDeviceDesc;
 
 public:
-	void 							Init(const char* szName, CInputDeviceDesc* pcDeviceDesc);
-	void 							Kill(void);
+	void							Init(const char* szName, CInputDeviceDesc* pcDeviceDesc);
+	void							Kill(void);
 	void							Copy(CInputDeviceVariableDesc* pcSourceDesc, CInputDeviceCopyContext* pcContext);
 
-	bool 							Equals(const char* szName);
+	bool							Equals(const char* szName);
 	CInputDeviceVariableValueDesc*	AddValue(const char* szName);
 	CInputDeviceVariableValueDesc*	GetValue(const char* szName);
 
@@ -50,7 +50,7 @@ public:
 	bool							StartValuesIteration(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc);
 	bool							IterateValues(SSetIterator* psIter, CInputDeviceVariableValueDesc** ppcVariableValueDesc);
 
-	const char*						GetName(void) const;
+	const char*							GetName(void) const;
 	CInputDeviceDesc*					GetDeviceDesc(void) const;
 };
 

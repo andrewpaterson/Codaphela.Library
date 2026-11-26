@@ -174,7 +174,7 @@ CProgramDeviceDetail* CProgramInput::AddDetail(const char* szID, const char* szF
 
 	pcDetail = macPDeviceDetails.Add();
 	pcDetail->Init(szID, szFriendlyName);
-	
+
 	return pcDetail;
 }
 

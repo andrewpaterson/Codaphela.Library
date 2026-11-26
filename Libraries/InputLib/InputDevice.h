@@ -49,17 +49,17 @@ protected:
 	CInputVirtualDevice*		mpcVariableVirtual;
 
 public:
-	void 						Init(CInputDeviceDesc* pcDesc, int iDeviceID, EInputDevice iDescriptionID, CInputActions* pcInputActions);
-	void 						Kill(void);
+	void						Init(CInputDeviceDesc* pcDesc, int iDeviceID, EInputDevice iDescriptionID, CInputActions* pcInputActions);
+	void						Kill(void);
 	CInputDevices*				GetInputDevices(void) const;
-	void 						GenerateRestState(void);
-	void 						Process(void* pvInput, uint32 uiSequence);
-	void 						ClearStateFlags(void);
-	void 						UpdateRestEvents(uint32 uiSequence);
-	void 						ReleaseAll(uint32 uiSequence);
-	void 						GetSources(CArrayInputSourceDescPtr* pcActions, CInputCategoryGeneric* pcGeneric);
-	void 						ClearEvents(void);
-	void 						SortEvents(void);
+	void						GenerateRestState(void);
+	void						Process(void* pvInput, uint32 uiSequence);
+	void						ClearStateFlags(void);
+	void						UpdateRestEvents(uint32 uiSequence);
+	void						ReleaseAll(uint32 uiSequence);
+	void						GetSources(CArrayInputSourceDescPtr* pcActions, CInputCategoryGeneric* pcGeneric);
+	void						ClearEvents(void);
+	void						SortEvents(void);
 	int							GetDeviceID(void) const;
 	CInputSourceDesc*			GetSource(const char* szFriendlyName);
 	bool						GetValue(CInputSourceDesc* pcSource, float* pfValue);

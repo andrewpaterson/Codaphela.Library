@@ -37,8 +37,8 @@ public:
 	CChars			mszDirectory;
 	CInputDevices*	mpcInputDevices;
 
-	void 				Init(CInputDevices* pcInputDevices, const char* szDirectory);
-	void 				Kill(void);
+	void				Init(CInputDevices* pcInputDevices, const char* szDirectory);
+	void				Kill(void);
 
 	bool				ReadInputDevicesXML(void);
 	bool				ReadCategories(CMarkupTag* pcParentTag);
@@ -55,10 +55,10 @@ public:
 	bool				ReadValueChannel(CMarkupTag* pcParentTag, CInputSourceValue* pcSourceValue);
 	bool				ReadStateDetail(CMarkupTag* pcParentTag, CInputSourceValue* pcSourceValue);
 	bool				ReadDeltaDetail(CMarkupTag* pcParentTag, CInputSourceValue* pcSourceValue);
-	bool 				ReadVariables1(CMarkupTag* pcParentTag, CInputDeviceDesc* pcDeviceDesc);
-	bool 				ReadVariables2(CMarkupTag* pcParentTag, CInputDeviceDesc* pcDeviceDesc);
-	bool 				ReadVariableValue1(CMarkupTag* pcValueTag, CInputDeviceVariableDesc* pcVariable, int* piInitialValue);
-	bool 				ReadVariableValue2(CMarkupTag* pcValueTag, CInputDeviceVariableDesc* pcVariable, CInputChordDescs* pcChordDescs);
+	bool				ReadVariables1(CMarkupTag* pcParentTag, CInputDeviceDesc* pcDeviceDesc);
+	bool				ReadVariables2(CMarkupTag* pcParentTag, CInputDeviceDesc* pcDeviceDesc);
+	bool				ReadVariableValue1(CMarkupTag* pcValueTag, CInputDeviceVariableDesc* pcVariable, int* piInitialValue);
+	bool				ReadVariableValue2(CMarkupTag* pcValueTag, CInputDeviceVariableDesc* pcVariable, CInputChordDescs* pcChordDescs);
 	bool				ReadVariableValueVariable(CMarkupTag* pcTag, CInputDeviceVariableValueDesc* pcVariableValue);
 	void				CopyVirtualDeviceDescChords(CInputDeviceCopyContext* pcContext);
 };

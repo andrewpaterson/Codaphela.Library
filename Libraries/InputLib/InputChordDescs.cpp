@@ -70,7 +70,7 @@ void CInputChordDescs::GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputD
 	CInputChordDesc*	pcChordDesc;
 	SSetIterator		sIter;
 	bool				bExists;
-	
+
 	bExists = mlcChordDescs.StartIteration(&sIter, &pcChordDesc);
 	while (bExists)
 	{

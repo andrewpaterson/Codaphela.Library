@@ -47,12 +47,12 @@ protected:
 	SInputDeviceValueSource		msSource;
 
 public:
-	void 						Init(CInputDevice* pcSourceDevice, CInputSourceDesc* pcSourceDesc);
-	void 						Kill(void);
-	bool 						Equals(SInputDeviceValueSource* psOther);
+	void						Init(CInputDevice* pcSourceDevice, CInputSourceDesc* pcSourceDesc);
+	void						Kill(void);
+	bool						Equals(SInputDeviceValueSource* psOther);
 	CInputSourceDesc*			GetSourceDesc(void) const;
 	SInputDeviceValueSource*	GetSource(void);
-	CInputDevice* 				GetSourceDevice(void) const;
+	CInputDevice*				GetSourceDevice(void) const;
 };
 
 

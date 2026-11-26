@@ -49,30 +49,30 @@ protected:
 	bool							mbUnstoppable;
 
 public:
-	void 						Init(const char* szName);
-	void 						Kill(void);
+	void						Init(const char* szName);
+	void						Kill(void);
 
-	void 						UpdateEvents(void);
-	void 						UpdateEvents(CInputDeviceValues* pcValues);
-	void 						UpdateChords(void);
-	void 						ClearEvents(void);
-	void 						SortEvents(void);
+	void						UpdateEvents(void);
+	void						UpdateEvents(CInputDeviceValues* pcValues);
+	void						UpdateChords(void);
+	void						ClearEvents(void);
+	void						SortEvents(void);
 	void						ToStringEvents(CChars* psz);
 
-	bool 						AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
+	bool						AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
 	bool						AddSource(CInputDevice* pcDevice, const char* szFriendlyName);
 	bool						AddSources(CInputDevice* pcDevice, const char* szFriendlyName, ...);
-	void 						DoneAddingSources(void);
-	void 						ClearSources(void);
+	void						DoneAddingSources(void);
+	void						ClearSources(void);
 
-	bool 						ContainsHistorySource(SInputDeviceValueSource* psSource);
+	bool						ContainsHistorySource(SInputDeviceValueSource* psSource);
 	bool						ContainsSource(SInputDeviceValueSource* psSource, CSetInputVirtualDeviceSource* pcSetSources);
 	bool						StartHistorySourcesIteration(SSetIterator* psIter, CInputVirtualDeviceSource** ppcVirtualDeviceSource);
 	bool						IterateHistorySources(SSetIterator* psIter, CInputVirtualDeviceSource** ppcVirtualDeviceSource);
 
-	void 						ClearCommonality(void);
-	void 						AddCommonalityIfShared(CInputVirtualDevice* pcOtherVirtual);
-	void 						SortCommonality(void);
+	void						ClearCommonality(void);
+	void						AddCommonalityIfShared(CInputVirtualDevice* pcOtherVirtual);
+	void						SortCommonality(void);
 
 	void						Enable(bool bDisableCommon = true);
 	void						Disable(void);

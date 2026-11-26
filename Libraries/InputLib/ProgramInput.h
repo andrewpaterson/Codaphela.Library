@@ -33,13 +33,13 @@ public:
 	CInputDataFormat*			mpcFormat;
 	CInputCategory*				mpcCategory;
 
-	void 					Init(void);
-	void 					Kill(void);
+	void					Init(void);
+	void					Kill(void);
 	void					AddFormat(CInputDevices* pcDevices);
 	void					AddCategory(CInputDevices* pcDevices);
 	CProgramDeviceDetail*	AddDetail(const char* szID, const char* szFriendlyName);
-	void 					AddDevicesTo(CInputDevices* pcDevices);
-	void 					Update(CInputDevices* pcDevices, uint32 uiSequence);
+	void					AddDevicesTo(CInputDevices* pcDevices);
+	void					Update(CInputDevices* pcDevices, uint32 uiSequence);
 	CInputDeviceDesc*		CreateStandardDesc(CInputDevices* pcDevices, CProgramDeviceDetail* pcDetail);
 	const char*				GetCategoryName(void) const;
 };

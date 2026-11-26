@@ -69,7 +69,7 @@ size MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayI
 				{
 					bResult =	(((psChordCriteria->mpcEvaluator->GetChordType() == ICT_Toggle) &&
 								(((psChordCriteria->eAction == BAA_Active) && (fValue == 1.0f)) ||
-								((psChordCriteria->eAction == BAA_Inactive) && (fValue == 0.0f)))) 
+								((psChordCriteria->eAction == BAA_Inactive) && (fValue == 0.0f))))
 							||
 								((psChordCriteria->mpcEvaluator->GetChordType() == ICT_Range) &&
 								(((psChordCriteria->eAction == BAA_Active) && (fValue > 0.0f)) ||
@@ -838,7 +838,7 @@ size CInputChord::MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, size i
 void CInputChord::ToString(CChars* psz)
 {
 	psz->Append(" --- CInputChord ---\n");
-	
+
 	psz->Append("Total Criteria: ");
 	psz->Append(miTotalCriteria);
 	psz->AppendNewLine();
@@ -912,7 +912,7 @@ CInputSourceEvaluator* CInputChord::AddEvaluatorAnyToggleSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChord::Call(void* pvContext) 
+void CInputChord::Call(void* pvContext)
 {
 	mpcAction->Call(pvContext);
 }

@@ -34,15 +34,15 @@ protected:
 	CArrayTemplate<CInputVirtualDevice*>	mapcSharedDeviceSources;
 
 public:
-	void Init(CInputVirtualDevice* pcVirtualDevice);
-	void Kill(void);
-	void ToString(CChars* psz);
+	void	Init(CInputVirtualDevice* pcVirtualDevice);
+	void	Kill(void);
+	void	ToString(CChars* psz);
 
-	void Clear(void);
-	void Sort(void);
-	void AddIfShared(CInputVirtualDevice* pcOtherVirtualDevice);
-	void Disable(void);
-	void Dump(void);
+	void	Clear(void);
+	void	Sort(void);
+	void	AddIfShared(CInputVirtualDevice* pcOtherVirtualDevice);
+	void	Disable(void);
+	void	Dump(void);
 };
 
 

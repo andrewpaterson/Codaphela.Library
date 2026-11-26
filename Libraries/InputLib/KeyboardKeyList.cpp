@@ -204,7 +204,7 @@ void CKeyboardKeyList::Key(uint32 uiVkey, uint32 uiFlags)
 		szEvent.Append("Pressed: ");
 		szEvent.Append(GetCurrent());
 		szEvent.AppendNewLine();
-	}   
+	}
 	else
 	{
 		Released(uiVkey, uiFlags);
@@ -247,7 +247,7 @@ void CKeyboardKeyList::Released(uint32 uiVKey, uint32 uiFlags)
 	{
 		return;
 	}
-	psWinKey->uiReleasedFlags= uiFlags;
+	psWinKey->uiReleasedFlags = uiFlags;
 }
 
 

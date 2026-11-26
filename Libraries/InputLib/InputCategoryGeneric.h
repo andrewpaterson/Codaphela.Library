@@ -34,8 +34,8 @@ protected:
 	CChars	mszName;
 
 public:
-	void Init(const char* szName);
-	void Kill(void);
+	void	Init(const char* szName);
+	void	Kill(void);
 
 	bool Is(const char* szName);
 };

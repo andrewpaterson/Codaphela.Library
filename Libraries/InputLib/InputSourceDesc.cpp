@@ -138,7 +138,7 @@ void CInputSourceDesc::CopyValues(CInputSourceDesc* pcInputSourceDesc)
 		{
 			pcInputDestValue->Init(this, pcInputSourceValue->GetDataFormat(), pcInputSourceValue->GetChannel());
 		}
-		
+
 		if (pcInputSourceDesc->GetType() == ISET_State)
 		{
 			pcInputDestValue->SetStateDetail(pcInputSourceValue->GetMaxValue(), pcInputSourceValue->GetMinValue());

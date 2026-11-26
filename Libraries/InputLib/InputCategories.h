@@ -32,8 +32,8 @@ public:
 	CLinkListCategory		mlcCategories;
 	CInputDevices*			mpcDevices;
 
-	void 					Init(CInputDevices* pcDevices);
-	void 					Kill(void);
+	void					Init(CInputDevices* pcDevices);
+	void					Kill(void);
 
 	CInputCategory*			AddCategory(const char* szName);
 	CInputCategory*			GetCategory(const char* szName);

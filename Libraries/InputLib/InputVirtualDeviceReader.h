@@ -26,12 +26,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputVirtualDeviceReader
 {
-	void Init();
-	void Kill(void);
+	void	Init();
+	void	Kill(void);
 
-	void Read();
-	void ReadVariables();
-	void ReadVirtualDevices();
+	void	Read();
+	void	ReadVariables();
+	void	ReadVirtualDevices();
 };
 
 

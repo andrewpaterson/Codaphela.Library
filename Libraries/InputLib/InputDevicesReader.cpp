@@ -586,7 +586,7 @@ bool CInputDevicesReader::ReadDevice(CMarkupTag* pcParentTag, CTypeNames* pcType
 	}
 
 	pcDeviceDesc->CreateDefaultVirtualDesc();
-	
+
 	pcVariablesTag = pcParentTag->GetTag("Variables", &sIter);
 	if (pcVariablesTag)
 	{
@@ -735,7 +735,7 @@ bool CInputDevicesReader::ReadSources(CMarkupTag* pcParentTag, CInputDeviceDesc*
 			}
 			pcTag = pcParentTag->GetNextTag(&sIter);
 		}
-		
+
 		if (bDump)
 		{
 			szDump.Init("    </Single>\n");
@@ -802,7 +802,7 @@ bool CInputDevicesReader::ReadSource(CMarkupTag* pcParentTag, CInputDeviceDesc* 
 	CChars					szFriendly;
 	CInputSourceDesc*		pcSourceDesc;
 	bool					bResult;
-	float		 			fValue;
+	float					fValue;
 	char*					szType;
 	char*					szEmit;
 	bool					bEmitRestEvent;
@@ -985,7 +985,7 @@ bool CInputDevicesReader::ReadSourceValue(CMarkupTag* pcParentTag, CInputSourceD
 	char*					szType;
 	CChars					szChannel;
 	size					iIndex;
-	float		 			fValue;
+	float					fValue;
 	bool					bResult;
 	int64					iOrder;
 	STagIterator			sIter;
@@ -1256,7 +1256,7 @@ bool CInputDevicesReader::ReadValueChannel(CMarkupTag* pcParentTag, CInputSource
 		pcValid = pcNotEquals;
 		iNumComparators++;
 		eComparator = ISCC_NotEquals;
-	}	
+	}
 	if (pcAlwaysValid)
 	{
 		pcValid = pcAlwaysValid;
@@ -1311,7 +1311,7 @@ bool CInputDevicesReader::ReadVariables1(CMarkupTag* pcParentTag, CInputDeviceDe
 	CInputDeviceDesc*			pcSourceDesc;
 	char*						szAttribute;
 	int							iInitialValue;
-	
+
 	szAttribute = pcParentTag->GetAttribute("Type");
 	if (!szAttribute || (strlen(szAttribute) == 0))
 	{
@@ -1531,7 +1531,7 @@ bool CInputDevicesReader::ReadVariableValue2(CMarkupTag* pcValueTag, CInputDevic
 			pcVariableValueDesc->SetInitial(true);
 		}
 	}
-	
+
 	cChordReader.Init(pcValueTag, pcChordDescs, INPUT_DEVICE_VARIABLE_ACTION, pcVariable->GetDeviceDesc());
 	bResult = cChordReader.Read();
 	if (!bResult)

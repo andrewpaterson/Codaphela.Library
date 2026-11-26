@@ -51,9 +51,9 @@ public:
 	CArrayInputSourceState	macSourceStates;
 	CInputDevice*			mpcDevice;
 
-	void 	Init(void);
-	void 	Kill(void);
-	bool 	Rest(CInputDevice* pcDevice);
+	void	Init(void);
+	void	Kill(void);
+	bool	Rest(CInputDevice* pcDevice);
 	bool	GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue);
 	bool	SetValue(CInputSourceDesc* pcSourceDesc, float fValue);
 	bool	SetValue(SInputSourceState* psSourceState, float fValue);

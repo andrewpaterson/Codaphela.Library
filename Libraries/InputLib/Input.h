@@ -48,28 +48,28 @@ protected:
 	bool				mbReleaseAll;  //The next Update lets go of everything first (see ReleaseAll).
 
 public:
-	void 				Init(CNativeInput* pcNativeInput);
+	void				Init(CNativeInput* pcNativeInput);
 	void				Class(void) override;
 	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
 
-	bool 				Read(const char* szDirectory = NULL);
-	void 				AddProgramInput(void);
+	bool				Read(const char* szDirectory = NULL);
+	void				AddProgramInput(void);
 	bool				AddNativeInput(CNativeInput* pcNativeInput);
 
-	void 				Update(void);
+	void				Update(void);
 	void				ReleaseAll(void);
-	void 				Update(uint32 uiTime);
-	void 				Step(void);
-	void 				ClearStateFlags(void);
-	void 				UpdateRestEvents(void);
-	void 				UpdateChords(void);
-	void 				ClearEvents(void);
-	void 				SortEvents(void);
-	void 				UpdateVirtualDevicesEvents(void);
-	void 				DumpEvents(void);
+	void				Update(uint32 uiTime);
+	void				Step(void);
+	void				ClearStateFlags(void);
+	void				UpdateRestEvents(void);
+	void				UpdateChords(void);
+	void				ClearEvents(void);
+	void				SortEvents(void);
+	void				UpdateVirtualDevicesEvents(void);
+	void				DumpEvents(void);
 	CInputCategory*		GetCategory(const char* szName);
 
 	CProgramInput*		GetProgramInput(void);

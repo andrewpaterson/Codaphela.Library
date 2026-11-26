@@ -38,8 +38,8 @@ public:
 	CMapPtrPtr		mmppVariables; // CInputDeviceVariableDesc* -> CInputDeviceVariableDesc*
 	CMapPtrPtr		mmppEvaluators; // CInputSourceEvaluator* -> CInputSourceEvaluator*
 
-	void Init(CInputDeviceDesc* pcSourceDeviceDesc, CInputDeviceDesc* pcDestDeviceDesc);
-	void Kill(void);
+	void	Init(CInputDeviceDesc* pcSourceDeviceDesc, CInputDeviceDesc* pcDestDeviceDesc);
+	void	Kill(void);
 };
 
 

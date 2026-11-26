@@ -42,15 +42,15 @@ struct SInputDeviceValue : SInputDeviceValueSource
 {
 	float				fValue;
 
-	void Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue);
-	void ToString(CChars* psz);
+	void	Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue);
+	void	ToString(CChars* psz);
 };
 
 
 class CInputDeviceValue : public SInputDeviceValue
 {
 public:
-	uint32	uiSequence;
+	uint32			uiSequence;
 	int				iOrder;
 	bool			bRestEmitted;
 

@@ -33,15 +33,15 @@ public:
 	CInputChords*				mpcChords;
 	bool						mbChordThisFrame;
 
-	void 						Init(void);
-	void 						Kill(void);
+	void						Init(void);
+	void						Kill(void);
 	void						SetChords(CInputChords* pcChords);
 
 	void						ClearEvents(void);
 
-	void 						AddVariablesFromDesc(CInputDeviceDesc* pcDesc);
-	void 						AddVariableValuesFromDesc(CInputDeviceVariableDesc* pcVariableDesc, CInputDeviceVariable* pcVariable);
-	void 						AddVariableConditionsFromDescription(CInputDeviceVariableValueDesc* pcValueDesc, CInputDeviceVariableValue* pcValue);
+	void						AddVariablesFromDesc(CInputDeviceDesc* pcDesc);
+	void						AddVariableValuesFromDesc(CInputDeviceVariableDesc* pcVariableDesc, CInputDeviceVariable* pcVariable);
+	void						AddVariableConditionsFromDescription(CInputDeviceVariableValueDesc* pcValueDesc, CInputDeviceVariableValue* pcValue);
 	CInputChord*				GetChordForDesc(CInputChordDesc* pcChordDesc);
 	CInputDeviceVariableValue*	GetValueForDesc(CInputDeviceVariableValueDesc* pcValueDesc);
 

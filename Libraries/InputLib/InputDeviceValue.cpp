@@ -139,7 +139,7 @@ int SortInputEventPtrFunc(const void* pv1, const void* pv2)
 	{
 		return 1;
 	}
-	
+
 	if (psEvent1->iOrder < psEvent2->iOrder)
 	{
 		return -1;

@@ -32,8 +32,8 @@ public:
 	CInputDeviceVariableValue*	mpcVariableValue;
 	//You still need the device.
 
-	void Init(CInputDeviceVariableValue* pcVariableValue);
-	void Kill(void);
+	void	Init(CInputDeviceVariableValue* pcVariableValue);
+	void	Kill(void);
 };
 
 

@@ -52,7 +52,7 @@ void CInputDeviceState::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInputDeviceState::Rest(CInputDevice* pcDevice)
 {
-	size					i;
+	size				i;
 	CInputSourceDesc*	pcSourceDesc;
 	SInputSourceState*	psSourceState;
 	SSetIterator		sIter;

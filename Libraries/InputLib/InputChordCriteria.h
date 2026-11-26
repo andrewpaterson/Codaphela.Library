@@ -62,22 +62,22 @@ typedef CArrayTemplate<CActionInputChordCriteria> CArrayActionInputChordCriteria
 class CActiveInputChordCriteria : public CActionInputChordCriteria
 {
 public:
-	void Init(CInputSourceEvaluator* pcEvaluator);
-	void Kill(void);
-	void ToArray(CArrayActionInputChordCriteria* pcDest);
-	size Size(void) const;
-	void ToString(CChars* psz);
+	void	Init(CInputSourceEvaluator* pcEvaluator);
+	void	Kill(void);
+	void	ToArray(CArrayActionInputChordCriteria* pcDest);
+	size	Size(void) const;
+	void	ToString(CChars* psz);
 };
 
 
 class CInactiveInputChordCriteria : public CActionInputChordCriteria
 {
 public:
-	void Init(CInputSourceEvaluator* pcEvaluator);
-	void Kill(void);
-	void ToArray(CArrayActionInputChordCriteria* pcDest);
-	size Size(void) const;
-	void ToString(CChars* psz);
+	void	Init(CInputSourceEvaluator* pcEvaluator);
+	void	Kill(void);
+	void	ToArray(CArrayActionInputChordCriteria* pcDest);
+	size	Size(void) const;
+	void	ToString(CChars* psz);
 };
 
 
@@ -86,11 +86,11 @@ class CGroupInputChordCriteria : public CInputChordCriteria
 public:
 	CArrayBlock		mausBasicActionCriteria;  //Array of UInputChordCriteria
 
-	void Init(void);
-	void Kill(void);
-	void ToArray(CArrayActionInputChordCriteria* pcDest);
-	size Size(void) const;
-	void ToString(CChars* psz);
+	void	Init(void);
+	void	Kill(void);
+	void	ToArray(CArrayActionInputChordCriteria* pcDest);
+	size	Size(void) const;
+	void	ToString(CChars* psz);
 
 	CActiveInputChordCriteria*		AddActiveAction(CInputSourceEvaluator* pcAction);
 	CInactiveInputChordCriteria*	AddInactiveAction(CInputSourceEvaluator* pcAction);
@@ -102,11 +102,11 @@ class COrderedInputChordCriteria : public CInputChordCriteria
 public:
 	CArrayBlock		mausBasicActionCriteria;  //Array of UInputChordCriteria
 
-	void Init(void);
-	void Kill(void);
-	size Size(void);
-	size Size(size iLastIndexInclusive);
-	void ToString(CChars* psz);
+	void	Init(void);
+	void	Kill(void);
+	size	Size(void);
+	size	Size(size iLastIndexInclusive);
+	void	ToString(CChars* psz);
 
 	CActiveInputChordCriteria*		AddActiveAction(CInputSourceEvaluator* pcAction);
 	CInactiveInputChordCriteria*	AddInactiveAction(CInputSourceEvaluator* pcAction);

@@ -29,9 +29,9 @@ class CNativeDetail
 public:
 	int		miUniqueID;  //Matches the generic device to it's OS specific detail.
 
-	void Init(void);
-	void Kill(void);
-	void SetUniqueID(int iUniqueID);
+	void	Init(void);
+	void	Kill(void);
+	void	SetUniqueID(int iUniqueID);
 };
 
 

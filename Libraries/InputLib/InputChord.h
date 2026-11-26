@@ -55,8 +55,8 @@ protected:
 	uint32							muiEvictionAge;  //Milliseconds a partial match waits once let go of, 0 for the chords' age.
 
 public:
-	void 							Init(CAction* pcAction, CInputChords* pcInputChords, CInputChordDesc* pcDesc);
-	void 							Kill(void);
+	void							Init(CAction* pcAction, CInputChords* pcInputChords, CInputChordDesc* pcDesc);
+	void							Kill(void);
 	bool							Done(CInputChord** ppcMatching = NULL);  //Remember to call this after adding all criteria.
 	void							Calculate(void);
 	bool							MatchesSameAs(CInputChord* pcOther);

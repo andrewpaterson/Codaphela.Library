@@ -95,7 +95,7 @@ void CInputSourceValue::SetStateDetail(float fMaxValue, float fMinValue)
 void CInputSourceValue::SetDeltaDetail(float fSensitivity, float fOffset)
 {
 	if (mpcSourceDesc->GetType() == ISET_Delta)
-	{	
+	{
 		muDetail.sDelta.fSensitivity = fSensitivity;
 		muDetail.sDelta.fOffset = fOffset;
 	}
@@ -129,7 +129,7 @@ bool CInputSourceValue::Process(void* pvData, float* pfValue)
 	{
 		*pfValue = muValue.fNumber;
 	}
-	else if (meValueType == ISVT_Channel) 
+	else if (meValueType == ISVT_Channel)
 	{
 		if (mpcSourceDesc->GetType() == ISET_State)
 		{

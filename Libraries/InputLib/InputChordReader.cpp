@@ -68,7 +68,7 @@ bool CInputChordReader::Read(void)
 	bool				bResult;
 
 	iCount = 0;
-	
+
 	pcActiveTag = mpcParentTag->GetTag("Active");
 	if (pcActiveTag)
 	{
@@ -139,8 +139,8 @@ bool CInputChordReader::Read(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDesc, bool bActive)
 {
-	char* 						szGeneric;
-	char* 						szFriendly;
+	char*						szGeneric;
+	char*						szFriendly;
 	CInputSourceDesc*			pcSource;
 	CInputCategoryGeneric*		pcGeneric;
 

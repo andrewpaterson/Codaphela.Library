@@ -40,12 +40,12 @@ protected:
 	bool											mbInitial;
 
 public:
-	void 											Init(const char* szName, CInputDeviceVariableDesc* pcVariableDesc);
-	void 											Kill(void);
-	void 											Copy(CInputDeviceVariableValueDesc* pcSource, CInputDeviceCopyContext* pcContext);
-	bool 											Equals(const char* szName);
-	void 											AddCondition(CInputChordDesc* pcChordDesc);
-	void 											AddCondition(CInputDeviceVariableValueDesc* pcVariableValueDesc);
+	void											Init(const char* szName, CInputDeviceVariableDesc* pcVariableDesc);
+	void											Kill(void);
+	void											Copy(CInputDeviceVariableValueDesc* pcSource, CInputDeviceCopyContext* pcContext);
+	bool											Equals(const char* szName);
+	void											AddCondition(CInputChordDesc* pcChordDesc);
+	void											AddCondition(CInputDeviceVariableValueDesc* pcVariableValueDesc);
 	const char*										GetName(void) const;
 	bool											IsInitial(void) const;
 	CArrayInputDeviceVariableValueConditionDesc*	GetConditions(void);

@@ -256,7 +256,7 @@ void CInputChordCollectiveDesc::RemoveLast(void)
 	}
 	else
 	{
-		macCriteria.Remove(iNumElements-1);
+		macCriteria.Remove(iNumElements - 1);
 	}
 }
 

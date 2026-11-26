@@ -41,8 +41,8 @@ protected:
 	CChars			mszCommonName;
 
 public:
-	void 		Init(void);
-	void 		Init(const char* szCommonName);
+	void		Init(void);
+	void		Init(const char* szCommonName);
 	void		Class(void) override;
 	void		Free(void) override;
 

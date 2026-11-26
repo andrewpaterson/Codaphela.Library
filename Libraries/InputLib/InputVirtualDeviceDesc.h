@@ -41,19 +41,19 @@ protected:
 	CSetInputVirtualSourceDesc	mlcInputSourceDescs;
 
 public:
-	void 						Init(const char* szName, bool bDeviceAgnostic);
-	void 						Kill(void);
+	void						Init(const char* szName, bool bDeviceAgnostic);
+	void						Kill(void);
 
 	bool						AddSource(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
-	bool 						AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, const char* szFriendlyName);
-	bool 						AddSources(CInputDevice* pcDevice, const char* szFriendlyName, ...);
+	bool						AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, const char* szFriendlyName);
+	bool						AddSources(CInputDevice* pcDevice, const char* szFriendlyName, ...);
 	CInputVirtualSourceDesc*	GetSource(const char* szName, int iDescID);
 	CInputVirtualSourceDesc*	GetSource(CInputSourceDesc* pcSourceDesc, int iDescID);
 	bool						AddChord(const char* szActionName, int iDescID, const char* szFriendlyName);
 	bool						AddOrderedAction(const char* szActionName, int iDescID, const char* szFriendlyName, ...);
 
-	bool					 	StartInputSourceDescsIteration(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
-	bool					 	IterateInputSourceDescs(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
+	bool						StartInputSourceDescsIteration(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
+	bool						IterateInputSourceDescs(SSetIterator* psIter, CInputVirtualSourceDesc** ppcSourceDesc);
 	bool						IsDeviceAgnostic(void) const;
 	const char*					GetName(void) const;
 	CInputChordDescs*			GetChordDescs(void);

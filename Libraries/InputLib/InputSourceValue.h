@@ -53,14 +53,14 @@ union UInputSourceValue
 union UInputSourceTypeDetail
 {
 	//Only valid for state events (buttons and axes etc...)
-	struct  
+	struct
 	{
-		float	fMaxValue;  
+		float	fMaxValue;
 		float	fMinValue;
 	} sState;
 
 	//Only valid for delta events (motion)
-	struct 
+	struct
 	{
 		float	fSensitivity;
 		float	fOffset;
@@ -82,15 +82,15 @@ protected:
 	size						miOrder;
 
 public:
-	void 					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, size iValueChannel);
-	void 					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, float fValueNumber);
-	void 					PrivateInit(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat);
-	void 					Kill(void);
-	void 					SetStateDetail(float fMaxValue, float fMinValue);
-	void 					SetDeltaDetail(float fSensitivity, float fOffset);
-	bool 					Process(void* pvData, float* pfValue);
+	void					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, size iValueChannel);
+	void					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, float fValueNumber);
+	void					PrivateInit(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat);
+	void					Kill(void);
+	void					SetStateDetail(float fMaxValue, float fMinValue);
+	void					SetDeltaDetail(float fSensitivity, float fOffset);
+	bool					Process(void* pvData, float* pfValue);
 	CInputSouceChannel*		AddChannel(size iChannel, EInputSourceChannelComparator eCompare, void* pvTest);
-	void 					CopyChannels(CInputSourceValue* pcInputSourceValue);
+	void					CopyChannels(CInputSourceValue* pcInputSourceValue);
 	bool					StartChannelsIteration(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel);
 	bool					IterateChannels(SSetIterator* psIter, CInputSouceChannel** ppcSourceChannel);
 	CInputDataFormat*		GetDataFormat(void) const;
@@ -103,7 +103,7 @@ public:
 	float					GetOffset(void) const;
 	float					GetNumber(void) const;
 	size					GetChannel(void) const;
-	void 					ToString(CChars* psz, EInputSourceType eType);
+	void					ToString(CChars* psz, EInputSourceType eType);
 };
 
 

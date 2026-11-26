@@ -37,18 +37,18 @@ protected:
 	CInputDeviceVariableValueDesc*	mpcDesc;  //For the Name!  In the King!
 	CInputDeviceVariableCondition	mcCondition;
 	CInputDeviceVariable*			mpcVariable;
-	
+
 public:
-	void 							Init(CInputDeviceVariable* pcVariable, CInputDeviceVariableValueDesc* pcDesc);
-	void 							Kill(void);
-	void 							AddValueCondition(CInputDeviceVariableValue* pcValue);
-	void 							SetChordCondition(CInputChord* pcChord);
-	bool 							Equals(const char* szName);
-	bool 							ContainsChord(CInputChord* pcChord);
-	bool 							MakeCurrent(void);
-	void 							ToString(CChars* psz);
-	bool 							MatchCondition(CInputChord* pcChord);
-	bool 							MatchNonChordCondition(void);
+	void							Init(CInputDeviceVariable* pcVariable, CInputDeviceVariableValueDesc* pcDesc);
+	void							Kill(void);
+	void							AddValueCondition(CInputDeviceVariableValue* pcValue);
+	void							SetChordCondition(CInputChord* pcChord);
+	bool							Equals(const char* szName);
+	bool							ContainsChord(CInputChord* pcChord);
+	bool							MakeCurrent(void);
+	void							ToString(CChars* psz);
+	bool							MatchCondition(CInputChord* pcChord);
+	bool							MatchNonChordCondition(void);
 	CInputDeviceVariableValueDesc*	GetDesc(void) const;
 	CInputDeviceVariableValue*		GetCurrentVariableValue(void) const;
 };

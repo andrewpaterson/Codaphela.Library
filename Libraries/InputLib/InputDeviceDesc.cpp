@@ -283,7 +283,7 @@ void CInputDeviceDesc::GetSources(CArrayIntAndPointer* apcDest)
 //////////////////////////////////////////////////////////////////////////
 CInputCategory* CInputDeviceDesc::GetCategory(void) const
 {
-	return mpcCategory;	
+	return mpcCategory;
 }
 
 
@@ -493,7 +493,7 @@ void CInputDeviceDesc::ToString(CChars* psz)
 	psz->Append("Comment: ");
 	psz->Append(mszComment.Text());
 	psz->AppendNewLine();
-//	CInputDataFormat*					mpcDataFormat;
+	//	CInputDataFormat*					mpcDataFormat;
 
 	psz->Append(" - CInputSourceDesc : mlcInputs -\n");
 	bExists = mlcInputs.StartIteration(&sIter, &pcInputSourceDesc);

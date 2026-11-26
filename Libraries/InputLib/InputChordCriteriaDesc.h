@@ -50,8 +50,8 @@ protected:
 	CInputChordDesc*				mpcChordDesc;
 
 public:
-	void 							Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
-	void 							Kill(void);
+	void							Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
+	void							Kill(void);
 	virtual void					GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc) =0;
 
 	EInputChordCriteriaDescType		GetType(void) const;
@@ -75,18 +75,18 @@ class CInputChordActiveDesc : public CInputChordCriteriaDesc
 CONSTRUCTABLE(CInputChordActiveDesc);
 public:
 	CInputSourceDesc*					mpcSourceDesc;  //Only valy valid for ICCDAT_SpecificSource.
-	size									miDescriptionID;  //Only valy valid for ICCDAT_SpecificSource.
+	size								miDescriptionID;  //Only valy valid for ICCDAT_SpecificSource.
 	CInputCategoryGeneric*				mpcGeneric;  //Only valy valid for ICCDAT_GenericSource.
 	EInputChordType						meChordType;  //Only valy valid for ICCDAT_SpecificSource and ICCDAT_GenericSource.
 	EInputChordCriteriaDescActiveType	meActiveType;
 
-	void 				Init(CInputSourceDesc* pcSourceDesc, size iDescriptionID, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
-	void 				Init(CInputCategoryGeneric* pcSource, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
-	void 				Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
-	void 				Kill(void);
-	void 				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
+	void				Init(CInputSourceDesc* pcSourceDesc, size iDescriptionID, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
+	void				Init(CInputCategoryGeneric* pcSource, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
+	void				Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
+	void				Kill(void);
+	void				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	CInputSourceDesc*	GetSourceDesc(void) const;
-	size					GetDescriptionID(void) const;
+	size				GetDescriptionID(void) const;
 };
 
 
@@ -96,8 +96,8 @@ CONSTRUCTABLE(CInputChordCollectiveDesc);
 public:
 	CArrayInputChordCriteriaDesc	macCriteria;
 
-	void 						Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
-	void 						Kill(void);
+	void						Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
+	void						Kill(void);
 
 	CInputChordActiveDesc*		AddActiveOrInactive(void);
 	CInputChordCollectiveDesc*	AddGroupOrOrdered(void);

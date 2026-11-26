@@ -53,11 +53,11 @@ protected:
 	CInputChordDescs					mcVariableChordDescs;
 
 public:
-	void 						Init(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
-	void 						Kill(void);
+	void						Init(const char* szID, const char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
+	void						Kill(void);
 	CInputDevices*				GetInputDevices(void) const;
 	void						Copy(CInputDeviceDesc* pcSourceDesc);
-	bool 						Is(const char* szID);
+	bool						Is(const char* szID);
 	bool						HasTag(const char* szTagName);
 	CInputSourceDesc*			AddStateInput(const char* szFriendlyName);
 	CInputSourceDesc*			AddDeltaInput(const char* szFriendlyName);

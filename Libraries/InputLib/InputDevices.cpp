@@ -162,7 +162,7 @@ CInputDevice* CInputDevices::CreateDevice(CInputDeviceDesc* pcDesc)
 	iDescriptionID = (int)pcDesc->GetUnusedID();
 	pcDevice->Init(pcDesc, (int)mlcDevices.NumElements()-1, (EInputDevice)iDescriptionID, mpcInputActions);
 	pcDesc->AddDevice(pcDevice);
-	
+
 	return pcDevice;
 }
 
@@ -187,7 +187,7 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputSourceEvaluator* pcEvaluator, CInputDevice* pcDevice)
 {
-	
+
 	switch (((CInputChordActiveDesc*)pcChordCriteriaDesc)->meActiveType)
 	{
 	case ICCDAT_SpecificSource:
@@ -364,7 +364,7 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(CInputVirtualDeviceDesc*
 	if (!pcVirtualDesc->IsDeviceAgnostic())
 	{
 		//There is only one possible virtual device that can be created.
-		//Either because it spans multiple physical devices 
+		//Either because it spans multiple physical devices
 		//or because the user has explicitly mapped inputs from one physical device.
 
 		bExists = pcVirtualDesc->StartInputSourceDescsIteration(&sIter, &pcVirtualSourceDesc);

@@ -34,8 +34,8 @@ protected:
 	CSetInputChordDesc	mlcChordDescs;
 
 public:
-	void 				Init(void);
-	void 				Kill(void);
+	void				Init(void);
+	void				Kill(void);
 
 	CInputChordDesc*	AddChordDesc(const char* szActionName);
 	void				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);

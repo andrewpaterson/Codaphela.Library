@@ -32,39 +32,39 @@ class CInputDeviceVariableValueConditionDesc : public CUnknown
 {
 CONSTRUCTABLE(CInputDeviceVariableValueConditionDesc);
 public:
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 
-	virtual bool IsChord(void) const =0;
-	virtual bool IsVariable(void) const =0;
+	virtual bool	IsChord(void) const =0;
+	virtual bool	IsVariable(void) const =0;
 };
 
 
 class CInputDeviceVariableValueConditionChordDesc : public CInputDeviceVariableValueConditionDesc
 {
-CONSTRUCTABLE(CInputDeviceVariableValueConditionChordDesc); 
+CONSTRUCTABLE(CInputDeviceVariableValueConditionChordDesc);
 public:
 	CInputChordDesc* mpcChordDesc;
 
-	void Init(CInputChordDesc* pcChordDesc);
-	void Kill(void);
+	void	Init(CInputChordDesc* pcChordDesc);
+	void	Kill(void);
 
-	bool IsChord(void) const;
-	bool IsVariable(void) const;
+	bool	IsChord(void) const;
+	bool	IsVariable(void) const;
 };
 
 
 class CInputDeviceVariableValueConditionVariableDesc : public CInputDeviceVariableValueConditionDesc
 {
-CONSTRUCTABLE(CInputDeviceVariableValueConditionVariableDesc); 
+CONSTRUCTABLE(CInputDeviceVariableValueConditionVariableDesc);
 public:
 	CInputDeviceVariableValueDesc* mpcVariableValueDesc;
 
-	void Init(CInputDeviceVariableValueDesc* pcVariableValueDesc);
-	void Kill(void);
+	void	Init(CInputDeviceVariableValueDesc* pcVariableValueDesc);
+	void	Kill(void);
 
-	bool IsChord(void) const;
-	bool IsVariable(void) const;
+	bool	IsChord(void) const;
+	bool	IsVariable(void) const;
 };
 
 

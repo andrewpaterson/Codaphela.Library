@@ -315,10 +315,10 @@ void CInputSourceEvaluator::ToString(CChars* psz)
 	{
 	case ICT_Unknown:
 		psz->Append("ICT_Unknown");
-		break;	
+		break;
 	case ICT_Toggle:
 		psz->Append("ICT_Toggle");
-		break;	
+		break;
 	case ICT_Range:
 		psz->Append("ICT_Range");
 		break;

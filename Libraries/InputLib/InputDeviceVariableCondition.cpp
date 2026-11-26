@@ -136,7 +136,7 @@ bool CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
 				return false;
 			}
 		}
-		return true;		
+		return true;
 	}
 	else
 	{
