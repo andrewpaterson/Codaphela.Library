@@ -104,92 +104,92 @@ bool AddGerberMacroPrimitive(CGerberVectorObject* pcObject, CGerberEvaluatedPrim
 
 	switch (pcPrimitive->GetPrimitive())
 	{
-		case GAMP_Circle:
-			//Exposure, Diameter, Center X, Center Y, Rotation
-			pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
-			sCenter.Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
-			RotateVectorPoint(&sCenter, fRotation);
-			pcObject->AddCircle(&sCenter, pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, false);
-			return true;
+	case GAMP_Circle:
+		//Exposure, Diameter, Center X, Center Y, Rotation
+		pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
+		sCenter.Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
+		RotateVectorPoint(&sCenter, fRotation);
+		pcObject->AddCircle(&sCenter, pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, false);
+		return true;
 
-		case GAMP_Vector_Line:
-			//Exposure, Width, Start X, Start Y, End X, End Y, Rotation.  The ends are square.
-			pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
-			asPoints[0].Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
-			asPoints[1].Init(pcPrimitive->GetValue(4)->DoubleValue() * fUnit, pcPrimitive->GetValue(5)->DoubleValue() * fUnit);
-			fLength = hypot(asPoints[1].x - asPoints[0].x, asPoints[1].y - asPoints[0].y);
-			if (fLength == 0)
-			{
-				return true;
-			}
-			sDirection.Init((asPoints[1].x - asPoints[0].x) / fLength, (asPoints[1].y - asPoints[0].y) / fLength);
-			sNormal.Init(-sDirection.y * pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, sDirection.x * pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2);
-			asPoints[2].Init(asPoints[1].x + sNormal.x, asPoints[1].y + sNormal.y);
-			asPoints[3].Init(asPoints[0].x + sNormal.x, asPoints[0].y + sNormal.y);
-			asPoints[1].Init(asPoints[1].x - sNormal.x, asPoints[1].y - sNormal.y);
-			asPoints[0].Init(asPoints[0].x - sNormal.x, asPoints[0].y - sNormal.y);
-			for (i = 0; i < 4; i++)
-			{
-				RotateVectorPoint(&asPoints[i], fRotation);
-			}
-			pcObject->AddPolygon(asPoints, 4, false);
+	case GAMP_Vector_Line:
+		//Exposure, Width, Start X, Start Y, End X, End Y, Rotation.  The ends are square.
+		pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
+		asPoints[0].Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
+		asPoints[1].Init(pcPrimitive->GetValue(4)->DoubleValue() * fUnit, pcPrimitive->GetValue(5)->DoubleValue() * fUnit);
+		fLength = hypot(asPoints[1].x - asPoints[0].x, asPoints[1].y - asPoints[0].y);
+		if (fLength == 0)
+		{
 			return true;
+		}
+		sDirection.Init((asPoints[1].x - asPoints[0].x) / fLength, (asPoints[1].y - asPoints[0].y) / fLength);
+		sNormal.Init(-sDirection.y * pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, sDirection.x * pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2);
+		asPoints[2].Init(asPoints[1].x + sNormal.x, asPoints[1].y + sNormal.y);
+		asPoints[3].Init(asPoints[0].x + sNormal.x, asPoints[0].y + sNormal.y);
+		asPoints[1].Init(asPoints[1].x - sNormal.x, asPoints[1].y - sNormal.y);
+		asPoints[0].Init(asPoints[0].x - sNormal.x, asPoints[0].y - sNormal.y);
+		for (i = 0; i < 4; i++)
+		{
+			RotateVectorPoint(&asPoints[i], fRotation);
+		}
+		pcObject->AddPolygon(asPoints, 4, false);
+		return true;
 
-		case GAMP_Center_Line:
-			//Exposure, Width, Height, Center X, Center Y, Rotation
-			pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
-			sCenter.Init(pcPrimitive->GetValue(3)->DoubleValue() * fUnit, pcPrimitive->GetValue(4)->DoubleValue() * fUnit);
-			sNormal.Init(pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, pcPrimitive->GetValue(2)->DoubleValue() * fUnit / 2);
-			asPoints[0].Init(sCenter.x - sNormal.x, sCenter.y - sNormal.y);
-			asPoints[1].Init(sCenter.x + sNormal.x, sCenter.y - sNormal.y);
-			asPoints[2].Init(sCenter.x + sNormal.x, sCenter.y + sNormal.y);
-			asPoints[3].Init(sCenter.x - sNormal.x, sCenter.y + sNormal.y);
-			for (i = 0; i < 4; i++)
-			{
-				RotateVectorPoint(&asPoints[i], fRotation);
-			}
-			pcObject->AddPolygon(asPoints, 4, false);
-			return true;
+	case GAMP_Center_Line:
+		//Exposure, Width, Height, Center X, Center Y, Rotation
+		pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
+		sCenter.Init(pcPrimitive->GetValue(3)->DoubleValue() * fUnit, pcPrimitive->GetValue(4)->DoubleValue() * fUnit);
+		sNormal.Init(pcPrimitive->GetValue(1)->DoubleValue() * fUnit / 2, pcPrimitive->GetValue(2)->DoubleValue() * fUnit / 2);
+		asPoints[0].Init(sCenter.x - sNormal.x, sCenter.y - sNormal.y);
+		asPoints[1].Init(sCenter.x + sNormal.x, sCenter.y - sNormal.y);
+		asPoints[2].Init(sCenter.x + sNormal.x, sCenter.y + sNormal.y);
+		asPoints[3].Init(sCenter.x - sNormal.x, sCenter.y + sNormal.y);
+		for (i = 0; i < 4; i++)
+		{
+			RotateVectorPoint(&asPoints[i], fRotation);
+		}
+		pcObject->AddPolygon(asPoints, 4, false);
+		return true;
 
-		case GAMP_Outline:
-			//Exposure, Number of vertices n, n + 1 points with the last equal to the first, Rotation
-			pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
-			uiVertices = (size)pcPrimitive->GetValue(1)->IntValue();
-			if (uiNumValues != 2 + 2 * (uiVertices + 1) + 1)
-			{
-				return false;
-			}
-			psOutline = (SFloat64Vec2*)malloc(sizeof(SFloat64Vec2) * uiVertices);
-			for (i = 0; i < uiVertices; i++)
-			{
-				psOutline[i].Init(pcPrimitive->GetValue(2 + 2 * i)->DoubleValue() * fUnit, pcPrimitive->GetValue(3 + 2 * i)->DoubleValue() * fUnit);
-				RotateVectorPoint(&psOutline[i], fRotation);
-			}
-			pcObject->AddPolygon(psOutline, uiVertices, false);
-			free(psOutline);
-			return true;
-
-		case GAMP_Polygon:
-			//Exposure, Number of vertices, Center X, Center Y, Diameter, Rotation
-			pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
-			iVertices = pcPrimitive->GetValue(1)->IntValue();
-			if ((iVertices < 3) || (iVertices > 12))
-			{
-				return false;
-			}
-			sCenter.Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
-			AddVectorRegularPolygon(pcObject, &sCenter, pcPrimitive->GetValue(4)->DoubleValue() * fUnit, iVertices, 0, fRotation);
-			return true;
-
-		case GAMP_Thermal_Center:
-			//Center X, Center Y, Outer diameter, Inner diameter, Gap thickness, Rotation.  Exposure is always on.
-			pcObject->BeginPart(true);
-			sCenter.Init(pcPrimitive->GetValue(0)->DoubleValue() * fUnit, pcPrimitive->GetValue(1)->DoubleValue() * fUnit);
-			AddGerberThermal(pcObject, &sCenter, pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit, pcPrimitive->GetValue(4)->DoubleValue() * fUnit, fRotation);
-			return true;
-
-		default:
+	case GAMP_Outline:
+		//Exposure, Number of vertices n, n + 1 points with the last equal to the first, Rotation
+		pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
+		uiVertices = (size)pcPrimitive->GetValue(1)->IntValue();
+		if (uiNumValues != 2 + 2 * (uiVertices + 1) + 1)
+		{
 			return false;
+		}
+		psOutline = (SFloat64Vec2*)malloc(sizeof(SFloat64Vec2) * uiVertices);
+		for (i = 0; i < uiVertices; i++)
+		{
+			psOutline[i].Init(pcPrimitive->GetValue(2 + 2 * i)->DoubleValue() * fUnit, pcPrimitive->GetValue(3 + 2 * i)->DoubleValue() * fUnit);
+			RotateVectorPoint(&psOutline[i], fRotation);
+		}
+		pcObject->AddPolygon(psOutline, uiVertices, false);
+		free(psOutline);
+		return true;
+
+	case GAMP_Polygon:
+		//Exposure, Number of vertices, Center X, Center Y, Diameter, Rotation
+		pcObject->BeginPart(!pcPrimitive->GetValue(0)->IsZero());
+		iVertices = pcPrimitive->GetValue(1)->IntValue();
+		if ((iVertices < 3) || (iVertices > 12))
+		{
+			return false;
+		}
+		sCenter.Init(pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit);
+		AddVectorRegularPolygon(pcObject, &sCenter, pcPrimitive->GetValue(4)->DoubleValue() * fUnit, iVertices, 0, fRotation);
+		return true;
+
+	case GAMP_Thermal_Center:
+		//Center X, Center Y, Outer diameter, Inner diameter, Gap thickness, Rotation.  Exposure is always on.
+		pcObject->BeginPart(true);
+		sCenter.Init(pcPrimitive->GetValue(0)->DoubleValue() * fUnit, pcPrimitive->GetValue(1)->DoubleValue() * fUnit);
+		AddGerberThermal(pcObject, &sCenter, pcPrimitive->GetValue(2)->DoubleValue() * fUnit, pcPrimitive->GetValue(3)->DoubleValue() * fUnit, pcPrimitive->GetValue(4)->DoubleValue() * fUnit, fRotation);
+		return true;
+
+	default:
+		return false;
 	}
 }
 
@@ -212,50 +212,50 @@ bool AddGerberApertureShape(CGerberVectorObject* pcObject, CGerberAperture* pcAp
 	sCenter.Init(0, 0);
 	switch (pcAperture->GetType())
 	{
-		case GAT_Circle:
-			pcObject->BeginPart(true);
-			pcObject->AddCircle(&sCenter, pcAperture->GetParameter(0)->DoubleValue() * fUnit / 2, false);
-			AddGerberHole(pcObject, pcAperture, 1, fUnit);
-			return true;
+	case GAT_Circle:
+		pcObject->BeginPart(true);
+		pcObject->AddCircle(&sCenter, pcAperture->GetParameter(0)->DoubleValue() * fUnit / 2, false);
+		AddGerberHole(pcObject, pcAperture, 1, fUnit);
+		return true;
 
-		case GAT_Rectangle:
-			pcObject->BeginPart(true);
-			fWidth = pcAperture->GetParameter(0)->DoubleValue() * fUnit;
-			fHeight = pcAperture->GetParameter(1)->DoubleValue() * fUnit;
-			asPoints[0].Init(-fWidth / 2, -fHeight / 2);
-			asPoints[1].Init(fWidth / 2, -fHeight / 2);
-			asPoints[2].Init(fWidth / 2, fHeight / 2);
-			asPoints[3].Init(-fWidth / 2, fHeight / 2);
-			pcObject->AddPolygon(asPoints, 4, false);
-			AddGerberHole(pcObject, pcAperture, 2, fUnit);
-			return true;
+	case GAT_Rectangle:
+		pcObject->BeginPart(true);
+		fWidth = pcAperture->GetParameter(0)->DoubleValue() * fUnit;
+		fHeight = pcAperture->GetParameter(1)->DoubleValue() * fUnit;
+		asPoints[0].Init(-fWidth / 2, -fHeight / 2);
+		asPoints[1].Init(fWidth / 2, -fHeight / 2);
+		asPoints[2].Init(fWidth / 2, fHeight / 2);
+		asPoints[3].Init(-fWidth / 2, fHeight / 2);
+		pcObject->AddPolygon(asPoints, 4, false);
+		AddGerberHole(pcObject, pcAperture, 2, fUnit);
+		return true;
 
-		case GAT_Obround:
-			pcObject->BeginPart(true);
-			AddVectorObround(pcObject, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->DoubleValue() * fUnit);
-			AddGerberHole(pcObject, pcAperture, 2, fUnit);
-			return true;
+	case GAT_Obround:
+		pcObject->BeginPart(true);
+		AddVectorObround(pcObject, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->DoubleValue() * fUnit);
+		AddGerberHole(pcObject, pcAperture, 2, fUnit);
+		return true;
 
-		case GAT_Polygon:
-			pcObject->BeginPart(true);
-			fRotation = (pcAperture->NumParameters() > 2) ? pcAperture->GetParameter(2)->DoubleValue() : 0;
-			AddVectorRegularPolygon(pcObject, &sCenter, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->IntValue(), fRotation, 0);
-			AddGerberHole(pcObject, pcAperture, 3, fUnit);
-			return true;
+	case GAT_Polygon:
+		pcObject->BeginPart(true);
+		fRotation = (pcAperture->NumParameters() > 2) ? pcAperture->GetParameter(2)->DoubleValue() : 0;
+		AddVectorRegularPolygon(pcObject, &sCenter, pcAperture->GetParameter(0)->DoubleValue() * fUnit, pcAperture->GetParameter(1)->IntValue(), fRotation, 0);
+		AddGerberHole(pcObject, pcAperture, 3, fUnit);
+		return true;
 
-		case GAT_Macro:
-			pcPrimitives = pcAperture->GetPrimitives();
-			for (i = 0; i < pcPrimitives->NumPrimitives(); i++)
+	case GAT_Macro:
+		pcPrimitives = pcAperture->GetPrimitives();
+		for (i = 0; i < pcPrimitives->NumPrimitives(); i++)
+		{
+			if (!AddGerberMacroPrimitive(pcObject, pcPrimitives->GetPrimitive(i), fUnit))
 			{
-				if (!AddGerberMacroPrimitive(pcObject, pcPrimitives->GetPrimitive(i), fUnit))
-				{
-					return false;
-				}
+				return false;
 			}
-			return true;
+		}
+		return true;
 
-		default:
-			return false;
+	default:
+		return false;
 	}
 }
 

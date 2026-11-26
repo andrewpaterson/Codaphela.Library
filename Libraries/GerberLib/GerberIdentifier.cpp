@@ -265,9 +265,9 @@ TRISTATE GetGerberIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool 
 		cCurrent = pcTextParser->Current();
 		*pc = cCurrent;
 		//The first character of an identifier must be one of these...
-		if (((cCurrent >= 'a') && (cCurrent <= 'z')) || 
-			((cCurrent >= 'A') && (cCurrent <= 'Z')) || 
-			(cCurrent == '_') || 
+		if (((cCurrent >= 'a') && (cCurrent <= 'z')) ||
+			((cCurrent >= 'A') && (cCurrent <= 'Z')) ||
+			(cCurrent == '_') ||
 			(cCurrent == '.') ||
 			(cCurrent == '$') ||
 			(cCurrent == '&'))

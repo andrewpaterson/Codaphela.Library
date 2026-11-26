@@ -148,7 +148,7 @@ TRISTATE ParseGerberEscapeCharacter(CTextParser* pcTextParser, char* szUTF8, siz
 	//\\uXXXX is a 16 bit and \\UXXXXXXXX a 32 bit Unicode code point.  Strings are UTF-8.  3.4.3
 	tResult = pcTextParser->GetExactCharacterSequence("\\u", false);
 	ReturnOnError(tResult);
-	
+
 	if (tResult == TRITRUE)
 	{
 		uiMaxDigits = 4;

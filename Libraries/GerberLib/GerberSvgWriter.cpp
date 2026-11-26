@@ -302,7 +302,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 	size					uiNumParts;
 	SFloat64Vec2			sMinimum;
 	SFloat64Vec2			sMaximum;
-	SVectorSegment*	psSegment;
+	SVectorSegment*			psSegment;
 	int						iFirstMask;
 	int						iNumOffRuns;
 	int						iMask;
@@ -427,7 +427,7 @@ void CGerberSvgWriter::WriteObject(CGerberVectorObject* pcObject)
 void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, size uiEnd)
 {
 	size					i;
-	SVectorSegment*	psSegment;
+	SVectorSegment*			psSegment;
 	SFloat64Vec2			sCurrent;
 	SFloat64Vec2			sOpposite;
 	float64					fRadius;
@@ -458,59 +458,59 @@ void CGerberSvgWriter::WritePath(CGerberVectorObject* pcObject, size uiStart, si
 		psSegment = pcObject->GetSegment(i);
 		switch (psSegment->eType)
 		{
-			case VS_Move:
-				if (bContour)
-				{
-					mpsz->Append("Z");
-				}
-				mpsz->Append('M');
+		case VS_Move:
+			if (bContour)
+			{
+				mpsz->Append("Z");
+			}
+			mpsz->Append('M');
+			WritePoint(&psSegment->sPoint);
+			bContour = true;
+			break;
+
+		case VS_Line:
+			mpsz->Append('L');
+			WritePoint(&psSegment->sPoint);
+			break;
+
+		case VS_Arc:
+			//SVG Y is down so a counterclockwise arc has sweep flag 0.
+			fRadius = hypot(sCurrent.x - psSegment->sCenter.x, sCurrent.y - psSegment->sCenter.y);
+			szSweep = psSegment->bClockwise ? (char*)" 1 " : (char*)" 0 ";
+			if ((sCurrent.x == psSegment->sPoint.x) && (sCurrent.y == psSegment->sPoint.y))
+			{
+				//A full circle is two halves; SVG cannot draw an arc to its own start.
+				sOpposite.Init(2 * psSegment->sCenter.x - sCurrent.x, 2 * psSegment->sCenter.y - sCurrent.y);
+				mpsz->Append('A');
+				WriteNumber(fRadius);
+				mpsz->Append(' ');
+				WriteNumber(fRadius);
+				mpsz->Append(" 0 0");
+				mpsz->Append(szSweep);
+				WritePoint(&sOpposite);
+				mpsz->Append('A');
+				WriteNumber(fRadius);
+				mpsz->Append(' ');
+				WriteNumber(fRadius);
+				mpsz->Append(" 0 0");
+				mpsz->Append(szSweep);
 				WritePoint(&psSegment->sPoint);
-				bContour = true;
-				break;
-
-			case VS_Line:
-				mpsz->Append('L');
+			}
+			else
+			{
+				fSweep = Float64Vec2ArcSweep(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
+				mpsz->Append('A');
+				WriteNumber(fRadius);
+				mpsz->Append(' ');
+				WriteNumber(fRadius);
+				mpsz->Append((fSweep > N_PI_64) ? " 0 1" : " 0 0");
+				mpsz->Append(szSweep);
 				WritePoint(&psSegment->sPoint);
-				break;
+			}
+			break;
 
-			case VS_Arc:
-				//SVG Y is down so a counterclockwise arc has sweep flag 0.
-				fRadius = hypot(sCurrent.x - psSegment->sCenter.x, sCurrent.y - psSegment->sCenter.y);
-				szSweep = psSegment->bClockwise ? (char*)" 1 " : (char*)" 0 ";
-				if ((sCurrent.x == psSegment->sPoint.x) && (sCurrent.y == psSegment->sPoint.y))
-				{
-					//A full circle is two halves; SVG cannot draw an arc to its own start.
-					sOpposite.Init(2 * psSegment->sCenter.x - sCurrent.x, 2 * psSegment->sCenter.y - sCurrent.y);
-					mpsz->Append('A');
-					WriteNumber(fRadius);
-					mpsz->Append(' ');
-					WriteNumber(fRadius);
-					mpsz->Append(" 0 0");
-					mpsz->Append(szSweep);
-					WritePoint(&sOpposite);
-					mpsz->Append('A');
-					WriteNumber(fRadius);
-					mpsz->Append(' ');
-					WriteNumber(fRadius);
-					mpsz->Append(" 0 0");
-					mpsz->Append(szSweep);
-					WritePoint(&psSegment->sPoint);
-				}
-				else
-				{
-					fSweep = Float64Vec2ArcSweep(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
-					mpsz->Append('A');
-					WriteNumber(fRadius);
-					mpsz->Append(' ');
-					WriteNumber(fRadius);
-					mpsz->Append((fSweep > N_PI_64) ? " 0 1" : " 0 0");
-					mpsz->Append(szSweep);
-					WritePoint(&psSegment->sPoint);
-				}
-				break;
-
-			default:
-				break;
+		default:
+			break;
 		}
 		if (psSegment->eType != VS_Part)
 		{

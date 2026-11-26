@@ -20,15 +20,15 @@ protected:
 	EGerberMirroring	meMirroring;
 
 public:
-	void Init(EGerberMirroring eMirroring);
-	void Kill(void);
+	void	Init(EGerberMirroring eMirroring);
+	void	Kill(void);
 
 	bool IsLoadMirroring(void) const;
 
-	bool IsNone(void) const;
-	bool IsX(void) const;
-	bool IsY(void) const;
-	bool IsXY(void) const;
+	bool	IsNone(void) const;
+	bool	IsX(void) const;
+	bool	IsY(void) const;
+	bool	IsXY(void) const;
 
 	EGerberMirroring	GetMirroring(void) const;
 };

@@ -351,21 +351,21 @@ bool CGerberInterpreter::ValidateStandardAperture(CGerberAperture* pcAperture)
 
 	switch (pcAperture->GetType())
 	{
-		case GAT_Circle:
-			uiMinimum = 1;
-			uiMaximum = 2;
-			break;
-		case GAT_Rectangle:
-		case GAT_Obround:
-			uiMinimum = 2;
-			uiMaximum = 3;
-			break;
-		case GAT_Polygon:
-			uiMinimum = 2;
-			uiMaximum = 4;
-			break;
-		default:
-			return Error("Not a standard aperture.");
+	case GAT_Circle:
+		uiMinimum = 1;
+		uiMaximum = 2;
+		break;
+	case GAT_Rectangle:
+	case GAT_Obround:
+		uiMinimum = 2;
+		uiMaximum = 3;
+		break;
+	case GAT_Polygon:
+		uiMinimum = 2;
+		uiMaximum = 4;
+		break;
+	default:
+		return Error("Not a standard aperture.");
 	}
 
 	uiNumParameters = pcAperture->NumParameters();

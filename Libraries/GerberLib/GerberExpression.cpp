@@ -249,18 +249,18 @@ char GetGerberOperatorSymbol(CCalcOperator* pcOperator)
 {
 	switch (pcOperator->meOp)
 	{
-		case CO_Add:
-		case CO_UnaryAdd:
-			return '+';
-		case CO_Subtract:
-		case CO_UnarySubtract:
-			return '-';
-		case CO_Multiply:
-			return 'x';
-		case CO_Divide:
-			return '/';
-		default:
-			return 0;
+	case CO_Add:
+	case CO_UnaryAdd:
+		return '+';
+	case CO_Subtract:
+	case CO_UnarySubtract:
+		return '-';
+	case CO_Multiply:
+		return 'x';
+	case CO_Divide:
+		return '/';
+	default:
+		return 0;
 	}
 }
 
@@ -275,15 +275,15 @@ int GetGerberOperatorPrecedence(CCalcOperator* pcOperator)
 	//here to print a tree that parses back to itself.
 	switch (pcOperator->meOp)
 	{
-		case CO_Add:
-		case CO_Subtract:
-			return 1;
-		case CO_Multiply:
-			return 2;
-		case CO_Divide:
-			return 3;
-		default:
-			return 0;
+	case CO_Add:
+	case CO_Subtract:
+		return 1;
+	case CO_Multiply:
+		return 2;
+	case CO_Divide:
+		return 3;
+	default:
+		return 0;
 	}
 }
 

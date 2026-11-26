@@ -25,7 +25,7 @@ public:
 
 	CGerberExpression*	GetCenterX(void);
 	CGerberExpression*	GetCenterY(void);
-	CGerberExpression*  GetOuterDiameter(void);
+	CGerberExpression*	GetOuterDiameter(void);
 	CGerberExpression*	GetInnerDiameter(void);
 	CGerberExpression*	GetGapThickness(void);
 	CGerberExpression*	GetRotation(void);

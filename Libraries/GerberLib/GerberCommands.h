@@ -54,7 +54,7 @@ public:
 	CGerberCommandStepAndRepeat*		AddStepAndRepeat(uint32 uiXRepeats, uint32 uiYRepeats, CNumber* pcXStep, CNumber* pcYStep);
 	CGerberCommandApertureMacro*		AddApertureMacro(size iNameLength);
 	CGerberCommandEndOfFile*			AddEndOfFile(void);
-	
+
 	size								NumCommands(void) const;
 	CGerberCommand*						GetCommand(size uiIndex);
 };

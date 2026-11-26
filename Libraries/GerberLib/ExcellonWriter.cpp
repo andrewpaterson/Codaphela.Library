@@ -71,79 +71,79 @@ bool CExcellonWriter::WriteCommand(CExcellonCommand* pcCommand)
 
 	switch (pcCommand->GetType())
 	{
-		case EC_Comment:
-			WriteComment((CExcellonCommandComment*)pcCommand);
-			break;
-		case EC_FileAttribute:
-			WriteAttribute("TF", (CExcellonCommandAttribute*)pcCommand);
-			break;
-		case EC_ApertureAttribute:
-			WriteAttribute("TA", (CExcellonCommandAttribute*)pcCommand);
-			break;
-		case EC_DeleteAttribute:
-			WriteAttribute("TD", (CExcellonCommandAttribute*)pcCommand);
-			break;
-		case EC_HeaderStart:
-			mpsz->Append("M48");
-			break;
-		case EC_Format:
-			mpsz->Append("FMAT,");
-			mpsz->Append((uint32)((CExcellonCommandFormat*)pcCommand)->GetFormat());
-			break;
-		case EC_Unit:
-			mpsz->Append("METRIC");
-			break;
-		case EC_ToolDefine:
-			pcToolDefine = (CExcellonCommandToolDefine*)pcCommand;
-			mpsz->Append('T');
-			mpsz->Append(pcToolDefine->GetTool());
-			mpsz->Append('C');
-			WriteNumber(pcToolDefine->GetDiameter());
-			break;
-		case EC_HeaderEnd:
-			mpsz->Append('%');
-			break;
-		case EC_Absolute:
-			mpsz->Append("G90");
-			break;
-		case EC_DrillMode:
-			mpsz->Append("G05");
-			break;
-		case EC_ToolSelect:
-			mpsz->Append('T');
-			mpsz->Append(((CExcellonCommandToolSelect*)pcCommand)->GetTool());
-			break;
-		case EC_Hit:
-		case EC_RouteMove:
-		case EC_RouteLinear:
-			pcCoordinate = (CExcellonCommandCoordinate*)pcCommand;
-			if (pcCommand->IsType(EC_RouteMove))
-			{
-				mpsz->Append("G00");
-			}
-			else if (pcCommand->IsType(EC_RouteLinear))
-			{
-				mpsz->Append("G01");
-			}
-			WriteCoordinates(pcCoordinate->GetX(), pcCoordinate->HasX(), pcCoordinate->GetY(), pcCoordinate->HasY());
-			break;
-		case EC_ToolDown:
-			mpsz->Append("M15");
-			break;
-		case EC_ToolUp:
-			mpsz->Append("M16");
-			break;
-		case EC_Slot:
-			pcSlot = (CExcellonCommandSlot*)pcCommand;
-			WriteCoordinates(pcSlot->GetStartX(), pcSlot->HasStartX(), pcSlot->GetStartY(), pcSlot->HasStartY());
-			mpsz->Append("G85");
-			WriteCoordinates(pcSlot->GetEndX(), pcSlot->HasEndX(), pcSlot->GetEndY(), pcSlot->HasEndY());
-			break;
-		case EC_EndOfProgram:
-			mpsz->Append("M30");
-			break;
-		default:
-			return Error("Unknown Excellon command.");
+	case EC_Comment:
+		WriteComment((CExcellonCommandComment*)pcCommand);
+		break;
+	case EC_FileAttribute:
+		WriteAttribute("TF", (CExcellonCommandAttribute*)pcCommand);
+		break;
+	case EC_ApertureAttribute:
+		WriteAttribute("TA", (CExcellonCommandAttribute*)pcCommand);
+		break;
+	case EC_DeleteAttribute:
+		WriteAttribute("TD", (CExcellonCommandAttribute*)pcCommand);
+		break;
+	case EC_HeaderStart:
+		mpsz->Append("M48");
+		break;
+	case EC_Format:
+		mpsz->Append("FMAT,");
+		mpsz->Append((uint32)((CExcellonCommandFormat*)pcCommand)->GetFormat());
+		break;
+	case EC_Unit:
+		mpsz->Append("METRIC");
+		break;
+	case EC_ToolDefine:
+		pcToolDefine = (CExcellonCommandToolDefine*)pcCommand;
+		mpsz->Append('T');
+		mpsz->Append(pcToolDefine->GetTool());
+		mpsz->Append('C');
+		WriteNumber(pcToolDefine->GetDiameter());
+		break;
+	case EC_HeaderEnd:
+		mpsz->Append('%');
+		break;
+	case EC_Absolute:
+		mpsz->Append("G90");
+		break;
+	case EC_DrillMode:
+		mpsz->Append("G05");
+		break;
+	case EC_ToolSelect:
+		mpsz->Append('T');
+		mpsz->Append(((CExcellonCommandToolSelect*)pcCommand)->GetTool());
+		break;
+	case EC_Hit:
+	case EC_RouteMove:
+	case EC_RouteLinear:
+		pcCoordinate = (CExcellonCommandCoordinate*)pcCommand;
+		if (pcCommand->IsType(EC_RouteMove))
+		{
+			mpsz->Append("G00");
+		}
+		else if (pcCommand->IsType(EC_RouteLinear))
+		{
+			mpsz->Append("G01");
+		}
+		WriteCoordinates(pcCoordinate->GetX(), pcCoordinate->HasX(), pcCoordinate->GetY(), pcCoordinate->HasY());
+		break;
+	case EC_ToolDown:
+		mpsz->Append("M15");
+		break;
+	case EC_ToolUp:
+		mpsz->Append("M16");
+		break;
+	case EC_Slot:
+		pcSlot = (CExcellonCommandSlot*)pcCommand;
+		WriteCoordinates(pcSlot->GetStartX(), pcSlot->HasStartX(), pcSlot->GetStartY(), pcSlot->HasStartY());
+		mpsz->Append("G85");
+		WriteCoordinates(pcSlot->GetEndX(), pcSlot->HasEndX(), pcSlot->GetEndY(), pcSlot->HasEndY());
+		break;
+	case EC_EndOfProgram:
+		mpsz->Append("M30");
+		break;
+	default:
+		return Error("Unknown Excellon command.");
 	}
 
 	mpsz->AppendNewLine();

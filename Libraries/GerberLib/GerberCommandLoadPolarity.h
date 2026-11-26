@@ -18,13 +18,13 @@ protected:
 	EGerberPolarity mePolarity;
 
 public:
-	void Init(EGerberPolarity ePolarity);
-	void Kill(void);
+	void	Init(EGerberPolarity ePolarity);
+	void	Kill(void);
 
 	bool IsLoadPolarity(void) const;
 
-	bool IsDark(void) const;
-	bool IsClear(void) const;
+	bool	IsDark(void) const;
+	bool	IsClear(void) const;
 };
 
 

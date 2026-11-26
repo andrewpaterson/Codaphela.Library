@@ -109,63 +109,63 @@ bool CExcellonInterpreter::InterpretCommand(CExcellonCommand* pcCommand)
 {
 	switch (pcCommand->GetType())
 	{
-		case EC_Unit:
-			if (meUnit != EU_Unknown)
-			{
-				return Error("Excellon unit (INCH or METRIC) can only be set once.");
-			}
-			meUnit = ((CExcellonCommandUnit*)pcCommand)->GetUnit();
-			return true;
+	case EC_Unit:
+		if (meUnit != EU_Unknown)
+		{
+			return Error("Excellon unit (INCH or METRIC) can only be set once.");
+		}
+		meUnit = ((CExcellonCommandUnit*)pcCommand)->GetUnit();
+		return true;
 
-		case EC_ToolDefine:
-			return InterpretToolDefine((CExcellonCommandToolDefine*)pcCommand);
+	case EC_ToolDefine:
+		return InterpretToolDefine((CExcellonCommandToolDefine*)pcCommand);
 
-		case EC_Absolute:
-			mbAbsolute = true;
-			return true;
+	case EC_Absolute:
+		mbAbsolute = true;
+		return true;
 
-		case EC_ToolSelect:
-			return InterpretToolSelect((CExcellonCommandToolSelect*)pcCommand);
+	case EC_ToolSelect:
+		return InterpretToolSelect((CExcellonCommandToolSelect*)pcCommand);
 
-		case EC_Hit:
-			return InterpretHit((CExcellonCommandCoordinate*)pcCommand);
+	case EC_Hit:
+		return InterpretHit((CExcellonCommandCoordinate*)pcCommand);
 
-		case EC_RouteMove:
-			return InterpretRouteMove((CExcellonCommandCoordinate*)pcCommand);
+	case EC_RouteMove:
+		return InterpretRouteMove((CExcellonCommandCoordinate*)pcCommand);
 
-		case EC_RouteLinear:
-			return InterpretRouteLinear((CExcellonCommandCoordinate*)pcCommand);
+	case EC_RouteLinear:
+		return InterpretRouteLinear((CExcellonCommandCoordinate*)pcCommand);
 
-		case EC_ToolDown:
-			return InterpretToolDown();
+	case EC_ToolDown:
+		return InterpretToolDown();
 
-		case EC_ToolUp:
-			return InterpretToolUp();
+	case EC_ToolUp:
+		return InterpretToolUp();
 
-		case EC_DrillMode:
-			return InterpretDrillMode();
+	case EC_DrillMode:
+		return InterpretDrillMode();
 
-		case EC_Slot:
-			return InterpretSlot((CExcellonCommandSlot*)pcCommand);
+	case EC_Slot:
+		return InterpretSlot((CExcellonCommandSlot*)pcCommand);
 
-		case EC_Comment:
-		case EC_FileAttribute:
-		case EC_ApertureAttribute:
-		case EC_HeaderStart:
-		case EC_Format:
-		case EC_DeleteAttribute:
-		case EC_HeaderEnd:
-			return true;
+	case EC_Comment:
+	case EC_FileAttribute:
+	case EC_ApertureAttribute:
+	case EC_HeaderStart:
+	case EC_Format:
+	case EC_DeleteAttribute:
+	case EC_HeaderEnd:
+		return true;
 
-		case EC_EndOfProgram:
-			if (mbToolDown)
-			{
-				return Error("Excellon end of program (M30) with the tool down.");
-			}
-			return true;
+	case EC_EndOfProgram:
+		if (mbToolDown)
+		{
+			return Error("Excellon end of program (M30) with the tool down.");
+		}
+		return true;
 
-		default:
-			return Error("Unknown Excellon command.");
+	default:
+		return Error("Unknown Excellon command.");
 	}
 }
 

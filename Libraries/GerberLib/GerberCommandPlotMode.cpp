@@ -47,7 +47,7 @@ bool CGerberCommandPlotMode::IsLinear(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CGerberCommandPlotMode::IsCircular(void) const
 {
-	return	meMode == GPM_CircularClockwise || 
+	return	meMode == GPM_CircularClockwise ||
 			meMode == GPM_CircularAnticlockwise;
 }
 
