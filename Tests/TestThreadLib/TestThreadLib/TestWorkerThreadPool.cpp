@@ -2,6 +2,7 @@
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/LogString.h"
+#include "BaseLib/Timer.h"
 #include "ThreadLib/WorkerThreadPool.h"
 #include "ThreadLib/AtomicInt.h"
 #include "BaseLib/SafeArrayBlock.h"
@@ -9,8 +10,11 @@
 
 
 #define TEST_THREAD_INTEGER_COUNT 10000
+#define TEST_THREAD_HALFWAY_WAIT_MILLISECONDS 10000
 
 
+//Pushes its x half the times, waits until every pusher has pushed half (all of them are running at once), then pushes
+//the rest: so every pusher's x is in the array before and after others', however the threads are scheduled.
 class CPusher
 {
 private:
@@ -18,14 +22,20 @@ private:
 	int					miThreadId;
 	CSafeArrayBlock*	mpcArray;
 	CAtomicInt			miRunning;
+	CAtomicInt*			mpiHalfway;		//The pushers that have pushed half, shared by all of them...
+	int					miPushers;		//...and how many there are.
+	bool				mbTimedOut;		//The others weren't all halfway after TEST_THREAD_HALFWAY_WAIT_MILLISECONDS.
 
 public:
-	void Init(int x, CSafeArrayBlock* pcArray)
+	void Init(int x, CSafeArrayBlock* pcArray, CAtomicInt* piHalfway, int iPushers)
 	{
 		mix = x;
 		mpcArray = pcArray;
 		miThreadId = -1;
 		miRunning.Set(1);
+		mpiHalfway = piHalfway;
+		miPushers = iPushers;
+		mbTimedOut = false;
 	}
 
 	void Start(int iThreadId)
@@ -35,9 +45,27 @@ public:
 
 	void Run(void)
 	{
-		int i;
+		int		i;
+		CTimer	cTimer;
 
-		for (i = 0; i < TEST_THREAD_INTEGER_COUNT; i++)
+		for (i = 0; i < TEST_THREAD_INTEGER_COUNT / 2; i++)
+		{
+			mpcArray->Add(&mix);
+		}
+
+		mpiHalfway->Increment();
+		cTimer.Init();
+		while (mpiHalfway->Get() != miPushers)
+		{
+			cTimer.Update();
+			if (cTimer.GetTotalTimeInMillieconds() > TEST_THREAD_HALFWAY_WAIT_MILLISECONDS)
+			{
+				mbTimedOut = true;
+				break;
+			}
+		}
+
+		for (; i < TEST_THREAD_INTEGER_COUNT; i++)
 		{
 			mpcArray->Add(&mix);
 		}
@@ -47,6 +75,11 @@ public:
 	bool IsDone(void)
 	{
 		return miRunning.Get() == 0;
+	}
+
+	bool IsTimedOut(void)
+	{
+		return mbTimedOut;
 	}
 };
 
@@ -77,15 +110,17 @@ void TestWorkerThreadPoolConcurrency(void)
 	int							iX;
 	size						iGreatherThanCount;
 	CWorkerThreadPool			cPool;
+	CAtomicInt					iHalfway;
 
 	iNumHardwareTheads = NumHardwareThreads();
 	acPushers.Init();
 	aiArray.Init(sizeof(int));
+	iHalfway.Set(0);
 
 	for (i = 0; i < iNumHardwareTheads * 2; i++)
 	{
 		pcPusher = acPushers.Add();
-		pcPusher->Init((int)i + 101, &aiArray);
+		pcPusher->Init((int)i + 101, &aiArray, &iHalfway, (int)(iNumHardwareTheads * 2));
 	}
 
 	cPool.Init((int)(iNumHardwareTheads * 2));
@@ -110,6 +145,10 @@ void TestWorkerThreadPoolConcurrency(void)
 	}
 
 	AssertSize(iNumHardwareTheads * TEST_THREAD_INTEGER_COUNT * 2, aiArray.NumElements());
+	for (i = 0; i < iNumHardwareTheads * 2; i++)
+	{
+		AssertFalse(acPushers.Get(i)->IsTimedOut());
+	}
 	Pass();
 
 	iGreatherThanCount = 0;
