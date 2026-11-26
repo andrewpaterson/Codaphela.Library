@@ -47,24 +47,24 @@ static bool	gbSharedMemoryFailed = false;
 //////////////////////////////////////////////////////////////////////////
 static int X11ErrorHandler(Display* psDisplay, XErrorEvent* psError)
 {
-    char    szText[256];
-    CChars  sz;
+	char	szText[256];
+	CChars	sz;
 
-    if ((giSharedMemoryOpcode >= 0) && (psError->request_code == giSharedMemoryOpcode))
-    {
-        gbSharedMemoryFailed = true;
-    }
+	if ((giSharedMemoryOpcode >= 0) && (psError->request_code == giSharedMemoryOpcode))
+	{
+		gbSharedMemoryFailed = true;
+	}
 
-    szText[0] = '\0';
-    XGetErrorText(psDisplay, psError->error_code, szText, sizeof(szText));
-    sz.Init(" X request [");
-    sz.Append((int32)psError->request_code);
-    sz.Append("] failed [");
-    sz.Append(szText);
-    sz.Append("].");
-    gcLogger.Error2(__METHOD__, sz.Text(), NULL);
-    sz.Kill();
-    return 0;
+	szText[0] = '\0';
+	XGetErrorText(psDisplay, psError->error_code, szText, sizeof(szText));
+	sz.Init(" X request [");
+	sz.Append((int32)psError->request_code);
+	sz.Append("] failed [");
+	sz.Append(szText);
+	sz.Append("].");
+	gcLogger.Error2(__METHOD__, sz.Text(), NULL);
+	sz.Kill();
+	return 0;
 }
 
 
@@ -76,12 +76,12 @@ static int X11ErrorHandler(Display* psDisplay, XErrorEvent* psError)
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayName)
 {
-    PreInit();
+	PreInit();
 
-    CNativeWindowFactory::Init(pcMallocator);
-    OpenDisplay(szDisplayName);
+	CNativeWindowFactory::Init(pcMallocator);
+	OpenDisplay(szDisplayName);
 
-    PostInit();
+	PostInit();
 }
 
 
@@ -91,43 +91,43 @@ void CX11WindowFactory::Init(CMallocator* pcMallocator, const char* szDisplayNam
 //////////////////////////////////////////////////////////////////////////
 bool CX11WindowFactory::OpenDisplay(const char* szDisplayName)
 {
-    Bool    bDetectable;
-    int     iOpcode;
-    int     iEvent;
-    int     iError;
+	Bool	bDetectable;
+	int	iOpcode;
+	int	iEvent;
+	int	iError;
 
-    mpcInput = NULL;
-    mapcWindows.Init();
-    mulDeleteWindowAtom = 0;
-    mulProtocolsAtom = 0;
-    miScreen = 0;
-    mbSharedMemoryAvailable = false;
-    mbSharedMemory = true;
-    miSharedCompletionEvent = -1;
+	mpcInput = NULL;
+	mapcWindows.Init();
+	mulDeleteWindowAtom = 0;
+	mulProtocolsAtom = 0;
+	miScreen = 0;
+	mbSharedMemoryAvailable = false;
+	mbSharedMemory = true;
+	miSharedCompletionEvent = -1;
 
-    mpsDisplay = XOpenDisplay(szDisplayName);
-    mcSelection.Init(mpsDisplay, mpsDisplay ? DefaultScreen(mpsDisplay) : 0);
-    if (mpsDisplay == NULL)
-    {
-        gcLogger.Error2(__METHOD__, " Could not open X display [", XDisplayName(szDisplayName), "].", NULL);
-        return false;
-    }
+	mpsDisplay = XOpenDisplay(szDisplayName);
+	mcSelection.Init(mpsDisplay, mpsDisplay ? DefaultScreen(mpsDisplay) : 0);
+	if (mpsDisplay == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Could not open X display [", XDisplayName(szDisplayName), "].", NULL);
+		return false;
+	}
 
-    XSetErrorHandler(X11ErrorHandler);
-    miScreen = DefaultScreen(mpsDisplay);
-    mbSharedMemoryAvailable = XShmQueryExtension(mpsDisplay);
-    if (mbSharedMemoryAvailable && XQueryExtension(mpsDisplay, "MIT-SHM", &iOpcode, &iEvent, &iError))
-    {
-        giSharedMemoryOpcode = iOpcode;
-        miSharedCompletionEvent = XShmGetEventBase(mpsDisplay) + ShmCompletion;
-    }
-    mulDeleteWindowAtom = XInternAtom(mpsDisplay, "WM_DELETE_WINDOW", False);
-    mulProtocolsAtom = XInternAtom(mpsDisplay, "WM_PROTOCOLS", False);
+	XSetErrorHandler(X11ErrorHandler);
+	miScreen = DefaultScreen(mpsDisplay);
+	mbSharedMemoryAvailable = XShmQueryExtension(mpsDisplay);
+	if (mbSharedMemoryAvailable && XQueryExtension(mpsDisplay, "MIT-SHM", &iOpcode, &iEvent, &iError))
+	{
+		giSharedMemoryOpcode = iOpcode;
+		miSharedCompletionEvent = XShmGetEventBase(mpsDisplay) + ShmCompletion;
+	}
+	mulDeleteWindowAtom = XInternAtom(mpsDisplay, "WM_DELETE_WINDOW", False);
+	mulProtocolsAtom = XInternAtom(mpsDisplay, "WM_PROTOCOLS", False);
 
-    //A held key then repeats as presses only, as Windows raw input does, rather than as release and press pairs.
-    bDetectable = False;
-    XkbSetDetectableAutoRepeat(mpsDisplay, True, &bDetectable);
-    return true;
+	//A held key then repeats as presses only, as Windows raw input does, rather than as release and press pairs.
+	bDetectable = False;
+	XkbSetDetectableAutoRepeat(mpsDisplay, True, &bDetectable);
+	return true;
 }
 
 
@@ -137,18 +137,18 @@ bool CX11WindowFactory::OpenDisplay(const char* szDisplayName)
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::Class(void)
 {
-    CNativeWindowFactory::Class();
+	CNativeWindowFactory::Class();
 
-    U_Pointer(mpsDisplay);
-    U_SInt(miScreen);
-    U_Data(X11ID, mulDeleteWindowAtom);
-    U_Data(X11ID, mulProtocolsAtom);
-    U_Pointer(mpcInput);
-    U_Unknown(CArrayX11WindowPtr, mapcWindows);
-    U_Unknown(CX11Selection, mcSelection);
-    U_Bool(mbSharedMemoryAvailable);
-    U_Bool(mbSharedMemory);
-    U_SInt(miSharedCompletionEvent);
+	U_Pointer(mpsDisplay);
+	U_SInt(miScreen);
+	U_Data(X11ID, mulDeleteWindowAtom);
+	U_Data(X11ID, mulProtocolsAtom);
+	U_Pointer(mpcInput);
+	U_Unknown(CArrayX11WindowPtr, mapcWindows);
+	U_Unknown(CX11Selection, mcSelection);
+	U_Bool(mbSharedMemoryAvailable);
+	U_Bool(mbSharedMemory);
+	U_SInt(miSharedCompletionEvent);
 }
 
 
@@ -158,14 +158,14 @@ void CX11WindowFactory::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::Free(void)
 {
-    mcSelection.Kill();
-    if (mpsDisplay)
-    {
-        XCloseDisplay(mpsDisplay);
-        mpsDisplay = NULL;
-    }
-    mapcWindows.Kill();
-    CNativeWindowFactory::Free();
+	mcSelection.Kill();
+	if (mpsDisplay)
+	{
+		XCloseDisplay(mpsDisplay);
+		mpsDisplay = NULL;
+	}
+	mapcWindows.Kill();
+	CNativeWindowFactory::Free();
 }
 
 
@@ -175,7 +175,7 @@ void CX11WindowFactory::Free(void)
 //////////////////////////////////////////////////////////////////////////
 bool CX11WindowFactory::IsOpen(void)
 {
-    return mpsDisplay != NULL;
+	return mpsDisplay != NULL;
 }
 
 
@@ -185,12 +185,12 @@ bool CX11WindowFactory::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 CNativeWindow* CX11WindowFactory::CreateNativeWindow(CWindow* pcWindow)
 {
-    CX11Window*     pcNativeWindow;
+	CX11Window*     pcNativeWindow;
 
-    pcNativeWindow = NativeMalloc<CX11Window>();
-    pcNativeWindow->Init(pcWindow, this);
+	pcNativeWindow = NativeMalloc<CX11Window>();
+	pcNativeWindow->Init(pcWindow, this);
 
-    return pcNativeWindow;
+	return pcNativeWindow;
 }
 
 
@@ -200,21 +200,21 @@ CNativeWindow* CX11WindowFactory::CreateNativeWindow(CWindow* pcWindow)
 //////////////////////////////////////////////////////////////////////////
 CNativeCanvas* CX11WindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 {
-    CX11Canvas*     pcNativeCanvas;
-    bool            bResult;
+	CX11Canvas*	pcNativeCanvas;
+	bool		bResult;
 
-    pcNativeCanvas = NativeMalloc<CX11Canvas>();
-    pcNativeCanvas->Init(pcCanvas, this);
-    bResult = pcNativeCanvas->CreateNativeCanvas();
-    if (!bResult)
-    {
-        DestroyNativeCanvas(pcNativeCanvas);
-        return NULL;
-    }
-    else
-    {
-        return pcNativeCanvas;
-    }
+	pcNativeCanvas = NativeMalloc<CX11Canvas>();
+	pcNativeCanvas->Init(pcCanvas, this);
+	bResult = pcNativeCanvas->CreateNativeCanvas();
+	if (!bResult)
+	{
+		DestroyNativeCanvas(pcNativeCanvas);
+		return NULL;
+	}
+	else
+	{
+		return pcNativeCanvas;
+	}
 }
 
 
@@ -226,15 +226,15 @@ CNativeCanvas* CX11WindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 // pasted.
 CNativeClipboard* CX11WindowFactory::CreateNativeClipboard(CClipboard* pcClipboard)
 {
-    CX11Clipboard*  pcNativeClipboard;
+	CX11Clipboard*  pcNativeClipboard;
 
-    if (mpsDisplay == NULL)
-    {
-        return NULL;
-    }
-    pcNativeClipboard = NativeMalloc<CX11Clipboard>();
-    pcNativeClipboard->Init(pcClipboard, this);
-    return pcNativeClipboard;
+	if (mpsDisplay == NULL)
+	{
+		return NULL;
+	}
+	pcNativeClipboard = NativeMalloc<CX11Clipboard>();
+	pcNativeClipboard->Init(pcClipboard, this);
+	return pcNativeClipboard;
 }
 
 
@@ -273,7 +273,7 @@ int CX11WindowFactory::GetSharedCompletionEvent(void) const { return miSharedCom
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::AddWindow(CX11Window* pcWindow)
 {
-    mapcWindows.Add(pcWindow);
+	mapcWindows.Add(pcWindow);
 }
 
 
@@ -283,16 +283,16 @@ void CX11WindowFactory::AddWindow(CX11Window* pcWindow)
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::RemoveWindow(CX11Window* pcWindow)
 {
-    size    i;
+	size    i;
 
-    for (i = 0; i < mapcWindows.NumElements(); i++)
-    {
-        if (mapcWindows.GetPtr(i) == pcWindow)
-        {
-            mapcWindows.RemoveAt(i, true);
-            return;
-        }
-    }
+	for (i = 0; i < mapcWindows.NumElements(); i++)
+	{
+		if (mapcWindows.GetPtr(i) == pcWindow)
+		{
+			mapcWindows.RemoveAt(i, true);
+			return;
+		}
+	}
 }
 
 
@@ -303,18 +303,18 @@ void CX11WindowFactory::RemoveWindow(CX11Window* pcWindow)
 //////////////////////////////////////////////////////////////////////////
 CX11Window* CX11WindowFactory::GetWindow(X11ID ulWindow)
 {
-    size            i;
-    CX11Window*     pcWindow;
+	size		i;
+	CX11Window*	pcWindow;
 
-    for (i = 0; i < mapcWindows.NumElements(); i++)
-    {
-        pcWindow = mapcWindows.GetPtr(i);
-        if (pcWindow->GetXWindow() == ulWindow)
-        {
-            return pcWindow;
-        }
-    }
-    return NULL;
+	for (i = 0; i < mapcWindows.NumElements(); i++)
+	{
+		pcWindow = mapcWindows.GetPtr(i);
+		if (pcWindow->GetXWindow() == ulWindow)
+		{
+			return pcWindow;
+		}
+	}
+	return NULL;
 }
 
 
@@ -327,36 +327,36 @@ CX11Window* CX11WindowFactory::GetWindow(X11ID ulWindow)
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::ExecuteEvents(void)
 {
-    XEvent          uEvent;
-    CX11Window*     pcWindow;
-    size            i;
+	XEvent	uEvent;
+	CX11Window*	pcWindow;
+	size	i;
 
-    while (XPending(mpsDisplay) > 0)
-    {
-        XNextEvent(mpsDisplay, &uEvent);
-        if (uEvent.type == MappingNotify)
-        {
-            XRefreshKeyboardMapping(&uEvent.xmapping);
-            continue;
-        }
+	while (XPending(mpsDisplay) > 0)
+	{
+		XNextEvent(mpsDisplay, &uEvent);
+		if (uEvent.type == MappingNotify)
+		{
+			XRefreshKeyboardMapping(&uEvent.xmapping);
+			continue;
+		}
 
-        //Another program asking for text this program copied.
-        if (mcSelection.HandleEvent(&uEvent))
-        {
-            continue;
-        }
+		//Another program asking for text this program copied.
+		if (mcSelection.HandleEvent(&uEvent))
+		{
+			continue;
+		}
 
-        pcWindow = GetWindow(uEvent.xany.window);
-        if (pcWindow)
-        {
-            pcWindow->HandleEvent(&uEvent);
-        }
-    }
+		pcWindow = GetWindow(uEvent.xany.window);
+		if (pcWindow)
+		{
+			pcWindow->HandleEvent(&uEvent);
+		}
+	}
 
-    for (i = 0; i < mapcWindows.NumElements(); i++)
-    {
-        mapcWindows.GetPtr(i)->PresentIfPending();
-    }
+	for (i = 0; i < mapcWindows.NumElements(); i++)
+	{
+		mapcWindows.GetPtr(i)->PresentIfPending();
+	}
 }
 
 
@@ -370,36 +370,36 @@ void CX11WindowFactory::ExecuteEvents(void)
 //////////////////////////////////////////////////////////////////////////
 void CX11WindowFactory::WaitForEvents(int64 iMilliseconds)
 {
-    struct pollfd   sPoll;
-    int             iTimeout;
-    size            i;
+	struct pollfd   sPoll;
+	int		iTimeout;
+	size	i;
 
-    for (i = 0; i < mapcWindows.NumElements(); i++)
-    {
-        mapcWindows.GetPtr(i)->PresentIfPending();
-    }
-    XFlush(mpsDisplay);
-    if (XPending(mpsDisplay) > 0)
-    {
-        return;
-    }
+	for (i = 0; i < mapcWindows.NumElements(); i++)
+	{
+		mapcWindows.GetPtr(i)->PresentIfPending();
+	}
+	XFlush(mpsDisplay);
+	if (XPending(mpsDisplay) > 0)
+	{
+		return;
+	}
 
-    if (iMilliseconds < 0)
-    {
-        iTimeout = -1;
-    }
-    else if (iMilliseconds > 0x7FFFFFFF)
-    {
-        iTimeout = 0x7FFFFFFF;
-    }
-    else
-    {
-        iTimeout = (int)iMilliseconds;
-    }
-    sPoll.fd = ConnectionNumber(mpsDisplay);
-    sPoll.events = POLLIN;
-    sPoll.revents = 0;
-    poll(&sPoll, 1, iTimeout);
+	if (iMilliseconds < 0)
+	{
+		iTimeout = -1;
+	}
+	else if (iMilliseconds > 0x7FFFFFFF)
+	{
+		iTimeout = 0x7FFFFFFF;
+	}
+	else
+	{
+		iTimeout = (int)iMilliseconds;
+	}
+	sPoll.fd = ConnectionNumber(mpsDisplay);
+	sPoll.events = POLLIN;
+	sPoll.revents = 0;
+	poll(&sPoll, 1, iTimeout);
 }
 
 
@@ -409,5 +409,5 @@ void CX11WindowFactory::WaitForEvents(int64 iMilliseconds)
 //////////////////////////////////////////////////////////////////////////
 X11ID CX11WindowFactory::InternAtom(const char* szName)
 {
-    return XInternAtom(mpsDisplay, szName, False);
+	return XInternAtom(mpsDisplay, szName, False);
 }
