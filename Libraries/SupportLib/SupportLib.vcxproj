@@ -753,6 +753,15 @@
     <ClCompile Include="BitmapPacker.cpp" />
     <ClCompile Include="MeshUVRigid.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\supportlib\index.md" />
+    <None Include="Docs\libraries\supportlib\images.md" />
+    <None Include="Docs\libraries\supportlib\fonts.md" />
+    <None Include="Docs\libraries\supportlib\sound.md" />
+    <None Include="Docs\libraries\supportlib\shapes.md" />
+    <None Include="Docs\libraries\supportlib\scenes.md" />
+    <None Include="Docs\libraries\supportlib\unwrapping.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

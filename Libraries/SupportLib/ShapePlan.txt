@@ -190,3 +190,7 @@ no new code yet; whatever replaces them (the bounding fits, CMeshShape) is to be
   move.
   The hull generator's free lists, its flat start, its third point (measured from a plane through the origin) and its face
   removal, above.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/supportlib/shapes.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

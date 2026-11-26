@@ -1,6 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{99dbbb89-138b-4273-9231-eb68b38224a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{39b7af67-f43d-40c4-b93a-a3c355009f29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\supportlib">
+      <UniqueIdentifier>{974e347c-9dd1-4a75-a22d-2e8f8af1c5df}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{0d0da530-a0cc-4aed-89f7-0f571c2c7c04}</UniqueIdentifier>
     </Filter>
@@ -1919,5 +1928,28 @@
     <ClCompile Include="MeshUVRigid.cpp">
       <Filter>Source\Image\Blitter</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\supportlib\index.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+    <None Include="Docs\libraries\supportlib\images.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+    <None Include="Docs\libraries\supportlib\fonts.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+    <None Include="Docs\libraries\supportlib\sound.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+    <None Include="Docs\libraries\supportlib\shapes.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+    <None Include="Docs\libraries\supportlib\scenes.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
+    <None Include="Docs\libraries\supportlib\unwrapping.md">
+      <Filter>Docs\libraries\supportlib</Filter>
+    </None>
   </ItemGroup>
 </Project>
