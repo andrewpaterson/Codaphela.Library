@@ -50,7 +50,7 @@ typedef CArrayTemplate<SComponentInputChordCommand>	CArrayComponentInputChordCom
 
 
 //Keys bound to a command (CComponentInput::BindKeys): one key ("F5"), a chord ("Control+Shift+B") or two keys one
-//after the other with control and shift held for the first ("Control+Shift+F, H").  szKeys is the binding's name, its
+//after the other with control, or control and shift, held for the first ("Control+K, C", "Control+Shift+F, H").  szKeys is the binding's name, its
 //modifiers in the order Control, Alt, Shift.  What the keys gave before is kept so UnbindKeys can give it back.
 struct SComponentInputBinding
 {
@@ -207,7 +207,7 @@ protected:
 	void							AddKeyboardChords(CComponentInputDevice* pcKeyboard);
 	void							AddMouseChords(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcMouse);
 	void							AddChordCommands(CComponentInputDevice* pcKeyboard, CComponentInputDevice* pcKeyDevice, bool bControl, bool bShift, bool bAlt, const char* szKey, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
-	void							AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
+	void							AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, bool bShift, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds);
 	void							AddChordCommand(const char* szName, EComponentInputCommand ePressed, EComponentInputCommand eReleased);
 	void							SetChordCommand(const char* szName, EComponentInputCommand ePressed);
 	static bool						ParseKeys(const char* szKeys, SComponentInputBinding* psBinding);

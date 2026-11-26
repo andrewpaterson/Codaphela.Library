@@ -94,7 +94,6 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ true,  false, false, "Y",			CIC_DeleteLine,					CIC_Ignored },
 	{ true,  true,  false, "Cursor Up",	CIC_MoveLinesUp,				CIC_Ignored },
 	{ true,  true,  false, "Cursor Down",	CIC_MoveLinesDown,				CIC_Ignored },
-	{ true,  false, false, "/",			CIC_CommentLines,				CIC_Ignored },
 	{ true,  true,  false, "/",			CIC_CommentBlock,				CIC_Ignored },
 	{ false, true,  false, "F7",			CIC_PreviousDifference,			CIC_Ignored },
 	{ false, true,  false, "F10",			CIC_ContextMenuKey,				CIC_Ignored },
@@ -487,12 +486,13 @@ void CComponentInput::AddChordCommands(CComponentInputDevice* pcKeyboard, CCompo
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A chord, named like "Control+Shift+F, H", for each of the keyboard's
-// left and right controls with each of its shifts, and for each of them
-// let go or held for the second key.  They share one name and command.
+// A chord, named like "Control+K, C" or with bShift "Control+Shift+F, H",
+// for each of the keyboard's left and right controls (with each of its
+// shifts), and for each of them let go or held for the second key.  They
+// share one name and command.
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds)
+void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard, bool bShift, const char* szFirstKey, const char* szSecondKey, EComponentInputCommand eCommand, uint32 uiEvictionMilliseconds)
 {
 	CInputSourceDesc*	apcControls[2];
 	CInputSourceDesc*	apcShifts[2];
@@ -510,23 +510,24 @@ void CComponentInput::AddSequenceChordCommands(CComponentInputDevice* pcKeyboard
 		return;
 	}
 
+	//Without shift there is one "shift", none: each control alone, held or let go.
 	apcControls[0] = pcKeyboard->GetSource("Left Control");
 	apcControls[1] = pcKeyboard->GetSource("Right Control");
-	apcShifts[0] = pcKeyboard->GetSource("Left Shift");
-	apcShifts[1] = pcKeyboard->GetSource("Right Shift");
+	apcShifts[0] = bShift ? pcKeyboard->GetSource("Left Shift") : NULL;
+	apcShifts[1] = bShift ? pcKeyboard->GetSource("Right Shift") : NULL;
 
-	szName.Init("Control+Shift+");
+	szName.Init(bShift ? "Control+Shift+" : "Control+");
 	szName.Append(szFirstKey);
 	szName.Append(", ");
 	szName.Append(szSecondKey);
 
 	for (i = 0; (i < 2) && !pcKeyboard->HasChord(szName.Text()); i++)
 	{
-		for (j = 0; j < 2; j++)
+		for (j = 0; j < (size)(bShift ? 2 : 1); j++)
 		{
-			if (apcControls[i] && apcShifts[j])
+			if (apcControls[i] && (apcShifts[j] || !bShift))
 			{
-				for (uiLetGo = 0; uiLetGo < 4; uiLetGo++)
+				for (uiLetGo = 0; uiLetGo < (size)(bShift ? 4 : 2); uiLetGo++)
 				{
 					mpcSource->AddKeySequenceChord(szName.Text(), pcKeyboard->GetDevice(), apcControls[i], apcShifts[j], pcFirstKey, pcSecondKey, (uiLetGo & 1) != 0, (uiLetGo & 2) != 0, uiEvictionMilliseconds);
 				}
@@ -585,8 +586,8 @@ void CComponentInput::SetChordCommand(const char* szName, EComponentInputCommand
 // The application's keys for eCommand in szContext (NULL or "Global" for
 // the global keys, instead of any standard command on the same keys): one
 // key ("F5"), a chord of control, alt and shift with a key
-// ("Control+Shift+B", "Alt+Backspace"), or a key after a control and
-// shift chord ("Control+Shift+F, H").  Every keyboard has them, those
+// ("Control+Shift+B", "Alt+Backspace"), or a key after a control chord,
+// with shift or without ("Control+K, C", "Control+Shift+F, H").  Every keyboard has them, those
 // added later too.  False, logged, if szKeys can't be read, the context
 // isn't there, or they type a character and the context isn't a typing
 // one.
@@ -623,7 +624,7 @@ bool CComponentInput::BindGlobalKeys(const char* szKeys, EComponentInputCommand 
 
 	if (!ParseKeys(szKeys, &sParsed))
 	{
-		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or Control+Shift+F, H.", NULL);
+		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or two keys like Control+K, C.", NULL);
 	}
 
 	psBinding = GetBinding(sParsed.szKeys.Text());
@@ -749,7 +750,7 @@ bool CComponentInput::BindContextKeys(const char* szKeys, EComponentInputCommand
 
 	if (!ParseKeys(szKeys, &sParsed))
 	{
-		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or Control+Shift+F, H.", NULL);
+		return gcLogger.Error2(__METHOD__, " Keys [", szKeys, "] can't be bound: give a key, a chord like Control+Shift+B, or two keys like Control+K, C.", NULL);
 	}
 	if (!psContext->bTyping && IsTypingKeys(sParsed.szKeys.Text()))
 	{
@@ -1254,7 +1255,7 @@ bool CComponentInput::ParseKeys(const char* szKeys, SComponentInputBinding* psBi
 	szComma = strstr(szRest, ", ");
 	if (szComma)
 	{
-		if (!psBinding->bControl || !psBinding->bShift || psBinding->bAlt || (szComma == szRest) || StrEmpty(szComma + 2))
+		if (!psBinding->bControl || psBinding->bAlt || (szComma == szRest) || StrEmpty(szComma + 2))
 		{
 			return false;
 		}
@@ -1507,7 +1508,7 @@ void CComponentInput::ApplyContextBinding(CComponentInputDevice* pcKeyboard, SCo
 		}
 		else
 		{
-			AddSequenceChordCommands(pcKeyboard, psBinding->szKey.Text(), psBinding->szSecondKey.Text(), CIC_Ignored, COMPONENT_INPUT_SEQUENCE_MILLISECONDS);
+			AddSequenceChordCommands(pcKeyboard, psBinding->bShift, psBinding->szKey.Text(), psBinding->szSecondKey.Text(), CIC_Ignored, COMPONENT_INPUT_SEQUENCE_MILLISECONDS);
 		}
 	}
 }
@@ -1556,7 +1557,7 @@ void CComponentInput::ApplyBinding(CComponentInputDevice* pcKeyboard, SComponent
 		}
 		else
 		{
-			AddSequenceChordCommands(pcKeyboard, psBinding->szKey.Text(), psBinding->szSecondKey.Text(), psBinding->eCommand, COMPONENT_INPUT_SEQUENCE_MILLISECONDS);
+			AddSequenceChordCommands(pcKeyboard, psBinding->bShift, psBinding->szKey.Text(), psBinding->szSecondKey.Text(), psBinding->eCommand, COMPONENT_INPUT_SEQUENCE_MILLISECONDS);
 		}
 	}
 	SetChordCommand(psBinding->szKeys.Text(), psBinding->eCommand);

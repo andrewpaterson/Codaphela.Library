@@ -526,8 +526,8 @@ void TestTextEditingMoveLines(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // With the text's comment marks: the caret's line or the selected lines
-// are commented out, or uncommented if all of them are comments already,
-// and the selection is made a block comment or stops being one.  A text
+// are commented out, the mark at their least indent, or uncommented; and
+// the selection is made a block comment or stops being one.  A text
 // without marks has neither.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -537,43 +537,51 @@ void TestTextEditingComments(void)
 	size				uiStart;
 	size				uiEnd;
 
-	s.Init("\tone\n\ttwo\n\n\tthree");
+	s.Init("\tone\n\t\ttwo\n\n\tthree");
 	s.cEditing.SetCaretPosition(2);
-	s.cEditing.ToggleLineComment();
+	s.cEditing.CommentLines(true);
 	s.cEditing.Select(0, 4);
 	s.cEditing.ToggleBlockComment();
-	AssertString("\tone\n\ttwo\n\n\tthree", s.Text());
+	AssertString("\tone\n\t\ttwo\n\n\tthree", s.Text());
 
-	//A line with nothing selected: the mark at its start, and the caret goes down a line at its column.
+	//A line with nothing selected: the mark at its indent, and the caret stays in what it was in.
 	s.cEditing.SetComments("//", "/*", "*/");
 	s.cEditing.SetCaretPosition(2);
-	s.cEditing.ToggleLineComment();
-	AssertString("//\tone\n\ttwo\n\n\tthree", s.Text());
-	AssertSize(9, s.Caret());
-	s.cEditing.ToggleLineComment();
-	AssertString("//\tone\n//\ttwo\n\n\tthree", s.Text());
+	s.cEditing.CommentLines(true);
+	AssertString("\t//one\n\t\ttwo\n\n\tthree", s.Text());
+	AssertSize(4, s.Caret());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("\tone\n\t\ttwo\n\n\tthree", s.Text());
 
-	//Selected lines: all commented, the empty one left; the selection still over them.  Again takes the marks off,
-	//after the indent too.
-	s.cEditing.ReplaceText("\tone\n\ttwo\n\n\tthree");
-	s.cEditing.Select(0, 17);
-	s.cEditing.ToggleLineComment();
-	AssertString("//\tone\n//\ttwo\n\n//\tthree", s.Text());
+	//Selected lines: the marks in one column, the least indented line's; the empty line left; the selection still
+	//over the lines.  A line commented again has a second mark.
+	s.cEditing.Select(0, 18);
+	s.cEditing.CommentLines(true);
+	AssertString("\t//one\n\t//\ttwo\n\n\t//three", s.Text());
 	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
 	AssertSize(0, uiStart);
-	AssertSize(23, uiEnd);
-	AssertTrue(s.cEditing.Undo());
-	AssertString("\tone\n\ttwo\n\n\tthree", s.Text());
-	s.cEditing.ReplaceText("\t//one\n//\ttwo\n\n\tthree");
-	s.cEditing.Select(0, 14);
-	s.cEditing.ToggleLineComment();
-	AssertString("\tone\n\ttwo\n\n\tthree", s.Text());
+	AssertSize(24, uiEnd);
+	s.cEditing.CommentLines(true);
+	AssertString("\t////one\n\t////\ttwo\n\n\t////three", s.Text());
+	s.cEditing.CommentLines(false);
+	AssertString("\t//one\n\t//\ttwo\n\n\t//three", s.Text());
 
-	//Lines some of which aren't comments are all commented again.
-	s.cEditing.ReplaceText("//one\ntwo");
-	s.cEditing.Select(0, 9);
-	s.cEditing.ToggleLineComment();
-	AssertString("////one\n//two", s.Text());
+	//Uncommenting takes one mark off each line that starts with it, after its indent, and leaves the others.
+	s.cEditing.ReplaceText("//one\n\t//two\nthree\n\t\t// four");
+	s.cEditing.Select(0, 27);
+	s.cEditing.CommentLines(false);
+	AssertString("one\n\ttwo\nthree\n\t\t four", s.Text());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("//one\n\t//two\nthree\n\t\t// four", s.Text());
+
+	//A selection that starts at the start of a line with no indent still does, with the mark inside it.
+	s.cEditing.ReplaceText("one\ntwo");
+	s.cEditing.Select(0, 7);
+	s.cEditing.CommentLines(true);
+	AssertString("//one\n//two", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(0, uiStart);
+	AssertSize(11, uiEnd);
 
 	//A block comment round the selection, which stays selected; again takes it off.
 	s.cEditing.ReplaceText("a = b + c;");

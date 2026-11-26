@@ -77,9 +77,9 @@ history of them.
 - A text that is code ([`CTextArea::SetCode`], as a [`CCodeEditor`]'s is) indents by its braces
   ([`CTextEditing::SetBraceIndent`]): a line after a `{` has a tab more, a `}` typed on a line of its own goes under
   the line of the `{` it closes, and Enter between a `{` and its `}` puts the `}` on a line of its own.  With its
-  comment marks ([`CTextEditing::SetComments`]) lines are commented and uncommented
-  ([`CTextEditing::ToggleLineComment`], Control+/) and so is the selection
-  ([`CTextEditing::ToggleBlockComment`], Control+Shift+/).
+  comment marks ([`CTextEditing::SetComments`]) lines are commented out, the mark at their indent, and uncommented
+  ([`CTextEditing::CommentLines`]; Control+K then C, and then U, as Visual Studio's), and the selection is made a
+  block comment or stops being one ([`CTextEditing::ToggleBlockComment`], Control+Shift+/).
 - The caret's line or the selected lines move over the line beside them ([`CTextEditing::MoveLines`],
   Control+Shift+Up and Down).
 - Extend Selection ([`CTextEditing::ExtendSelection`]) grows to the smallest bigger range around the selection: the

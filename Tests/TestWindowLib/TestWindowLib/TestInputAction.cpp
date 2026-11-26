@@ -495,6 +495,8 @@ public:
 		mpcKeyboard->AddSource("Enter");
 		mpcKeyboard->AddSource("F");
 		mpcKeyboard->AddSource("H");
+		mpcKeyboard->AddSource("K");
+		mpcKeyboard->AddSource("U");
 		mpcKeyboard->AddSource("V");
 		mpcKeyboard->AddSource("Tab");
 		mpcKeyboard->AddSource("Left Alt");
@@ -745,6 +747,23 @@ void TestInputActionUndoChords(bool bRightModifiers)
 		cDevices.Press("Left Control"); cDevices.Press("Left Shift"); cDevices.Tap("F"); cDevices.Tap("H"); cDevices.Tap("F"); cDevices.Tap("V"); cDevices.Release("Left Shift"); cDevices.Release("Left Control");
 		AssertLog("Command(Control+Shift+F, H);Command(Control+Shift+F, V);");
 
+		//Control+K then C or U (bound, as an editor's comment commands), with control held or let go of first: the
+		//second key is the sequence's, not Control+C's or Control+U's.  Control+C by itself is still its own.
+		pA->AddInputAction(CIC_Copy, &pA, &CActionTestComponent::Copy);
+		AssertTrue(cComponentInput.BindKeys("Control+K, C", CIC_Command));
+		AssertTrue(cComponentInput.BindKeys("Control+K, U", CIC_Command));
+		cDevices.Press("Left Control"); cDevices.Tap("K"); cDevices.Tap("C"); cDevices.Release("Left Control");
+		AssertLog("Command(Control+K, C);");
+		cDevices.Press("Left Control"); cDevices.Tap("K"); cDevices.Release("Left Control"); cDevices.Tap("U");
+		AssertLog("Command(Control+K, U);");
+		if (bRightModifiers)
+		{
+			cDevices.Press("Right Control"); cDevices.Tap("K"); cDevices.Tap("U"); cDevices.Release("Right Control");
+			AssertLog("Command(Control+K, U);");
+		}
+		cDevices.Press("Left Control"); cDevices.Tap("C"); cDevices.Release("Left Control");
+		AssertLog("Copy;");
+
 		//H and V alone are keys.
 		cDevices.Tap("H");
 		cDevices.Tap("V");
@@ -963,7 +982,8 @@ void TestInputActionBindKeys(void)
 		gcLogger.SetBreakOnError(false);
 		AssertFalse(cComponentInput.BindKeys("", CIC_Copy));
 		AssertFalse(cComponentInput.BindKeys("Control+", CIC_Copy));
-		AssertFalse(cComponentInput.BindKeys("Control+F, H", CIC_Copy));
+		AssertFalse(cComponentInput.BindKeys("Alt+F, H", CIC_Copy));
+		AssertFalse(cComponentInput.BindKeys("Control+Alt+F, H", CIC_Copy));
 		AssertFalse(cComponentInput.BindKeys("Control+Shift+F, ", CIC_Copy));
 		gcLogger.SetConfig(&sLogConfig);
 

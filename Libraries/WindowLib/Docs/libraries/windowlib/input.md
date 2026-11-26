@@ -78,7 +78,8 @@ or Alt held that isn't a chord means nothing.  Control with the wheel gives the 
 [`CWindowInputSource`] holds back an input that could start a chord, a modifier pressed alone, until the chord
 matches (then only the chord is queued), stops matching, or, once let go, its eviction age passes (0.3 s unless the
 chord says otherwise).  The window never sleeps past that age ([`CComponentInput::GetEvictionDelay`]).  A key after a
-chord, "Control+Shift+F, H", is a sequence chord: the second key must come within 500 ms.
+chord of control, with shift or without ("Control+K, C", "Control+Shift+F, H"), is a sequence chord: the second key
+must come within 500 ms, with the modifiers still held or let go.
 
 [`CComponentInput::Translate`] turns one queued event into at most two [`SComponentInputEvent`]s, in the order they
 are offered:

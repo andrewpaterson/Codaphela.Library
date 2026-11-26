@@ -1343,7 +1343,7 @@ void TestKeymapFile(void)
 	//there and keys that can't be read are ignored.
 	szText.Init("<Keymap>\n");
 	szText.Append("  <Command Name=\"Nothing.Here\"><Keys>F1</Keys></Command>\n");
-	szText.Append("  <Command Name=\"Debug.First\"><Keys>Control+Q</Keys><Keys>Control+F, H</Keys><Keys>F8</Keys></Command>\n");
+	szText.Append("  <Command Name=\"Debug.First\"><Keys>Control+Q</Keys><Keys>Control+Alt+F, H</Keys><Keys>F8</Keys></Command>\n");
 	szText.Append("  <Command Name=\"Debug.Second\"><Keys>F8</Keys><Keys>F9</Keys></Command>\n");
 	szText.Append("</Keymap>\n");
 	cFile.Init(szText.Text());

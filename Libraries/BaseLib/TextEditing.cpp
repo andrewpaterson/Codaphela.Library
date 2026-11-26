@@ -2416,15 +2416,16 @@ void CTextEditing::MoveLines(bool bDown)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The selected lines, or the caret's line, are commented out with the
-// text's line mark at their starts; or, if every one of them that has
-// anything on it starts with the mark already (after its indent), the
-// marks are taken off.  Lines with nothing on them are left.  With
-// nothing selected the caret goes down a line, for the next.  Nothing in
-// a text without a line mark (SetComments).
+// The selected lines, or the caret's line, are commented out (bComment)
+// with the text's line mark, put in one column: that of the least
+// indented of them, so the marks line up under the code round them.  Or
+// uncommented: the mark is taken off each of them that starts with it,
+// after its indent.  Lines with nothing on them are left, and the
+// selection stays over the lines.  Nothing in a text without a line mark
+// (SetComments).
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextEditing::ToggleLineComment(void)
+void CTextEditing::CommentLines(bool bComment)
 {
 	CArrayTextLineStart	auiLineStarts;
 	const char*			szText;
@@ -2434,9 +2435,8 @@ void CTextEditing::ToggleLineComment(void)
 	size				uiLine;
 	size				uiIndent;
 	size				uiColumn;
+	size				uiLeast;
 	size				i;
-	bool				bCommented;
-	bool				bSelected;
 	bool				bAnchorFirst;
 	bool				bAtLineStart;
 
@@ -2450,20 +2450,23 @@ void CTextEditing::ToggleLineComment(void)
 		return;
 	}
 	uiMark = (size)strlen(mszLineComment);
-	bSelected = GetSelection(&uiStart, &uiEnd);
+	GetSelection(&uiStart, &uiEnd);
 	auiLineStarts.Init();
 	FindLines(uiStart, uiEnd, &auiLineStarts);
 	bAtLineStart = (*auiLineStarts.Get(0) == uiStart);
 	bAnchorFirst = (muiAnchor != MAX_SIZE) && (muiAnchor < muiCaret);
-	uiColumn = mpcNavigation->CountColumns(mpcNavigation->FindLineStart(muiCaret), muiCaret);
 
-	szText = mpcDocument->Text();
-	bCommented = true;
-	for (i = 0; bCommented && (i < auiLineStarts.NumElements()); i++)
+	//The column the marks go in: the least indent of the lines that have anything on them.
+	uiLeast = MAX_SIZE;
+	for (i = 0; i < auiLineStarts.NumElements(); i++)
 	{
 		uiLine = *auiLineStarts.Get(i);
 		uiIndent = mpcNavigation->FindLineIndent(uiLine);
-		bCommented = (uiIndent == mpcNavigation->FindLineEnd(uiLine)) || (memcmp(&szText[uiIndent], mszLineComment, uiMark) == 0);
+		uiColumn = mpcNavigation->CountColumns(uiLine, uiIndent);
+		if ((uiIndent < mpcNavigation->FindLineEnd(uiLine)) && (uiColumn < uiLeast))
+		{
+			uiLeast = uiColumn;
+		}
 	}
 
 	i = auiLineStarts.NumElements();
@@ -2476,27 +2479,22 @@ void CTextEditing::ToggleLineComment(void)
 		{
 			continue;
 		}
-		if (bCommented)
+		if (bComment)
 		{
-			RemoveText(uiIndent, uiIndent + uiMark);
+			InsertText(mpcNavigation->FindColumn(uiLine, uiLeast), mszLineComment);
 		}
 		else
 		{
-			InsertText(uiLine, mszLineComment);
+			szText = mpcDocument->Text();
+			if (memcmp(&szText[uiIndent], mszLineComment, uiMark) == 0)
+			{
+				RemoveText(uiIndent, uiIndent + uiMark);
+			}
 		}
 	}
 	auiLineStarts.Kill();
 
-	if (!bSelected)
-	{
-		//To the same column of the next line, if there is one.
-		uiLine = mpcNavigation->FindLineEnd(muiCaret);
-		if (uiLine < mpcDocument->Length())
-		{
-			muiCaret = mpcNavigation->FindColumn(mpcNavigation->NextPosition(uiLine), uiColumn);
-		}
-	}
-	else if (bAtLineStart && !bCommented)
+	if (bAtLineStart && bComment)
 	{
 		KeepSelectionStart(uiStart, bAnchorFirst);
 	}

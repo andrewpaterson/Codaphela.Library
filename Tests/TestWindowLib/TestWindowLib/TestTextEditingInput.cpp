@@ -212,8 +212,7 @@ void TestTextEditingInputMultiLine(void)
 	s.cEditing.SetComments("//", "/*", "*/");
 	AssertTrue(s.Command(CIC_CommentLines));
 	AssertString("ab\n//cd\ncd", s.Text());
-	AssertTrue(s.Command(CIC_Up));
-	AssertTrue(s.Command(CIC_CommentLines));
+	AssertTrue(s.Command(CIC_UncommentLines));
 	AssertString("ab\ncd\ncd", s.Text());
 	AssertTrue(s.Command(CIC_SelectLeft));
 	AssertTrue(s.Command(CIC_CommentBlock));

@@ -95,7 +95,8 @@ enum EComponentInputCommand
 	CIC_DeleteLine,  //Control+Y, as IntelliJ's.
 	CIC_MoveLinesUp,  //The caret's line or the selected lines change places with the line before them,
 	CIC_MoveLinesDown,  //or after them: Control+Shift+Up and Down.
-	CIC_CommentLines,  //Comment or uncomment the caret's line or the selected lines: Control+/, as IntelliJ's.
+	CIC_CommentLines,  //Comment out the caret's line or the selected lines: Control+K then C, as Visual Studio's.
+	CIC_UncommentLines,  //Uncomment them: Control+K then U.
 	CIC_CommentBlock,  //Make the selection a block comment, or stop it being one: Control+Shift+/.
 	CIC_Undo,
 	CIC_Redo,  //Control+Shift+Z, as IntelliJ's.

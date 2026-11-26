@@ -110,7 +110,8 @@ static SEditKeymapRow gasEditKeymapRows[] =
 	{ "Editor.DeleteLine",				"Delete Line",				CIC_DeleteLine,					EDIT_EDITOR, 	"Control+Y",				NULL },
 	{ "Editor.MoveLinesUp",				"Move Line Up",				CIC_MoveLinesUp,				EDIT_EDITOR, 	"Control+Shift+Cursor Up",	NULL },
 	{ "Editor.MoveLinesDown",			"Move Line Down",			CIC_MoveLinesDown,				EDIT_EDITOR, 	"Control+Shift+Cursor Down",	NULL },
-	{ "Editor.CommentLines",			"Comment with Line Comment",	CIC_CommentLines,			EDIT_EDITOR, 	"Control+/",				NULL },
+	{ "Editor.CommentLines",			"Comment Selection",		CIC_CommentLines,				EDIT_EDITOR, 	"Control+K, C",				NULL },
+	{ "Editor.UncommentLines",			"Uncomment Selection",		CIC_UncommentLines,				EDIT_EDITOR, 	"Control+K, U",				NULL },
 	{ "Editor.CommentBlock",			"Comment with Block Comment",	CIC_CommentBlock,			EDIT_EDITOR, 	"Control+Shift+/",			NULL },
 	{ "Editor.ToggleOverwrite",			"Toggle Overwrite",			CIC_ToggleInsert,				EDIT_EDITOR, 	"Insert",					NULL },
 

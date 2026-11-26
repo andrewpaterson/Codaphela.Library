@@ -321,12 +321,12 @@ bool CWindowInputSource::AddKeyChord(const char* szName, CInputDevice* pcModifie
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A chord of two keys one after the other with two modifiers, like
-// control and shift (in either order) and f, then h.  The first key is
-// let go before the second is pressed, and so are the modifiers flagged
-// to be (in any order with the first key); the others are still held.  A
-// chord for each set of modifiers let go makes letting go of them
-// optional.  All the keys are on the keyboard.  Once everything is let
+// A chord of two keys one after the other with one modifier or two, like
+// control and k, then c, or control and shift (in either order) and f,
+// then h; pcSecondModifier is NULL for one.  The first key is let go
+// before the second is pressed, and so are the modifiers flagged to be
+// (in any order with the first key); the others are still held.  A chord
+// for each set of modifiers let go makes letting go of them optional.  All the keys are on the keyboard.  Once everything is let
 // go the second key must come within uiEvictionMilliseconds (0 for the
 // usual chord time).  Returns false as AddKeyChord.
 //
@@ -337,16 +337,24 @@ bool CWindowInputSource::AddKeySequenceChord(const char* szName, CInputDevice* p
 	COrderedInputChordCriteria*	pcOrdered;
 	CGroupInputChordCriteria*	pcGroup;
 
-	if (!pcFirstModifier || !pcSecondModifier || !pcFirstKey || !pcSecondKey)
+	if (!pcFirstModifier || !pcFirstKey || !pcSecondKey)
 	{
 		return false;
 	}
+	bSecondModifierLetGo = bSecondModifierLetGo && (pcSecondModifier != NULL);
 
 	pcChord = AddChord(szName);
 	pcOrdered = pcChord->AsOrdered();
-	pcGroup = pcOrdered->AddGroupAction();
-	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyboard, pcFirstModifier, ICT_Toggle));
-	pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyboard, pcSecondModifier, ICT_Toggle));
+	if (pcSecondModifier)
+	{
+		pcGroup = pcOrdered->AddGroupAction();
+		pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyboard, pcFirstModifier, ICT_Toggle));
+		pcGroup->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyboard, pcSecondModifier, ICT_Toggle));
+	}
+	else
+	{
+		pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyboard, pcFirstModifier, ICT_Toggle));
+	}
 	pcOrdered->AddActiveAction(pcChord->AddEvaluatorSpecificSource(pcKeyboard, pcFirstKey, ICT_Toggle));
 	if (bFirstModifierLetGo || bSecondModifierLetGo)
 	{

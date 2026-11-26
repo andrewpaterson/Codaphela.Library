@@ -139,8 +139,8 @@ public:
 //a line after one that ends with "{" has a tab more, a "}" typed on a line of its own goes under the line of the "{"
 //it closes, and Enter between a "{" and its "}" puts the "}" on a line of its own after the new one.  Lines move up
 //and down over the line beside them (MoveLines).  With the text's comment marks given (SetComments) lines are
-//commented and uncommented with its line mark (ToggleLineComment) and the selection with its block marks
-//(ToggleBlockComment).  A text that isn't
+//commented out with its line mark, at their indent, and uncommented (CommentLines), and the selection is made a
+//comment with its block marks or stops being one (ToggleBlockComment).  A text that isn't
 //editable can still be navigated, selected and copied from.  A single line text (SetSingleLine) gets no line feeds:
 //enters do nothing, line breaks pasted become spaces, and cutting with nothing selected cuts nothing.
 //
@@ -281,7 +281,7 @@ public:
 	void		DeleteLine(void);
 	void		Duplicate(void);
 	void		MoveLines(bool bDown);
-	void		ToggleLineComment(void);
+	void		CommentLines(bool bComment);
 	void		ToggleBlockComment(void);
 	void		Cut(CChars* pszDest);
 	void		CutLine(CChars* pszDest);
