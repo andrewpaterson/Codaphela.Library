@@ -96,17 +96,17 @@ public:
 	bool	Read(CScene* pcScene);
 
 protected:
-	bool	ReadSkeletons(void);
-	bool	ReadConnections(void);
-	bool	ReadImages(void);
-	bool	ReadMaterials(void);
-	bool	ReadMeshes(void);
-	bool	ReadLights(CScene* pcScene);
-	bool	ReadCameras(CScene* pcScene);
-	bool	ReadAnimations(CScene* pcScene);
-	bool	ReadInstances(CScene* pcScene);
-	bool	ReadInstanceMesh(CInstance* pcInstance);
-	bool	ReadParticles(CScene* pcScene);
+	bool				ReadSkeletons(void);
+	bool				ReadConnections(void);
+	bool				ReadImages(void);
+	bool				ReadMaterials(void);
+	bool				ReadMeshes(void);
+	bool				ReadLights(CScene* pcScene);
+	bool				ReadCameras(CScene* pcScene);
+	bool				ReadAnimations(CScene* pcScene);
+	bool				ReadInstances(CScene* pcScene);
+	bool				ReadInstanceMesh(CInstance* pcInstance);
+	bool				ReadParticles(CScene* pcScene);
 	Ptr<CConnection>	GetAttached(void);
 	Ptr<CSkeleton>		GetSkeleton(int32 iSkeleton, const char* szWhat);
 	Ptr<CBone>			GetBone(Ptr<CSkeleton> pSkeleton, int32 iBone, const char* szWhat);

@@ -35,8 +35,8 @@ enum EImagePurpose	//3 bytes for purpose
 	IP_Diffuse,   		//RGB, I	(I is a single intensity channel)
 	IP_Specular,  		//I			(RGB also?)
 	IP_Illumination,	//RGB, I	(RGB is a bit weird)
-	IP_Opacity,   		//I		
-	IP_Normal,    		//XYZ,	
+	IP_Opacity,   		//I
+	IP_Normal,    		//XYZ,
 	IP_Bump,			//UV
 	IP_UVAdjust,		//UV
 	IP_Detail,    		//RGB, I
@@ -94,7 +94,7 @@ CONSTRUCTABLE(CChannelRGB);
 public:
 	static CImageChannelsSource* Get(void);
 
-	size 		NumChannels(void) const override;
+	size		NumChannels(void) const override;
 	SChannel	GetChannel(size iIndex) override;
 };
 
@@ -105,7 +105,7 @@ CONSTRUCTABLE(CChannelRGBA);
 public:
 	static CImageChannelsSource* Get(void);
 
-	size 		NumChannels(void) const override;
+	size		NumChannels(void) const override;
 	SChannel	GetChannel(size iIndex) override;
 };
 
@@ -116,7 +116,7 @@ CONSTRUCTABLE(CChannelRGBX);
 public:
 	static CImageChannelsSource* Get(void);
 
-	size 		NumChannels(void) const override;
+	size		NumChannels(void) const override;
 	SChannel	GetChannel(size iIndex) override;
 };
 

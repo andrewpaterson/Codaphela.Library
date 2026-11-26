@@ -65,7 +65,7 @@ public:
 	void				Init(const char* szName, const char* szCharacters, float32 fDefaultPixelSize, EColourOrder eColourOrder = CCO_Unknown);
 	void				Init(Ptr<CFontColours> pRegular);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;

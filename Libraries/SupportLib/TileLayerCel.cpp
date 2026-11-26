@@ -705,7 +705,7 @@ void CTileLayerCel::SetMapSize(SSizeVec2 sMapSize)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CTileLayerCel::WriteToImage(void)
 {
-	size 						x, y;
+	size						x, y;
 	Ptr<CImageCelBlitterCache>	pCache;
 	Ptr<CImage>					pImage;
 	Ptr<CImageBlitter>			pBlitter;
@@ -877,7 +877,7 @@ bool CTileLayerCel::GetImageDestBounds(CInt32Rect* pcRect)
 	CInt32Rect		cBounding;
 	CInt32Rect		cCelRect;
 	bool			bFirst;
-	size 			x, y;
+	size			x, y;
 	STileLayerRow*	psRow;
 	uint32			uiTile;
 
@@ -1038,15 +1038,15 @@ bool CTileLayerCel::EnsureBlitters(int32 xStart, int32 yStart, int32 xStop, int3
 //////////////////////////////////////////////////////////////////////////
 bool CTileLayerCel::BlitClipped(CInt32Rect* pcViewportRect, CInt32Rect* pcClip, bool bEnsureBlitters)
 {
-	uint32 				x;
-	uint32 				y;
+	uint32				x;
+	uint32				y;
 	CInt32Rect			cDraw;
 	CInt32Rect			cBlitterClip;
 	CInt32Rect*			pcBlitterClip;
-	int32 				xStart;
-	int32 				yStart;
-	int32 				xStop;
-	int32 				yStop;
+	int32				xStart;
+	int32				yStart;
+	int32				xStop;
+	int32				yStop;
 	int32				iCelWidth;
 	int32				iCelHeight;
 	uint32				xRowStart;

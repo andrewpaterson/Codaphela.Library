@@ -30,8 +30,8 @@ enum EImageType
 	IT_Unknown,
 	IT_BMP,  // Windows BMP 24 bit
 	IT_EMF,  // EMF
-	IT_GIF,  // GIF 
-	IT_ICO,  // Windows ICO 
+	IT_GIF,  // GIF
+	IT_ICO,  // Windows ICO
 	IT_JPG,  // 24 Bit JPG format
 	IT_WMF,  // WMF
 	IT_TGA,  // Targa

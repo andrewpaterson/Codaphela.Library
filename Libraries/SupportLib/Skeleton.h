@@ -40,8 +40,8 @@ public:
 	SFloat4x4		msLocalMatrix;
 	size			muiIndex;
 
-	void 	Init(const char* szName, Ptr<CBone> pParent, SFloat4x4* psLocalMatrix, size uiIndex);
-	void 	Free(void) override;
+	void	Init(const char* szName, Ptr<CBone> pParent, SFloat4x4* psLocalMatrix, size uiIndex);
+	void	Free(void) override;
 	void	Class(void) override;
 };
 
@@ -57,8 +57,8 @@ public:
 	CChars			mszName;
 	CArray<CBone>	mapBones;
 
-	void 		Init(void);
-	void 		Free(void) override;
+	void		Init(void);
+	void		Free(void) override;
 	void		Class(void) override;
 
 	Ptr<CBone>	AddBone(const char* szName, Ptr<CBone> pParent, SFloat4x4* psLocalMatrix);

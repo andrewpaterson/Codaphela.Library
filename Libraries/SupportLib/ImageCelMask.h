@@ -37,10 +37,10 @@ protected:
 	bool			mbFilled;
 
 public:
-	void 	Init(Ptr<CImage> pSourceImage, Ptr<CImage> pMaskImage, CFillRectangle* pcRect);
-	void 	Init(Ptr<CImage> pSourceImage, Ptr<CImage> pMaskImage, uint16 iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void	Init(Ptr<CImage> pSourceImage, Ptr<CImage> pMaskImage, CFillRectangle* pcRect);
+	void	Init(Ptr<CImage> pSourceImage, Ptr<CImage> pMaskImage, uint16 iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
 	void	Class(void) override;
-	void 	Free(void) override;
+	void	Free(void) override;
 
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;

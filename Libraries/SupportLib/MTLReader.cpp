@@ -57,14 +57,14 @@ void CMTLReader::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMTLReader::Read(void)
 {
-//	CTextParser 		cTextParser;
+	//	CTextParser 		cTextParser;
 	CTextFile			cTextFile;
-//	int					iType;
-//	int					iNumVerts;
+	//	int					iType;
+	//	int					iNumVerts;
 	CArrayChars		cLines;
-//	CChars*				pszLine;
-//	int					i;
-//	TRISTATE			tResult;
+	//	CChars*				pszLine;
+	//	int					i;
+	//	TRISTATE			tResult;
 
 	cTextFile.Init();
 	if (!cTextFile.Read(mszFileName.Text()))

@@ -43,7 +43,7 @@ bool SaveRAD(Ptr<CImage> pImage, char *szPathName)
 	CChars		szRawName;
 	CFileUtil	cFileUtil;
 	bool		bResult;
-	size			uiNumChannels;
+	size		uiNumChannels;
 
 	cTextFile.Init();
 	szText = &cTextFile.mcText;
@@ -65,7 +65,7 @@ bool SaveRAD(Ptr<CImage> pImage, char *szPathName)
 		szText->Append("\t\t");
 		szText->Append(szTypeName);
 		szText->Append("\t");
-		
+
 		if (psChannel->iChannel == IMAGE_DIFFUSE_RED) szText->Append("Red");
 		else if (psChannel->iChannel == IMAGE_DIFFUSE_GREEN) szText->Append("Green");
 		else if (psChannel->iChannel == IMAGE_DIFFUSE_BLUE) szText->Append("Blue");

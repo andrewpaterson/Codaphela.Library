@@ -37,7 +37,7 @@ public:
 	CArrayLargeChar	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
 
 	void	Init(void);
-	void 	Free(void) override;
+	void	Free(void) override;
 	void	Class(void) override;
 
 	bool	Load(CObjectReader* pcFile) override;

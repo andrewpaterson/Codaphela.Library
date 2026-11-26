@@ -36,11 +36,11 @@ public:
 	CArrayBit	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
 	CArrayBit	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
-	void 	Init(void);
-	void 	Free(void) override;
+	void	Init(void);
+	void	Free(void) override;
 	void	Class(void) override;
 
-	void 	Clear(void);
+	void	Clear(void);
 
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;

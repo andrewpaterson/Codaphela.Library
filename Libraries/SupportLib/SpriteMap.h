@@ -64,7 +64,7 @@ protected:
 
 public:
 	void						Init(void);
-	void 						Free(void) override;
+	void						Free(void) override;
 	void						Class(void) override;
 
 	bool						Save(CObjectWriter* pcFile) override;
@@ -87,7 +87,7 @@ public:
 	void						EndChange(void);
 
 	void						FindImageCels(CInt32Rect* pcRectangle, MapImageCelFunction pSpriteFunction);
-	
+
 	bool						GetImageDestBounds(CInt32Rect* pcRect);
 	bool						GetFullDestBounds(CInt32Rect* pcRect);
 

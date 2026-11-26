@@ -118,7 +118,7 @@ bool CTextRun::Save(CObjectWriter* pcFile)
 
 	//Still need to do
 	//mpcFont;
-	
+
 	uiNumElements = mapcText.NumElements();
 	ReturnOnFalse(pcFile->WriteSize(uiNumElements));
 

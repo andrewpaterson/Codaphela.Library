@@ -47,8 +47,8 @@ protected:
 	size					muiUpdates;
 
 public:
-	void 	Init(void);
-	void 	Free(void) override;
+	void	Init(void);
+	void	Free(void) override;
 	void	Class(void) override;
 
 	bool	ReadFile(const char* szFilename);

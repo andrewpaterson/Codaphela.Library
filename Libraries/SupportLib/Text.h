@@ -39,7 +39,7 @@ protected:
 
 public:
 	void				Init(CMallocator* pcMalloc = NULL);
-	void 				Free(void) override;
+	void				Free(void) override;
 	void				Class(void) override;
 
 	bool				Load(CObjectReader* pcFile) override;

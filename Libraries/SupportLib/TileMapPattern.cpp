@@ -80,7 +80,7 @@ bool CTileMapPattern::Done(void)
 			iIndex = mszPattern.Find(iIndex + 1, '\n');
 			if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 			{
-				if (iIndex - iLastIndex - 1!= iExpected)
+				if (iIndex - iLastIndex - 1 != iExpected)
 				{
 					return gcLogger.Error2(__METHOD__, " Expected every row to be a multiple of [", SizeToString(iExpected), "].", NULL);
 				}

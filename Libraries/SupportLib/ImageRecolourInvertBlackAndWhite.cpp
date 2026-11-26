@@ -33,9 +33,9 @@ void CImageRecolourInvertBlackAndWhite::Init(CInt32Rect* pcRectangle)
 {
 	PreInit();
 
-	mcARGB0000.Init(0.0f,0.0f,0.0f,0.0f);
-	mcARGB1111.Init(1.0f,1.0f,1.0f,1.0f);
-	mcARGB0111.Init(0.0f,1.0f,1.0f,1.0f);
+	mcARGB0000.Init(0.0f, 0.0f, 0.0f, 0.0f);
+	mcARGB1111.Init(1.0f, 1.0f, 1.0f, 1.0f);
+	mcARGB0111.Init(0.0f, 1.0f, 1.0f, 1.0f);
 
 	CImageRecolour::Init(&mcARGB0000, &mcARGB1111, pcRectangle);
 	AddRecolour(&mcARGB0111, &mcARGB0000);

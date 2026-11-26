@@ -106,7 +106,7 @@ bool CPackedLine::RecursePack(CPackAttempt* pcPackAttempt, CInt32Rect* pcBounds)
 	bool					bAnyFit;
 	CPackRectangleAttempt	cFits;
 	CPackRectangleAttempt*	pcUsedRect;
-	
+
 	if (!pcBounds->IsValid())
 	{
 		return false;
@@ -117,18 +117,18 @@ bool CPackedLine::RecursePack(CPackAttempt* pcPackAttempt, CInt32Rect* pcBounds)
 	{
 		return false;
 	}
-	
+
 	pcUsedRect = macRectangles.Add(&cFits);
 	pcUsedRect->SetPos(pcBounds->msTopLeft.x, pcBounds->msTopLeft.y);
 
 	cBoundsRight.Init(	pcBounds->msTopLeft.x + pcUsedRect->mcSourceRectangle.miWidth + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
-						pcBounds->msTopLeft.y, 
-						pcBounds->msBottomRight.x, 
+						pcBounds->msTopLeft.y,
+						pcBounds->msBottomRight.x,
 						pcBounds->msBottomRight.y);
 
 	//The gap to the right of the used rectangle belongs to cBoundsRight, so cBoundsBelow is only as wide as the used rectangle.
 	cBoundsBelow.Init(	pcBounds->msTopLeft.x,
-						pcBounds->msTopLeft.y + pcUsedRect->mcSourceRectangle.miHeight + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(), 
+						pcBounds->msTopLeft.y + pcUsedRect->mcSourceRectangle.miHeight + pcPackAttempt->mpcRectanglePacker->GetInnerEdgeWidth(),
 						pcBounds->msTopLeft.x + pcUsedRect->mcSourceRectangle.miWidth,
 						pcBounds->msBottomRight.y);
 
@@ -215,10 +215,10 @@ void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles
 		pcPackedRect = pacPackedRectangles->Add();
 		iLeft = pcRect->mix + iOutsideEdgeWidth;
 		iTop = pcRect->miy + miy + iOutsideEdgeWidth;
-		pcPackedRect->Init(	iLeft, 
-							iTop, 
-							iLeft + pcRect->mcSourceRectangle.miWidth, 
-							iTop + pcRect->mcSourceRectangle.miHeight, 
+		pcPackedRect->Init(	iLeft,
+							iTop,
+							iLeft + pcRect->mcSourceRectangle.miWidth,
+							iTop + pcRect->mcSourceRectangle.miHeight,
 							pcRect->mcSourceRectangle.mpvUserData,
 							pcRect->mbRotated);
 	}
@@ -239,7 +239,7 @@ void CPackedLine::Print(CChars* psz)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcRect = macRectangles.Get(i);
-		
+
 		psz->Append("[(");
 		psz->Append(pcRect->mix);
 		psz->Append(", ");

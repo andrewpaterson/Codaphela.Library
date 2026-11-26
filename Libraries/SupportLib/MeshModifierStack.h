@@ -52,7 +52,7 @@ protected:
 
 public:
 	void	Init(Ptr<CMesh> pSource = NULL);
-	void 	Free(void) override;
+	void	Free(void) override;
 	void	Class(void) override;
 
 	bool	Load(CObjectReader* pcFile) override;
@@ -60,7 +60,7 @@ public:
 
 	void	ReInit(void);
 
-	void 	AddModifier(Ptr<CMeshModifier> pModifier);
+	void	AddModifier(Ptr<CMeshModifier> pModifier);
 	template<class M, typename ... Args>
 	Ptr<M>	AddModifier(Args&& ... args);  //Made with OMalloc, whose arguments are its Init's.
 	template<class M>

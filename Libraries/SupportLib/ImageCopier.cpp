@@ -41,7 +41,7 @@ bool CImageCopier::Init(Ptr<CImage> pSource, Ptr<CImage> pDest)
 
 	//Now we have an accessor that takes what's in the source and converts it to the destinations format.
 	//Although it may have gaps if the destination has channels the source does not.
-	cCreator.Init(&pSource);  
+	cCreator.Init(&pSource);
 	cCreator.AddAccess(&pDest);
 	mpcSourceAccessor = cCreator.CreateAndKill();
 

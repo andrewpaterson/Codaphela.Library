@@ -53,8 +53,8 @@ protected:
 	size				muiUpdate;
 
 public:
-	Ptr<CConnection> 	Init(void);
-	void 				Free(void) override;
+	Ptr<CConnection>	Init(void);
+	void				Free(void) override;
 	void				Class(void) override;
 
 	void				Copy(CConnection* pcConnection);

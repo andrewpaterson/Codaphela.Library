@@ -38,7 +38,7 @@ protected:
 
 public:
 	void				Init(void);
-	void 				Free(void) override;
+	void				Free(void) override;
 	void				Class(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
@@ -56,7 +56,7 @@ public:
 	void				SetViewport(Ptr<CImage> pViewport) override;
 
 	Ptr<CTileLayer>		GetTileLayer(int iIdentifier);
-	
+
 	void				TileMapAbstract(void) override {}
 };
 

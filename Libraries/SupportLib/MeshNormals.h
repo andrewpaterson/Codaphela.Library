@@ -49,13 +49,13 @@ CONSTRUCTABLE(CMeshNormals);
 DESTRUCTABLE(CMeshNormals);
 public:
 	CArrayLargeFloat32Vec3		mcNormals;  //0 .. Flats, Flats+1 .. End
-	CArrayMeshFaceNormal	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
+	CArrayMeshFaceNormal		mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
-	void 		Init(void);
-	void 		Free(void) override;
+	void		Init(void);
+	void		Free(void) override;
 	void		Class(void) override;
 
-	void 		Clear(void);
+	void		Clear(void);
 
 	bool		Load(CObjectReader* pcFile) override;
 	bool		Save(CObjectWriter* pcFile) override;

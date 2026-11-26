@@ -85,7 +85,7 @@ protected:
 	//none.  There are none unless the markup has them.
 	virtual	size	ReadEscape(const char* szMarkup, CChars* pszText);
 
-			void	EndRun(void);
+			void				EndRun(void);
 			STextStyleOverride*	GetOverride(size uiNumGroups);
 };
 

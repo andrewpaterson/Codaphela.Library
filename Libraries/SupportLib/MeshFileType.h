@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 enum EMeshType
 {
 	MT_Unknown,
-	MT_OBJ,  // Wavefront 
+	MT_OBJ,  // Wavefront
 	MT_VRML,  // VRML 2.0 as KiCad exports it.
 };
 

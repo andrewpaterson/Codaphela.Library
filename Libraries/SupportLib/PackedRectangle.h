@@ -42,9 +42,9 @@ public:
 	int32		miHeight;
 	void*		mpvUserData;
 
-	void Init(CInt32Rect* pcRect, void* pvUserData);
-	bool IsRotatedBy(EPackRotation eRotation);
-	void GetSize(EPackRotation eRotation, int32* piWidth, int32* piHeight);
+	void	Init(CInt32Rect* pcRect, void* pvUserData);
+	bool	IsRotatedBy(EPackRotation eRotation);
+	void	GetSize(EPackRotation eRotation, int32* piWidth, int32* piHeight);
 };
 
 
@@ -59,9 +59,9 @@ public:
 	int32					miy;
 	bool					mbRotated;
 
-	void Init(CPackSourceRectangle* pcSourceRectangle, bool bRotated = false);
-	void SetPos(int32 x, int32 y);
-	void Rotate(void);
+	void	Init(CPackSourceRectangle* pcSourceRectangle, bool bRotated = false);
+	void	SetPos(int32 x, int32 y);
+	void	Rotate(void);
 };
 
 

@@ -77,9 +77,9 @@ protected:
 	CArrayImage							maImages;
 
 public:
-	void 					Init(bool bPackOnLoad = false);
+	void					Init(bool bPackOnLoad = false);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;

@@ -142,7 +142,7 @@ bool CImageBlitter::PopulateColourFormat(CImageBlitterFormat* pcFormat)
 	EColourOrder	eDestColourOrder;
 	ERGBColourBits	eDestColourBits;
 	Ptr<CImage>		pSourceImage;
-	
+
 	pSourceImage = SourceCel()->GetSourceImage();
 
 	eSourceColourOrder = pSourceImage->GetColourOrder();
@@ -700,7 +700,7 @@ bool CImageBlitter::ClipDestRect(CInt32Rect* pcClip, CInt32Rect* pcDestRect)
 		{
 			pcDestRect->msBottomRight.y = pcClip->msBottomRight.y;
 		}
-		if ((pcDestRect->msBottomRight.x <= pcDestRect->msTopLeft.x) || 
+		if ((pcDestRect->msBottomRight.x <= pcDestRect->msTopLeft.x) ||
 			(pcDestRect->msBottomRight.y <= pcDestRect->msTopLeft.y))
 		{
 			return false;

@@ -47,7 +47,7 @@ public:
 	Ptr<CConnection>	mpConnection;
 
 	Ptr<CCamera>	Init(void);
-	void 			Free(void) override;
+	void			Free(void) override;
 	void			Class(void) override;
 };
 

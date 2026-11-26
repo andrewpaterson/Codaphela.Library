@@ -40,8 +40,8 @@ public:
 	CArrayParticleFloat	mafRadii;
 	CArrayParticleFloat	mafIntensities;
 
-	void 	Init(void);
-	void 	Free(void) override;
+	void	Init(void);
+	void	Free(void) override;
 	void	Class(void) override;
 
 	lsize	NumParticles(void) const;

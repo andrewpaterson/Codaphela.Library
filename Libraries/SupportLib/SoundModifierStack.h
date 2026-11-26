@@ -36,14 +36,14 @@ protected:
 	Ptr<CSound>				mpSound;
 
 public:
-	void 					Init(Ptr<CSound> pSound = NULL);
+	void					Init(Ptr<CSound> pSound = NULL);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void 					AddModifier(Ptr<CSoundModifier> pModifier);
+	void					AddModifier(Ptr<CSoundModifier> pModifier);
 	template<class M, typename ... Args>
 	Ptr<M>					AddModifier(Args&& ... args);
 

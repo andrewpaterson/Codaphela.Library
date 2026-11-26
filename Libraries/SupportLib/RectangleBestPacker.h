@@ -64,7 +64,7 @@ public:
 	int32						GetSourcesMaxWidth(void);
 	int32						GetSourcesMaxWidth(EPackRotation eRotation);
 
-	void						GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
+	void							GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
 	SInt32Vec2						GetPackedImageSize(void) override;
 
 	CArrayPackSourceRectangle*	GetSourceRectangles(void);

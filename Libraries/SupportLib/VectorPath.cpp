@@ -246,7 +246,7 @@ void CVectorPath::Transform(bool bMirrorX, bool bMirrorY, float64 fRotation, flo
 {
 	size					i;
 	size					uiNumSegments;
-	SVectorSegment*	psSegment;
+	SVectorSegment*			psSegment;
 	bool					bFlip;
 
 	//Mirroring in one axis turns clockwise into counterclockwise.
@@ -301,7 +301,7 @@ void CVectorPath::CalculateBounds(void)
 {
 	size					i;
 	size					uiNumSegments;
-	SVectorSegment*	psSegment;
+	SVectorSegment*			psSegment;
 	SFloat64Vec2			sCurrent;
 	float64					fRadius;
 	float64					fStart;
@@ -434,7 +434,7 @@ float64 CVectorPath::Area(void)
 {
 	size					i;
 	size					uiNumSegments;
-	SVectorSegment*	psSegment;
+	SVectorSegment*			psSegment;
 	SFloat64Vec2			sCurrent;
 	float64					fArea;
 	float64					fRadius;

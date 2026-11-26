@@ -75,16 +75,16 @@ public:
 	bool					mbNameCels;  //Name the dest cels from the source file names.
 
 	void					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bNameCels = false);
-	void 					Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bNameCels = false);  //Don't pass ICS_UserSpecified in here, use the one below.
-	void 					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bNameCels = false);
+	void					Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bNameCels = false);  //Don't pass ICS_UserSpecified in here, use the one below.
+	void					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bNameCels = false);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void 					AddCel(Ptr<CImageCel> pCel, char* szFileName = NULL);
-	void 					AddCels(Ptr<CArrayImageCel> pCels, CArrayChars* paszFileNames = NULL);  //paszFileNames has one file name for each cel.
+	void					AddCel(Ptr<CImageCel> pCel, char* szFileName = NULL);
+	void					AddCels(Ptr<CArrayImageCel> pCels, CArrayChars* paszFileNames = NULL);  //paszFileNames has one file name for each cel.
 	void					AddChannel(EChannel eChannel, EPrimitiveType eType);
 	Ptr<CImage>				Combine(void);
 	Ptr<CArrayImageCel>		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be false.

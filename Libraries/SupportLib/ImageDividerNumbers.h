@@ -29,20 +29,20 @@ class CImageDividerNumbers
 {
 friend class CImageDivider;
 public:
-	int miCelWidth;
-	int miCelHeight;
-	int miColumnCount;
-	int miRowCount;
-	int miLeftOffset;
-	int miTopOffset;
-	int miWidthSpacing;
-	int miHeightSpacing;
+	int	miCelWidth;
+	int	miCelHeight;
+	int	miColumnCount;
+	int	miRowCount;
+	int	miLeftOffset;
+	int	miTopOffset;
+	int	miWidthSpacing;
+	int	miHeightSpacing;
 
 public:
-	void InitGeneral(int iCelWidth, int iCelHeight, int iColumnCount, int iRowCount, int iLeftOffset, int iTopOffset, int iWidthSpacing, int iHeightSpacing);
-	void InitFromCelSize(int iCelWidth, int iCelHeight, int iLeftOffset = 0, int iTopOffset = 0, int iWidthSpacing = 0, int iHeightSpacing = 0);
-	void InitFromRowsColumns(int iColumnCount, int iRowCount, int iLeftOffset = 0, int iTopOffset = 0, int iWidthSpacing = 0, int iHeightSpacing = 0);
-	void InitFromSingle(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0);
+	void	InitGeneral(int iCelWidth, int iCelHeight, int iColumnCount, int iRowCount, int iLeftOffset, int iTopOffset, int iWidthSpacing, int iHeightSpacing);
+	void	InitFromCelSize(int iCelWidth, int iCelHeight, int iLeftOffset = 0, int iTopOffset = 0, int iWidthSpacing = 0, int iHeightSpacing = 0);
+	void	InitFromRowsColumns(int iColumnCount, int iRowCount, int iLeftOffset = 0, int iTopOffset = 0, int iWidthSpacing = 0, int iHeightSpacing = 0);
+	void	InitFromSingle(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0);
 
 protected:
 	void Calculate(int iImageWidth, int iImageHeight);

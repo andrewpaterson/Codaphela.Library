@@ -56,7 +56,7 @@ public:
 
 	bool		PushCurrent(void);
 	bool		Done(void);
-	
+
 	bool		EnsureRun(void);
 };
 

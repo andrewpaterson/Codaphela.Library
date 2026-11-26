@@ -58,8 +58,8 @@ public:
 	Ptr<CConnection>	mpConnection;  //What these keys move in the scene's own animation.
 	Ptr<CBone>			mpBone;  //What they move in a skeleton's.
 
-	void 			Init(void);
-	void 			Free(void) override;
+	void			Init(void);
+	void			Free(void) override;
 	void			Class(void) override;
 
 	SConnectionKey*	AddKey(SFloat4x4* psMatrix, float32 fTime);
@@ -89,8 +89,8 @@ public:
 	Ptr<CSkeleton>					mpSkeleton;
 	CArray<CConnectionAnimation>	mapTracks;
 
-	void 	Init(void);
-	void 	Free(void) override;
+	void	Init(void);
+	void	Free(void) override;
 	void	Class(void) override;
 
 	float32	GetDuration(void);

@@ -84,7 +84,7 @@ void CSubImage::SetHorizontalAlignment(int32 iAlignment)
 	}
 	else if (iAlignment & SUB_IMAGE_ALIGNMENT_CENTER_HORIZONTAL)
 	{
-		msAlignment.x = -GetFullWidth()/2;
+		msAlignment.x = -GetFullWidth() / 2;
 	}
 	else if (iAlignment & SUB_IMAGE_ALIGNMENT_RIGHT)
 	{
@@ -105,7 +105,7 @@ void CSubImage::SetVerticalAlignment(int32 iAlignment)
 	}
 	else if (iAlignment & SUB_IMAGE_ALIGNMENT_CENTER_VERTICAL)
 	{
-		msAlignment.y = -GetFullHeight()/2;
+		msAlignment.y = -GetFullHeight() / 2;
 	}
 	else if (iAlignment & SUB_IMAGE_ALIGNMENT_BOTTOM)
 	{
@@ -363,7 +363,7 @@ void CSubImage::GetImageDestBounds(int32 x, int32 y, CInt32Rect* pcReturn)
 void CSubImage::AdjustImageRect(CSubImage* pcSubImage)
 {
 	//This assumes the Full dimensions of the incoming sub image are the same as the Image dimensions.
-	
+
 	msOffsetTopLeft += pcSubImage->msOffsetTopLeft;
 	msOffsetBottomRight += pcSubImage->msOffsetBottomRight;
 	mcImageRect = pcSubImage->mcImageRect;
@@ -405,7 +405,7 @@ void CSubImage::AdjustImageRect(int32 iLeft, int32 iTop, int32 iRight, int32 iBo
 void CSubImage::AdjustToEmpty(void)
 {
 	int32	iWidth;
-	int32 iHeight;
+	int32	iHeight;
 	int32	iXAlign;
 	int32	iYAlign;
 

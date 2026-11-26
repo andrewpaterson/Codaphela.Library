@@ -63,16 +63,16 @@ public:
 
 	void					BeginChange(void);
 	void					AddChannel(SChannel* psChannel);
-	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannels(CArrayChannel* pasChannels);
-	void 					AddChannels(Ptr<CSound> pSourceChannels);
+	void					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannels(CArrayChannel* pasChannels);
+	void					AddChannels(Ptr<CSound> pSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	bool					RenameChannel(size iOldName, size iNewName);
 	void					SetNumFrames(lsize uiNumFrames);
 	void					SetSampleRate(uint32 uiSampleRate);
-	void 					ByteAlignChannels(void);
-	bool 					EndChange(void);
+	void					ByteAlignChannels(void);
+	bool					EndChange(void);
 	bool					IsChanging(void) const;
 
 	lsize					GetNumFrames(void) const;

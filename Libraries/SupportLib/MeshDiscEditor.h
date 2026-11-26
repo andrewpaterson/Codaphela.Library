@@ -32,8 +32,8 @@ class CMeshDiscEditor : public CMeshSourceModifier
 CONSTRUCTABLE(CMeshDiscEditor);
 DESTRUCTABLE(CMeshDiscEditor);
 public:
-	SFloat32Vec3 	msZDirection;
-	SFloat32Vec3 	msStart;
+	SFloat32Vec3	msZDirection;
+	SFloat32Vec3	msStart;
 	float32		mfInnerRadius;
 	float32		mfOuterRadius;
 	int			miWedgeSegments;

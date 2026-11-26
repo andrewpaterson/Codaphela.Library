@@ -38,25 +38,25 @@ class CMesh : public CObject
 CONSTRUCTABLE(CMesh);
 DESTRUCTABLE(CMesh);
 protected:
-	CMeshPositions		mcPositions;		
-	CMeshConnectivity	mcConnectivity;		
+	CMeshPositions		mcPositions;
+	CMeshConnectivity	mcConnectivity;
 
 public:
-	CMeshNormals		mcNormals;			
+	CMeshNormals		mcNormals;
 	CMeshUVCoords		mcUVs;
-	CMeshMaterials		mcMaterials;		
-	CMeshColours		mcColours;			
+	CMeshMaterials		mcMaterials;
+	CMeshColours		mcColours;
 	CMeshSkin			mcSkin;
 	CMeshPolygons		mcPolygons;  //Only built by a CMeshEditor's AddFace.
 	CMeshSmoothing		mcSmoothing;
 
 	void			Init(void);
-	void 			Free(void) override;
+	void			Free(void) override;
 	void			Class(void) override;
 
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
-	
+
 	int				NumCorners(void) const;
 	int				NumFaces(void) const;
 	int				NumEdges(void);
@@ -66,7 +66,7 @@ public:
 	int				CornerChunkSize(void);
 	int				TestPositionChunkSize(void);
 
-	SFloat32Vec3*		GetPosition(int iIndex);
+	SFloat32Vec3*	GetPosition(int iIndex);
 	CMeshCorner*	GetCorner(int iIndex);
 	CMeshEdge*		GetEdge(int iIndex);
 	CMeshFace*		GetFace(int iIndex);
@@ -82,18 +82,18 @@ public:
 	void			CopyMaterialsFrom(CMesh* pcSource);  //The same.
 	void			CopySkinFrom(CMesh* pcSource);  //Of pcSource's corners, which it has as its first.  Its others have none.
 
-	void 			AddCorner(float32 x, float32 y, float32 z);
+	void			AddCorner(float32 x, float32 y, float32 z);
 	void			AddCorner(SFloat32Vec3* psPosition);
 
 	CMFRet			AddFace(int iCorner1, int iCorner2, int iCorner3);
 	CMFRet			AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4);  //Cut 2 to 4, or 1 to 3 where it's concave or that folds less.
 	CMFRet			AddPolygon(CArrayInt* paiCorners);  //More than 4 corners are cut by CutMeshPolygon, and overflow what's returned.
-	
+
 	void			RemoveFace(int iFace);
 	void			RemoveFaces(CArrayInt* paiFaces);
 
 	void			RemoveCorner(int iCorner);
-	
+
 	void			MovePosition(int iPosition, SFloat32Vec3* psPosition);
 	void			MovePositions(CArrayInt* paiPositions, SFloat32Vec3* psPosition);
 	void			Scale(float32 fScale);  //Every position, by more than 0.  Normals don't change, and neither do a skin's matrices yet.

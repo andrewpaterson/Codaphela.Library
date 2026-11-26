@@ -128,8 +128,8 @@ void CMeshSphereEditor::Generate(CMeshEditor* pcMeshEditor)
 	int				k;
 	int				i;
 
-	fWedgeRad = (N_PI*2.0f)/miWedgeSegments;
-	fRingRad = N_PI/miRingSegments;
+	fWedgeRad = (N_PI*2.0f) / miWedgeSegments;
+	fRingRad = N_PI / miRingSegments;
 	WedgeDirection(&sAcross, &msZDirection);
 
 	iBottom = pcMeshEditor->NumCorners();
@@ -162,7 +162,7 @@ void CMeshSphereEditor::Generate(CMeshEditor* pcMeshEditor)
 
 	for (i = 0; i + 1 < miWedgeSegments; i++)
 	{
-		pcMeshEditor->AddFace(iBottom, iFirstRing + i, iFirstRing + i+1, miFaceName, true, true, true, !mbFlipFaces);
+		pcMeshEditor->AddFace(iBottom, iFirstRing + i, iFirstRing + i + 1, miFaceName, true, true, true, !mbFlipFaces);
 	}
 	pcMeshEditor->AddFace(iBottom, iFirstRing + i, iFirstRing, miFaceName, true, true, true, !mbFlipFaces);
 
@@ -172,7 +172,7 @@ void CMeshSphereEditor::Generate(CMeshEditor* pcMeshEditor)
 		iUpper = iLower + miWedgeSegments;
 		for (i = 0; i + 1 < miWedgeSegments; i++)
 		{
-			pcMeshEditor->AddQuad(iLower + i+1, iLower + i, iUpper + i, iUpper + i+1, miFaceName, !mbFlipFaces);
+			pcMeshEditor->AddQuad(iLower + i + 1, iLower + i, iUpper + i, iUpper + i + 1, miFaceName, !mbFlipFaces);
 		}
 		pcMeshEditor->AddQuad(iLower, iLower + i, iUpper + i, iUpper, miFaceName, !mbFlipFaces);
 	}
@@ -180,7 +180,7 @@ void CMeshSphereEditor::Generate(CMeshEditor* pcMeshEditor)
 	iUpper = iFirstRing + ((miRingSegments - 2) * miWedgeSegments);
 	for (i = 0; i + 1 < miWedgeSegments; i++)
 	{
-		pcMeshEditor->AddFace(iTop, iUpper + i, iUpper + i+1, miFaceName, true, true, true, mbFlipFaces);
+		pcMeshEditor->AddFace(iTop, iUpper + i, iUpper + i + 1, miFaceName, true, true, true, mbFlipFaces);
 	}
 	pcMeshEditor->AddFace(iTop, iUpper + i, iUpper, miFaceName, true, true, true, mbFlipFaces);
 }

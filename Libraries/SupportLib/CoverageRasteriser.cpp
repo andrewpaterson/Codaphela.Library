@@ -347,9 +347,9 @@ void CCoverageRasteriser::AddCellLine(int iRow, SCoverageSubpixel x1, SCoverageS
 //////////////////////////////////////////////////////////////////////////
 void CCoverageRasteriser::Accumulate(void)
 {
-	uint	x;
-	uint	y;
-	lsize	uiCell;
+	uint				x;
+	uint				y;
+	lsize				uiCell;
 	SCoverageSubpixel	sCover;
 	SCoverageArea		sCoverage;
 	SCoverageArea		sFull;

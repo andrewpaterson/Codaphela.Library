@@ -33,9 +33,9 @@ DESTRUCTABLE(CMeshSmoothing);
 public:
 	CArrayLargeUint32	mauiGroups;  //mauiGroups.NumElements == the mesh's faces, when it's in use.
 
-	void 	Init(void);
+	void	Init(void);
 	void	Class(void) override;
-	void 	Free(void) override;
+	void	Free(void) override;
 
 	void	Clear(void);
 	void	Copy(CMeshSmoothing* pcSource);

@@ -48,16 +48,16 @@ Ptr<CImage> ReadImage(const char* szFilename, EImageType eType, bool bAddDebug, 
 
 	switch (eType)
 	{
-		case IT_BMP:
-			return (LoadBMP(szFilename, bAddDebug, szObjectName));
-		case IT_TGA:
-			return (LoadTGA(szFilename, bAddDebug, szObjectName));
-		case IT_PNG:
-			return (LoadPNG(szFilename, bAddDebug, szObjectName));
-		case IT_RAD:
-			return (LoadRAD(szFilename, bAddDebug, szObjectName)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
-		default:
-			break;
+	case IT_BMP:
+		return (LoadBMP(szFilename, bAddDebug, szObjectName));
+	case IT_TGA:
+		return (LoadTGA(szFilename, bAddDebug, szObjectName));
+	case IT_PNG:
+		return (LoadPNG(szFilename, bAddDebug, szObjectName));
+	case IT_RAD:
+		return (LoadRAD(szFilename, bAddDebug, szObjectName)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
+	default:
+		break;
 	}
 
 	gcLogger.Error2(__METHOD__, " Could not read image of type [", ImageTypeToString(eType), " (", IntToString(eType), ")].", NULL);

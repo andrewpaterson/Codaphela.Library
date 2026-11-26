@@ -132,7 +132,7 @@ protected:
 	CArrayTextLayoutStop	masStops;  //Of the text last laid out, and one more after its last character.
 	CArrayTextLayoutLine	masLines;
 	size			muiLineFirstStop;  //Of the line being laid out.
-	CArrayTextLayoutGap		masGaps;  //Sorted by line, at most one a line (SetLineGaps).
+	CArrayTextLayoutGap	masGaps;  //Sorted by line, at most one a line (SetLineGaps).
 	size			muiTextLine;  //The line feeds laid out so far.
 	size			muiNextGap;  //The first of masGaps not yet passed.
 	int32			miLineWidth;  //How far right the line being laid out reaches.
@@ -141,7 +141,7 @@ public:
 	void			Init(void);
 	void			Init(int32 iWidth);
 	void			Class(void) override;
-	void 			Free(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

@@ -50,8 +50,8 @@ class CMeshSkinVert
 public:
 	CArrayVertWeight	mcWeights;
 
-	void 	Init(void);
-	void 	Kill(void);
+	void	Init(void);
+	void	Kill(void);
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
 	void	SortSkinWeights(void);
@@ -70,20 +70,20 @@ class CMeshSkin : public CMeshDetail
 CONSTRUCTABLE(CMeshSkin);
 DESTRUCTABLE(CMeshSkin);
 public:
-	CArrayMeshSkinVert	mcSkinVerts;  //mcSkinVerts.NumElements == mpcMesh->mcConnectivity.mcCorners.NumElements.  
-									  //And there is a one to one mapping between corners and positions thus:
-									  //mcSkinVerts[3] is applied to mpcMesh->mcPositions.mcPositions[3].
-	
+	CArrayMeshSkinVert	mcSkinVerts;  //mcSkinVerts.NumElements == mpcMesh->mcConnectivity.mcCorners.NumElements.
+	//And there is a one to one mapping between corners and positions thus:
+	//mcSkinVerts[3] is applied to mpcMesh->mcPositions.mcPositions[3].
+
 	CArrayFloat4x4		mcInverseSkinMatricies;  //Matricies to bring the object spaces verts to local matrix space.
 	CArray<CBone>		mapBones;  //The bone of each matrix.
 
-	void 	Init(void);
+	void	Init(void);
 	void	Clear(void);
-	void 	Free(void) override;
+	void	Free(void) override;
 	void	Class(void) override;
 
 	void	KillSkinVerts(void);
-	
+
 	bool	Load(CObjectReader* pcFile) override;
 	bool	Save(CObjectWriter* pcFile) override;
 

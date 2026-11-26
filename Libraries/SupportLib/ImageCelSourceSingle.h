@@ -29,14 +29,14 @@ class CImageCelSourceSingle : public CImageCelSource
 {
 CONSTRUCTABLE(CImageCelSourceSingle);
 protected:
-	int miLeftOffset;
-	int miTopOffset;
-	int miRightOffset;
-	int miBottomOffset;
+	int	miLeftOffset;
+	int	miTopOffset;
+	int	miRightOffset;
+	int	miBottomOffset;
 
 public:
-	void Init(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
-	void Kill(void) override;
+	void	Init(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void	Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
+	void	Kill(void) override;
 };
 

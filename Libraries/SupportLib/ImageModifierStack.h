@@ -39,14 +39,14 @@ protected:
 	Ptr<CImage>				mpImage;
 
 public:
-	void 					Init(Ptr<CImage> pImage = NULL);
+	void					Init(Ptr<CImage> pImage = NULL);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void 					AddModifier(Ptr<CImageModifier> pModifier);
+	void					AddModifier(Ptr<CImageModifier> pModifier);
 	template<class M, typename ... Args>
 	Ptr<M>					AddModifier(Args&& ... args);
 

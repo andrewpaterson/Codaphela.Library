@@ -119,7 +119,7 @@ bool CTileGridStringSource::Matches(CTileCelSource* pcTileCelSource, int x, int 
 	}
 
 	c = maszStrings.GetCharAt(x, y);
-	
+
 	return pcTileCelSource->Matches(&c);
 }
 

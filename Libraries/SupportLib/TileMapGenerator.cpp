@@ -101,7 +101,7 @@ void CTileMapGenerator::Free(void)
 		pcSource = (CTileCelSource*)mllcTileSources.GetNext(pcSource);
 	}
 	mllcTileSources.Kill();
-	
+
 	maszPatternNames.Kill();
 	maszSourceNames.Kill();
 }
@@ -322,7 +322,7 @@ bool CTileMapGenerator::AddPattern(char* szTileGridSource, int iCelType, char* s
 
 	pcPattern = macTileMapPatterns.Add();
 	bResult = pcPattern->Init(pTileGridSource->GetConstantName(), iCelType, szPatternConstantName, szPatternChars);
-	
+
 	if (bResult)
 	{
 		return true;

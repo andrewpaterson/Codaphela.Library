@@ -49,8 +49,8 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pImage)
 	CChannel*			psGreyChannel;
 	size				x;
 	size				y;
-	int 				iWidth;
-	int 				iHeight;
+	int					iWidth;
+	int					iHeight;
 	void*				pvRed;
 	EPrimitiveType		eChannelType;
 	bool				bSuccess;
@@ -86,7 +86,7 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pImage)
 				pcBlue->Set((int32)x, (int32)y, pvRed);
 			}
 		}
-		
+
 		pcRed->Kill();
 		pcGreen->Kill();
 		pcBlue->Kill();

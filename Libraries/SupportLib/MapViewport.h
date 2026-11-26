@@ -32,10 +32,10 @@ CONSTRUCTABLE(CMapViewport);
 DESTRUCTABLE(CMapViewport);
 protected:
 	Ptr<CMaps>			mpMaps;
-	
+
 public:
-	void 				Init(Ptr<CMaps> pMaps);
-	void 				Free(void) override;
+	void				Init(Ptr<CMaps> pMaps);
+	void				Free(void) override;
 	void				Class(void) override;
 
 	Ptr<CMaps>			GetMaps(void) const;

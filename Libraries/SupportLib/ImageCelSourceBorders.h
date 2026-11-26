@@ -28,9 +28,9 @@ class CImageCelSourceBorders : public CImageCelSource
 {
 CONSTRUCTABLE(CImageCelSourceBorders);
 public:
-	void Init(SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void Kill(void) override;
-	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
-	bool NeedsMask(void) override;
+	void	Init(SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void	Kill(void) override;
+	void	Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
+	bool	NeedsMask(void) override;
 };
 

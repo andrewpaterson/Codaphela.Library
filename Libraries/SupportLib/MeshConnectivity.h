@@ -39,10 +39,10 @@ struct CCornerEdgesMap
 {
 	//int	iSmallCornerIndex;  //Implied by position in array.
 	CArrayEmbeddedInt		maiLargerCornerIndex;
-	CArrayEmbeddedInt		maiEdgeIndex;  //Same size as maiLargerCornerIndex.  
+	CArrayEmbeddedInt		maiEdgeIndex;  //Same size as maiLargerCornerIndex.
 
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 };
 
 typedef	CArrayLargeTemplate<CCornerEdgesMap>	CArrayCornerEdgesMap;
@@ -68,11 +68,11 @@ protected:
 	lsize					muiGeneratedFaces;
 
 public:
-	void 			Init(void);
-	void 			Free(void) override;
+	void			Init(void);
+	void			Free(void) override;
 	void			Class(void) override;
-	
-	void 			Clear(void);
+
+	void			Clear(void);
 	bool			Load(CObjectReader* pcFile) override;
 	bool			Save(CObjectWriter* pcFile) override;
 

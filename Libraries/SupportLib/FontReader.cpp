@@ -152,7 +152,7 @@ TRISTATE GetFontGlyphs(CTextParser* pcTextParser, Ptr<CFontDescription> pDescrip
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFont> FontReader(char* szPathName)
 {
-	CTextParser 		cTextParser;
+	CTextParser			cTextParser;
 	CTextFile			cTextFile;
 	CChars				szName;
 	CChars				szCelsPathName;

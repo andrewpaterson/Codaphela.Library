@@ -32,12 +32,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageAccessorCreator
 {
 public:
-	static CImageAccessor* CreateEmpty(void);
-	static CImageAccessor* Create(CImage* pcImage, size iFirst, ...);
-	static CImageAccessor* Create(CImage* pcImage);
-	static CImageAccessor* Create(CImage* pcImage, CImage* pcChannels);
-	static CImageAccessor* Create(CImage* pcImage, CArraySize* paiChannels);
-	static CImageAccessor* Create(CImage* pcImage, CImageColour* pcColour);
+	static CImageAccessor*	CreateEmpty(void);
+	static CImageAccessor*	Create(CImage* pcImage, size iFirst, ...);
+	static CImageAccessor*	Create(CImage* pcImage);
+	static CImageAccessor*	Create(CImage* pcImage, CImage* pcChannels);
+	static CImageAccessor*	Create(CImage* pcImage, CArraySize* paiChannels);
+	static CImageAccessor*	Create(CImage* pcImage, CImageColour* pcColour);
 
 protected:
 	CChannelsAccessorCreator	mcCreator;
@@ -49,8 +49,8 @@ public:
 	CImageAccessor*		Create(void);
 	CImageAccessor*		CreateAndKill(void);
 
-	void 	AddAccess(EChannel iChannel, EPrimitiveType eType = PT_Undefined);
-	void 	AddAccess(EChannel iChannel1, EChannel iChannel2, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(EChannel iChannel, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(EChannel iChannel1, EChannel iChannel2, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(EChannel iChannel1, EChannel iChannel2, EChannel iChannel3, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(EChannel iChannel1, EChannel iChannel2, EChannel iChannel3, EChannel iChannel4, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CArraySize* paiChannels, EPrimitiveType eType = PT_Undefined);

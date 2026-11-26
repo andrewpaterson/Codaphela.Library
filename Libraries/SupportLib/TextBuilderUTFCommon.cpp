@@ -17,7 +17,7 @@ void CTextBuilderUTFCommon::Init(void)
 void CTextBuilderUTFCommon::Kill(void)
 {
 }
-	
+
 
 //////////////////////////////////////////////////////////////////////////
 //																		//

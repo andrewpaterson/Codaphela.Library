@@ -38,20 +38,20 @@ public:
 
 public:
 	void	Init(void);
-	void 	Init(M iLeft, M iTop, M iRight, M iBottom);
+	void	Init(M iLeft, M iTop, M iRight, M iBottom);
 	void	Init(M iWidth, M iHeight);
-	void 	Init(V sTopLeft, V sBottomRight);
-	void 	Init(V sSize);
-	void 	Init(CRectangle<V, M, N>* pcSource);
-	void 	Kill(void);
+	void	Init(V sTopLeft, V sBottomRight);
+	void	Init(V sSize);
+	void	Init(CRectangle<V, M, N>* pcSource);
+	void	Kill(void);
 	void	Copy(CRectangle<V, M, N>* pcSource);
 	M		GetLeft(void) const;
 	M		GetTop(void) const;
 	M		GetRight(void) const;
 	M		GetBottom(void) const;
-	M 		GetWidth(void) const;
-	M 		GetHeight(void) const;
-	N 		GetArea(void) const;
+	M		GetWidth(void) const;
+	M		GetHeight(void) const;
+	N		GetArea(void) const;
 	void	SetWidth(M iWidth);
 	void	SetHeight(M iHeight);
 	void	SetSize(M iWidth, M iHeight);

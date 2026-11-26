@@ -42,18 +42,18 @@ public:
 	EPackRotation				meRotation;  //How every rectangle is turned before packing.
 	bool						mbRotateToFit;  //Turn a rectangle that doesn't fit a space the way it is.
 
-	void 					Init(CRectangleBestPacker* pcRectanglePacker, int32 MaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
-	void 					Kill(void);
+	void					Init(CRectangleBestPacker* pcRectanglePacker, int32 MaxWidth, EPackRotation eRotation = PR_AsGiven, bool bRotateToFit = false);
+	void					Kill(void);
 
-	void 					AddRectanglesFromPacker(void);
+	void					AddRectanglesFromPacker(void);
 	void					Pack(void);
-	void 					Done(void);
+	void					Done(void);
 	CPackRectangleAttempt*	GetLastRectangle(void);
 	void					RemoveLastRectangle(void);
 	bool					GetLargestRectangleFittingAndRemoveIt(CInt32Rect* pcBounds, CPackRectangleAttempt* pcDest);
 	int64					GetWastedArea(void) const;
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
-	SInt32Vec2					GetPackedImageSize(void) const;
+	SInt32Vec2				GetPackedImageSize(void) const;
 	void					Print(CChars* psz);
 	void					Dump(void);
 };

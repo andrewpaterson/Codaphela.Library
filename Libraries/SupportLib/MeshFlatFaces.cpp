@@ -89,7 +89,7 @@ Ptr<CMesh> CMeshFlatFaces::Modify(Ptr<CMesh> pMesh)
 void CMeshFlatFaces::GenerateNormals(CMesh* pcMesh)
 {
 	size				i;
-	SFloat32Vec3				cNormal;  
+	SFloat32Vec3		cNormal;
 	size				iNumFaces;
 	SMeshNormalFace*	psFaceNormal;
 	CMeshNormals*		pcNormals;

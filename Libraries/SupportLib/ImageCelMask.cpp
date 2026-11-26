@@ -70,7 +70,7 @@ void CImageCelMask::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::Free(void) 
+void CImageCelMask::Free(void)
 {
 	CImageCel::Free();
 }

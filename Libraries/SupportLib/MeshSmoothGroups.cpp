@@ -390,7 +390,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 
 	size				i, j, k, l;
 	int*				aiFaceRef;
-	SFloat32Vec3				cNormal;  
+	SFloat32Vec3		cNormal;
 	uint32				dwSmooth[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
 	size				iNumNormals;
 	CMeshCorner*		psCorners;
@@ -402,7 +402,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	int					iNewNormalIndex;
 	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
-	SFloat32Vec3*			pcNormal;
+	SFloat32Vec3*		pcNormal;
 	CMeshNormals*		pcNormals;
 	size				uiNumFaces;
 
@@ -473,7 +473,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			{
 				//Check if smoothing groups overlap and its not comparing with itself
 				if ((dwSmooth[j] & dwSmooth[k]) && (j != k))
-				{	
+				{
 					dwSmooth[j] |= dwSmooth[k];
 
 					//Delete the group which overlaps with another
@@ -487,7 +487,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 					dwSmooth[k] = dwSmooth[iNumNormals];
 				}
 			}
-		}  
+		}
 
 		//Now have number of unique normals at this vertex
 		for (k = 0; k < iNumNormals; k++)

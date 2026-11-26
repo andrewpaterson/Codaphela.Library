@@ -37,8 +37,8 @@ protected:
 	Ptr<CSound>		mpSound;
 
 public:
-	void 			Init(Ptr<CSound> pSound);
-	void 			Free(void) override;
+	void			Init(Ptr<CSound> pSound);
+	void			Free(void) override;
 	void			Class(void) override;
 
 	bool			Load(CObjectReader* pcFile) override;

@@ -219,7 +219,7 @@ static bool AddOBJPolygonLine(SOBJFaces* psFaces, CMeshPolygon* pcPolygon)
 {
 	CArrayMeshPolygonEdge	asEdges;
 	CArrayMeshPolygonEdge	asLoop;
-	SMeshPolygonEdge*		psLoop;
+	SMeshPolygonEdge*	psLoop;
 	SOBJCorner*		psCorner;
 	int				iFirstNormal;
 	bool			bResult;

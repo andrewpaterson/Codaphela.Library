@@ -43,7 +43,7 @@ public:
 	virtual bool	AddRectangle(CSubImage* pcSubImage) =0;
 	virtual bool	AddRectangle(CImageCel* pcImageCel) =0;
 
-	virtual void	GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) =0;
+	virtual void		GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) =0;
 	virtual SInt32Vec2	GetPackedImageSize(void) =0;
 };
 

@@ -80,7 +80,7 @@ void CMeshConnectivity::Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::Free(void)
-{	
+{
 	KillCornerEdgesMap();
 	KillCorners();
 	mcEdges.Kill();

@@ -62,7 +62,7 @@ public:
 	float32				mfIntensity;
 	Ptr<CConnection>	mpConnection;
 
-	void 	Init(void);
+	void	Init(void);
 	void	Free(void) override;
 	void	Class(void) override;
 

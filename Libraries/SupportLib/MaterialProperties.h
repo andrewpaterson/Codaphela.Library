@@ -48,10 +48,10 @@ public:
 	bool				mbLit;
 	EMaterialOpacity	meOpacity;
 
-	void Init(void);
-	void Kill(void);
-	bool Save(CFileWriter* pcFile);
-	bool Load(CFileReader* pcFile);
+	void	Init(void);
+	void	Kill(void);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 };
 
 

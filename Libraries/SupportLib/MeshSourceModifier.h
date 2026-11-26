@@ -34,8 +34,8 @@ class CMeshSourceModifier : public CMeshModifier
 {
 CONSTRUCTABLE(CMeshSourceModifier);
 public:
-	virtual int ExpectedFaceChunkSize(void) =0;
-	virtual int ExpectedCornerChunkSize(void) =0;
+	virtual int	ExpectedFaceChunkSize(void) =0;
+	virtual int	ExpectedCornerChunkSize(void) =0;
 
 	virtual void	Generate(CMeshEditor* pcMeshEditor) =0;
 

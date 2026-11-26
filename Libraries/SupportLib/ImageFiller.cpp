@@ -37,10 +37,10 @@ void CImageFiller::Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* 
 	mpcDestImage = pcDestImage;
 	mpcSourceAccessor = pcSource;
 
-	mpcDestImage->ReInit(	mpcSourceAccessor->GetWidth(), 
-							mpcSourceAccessor->GetImage()->GetHeight(), 
-							PT_int16, 
-							IMAGE_MASK, 
+	mpcDestImage->ReInit(	mpcSourceAccessor->GetWidth(),
+							mpcSourceAccessor->GetImage()->GetHeight(),
+							PT_int16,
+							IMAGE_MASK,
 							CHANNEL_STOP);
 
 	mpcDestImage->Black();
@@ -82,19 +82,19 @@ bool CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, uint16 iMa
 
 		if (sImageFill.iFill & FILL_RIGHT)
 		{
-			Push(sImageFill.x+1, sImageFill.y, FILL_LEFT);
+			Push(sImageFill.x + 1, sImageFill.y, FILL_LEFT);
 		}
 		if (sImageFill.iFill & FILL_DOWN)
 		{
-			Push(sImageFill.x, sImageFill.y+1, FILL_UP);
+			Push(sImageFill.x, sImageFill.y + 1, FILL_UP);
 		}
 		if (sImageFill.iFill & FILL_LEFT)
 		{
-			Push(sImageFill.x-1, sImageFill.y, FILL_RIGHT);
+			Push(sImageFill.x - 1, sImageFill.y, FILL_RIGHT);
 		}
 		if (sImageFill.iFill & FILL_UP)
 		{
-			Push(sImageFill.x, sImageFill.y-1, FILL_DOWN);
+			Push(sImageFill.x, sImageFill.y - 1, FILL_DOWN);
 		}
 	}
 	return true;

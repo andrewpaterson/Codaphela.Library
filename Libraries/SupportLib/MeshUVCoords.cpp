@@ -280,7 +280,7 @@ CMeshUVLayer* CMeshUVCoords::EnsureLayerExists(size iLayer, CMeshConnectivity* p
 //
 //////////////////////////////////////////////////////////////////////////
 void CMeshUVCoords::AddFace(void)
-{	
+{
 	CMeshUVLayer*	pcUVLayer;
 	size			i;
 	size			uiNumElements;

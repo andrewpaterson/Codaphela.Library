@@ -692,7 +692,7 @@ void CMesh::Scale(float32 fScale)
 //////////////////////////////////////////////////////////////////////////
 void CMesh::AddUV(float32 u, float32 v, size iLayer)
 {
-	CMeshUVLayer*	pcUVLayer;
+	CMeshUVLayer*		pcUVLayer;
 	SFloat32Vec2*		psUV;
 
 	pcUVLayer = mcUVs.EnsureLayerExists(iLayer, &mcConnectivity);

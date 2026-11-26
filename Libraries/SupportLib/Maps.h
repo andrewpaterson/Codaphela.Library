@@ -41,9 +41,9 @@ protected:
 	Ptr<CImage>					mpViewport;
 
 public:
-	void 		Init(void);
-	void 		Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
-	void 		Free(void) override;
+	void		Init(void);
+	void		Init(Ptr<CImageCelBlitterCache> pCache, Ptr<CImage> pViewport);
+	void		Free(void) override;
 	void		Class(void) override;
 
 	bool		Save(CObjectWriter* pcFile) override;

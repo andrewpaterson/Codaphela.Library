@@ -165,7 +165,7 @@ Ptr<CText> CSimpleTextReader::Read(CUnicodeReader* pcUnicodeReader, bool bNewLin
 
 	pText = OMalloc<CText>();
 	cTextBuilder.Init(pcUnicodeReader, &pText, mpcFont);
-	
+
 	uiChange = 0;
 	uiNumChanges = pasChanges ? pasChanges->NumElements() : 0;
 	uiNumWritten = 0;

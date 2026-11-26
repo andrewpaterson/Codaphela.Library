@@ -44,7 +44,7 @@ class CCoverageRasteriser
 protected:
 	//Each pixel cell accumulates the height (cover) and twice the area (area) of the edges crossing it, in subpixels.
 	SCoverageSubpixel*	mpsCover;
-	SCoverageArea*		mpsArea;
+	SCoverageArea*	mpsArea;
 	uint8*		mpuiCoverage;
 	int			miWidth;
 	int			miHeight;

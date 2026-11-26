@@ -36,7 +36,7 @@ CONSTRUCTABLE(CBlockMap);
 DESTRUCTABLE(CBlockMap);
 public:
 			void		Init(void);
-			void 		Free(void) override;
+			void		Free(void) override;
 			void		Class(void) override;
 
 			bool		Save(CObjectWriter* pcFile) override;

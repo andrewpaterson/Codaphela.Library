@@ -92,7 +92,7 @@ protected:
 public:
 	void		Init(Ptr<CTileLayerCel> pLayer, Ptr<CFontColours> pColours, ARGB32 sColour, size uiTabWidth = 4);
 	void		Class(void) override;
-	void 		Free(void) override;
+	void		Free(void) override;
 
 	bool		Save(CObjectWriter* pcFile) override;
 	bool		Load(CObjectReader* pcFile) override;

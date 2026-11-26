@@ -101,7 +101,7 @@ int CMeshDiscEditor::ExpectedFaceChunkSize(void)
 	iNumFaces = miWedgeSegments;
 	if (miCircleSegments > 1)
 	{
-		iNumFaces += miWedgeSegments * (miCircleSegments-1) * 2;
+		iNumFaces += miWedgeSegments * (miCircleSegments - 1) * 2;
 	}
 	return iNumFaces;
 }
@@ -128,14 +128,14 @@ void CMeshDiscEditor::Generate(CMeshEditor* pcMeshEditor)
 {
 	uint		i;
 	uint		j;
-	SFloat32Vec3		sDest;
-	SFloat32Vec3		sSource;
-	SFloat32Vec3		sAcross;
+	SFloat32Vec3	sDest;
+	SFloat32Vec3	sSource;
+	SFloat32Vec3	sAcross;
 	float32		fWedgeRad;
 	float32		fRadius;
 	int			iStartPosition;
 
-	fWedgeRad = (N_PI*2.0f)/miWedgeSegments;
+	fWedgeRad = (N_PI*2.0f) / miWedgeSegments;
 	WedgeDirection(&sAcross, &msZDirection);
 
 	iStartPosition = pcMeshEditor->NumCorners();
@@ -143,7 +143,7 @@ void CMeshDiscEditor::Generate(CMeshEditor* pcMeshEditor)
 	pcMeshEditor->AddCorner(&msStart);
 	for (j = 0; j < (uint)miCircleSegments; j++)
 	{
-		fRadius = (mfOuterRadius / miCircleSegments) * (j+1);
+		fRadius = (mfOuterRadius / miCircleSegments) * (j + 1);
 		sSource.Init(&sAcross);
 		sSource *= fRadius;
 		for (i = 0; i < (uint)miWedgeSegments; i++)
@@ -156,20 +156,20 @@ void CMeshDiscEditor::Generate(CMeshEditor* pcMeshEditor)
 
 	for (i = 0; i + 1 < (uint)miWedgeSegments; i++)
 	{
-		pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + i+2, miFaceName, true, true, true, mbFlipFaces);
+		pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i + 1, iStartPosition + i + 2, miFaceName, true, true, true, mbFlipFaces);
 	}
-	pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + 1, miFaceName, true, true, true, mbFlipFaces);
+	pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i + 1, iStartPosition + 1, miFaceName, true, true, true, mbFlipFaces);
 
 	for (j = 0; j + 1 < (uint)miCircleSegments; j++)
 	{
 		for (i = 0; i + 1 < (uint)miWedgeSegments; i++)
 		{
-			pcMeshEditor->AddQuad(iStartPosition + (j*miWedgeSegments) + (i+2), iStartPosition + (j*miWedgeSegments) + (i+1),
-				                  iStartPosition + ((j+1)*miWedgeSegments) + (i+1), iStartPosition + ((j+1)*miWedgeSegments) + (i+2), 
+			pcMeshEditor->AddQuad(iStartPosition + (j*miWedgeSegments) + (i + 2), iStartPosition + (j*miWedgeSegments) + (i + 1),
+				                  iStartPosition + ((j + 1)*miWedgeSegments) + (i + 1), iStartPosition + ((j + 1)*miWedgeSegments) + (i + 2),
 								  miFaceName, mbFlipFaces);
 		}
-		pcMeshEditor->AddQuad(iStartPosition + (j*miWedgeSegments) + (1), iStartPosition + (j*miWedgeSegments) + (i+1),
-			                  iStartPosition + ((j+1)*miWedgeSegments) + (i+1), iStartPosition + ((j+1)*miWedgeSegments) + (1), 
+		pcMeshEditor->AddQuad(iStartPosition + (j*miWedgeSegments) + (1), iStartPosition + (j*miWedgeSegments) + (i + 1),
+			                  iStartPosition + ((j + 1)*miWedgeSegments) + (i + 1), iStartPosition + ((j + 1)*miWedgeSegments) + (1),
 			                  miFaceName, mbFlipFaces);
 	}
 }

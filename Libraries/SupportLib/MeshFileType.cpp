@@ -40,7 +40,7 @@ EMeshType GuessMeshType(const char* szFilename)
 	szTest.Init(szFilename, iIndex);
 
 	//----------------------------------------
-	// guess the file format based on the 
+	// guess the file format based on the
 	// extension. Not very robust but good
 	// enough for now.
 	//----------------------------------------

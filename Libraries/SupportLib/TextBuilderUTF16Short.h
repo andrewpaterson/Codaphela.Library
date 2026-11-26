@@ -34,7 +34,7 @@ protected:
 public:
 	void		Init(void);
 	void		Kill(void) override;
-	
+
 	size		NumElements(void) const override;
 	void*		GetData(void) const override;
 	uint16*		GetChars(void) const;

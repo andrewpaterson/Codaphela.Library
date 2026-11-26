@@ -34,10 +34,10 @@ class CImageCopier : public CUnknown
 {
 CONSTRUCTABLE(CImageCopier);
 public:
-	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, CInt32Rect* psSourceRect = NULL);
-	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
-	static void Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int iDestX, int iDestY);
-	static void Copy(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	static void	Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, CInt32Rect* psSourceRect = NULL);
+	static void	Copy(Ptr<CImage> pSource, Ptr<CImage> pDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
+	static void	Copy(Ptr<CImageCel> pSource, Ptr<CImage> pDest, int iDestX, int iDestY);
+	static void	Copy(Ptr<CImage> pSource, Ptr<CImage> pDest);
 
 protected:
 	CImage*				mpcSource;  //Kept alive by the caller while it copies.
@@ -47,14 +47,14 @@ protected:
 	bool				mbKillAccessors;
 
 public:
-	bool Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
-	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
-	void Kill(void) override;
+	bool	Init(Ptr<CImage> pSource, Ptr<CImage> pDest);
+	void	Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
+	void	Kill(void) override;
 
-	void Copy(int iDestX, int iDestY, Ptr<CImageCel> pSourceCel);
-	void Copy(int iDestX, int iDestY, CInt32Rect* psSourceRect = NULL);
-	void Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
-	void Copy(SImageCopy* psCopy);
+	void	Copy(int iDestX, int iDestY, Ptr<CImageCel> pSourceCel);
+	void	Copy(int iDestX, int iDestY, CInt32Rect* psSourceRect = NULL);
+	void	Copy(int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
+	void	Copy(SImageCopy* psCopy);
 };
 
 

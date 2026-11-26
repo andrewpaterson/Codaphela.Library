@@ -43,12 +43,12 @@ typedef SFixed<int32, int64, 0>		STrueTypeWhole;
 //A design axis from the fvar table.
 struct STrueTypeAxis
 {
-	char	szTag[5];
+	char			szTag[5];
 	STrueTypeFixed	sMinimum;
 	STrueTypeFixed	sDefault;
 	STrueTypeFixed	sMaximum;
-	uint16	uiNameID;
-	bool	bHidden;
+	uint16			uiNameID;
+	bool			bHidden;
 };
 
 

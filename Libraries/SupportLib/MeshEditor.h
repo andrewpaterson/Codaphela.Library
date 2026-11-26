@@ -64,7 +64,7 @@ protected:
 
 public:
 	void	Init(Ptr<CMesh> pMesh);
-	void 	Free(void) override;
+	void	Free(void) override;
 	void	Class(void) override;
 
 	bool	Load(CObjectReader* pcFile) override;
@@ -93,7 +93,7 @@ public:
 	void	ClearConnectivity(void);
 
 	//What changes the mesh, so that its counters know.
-	void 	AddCorner(float32 x, float32 y, float32 z);
+	void	AddCorner(float32 x, float32 y, float32 z);
 	void	AddCorner(SFloat32Vec3* psPosition);
 
 	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName = 0, bool bEdge12 = true, bool bEdge23 = true, bool bEdge31 = true);

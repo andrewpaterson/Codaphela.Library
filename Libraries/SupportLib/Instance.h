@@ -48,8 +48,8 @@ public:
 	CArray<CConnection>	mapConnections;
 	CArrayMaterial		mapMaterials;
 
-	void 	Init(Ptr<CMeshEditor> pEditor);
-	void 	Free(void) override;
+	void	Init(Ptr<CMeshEditor> pEditor);
+	void	Free(void) override;
 	void	Class(void) override;
 
 	bool	IsSkinned(void);
@@ -77,8 +77,8 @@ public:
 	CArray<CConnection>		mapConnections;
 	CArray<CInstanceMesh>	mapMeshes;
 
-	void 				Init(void);
-	void 				Free(void) override;
+	void				Init(void);
+	void				Free(void) override;
 	void				Class(void) override;
 
 	void				MakeBones(Ptr<CSkeleton> pSkeleton, Ptr<CConnection> pParent);

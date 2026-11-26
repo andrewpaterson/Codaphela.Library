@@ -214,7 +214,7 @@ bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 //////////////////////////////////////////////////////////////////////////
 bool CImageAccessor::IsEmpty(void) const
 {
-	return mpcAccessor->GetAccessors()->NumElements()== 0;
+	return mpcAccessor->GetAccessors()->NumElements() == 0;
 }
 
 

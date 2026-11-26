@@ -138,7 +138,7 @@ bool CTileGridImageSource::Matches(CTileCelSource* pcTileCelSource, int x, int y
 	}
 
 	pvData = mpcAccessor->Get(x, y);
-	
+
 	return pcTileCelSource->Matches(pvData);
 }
 

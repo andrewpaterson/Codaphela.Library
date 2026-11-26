@@ -16,7 +16,7 @@
 #define MOD_GAIN_TABLE_SIZE			256
 #define MOD_MIX_BLOCK				256			//Frames mixed at a time.
 #define MOD_SAMPLE_WINDOW			0xF000		//The most frames ModMixNearest8 is given of a sample at once (the steps from its end
-												//stay inside 64KB).
+//stay inside 64KB).
 
 
 //A channel side's gain table: (sample * gain) >> (MOD_MIX_SHIFT - 8) by the sample's byte.

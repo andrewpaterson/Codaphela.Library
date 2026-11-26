@@ -31,8 +31,8 @@ protected:
 	CImageDividerNumbers	mcNumbers;
 
 public:
-	void Init(CImageDividerNumbers* pcNumbers, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
-	void Kill(void) override;
+	void	Init(CImageDividerNumbers* pcNumbers, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void	Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
+	void	Kill(void) override;
 };
 

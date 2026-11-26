@@ -31,11 +31,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 enum EColourOrder
 {
 	CCO_Unknown,
-	
+
 	CCO_RGB,
 	CCO_BRG,
 	CCO_GBR,
-	
+
 	CCO_BGR,
 	CCO_RBG,
 	CCO_GRB,
@@ -69,7 +69,7 @@ enum ERGBColourBits
 	CRGB_8bit323,	//R3G2B3
 	CRGB_8bit233,	//R2G3B3
 	CRGB_6bit,
-	CRGB_15bit, 
+	CRGB_15bit,
 	CRGB_16bit,		//R5 G6 B5
 };
 

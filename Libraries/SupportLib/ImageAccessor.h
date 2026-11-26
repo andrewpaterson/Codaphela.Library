@@ -43,7 +43,7 @@ protected:
 	bool				mbKillChannelAccessor;
 
 public:
-	void 				Init(CImage* pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
+	void				Init(CImage* pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
 	virtual void		Kill(void) override;
 
 	virtual void*		Get(int32 x, int32 y);

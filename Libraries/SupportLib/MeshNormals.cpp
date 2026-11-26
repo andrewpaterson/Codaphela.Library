@@ -117,11 +117,11 @@ bool CMeshNormals::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshNormals::GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn)
 {
-	lsize				iFaceNum;
+	lsize						iFaceNum;
 	SFloat32Vec3				sVec1;
 	SFloat32Vec3				sVec2;
 	SFloat32Vec3				sNormal;
-	lsize				iNumFaces;
+	lsize						iNumFaces;
 
 	if (mbInUse)
 	{
@@ -200,14 +200,14 @@ void CMeshNormals::MoveCornerNormalsUp(int iNumFaces)
 //////////////////////////////////////////////////////////////////////////
 void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn)
 {
-	int*				piCorners;
+	int*					piCorners;
 	SFloat32Vec3*			psPosA;
 	SFloat32Vec3*			psPosB;
 	SFloat32Vec3*			psPosC;
-	SFloat32Vec3				sVec1;
-	SFloat32Vec3				sVec2;
-	SFloat32Vec3				sNormal;
-	SMeshNormalFace*	psNormalFace;
+	SFloat32Vec3			sVec1;
+	SFloat32Vec3			sVec2;
+	SFloat32Vec3			sNormal;
+	SMeshNormalFace*		psNormalFace;
 	SFloat32Vec3*			psNormal;
 
 	if (mbInUse)

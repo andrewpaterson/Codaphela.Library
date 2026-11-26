@@ -131,7 +131,7 @@ void CMeshGeosphereEditor::IcosahedronCorners(SFloat32Vec3* asCorners)
 	WedgeDirection(&sAcross, &msZDirection);
 	fHeight = 1.0f / sqrtf(5.0f);
 	fRingRadius = 2.0f / sqrtf(5.0f);
-	fFifthRad = (N_PI*2.0f)/5.0f;
+	fFifthRad = (N_PI*2.0f) / 5.0f;
 
 	asCorners[0].Init(&msZDirection);
 	for (k = 0; k < 5; k++)

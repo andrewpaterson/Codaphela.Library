@@ -56,7 +56,7 @@ SChannel CChannelRGB::GetChannel(size iIndex)
 {
 	SChannel	sChannel;
 
-	switch(iIndex)
+	switch (iIndex)
 	{
 	case 0:
 		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, false);
@@ -104,7 +104,7 @@ SChannel CChannelRGBA::GetChannel(size iIndex)
 {
 	SChannel	sChannel;
 
-	switch(iIndex)
+	switch (iIndex)
 	{
 	case 0:
 		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, false);
@@ -156,7 +156,7 @@ SChannel CChannelRGBX::GetChannel(size iIndex)
 {
 	SChannel	sChannel;
 
-	switch(iIndex)
+	switch (iIndex)
 	{
 	case 0:
 		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, false);

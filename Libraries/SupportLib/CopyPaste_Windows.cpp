@@ -74,7 +74,7 @@ void CCopyPaste::CopyText(CChars* szText)
 void CCopyPaste::PasteText(CChars* szText)
 {
 	szText->Append(gszCopyPasteBuffer.Text());
-	
+
 }
 
 

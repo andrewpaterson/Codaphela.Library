@@ -103,7 +103,7 @@ void CRectanglePow2Packer::Pack(void)
 
 		for (iWidth = (uint32)iStartWidth; iWidth <= (uint32)iEndWidth; iWidth *= 2)
 		{
-			mcPacker.AddAttempt((int32)iWidth-mcPacker.GetOutsideEdgeWidth()*2);
+			mcPacker.AddAttempt((int32)iWidth - mcPacker.GetOutsideEdgeWidth()*2);
 		}
 
 		mcPacker.Pack();
@@ -176,7 +176,7 @@ void CRectanglePow2Packer::GetPackedRectangles(CArrayPackedRectangle* pacPackedR
 SInt32Vec2 CRectanglePow2Packer::GetPackedImageSize(void)
 {
 	SInt32Vec2			sSize;
-	CPackAttempt*	pcBest;
+	CPackAttempt*		pcBest;
 
 	pcBest = mcPacker.GetBestAttempt();
 	if (pcBest)

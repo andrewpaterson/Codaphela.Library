@@ -42,7 +42,7 @@ public:
 	bool	AddRectangle(CSubImage* pcSubImage) override;
 	bool	AddRectangle(CImageCel* pcImageCel) override;
 
-	void	GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
+	void		GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) override;
 	SInt32Vec2	GetPackedImageSize(void) override;
 
 private:

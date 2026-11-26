@@ -124,7 +124,7 @@ void CMeshTorusEditor::Generate(CMeshEditor* pcMeshEditor)
 	pafZs = (float32*)malloc(sizeof(float32) * miTubeSegments);
 	paiFaceNames = (int*)malloc(sizeof(int) * miTubeSegments);
 
-	fTubeRad = (N_PI*2.0f)/miTubeSegments;
+	fTubeRad = (N_PI*2.0f) / miTubeSegments;
 	for (k = 0; k < miTubeSegments; k++)
 	{
 		pafRadii[k] = mfRadius + cosf(fTubeRad * k) * mfTubeRadius;

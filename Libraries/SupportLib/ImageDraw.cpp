@@ -16,7 +16,7 @@ void CImageDraw::Init(CImage* pcImage)
 
 	mpcImage = pcImage;
 	mpcAccessor = NULL;
-	
+
 	cColour.Init(1.0f, 1.0f, 1.0f);
 	SetColour(&cColour);
 	cColour.Kill();
@@ -167,11 +167,11 @@ void CImageDraw::DrawBox(bool bFilled)
 //////////////////////////////////////////////////////////////////////////
 void CImageDraw::DrawLine(int x0, int y0, int x1, int y1)
 {
-	int dx;
-	int dy;
-	int sx;
-	int sy;
-	int err;
+	int	dx;
+	int	dy;
+	int	sx;
+	int	sy;
+	int	err;
 
 	dx = IntAbs(x1 - x0);
 	dy = IntAbs(y1 - y0);
@@ -189,7 +189,7 @@ void CImageDraw::DrawLine(int x0, int y0, int x1, int y1)
 		}
 
 		int e2 = 2 * err;
-		if (e2 > -dy) 
+		if (e2 > -dy)
 		{
 			err -= dy;
 			x0 += sx;

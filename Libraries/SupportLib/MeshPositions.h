@@ -37,11 +37,11 @@ DESTRUCTABLE(CMeshPositions);
 public:
 	CArrayLargeFloat32Vec3	mcPositions;
 
-	void 	Init(void);
-	void 	Free(void) override;
+	void	Init(void);
+	void	Free(void) override;
 	void	Class(void) override;
 
-	void 	Clear(void);
+	void	Clear(void);
 
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;

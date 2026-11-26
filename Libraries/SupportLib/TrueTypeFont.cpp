@@ -1235,8 +1235,8 @@ void CTrueTypeFont::VarySimpleGlyph(int iGlyph, CTrueTypeOutline* pcOutline, siz
 	size			uiTotal;
 	STrueTypePoint*	pasPoints;
 	int*			paiContourEnds;
-	STrueTypeFixed*			pasDeltaX;
-	STrueTypeFixed*			pasDeltaY;
+	STrueTypeFixed*	pasDeltaX;
+	STrueTypeFixed*	pasDeltaY;
 	size			i;
 	STrueTypePoint*	psPoint;
 
@@ -1684,8 +1684,8 @@ void CTrueTypeFont::VaryComponents(int iGlyph, CArrayTrueTypeComponent* pasCompo
 	size				uiNumComponents;
 	size				uiTotal;
 	STrueTypePoint*		pasPoints;
-	STrueTypeFixed*				pasDeltaX;
-	STrueTypeFixed*				pasDeltaY;
+	STrueTypeFixed*		pasDeltaX;
+	STrueTypeFixed*		pasDeltaY;
 	size				i;
 	STrueTypeComponent*	psComponent;
 

@@ -111,7 +111,7 @@ int CMeshRingEditor::ExpectedFaceChunkSize(void)
 {
 	int iNumFaces;
 
-	iNumFaces = miWedgeSegments * (miRingSegments-1-miZI-miZE) * 2;
+	iNumFaces = miWedgeSegments * (miRingSegments - 1 - miZI - miZE) * 2;
 	return iNumFaces;
 }
 
@@ -124,7 +124,7 @@ int CMeshRingEditor::ExpectedCornerChunkSize(void)
 {
 	int	iNumVerticies;
 
-	iNumVerticies = miWedgeSegments * (miRingSegments-miZI-miZE);
+	iNumVerticies = miWedgeSegments * (miRingSegments - miZI - miZE);
 	return iNumVerticies;
 }
 
@@ -137,26 +137,26 @@ void CMeshRingEditor::Generate(CMeshEditor* pcMeshEditor)
 {
 	uint		i;
 	int			z;
-	SFloat32Vec3		sDest;
-	SFloat32Vec3		sSource;
-	SFloat32Vec3		sAcross;
+	SFloat32Vec3	sDest;
+	SFloat32Vec3	sSource;
+	SFloat32Vec3	sAcross;
 	float32		fWedgeRad;
 	float32		fRadius;
 	float32		f;
 	float32		fZ;
-	SFloat32Vec3		sRingCenter;
+	SFloat32Vec3	sRingCenter;
 	int			iStartPosition;
 	int			iZOffset0;
 	int			iZOffset1;
 
 	iStartPosition = pcMeshEditor->NumCorners();
 
-	fWedgeRad = (N_PI*2.0f)/miWedgeSegments;
+	fWedgeRad = (N_PI*2.0f) / miWedgeSegments;
 	WedgeDirection(&sAcross, &msZDirection);
 
-	for (z = miZI; z < miRingSegments-miZE; z++)
+	for (z = miZI; z < miRingSegments - miZE; z++)
 	{
-		f = (float32)z/(float32)(miRingSegments-1);
+		f = (float32)z / (float32)(miRingSegments - 1);
 		fRadius = InterpolateFloat(mfBottomRadius, mfTopRadius, f);
 		fZ = mfLength * f;
 
@@ -173,10 +173,10 @@ void CMeshRingEditor::Generate(CMeshEditor* pcMeshEditor)
 		}
 	}
 
-	for (z = miZI; z < miRingSegments-1-miZE; z++)
+	for (z = miZI; z < miRingSegments - 1 - miZE; z++)
 	{
-		iZOffset0 = (z-miZI);
-		iZOffset1 = iZOffset0+1;
+		iZOffset0 = (z - miZI);
+		iZOffset1 = iZOffset0 + 1;
 		AddZStrip(pcMeshEditor, iStartPosition + (iZOffset0 * miWedgeSegments), iStartPosition + (iZOffset1 * miWedgeSegments), !mbFlipFaces);
 	}
 }
@@ -193,7 +193,7 @@ void CMeshRingEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, 
 
 	for (i = 0; i + 1 < (uint)miWedgeSegments; i++)
 	{
-		pcMeshEditor->AddQuad(iStartPosition1 + i+1, iStartPosition1 + i, iStartPosition2 + i, iStartPosition2 + i+1, miFaceName, bFlipFaces);
+		pcMeshEditor->AddQuad(iStartPosition1 + i + 1, iStartPosition1 + i, iStartPosition2 + i, iStartPosition2 + i + 1, miFaceName, bFlipFaces);
 	}
 	pcMeshEditor->AddQuad(iStartPosition1, iStartPosition1 + i, iStartPosition2 + i, iStartPosition2, miFaceName, bFlipFaces);
 }

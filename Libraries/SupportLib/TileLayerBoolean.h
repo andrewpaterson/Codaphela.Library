@@ -38,7 +38,7 @@ protected:
 public:
 	void	Init(Ptr<CTileMap> pTileMap, const char* szTileType, SSizeVec2 sMapSize, SSizeVec2 sCelSize, int iIdentifier, SInt32Vec2 sPosition);
 	void	Class(void) override;
-	void 	Free(void) override;
+	void	Free(void) override;
 
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;

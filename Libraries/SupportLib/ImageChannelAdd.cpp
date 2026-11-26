@@ -93,7 +93,7 @@ Ptr<CImage> CImageChannelAdd::Modify(Ptr<CImage> pImage)
 		eChannel = (EChannel)maiChannels.GetValue(i);
 		pImage->AddChannel(eChannel, meType, miGroup);
 	}
-	
+
 	pImage->EndChange();
 
 	return pImage;

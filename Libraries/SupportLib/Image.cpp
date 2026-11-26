@@ -241,7 +241,7 @@ void CImage::Init(uint32 uiWidth, uint32 uiHeight, CArrayChannel* pasNewChannels
 	size					iNumChannels;
 	size					i;
 	SChannel*				psChannel;
-	
+
 	PrivateInit();
 
 	iNumChannels = pasNewChannels->NumElements();
@@ -275,7 +275,7 @@ void CImage::Init(uint32 uiWidth, uint32 uiHeight, CColourFormatHelper* pcHelper
 	size					i;
 	EChannel				eChannel;
 	EPrimitiveType			eType;
-	
+
 	PrivateInit();
 
 	iNumChannels = pcHelper->GetNumChannels();
@@ -413,7 +413,7 @@ void CImage::AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, 
 //////////////////////////////////////////////////////////////////////////
 bool CImage::AddChannel(Ptr<CImage> pSourceImage, size iChannel, EPrimitiveType eType)
 {
-	CChannel*	pcChannel;
+	CChannel*		pcChannel;
 	const char*		szShortName;
 	const char*		szLongName;
 
@@ -578,7 +578,7 @@ uint32 CImage::GetHeight(void) const
 {
 	if (IsChanging())
 	{
-		return mpsImageChangingDesc->uiHeight;	
+		return mpsImageChangingDesc->uiHeight;
 	}
 	return msSize.y;
 }
@@ -1059,7 +1059,7 @@ bool CImage::Matches(CColourFormatHelper* pcHelper, bool bReverse)
 		}
 
 		eHelperType = pcHelper->GetType(iIndex);
-		if (pcChannel->eType!= eHelperType)
+		if (pcChannel->eType != eHelperType)
 		{
 			return false;
 		}
@@ -1100,7 +1100,7 @@ bool CImage::Matches(CArrayChannel* pasChannels)
 			return false;
 		}
 
-		if (pcChannel->eType!= psChannel->eType)
+		if (pcChannel->eType != psChannel->eType)
 		{
 			return false;
 		}
@@ -1120,8 +1120,8 @@ bool CImage::Matches(CArrayChannel* pasChannels)
 //////////////////////////////////////////////////////////////////////////
 void CImage::SetChannelDebugNames(size iChannel)
 {
-	char* szShortName;
-	char* szLongName;
+	char*	szShortName;
+	char*	szLongName;
 
 	szLongName = gmiszImageChannelLongNames.Get((int)iChannel);
 	szShortName = gmiszImageChannelShortNames.Get((int)iChannel);

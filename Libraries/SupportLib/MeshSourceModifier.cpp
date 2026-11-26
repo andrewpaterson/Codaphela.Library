@@ -168,7 +168,7 @@ void CMeshSourceModifier::GenerateRevolved(CMeshEditor* pcMeshEditor, SFloat32Ve
 	int				i;
 
 	iStartPosition = pcMeshEditor->NumCorners();
-	fWedgeRad = (N_PI*2.0f)/iWedgeSegments;
+	fWedgeRad = (N_PI*2.0f) / iWedgeSegments;
 	WedgeDirection(&sAcross, psZDirection);
 
 	for (p = 0; p < iNumPoints; p++)
@@ -191,7 +191,7 @@ void CMeshSourceModifier::GenerateRevolved(CMeshEditor* pcMeshEditor, SFloat32Ve
 		iNext = iStartPosition + (((p + 1) % iNumPoints) * iWedgeSegments);
 		for (i = 0; i + 1 < iWedgeSegments; i++)
 		{
-			pcMeshEditor->AddQuad(iThis + i+1, iThis + i, iNext + i, iNext + i+1, paiFaceNames[p], !bFlipFaces);
+			pcMeshEditor->AddQuad(iThis + i + 1, iThis + i, iNext + i, iNext + i + 1, paiFaceNames[p], !bFlipFaces);
 		}
 		pcMeshEditor->AddQuad(iThis, iThis + i, iNext + i, iNext, paiFaceNames[p], !bFlipFaces);
 	}

@@ -65,8 +65,8 @@ public:
 	float32		GetSpeed(void) const;
 	bool		IsFinished(void);
 	Ptr<CSceneAnimation>	GetAnimation(void) const;
-	Ptr<CInstance>			GetInstance(void) const;
-	size					NumBound(void);
+	Ptr<CInstance>	GetInstance(void) const;
+	size		NumBound(void);
 };
 
 

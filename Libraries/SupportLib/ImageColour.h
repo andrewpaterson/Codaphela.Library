@@ -37,11 +37,11 @@ struct SImageColour
 {
 	uint8	c[MAX_IMAGE_COLOUR_BYTES];
 
-	void Zero(void);
-	void Full(void);
-	bool IsZero(size iDataSize);
-	bool Equals(SImageColour* psColour, size iDataSize);
-	bool Equals(void* pvColour, size iDataSize);
+	void	Zero(void);
+	void	Full(void);
+	bool	IsZero(size iDataSize);
+	bool	Equals(SImageColour* psColour, size iDataSize);
+	bool	Equals(void* pvColour, size iDataSize);
 };
 
 
@@ -51,7 +51,7 @@ CONSTRUCTABLE(CImageColour);
 public:
 			void	Init(void);
 			void	Kill(void) override;
-	
+
 	virtual float32	GetValue(EChannel eChannel) =0;
 	virtual void	GetChannels(CArraySize* pai) =0;
 };
@@ -90,7 +90,7 @@ public:
 
 	float32	GetValue(EChannel eChannel) override;
 	void	GetChannels(CArraySize* pai) override;
-	
+
 	bool	Load(CFileReader* pcFile) override;
 	bool	Save(CFileWriter* pcFile) override;
 };

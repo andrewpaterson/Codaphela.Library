@@ -7,8 +7,8 @@
 //////////////////////////////////////////////////////////////////////////
 void AddDebugChannel(Ptr<CImage> pImage, EPrimitiveType eType, EChannel eChannel, bool bAddDebug)
 {
-	char* szShortName;
-	char* szLongName;
+	char*	szShortName;
+	char*	szLongName;
 
 	if (bAddDebug)
 	{

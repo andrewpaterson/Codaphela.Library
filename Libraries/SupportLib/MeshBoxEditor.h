@@ -32,10 +32,10 @@ class CMeshBoxEditor : public CMeshSourceModifier
 CONSTRUCTABLE(CMeshBoxEditor);
 DESTRUCTABLE(CMeshBoxEditor);
 public:
-	SFloat32Vec3 	msXDirection;
-	SFloat32Vec3 	msYDirection; 
-	SFloat32Vec3 	msZDirection; 
-	SFloat32Vec3 	msStart;
+	SFloat32Vec3	msXDirection;
+	SFloat32Vec3	msYDirection;
+	SFloat32Vec3	msZDirection;
+	SFloat32Vec3	msStart;
 	int			miXSegments;
 	int			miYSegments;
 	int			miZSegments;

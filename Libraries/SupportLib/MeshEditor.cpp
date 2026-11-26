@@ -319,7 +319,7 @@ void CMeshEditor::ClearMesh(void)
 {
 	ChangedStructure();
 	mpMesh->ClearConnectivity();
-	
+
 	mcSelections.Clear();
 	mcEdgeVisibility.Clear();
 

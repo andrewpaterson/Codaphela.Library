@@ -54,7 +54,7 @@ protected:
 public:
 	void					Init(void);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
@@ -64,7 +64,7 @@ public:
 	void					Rectangle(int32 x, int32 y, int32 iWidth, int32 iHeight, ARGB32 sColour) override;
 	void					End(void) override;
 
-	CArrayGlyphPosition*	GetGlyphs(void);
+	CArrayGlyphPosition*		GetGlyphs(void);
 	CArrayTextDrawRectangle*	GetRectangles(void);
 };
 

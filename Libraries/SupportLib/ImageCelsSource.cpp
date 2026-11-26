@@ -226,7 +226,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	CChars					szNiceName;
 	size					iIndex;
 	size					iLen;
-	size						uiNumElements;
+	size					uiNumElements;
 
 	if (!szFileNameContains)
 	{
@@ -299,7 +299,7 @@ void CImageCelsSource::AddModifier(Ptr<CImageModifier> pModifier)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCelsSource::Load(void)
 {
-	size								i;
+	size							i;
 	Ptr<CImageSourceWithCelSources>	pSource;
 	bool							bResult;
 	Ptr<CImage>						pMask;
@@ -309,7 +309,7 @@ bool CImageCelsSource::Load(void)
 	Ptr<CImage>						pCombined;
 	size							j;
 	char*							szFileName;
-	size								uiNumCels;
+	size							uiNumCels;
 
 	for (i = 0; i < maImageSources.NumElements(); i++)
 	{
@@ -418,7 +418,7 @@ void CImageCelsSource::PopulateImageArray(void)
 		pSource = maImageSources.Get(i);
 		pImage = pSource->GetImageSource()->GetImage();
 		maImages.Add(pImage);
-	}	
+	}
 }
 
 

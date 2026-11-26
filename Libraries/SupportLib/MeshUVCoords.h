@@ -45,9 +45,9 @@ public:
 	CArrayMeshFaceUV	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 	int					miLayoutWidth;  //When the UVs are a layout (CMeshUnwrap's), the texels 0 to 1 spans: its texture's size.
 	int					miLayoutHeight;  //0 when they aren't.
-	
+
 	void	Init(void);
-	void 	Kill(void);
+	void	Kill(void);
 	bool	Load(CFileReader* pcFile);
 	bool	Save(CFileWriter* pcFile);
 	int		AddFace(int iUV1, int iUV2, int iUV3);

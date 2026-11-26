@@ -51,8 +51,8 @@ public:
 	ESmoothGenerationStyle	meGenerationStyle;
 	float32					mfSharpAngle;
 
-	void 		Init(uint32 uiAddGroup = 1);
-	void 		Class(void) override;
+	void		Init(uint32 uiAddGroup = 1);
+	void		Class(void) override;
 
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 

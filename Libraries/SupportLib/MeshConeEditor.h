@@ -34,8 +34,8 @@ class CMeshConeEditor : public CMeshSourceModifier
 CONSTRUCTABLE(CMeshConeEditor);
 DESTRUCTABLE(CMeshConeEditor);
 public:
-	SFloat32Vec3 			msZDirection;
-	SFloat32Vec3 			msStart;
+	SFloat32Vec3		msZDirection;
+	SFloat32Vec3		msStart;
 	float32				mfTopRadius;
 	float32				mfBottomRadius;
 	float32				mfLength;

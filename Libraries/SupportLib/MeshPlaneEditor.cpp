@@ -135,7 +135,7 @@ int CMeshPlaneEditor::ExpectedCornerChunkSize(void)
 {
 	int	iNumVerticies;
 
-	iNumVerticies = (miXSegments+1) * (miYSegments+1);
+	iNumVerticies = (miXSegments + 1) * (miYSegments + 1);
 	return iNumVerticies;
 }
 
@@ -148,13 +148,13 @@ void CMeshPlaneEditor::Generate(CMeshEditor* pcMeshEditor)
 {
 	int				x;
 	int				y;
-	SFloat32Vec3			sXFraction;
-	SFloat32Vec3			sYFraction;
+	SFloat32Vec3	sXFraction;
+	SFloat32Vec3	sYFraction;
 	int				iBottomLeftCorner;
 	int				iBottomRightCorner;
 	int				iTopLeftCorner;
 	int				iTopRightCorner;
-	SFloat32Vec3			sPosition;
+	SFloat32Vec3	sPosition;
 	int				iStartPosition;
 
 
@@ -164,28 +164,28 @@ void CMeshPlaneEditor::Generate(CMeshEditor* pcMeshEditor)
 	sYFraction /= (float32)miYSegments;
 
 	iStartPosition = pcMeshEditor->NumCorners();
-	for (y = miYI; y < miYSegments-miYE+1; y++)
+	for (y = miYI; y < miYSegments - miYE + 1; y++)
 	{
-		for (x = miXI; x < miXSegments-miXE+1; x++)
+		for (x = miXI; x < miXSegments - miXE + 1; x++)
 		{
 			sPosition = msStart + sXFraction * (float32)x + sYFraction * (float32)y;
 			pcMeshEditor->AddCorner(sPosition.x, sPosition.y, sPosition.z);
 		}
 	}
 
-	for (y = miYI; y < miYSegments-miYE; y++)
+	for (y = miYI; y < miYSegments - miYE; y++)
 	{
-		for (x = miXI; x < miXSegments-miXE; x++)
+		for (x = miXI; x < miXSegments - miXE; x++)
 		{
-			iBottomLeftCorner = (x-miXI) + (y-miYI) * (miXSegments-miXI-miXE+1);
-			iBottomRightCorner = (x-miXI+1) + (y-miYI) * (miXSegments-miXI-miXE+1);
-			iTopLeftCorner = (x-miXI) + (y-miYI+1) * (miXSegments-miXI-miXE+1);
-			iTopRightCorner = (x-miXI+1) + (y-miYI+1) * (miXSegments-miXI-miXE+1);
+			iBottomLeftCorner = (x - miXI) + (y - miYI) * (miXSegments - miXI - miXE + 1);
+			iBottomRightCorner = (x - miXI + 1) + (y - miYI) * (miXSegments - miXI - miXE + 1);
+			iTopLeftCorner = (x - miXI) + (y - miYI + 1) * (miXSegments - miXI - miXE + 1);
+			iTopRightCorner = (x - miXI + 1) + (y - miYI + 1) * (miXSegments - miXI - miXE + 1);
 
-			pcMeshEditor->AddQuad(iStartPosition + iBottomLeftCorner, 
-									iStartPosition + iBottomRightCorner, 
-									iStartPosition + iTopRightCorner, 
-									iStartPosition + iTopLeftCorner, 
+			pcMeshEditor->AddQuad(iStartPosition + iBottomLeftCorner,
+									iStartPosition + iBottomRightCorner,
+									iStartPosition + iTopRightCorner,
+									iStartPosition + iTopLeftCorner,
 									miFaceName,
 									mbFlipFaces);
 		}

@@ -62,13 +62,13 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat32Vec3* pasNormals, EChann
 			}
 			else
 			{
-				c = *((uint8*)pcAccessor->Get(x-1, y-1));
+				c = *((uint8*)pcAccessor->Get(x - 1, y - 1));
 				f1 = Convert8BitColourToFloat(c);
 
-				c = *((uint8*)pcAccessor->Get(x, y-1));
+				c = *((uint8*)pcAccessor->Get(x, y - 1));
 				f2 = Convert8BitColourToFloat(c);
 
-				c = *((uint8*)pcAccessor->Get(x-1, y));
+				c = *((uint8*)pcAccessor->Get(x - 1, y));
 				f3 = Convert8BitColourToFloat(c);
 
 				c = *((uint8*)pcAccessor->Get(x, y));
@@ -100,10 +100,10 @@ void AssignNormalMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 	uint32				x, y;
 	ARGB32				iColour;
 	SFloat32Vec3		sNormal;
-	SFloat32Vec3*		pn1; 
-	SFloat32Vec3*		pn2; 
-	SFloat32Vec3*		pn3; 
-	SFloat32Vec3*		pn4; 
+	SFloat32Vec3*		pn1;
+	SFloat32Vec3*		pn2;
+	SFloat32Vec3*		pn3;
+	SFloat32Vec3*		pn4;
 	CImageAccessor*		pcAccessor;
 	uint32				iHeight;
 	uint32				iWidth;
@@ -119,9 +119,9 @@ void AssignNormalMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 		for (x = 0; x < iImageWidth; x++)
 		{
 			pn1 = &pasNormals[ x    +  y    * iWidth];
-			pn2 = &pasNormals[(x+1) +  y    * iWidth];
-			pn3 = &pasNormals[ x    + (y+1) * iWidth];
-			pn4 = &pasNormals[(x+1) + (y+1) * iWidth];
+			pn2 = &pasNormals[(x + 1) +  y    * iWidth];
+			pn3 = &pasNormals[ x    + (y + 1) * iWidth];
+			pn4 = &pasNormals[(x + 1) + (y + 1) * iWidth];
 			sNormal = *pn1 + *pn2 + *pn3 + *pn4;
 			sNormal.z /= 4.0f;
 			sNormal.Normalize();
@@ -145,10 +145,10 @@ void AssignBumpMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 	uint32				x, y;
 	uint32				iColour;
 	SFloat32Vec3		sNormal;
-	SFloat32Vec3*		pn1; 
-	SFloat32Vec3*		pn2; 
-	SFloat32Vec3*		pn3; 
-	SFloat32Vec3*		pn4; 
+	SFloat32Vec3*		pn1;
+	SFloat32Vec3*		pn2;
+	SFloat32Vec3*		pn3;
+	SFloat32Vec3*		pn4;
 	CImageAccessor*		pcAccessor;
 	uint32				iWidth;
 	uint32				iHeight;
@@ -164,9 +164,9 @@ void AssignBumpMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 		for (x = 0; x < iImageWidth; x++)
 		{
 			pn1 = &pasNormals[ x    +  y    * iWidth];
-			pn2 = &pasNormals[(x+1) +  y    * iWidth];
-			pn3 = &pasNormals[ x    + (y+1) * iWidth];
-			pn4 = &pasNormals[(x+1) + (y+1) * iWidth];
+			pn2 = &pasNormals[(x + 1) +  y    * iWidth];
+			pn3 = &pasNormals[ x    + (y + 1) * iWidth];
+			pn4 = &pasNormals[(x + 1) + (y + 1) * iWidth];
 			sNormal = *pn1 + *pn2 + *pn3 + *pn4;
 			sNormal.z /= 4.0f;
 			sNormal.Normalize();
@@ -188,8 +188,8 @@ void AssignBumpMapFromNormals(Ptr<CImage> pImage, SFloat32Vec3* pasNormals)
 Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pImageSource, EChannel eHeightChannel)
 {
 	int				iNumNormals;
-	SFloat32Vec3*		pasNormals;
-	SFloat32Vec3			sNormal;
+	SFloat32Vec3*	pasNormals;
+	SFloat32Vec3	sNormal;
 	Ptr<CImage>		pImageDest;
 
 	pImageDest = OMalloc<CImage>();
@@ -199,9 +199,9 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pIma
 	if (bNormalMap)
 	{
 		pImageDest->AddChannel(
-			IMAGE_NORMAL_X, 
-			IMAGE_NORMAL_Y, 
-			IMAGE_NORMAL_Z, 
+			IMAGE_NORMAL_X,
+			IMAGE_NORMAL_Y,
+			IMAGE_NORMAL_Z,
 			PT_uint8);
 	}
 
@@ -231,7 +231,7 @@ Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pIma
 	{
 		AssignBumpMapFromNormals(pImageDest, pasNormals);
 	}
-	
+
 	if (pasNormals)
 	{
 		free(pasNormals);

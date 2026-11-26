@@ -39,7 +39,7 @@ protected:
 public:
 	void	Init(Ptr<CTrueTypeFace> pFace, float32 fPixelSize, EFontTurn eTurn = FT_Upright);
 	void	Class(void) override;
-	void 	Free(void) override;
+	void	Free(void) override;
 
 	bool	RasteriseGlyph(SGlyphDescription* psDescription, Ptr<CImage> pImage) override;
 };

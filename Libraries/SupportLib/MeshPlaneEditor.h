@@ -32,9 +32,9 @@ class CMeshPlaneEditor : public CMeshSourceModifier
 CONSTRUCTABLE(CMeshPlaneEditor);
 DESTRUCTABLE(CMeshPlaneEditor);
 public:
-	SFloat32Vec3 	msXDirection;
-	SFloat32Vec3 	msYDirection; 
-	SFloat32Vec3 	msStart;
+	SFloat32Vec3	msXDirection;
+	SFloat32Vec3	msYDirection;
+	SFloat32Vec3	msStart;
 	int			miXSegments;
 	int			miYSegments;
 	int			miXI;

@@ -94,11 +94,11 @@ protected:
 	int						miNextNormal;
 
 public:
-	void 	Init(Ptr<CMesh> pMesh, const char* szFilename);
-	void 	Kill(void);
+	void	Init(Ptr<CMesh> pMesh, const char* szFilename);
+	void	Kill(void);
 
-	bool 	Read(void);
-	bool 	Read(const char* szText, lsize uiLength);
+	bool	Read(void);
+	bool	Read(const char* szText, lsize uiLength);
 
 protected:
 	bool	Error(const char* szMessage);

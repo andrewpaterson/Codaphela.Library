@@ -61,6 +61,10 @@ void CImageDividerNumbers::InitFromRowsColumns(int iColumnCount, int iRowCount, 
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CImageDividerNumbers::InitFromSingle(int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset)
 {
 	InitGeneral(-1, -1, 1, 1, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset);
@@ -97,7 +101,7 @@ void CImageDividerNumbers::Calculate(int iImageWidth, int iImageHeight)
 		}
 		else if (miCelWidth == -1)
 		{
-			miCelWidth = (iImageWidth - miLeftOffset - miWidthSpacing * (miColumnCount-1)) / miColumnCount;
+			miCelWidth = (iImageWidth - miLeftOffset - miWidthSpacing * (miColumnCount - 1)) / miColumnCount;
 		}
 	}
 	if ((miRowCount == -1) && (miCelHeight == -1))
@@ -120,7 +124,7 @@ void CImageDividerNumbers::Calculate(int iImageWidth, int iImageHeight)
 		}
 		if (miCelHeight == -1)
 		{
-			miCelHeight = (iImageHeight - miTopOffset - miHeightSpacing * (miRowCount-1)) / miRowCount;
+			miCelHeight = (iImageHeight - miTopOffset - miHeightSpacing * (miRowCount - 1)) / miRowCount;
 		}
 	}
 }

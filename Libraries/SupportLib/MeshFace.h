@@ -30,8 +30,8 @@ public:
 	int		maiEdge[NUM_FACE_EDGES];
 	int		miName;  //What it is a part of, as a shape names its sides.  0 if nothing has named it.
 
-	void 	Init(void);
-	void 	Init(int iCorner1, int iCorner2, int iCorner3);
+	void	Init(void);
+	void	Init(int iCorner1, int iCorner2, int iCorner3);
 	int		GetOffsetForCorner(int iCornerNum);
 };
 

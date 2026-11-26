@@ -36,7 +36,7 @@ DESTRUCTABLE(CGlyphRasteriser);
 public:
 			void	Init(void);
 			void	Class(void) override;
-			void 	Free(void) override;
+			void	Free(void) override;
 
 			bool	Save(CObjectWriter* pcFile) override;
 			bool	Load(CObjectReader* pcFile) override;

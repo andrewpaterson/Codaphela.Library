@@ -587,7 +587,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 			}
 			aConveted.Add(pConverted);
 			cRGBTo8bit.Kill();
-			
+
 			cMap.Put(&pImage, &pConverted);
 		}
 		pExisting = NULL;
@@ -602,7 +602,7 @@ bool SaveSFTContainer(Ptr<CArrayImageCel> pImageCels, CFileBasic* pcDiskBasic)
 	}
 
 	pConverted = NULL;
-	
+
 	uiPrevContainedPos = 0;
 	for (i = 0; i < uiNumCels; i++)
 	{

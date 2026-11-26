@@ -179,7 +179,7 @@ void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 		for (iColumn = 0; iColumn < (size)pcNumbers->miColumnCount; iColumn++)
 		{
 			iLeft = pcNumbers->miLeftOffset + (int)iColumn * (pcNumbers->miCelWidth + pcNumbers->miWidthSpacing);
-			
+
 			cFillRect.Init(iLeft, iTop, iLeft + pcNumbers->miCelWidth, iTop + pcNumbers->miCelHeight);
 			AddImageCel(&cFillRect);
 		}

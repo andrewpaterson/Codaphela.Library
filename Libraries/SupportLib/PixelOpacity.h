@@ -32,8 +32,8 @@ class CPixelOpacityBase : public CUnknown
 {
 CONSTRUCTABLE(CPixelOpacityBase);
 public:
-	virtual void Kill(void) override;
-	virtual bool IsTransparent(int x, int y) =0;
+	virtual void	Kill(void) override;
+	virtual bool	IsTransparent(int x, int y) =0;
 };
 
 

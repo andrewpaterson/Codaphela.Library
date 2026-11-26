@@ -45,18 +45,18 @@ protected:
 	Ptr<CArrayImageCel>		mpDestImageCels;
 
 public:
-	void 					Init(Ptr<CImage> pImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void					Init(Ptr<CImage> pImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void					Class(void) override;
-	void 					Free(void) override;
+	void					Free(void) override;
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	void		 			GenerateFromBorder(Ptr<CImage> pFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
-	void 					GenerateFromNumbers(CImageDividerNumbers* pcNumbers);
-	void 					GenerateFromRectangles(CArrayInt32Rect* pacRectangles);
+	void					GenerateFromBorder(Ptr<CImage> pFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
+	void					GenerateFromNumbers(CImageDividerNumbers* pcNumbers);
+	void					GenerateFromRectangles(CArrayInt32Rect* pacRectangles);
 
-	void 					CopyCellsTo(Ptr<CArrayImageCel> pImageCels);
+	void					CopyCellsTo(Ptr<CArrayImageCel> pImageCels);
 
 	Ptr<CArrayImageCel>		GetDestImageCels(void) const;
 

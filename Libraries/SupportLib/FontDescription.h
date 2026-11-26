@@ -96,7 +96,7 @@ protected:
 public:
 	void				Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDescent, int32 iImageWidth, int32 iImageHeight);
 	void				Class(void) override;
-	void 				Free(void) override;
+	void				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
@@ -117,8 +117,8 @@ public:
 
 	bool				Is(char* szName);
 	char*				GetFontName(void);  //Not GetName, that is the object's name.
-	size 				CalculateWidth(const char* szText);
-	size 				CalculateWidth(const char* szText, size uiLength);
+	size				CalculateWidth(const char* szText);
+	size				CalculateWidth(const char* szText, size uiLength);
 	bool				IsWhitespace(uint16 c);
 	int32				GetImageWidth(void) const;
 	int32				GetImageHeight(void) const;

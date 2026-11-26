@@ -149,8 +149,8 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pSource)
 		fSourceWidth = (float32)pSource->GetWidth();
 		fSourceHeight = (float32)pSource->GetHeight();
 
-		fScalex = fSourceWidth/fWidth;
-		fScaley = fSourceHeight/fHeight;
+		fScalex = fSourceWidth / fWidth;
+		fScaley = fSourceHeight / fHeight;
 
 		bResampled = false;
 		if (meResample == IR_Bilinear)

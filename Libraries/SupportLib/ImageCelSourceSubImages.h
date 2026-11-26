@@ -33,10 +33,10 @@ protected:
 	CArraySubImage macSubImages;
 
 public:
-	void Init(CArraySubImage* pacSubImages = NULL, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void AddSubImage(CSubImage* pcSubImage);
-	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
-	void Kill(void) override;
+	void	Init(CArraySubImage* pacSubImages = NULL, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void	AddSubImage(CSubImage* pcSubImage);
+	void	Divide(CImage* pcImage, Ptr<CArrayImageCel> pDestImageCels, CImage* pcMask) override;
+	void	Kill(void) override;
 };
 
 

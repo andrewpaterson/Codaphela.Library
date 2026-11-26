@@ -36,9 +36,9 @@ public:
 	CArrayInt			maiChannels;
 	int32				miGroup;
 
-	void			 Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
-	void			 Class(void) override;
-	void			 Free(void) override;
+	void	Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
+	void	Class(void) override;
+	void	Free(void) override;
 
 	void			AddChannel(EChannel eChannel);
 	Ptr<CImage>		Modify(Ptr<CImage> pImage) override;

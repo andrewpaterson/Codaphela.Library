@@ -57,7 +57,7 @@ void CTileMap::Class(void)
 {
 	CBlockMap::Class();
 	M_Embedded(maTileLayers);
-}	
+}
 
 
 //////////////////////////////////////////////////////////////////////////

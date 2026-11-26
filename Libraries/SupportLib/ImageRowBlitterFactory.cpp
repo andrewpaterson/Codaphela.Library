@@ -95,6 +95,10 @@ CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitter
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CBaseImageRowSizingBlitter* CImageRowBlitterFactory::CreateImageRowSizingBlitter(CBaseImageRowBlitter* pcRowBlitter)
 {
 	if ((pcRowBlitter == &mcImageRowBlitterContiguous) || (pcRowBlitter == &mcImageRowBlitterByteAlignedOpaque))

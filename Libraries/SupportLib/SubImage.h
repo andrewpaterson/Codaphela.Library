@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 // Source origin (ignored)
 //                       .
 //                   0---------+
-//                 Right Offset 
+//                 Right Offset
 //                       .
 //                       .
 //      *-----------------------*   0                                    0
@@ -58,10 +58,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //           |-------|   .
 //          Rectangle Width
 //                       .
-//     0---------------- - 
+//     0---------------- -
 
 // The Image Rectangle is a rectangle over the source image or a texture.
-// The Image Rectangle is where the pixels come from.  
+// The Image Rectangle is where the pixels come from.
 
 // The best way to visualise this is a large image sized to include the offsets but the outside is transparent.
 // This large image is then centered (0,0) on the alignment lines.
@@ -88,13 +88,13 @@ public:
 	SInt32Vec2	msOffsetBottomRight;	//+ve
 	SInt32Vec2	msAlignment;			//-ve
 
-	void 		Init(void);
-	void 		Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
-	void 		Kill(void);
-	void 		Copy(CSubImage* pcSubImage);
-	void 		SetAlignment(int32 iAlignment);
-	void 		SetHorizontalAlignment(int32 iAlignment);  //Left/Right alignment.
-	void 		SetVerticalAlignment(int32 iAlignment);  //Top/Bottom alignment.
+	void		Init(void);
+	void		Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+	void		Kill(void);
+	void		Copy(CSubImage* pcSubImage);
+	void		SetAlignment(int32 iAlignment);
+	void		SetHorizontalAlignment(int32 iAlignment);  //Left/Right alignment.
+	void		SetVerticalAlignment(int32 iAlignment);  //Top/Bottom alignment.
 	bool		IsImageEmpty(void) const;
 
 	//All the methods below are relative.  Add X and Y to the return to get a meaningful destination position.

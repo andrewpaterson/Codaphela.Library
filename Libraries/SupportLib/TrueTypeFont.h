@@ -45,10 +45,10 @@ struct STrueTypeGlyphMetrics
 //A component of a composite glyph as it is stored, before its glyph is read.
 struct STrueTypeComponent
 {
-	uint16	uiFlags;
-	uint16	uiGlyph;
-	int32	iArg1;
-	int32	iArg2;
+	uint16				uiFlags;
+	uint16				uiGlyph;
+	int32				iArg1;
+	int32				iArg2;
 	STrueTypeF2Dot14	sXX;
 	STrueTypeF2Dot14	sXY;
 	STrueTypeF2Dot14	sYX;

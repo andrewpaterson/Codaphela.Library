@@ -218,14 +218,14 @@ void CVectorRasteriser::GridCosSin(int64 iIndex, int32 iSteps, float64* pfCos, f
 
 	switch (iOctant)
 	{
-		case 0: *pfCos = fCos;		*pfSin = fSin;		break;
-		case 1: *pfCos = fSin;		*pfSin = fCos;		break;
-		case 2: *pfCos = -fSin;		*pfSin = fCos;		break;
-		case 3: *pfCos = -fCos;		*pfSin = fSin;		break;
-		case 4: *pfCos = -fCos;		*pfSin = -fSin;		break;
-		case 5: *pfCos = -fSin;		*pfSin = -fCos;		break;
-		case 6: *pfCos = fSin;		*pfSin = -fCos;		break;
-		default: *pfCos = fCos;		*pfSin = -fSin;		break;
+	case 0: *pfCos = fCos;		*pfSin = fSin;		break;
+	case 1: *pfCos = fSin;		*pfSin = fCos;		break;
+	case 2: *pfCos = -fSin;		*pfSin = fCos;		break;
+	case 3: *pfCos = -fCos;		*pfSin = fSin;		break;
+	case 4: *pfCos = -fCos;		*pfSin = -fSin;		break;
+	case 5: *pfCos = -fSin;		*pfSin = -fCos;		break;
+	case 6: *pfCos = fSin;		*pfSin = -fCos;		break;
+	default: *pfCos = fCos;		*pfSin = -fSin;		break;
 	}
 }
 
@@ -341,22 +341,22 @@ bool CVectorRasteriser::RasterisePart(CVectorPath* pcPath, size uiStart, size ui
 		psSegment = pcPath->GetSegment(i);
 		switch (psSegment->eType)
 		{
-			case VS_Move:
-				if (bContour)
-				{
-					AddLine(&sCurrent, &sContourStart);
-				}
-				sContourStart = psSegment->sPoint;
-				bContour = true;
-				break;
-			case VS_Line:
-				AddLine(&sCurrent, &psSegment->sPoint);
-				break;
-			case VS_Arc:
-				AddArc(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
-				break;
-			default:
-				break;
+		case VS_Move:
+			if (bContour)
+			{
+				AddLine(&sCurrent, &sContourStart);
+			}
+			sContourStart = psSegment->sPoint;
+			bContour = true;
+			break;
+		case VS_Line:
+			AddLine(&sCurrent, &psSegment->sPoint);
+			break;
+		case VS_Arc:
+			AddArc(&sCurrent, &psSegment->sPoint, &psSegment->sCenter, psSegment->bClockwise);
+			break;
+		default:
+			break;
 		}
 		if (psSegment->eType != VS_Part)
 		{

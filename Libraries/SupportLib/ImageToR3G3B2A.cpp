@@ -67,7 +67,7 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pImage)
 		pDest->AddChannel(pImage, IMAGE_OPACITY, PT_uint8);
 	}
 	pDest->EndChange();
-	
+
 	CImageCopier::Copy(pImage, pDest);
 
 	if (pDest->HasChannel(IMAGE_OPACITY))

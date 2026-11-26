@@ -148,10 +148,10 @@ void CImageCel::CropTransparentBorders(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 {
-	int32 					iTop;
-	int32 					iBottom;
-	int32 					iLeft;
-	int32 					iRight;
+	int32					iTop;
+	int32					iBottom;
+	int32					iLeft;
+	int32					iRight;
 	CInt32Rect				mcSource;
 
 	mcSubImage.GetImageSourceBounds(&mcSource);
@@ -193,8 +193,8 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 			break;
 		}
 	}
-	
-	mcSubImage.AdjustImageRect(iLeft, iTop, iRight+1, iBottom+1);
+
+	mcSubImage.AdjustImageRect(iLeft, iTop, iRight + 1, iBottom + 1);
 }
 
 
@@ -416,9 +416,9 @@ void CImageCel::FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor
 	uint32						y;
 	int32						iDestX;
 	int32						iDestY;
-	SImageColour			sOneAlpha;
-	SImageColour			sZeroAlpha;
-	CImageColourOpacity		cA;
+	SImageColour				sOneAlpha;
+	SImageColour				sZeroAlpha;
+	CImageColourOpacity			cA;
 
 	cA.Init(1.0f);
 	pcDestOpacity->MakeColour(&sOneAlpha, &cA);

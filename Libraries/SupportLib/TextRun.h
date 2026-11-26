@@ -45,12 +45,12 @@ protected:
 
 public:
 	void			Init(CFont* mpcFont, CText* pcText);
-	void 			Kill(void);
+	void			Kill(void);
 
 	bool			Load(CObjectReader* pcFile);
 	bool			Save(CObjectWriter* pcFile);
 	CMallocator*	GetMalloc(void) const;
-	
+
 	void			Add(CTextElement* pcElement);
 	void			Start(void);
 	void			End(void);

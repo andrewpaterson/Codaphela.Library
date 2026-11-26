@@ -73,7 +73,7 @@ public:
 	void					Init(uint32 uiWidth, uint32 uiHeight, EColourFormat eFormat, EColourOrder eOrder, ERGBColourBits eColourBits, ERGBAlphaBits eAlphaBits);
 	void					Init(uint32 uiWidth, uint32 uiHeight, CColourFormatHelper* pcHelper);
 	void					Init(uint32 uiWidth, uint32 uiHeight, CArrayChannel* pasNewChannels);
-	void					Init(Ptr<CImage> pChannelsSource);  //This only sets up channels and dimensions.  
+	void					Init(Ptr<CImage> pChannelsSource);  //This only sets up channels and dimensions.
 	void					Class(void) override;
 	void					Free(void) override;
 
@@ -82,15 +82,15 @@ public:
 
 	void					BeginChange(void);
 	void					AddChannel(SChannel* psChannel);
-	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
+	void					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
 	bool					AddChannel(Ptr<CImage> pSourceImage, size iChannel, EPrimitiveType eType);
-	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
+	void					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
 	void					AddChannels(CImageChannelsSource* pcSource);
-	void 					AddChannels(CArrayChannel* pasChannels);
-	void 					AddChannels(Ptr<CImage> pSourceChannels);
+	void					AddChannels(CArrayChannel* pasChannels);
+	void					AddChannels(Ptr<CImage> pSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	void					RemovePurpose(EImagePurpose ePurpose);
 
@@ -99,9 +99,9 @@ public:
 	uint32					GetWidth(void) const;
 	uint32					GetImageHeight(void) const;
 	uint32					GetImageWidth(void) const;
-	void 					ByteAlignChannels(void);
+	void					ByteAlignChannels(void);
 	bool					RenameChannel(size iOldName, size iNewName);
-	bool 					EndChange(void);
+	bool					EndChange(void);
 	bool					IsChanging(void) const;
 
 	Ptr<CImageCelBlitterCache>	GetBlitterCache(void);
@@ -119,7 +119,7 @@ public:
 	size					GetPixelByteStride(void) const;
 	size					GetPixelBitStride(void) const;
 	SSizeVec2				GetDimension(void) const;
-	
+
 	bool					IsSameFormat(Ptr<CImage> psOther);
 	bool					IsValid(int x, int y);
 	CChannel*				GetChannel(size iChannel);
@@ -131,13 +131,13 @@ public:
 	void					GetChannelsForType(EPrimitiveType eType, CArraySize* paiChannels);
 
 	size					NumChannels(void) const;
-	const char*					GetChannelLongName(size iChannel);
-	const char*					GetChannelShortName(size iChannel);
+	const char*				GetChannelLongName(size iChannel);
+	const char*				GetChannelShortName(size iChannel);
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
 
 	CArrayChannelOffset*	GetChannelOffsets(void);
-	
+
 	EColourOrder			GetColourOrder(void);
 	EColourFormat			GetColourFormat(void);
 	ERGBColourBits			GetColourBits(void);

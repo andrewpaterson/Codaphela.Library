@@ -43,7 +43,7 @@ public:
 	void	Init(Ptr<CSpriteMap> pMap);
 	void	Init(Ptr<CSpriteMap> pMap, Ptr<CGeometryMap> pGeometryMap);
 	void	Class(void) override;
-	void 	Free(void) override;
+	void	Free(void) override;
 
 	bool	Save(CObjectWriter* pcFile) override;
 	bool	Load(CObjectReader* pcFile) override;

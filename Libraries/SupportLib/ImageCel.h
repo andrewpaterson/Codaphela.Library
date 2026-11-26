@@ -44,12 +44,12 @@ protected:
 	Ptr<CImage>						mpSourceImage;
 
 public:
-			void 			Init(Ptr<CImage> pSourceImage, bool bCropTransparentBorders = false);
+			void			Init(Ptr<CImage> pSourceImage, bool bCropTransparentBorders = false);
 			void			Init(Ptr<CImage> pSourceImage, CInt32Rect* pcRect);
-			void 			Init(Ptr<CImage> pSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
-			void 			Init(Ptr<CImage> pSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+			void			Init(Ptr<CImage> pSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+			void			Init(Ptr<CImage> pSourceImage, int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, int32 iLeftOffset, int32 iTopOffset, int32 iRightOffset, int32 iBottomOffset, int32 iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 			void			Class(void) override;
-			void 			Free(void) override;
+			void			Free(void) override;
 
 			bool			Save(CObjectWriter* pcFile) override;
 			bool			Load(CObjectReader* pcFile) override;

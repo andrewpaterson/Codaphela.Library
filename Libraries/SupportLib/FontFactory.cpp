@@ -119,7 +119,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 	size					ui;
 
 	pImage = ReadImage(pcImportParams->GetImageFileName());
-	
+
 	if (pImage.IsNull())
 	{
 		return NULL;
@@ -185,7 +185,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParameters* pcImportParams, CFontCr
 				pDescription->PutGlyph(auiBuffer, uiCodePointLength, pCel->GetSubImage(), pcImportParams->msCharSize.x);
 			}
 		}
-		
+
 		ui++;
 		uiElementLength = cUTF8.PeekUTFBytes();
 	}

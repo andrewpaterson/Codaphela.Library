@@ -33,11 +33,11 @@ extern bool		gbCopyPasteInitialised;
 class CCopyPaste
 {
 public:
-	void Init(void);
-	void Kill(void);
+	void	Init(void);
+	void	Kill(void);
 
-	void CopyText(CChars* szText);
-	void PasteText(CChars* szText);
+	void	CopyText(CChars* szText);
+	void	PasteText(CChars* szText);
 };
 
 

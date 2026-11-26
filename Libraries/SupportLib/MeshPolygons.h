@@ -27,7 +27,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshDetail.h"
 
 
-//A polygon is defined by a group of faces.  
+//A polygon is defined by a group of faces.
 //This class does not enforce that they are contiguous (but does assume it).
 class CMeshPolygon
 {
@@ -36,10 +36,10 @@ public:
 	int					miName;
 
 public:
-	void 		Init(int iName);
-	void 		Kill(void);
-	bool	 	Save(CFileWriter* pcFile);
-	bool	 	Load(CFileReader* pcFile);
+	void		Init(int iName);
+	void		Kill(void);
+	bool		Save(CFileWriter* pcFile);
+	bool		Load(CFileReader* pcFile);
 };
 
 typedef CArrayLargeTemplate<CMeshPolygon> CArrayMeshPolygon;
@@ -61,12 +61,12 @@ public:
 	CArrayMeshPolygon	mcPolygons;
 	CArrayLargeInt		maiFacesToPolygons;
 
-	void 			Init(void);
-	void 			Free(void) override;
+	void			Init(void);
+	void			Free(void) override;
 	void			Class(void) override;
 	void			KillPolygons(void);
 
-	void 			Clear(void);
+	void			Clear(void);
 	void			Copy(CMeshPolygons* pcSource);
 	void			GetFaceEdges(CMeshConnectivity* pcConn, int iFace, bool* pabVisible);
 

@@ -224,7 +224,7 @@ bool CMeshPolygons::Save(CObjectWriter* pcFile)
 	CMeshPolygon*	psPolygon;
 	lsize			uiNumElements;
 
-	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));	
+	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));
 
 	uiNumElements = mcPolygons.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -294,7 +294,7 @@ CMeshPolygon* CMeshPolygons::GrowToNumPolygons(int iNumPolygons, int iName)
 {
 	lsize			iOldNum;
 	lsize			i;
-	CMeshPolygon*		psPolygon;
+	CMeshPolygon*	psPolygon;
 
 	iOldNum = mcPolygons.Resize(iNumPolygons);
 	for (i = iOldNum; i < (size)iNumPolygons; i++)
@@ -379,7 +379,7 @@ bool CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshP
 			iAdjFaceIndex = sAdjFaces.aiFace[iAdj];
 			psPolygonForFace = GetPolygonForFace(iAdjFaceIndex);
 
-			if (psPolygonForFace == psPolygon)			
+			if (psPolygonForFace == psPolygon)
 			{
 				iPolygonFaceIndex = (int)psPolygon->maiFaces.Find(iAdjFaceIndex);
 
@@ -776,7 +776,7 @@ void CMeshPolygons::GetAdjacentPolygons(CMeshConnectivity* pcConn, int iPolygon,
 	int				iOtherGon;
 
 	pcPolygon = mcPolygons.Get(iPolygon);
-	
+
 	for (i = 0; i < pcPolygon->maiFaces.NumElements(); i++)
 	{
 		iFace = pcPolygon->maiFaces.GetValue(i);

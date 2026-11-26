@@ -32,12 +32,12 @@ class CMeshFlatFaces : public CMeshModifier
 CONSTRUCTABLE(CMeshFlatFaces);
 DESTRUCTABLE(CMeshFlatFaces);
 public:
-	void 	Init(void);
-	void 	Class(void) override;
+	void	Init(void);
+	void	Class(void) override;
 	bool	Load(CFileReader* pcFile) override;
 	bool	Save(CFileWriter* pcFile) override;
 
-	void	GenerateNormals(CMesh* pcMesh);
+	void		GenerateNormals(CMesh* pcMesh);
 	Ptr<CMesh>	Modify(Ptr<CMesh> pMesh) override;
 };
 

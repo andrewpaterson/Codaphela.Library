@@ -119,13 +119,13 @@ public:
 	bool	GetParity(void);
 	bool	GetSkeletonBone(int32* piSkeleton, int32* piBone);  //False if it doesn't play a bone.
 
-	size	NumLights(void);
-	bool	BeginLight(size uiLight);
+	size					NumLights(void);
+	bool					BeginLight(size uiLight);
 	ESceneFileLightType		GetLightType(void);
-	bool	ReadLightColour(float32* pafRGBA);
-	bool	ReadLightValues(float32* pfDecayStart, float32* pfRange, float32* pfIntensity);
+	bool					ReadLightColour(float32* pafRGBA);
+	bool					ReadLightValues(float32* pfDecayStart, float32* pfRange, float32* pfIntensity);
 	ESceneFileLightDecay	GetLightDecay(void);
-	bool	GetShadows(void);
+	bool					GetShadows(void);
 
 	size	NumCameras(void);
 	bool	BeginCamera(size uiCamera);

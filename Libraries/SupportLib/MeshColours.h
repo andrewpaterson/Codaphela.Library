@@ -45,9 +45,9 @@ public:
 	CArrayLargeUint32		mcColours;
 	CArrayMeshFaceColours	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.
 
-	void 	Init(void);
+	void	Init(void);
 	void	Clear(void);
-	void 	Free(void) override;
+	void	Free(void) override;
 	void	Class(void) override;
 
 	bool	Load(CObjectReader* pcFile) override;

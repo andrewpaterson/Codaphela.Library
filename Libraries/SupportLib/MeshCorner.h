@@ -29,8 +29,8 @@ public:
 	CArrayEmbeddedInt		maiFace;		//Faces on this corner.
 	CArrayEmbeddedInt		maiEdge;		//Edges on this corner.
 
-	void 	Init(void);
-	void 	Kill(void);
+	void	Init(void);
+	void	Kill(void);
 };
 
 

@@ -44,11 +44,11 @@ void CInt32Rect::GrowToContain(int32 iXPos, int32 iYPos)
 
 	if (iXPos >= msBottomRight.x)
 	{
-		msBottomRight.x = iXPos+1;
+		msBottomRight.x = iXPos + 1;
 	}
 	if (iYPos >= msBottomRight.y)
 	{
-		msBottomRight.y = iYPos+1;
+		msBottomRight.y = iYPos + 1;
 	}
 }
 

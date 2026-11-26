@@ -65,7 +65,7 @@ bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pImport)
 	TRISTATE			tResult;
 
 	if (!pcTextParser->GetExactCharacter('{'))
-	{ 
+	{
 		return false;
 	}
 
@@ -73,14 +73,14 @@ bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pImport)
 	{
 		//Get the type...
 		tResult = pcTextParser->GetLongestIdentifier(gaszRADTypes, sizeof(gaszRADTypes) / sizeof(gaszRADTypes[0]), &uiType);
-		if ((tResult == TRIERROR) || (tResult == TRIFALSE)) 
+		if ((tResult == TRIERROR) || (tResult == TRIFALSE))
 		{
 			return false;
 		}
 
 		//Get the channel;
 		tResult = pcTextParser->GetLongestIdentifier(gaszRADChannels, sizeof(gaszRADChannels) / sizeof(gaszRADChannels[0]), &uiChannel);
-		if ((tResult == TRIERROR) || (tResult == TRIFALSE)) 
+		if ((tResult == TRIERROR) || (tResult == TRIFALSE))
 		{
 			return false;
 		}
@@ -103,8 +103,8 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pImport, CChars* szRawFi
 {
 	int64		iWidth;
 	int64		iHeight;
-	const char*		szFileNameStart;
-	const char*		szFileNameEnd;
+	const char*	szFileNameStart;
+	const char*	szFileNameEnd;
 	CFileUtil	cFileUtil;
 	CChars		sz;
 
@@ -148,7 +148,7 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pImport, CChars* szRawFi
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadRAD(const char *szFilename, bool bAddDebug, const char* szObjectName)
 {
-	CTextParser 	cTextParser;
+	CTextParser		cTextParser;
 	CTextFile		cTextFile;
 	CChars			szRawFilename;
 	CChars			szRadFilename;
@@ -204,7 +204,7 @@ Ptr<CImage> LoadRAD(const char *szFilename, bool bAddDebug, const char* szObject
 		return NULL;
 	}
 
-	//Finished parsing the rad file 
+	//Finished parsing the rad file
 	cTextFile.Kill();
 	cTextParser.Kill();
 

@@ -90,14 +90,14 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 {
 	size				i, j, l;
 	int*				aiFaceRef;
-	SFloat32Vec3				cNormal;  
+	SFloat32Vec3		cNormal;
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;
 	int					iPosition;
 	int					iNewNormalIndex;
 	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
-	SFloat32Vec3*			pcNormal;
+	SFloat32Vec3*		pcNormal;
 	CMeshNormals*		pcNormals;
 	size				uiNumFaces;
 

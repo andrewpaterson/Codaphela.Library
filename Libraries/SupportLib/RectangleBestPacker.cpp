@@ -323,7 +323,7 @@ void CRectangleBestPacker::AddWidthAttempts(EPackRotation eRotation, bool bRotat
 	//InterpolateFloat goes from fEndWidth at 0 to fStartWidth at 1, so the attempts run from the single row width down to the widest rectangle, both included.
 	for (i = 0; i < 25; i++)
 	{
-		fPos = i/24.0f;
+		fPos = i / 24.0f;
 		InterpolateFloat(&fDest, fEndWidth, fStartWidth, fPos);
 		iWidth = (int32)(fDest + 0.5f);
 		if (iWidth != iLastWidth)

@@ -59,11 +59,11 @@ public:
 	CImageAccessor*			mpcDestMaskAccessor;
 	uint16					miMask;
 
-	void Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* pcDestImage);
-	void Kill(void);
-	
-	bool Fill(int x, int y, CFillRectangle* pcDestSubImage, uint16 iMask);
-	bool Push(int x, int y, size iRemove);
+	void	Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* pcDestImage);
+	void	Kill(void);
+
+	bool	Fill(int x, int y, CFillRectangle* pcDestSubImage, uint16 iMask);
+	bool	Push(int x, int y, size iRemove);
 };
 
 

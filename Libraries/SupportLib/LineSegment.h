@@ -29,16 +29,16 @@ class CLineSegment
 public:
 	SFloat32Vec3		msStart;		//starting point of line
 	SFloat32Vec3		msDirection;	//unit direction from start to msEnd
-	float32		mfLength;		
+	float32				mfLength;
 	SFloat32Vec3		msEnd;		//msEnd of line
 
-	void Set(SFloat32Vec3* sStart, SFloat32Vec3* sEnd);
-	void Set(float32 x1, float32 y1, float32 z1, float32 x2, float32 y2, float32 z2);
-	void Set(void);
-	void Copy(CLineSegment* pcSource);
+	void	Set(SFloat32Vec3* sStart, SFloat32Vec3* sEnd);
+	void	Set(float32 x1, float32 y1, float32 z1, float32 x2, float32 y2, float32 z2);
+	void	Set(void);
+	void	Copy(CLineSegment* pcSource);
 
-	bool Save(CFileWriter* pcFile);
-	bool Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 };
 
 
