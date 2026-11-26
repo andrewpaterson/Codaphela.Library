@@ -33,52 +33,52 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::Init(CW65CPins* pcPins)
 {
-    mpcPins = pcPins;
-    msState.cProgramCounter.Init();
-    msState.uiStackPointer = 0x01FF;
-    msState.uiAccumulator = 0;
-    msState.uiXIndex = 0;
-    msState.uiYIndex = 0;
-    msState.uiDataBank = 0;
-    msState.uiDirectPage = 0;
+	mpcPins = pcPins;
+	msState.cProgramCounter.Init();
+	msState.uiStackPointer = 0x01FF;
+	msState.uiAccumulator = 0;
+	msState.uiXIndex = 0;
+	msState.uiYIndex = 0;
+	msState.uiDataBank = 0;
+	msState.uiDirectPage = 0;
 
-    msState.bZeroFlag = false;
-    msState.bNegativeFlag = false;
-    msState.bDecimalFlag = false;
-    msState.bInterruptDisableFlag = false;
-    msState.bAccumulatorWidthFlag = false;
-    msState.bIndexWidthFlag = false;
-    msState.bCarryFlag = false;
-    msState.bEmulationFlag = true;
-    msState.bOverflowFlag = false;
-    msState.bBreakFlag = false;
+	msState.bZeroFlag = false;
+	msState.bNegativeFlag = false;
+	msState.bDecimalFlag = false;
+	msState.bInterruptDisableFlag = false;
+	msState.bAccumulatorWidthFlag = false;
+	msState.bIndexWidthFlag = false;
+	msState.bCarryFlag = false;
+	msState.bEmulationFlag = true;
+	msState.bOverflowFlag = false;
+	msState.bBreakFlag = false;
 
-    msState.bStopped = false;
-    msState.bWaiting = false;
-    msState.uiEmulationStatusBits = STATUS_ACCUMULATOR_WIDTH | STATUS_BREAK;
-    msState.bBusEnable = true;
-    msState.bNextInstruction = false;
+	msState.bStopped = false;
+	msState.bWaiting = false;
+	msState.uiEmulationStatusBits = STATUS_ACCUMULATOR_WIDTH | STATUS_BREAK;
+	msState.bBusEnable = true;
+	msState.bNextInstruction = false;
 
-    //msState.uiData = 0;
-    msState.iCycle = 0;
-    msState.iNextCycle = 0;
+	//msState.uiData = 0;
+	msState.iCycle = 0;
+	msState.iNextCycle = 0;
 
-    msState.uiOpcodeIndex = 0xffff;
-    mpcBusCycle = NULL;  //No opcode has an instruction yet, and the factory may not be initialised.
-    msState.uiData = 0;
-    msState.uiIOData = 0;
-    msState.uiDirectOffset = 0;
-    msState.cNewProgramCounter.Init();
-    msState.cAddress.Init();
-    msState.bNmi = false;
-    msState.bNmiLow = false;
+	msState.uiOpcodeIndex = 0xffff;
+	mpcBusCycle = NULL;  //No opcode has an instruction yet, and the factory may not be initialised.
+	msState.uiData = 0;
+	msState.uiIOData = 0;
+	msState.uiDirectOffset = 0;
+	msState.cNewProgramCounter.Init();
+	msState.cAddress.Init();
+	msState.bNmi = false;
+	msState.bNmiLow = false;
 
-    msState.bPreviousClockHigh = false;
-    msState.bPreviousClockLow = false;
+	msState.bPreviousClockHigh = false;
+	msState.bPreviousClockLow = false;
 
-    msState.uiResetCount = 0;
+	msState.uiResetCount = 0;
 
-    CreateAbortValues();
+	CreateAbortValues();
 }
 
 
@@ -88,7 +88,7 @@ void CW65CCore::Init(CW65CPins* pcPins)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::Kill(void)
 {
-	
+
 }
 
 
@@ -120,7 +120,7 @@ void CW65CCore::SetState(SW65CCoreState* psState)
 //////////////////////////////////////////////////////////////////////////
 CW65CPins* CW65CCore::GetPins(void) const
 {
-    return mpcPins;
+	return mpcPins;
 }
 
 
@@ -130,10 +130,10 @@ CW65CPins* CW65CCore::GetPins(void) const
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::Branch(bool condition)
 {
-    if (!condition)
-    {
-        DoneInstruction();
-    }
+	if (!condition)
+	{
+		DoneInstruction();
+	}
 }
 
 
@@ -143,7 +143,7 @@ void CW65CCore::Branch(bool condition)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PHP(void)
 {
-    SetDataLow(GetPushedProcessorRegisterValue(true));
+	SetDataLow(GetPushedProcessorRegisterValue(true));
 }
 
 
@@ -153,7 +153,7 @@ void CW65CCore::PHP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BRK(void)
 {
-    SoftBreak();
+	SoftBreak();
 }
 
 
@@ -163,7 +163,7 @@ void CW65CCore::BRK(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BPL(void)
 {
-    Branch(!IsSignSet());
+	Branch(!IsSignSet());
 }
 
 
@@ -173,7 +173,7 @@ void CW65CCore::BPL(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BMI(void)
 {
-    Branch(IsSignSet());
+	Branch(IsSignSet());
 }
 
 
@@ -183,7 +183,7 @@ void CW65CCore::BMI(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::CLC(void)
 {
-    SetCarryFlag(false);
+	SetCarryFlag(false);
 }
 
 
@@ -193,7 +193,7 @@ void CW65CCore::CLC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SEC(void)
 {
-    SetCarryFlag(true);
+	SetCarryFlag(true);
 }
 
 
@@ -203,7 +203,7 @@ void CW65CCore::SEC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PHA(void)
 {
-    SetMemoryData(GetA(), false);
+	SetMemoryData(GetA(), false);
 }
 
 
@@ -213,7 +213,7 @@ void CW65CCore::PHA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BVC(void)
 {
-    Branch(!IsOverflowSet());
+	Branch(!IsOverflowSet());
 }
 
 
@@ -223,7 +223,7 @@ void CW65CCore::BVC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::CLI(void)
 {
-    SetInterruptDisableFlag(false);
+	SetInterruptDisableFlag(false);
 }
 
 
@@ -233,7 +233,7 @@ void CW65CCore::CLI(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PHY(void)
 {
-    SetIndexData(GetY(), false);
+	SetIndexData(GetY(), false);
 }
 
 
@@ -243,7 +243,7 @@ void CW65CCore::PHY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::STZ(void)
 {
-    SetMemoryData(0, false);
+	SetMemoryData(0, false);
 }
 
 
@@ -253,7 +253,7 @@ void CW65CCore::STZ(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PLA(void)
 {
-    SetA(GetMemoryData());
+	SetA(GetMemoryData());
 }
 
 
@@ -263,7 +263,7 @@ void CW65CCore::PLA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BVS(void)
 {
-    Branch(IsOverflowFlag());
+	Branch(IsOverflowFlag());
 }
 
 
@@ -273,7 +273,7 @@ void CW65CCore::BVS(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SEI(void)
 {
-    SetInterruptDisableFlag(true);
+	SetInterruptDisableFlag(true);
 }
 
 
@@ -283,7 +283,7 @@ void CW65CCore::SEI(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PLY(void)
 {
-    SetY(GetIndexData());
+	SetY(GetIndexData());
 }
 
 
@@ -293,7 +293,7 @@ void CW65CCore::PLY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BRA(void)
 {
-    Branch(true);
+	Branch(true);
 }
 
 
@@ -303,7 +303,7 @@ void CW65CCore::BRA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::STA(void)
 {
-    SetMemoryData(GetA(), false);
+	SetMemoryData(GetA(), false);
 }
 
 
@@ -313,7 +313,7 @@ void CW65CCore::STA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::STY(void)
 {
-    SetIndexData(GetY(), false);
+	SetIndexData(GetY(), false);
 }
 
 
@@ -323,7 +323,7 @@ void CW65CCore::STY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::STX(void)
 {
-    SetIndexData(GetX(), false);
+	SetIndexData(GetX(), false);
 }
 
 
@@ -333,7 +333,7 @@ void CW65CCore::STX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BCC(void)
 {
-    Branch(!IsCarrySet());
+	Branch(!IsCarrySet());
 }
 
 
@@ -343,7 +343,7 @@ void CW65CCore::BCC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BCS(void)
 {
-    Branch(IsCarrySet());
+	Branch(IsCarrySet());
 }
 
 
@@ -353,7 +353,7 @@ void CW65CCore::BCS(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::CLV(void)
 {
-    SetOverflowFlag(false);
+	SetOverflowFlag(false);
 }
 
 
@@ -363,7 +363,7 @@ void CW65CCore::CLV(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PHX(void)
 {
-    SetIndexData(GetX(), false);
+	SetIndexData(GetX(), false);
 }
 
 
@@ -373,7 +373,7 @@ void CW65CCore::PHX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::STP(void)
 {
-    msState.bStopped = true;
+	msState.bStopped = true;
 }
 
 
@@ -383,7 +383,7 @@ void CW65CCore::STP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BNE(void)
 {
-    Branch(!IsZeroFlagSet());
+	Branch(!IsZeroFlagSet());
 }
 
 
@@ -393,7 +393,7 @@ void CW65CCore::BNE(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::CLD(void)
 {
-    SetDecimalFlag(false);
+	SetDecimalFlag(false);
 }
 
 
@@ -412,7 +412,7 @@ void CW65CCore::NOP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::BEQ(void)
 {
-    Branch(IsZeroFlagSet());
+	Branch(IsZeroFlagSet());
 }
 
 
@@ -422,7 +422,7 @@ void CW65CCore::BEQ(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::SED(void)
 {
-    SetDecimalFlag(true);
+	SetDecimalFlag(true);
 }
 
 
@@ -432,7 +432,7 @@ void CW65CCore::SED(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::PLX(void)
 {
-    SetX(GetIndexData());
+	SetX(GetIndexData());
 }
 
 
@@ -442,8 +442,8 @@ void CW65CCore::PLX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ABORT(void)
 {
-    SetInterruptDisableFlag(true);
-    SetDecimalFlag(false);
+	SetInterruptDisableFlag(true);
+	SetDecimalFlag(false);
 }
 
 
@@ -453,8 +453,8 @@ void CW65CCore::ABORT(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::IRQ(void)
 {
-    SetInterruptDisableFlag(true);
-    SetDecimalFlag(false);
+	SetInterruptDisableFlag(true);
+	SetDecimalFlag(false);
 }
 
 
@@ -464,8 +464,8 @@ void CW65CCore::IRQ(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::NMI(void)
 {
-    SetInterruptDisableFlag(true);
-    SetDecimalFlag(false);
+	SetInterruptDisableFlag(true);
+	SetDecimalFlag(false);
 }
 
 
@@ -475,7 +475,7 @@ void CW65CCore::NMI(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::RES(void)
 {
-    Reset();
+	Reset();
 }
 
 
@@ -485,7 +485,7 @@ void CW65CCore::RES(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::To8BitHexString(CChars* psz, uint8 ui8)
 {
-    psz->AppendHexHiLo(&ui8, 1);
+	psz->AppendHexHiLo(&ui8, 1);
 }
 
 
@@ -495,7 +495,7 @@ void CW65CCore::To8BitHexString(CChars* psz, uint8 ui8)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::To16BitHexString(CChars* psz, uint16 ui16)
 {
-    psz->AppendHexHiLo(&ui16, 2);
+	psz->AppendHexHiLo(&ui16, 2);
 }
 
 
@@ -505,10 +505,10 @@ void CW65CCore::To16BitHexString(CChars* psz, uint16 ui16)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::Append0x(CChars* psz, bool bAppend0x)
 {
-    if (bAppend0x)
-    {
-        psz->Append("0x");
-    }
+	if (bAppend0x)
+	{
+		psz->Append("0x");
+	}
 }
 
 
@@ -518,15 +518,15 @@ void CW65CCore::Append0x(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ToAddressHexString(CChars* psz, CW65Address* pcAddress, bool bAppend0x)
 {
-    uint16      ui16;
-    uint8       ui8;
+	uint16	ui16;
+	uint8	ui8;
 
-    ui16 = pcAddress->GetOffset();
-    ui8 = pcAddress->GetBank();
-    Append0x(psz, bAppend0x);
-    To8BitHexString(psz, ui8);
-    psz->Append(":");
-    To16BitHexString(psz, ui16);
+	ui16 = pcAddress->GetOffset();
+	ui8 = pcAddress->GetBank();
+	Append0x(psz, bAppend0x);
+	To8BitHexString(psz, ui8);
+	psz->Append(":");
+	To16BitHexString(psz, ui16);
 }
 
 
@@ -537,7 +537,7 @@ void CW65CCore::ToAddressHexString(CChars* psz, CW65Address* pcAddress, bool bAp
 void CW65CCore::ToAddressOperationString(CChars* psz)
 {
 	CW65BusCycle*	pcBusCycle;
-	
+
 	pcBusCycle = GetBusCycle();
 	if (pcBusCycle)
 	{
@@ -584,7 +584,7 @@ void CW65CCore::ToInstructionDescription(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetAddressValueHex(CChars* psz, bool bAppend0x)
 {
-    ToAddressHexString(psz, GetAddress(), bAppend0x);
+	ToAddressHexString(psz, GetAddress(), bAppend0x);
 }
 
 
@@ -594,8 +594,8 @@ void CW65CCore::GetAddressValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetAccumulatorValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To16BitHexString(psz, GetA());
+	Append0x(psz, bAppend0x);
+	To16BitHexString(psz, GetA());
 }
 
 
@@ -605,8 +605,8 @@ void CW65CCore::GetAccumulatorValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetXValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To16BitHexString(psz, GetX());
+	Append0x(psz, bAppend0x);
+	To16BitHexString(psz, GetX());
 }
 
 
@@ -616,8 +616,8 @@ void CW65CCore::GetXValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetYValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To16BitHexString(psz, GetY());
+	Append0x(psz, bAppend0x);
+	To16BitHexString(psz, GetY());
 }
 
 
@@ -627,8 +627,8 @@ void CW65CCore::GetYValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetDataBankValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To8BitHexString(psz, GetDataBank());
+	Append0x(psz, bAppend0x);
+	To8BitHexString(psz, GetDataBank());
 }
 
 
@@ -638,8 +638,8 @@ void CW65CCore::GetDataBankValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetStackValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To16BitHexString(psz, GetStackPointer());
+	Append0x(psz, bAppend0x);
+	To16BitHexString(psz, GetStackPointer());
 }
 
 
@@ -649,8 +649,8 @@ void CW65CCore::GetStackValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetDirectPageValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To16BitHexString(psz, GetDirectPage());
+	Append0x(psz, bAppend0x);
+	To16BitHexString(psz, GetDirectPage());
 }
 
 
@@ -660,7 +660,7 @@ void CW65CCore::GetDirectPageValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetProgramCounterValueHex(CChars* psz, bool bAppend0x)
 {
-    ToAddressHexString(psz, GetProgramCounter(), bAppend0x);
+	ToAddressHexString(psz, GetProgramCounter(), bAppend0x);
 }
 
 
@@ -670,8 +670,8 @@ void CW65CCore::GetProgramCounterValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetDataValueHex(CChars* psz, bool bAppend0x)
 {
-    Append0x(psz, bAppend0x);
-    To16BitHexString(psz, GetData16Bit());
+	Append0x(psz, bAppend0x);
+	To16BitHexString(psz, GetData16Bit());
 }
 
 
@@ -681,39 +681,39 @@ void CW65CCore::GetDataValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetOpcodeValueHex(CChars* psz, int cycle, CW65Instruction* pcInstruction, bool bAppend0x)
 {
-    uint16  uiCode;
+	uint16  uiCode;
 
-    if (cycle != 0)
-    {
-        uiCode = pcInstruction->GetCode();
-        if (uiCode <= 255)
-        {
-            Append0x(psz, bAppend0x);
-            To8BitHexString(psz, (uint8)uiCode);
-        }
-        else
-        {
-            if (bAppend0x)
-            {
-                psz->Append("-----");
-            }
-            else
-            {
-                psz->Append("---");
-            }
-        }
-    }
-    else
-    {
-        if (bAppend0x)
-        {
-            psz->Append("#####");
-        }
-        else
-        {
-            psz->Append("###");
-        }
-    }
+	if (cycle != 0)
+	{
+		uiCode = pcInstruction->GetCode();
+		if (uiCode <= 255)
+		{
+			Append0x(psz, bAppend0x);
+			To8BitHexString(psz, (uint8)uiCode);
+		}
+		else
+		{
+			if (bAppend0x)
+			{
+				psz->Append("-----");
+			}
+			else
+			{
+				psz->Append("---");
+			}
+		}
+	}
+	else
+	{
+		if (bAppend0x)
+		{
+			psz->Append("#####");
+		}
+		else
+		{
+			psz->Append("###");
+		}
+	}
 }
 
 
@@ -723,7 +723,7 @@ void CW65CCore::GetOpcodeValueHex(CChars* psz, int cycle, CW65Instruction* pcIns
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetOpcodeValueHex(CChars* psz, bool bAppend0x)
 {
-    return GetOpcodeValueHex(psz, GetCyclePlusOne(), GetOpcode(), bAppend0x);
+	return GetOpcodeValueHex(psz, GetCyclePlusOne(), GetOpcode(), bAppend0x);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -732,10 +732,10 @@ void CW65CCore::GetOpcodeValueHex(CChars* psz, bool bAppend0x)
 //////////////////////////////////////////////////////////////////////////
 CW65Instruction* CW65CCore::GetInstruction(void)
 {
-    CW65Instruction* pcInstruction;
+	CW65Instruction* pcInstruction;
 
-    pcInstruction = GetOpcode();
-    return pcInstruction;
+	pcInstruction = GetOpcode();
+	return pcInstruction;
 }
 
 
@@ -745,18 +745,18 @@ CW65Instruction* CW65CCore::GetInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetOpcodeMnemonicString(CChars* psz)
 {
-    CW65Instruction*   pcInstruction;
+	CW65Instruction*   pcInstruction;
 
-    pcInstruction = GetOpcode();
-    if (pcInstruction)
-    {
+	pcInstruction = GetOpcode();
+	if (pcInstruction)
+	{
 
-        psz->Append(pcInstruction->GetName());
-    }
-    else
-    {
-        psz->Append("---");
-    }
+		psz->Append(pcInstruction->GetName());
+	}
+	else
+	{
+		psz->Append("---");
+	}
 }
 
 
@@ -766,19 +766,19 @@ void CW65CCore::GetOpcodeMnemonicString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetCycleOperationString(CChars* psz)
 {
-    CW65BusCycle*          pcBusCycle;
-    CW65DataOperation*     pcDataOperation;
+	CW65BusCycle*		pcBusCycle;
+	CW65DataOperation*	pcDataOperation;
 
-    pcBusCycle = GetBusCycle();
-    if (pcBusCycle)
-    {
-        pcDataOperation = pcBusCycle->GetDataOperation();
-        pcDataOperation->Print(psz);
-    }
-    else
-    {
-        psz->Append("---");
-    }
+	pcBusCycle = GetBusCycle();
+	if (pcBusCycle)
+	{
+		pcDataOperation = pcBusCycle->GetDataOperation();
+		pcDataOperation->Print(psz);
+	}
+	else
+	{
+		psz->Append("---");
+	}
 }
 
 
@@ -788,19 +788,19 @@ void CW65CCore::GetCycleOperationString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 CW65DataOperation* CW65CCore::GetDataOperation(void) const
 {
-    CW65BusCycle*          pcBusCycle;
-    CW65DataOperation*     pcDataOperation;
+	CW65BusCycle*		pcBusCycle;
+	CW65DataOperation*	pcDataOperation;
 
-    pcBusCycle = GetBusCycle();
-    if (pcBusCycle)
-    {
-        pcDataOperation = pcBusCycle->GetDataOperation();
-        return pcDataOperation;
-    }
-    else
-    {
-        return NULL;
-    }
+	pcBusCycle = GetBusCycle();
+	if (pcBusCycle)
+	{
+		pcDataOperation = pcBusCycle->GetDataOperation();
+		return pcDataOperation;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -810,25 +810,25 @@ CW65DataOperation* CW65CCore::GetDataOperation(void) const
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetStatusString(CChars* psz)
 {
-    bool emulation = IsEmulation();
+	bool emulation = IsEmulation();
 
-    IsZeroFlagSet() ? psz->Append("Z1 ") : psz->Append("Z0 ");
-    IsNegativeSet() ? psz->Append("N1 ") : psz->Append("N0 ");
-    IsDecimal() ? psz->Append("D1 ") : psz->Append("D0 ");
-    IsInterruptDisable() ? psz->Append("I1 ") : psz->Append("I0 ");
-    IsMemory8Bit() ? psz->Append("M.8 ") : psz->Append("M16 ");
-    IsIndex8Bit() ? psz->Append("X.8 ") : psz->Append("X16 ");
-    IsCarrySet() ? psz->Append("C1 ") : psz->Append("C0 ");
+	IsZeroFlagSet() ? psz->Append("Z1 ") : psz->Append("Z0 ");
+	IsNegativeSet() ? psz->Append("N1 ") : psz->Append("N0 ");
+	IsDecimal() ? psz->Append("D1 ") : psz->Append("D0 ");
+	IsInterruptDisable() ? psz->Append("I1 ") : psz->Append("I0 ");
+	IsMemory8Bit() ? psz->Append("M.8 ") : psz->Append("M16 ");
+	IsIndex8Bit() ? psz->Append("X.8 ") : psz->Append("X16 ");
+	IsCarrySet() ? psz->Append("C1 ") : psz->Append("C0 ");
 	emulation ? psz->Append("E1 ") : psz->Append("E0 ");
 	IsOverflowFlag() ? psz->Append("V1 ") : psz->Append("V0 ");
 	if (!emulation)
-    {
+	{
 		psz->Append("..");
-    }
-    else
-    {
-        IsBreak() ? psz->Append("B1") : psz->Append("B0");
-    }
+	}
+	else
+	{
+		IsBreak() ? psz->Append("B1") : psz->Append("B0");
+	}
 }
 
 
@@ -838,7 +838,7 @@ void CW65CCore::GetStatusString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::GetCycleString(CChars* psz)
 {
-    psz->Append(GetCyclePlusOne());
+	psz->Append(GetCyclePlusOne());
 }
 
 
@@ -848,7 +848,7 @@ void CW65CCore::GetCycleString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 int16 CW65CCore::GetCyclePlusOne(void) const
 {
-    return msState.iCycle + 1;
+	return msState.iCycle + 1;
 }
 
 
@@ -867,86 +867,86 @@ void CW65CCore::DisableBuses(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::InputTransition(CTimeline* pcTimeline)
 {
-    CW65CPins*      pcPins;
-    bool            bReset;
-    bool            bNmi;
-    bool            bNmiEdge;
-    bool            bIrq;
-    bool            bAbort;
-    STraceValue     sClockValue;
+	CW65CPins*	pcPins;
+	bool	bReset;
+	bool	bNmi;
+	bool	bNmiEdge;
+	bool	bIrq;
+	bool	bAbort;
+	STraceValue	sClockValue;
 
-    pcPins = GetPins();
-    sClockValue = pcPins->ReadPhi2(pcTimeline);
-    bReset = pcPins->ReadRES(pcTimeline).IsLow();
-    if (bReset || IsReseting(sClockValue))
-    {
-        ResetPulled();
-    }
-    else
-    {
-        ClearReset();
-    }
+	pcPins = GetPins();
+	sClockValue = pcPins->ReadPhi2(pcTimeline);
+	bReset = pcPins->ReadRES(pcTimeline).IsLow();
+	if (bReset || IsReseting(sClockValue))
+	{
+		ResetPulled();
+	}
+	else
+	{
+		ClearReset();
+	}
 
-    //NMIB is edge sensitive: only a fall is remembered, holding it low doesn't interrupt again.
-    bNmi = pcPins->ReadNMI(pcTimeline).IsLow();
-    bNmiEdge = bNmi && !msState.bNmiLow;
-    bIrq = pcPins->ReadIRQ(pcTimeline).IsLow();
-    bAbort = pcPins->ReadAbort(pcTimeline).IsLow();
+	//NMIB is edge sensitive: only a fall is remembered, holding it low doesn't interrupt again.
+	bNmi = pcPins->ReadNMI(pcTimeline).IsLow();
+	bNmiEdge = bNmi && !msState.bNmiLow;
+	bIrq = pcPins->ReadIRQ(pcTimeline).IsLow();
+	bAbort = pcPins->ReadAbort(pcTimeline).IsLow();
 
-    msState.bBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
-    if (!IsBusEnable())
-    {
-        DisableBuses();
-    }
+	msState.bBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
+	if (!IsBusEnable())
+	{
+		DisableBuses();
+	}
 
-    if (msState.bWaiting && (bReset || msState.bNmi || bNmiEdge || bIrq || bAbort))
-    {
-        //WAI chose the next opcode before it waited.  The interrupt that ends it is taken straight away (a
-        //masked IRQ just continues), so choose again.  An interrupt's first cycle is on the bus as the fetch is.
-        msState.bWaiting = false;
-        msState.bIrq = bIrq;
-        if (bNmiEdge)
-        {
-            msState.bNmi = true;
-            bNmiEdge = false;
-        }
-        if (msState.uiOpcodeIndex == GetFetchNextOpcode()->GetCode())
-        {
-            ChooseNextOpcode();
-        }
-    }
+	if (msState.bWaiting && (bReset || msState.bNmi || bNmiEdge || bIrq || bAbort))
+	{
+		//WAI chose the next opcode before it waited.  The interrupt that ends it is taken straight away (a
+		//masked IRQ just continues), so choose again.  An interrupt's first cycle is on the bus as the fetch is.
+		msState.bWaiting = false;
+		msState.bIrq = bIrq;
+		if (bNmiEdge)
+		{
+			msState.bNmi = true;
+			bNmiEdge = false;
+		}
+		if (msState.uiOpcodeIndex == GetFetchNextOpcode()->GetCode())
+		{
+			ChooseNextOpcode();
+		}
+	}
 
-    if (sClockValue.IsHigh() || sClockValue.IsLow())
-    {
-        bool risingEdge = sClockValue.IsHigh() && msState.bPreviousClockLow;
-        bool fallingEdge= sClockValue.IsLow() && msState.bPreviousClockHigh;
+	if (sClockValue.IsHigh() || sClockValue.IsLow())
+	{
+		bool	risingEdge = sClockValue.IsHigh() && msState.bPreviousClockLow;
+		bool	fallingEdge = sClockValue.IsLow() && msState.bPreviousClockHigh;
 
-        msState.bPreviousClockLow = sClockValue.IsLow();
-        msState.bPreviousClockHigh = sClockValue.IsHigh();
+		msState.bPreviousClockLow = sClockValue.IsLow();
+		msState.bPreviousClockHigh = sClockValue.IsHigh();
 
-        if (!IsStopped() && !msState.bWaiting)
-        {
-            if (fallingEdge)
-            {
-                ExecutPhi2Falling(pcTimeline);
-            }
+		if (!IsStopped() && !msState.bWaiting)
+		{
+			if (fallingEdge)
+			{
+				ExecutPhi2Falling(pcTimeline);
+			}
 
-            if (risingEdge)
-            {
-                ExecutPhi2Rising(pcTimeline);
-            }
-        }
-    }
+			if (risingEdge)
+			{
+				ExecutPhi2Rising(pcTimeline);
+			}
+		}
+	}
 
-    msState.bIrq = bIrq;
-    if (bNmiEdge)
-    {
-        msState.bNmi = true;
-    }
-    msState.bNmiLow = bNmi;
+	msState.bIrq = bIrq;
+	if (bNmiEdge)
+	{
+		msState.bNmi = true;
+	}
+	msState.bNmiLow = bNmi;
 
-    //ABORTB is level sensitive here.
-    msState.bAbort = bAbort;
+	//ABORTB is level sensitive here.
+	msState.bAbort = bAbort;
 }
 
 
@@ -956,49 +956,49 @@ void CW65CCore::InputTransition(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ExecutPhi2Falling(CTimeline* pcTimeline)
 {
-    CW65BusCycle*          pcBusCycle;
-    bool                bRead;
-    CW65Address            cAddress;
-    CW65CPins*          pcPins;
-    CW65DataOperation*     pcDataOperation;
+	CW65BusCycle*	pcBusCycle;
+	bool		bRead;
+	CW65Address	cAddress;
+	CW65CPins*	pcPins;
+	CW65DataOperation*	pcDataOperation;
 
-    pcPins = GetPins();
-    pcDataOperation = GetDataOperation();
-    if (pcDataOperation)
-    {
-        bRead = IsReadCycle(pcDataOperation);
+	pcPins = GetPins();
+	pcDataOperation = GetDataOperation();
+	if (pcDataOperation)
+	{
+		bRead = IsReadCycle(pcDataOperation);
 
-        if (bRead)
-        {
-            //Data on the data pins is READ on PHI falling
-            SetIOData(pcPins->ReadData(pcTimeline));
-        }
+		if (bRead)
+		{
+			//Data on the data pins is READ on PHI falling
+			SetIOData(pcPins->ReadData(pcTimeline));
+		}
 
-        ExecuteTrailingSideOperation(this);
-    }
+		ExecuteTrailingSideOperation(this);
+	}
 
-    Cycle(this);
+	Cycle(this);
 
-    pcDataOperation = GetDataOperation();
-    if (pcDataOperation)
-    {
-        pcBusCycle = GetBusCycle();
-        bRead = IsReadCycle(pcDataOperation);
+	pcDataOperation = GetDataOperation();
+	if (pcDataOperation)
+	{
+		pcBusCycle = GetBusCycle();
+		bRead = IsReadCycle(pcDataOperation);
 
-        ExecuteInitialSideOperation(this);
+		ExecuteInitialSideOperation(this);
 
-        pcBusCycle->GetAddress(&cAddress, this);
+		pcBusCycle->GetAddress(&cAddress, this);
 
-        //All signals are written 10ns after PHI falling.  Including the Bank on the data pins.
-        //If the write doesn't take that into account then it is okay that is is instaneous after the read.
-        pcPins->WriteRWB(pcTimeline, bRead);
-        WriteSignalsPhi2Falling(pcTimeline, pcDataOperation, pcBusCycle);
-        pcPins->WriteMLB(pcTimeline, pcDataOperation->IsNotMemoryLock());
-        pcPins->WriteVPB(pcTimeline, pcDataOperation->IsNotVectorPull());
-        pcPins->WriteRdy(pcTimeline, pcDataOperation->IsReady());
-        pcPins->WriteAddress(pcTimeline, cAddress.GetOffset());
-        pcPins->WriteData(pcTimeline, cAddress.GetBank());
-    }
+		//All signals are written 10ns after PHI falling.  Including the Bank on the data pins.
+		//If the write doesn't take that into account then it is okay that is is instaneous after the read.
+		pcPins->WriteRWB(pcTimeline, bRead);
+		WriteSignalsPhi2Falling(pcTimeline, pcDataOperation, pcBusCycle);
+		pcPins->WriteMLB(pcTimeline, pcDataOperation->IsNotMemoryLock());
+		pcPins->WriteVPB(pcTimeline, pcDataOperation->IsNotVectorPull());
+		pcPins->WriteRdy(pcTimeline, pcDataOperation->IsReady());
+		pcPins->WriteAddress(pcTimeline, cAddress.GetOffset());
+		pcPins->WriteData(pcTimeline, cAddress.GetBank());
+	}
 }
 
 
@@ -1008,29 +1008,29 @@ void CW65CCore::ExecutPhi2Falling(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CW65CCore::ExecutPhi2Rising(CTimeline* pcTimeline)
 {
-    CW65CPins*          pcPins;
-    CW65DataOperation*     pcDataOperation;
-    bool                bRead;
+	CW65CPins*			pcPins;
+	CW65DataOperation*	pcDataOperation;
+	bool				bRead;
 
-    pcPins = GetPins();
+	pcPins = GetPins();
 
-    pcDataOperation = GetDataOperation();
-    if (pcDataOperation)
-    {
-        bRead = IsReadCycle(pcDataOperation);
+	pcDataOperation = GetDataOperation();
+	if (pcDataOperation)
+	{
+		bRead = IsReadCycle(pcDataOperation);
 
-        WriteSignalsPhi2Rising(pcTimeline);
+		WriteSignalsPhi2Rising(pcTimeline);
 
-        if (!bRead)
-        {
-            pcPins->WriteData(pcTimeline, GetIOData());
-        }
-        else
-        {
-            //The bank was on the data pins while PHI2 was low.  Memory drives them now.
-            pcPins->ReleaseData(pcTimeline);
-        }
-    }
+		if (!bRead)
+		{
+			pcPins->WriteData(pcTimeline, GetIOData());
+		}
+		else
+		{
+			//The bank was on the data pins while PHI2 was low.  Memory drives them now.
+			pcPins->ReleaseData(pcTimeline);
+		}
+	}
 }
 
 
@@ -1393,9 +1393,9 @@ void CW65CCore::Cycle(CW65CCore* pcCPU)
 void CW65CCore::ExecuteInitialSideOperation(CW65CCore* pcCPU)
 {
 	CW65BusCycle*			pcBusCycle;
-	CW65OperationArray*	pcOperations;
-	size				uiNumElements;
-	size				i;
+	CW65OperationArray*		pcOperations;
+	size					uiNumElements;
+	size					i;
 	CW65Operation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
@@ -1419,9 +1419,9 @@ void CW65CCore::ExecuteInitialSideOperation(CW65CCore* pcCPU)
 void CW65CCore::ExecuteTrailingSideOperation(CW65CCore* pcCPU)
 {
 	CW65BusCycle*			pcBusCycle;
-	CW65OperationArray*	pcOperations;
-	size				uiNumElements;
-	size				i;
+	CW65OperationArray*		pcOperations;
+	size					uiNumElements;
+	size					i;
 	CW65Operation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
@@ -3337,6 +3337,10 @@ void CW65CCore::LDX(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CW65CCore::TSX(void)
 {
 	uint16	uiStackPointer;

@@ -15,8 +15,8 @@ public:
 	void	Execute(CW65CCore* pcCPU) override;
 	bool	IsInitialSide(void) const override;
 
-	bool    MustExecute(CW65CCore* pcCPU) override;
-	bool    IsConditional(void) const override;
+	bool	MustExecute(CW65CCore* pcCPU) override;
+	bool	IsConditional(void) const override;
 	void	Print(CChars* psz) override;
 };
 

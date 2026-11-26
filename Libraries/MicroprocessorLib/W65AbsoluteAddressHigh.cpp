@@ -26,7 +26,7 @@ void CW65AbsoluteAddressHigh::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65AbsoluteAddressHigh::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetAddress()->GetOffsetHigh() << 8;
+	return pcCPU->GetAddress()->GetOffsetHigh() << 8;
 }
 
 
@@ -36,7 +36,7 @@ int32 CW65AbsoluteAddressHigh::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65AbsoluteAddressHigh::Print(CChars* psz)
 {
-    psz->Append("AAH");
+	psz->Append("AAH");
 }
 
 

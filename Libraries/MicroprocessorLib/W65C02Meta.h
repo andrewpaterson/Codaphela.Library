@@ -12,8 +12,8 @@ typedef void(*W65C02MetaTickLow)(CW65C02Meta*, void*);
 class CW65C02Meta : public CW65CMeta
 {
 protected:
-	CW65C02					mcMPU;
-	CW65C02Pins				mcPins;
+	CW65C02						mcMPU;
+	CW65C02Pins					mcPins;
 	CMetaTrace					mcSYNC;
 	CMetaTrace					mcSOB;
 
@@ -26,8 +26,8 @@ public:
 
 	CW65CCore*		GetCore(void) override;
 	CW65C02*		GetMPU(void);
-	const CMetaTrace* 	GetSYNC(void) const;
-	CMetaTrace* 	GetSOB(void);
+	const CMetaTrace*	GetSYNC(void) const;
+	CMetaTrace*		GetSOB(void);
 
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);

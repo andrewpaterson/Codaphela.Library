@@ -26,7 +26,7 @@ void CW65SignedData::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65SignedData::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetData16BitOffset();
+	return pcCPU->GetData16BitOffset();
 }
 
 
@@ -36,6 +36,6 @@ int32 CW65SignedData::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65SignedData::Print(CChars* psz)
 {
-    psz->Append("R");
+	psz->Append("R");
 }
 

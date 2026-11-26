@@ -128,11 +128,11 @@ public:
 	void		SetIRQ(bool bLow);
 	void		SetNMI(bool bLow);
 
-	CBreakpoints*	GetBreakpoints(void);
-	void			UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints = NULL);
-	CBreakpoints*	GetUsedBreakpoints(void) const;
-	CBreakpoints*	GetMoreUsedBreakpoints(void) const;
-	bool			IsAtBreakpoint(void) const;
+	CBreakpoints*			GetBreakpoints(void);
+	void					UseBreakpoints(CBreakpoints* pcBreakpoints, CBreakpoints* pcMoreBreakpoints = NULL);
+	CBreakpoints*			GetUsedBreakpoints(void) const;
+	CBreakpoints*			GetMoreUsedBreakpoints(void) const;
+	bool					IsAtBreakpoint(void) const;
 	CDataWatches*			GetWatches(void);
 	void					UseWatches(CDataWatches* pcWatches);
 	CDataWatches*			GetUsedWatches(void) const;

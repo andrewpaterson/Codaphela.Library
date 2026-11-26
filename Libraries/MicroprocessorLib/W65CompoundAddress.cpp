@@ -80,10 +80,10 @@ void CW65CompoundAddress::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 CW65CompoundAddress* Span(CW65AddressOffset* pcOffset, ...)
 {
-	va_list		            vaMarker;
-	size		            iCount;
+	va_list						vaMarker;
+	size						iCount;
 	CW65CompoundAddress*		pcSpan;
-	CW65AddressOffsetArray*	papcOffsets;
+	CW65AddressOffsetArray*		papcOffsets;
 
 	pcSpan = NewMalloc<CW65CompoundAddress>();
 	pcSpan->Init();

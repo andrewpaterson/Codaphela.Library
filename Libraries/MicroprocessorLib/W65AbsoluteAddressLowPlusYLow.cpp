@@ -26,7 +26,7 @@ void CW65AbsoluteAddressLowPlusYLow::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65AbsoluteAddressLowPlusYLow::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetAddressOffsetLowY();
+	return pcCPU->GetAddressOffsetLowY();
 }
 
 
@@ -36,7 +36,7 @@ int32 CW65AbsoluteAddressLowPlusYLow::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65AbsoluteAddressLowPlusYLow::Print(CChars* psz)
 {
-    psz->Append("(AAL+YL)");
+	psz->Append("(AAL+YL)");
 }
 
 

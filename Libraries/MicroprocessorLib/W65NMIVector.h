@@ -6,9 +6,9 @@
 class CW65NMIVector : public CW65InterruptVector
 {
 public:
-    void    Init(void);
+	void    Init(void);
 
-    uint16  GetAddress(CW65CCore* pcCPU) override;
+	uint16  GetAddress(CW65CCore* pcCPU) override;
 };
 
 

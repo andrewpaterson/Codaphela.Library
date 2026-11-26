@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65ConstantOffset::Init(int32 iOffset)
 {
-    Init(iOffset, false);
+	Init(iOffset, false);
 }
 
 
@@ -18,12 +18,12 @@ void CW65ConstantOffset::Init(int32 iOffset)
 //////////////////////////////////////////////////////////////////////////
 void CW65ConstantOffset::Init(int32 iOffset, bool bOnlyIfMemory16Bit)
 {
-    if (iOffset < -1 || iOffset > 3)
-    {
-        LOG_ERROR("Numeric Offset must be in the range -1...3.");
-    }
-    miOffset = iOffset;
-    mbOnlyIfMemory16Bit = bOnlyIfMemory16Bit;
+	if (iOffset < -1 || iOffset > 3)
+	{
+		LOG_ERROR("Numeric Offset must be in the range -1...3.");
+	}
+	miOffset = iOffset;
+	mbOnlyIfMemory16Bit = bOnlyIfMemory16Bit;
 }
 
 
@@ -33,9 +33,9 @@ void CW65ConstantOffset::Init(int32 iOffset, bool bOnlyIfMemory16Bit)
 //////////////////////////////////////////////////////////////////////////
 void CW65ConstantOffset::InitAddress(uint16 uiAddress)
 {
-    //A fixed address rather than an offset.
-    miOffset = uiAddress;
-    mbOnlyIfMemory16Bit = false;
+	//A fixed address rather than an offset.
+	miOffset = uiAddress;
+	mbOnlyIfMemory16Bit = false;
 }
 
 
@@ -54,11 +54,11 @@ void CW65ConstantOffset::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65ConstantOffset::GetOffset(CW65CCore* pcCPU)
 {
-    if (mbOnlyIfMemory16Bit && pcCPU->IsMemory8Bit())
-    {
-        return 0;
-    }
-    return miOffset;
+	if (mbOnlyIfMemory16Bit && pcCPU->IsMemory8Bit())
+	{
+		return 0;
+	}
+	return miOffset;
 }
 
 
@@ -68,15 +68,15 @@ int32 CW65ConstantOffset::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65ConstantOffset::Print(CChars* psz)
 {
-    if (miOffset >= 0)
-    {
-        psz->Append("+");
-        psz->Append(miOffset);
-    }
-    else
-    {
-        psz->Append(miOffset);
-    }
+	if (miOffset >= 0)
+	{
+		psz->Append("+");
+		psz->Append(miOffset);
+	}
+	else
+	{
+		psz->Append(miOffset);
+	}
 }
 
 
@@ -86,6 +86,6 @@ void CW65ConstantOffset::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 bool CW65ConstantOffset::IsConstantOffset(void) const
 {
-    return true;
+	return true;
 }
 

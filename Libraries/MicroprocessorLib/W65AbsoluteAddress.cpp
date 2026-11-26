@@ -26,7 +26,7 @@ void CW65AbsoluteAddress::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65AbsoluteAddress::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetAddress()->GetOffset();
+	return pcCPU->GetAddress()->GetOffset();
 }
 
 
@@ -36,6 +36,6 @@ int32 CW65AbsoluteAddress::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65AbsoluteAddress::Print(CChars* psz)
 {
-    psz->Append("AA");
+	psz->Append("AA");
 }
 

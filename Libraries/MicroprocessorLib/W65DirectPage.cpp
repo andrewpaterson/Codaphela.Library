@@ -38,7 +38,7 @@ void CW65DirectPage::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65DirectPage::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetDirectPage();
+	return pcCPU->GetDirectPage();
 }
 
 
@@ -60,6 +60,6 @@ bool CW65DirectPage::IsPageWrapped(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65DirectPage::Print(CChars* psz)
 {
-    psz->Append("D");
+	psz->Append("D");
 }
 

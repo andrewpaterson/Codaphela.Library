@@ -7,14 +7,14 @@
 class CW65InterruptAddress : public CW65AddressOffset
 {
 private:
-    CW65InterruptVector*   mpcInterruptVector;
+	CW65InterruptVector*   mpcInterruptVector;
 
 public:
-    void    Init(CW65InterruptVector* pcinterruptVector);
-    void    Kill(void) override;
+	void	Init(CW65InterruptVector* pcinterruptVector);
+	void	Kill(void) override;
 
-    int32   GetOffset(CW65CCore* pcCPU) override;
-    void    Print(CChars* psz) override;
+	int32	GetOffset(CW65CCore* pcCPU) override;
+	void	Print(CChars* psz) override;
 };
 
 

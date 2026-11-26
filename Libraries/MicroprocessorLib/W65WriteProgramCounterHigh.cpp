@@ -18,7 +18,7 @@ void CW65WriteProgramCounterHigh::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65WriteProgramCounterHigh::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->WriteProgramCounterHigh();
+	pcCPU->WriteProgramCounterHigh();
 }
 
 

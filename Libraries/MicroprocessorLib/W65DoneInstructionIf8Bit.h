@@ -10,13 +10,13 @@ protected:
 	EWidthFromRegister  meWidth;
 
 public:
-    void    Init(EWidthFromRegister eWidth);
+	void    Init(EWidthFromRegister eWidth);
 
-	void    Execute(CW65CCore* pcCPU) override;
+	void	Execute(CW65CCore* pcCPU) override;
 	bool	IsInitialSide(void) const override;
 
-	void    Print(CChars* psz) override;
-    size	GetDone8(void) const override;
+	void	Print(CChars* psz) override;
+	size	GetDone8(void) const override;
 };
 
 

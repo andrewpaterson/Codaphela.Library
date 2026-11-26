@@ -18,7 +18,7 @@ void CW65WriteDataHigh::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CW65WriteDataHigh::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->WriteDataHigh();
+	pcCPU->WriteDataHigh();
 }
 
 

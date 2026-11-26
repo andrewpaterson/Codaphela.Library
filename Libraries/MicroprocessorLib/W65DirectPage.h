@@ -9,13 +9,13 @@ protected:
 	bool	mbPageWrap;
 
 public:
-    void    Init(void);
-    void    Init(bool bPageWrap);
-    void    Kill(void) override;
+	void	Init(void);
+	void	Init(bool bPageWrap);
+	void	Kill(void) override;
 
-    int32   GetOffset(CW65CCore* pcCPU);
-    bool    IsPageWrapped(CW65CCore* pcCPU) override;
-    void    Print(CChars* psz);
+	int32	GetOffset(CW65CCore* pcCPU);
+	bool	IsPageWrapped(CW65CCore* pcCPU) override;
+	void	Print(CChars* psz);
 };
 
 

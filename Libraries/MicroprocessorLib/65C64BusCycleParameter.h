@@ -30,8 +30,8 @@ class C65C64;
 class C65C64BusCycleParameter : public CUnknown, public CRefered
 {
 public:
-	virtual bool IsAddress(void) const =0;
-	virtual bool IsOperation(void) const =0;
+	virtual bool	IsAddress(void) const =0;
+	virtual bool	IsOperation(void) const =0;
 };
 
 

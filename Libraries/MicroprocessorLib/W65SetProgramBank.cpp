@@ -9,7 +9,7 @@
 void CW65SetProgramBank::Init(uint8 uiBank)
 {
 	CW65Operation::Init();
-	
+
 	muiBank = uiBank;
 }
 
@@ -20,7 +20,7 @@ void CW65SetProgramBank::Init(uint8 uiBank)
 //////////////////////////////////////////////////////////////////////////
 void CW65SetProgramBank::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->SetProgramAddressBank(muiBank);
+	pcCPU->SetProgramAddressBank(muiBank);
 }
 
 

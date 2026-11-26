@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65BCDResult::Init(uint16 uiValue, bool bCarry)
 {
-    muiValue = uiValue;
-    mbCarry = bCarry;
+	muiValue = uiValue;
+	mbCarry = bCarry;
 }
 

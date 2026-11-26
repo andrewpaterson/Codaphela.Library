@@ -26,7 +26,7 @@ void CW65DirectOffset::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65DirectOffset::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetDirectOffset();
+	return pcCPU->GetDirectOffset();
 }
 
 
@@ -36,6 +36,6 @@ int32 CW65DirectOffset::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65DirectOffset::Print(CChars* psz)
 {
-    psz->Append("D0");
+	psz->Append("D0");
 }
 

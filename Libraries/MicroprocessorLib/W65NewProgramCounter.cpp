@@ -26,7 +26,7 @@ void CW65NewProgramCounter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65NewProgramCounter::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetNewProgramCounter()->GetOffset();
+	return pcCPU->GetNewProgramCounter()->GetOffset();
 }
 
 
@@ -36,6 +36,6 @@ int32 CW65NewProgramCounter::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65NewProgramCounter::Print(CChars* psz)
 {
-    psz->Append("New_PC");
+	psz->Append("New_PC");
 }
 

@@ -29,7 +29,7 @@ void CW65WriteProcessorStatus::Init(bool bBreak)
 //////////////////////////////////////////////////////////////////////////
 void CW65WriteProcessorStatus::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->WriteProcessorStatus(mbBreak);
+	pcCPU->WriteProcessorStatus(mbBreak);
 }
 
 

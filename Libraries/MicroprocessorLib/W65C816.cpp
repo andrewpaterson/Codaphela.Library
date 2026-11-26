@@ -54,7 +54,7 @@ CW65C816Pins* CW65C816::GetPins(void) const
 //////////////////////////////////////////////////////////////////////////
 char* CW65C816::GetType(void)
 {
-    return "W65C816 Microprocessor";
+	return "W65C816 Microprocessor";
 }
 
 
@@ -102,7 +102,7 @@ void CW65C816::WriteSignalsPhi2Rising(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PLD(void)
 {
-    SetDirectPage(GetData16Bit());
+	SetDirectPage(GetData16Bit());
 	SetSignAndZeroFlagFrom16BitValue(GetData16Bit());
 }
 
@@ -113,7 +113,7 @@ void CW65C816::PLD(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PLB(void)
 {
-    SetDataBank(GetIOData());
+	SetDataBank(GetIOData());
 	SetSignAndZeroFlagFrom8BitValue(GetIOData());
 }
 
@@ -124,7 +124,7 @@ void CW65C816::PLB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHB(void)
 {
-    SetDataLow(GetDataBank());
+	SetDataLow(GetDataBank());
 }
 
 
@@ -134,7 +134,7 @@ void CW65C816::PHB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHK(void)
 {
-    SetDataLow(GetProgramCounter()->GetBank());
+	SetDataLow(GetProgramCounter()->GetBank());
 }
 
 
@@ -164,7 +164,7 @@ void CW65C816::WDM(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::MVP(void)
 {
-    BlockMovePrevious();
+	BlockMovePrevious();
 }
 
 
@@ -174,7 +174,7 @@ void CW65C816::MVP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::MVN(void)
 {
-    BlockMoveNext();
+	BlockMoveNext();
 }
 
 
@@ -184,7 +184,7 @@ void CW65C816::MVN(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TDC(void)
 {
-    SetC(GetDirectPage());
+	SetC(GetDirectPage());
 }
 
 
@@ -194,7 +194,7 @@ void CW65C816::TDC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TYX(void)
 {
-    SetX(GetY());
+	SetX(GetY());
 }
 
 
@@ -204,7 +204,7 @@ void CW65C816::TYX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::TXY(void)
 {
-    SetY(GetX());
+	SetY(GetX());
 }
 
 
@@ -399,8 +399,8 @@ void CW65C816::SEP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::XBA(void)
 {
-	uint16 uiLowerA;
-	uint16 uiHigherA;
+	uint16	uiLowerA;
+	uint16	uiHigherA;
 
 	uiLowerA = GetLowByte(GetC());
 	uiHigherA = GetHighByte(GetC());
@@ -415,8 +415,8 @@ void CW65C816::XBA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::XCE(void)
 {
-	bool bOldCarry;
-	bool bOldEmulation;
+	bool	bOldCarry;
+	bool	bOldEmulation;
 
 	bOldCarry = IsCarrySet();
 	bOldEmulation = IsEmulation();

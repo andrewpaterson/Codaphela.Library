@@ -160,7 +160,7 @@ class C65C64
 protected:
 	S65C64CoreState		msState;
 	S65C64Decoded		msDecoded;
-	C65C64Instruction*		mpcInstruction;
+	C65C64Instruction*	mpcInstruction;
 	C65C64Pins*			mpcPins;
 
 public:
@@ -179,7 +179,7 @@ public:
 	void				DoneInstruction(void);
 	void				ResetPulled(void);
 
-	C65C64Instruction*		GetInstruction(void) const;
+	C65C64Instruction*	GetInstruction(void) const;
 	C65C64BusCycle*		GetBusCycle(void) const;
 	C65C64DataOperation*	GetDataOperation(void) const;
 	S65C64Decoded*		GetDecoded(void);

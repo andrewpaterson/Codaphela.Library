@@ -14,32 +14,32 @@ class CW65CCore;
 class CW65BusCycle : public CUnknown
 {
 protected:
-    CW65AddressOffsetArray     mapcAddressOffsets;
-    CW65OperationArray         mapcOperations;
-    CArrayTemplateEmbeddedPtr<CW65Operation, 2>  mapcConditions;  //The operations that can skip this cycle, usually none.
-    CW65DataOperation*         mpcDataOperation;
-    int16                   miCycle;
+	CW65AddressOffsetArray	mapcAddressOffsets;
+	CW65OperationArray	mapcOperations;
+	CArrayTemplateEmbeddedPtr<CW65Operation, 2>	mapcConditions;  //The operations that can skip this cycle, usually none.
+	CW65DataOperation*	mpcDataOperation;
+	int16				miCycle;
 
 public:
-    void                Init(CW65AddressOffsetArray* papcAddressOffsets, CW65OperationArray* papcOperations);
-    void                Kill(void);
+	void	Init(CW65AddressOffsetArray* papcAddressOffsets, CW65OperationArray* papcOperations);
+	void	Kill(void);
 
-    void                GetAddress(CW65Address* pcDest, CW65CCore* pcCPU);
-    CW65DataOperation*     GetDataOperation(void) const;
-    size                GetDone8(void);
-    size                GetDone16(void);
-    bool                MustExecute(CW65CCore* pcCPU);
-    void                ToAddressOffsetString(CChars* psz);
-    void                ToOperationString(CChars* psz);
-    void                ToDataString(CChars* psz);
-    bool                IsFetchOpcode() const;
-    bool                IsProgramAddress(void);
-    void                SetCycle(int16 iCycle);
-    int16               GetCycle(void) const;
-    CW65OperationArray*    GetOperations(void);
+	void	GetAddress(CW65Address* pcDest, CW65CCore* pcCPU);
+	CW65DataOperation*	GetDataOperation(void) const;
+	size	GetDone8(void);
+	size	GetDone16(void);
+	bool	MustExecute(CW65CCore* pcCPU);
+	void	ToAddressOffsetString(CChars* psz);
+	void	ToOperationString(CChars* psz);
+	void	ToDataString(CChars* psz);
+	bool	IsFetchOpcode() const;
+	bool	IsProgramAddress(void);
+	void	SetCycle(int16 iCycle);
+	int16	GetCycle(void) const;
+	CW65OperationArray*	GetOperations(void);
 
 private:
-    void ValidateComponent(void);
+	void ValidateComponent(void);
 };
 
 

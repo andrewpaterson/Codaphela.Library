@@ -22,7 +22,7 @@ public:
 	void			WriteVDA(CTimeline* pcTimeline, bool bValue);
 	void			WriteVPA(CTimeline* pcTimeline, bool bValue);
 	void			WriteE(CTimeline* pcTimeline, bool bValue);
-	STraceValue			ReadMX(CTimeline* pcTimeline);
+	STraceValue		ReadMX(CTimeline* pcTimeline);
 };
 
 

@@ -7,9 +7,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CMetaSignal::Append0x(CChars* psz, bool bAppend0x)
 {
-    if (bAppend0x)
-    {
-        psz->Append("0x");
-    }
+	if (bAppend0x)
+	{
+		psz->Append("0x");
+	}
 }
 

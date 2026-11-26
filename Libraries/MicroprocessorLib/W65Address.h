@@ -13,24 +13,24 @@
 class CW65Address
 {
 protected:
-    uint8    muiBank;
-    uint16   muiOffset;
+	uint8	muiBank;
+	uint16	muiOffset;
 
 public:
-    void        Init(CW65Address* pcAddress);
-    void        Init(void);
-    void        Init(uint8 uiBank, uint16 uiOffset);
+	void	Init(CW65Address* pcAddress);
+	void	Init(void);
+	void	Init(uint8 uiBank, uint16 uiOffset);
 
-    uint8       GetBank(void) const;
-    uint16      GetOffset(void) const;
-    uint8       GetOffsetLow(void) const;
-    uint8       GetOffsetHigh(void) const;
-    CW65Address*   Offset(int16 iOffset);
-    void        Print(CChars* psz);
-    void        SetOffset(uint16 uiOffset);
-    void        SetBank(uint8 uiBank);
-    void        SetOffsetLow(uint8 uiOffsetLow);
-    void        SetOffsetHigh(uint8 uiOffsetHigh);
+	uint8	GetBank(void) const;
+	uint16	GetOffset(void) const;
+	uint8	GetOffsetLow(void) const;
+	uint8	GetOffsetHigh(void) const;
+	CW65Address*	Offset(int16 iOffset);
+	void	Print(CChars* psz);
+	void	SetOffset(uint16 uiOffset);
+	void	SetBank(uint8 uiBank);
+	void	SetOffsetLow(uint8 uiOffsetLow);
+	void	SetOffsetHigh(uint8 uiOffsetHigh);
 };
 
 

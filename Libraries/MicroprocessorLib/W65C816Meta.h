@@ -11,8 +11,8 @@ typedef void(*W65C816MetaTickLow)(CW65C816Meta*, void*);
 class CW65C816Meta : public CW65CMeta
 {
 protected:
-	CW65C816				mcMPU;
-	CW65C816Pins			mcPins;
+	CW65C816					mcMPU;
+	CW65C816Pins				mcPins;
 	CMetaTrace					mcABORTB;
 	CMetaTrace					mcVPA;
 	CMetaTrace					mcVDA;
@@ -30,16 +30,16 @@ public:
 
 	CW65CCore*		GetCore(void) override;
 	CW65C816*		GetMPU(void);
-	const CMetaTrace* 	GetABORTB(void) const;
-	const CMetaTrace* 	GetVPA(void) const;
-	const CMetaTrace* 	GetVDA(void) const;
-	const CMetaTrace* 	GetMX(void) const;
-	const CMetaTrace* 	GetE(void) const;
+	const CMetaTrace*	GetABORTB(void) const;
+	const CMetaTrace*	GetVPA(void) const;
+	const CMetaTrace*	GetVDA(void) const;
+	const CMetaTrace*	GetMX(void) const;
+	const CMetaTrace*	GetE(void) const;
 
 	bool			IsResetInstruction(void);
 	bool			IsStopInstruction(void);
 
-	void			SetX(STraceValue sX);
+	void				SetX(STraceValue sX);
 	STraceValue			GetX(void) const;
 
 	void			Print(CChars* psz);

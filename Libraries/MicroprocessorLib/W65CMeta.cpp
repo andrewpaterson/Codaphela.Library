@@ -64,7 +64,7 @@ bool CW65CMeta::TickInstruction(void)
 {
 	int		i;
 	bool	bRunning;
-	
+
 	if (mcRESB.IsLow())
 	{
 		for (i = 0; i < 4; i++)

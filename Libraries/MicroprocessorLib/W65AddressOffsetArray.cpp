@@ -10,7 +10,7 @@ void CW65AddressOffsetArray::Kill(void)
 {
 	size				i;
 	size				uiNumElements;
-	CW65AddressOffset* pcOffset;
+	CW65AddressOffset*	pcOffset;
 
 	uiNumElements = NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -29,10 +29,10 @@ void CW65AddressOffsetArray::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65AddressOffsetArray::Print(CChars* psz)
 {
-	size                uiNumOffsets;
-	size                i;
-	CW65AddressOffset* pcOffset;
-	bool                bFirst;
+	size	uiNumOffsets;
+	size	i;
+	CW65AddressOffset*	pcOffset;
+	bool	bFirst;
 
 	bFirst = true;
 	uiNumOffsets = NumElements();
@@ -59,7 +59,7 @@ void CW65AddressOffsetArray::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CalculateAddressWrappingFromAddressOffsets(CW65Address* pcDest, CW65CCore* pcCPU, CW65AddressOffsetArray* pacAddressOffsets)
 {
-	CW65AddressOffset*		pcOffset;
+	CW65AddressOffset*	pcOffset;
 	uint8				uiBank;
 	uint16				uiOffset;
 	uint16				uiPage;
@@ -108,7 +108,7 @@ void CalculateAddressWrappingFromAddressOffsets(CW65Address* pcDest, CW65CCore* 
 //////////////////////////////////////////////////////////////////////////
 void CalculateAddressSpanningFromAddressOffsets(CW65Address* pcDest, CW65CCore* pcCPU, CW65AddressOffsetArray* pacAddressOffsets)
 {
-	CW65AddressOffset* pcOffset;
+	CW65AddressOffset*	pcOffset;
 	uint8				uiBank;
 	int32				iOffset;
 	size				i;
@@ -134,8 +134,8 @@ void CalculateAddressSpanningFromAddressOffsets(CW65Address* pcDest, CW65CCore* 
 //////////////////////////////////////////////////////////////////////////
 CW65AddressOffsetArray* Address(CW65AddressOffset* pcOffset, ...)
 {
-	va_list		            vaMarker;
-	size		            iCount;
+	va_list	vaMarker;
+	size	iCount;
 	CW65AddressOffsetArray*	papcOffsets;
 
 	papcOffsets = NewMalloc<CW65AddressOffsetArray>();

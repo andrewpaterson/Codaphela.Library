@@ -74,10 +74,10 @@ public:
 	static C65C64InstructionCycles*	CreateCycles(S65C64Form* psForm);
 
 protected:
-	static C65C64InstructionCycles*	InstructionCycles(C65C64BusCycle* pcBusCycle, ...);
+	static C65C64InstructionCycles*		InstructionCycles(C65C64BusCycle* pcBusCycle, ...);
 	static C65C64BusCycle*				BusCycle(C65C64AddressOffsetArray* papcAddressOffsets, C65OperationArray* papcOperations);
 	static C65C64AddressOffsetArray*	Address(C65C64AddressOffset* pcOffset, ...);
-	static C65OperationArray*		Operation(C65C64Operation* pcOperation, ...);
+	static C65OperationArray*			Operation(C65C64Operation* pcOperation, ...);
 
 	static C65C64ProgramCounterOffset*		PC(void);
 	static C65C64PointerAddressOffset*		PA(void);
@@ -92,10 +92,10 @@ protected:
 	static C65C64ReadOperandWord*			Read_Operand(uint8 uiWord);
 	static C65C64ReadPointerWord*			Read_Pointer(uint8 uiWord);
 	static C65C64ReadTransferWord*			Read_Transfer(uint8 uiWord);
-	static C65C64WriteTransferWord*		Write_Transfer(uint8 uiWord);
+	static C65C64WriteTransferWord*			Write_Transfer(uint8 uiWord);
 	static C65C64ReadVectorWord*			Read_Vector(uint8 uiWord);
-	static C65C64InternalOperation*		IO(void);
-	static C65C64WaitOperation*			Wait(uint8 uiWait);
+	static C65C64InternalOperation*			IO(void);
+	static C65C64WaitOperation*				Wait(uint8 uiWait);
 	static C65C64Execute*					E(C65C64Func fFunction, bool bInitialSide);
 	static C65C64ExecuteIfLastPointerWord*	E_LastPointer(uint8 uiWord, C65C64Func fFunction);
 	static C65C64ExecuteIfLastTransferWord*	E_LastTransfer(uint8 uiWord, C65C64Func fFunction);

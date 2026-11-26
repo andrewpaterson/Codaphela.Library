@@ -90,7 +90,7 @@ void CW65C816Meta::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 		mcMPU.GetOpcodeMnemonicString(psz);
 		psz->Append(": ");
 	}
-	
+
 	if (bCycle)
 	{
 		psz->Append("(");
@@ -245,7 +245,7 @@ void CW65C816Meta::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 		mcMPU.ToAddressOperationString(&sz);
 		psz->LeftAlign(sz, ' ', 11);
 		sz.Kill();
-		
+
 	}
 	if (bDataOperation)
 	{

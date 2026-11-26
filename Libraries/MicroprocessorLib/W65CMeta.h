@@ -33,17 +33,17 @@ protected:
 public:
 	virtual CW65CCore*		GetCore(void) = 0;
 
-	CMetaBus16*			GetAddress(void);
-	CMetaBus8*			GetData(void);
-	const CMetaTrace* 	GetVPB(void) const;
-	const CMetaTrace* 	GetRDY(void) const;
-	CMetaTrace* 	GetIRQB(void);
-	CMetaTrace* 	GetNMIB(void);
-	const CMetaTrace* 	GetMLB(void) const;
-	CMetaTrace* 	GetRESB(void);
-	const CMetaTrace* 	GetPHI2(void) const;
-	const CMetaTrace* 	GetBE(void) const;
-	const CMetaTrace* 	GetRWB(void) const;
+	CMetaBus16*		GetAddress(void);
+	CMetaBus8*		GetData(void);
+	const CMetaTrace*	GetVPB(void) const;
+	const CMetaTrace*	GetRDY(void) const;
+	CMetaTrace*		GetIRQB(void);
+	CMetaTrace*		GetNMIB(void);
+	const CMetaTrace*	GetMLB(void) const;
+	CMetaTrace*		GetRESB(void);
+	const CMetaTrace*	GetPHI2(void) const;
+	const CMetaTrace*	GetBE(void) const;
+	const CMetaTrace*	GetRWB(void) const;
 
 	bool			TickInstruction(void);
 	bool			TestTickCycle(void);

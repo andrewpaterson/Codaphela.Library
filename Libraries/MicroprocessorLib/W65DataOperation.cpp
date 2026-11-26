@@ -7,14 +7,14 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65DataOperation::Init(bool bValidProgramAddress, bool bValidDataAddress, NotMemoryLock bNotMemoryLock, bool bRead, bool bNotVectorPull)
 {
-    CW65Operation::Init();
+	CW65Operation::Init();
 
-    mbValidProgramAddress = bValidProgramAddress;
-    mbValidDataAddress = bValidDataAddress;
-    mbNotMemoryLock = bNotMemoryLock;
-    mbRead = bRead;
-    mbNotVectorPull = bNotVectorPull;
-    mbReady = true;
+	mbValidProgramAddress = bValidProgramAddress;
+	mbValidDataAddress = bValidDataAddress;
+	mbNotMemoryLock = bNotMemoryLock;
+	mbRead = bRead;
+	mbNotVectorPull = bNotVectorPull;
+	mbReady = true;
 }
 
 
@@ -24,7 +24,7 @@ void CW65DataOperation::Init(bool bValidProgramAddress, bool bValidDataAddress, 
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsData(void) const
 {
-    return true;
+	return true;
 }
 
 
@@ -34,7 +34,7 @@ bool CW65DataOperation::IsData(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsRead(void) const
 {
-    return mbRead;
+	return mbRead;
 }
 
 
@@ -44,7 +44,7 @@ bool CW65DataOperation::IsRead(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsValidProgramAddress(void) const
 {
-    return mbValidProgramAddress;
+	return mbValidProgramAddress;
 }
 
 
@@ -54,7 +54,7 @@ bool CW65DataOperation::IsValidProgramAddress(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsValidDataAddress(void) const
 {
-    return mbValidDataAddress;
+	return mbValidDataAddress;
 }
 
 
@@ -64,7 +64,7 @@ bool CW65DataOperation::IsValidDataAddress(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsNotMemoryLock(void) const
 {
-    return mbNotMemoryLock;
+	return mbNotMemoryLock;
 }
 
 
@@ -74,7 +74,7 @@ bool CW65DataOperation::IsNotMemoryLock(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsNotVectorPull(void) const
 {
-    return mbNotVectorPull;
+	return mbNotVectorPull;
 }
 
 
@@ -84,7 +84,7 @@ bool CW65DataOperation::IsNotVectorPull(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsReady(void) const
 {
-    return mbReady;
+	return mbReady;
 }
 
 
@@ -94,6 +94,6 @@ bool CW65DataOperation::IsReady(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65DataOperation::IsFetchOpcode(void) const
 {
-    return false;
+	return false;
 }
 

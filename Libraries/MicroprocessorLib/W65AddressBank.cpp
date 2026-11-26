@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65AddressBank::Init(void)
 {
-    mbHasBank = true;
+	mbHasBank = true;
 }
 
 
@@ -27,7 +27,7 @@ void CW65AddressBank::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65AddressBank::GetOffset(CW65CCore* pcCPU)
 {
-    return 0;
+	return 0;
 }
 
 
@@ -37,7 +37,7 @@ int32 CW65AddressBank::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65AddressBank::GetBank(CW65CCore* pcCPU)
 {
-    return pcCPU->GetAddress()->GetBank();
+	return pcCPU->GetAddress()->GetBank();
 }
 
 
@@ -47,6 +47,6 @@ uint8 CW65AddressBank::GetBank(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65AddressBank::Print(CChars* psz)
 {
-    psz->Append("AAB,");
+	psz->Append("AAB,");
 }
 

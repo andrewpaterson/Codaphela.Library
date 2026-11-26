@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 bool AreOffsetsOnDifferentPages(uint16 iOffsetFirst, uint16 iOffsetSecond)
 {
-    uint16 pageOfFirst = iOffsetFirst / PAGE_SIZE_BYTES;
-    uint16 pageOfSecond = iOffsetSecond / PAGE_SIZE_BYTES;
-    return pageOfFirst != pageOfSecond;
+	uint16	pageOfFirst = iOffsetFirst / PAGE_SIZE_BYTES;
+	uint16	pageOfSecond = iOffsetSecond / PAGE_SIZE_BYTES;
+	return pageOfFirst != pageOfSecond;
 }
 
 
@@ -20,7 +20,7 @@ bool AreOffsetsOnDifferentPages(uint16 iOffsetFirst, uint16 iOffsetSecond)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::Init(CW65Address* pcAddress)
 {
-    Init(pcAddress->GetBank(), pcAddress->GetOffset());
+	Init(pcAddress->GetBank(), pcAddress->GetOffset());
 }
 
 
@@ -30,7 +30,7 @@ void CW65Address::Init(CW65Address* pcAddress)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::Init(void)
 {
-    Init(0x00, 0x0000);
+	Init(0x00, 0x0000);
 }
 
 
@@ -40,8 +40,8 @@ void CW65Address::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::Init(uint8 uiBank, uint16 uiOffset)
 {
-    muiBank = uiBank;
-    muiOffset = uiOffset;
+	muiBank = uiBank;
+	muiOffset = uiOffset;
 }
 
 
@@ -51,7 +51,7 @@ void CW65Address::Init(uint8 uiBank, uint16 uiOffset)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65Address::GetBank(void) const
 {
-    return muiBank;
+	return muiBank;
 }
 
 
@@ -61,7 +61,7 @@ uint8 CW65Address::GetBank(void) const
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65Address::GetOffset(void) const
 {
-    return muiOffset;
+	return muiOffset;
 }
 
 
@@ -71,7 +71,7 @@ uint16 CW65Address::GetOffset(void) const
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65Address::GetOffsetLow(void) const
 {
-    return (uint8)muiOffset;
+	return (uint8)muiOffset;
 }
 
 
@@ -81,7 +81,7 @@ uint8 CW65Address::GetOffsetLow(void) const
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65Address::GetOffsetHigh(void) const
 {
-    return (uint8)((muiOffset & 0xff00) >> 8);
+	return (uint8)((muiOffset & 0xff00) >> 8);
 }
 
 
@@ -91,11 +91,11 @@ uint8 CW65Address::GetOffsetHigh(void) const
 //////////////////////////////////////////////////////////////////////////
 CW65Address* CW65Address::Offset(int16 uiOffset)
 {
-    if (uiOffset != 0)
-    {
-        muiOffset = muiOffset + uiOffset;
-    }
-    return this;
+	if (uiOffset != 0)
+	{
+		muiOffset = muiOffset + uiOffset;
+	}
+	return this;
 }
 
 
@@ -105,9 +105,9 @@ CW65Address* CW65Address::Offset(int16 uiOffset)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::Print(CChars* psz)
 {
-    psz->Append(HexByteToString((uint8)muiBank));
-    psz->Append(":");
-    psz->Append(HexShortToString((uint16)muiOffset));
+	psz->Append(HexByteToString((uint8)muiBank));
+	psz->Append(":");
+	psz->Append(HexShortToString((uint16)muiOffset));
 }
 
 
@@ -117,7 +117,7 @@ void CW65Address::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::SetOffset(uint16 uiOffset)
 {
-    muiOffset = uiOffset;
+	muiOffset = uiOffset;
 }
 
 
@@ -127,7 +127,7 @@ void CW65Address::SetOffset(uint16 uiOffset)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::SetBank(uint8 uiBank)
 {
-    muiBank = uiBank;
+	muiBank = uiBank;
 }
 
 
@@ -137,7 +137,7 @@ void CW65Address::SetBank(uint8 uiBank)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::SetOffsetLow(uint8 uiOffsetLow)
 {
-    muiOffset = SetLowByte(muiOffset, uiOffsetLow);
+	muiOffset = SetLowByte(muiOffset, uiOffsetLow);
 }
 
 
@@ -147,7 +147,7 @@ void CW65Address::SetOffsetLow(uint8 uiOffsetLow)
 //////////////////////////////////////////////////////////////////////////
 void CW65Address::SetOffsetHigh(uint8 uiOffsetHigh)
 {
-    muiOffset = SetHighByte(muiOffset, uiOffsetHigh);
+	muiOffset = SetHighByte(muiOffset, uiOffsetHigh);
 }
 
 

@@ -9,7 +9,7 @@
 void CW65WaitOperation::Init(void)
 {
 	CW65DataOperation::Init(false, false, true, true, true);
-    mbReady = false;
+	mbReady = false;
 }
 
 

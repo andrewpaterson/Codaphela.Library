@@ -7,11 +7,11 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65Instruction::Init(uint16 uiCode, CW65InstructionCycles* pcCycles, char* szName, char* szDescription)
 {
-    mszDescription.Init(szDescription);
-    muiCode = uiCode;
-    mszName.Init(szName);
-    meAddressingMode = pcCycles->GetAddressingMode();
-    mpcCycles = pcCycles;
+	mszDescription.Init(szDescription);
+	muiCode = uiCode;
+	mszName.Init(szName);
+	meAddressingMode = pcCycles->GetAddressingMode();
+	mpcCycles = pcCycles;
 }
 
 
@@ -21,11 +21,11 @@ void CW65Instruction::Init(uint16 uiCode, CW65InstructionCycles* pcCycles, char*
 //////////////////////////////////////////////////////////////////////////
 void CW65Instruction::Kill(void)
 {
-    mpcCycles->Kill();
-    SafeKill(mpcCycles);
+	mpcCycles->Kill();
+	SafeKill(mpcCycles);
 
-    mszName.Kill();
-    mszDescription.Kill();
+	mszName.Kill();
+	mszDescription.Kill();
 }
 
 
@@ -35,7 +35,7 @@ void CW65Instruction::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65Instruction::GetCode(void) const
 {
-    return muiCode;
+	return muiCode;
 }
 
 
@@ -45,7 +45,7 @@ uint16 CW65Instruction::GetCode(void) const
 //////////////////////////////////////////////////////////////////////////
 const char* CW65Instruction::GetName(void) const
 {
-    return mszName.Text();
+	return mszName.Text();
 }
 
 
@@ -55,7 +55,7 @@ const char* CW65Instruction::GetName(void) const
 //////////////////////////////////////////////////////////////////////////
 const char* CW65Instruction::GetDescription(void) const
 {
-    return mszDescription.Text();
+	return mszDescription.Text();
 }
 
 
@@ -65,7 +65,7 @@ const char* CW65Instruction::GetDescription(void) const
 //////////////////////////////////////////////////////////////////////////
 CW65InstructionCycles* CW65Instruction::GetCycles(void) const
 {
-    return mpcCycles;
+	return mpcCycles;
 }
 
 
@@ -75,6 +75,6 @@ CW65InstructionCycles* CW65Instruction::GetCycles(void) const
 //////////////////////////////////////////////////////////////////////////
 CW65BusCycle* CW65Instruction::GetBusCycle(int16 iCycle)
 {
-    return mpcCycles->GetBusCycle(iCycle);
+	return mpcCycles->GetBusCycle(iCycle);
 }
 

@@ -57,7 +57,7 @@ public:
 			int64	GetTime(void) const;
 			int64	GetID(void) const;
 
-	virtual void	PrintShort(CChars* psz);
+	virtual void				PrintShort(CChars* psz);
 	virtual CIntegratedCircuit*	GetIntegratedCircuit(void) const;
 
 	static	void	ResetNextID(void);

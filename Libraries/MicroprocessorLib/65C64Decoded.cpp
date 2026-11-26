@@ -42,8 +42,8 @@ const int32 gai65EqualBranchOffsets[4] = { -8, -4, 4, 8 };
 
 //Minimal addressing modes drop the indirect register modes and two register modes.
 const uint8 gaui65MinimalModes[8] = { OPERAND_MODE_ABSOLUTE, OPERAND_MODE_ABSOLUTE_INDIRECT, OPERAND_MODE_ABSOLUTE_REGISTER_INDIRECT,
-									  OPERAND_MODE_OFFSET, OPERAND_MODE_OFFSET_INDIRECT, OPERAND_MODE_OFFSET_REGISTER_INDIRECT,
-									  OPERAND_MODE_ADDRESS_REGISTER, OPERAND_MODE_REGISTER_INDIRECT };
+	OPERAND_MODE_OFFSET, OPERAND_MODE_OFFSET_INDIRECT, OPERAND_MODE_OFFSET_REGISTER_INDIRECT,
+	OPERAND_MODE_ADDRESS_REGISTER, OPERAND_MODE_REGISTER_INDIRECT };
 
 //cpyx's data widths: 8, 16, 32 and 64 bits.
 const uint8 gaui65CopyExtendBytes[4] = { 1, 2, 4, 8 };
@@ -807,7 +807,7 @@ static void DecodeBlockVector(uint16 uiOpcode, S65C64Decoded* psDecoded)
 {
 	//Sub instructions 7, 9 and 11 (the signed add, subtract and compare) were dropped.
 	static E65Instruction	aeVector[16] = { I65_Vcpy, I65_Vnot, I65_Vand, I65_Vtst, I65_Vor, I65_Vxor, I65_Vadd, I65_Illegal,
-											 I65_Vsub, I65_Illegal, I65_Vcmp, I65_Illegal, I65_Vpcpy, I65_Vpand, I65_Vpor, I65_Vpxor };
+		I65_Vsub, I65_Illegal, I65_Vcmp, I65_Illegal, I65_Vpcpy, I65_Vpand, I65_Vpor, I65_Vpxor };
 	static uint8			auiWidthBytes[4] = { 1, 2, 4, 8 };
 	uint16					uiSub;
 

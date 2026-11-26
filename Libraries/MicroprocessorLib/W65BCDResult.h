@@ -6,10 +6,10 @@
 class CW65BCDResult
 {
 public:
-    uint16  muiValue;
-    bool    mbCarry;
+	uint16	muiValue;
+	bool	mbCarry;
 
-    void Init(uint16 uiValue, bool bCarry);
+	void Init(uint16 uiValue, bool bCarry);
 };
 
 

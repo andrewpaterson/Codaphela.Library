@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65DataBank::Init(void)
 {
-    mbHasBank = true;
+	mbHasBank = true;
 }
 
 
@@ -27,7 +27,7 @@ void CW65DataBank::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65DataBank::GetOffset(CW65CCore* pcCPU)
 {
-    return 0;
+	return 0;
 }
 
 
@@ -37,7 +37,7 @@ int32 CW65DataBank::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65DataBank::GetBank(CW65CCore* pcCPU)
 {
-    return pcCPU->GetDataBank();
+	return pcCPU->GetDataBank();
 }
 
 
@@ -47,6 +47,6 @@ uint8 CW65DataBank::GetBank(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65DataBank::Print(CChars* psz)
 {
-    psz->Append("DBR,");
+	psz->Append("DBR,");
 }
 

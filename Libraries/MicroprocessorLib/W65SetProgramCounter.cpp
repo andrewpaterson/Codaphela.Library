@@ -9,10 +9,10 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65SetProgramCounter::Init(CW65AddressOffsetArray* papcAddressOffsets)
 {
-    CW65Operation::Init();
+	CW65Operation::Init();
 
-    memcpy(&mapcAddressOffsets, papcAddressOffsets, sizeof(CW65AddressOffsetArray));
-    free(papcAddressOffsets);
+	memcpy(&mapcAddressOffsets, papcAddressOffsets, sizeof(CW65AddressOffsetArray));
+	free(papcAddressOffsets);
 }
 
 
@@ -22,7 +22,7 @@ void CW65SetProgramCounter::Init(CW65AddressOffsetArray* papcAddressOffsets)
 //////////////////////////////////////////////////////////////////////////
 void CW65SetProgramCounter::Kill(void)
 {
-    mapcAddressOffsets.Kill();
+	mapcAddressOffsets.Kill();
 }
 
 
@@ -32,10 +32,10 @@ void CW65SetProgramCounter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65SetProgramCounter::Execute(CW65CCore* pcCPU)
 {
-    CW65Address  cAddress;
+	CW65Address  cAddress;
 
-    CalculateAddressWrappingFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
-    pcCPU->SetProgramCounter(&cAddress);
+	CalculateAddressWrappingFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
+	pcCPU->SetProgramCounter(&cAddress);
 
 }
 
@@ -46,7 +46,7 @@ void CW65SetProgramCounter::Execute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65SetProgramCounter::IsInitialSide(void) const
 {
-    return false;
+	return false;
 }
 
 

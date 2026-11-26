@@ -15,7 +15,7 @@ public:
 	void			Kill(void);
 
 	//Microprocessor side methods.
-	void			WriteSYNC(CTimeline* pcTimeline, bool bValue);
+	void				WriteSYNC(CTimeline* pcTimeline, bool bValue);
 	STraceValue			ReadSOB(CTimeline* pcTimeline);
 };
 

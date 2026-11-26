@@ -34,11 +34,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class C65C64InstructionFactory
 {
 protected:
-	size				muiUsers;
+	size					muiUsers;
 	C65C64Instruction*		mapcInstructions[NUM_65C64_OPCODES];
-	uint32				mauiFormKeys[FORM_65C64_HASH_SIZE];
+	uint32					mauiFormKeys[FORM_65C64_HASH_SIZE];
 	C65C64Instruction*		mapcForms[FORM_65C64_HASH_SIZE];
-	size				muiNumForms;
+	size					muiNumForms;
 	C65C64Instruction*		mpcReset;
 	C65C64Instruction*		mpcFetchNext;
 	C65C64Instruction*		mpcInterrupt;
@@ -55,11 +55,11 @@ public:
 			C65C64Instruction*		GetFetchNext(void) const;
 			C65C64Instruction*		GetInterrupt(void) const;
 			C65C64Instruction*		GetWait(void) const;
-			size				NumForms(void) const;
+			size					NumForms(void) const;
 
 protected:
-			void				GetForm(S65C64Decoded* psDecoded, S65C64Form* psForm);
-			uint32				GetFormKey(S65C64Form* psForm);
+			void					GetForm(S65C64Decoded* psDecoded, S65C64Form* psForm);
+			uint32					GetFormKey(S65C64Form* psForm);
 			C65C64Instruction*		GetOrCreateInstruction(S65C64Form* psForm);
 			C65C64Instruction*		CreateInstruction(uint32 uiKey, C65C64InstructionCycles* pcCycles, E65Instruction eInstruction);
 };

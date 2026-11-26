@@ -103,7 +103,7 @@ class CW65CCore
 protected:
 	SW65CCoreState	msState;
 	CW65BusCycle*	mpcBusCycle;  //The bus cycle at msState.iCycle of msState.uiOpcodeIndex, see UpdateBusCycle.
-    CW65CPins*      mpcPins;
+	CW65CPins*		mpcPins;
 
 public:
 			void				Init(CW65CPins* pcPins);

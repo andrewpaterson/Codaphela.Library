@@ -18,7 +18,7 @@ void CW65WriteProgramBank::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65WriteProgramBank::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->WriteProgramBank();
+	pcCPU->WriteProgramBank();
 }
 
 

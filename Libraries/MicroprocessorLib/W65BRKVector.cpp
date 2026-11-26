@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65BRKVector::Init(void)
 {
-    CW65InterruptVector::Init();
+	CW65InterruptVector::Init();
 }
 
 
@@ -18,13 +18,13 @@ void CW65BRKVector::Init(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65BRKVector::GetAddress(CW65CCore* pcCPU)
 {
-    if (pcCPU->IsEmulation())
-    {
-        return 0xfffe;
-    }
-    else
-    {
-        return 0xffe6;
-    }
+	if (pcCPU->IsEmulation())
+	{
+		return 0xfffe;
+	}
+	else
+	{
+		return 0xffe6;
+	}
 }
 

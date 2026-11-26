@@ -6,7 +6,7 @@
 class CW65DoneInstructionIfEmulation : public CW65Operation
 {
 public:
-	void    Execute(CW65CCore* pcCPU) override;
+	void	Execute(CW65CCore* pcCPU) override;
 	bool	IsInitialSide(void) const override;
 
 	void    Print(CChars* psz) override;

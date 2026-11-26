@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65NMIVector::Init(void)
 {
-    CW65InterruptVector::Init();
+	CW65InterruptVector::Init();
 }
 
 
@@ -18,13 +18,13 @@ void CW65NMIVector::Init(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65NMIVector::GetAddress(CW65CCore* pcCPU)
 {
-    if (pcCPU->IsEmulation())
-    {
-        return 0xfffa;
-    }
-    else
-    {
-        return 0xffea;
-    }
+	if (pcCPU->IsEmulation())
+	{
+		return 0xfffa;
+	}
+	else
+	{
+		return 0xffea;
+	}
 }
 

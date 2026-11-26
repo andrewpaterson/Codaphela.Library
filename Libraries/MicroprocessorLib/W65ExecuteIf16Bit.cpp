@@ -9,11 +9,11 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65ExecuteIf16Bit::Init(CW65CFunc fFunction, EWidthFromRegister eWidth, bool bInitialSide)
 {
-    CW65Operation::Init();
+	CW65Operation::Init();
 
-    mfFunction = fFunction;
-    meWidth = eWidth;
-    mbInitialSide = bInitialSide;
+	mfFunction = fFunction;
+	meWidth = eWidth;
+	mbInitialSide = bInitialSide;
 }
 
 
@@ -23,24 +23,24 @@ void CW65ExecuteIf16Bit::Init(CW65CFunc fFunction, EWidthFromRegister eWidth, bo
 //////////////////////////////////////////////////////////////////////////
 void CW65ExecuteIf16Bit::Execute(CW65CCore* pcCPU)
 {
-    if (meWidth == WFR_M)
-    {
-        if (pcCPU->IsMemory16Bit())
-        {
-            (pcCPU->*mfFunction)();
-        }
-    }
-    else if (meWidth == WFR_XY)
-    {
-        if (pcCPU->IsIndex16Bit())
-        {
-            (pcCPU->*mfFunction)();
-        }
-    }
-    else
-    {
-        LOG_ERROR("Unknown Width.");
-    }
+	if (meWidth == WFR_M)
+	{
+		if (pcCPU->IsMemory16Bit())
+		{
+			(pcCPU->*mfFunction)();
+		}
+	}
+	else if (meWidth == WFR_XY)
+	{
+		if (pcCPU->IsIndex16Bit())
+		{
+			(pcCPU->*mfFunction)();
+		}
+	}
+	else
+	{
+		LOG_ERROR("Unknown Width.");
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ void CW65ExecuteIf16Bit::Execute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65ExecuteIf16Bit::IsInitialSide(void) const
 {
-    return mbInitialSide;
+	return mbInitialSide;
 }
 
 
@@ -60,9 +60,9 @@ bool CW65ExecuteIf16Bit::IsInitialSide(void) const
 //////////////////////////////////////////////////////////////////////////
 void CW65ExecuteIf16Bit::Print(CChars* psz)
 {
-    //Work out some way of getting the function name out.
-    psz->Append("Execute_If_16Bit_");
-    psz->Append(CW65WidthFromRegister::GetName(meWidth));
-    psz->Append("(HELP!)");
+	//Work out some way of getting the function name out.
+	psz->Append("Execute_If_16Bit_");
+	psz->Append(CW65WidthFromRegister::GetName(meWidth));
+	psz->Append("(HELP!)");
 }
 

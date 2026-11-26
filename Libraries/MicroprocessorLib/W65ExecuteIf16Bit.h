@@ -8,8 +8,8 @@
 class CW65ExecuteIf16Bit : public CW65Operation
 {
 protected:
-	CW65CFunc		mfFunction;
-	EWidthFromRegister  meWidth;
+	CW65CFunc			mfFunction;
+	EWidthFromRegister	meWidth;
 	bool				mbInitialSide;
 
 public:

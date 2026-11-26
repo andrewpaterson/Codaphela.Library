@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65ProgramBank::Init(void)
 {
-    mbHasBank = true;
+	mbHasBank = true;
 }
 
 
@@ -27,7 +27,7 @@ void CW65ProgramBank::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65ProgramBank::GetOffset(CW65CCore* pcCPU)
 {
-    return 0;
+	return 0;
 }
 
 
@@ -37,7 +37,7 @@ int32 CW65ProgramBank::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65ProgramBank::GetBank(CW65CCore* pcCPU)
 {
-    return pcCPU->GetProgramCounter()->GetBank();
+	return pcCPU->GetProgramCounter()->GetBank();
 }
 
 
@@ -47,5 +47,5 @@ uint8 CW65ProgramBank::GetBank(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65ProgramBank::Print(CChars* psz)
 {
-    psz->Append("PBR,");
+	psz->Append("PBR,");
 }

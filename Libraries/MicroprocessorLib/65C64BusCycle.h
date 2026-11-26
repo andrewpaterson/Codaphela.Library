@@ -35,7 +35,7 @@ protected:
 	C65C64AddressOffsetArray	mapcAddressOffsets;
 	C65OperationArray		mapcOperations;
 	CArrayTemplateEmbeddedPtr<C65C64Operation, 2>	mapcConditions;  //The operations that can skip this cycle, usually none.
-	C65C64DataOperation*		mpcDataOperation;
+	C65C64DataOperation*	mpcDataOperation;
 	int16					miCycle;
 
 public:
@@ -43,7 +43,7 @@ public:
 	void					Kill(void) override;
 
 	uint32					GetAddress(C65C64* pcCPU);
-	C65C64DataOperation*		GetDataOperation(void) const;
+	C65C64DataOperation*	GetDataOperation(void) const;
 	bool					MustExecute(C65C64* pcCPU);
 	void					ExecuteInitialSide(C65C64* pcCPU);
 	void					ExecuteTrailingSide(C65C64* pcCPU, bool bSkipData);

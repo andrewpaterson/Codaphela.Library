@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65IRQVector::Init(void)
 {
-    CW65InterruptVector::Init();
+	CW65InterruptVector::Init();
 }
 
 
@@ -18,13 +18,13 @@ void CW65IRQVector::Init(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65IRQVector::GetAddress(CW65CCore* pcCPU)
 {
-    if (pcCPU->IsEmulation())
-    {
-        return 0xfffe;
-    }
-    else
-    {
-        return 0xffee;
-    }
+	if (pcCPU->IsEmulation())
+	{
+		return 0xfffe;
+	}
+	else
+	{
+		return 0xffee;
+	}
 }
 

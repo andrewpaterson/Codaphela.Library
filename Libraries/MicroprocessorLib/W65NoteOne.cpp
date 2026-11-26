@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65NoteOne::Init(EWidthFromRegister eWidth)
 {
-    CW65Operation::Init();
+	CW65Operation::Init();
 
-    meWidth = eWidth;
+	meWidth = eWidth;
 }
 
 
@@ -29,7 +29,7 @@ void CW65NoteOne::Execute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65NoteOne::IsInitialSide(void) const
 {
-    return true;
+	return true;
 }
 
 
@@ -39,19 +39,19 @@ bool CW65NoteOne::IsInitialSide(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65NoteOne::MustExecute(CW65CCore* pcCPU)
 {
-    if (meWidth == WFR_M)
-    {
-        return pcCPU->IsMemory16Bit();
-    }
-    else if (meWidth == WFR_XY)
-    {
-        return pcCPU->IsIndex16Bit();
-    }
-    else
-    {
-        LOG_ERROR("Unknown Width.");
-        return false;
-    }
+	if (meWidth == WFR_M)
+	{
+		return pcCPU->IsMemory16Bit();
+	}
+	else if (meWidth == WFR_XY)
+	{
+		return pcCPU->IsIndex16Bit();
+	}
+	else
+	{
+		LOG_ERROR("Unknown Width.");
+		return false;
+	}
 }
 
 
@@ -61,7 +61,7 @@ bool CW65NoteOne::MustExecute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65NoteOne::IsConditional(void) const
 {
-    return true;
+	return true;
 }
 
 

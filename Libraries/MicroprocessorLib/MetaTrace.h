@@ -21,7 +21,7 @@ public:
 	void			Kill(void);
 
 	void			Set(bool bValue);
-	STraceValue			Get(void) const;
+	STraceValue		Get(void) const;
 	void			Invert(void);
 	bool			IsHigh(void) const;
 	bool			IsLow(void) const;
@@ -30,7 +30,7 @@ public:
 
 	virtual void			Write(CTimeline* pcTimeline, bool bValue);
 	virtual void			WriteImpedance(CTimeline* pcTimeline);
-	virtual STraceValue	Read(CTimeline* pcTimeline);
+	virtual STraceValue		Read(CTimeline* pcTimeline);
 };
 
 

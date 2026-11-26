@@ -10,21 +10,21 @@
 class CW65Instruction : public CUnknown
 {
 protected:
-    uint16                  muiCode;
-    CChars                  mszName;
-    EAddressingMode         meAddressingMode;
-    CW65InstructionCycles*     mpcCycles;
-    CChars                  mszDescription;
+	uint16	muiCode;
+	CChars	mszName;
+	EAddressingMode	meAddressingMode;
+	CW65InstructionCycles*	mpcCycles;
+	CChars	mszDescription;
 
 public:
-    void                    Init(uint16 uiCode, CW65InstructionCycles* pcCycles, char* szName, char* szDescription);
-    void                    Kill(void) override;
+	void	Init(uint16 uiCode, CW65InstructionCycles* pcCycles, char* szName, char* szDescription);
+	void	Kill(void) override;
 
-    uint16                  GetCode(void) const;
-    const char*                   GetName(void) const;
-    const char*                   GetDescription(void) const;
-    CW65InstructionCycles*     GetCycles(void) const;
-    CW65BusCycle*              GetBusCycle(int16 iCycle);
+	uint16		GetCode(void) const;
+	const char*	GetName(void) const;
+	const char*	GetDescription(void) const;
+	CW65InstructionCycles*	GetCycles(void) const;
+	CW65BusCycle*	GetBusCycle(int16 iCycle);
 };
 
 

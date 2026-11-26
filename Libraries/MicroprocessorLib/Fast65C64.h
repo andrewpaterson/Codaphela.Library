@@ -90,21 +90,21 @@ public:
 	void		Init(CFast65C64ReadWord fReadWord, CFast65C64WriteByte fWriteByte, void* pvContext, uint8* puiMemory, uint32 uiMemorySize);
 	void		Kill(void);
 
-	void		SetHole(uint32 uiStart, uint32 uiEnd);
-	void		Reset(void);
-	bool		Step(void);
+	void			SetHole(uint32 uiStart, uint32 uiEnd);
+	void			Reset(void);
+	bool			Step(void);
 	CBreakpoints*	GetBreakpoints(void);
 	bool			IsAtBreakpoint(void) const;
-	CDataWatches*			GetWatches(void);
-	void					WatchesChanged(void);
-	bool					IsAtWatch(void) const;
+	CDataWatches*	GetWatches(void);
+	void			WatchesChanged(void);
+	bool			IsAtWatch(void) const;
 	const SDataWatchHit*	GetWatchHit(void) const;
 	static void		DecodeAll(void);
 	static size		InstructionLength(uint16 uiOpcode);
 	static size		CallLength(uint16 uiOpcode);
 	static bool		IsReturn(uint16 uiOpcode);
 	static bool		IsCallOrJump(uint16 uiOpcode);
-	size		Run(size uiMaxInstructions);
+	size			Run(size uiMaxInstructions);
 
 	void		SetEdgeInterrupt(size uiInterrupt, bool bLow);
 	void		SetLevelInterrupt(bool bLow);

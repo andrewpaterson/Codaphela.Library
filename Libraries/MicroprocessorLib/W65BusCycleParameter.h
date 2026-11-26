@@ -10,8 +10,8 @@ class CW65CCore;
 class CW65BusCycleParameter : public CUnknown,  public CRefered
 {
 public:
-	virtual bool IsAddress(void) const =0;
-	virtual bool IsOperation(void) const =0;
+	virtual bool	IsAddress(void) const =0;
+	virtual bool	IsOperation(void) const =0;
 };
 
 

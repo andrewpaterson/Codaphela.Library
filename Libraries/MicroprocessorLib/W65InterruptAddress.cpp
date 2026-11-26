@@ -9,8 +9,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65InterruptAddress::Init(CW65InterruptVector* pcInterruptVector)
 {
-    mpcInterruptVector = pcInterruptVector;
-    mpcInterruptVector->ReferenceAdded();
+	mpcInterruptVector = pcInterruptVector;
+	mpcInterruptVector->ReferenceAdded();
 }
 
 
@@ -20,8 +20,8 @@ void CW65InterruptAddress::Init(CW65InterruptVector* pcInterruptVector)
 //////////////////////////////////////////////////////////////////////////
 void CW65InterruptAddress::Kill(void)
 {
-    mpcInterruptVector->ReferenceFreed();
-    TryKill(mpcInterruptVector);
+	mpcInterruptVector->ReferenceFreed();
+	TryKill(mpcInterruptVector);
 }
 
 
@@ -31,7 +31,7 @@ void CW65InterruptAddress::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65InterruptAddress::GetOffset(CW65CCore* pcCPU)
 {
-    return mpcInterruptVector->GetAddress(pcCPU);
+	return mpcInterruptVector->GetAddress(pcCPU);
 }
 
 
@@ -41,6 +41,6 @@ int32 CW65InterruptAddress::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65InterruptAddress::Print(CChars* psz)
 {
-    psz->Append("VA");
+	psz->Append("VA");
 }
 

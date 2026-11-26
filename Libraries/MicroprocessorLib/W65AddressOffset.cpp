@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65AddressOffset::Init(void)
 {
-    CRefered::Init();
-    mbHasBank = false;
-    mbCanPageWrap = false;
+	CRefered::Init();
+	mbHasBank = false;
+	mbCanPageWrap = false;
 }
 
 
@@ -21,7 +21,7 @@ void CW65AddressOffset::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::HasBank(void) const
 {
-    return mbHasBank;
+	return mbHasBank;
 }
 
 
@@ -32,7 +32,7 @@ bool CW65AddressOffset::HasBank(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::CanPageWrap(void)
 {
-    return mbCanPageWrap;
+	return mbCanPageWrap;
 }
 
 
@@ -42,7 +42,7 @@ bool CW65AddressOffset::CanPageWrap(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::IsOperation(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -52,7 +52,7 @@ bool CW65AddressOffset::IsOperation(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::IsAddress(void) const
 {
-    return true;
+	return true;
 }
 
 
@@ -62,7 +62,7 @@ bool CW65AddressOffset::IsAddress(void) const
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65AddressOffset::GetBank(CW65CCore* pcCPU)
 {
-    return 0;
+	return 0;
 }
 
 
@@ -72,7 +72,7 @@ uint8 CW65AddressOffset::GetBank(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::IsConstantOffset(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -82,7 +82,7 @@ bool CW65AddressOffset::IsConstantOffset(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::IsPageWrapped(CW65CCore* pcCPU)
 {
-    return false;
+	return false;
 }
 
 
@@ -92,6 +92,6 @@ bool CW65AddressOffset::IsPageWrapped(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65AddressOffset::IsProgramCounter(void) const
 {
-    return false;
+	return false;
 }
 

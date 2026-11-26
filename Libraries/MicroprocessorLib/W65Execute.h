@@ -7,7 +7,7 @@
 class CW65Execute : public CW65Operation
 {
 protected:
-	CW65CFunc	mfFunction;
+	CW65CFunc		mfFunction;
 	bool			mbInitialSide;
 
 public:

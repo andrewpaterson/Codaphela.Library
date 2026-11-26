@@ -8,8 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65DoneInstructionIf16Bit::Init(EWidthFromRegister eWidth)
 {
-    CW65Operation::Init();
-    meWidth = eWidth;
+	CW65Operation::Init();
+	meWidth = eWidth;
 }
 
 
@@ -19,18 +19,18 @@ void CW65DoneInstructionIf16Bit::Init(EWidthFromRegister eWidth)
 //////////////////////////////////////////////////////////////////////////
 void CW65DoneInstructionIf16Bit::Execute(CW65CCore* pcCPU)
 {
-    if (meWidth == WFR_M)
-    {
-        pcCPU->DoneIfMemory16Bit();
-    }
-    else if (meWidth == WFR_XY)
-    {
-        pcCPU->DoneIfIndex16Bit();
-    }
-    else
-    {
-        LOG_ERROR("Unknown Width.");
-    }
+	if (meWidth == WFR_M)
+	{
+		pcCPU->DoneIfMemory16Bit();
+	}
+	else if (meWidth == WFR_XY)
+	{
+		pcCPU->DoneIfIndex16Bit();
+	}
+	else
+	{
+		LOG_ERROR("Unknown Width.");
+	}
 }
 
 
@@ -40,7 +40,7 @@ void CW65DoneInstructionIf16Bit::Execute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65DoneInstructionIf16Bit::IsInitialSide(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -50,8 +50,8 @@ bool CW65DoneInstructionIf16Bit::IsInitialSide(void) const
 //////////////////////////////////////////////////////////////////////////
 void CW65DoneInstructionIf16Bit::Print(CChars* psz)
 {
-    psz->Append("DONE_If_16Bit_");
-    psz->Append(CW65WidthFromRegister::GetName(meWidth));
+	psz->Append("DONE_If_16Bit_");
+	psz->Append(CW65WidthFromRegister::GetName(meWidth));
 }
 
 
@@ -61,6 +61,6 @@ void CW65DoneInstructionIf16Bit::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 size CW65DoneInstructionIf16Bit::GetDone16(void) const
 {
-    return 1;
+	return 1;
 }
 

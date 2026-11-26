@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65DoneInstructionIf8Bit::Init(EWidthFromRegister eWidth)
 {
-    CW65Operation::Init();
+	CW65Operation::Init();
 
-    meWidth = eWidth;
+	meWidth = eWidth;
 }
 
 
@@ -20,18 +20,18 @@ void CW65DoneInstructionIf8Bit::Init(EWidthFromRegister eWidth)
 //////////////////////////////////////////////////////////////////////////
 void CW65DoneInstructionIf8Bit::Execute(CW65CCore* pcCPU)
 {
-    if (meWidth == WFR_M)
-    {
-        pcCPU->DoneIfMemory8Bit();
-    }
-    else if (meWidth == WFR_XY)
-    {
-        pcCPU->DoneIfIndex8Bit();
-    }
-    else
-    {
-        LOG_ERROR("Unknown Width.");
-    }
+	if (meWidth == WFR_M)
+	{
+		pcCPU->DoneIfMemory8Bit();
+	}
+	else if (meWidth == WFR_XY)
+	{
+		pcCPU->DoneIfIndex8Bit();
+	}
+	else
+	{
+		LOG_ERROR("Unknown Width.");
+	}
 }
 
 
@@ -41,7 +41,7 @@ void CW65DoneInstructionIf8Bit::Execute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65DoneInstructionIf8Bit::IsInitialSide(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -62,6 +62,6 @@ void CW65DoneInstructionIf8Bit::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 size CW65DoneInstructionIf8Bit::GetDone8(void) const
 {
-    return 1;
+	return 1;
 }
 

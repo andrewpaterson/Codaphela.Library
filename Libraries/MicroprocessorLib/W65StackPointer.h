@@ -17,12 +17,12 @@ protected:
 	EStackPointerMode	meMode;
 
 public:
-    void    Init(void);
-    void    Init(EStackPointerMode eMode);
-    void    Kill(void) override;
+	void	Init(void);
+	void	Init(EStackPointerMode eMode);
+	void	Kill(void) override;
 
-    int32   GetOffset(CW65CCore* pcCPU) override;
-    void    Print(CChars* psz) override;
+	int32	GetOffset(CW65CCore* pcCPU) override;
+	void	Print(CChars* psz) override;
 };
 
 

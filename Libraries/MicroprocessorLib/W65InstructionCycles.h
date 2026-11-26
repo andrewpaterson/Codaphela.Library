@@ -10,20 +10,20 @@
 class CW65InstructionCycles
 {
 protected:
-    CW65BusCycleArray      mapcCycles;
-    EAddressingMode     meAddressingMode;
+	CW65BusCycleArray	mapcCycles;
+	EAddressingMode		meAddressingMode;
 
 public:
-    void                Init(EAddressingMode eAddressingMode, CW65BusCycleArray* papcCycles);
-    void                Kill(void);
+	void	Init(EAddressingMode eAddressingMode, CW65BusCycleArray* papcCycles);
+	void	Kill(void);
 
-    EAddressingMode     GetAddressingMode(void) const;
-    CW65BusCycle*          GetBusCycle(int16 miIndex);
-    size                Size(void) const;
+	EAddressingMode	GetAddressingMode(void) const;
+	CW65BusCycle*	GetBusCycle(int16 miIndex);
+	size			Size(void) const;
 
 protected:
-    void ValidateDoneOperation(void);
-    void ValidateComponent(void);
+	void	ValidateDoneOperation(void);
+	void	ValidateComponent(void);
 };
 
 

@@ -26,7 +26,7 @@ void CW65XIndex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65XIndex::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetX();
+	return pcCPU->GetX();
 }
 
 
@@ -36,6 +36,6 @@ int32 CW65XIndex::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65XIndex::Print(CChars* psz)
 {
-    psz->Append("X");
+	psz->Append("X");
 }
 

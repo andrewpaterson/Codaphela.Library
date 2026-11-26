@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65AbortVector::Init(void)
 {
-    CW65InterruptVector::Init();
+	CW65InterruptVector::Init();
 }
 
 
@@ -18,13 +18,13 @@ void CW65AbortVector::Init(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65AbortVector::GetAddress(CW65CCore* pcCPU)
 {
-    if (pcCPU->IsEmulation())
-    {
-        return 0xfff8;
-    }
-    else
-    {
-        return 0xffe8;
-    }
+	if (pcCPU->IsEmulation())
+	{
+		return 0xfff8;
+	}
+	else
+	{
+		return 0xffe8;
+	}
 }
 

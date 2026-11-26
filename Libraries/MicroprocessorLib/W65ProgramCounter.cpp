@@ -26,7 +26,7 @@ void CW65ProgramCounter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65ProgramCounter::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetProgramCounter()->GetOffset();
+	return pcCPU->GetProgramCounter()->GetOffset();
 }
 
 
@@ -36,7 +36,7 @@ int32 CW65ProgramCounter::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65ProgramCounter::Print(CChars* psz)
 {
-    psz->Append("PC");
+	psz->Append("PC");
 }
 
 
@@ -46,6 +46,6 @@ void CW65ProgramCounter::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 bool CW65ProgramCounter::IsProgramCounter(void) const
 {
-    return true;
+	return true;
 }
 

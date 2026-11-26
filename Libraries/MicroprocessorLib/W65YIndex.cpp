@@ -26,7 +26,7 @@ void CW65YIndex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CW65YIndex::GetOffset(CW65CCore* pcCPU)
 {
-    return pcCPU->GetY();
+	return pcCPU->GetY();
 }
 
 
@@ -36,7 +36,7 @@ int32 CW65YIndex::GetOffset(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65YIndex::Print(CChars* psz)
 {
-    psz->Append("Y");
+	psz->Append("Y");
 }
 
 

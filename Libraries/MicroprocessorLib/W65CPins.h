@@ -41,12 +41,12 @@ public:
 	void			ReleaseData(CTimeline* pcTimeline);
 	uint8			ReadData(CTimeline* pcTimeline);
 	uint16			ReadAddress(CTimeline* pcTimeline);
-	STraceValue			ReadRES(CTimeline* pcTimeline);
-	STraceValue			ReadPhi2(CTimeline* pcTimeline);
-	STraceValue			ReadNMI(CTimeline* pcTimeline);
-	STraceValue			ReadIRQ(CTimeline* pcTimeline);
-	STraceValue			ReadAbort(CTimeline* pcTimeline);
-	STraceValue			ReadBE(CTimeline* pcTimeline);
+	STraceValue		ReadRES(CTimeline* pcTimeline);
+	STraceValue		ReadPhi2(CTimeline* pcTimeline);
+	STraceValue		ReadNMI(CTimeline* pcTimeline);
+	STraceValue		ReadIRQ(CTimeline* pcTimeline);
+	STraceValue		ReadAbort(CTimeline* pcTimeline);
+	STraceValue		ReadBE(CTimeline* pcTimeline);
 };
 
 

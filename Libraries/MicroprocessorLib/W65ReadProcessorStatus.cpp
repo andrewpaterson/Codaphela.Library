@@ -18,7 +18,7 @@ void CW65ReadProcessorStatus::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65ReadProcessorStatus::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->ReadProcessorStatus();
+	pcCPU->ReadProcessorStatus();
 }
 
 

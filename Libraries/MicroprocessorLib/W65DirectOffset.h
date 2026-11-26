@@ -6,11 +6,11 @@
 class CW65DirectOffset : public CW65AddressOffset
 {
 public:
-    void    Init(void);
-    void    Kill(void) override;
+	void	Init(void);
+	void	Kill(void) override;
 
-    int32   GetOffset(CW65CCore* pcCPU);
-    void    Print(CChars* psz);
+	int32	GetOffset(CW65CCore* pcCPU);
+	void	Print(CChars* psz);
 };
 
 

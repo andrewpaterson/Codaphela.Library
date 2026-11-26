@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65Operation::Init(void)
 {
-    CRefered::Init();
+	CRefered::Init();
 }
 
 
@@ -17,7 +17,7 @@ void CW65Operation::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65Operation::IsOperation(void) const
 {
-    return true;
+	return true;
 }
 
 
@@ -27,7 +27,7 @@ bool CW65Operation::IsOperation(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65Operation::MustExecute(CW65CCore* pcCPU)
 {
-    return true;
+	return true;
 }
 
 
@@ -39,7 +39,7 @@ bool CW65Operation::MustExecute(CW65CCore* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 bool CW65Operation::IsConditional(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -49,7 +49,7 @@ bool CW65Operation::IsConditional(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65Operation::IsAddress(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -59,7 +59,7 @@ bool CW65Operation::IsAddress(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65Operation::IsData(void) const
 {
-    return false;
+	return false;
 }
 
 
@@ -69,7 +69,7 @@ bool CW65Operation::IsData(void) const
 //////////////////////////////////////////////////////////////////////////
 size CW65Operation::GetDone8(void) const
 {
-    return 0;
+	return 0;
 }
 
 
@@ -79,7 +79,7 @@ size CW65Operation::GetDone8(void) const
 //////////////////////////////////////////////////////////////////////////
 size CW65Operation::GetDone16(void) const
 {
-    return 0;
+	return 0;
 }
 
 
@@ -89,6 +89,6 @@ size CW65Operation::GetDone16(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CW65Operation::IsTrailingSide(void)
 {
-    return !IsInitialSide();
+	return !IsInitialSide();
 }
 

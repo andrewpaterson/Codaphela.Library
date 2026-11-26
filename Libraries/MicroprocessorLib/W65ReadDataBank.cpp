@@ -18,7 +18,7 @@ void CW65ReadDataBank::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CW65ReadDataBank::Execute(CW65CCore* pcCPU)
 {
-    pcCPU->SetDataBank(pcCPU->GetIOData());
+	pcCPU->SetDataBank(pcCPU->GetIOData());
 }
 
 
