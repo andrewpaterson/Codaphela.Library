@@ -237,8 +237,8 @@ bool PrivateAssertStringStartsWith(const char* szExpected, const char* szActual,
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (tExpected != tActual)
 	{
@@ -259,8 +259,8 @@ bool PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, char* szPrefix,
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertBool(bool bExpected, bool bActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (!((((bExpected == 0) && (bActual == 0))) || (((bExpected != 0) && (bActual != 0)))))
 	{
@@ -281,8 +281,8 @@ bool PrivateAssertBool(bool bExpected, bool bActual, char* szPrefix, size iLine,
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertChar(char cExpected, char cActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[5];
-	char szActual[5];
+	char	szExpected[5];
+	char	szActual[5];
 
 	if (cExpected != cActual)
 	{
@@ -323,8 +323,8 @@ bool PrivateAssertInt(uint32 iExpected, uint32 iActual, const char* szPrefix, si
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertInt(int32 iExpected, int32 iActual, const char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -345,8 +345,8 @@ bool PrivateAssertInt(int32 iExpected, int32 iActual, const char* szPrefix, size
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -386,8 +386,8 @@ bool PrivateAssertSize(size iExpected, size iActual, char* szPrefix, size iLine,
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertLSize(lsize iExpected, lsize iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -428,8 +428,8 @@ bool PrivateAssertIntHex(uint32 iExpected, uint32 iActual, char* szPrefix, size 
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertIntHex(int32 iExpected, int32 iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -574,8 +574,8 @@ bool PrivateAssertByte(int8 iExpected, uint8 iActual, char* szPrefix, size iLine
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertByte(int8 iExpected, int8 iActual, char* szPrefix, size iLine, char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -616,8 +616,8 @@ bool PrivateAssertByteHex(uint8 iExpected, uint8 iActual, char* szPrefix, size i
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertByteHex(int8 iExpected, int8 iActual, char* szPrefix, size iLine, char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -658,8 +658,8 @@ bool PrivateAssertShort(int16 iExpected, uint16 iActual, char* szPrefix, size iL
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertShort(int16 iExpected, int16 iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -700,8 +700,8 @@ bool PrivateAssertShortHex(uint16 iExpected, uint16 iActual, char* szPrefix, siz
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertShortHex(int16 iExpected, int16 iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -722,8 +722,8 @@ bool PrivateAssertShortHex(int16 iExpected, int16 iActual, char* szPrefix, size 
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertLongLongInt(int64 iExpected, int64 iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -746,8 +746,8 @@ bool PrivateAssertLongLongInt(int64 iExpected, int64 iActual, char* szPrefix, si
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertLongLongIntHex(int64 iExpected, int64 iActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -768,8 +768,8 @@ bool PrivateAssertLongLongIntHex(int64 iExpected, int64 iActual, char* szPrefix,
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertLongHex(int64 iExpected, int64 iActual, char* szPrefix, size iLine, char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (iExpected != iActual)
 	{
@@ -914,8 +914,8 @@ bool PrivateAssertFloat3(SFloat32Vec3 fExpected, SFloat32Vec3* pfActual, int iDe
 bool PrivateAssertMemory(const void* pvExpected, void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile)
 {
 	size	i;
-	char 	szExpected[32];
-	char 	szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 	uint8	uiExpected;
 	uint8	uiActual;
 
@@ -980,8 +980,8 @@ int	zerocmp(void* pv, size iSize)
 bool PrivateAssertZero(void* pvActual, size iSize, char* szPrefix, size iLine, const char* szFile)
 {
 	int		i;
-	char 	szExpected[32];
-	char 	szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	i = zerocmp(pvActual, iSize);
 	if (i != 0)
@@ -1003,8 +1003,8 @@ bool PrivateAssertZero(void* pvActual, size iSize, char* szPrefix, size iLine, c
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertNegative(int i, char* szPrefix, size iLine, const char* szFile)
 {
-	char 	szExpected[32];
-	char 	szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (i >= 0)
 	{
@@ -1025,8 +1025,8 @@ bool PrivateAssertNegative(int i, char* szPrefix, size iLine, const char* szFile
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertPositive(int i, char* szPrefix, size iLine, const char* szFile)
 {
-	char 	szExpected[32];
-	char 	szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (i <= 0)
 	{
@@ -1099,8 +1099,8 @@ bool PrivateAssertNumber(const char* szExpected, CNumber* pcActual, char* szPref
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertPointer(const void* pvExpected, const void* pvActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (pvExpected != pvActual)
 	{
@@ -1121,8 +1121,8 @@ bool PrivateAssertPointer(const void* pvExpected, const void* pvActual, char* sz
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertNotPointer(const void* pvExpected, const void* pvActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[32];
-	char szActual[32];
+	char	szExpected[32];
+	char	szActual[32];
 
 	if (pvExpected == pvActual)
 	{
@@ -1143,8 +1143,8 @@ bool PrivateAssertNotPointer(const void* pvExpected, const void* pvActual, char*
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, char* szPrefix, size iLine, const char* szFile)
 {
-	char szExpected[33];
-	char szActual[33];
+	char	szExpected[33];
+	char	szActual[33];
 
 	if ((pucActual == NULL) && (pucExpected == NULL))
 	{

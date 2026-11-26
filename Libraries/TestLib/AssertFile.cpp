@@ -190,7 +190,7 @@ bool PrivateAssertDirectory(char* szExpectedDirectoryName, char* szActualDirecto
 
 		szActualFilename.Init();
 		cFileUtil.GetFileName(&szActualFilename, pszActualFilename->Text());
-		
+
 		bValid = PrivateAssertString(szExpectedFilename.Text(), szActualFilename.Text(), true, szPrefix, iLine, szFile);
 		if (!bValid)
 		{
