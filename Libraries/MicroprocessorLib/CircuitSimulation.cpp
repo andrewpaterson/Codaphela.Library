@@ -27,6 +27,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "CircuitSimulation.h"
 
 
+const char*	gaszPowerUpStateNames[POWER_UP_STATES] = { "Zero", "Random", "HalfSupply" };
+
+
 //The id the next circuit simulation is given.
 int64	giNextCircuitSimulationID = 1;
 

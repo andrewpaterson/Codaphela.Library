@@ -35,6 +35,13 @@ enum EPowerUpState
 };
 
 
+#define POWER_UP_STATES		3
+
+
+//The power-up states' names, by EPowerUpState, as files name them.
+extern const char*	gaszPowerUpStateNames[POWER_UP_STATES];
+
+
 //Logicim's CircuitSimulation, with its Simulation folded in: a circuit and the timeline it runs on.  Logicim's
 //Simulation only wraps the timeline; its GetTime, RunSimultaneous, RunToTime and RemoveEvent are here, and the events
 //that Logicim passes the Simulation are passed the timeline, whose context is the circuit simulation.  It owns both, its CSubcircuitTopSimulation, made in Init as Logicim's editor does, and the

@@ -26,6 +26,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 
 #define POWER_PIN_FEED		"In"
+#define POWER_SOURCE_TYPE	"Power Source"
 
 
 //Logicim's PowerSource: drives its Power port's trace with a supply's voltage.  It is switched on and off, and ramps
@@ -66,6 +67,9 @@ public:
 protected:
 			void			FollowFeed(CTimeline* pcTimeline);
 };
+
+
+typedef CArrayTemplatePtr<CPowerSource>	CArrayPowerSourcePtr;
 
 
 #endif // __POWER_SOURCE_H__

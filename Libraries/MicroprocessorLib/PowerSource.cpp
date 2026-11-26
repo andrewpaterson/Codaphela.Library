@@ -157,7 +157,7 @@ void CPowerSource::SetFeed(float32 fDropout)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-const char* CPowerSource::GetType(void) { return "Power Source"; }
+const char* CPowerSource::GetType(void) { return POWER_SOURCE_TYPE; }
 CPowerOutPort* CPowerSource::GetPowerOutPort(void) const { return mpcPowerOutPort; }
 bool CPowerSource::IsOn(void) const { return mpcPowerOutPort->IsOn(); }
 void CPowerSource::SetOnAtStart(bool bOnAtStart) { mbOnAtStart = bOnAtStart; }

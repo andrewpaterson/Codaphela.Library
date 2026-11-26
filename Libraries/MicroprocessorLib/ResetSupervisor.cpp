@@ -200,12 +200,14 @@ void CResetSupervisor::ScheduleRelease(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// While it holds the reset from power on.
+// While it holds the reset from power on and will let it go: VCC has
+// passed the trip voltage.  On a supply that stays under it, it holds
+// reset for good.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CResetSupervisor::IsPoweringUp(void)
 {
-	return mbPowered && mbAsserting && mbPowerOnReset;
+	return mbPowered && mbAsserting && mbPowerOnReset && (NumEvents() > 0);
 }
 
 
