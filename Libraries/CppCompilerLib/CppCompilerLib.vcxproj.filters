@@ -1998,6 +1998,7 @@
       <Filter>Source\Preprocessor\Tokeniser</Filter>
     </ClInclude>
     <ClInclude Include="CPPTokens.h" />
+    <ClInclude Include="CppToken.h" />
     <ClInclude Include="PPTokenMemory.h">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClInclude>

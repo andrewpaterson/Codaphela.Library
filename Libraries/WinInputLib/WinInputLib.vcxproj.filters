@@ -157,6 +157,9 @@
     <None Include="xml\WinRawStd104ButtonKeyboard.xml">
       <Filter>XML\Devices\WinRaw\Keyboards</Filter>
     </None>
+    <None Include="xml\WinRawStd3ButtonMouse.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards</Filter>
+    </None>
     <None Include="xml\WinRawTerminalServerKeyboard.xml">
       <Filter>XML\Devices\WinRaw\Keyboards</Filter>
     </None>
@@ -180,6 +183,11 @@
     </None>
     <None Include="xml\XInputXBox360Wireless.xml">
       <Filter>XML\Devices\XInput</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VirtualDevices.xml">
+      <Filter>XML</Filter>
     </None>
   </ItemGroup>
 </Project>

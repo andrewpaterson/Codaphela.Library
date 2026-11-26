@@ -225,6 +225,7 @@
     <None Include="xml\WinRawGeniusPS2Keyboard.xml" />
     <None Include="xml\WinRawIGameFlexibleKeyboard.xml" />
     <None Include="xml\WinRawStd104ButtonKeyboard.xml" />
+    <None Include="xml\WinRawStd3ButtonMouse.xml" />
     <None Include="xml\WinRawTerminalServerKeyboard.xml" />
     <None Include="xml\WinRawMicrosoftMultimediaKeyboard.xml" />
     <None Include="xml\WinRawMicrosoftWirelessKeyboard.xml" />
@@ -233,6 +234,9 @@
     <None Include="xml\XInputStdGamepad.xml" />
     <None Include="xml\XInputXBox360Wired.xml" />
     <None Include="xml\XInputXBox360Wireless.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VirtualDevices.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

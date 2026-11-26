@@ -289,6 +289,9 @@
   <ItemGroup>
     <None Include="xml\Categories.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="VirtualDevices.xml" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

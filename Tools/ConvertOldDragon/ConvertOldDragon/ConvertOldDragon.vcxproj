@@ -240,6 +240,9 @@
       <Project>{6b1f4c2e-3a77-4e0d-9c51-8d2a7f10e3b4}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ConvertAll.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

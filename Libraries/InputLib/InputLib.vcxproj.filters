@@ -326,4 +326,9 @@
       <Filter>XML\Devices</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="VirtualDevices.xml">
+      <Filter>XML</Filter>
+    </None>
+  </ItemGroup>
 </Project>

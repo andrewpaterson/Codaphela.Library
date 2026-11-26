@@ -804,6 +804,7 @@
     <ClInclude Include="Project.h" />
     <ClInclude Include="CPPTokeniser.h" />
     <ClInclude Include="CPPTokens.h" />
+    <ClInclude Include="CppToken.h" />
     <ClInclude Include="CPPToken.h" />
     <ClInclude Include="CTBoolean.h" />
     <ClInclude Include="CTChar.h" />
