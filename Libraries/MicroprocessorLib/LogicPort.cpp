@@ -352,7 +352,9 @@ void CLogicPort::SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent)
 // Schedules a transition for when another port's slew crosses this
 // port's input threshold: the low threshold when the slew ends low, the
 // high one when it ends high and halfway between them otherwise.  Returns
-// true if one was scheduled.
+// true if one was scheduled.  A slew that starts on its end's side of the threshold
+// crosses nothing (it starts from a pulled level, or the input's
+// thresholds moved with its VCC), so the input's level doesn't change.
 //
 // A slew that doesn't change the voltage crosses nothing, but if the
 // trace was undriven before it the input has still changed, from
@@ -404,16 +406,28 @@ bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTra
 	if (fEndVoltage <= fLowVoltageIn)
 	{
 		fTransitionVoltage = fLowVoltageIn;
+		if (fStartVoltage <= fTransitionVoltage)
+		{
+			return false;
+		}
 		iTransitionTime = CalculateLowTransitionTime(pcSlew, fStartVoltage, fEndVoltage, fTransitionVoltage);
 	}
 	else if (fEndVoltage >= fHighVoltageIn)
 	{
 		fTransitionVoltage = fHighVoltageIn;
+		if (fStartVoltage >= fTransitionVoltage)
+		{
+			return false;
+		}
 		iTransitionTime = CalculateHighTransitionTime(pcSlew, fStartVoltage, fEndVoltage, fTransitionVoltage);
 	}
 	else
 	{
 		fTransitionVoltage = (fHighVoltageIn + fLowVoltageIn) / 2;
+		if ((fStartVoltage < fTransitionVoltage) == (fEndVoltage < fTransitionVoltage))
+		{
+			return false;
+		}
 		iTransitionTime = CalculateTransitionTime(fStartVoltage, fEndVoltage, iSlewTime, fTransitionVoltage);
 	}
 

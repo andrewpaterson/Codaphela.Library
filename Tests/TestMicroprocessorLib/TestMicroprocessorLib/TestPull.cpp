@@ -67,7 +67,8 @@ void TestPullHolds(void)
 //
 // An output driving a pulled-up line low wins; let go, the line goes back
 // to the pull and its reader is told; driven low again it slews from the
-// pulled level, so the reader sees the fall.
+// pulled level, so the reader sees the fall.  Driven high from the pulled
+// 3.3V it falls to its 3.1V, never below VIH: no transition.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPullStrongWins(void)
@@ -98,6 +99,13 @@ void TestPullStrongWins(void)
 	cBoard.Run();
 	AssertInt(TV_Low, cBoard.Value(pcLine));
 	AssertInt(TV_High, cBoard.Value(pcOut));
+
+	pcOutput->WriteImpedance(cBoard.mpcTimeline);
+	cBoard.Run();
+	pcOutput->Write(cBoard.mpcTimeline, true);
+	cBoard.Run();
+	AssertFloat(3.1f, TestPullVoltage(&cBoard, pcLine), 2);
+	AssertInt(TV_Low, cBoard.Value(pcOut));
 
 	cBoard.Kill();
 }
