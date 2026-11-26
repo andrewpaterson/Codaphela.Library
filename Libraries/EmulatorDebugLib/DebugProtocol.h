@@ -107,7 +107,7 @@ enum EDebugMessage
 	DM_Running,					//SDebugRunning.
 	DM_Registers,				//SDebugRegisters then uint64[uiNumRegisters].
 	DM_Memory,					//SDebugMemoryList then SDebugMemoryRange[uiCount], each uiSize the bytes there were memory for
-								//from its start, then each one's bytes in turn (DEBUG_MAX_MEMORY in all, the last cut short).
+	//from its start, then each one's bytes in turn (DEBUG_MAX_MEMORY in all, the last cut short).
 	DM_Error,					//SDebugError.
 	DM_Disassembly,				//SDebugDisassembly then SDebugInstruction[uiCount].
 	DM_ProcessStarted,			//SDebugProcess.

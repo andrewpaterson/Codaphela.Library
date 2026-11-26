@@ -31,7 +31,7 @@ along with Codaphela EmulatorDebugLib.  If not, see <http://www.gnu.org/licenses
 class CFlatW65C816DebugTarget : public CDebugTarget
 {
 protected:
-	CFastW65C816		mcMPU;
+	CFastW65C816	mcMPU;
 	uint8*			mpuiMemory;
 	uint32			muiMemorySize;
 	CDebugDecoder*	mpcDecoder;
