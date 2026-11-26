@@ -1,6 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{0e47841a-69f1-4519-aa17-16e1896da6ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{4aa4ded1-a1f4-4c36-8f19-7220a7efb4c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\gerberlib">
+      <UniqueIdentifier>{a9cd0836-ba2c-4a06-b2ee-6d015fa29c0f}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{3185b6c8-34a7-420f-ba0b-e2177c163239}</UniqueIdentifier>
     </Filter>
@@ -551,5 +560,10 @@
     <ClInclude Include="GerberCommandObjectAttribute.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\gerberlib\index.md">
+      <Filter>Docs\libraries\gerberlib</Filter>
+    </None>
   </ItemGroup>
 </Project>
