@@ -289,10 +289,14 @@ In Debug builds every change is followed by [`CObjects::ValidateObjectsConsisten
 exactly one closer, and an unattached object has no attached froms; checked for every object, that is the same as
 every object finding the root by its shortest path, without walking to it.
 
-[`TestStandardLib/TestDistToRootUpdate.cpp`] checks the distances against a breadth first search from the root after
-every step of random graphs (through arrays, sets, indexes and maps, freeing as it goes), and has the hub,
+[`TestStandardLib/TestDistToRootUpdate.cpp`] checks the distances against a breadth first search from the root
+after every step of random graphs (through arrays, sets, indexes and maps, freeing as it goes), and has the hub,
 back-pointer, alternate-path, long-chain and unattached cases and the speed tests; on the 65C64 and W65C816 it runs
-with smaller sizes.  The speed tests turn validation off.  The free order is tested in
+with smaller sizes.  The speed tests turn validation off.  Code that builds many objects at once (a font's glyphs)
+does the same, [`CObjects::DisableValidation`] then [`CObjects::EnableValidation`] and one
+[`CObjects::ValidateObjectsConsistency`]: validating after every change made TestFont take about 490 seconds.
+Objects are allocated from free lists (the unknowns' [`CMemoryAllocator`]), so AddressSanitizer doesn't see a use
+of an object after it is freed.  The free order is tested in
 [`TestStandardLib/TestObjectFreeOrdering.cpp`].
 
 ## What profiling and the review changed

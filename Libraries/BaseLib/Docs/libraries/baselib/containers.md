@@ -88,6 +88,10 @@ Every other map in BaseLib is ordered: [`CMapBlock`] and [`CSetBlock`] (a sorted
 allocation), the [`CIndexTree`] trie and the red-black tree.  The hash map gives O(1) lookups, and replaced eight
 hash tables written by hand across the compiler, SupportLib and StandardLib.
 
+[`CIndexBlock`]'s iteration with an [`SIndexTreeMemoryIterator`] hands back the pointer stored at the start of each
+value, as for a map of pointers: to iterate values that are structs, use the [`SIndexTreeMemoryUnsafeIterator`]
+form, which hands back the value itself.
+
 ### Layout
 
 [`CHashBlockBase`]`<SIZE>` ([`CHashBlock`], [`CHashLargeBlock`]) knows only entry sizes and offsets:
