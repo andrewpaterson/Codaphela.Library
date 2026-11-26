@@ -18,22 +18,24 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 ## Documentation
 
 - A library's documentation pages are in its `Docs` folder, laid out as the website's paths and listed as items of
-  its `.vcxproj`: `Libraries/CppCompilerLib/Docs/compiler` (the compiler, and `65c64/calling-convention.md`),
-  `Libraries/MicroprocessorLib/Docs/65c64/emulator.md` (the 65C64 simulators), `Libraries/WindowLib/Docs/
-  libraries/windowlib` (WindowLib's design: layout, components, docking, the text area, drawing, input, backends).
-  The website (MkDocs, `../HCP65/Website`) gathers every repository's `Docs` folders through its `mkdocs.yml`'s
-  `extra.sources`.
-  `../HCP65/Website/DocsPlan.txt` is the plan for the documentation.
+  its `.vcxproj`.  Design pages (how it is designed and why, its decisions and what isn't done): BaseLib's,
+  StandardLib's and WindowLib's in `Libraries/<Lib>/Docs/libraries/<lib>`, the compiler's in
+  `Libraries/CppCompilerLib/Docs/compiler/design`.  The compiler's user pages are
+  `Libraries/CppCompilerLib/Docs/compiler` (and `65c64/calling-convention.md`), the 65C64 simulators'
+  `Libraries/MicroprocessorLib/Docs/65c64/emulator.md`.  The website (MkDocs, `../HCP65/Website`) gathers every
+  repository's `Docs` folders through its `mkdocs.yml`'s `extra.sources`; `../HCP65/Website/DocsPlan.txt` is the
+  plan for the documentation.  Read a library's design pages before changing it.
 - Name code in a page with a reference: [`CTextArea`], [`CTextArea::ReplaceRanges`], [`CShape::Init(int)`] or
   [`BaseLib/Chars.h`].  The site build links it to its line on GitHub and fails on one that names nothing; a plain
   `CTextArea` naming a real class is a warning.  A span that isn't C++ but looks it is written `#!text abs`.
-- A finished plan becomes a design page and is deleted, the page naming its last commit (`DocsPlan.txt` decision 17).
-- Plans and design notes are text files beside their code; list them with
+- A finished plan becomes a design page and is deleted, the page naming its last commit (`DocsPlan.txt` decision 17);
+  one that code or tests cite by step is kept as that record, with a note at its end, and isn't added to.
+- Plans still being built from are text files beside their code; list them with
   `find Libraries Tests -name "*.txt" -not -path "*/Input/*" -not -path "*/Output/*"`.  The larger ones:
   `Libraries/CppCompilerLib/Cpp14CompliancePlan.txt`, `Libraries/CppCompilerLib/W65C816.txt`,
-  `Libraries/CppCompilerLib/CodeGenerationHandoff.txt`, `Libraries/StandardLib/ThreadSafetyPlan.txt`,
-  `Libraries/StandardLib/WeakReferencesPlan.txt`, `Libraries/BaseLib/CodabaseTransactions.txt`,
-  `Libraries/MicroprocessorLib/65C64Simulator.txt` (the 65C64 simulators' rulings), `Libraries/WindowLib/Vulkan.txt`.
+  `Libraries/CppCompilerLib/SemanticLayerPlan.txt`, `Libraries/CppCompilerLib/CodeGenerationHandoff.txt` (rulings),
+  `Libraries/BaseLib/CodabaseLayers.txt`, `Libraries/MicroprocessorLib/65C64Simulator.txt` (the 65C64 simulators'
+  rulings), `Libraries/WindowLib/Vulkan.txt`.
 
 ## Building and testing
 
@@ -96,6 +98,10 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   -c -DWIN_GNU_32 -D_DEBUG -I.` over the files each `.vcxproj` lists, from `Libraries`.  Windows SDK headers in lower
   case; no `##` pasting of string literals.
 - Warning work leaves CppCompilerLib out.
+- Threads: run a TSan build under `setarch -R` (or gdb), and a race TSan saw once in many runs again many times;
+  TestThreadLib wants the arguments `--test param1 --param:2`; a crashed run leaves `/dev/shm` names with
+  backslashes (delete them with `find -name`).  A sweep's script marks most runs "FAIL rc=1": read each log's totals.
+  Never wait on `pgrep -f` in a loop (it matches its own shell); don't edit sources a running `65` suite compiles.
 - A `65` suite's run copies its programs into one shared `Output` copy (`TestProject65CopyDirectory`): don't start a
   one-test run (`TEST_PROJECT65_ONLY`) while a whole run of the same suite is going, nor run it on both processors at
   once.  Its switches are on the site's `compiler/testing.md`.
