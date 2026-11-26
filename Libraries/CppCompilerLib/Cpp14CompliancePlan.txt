@@ -605,3 +605,63 @@ Where things are
   W65C816.txt, IR.txt, CPP65Generator.txt    the back ends and the IR
   CppCompilerLib/Docs/compiler/language.md    what the compiler does and doesn't, for its users: keep its "What
                          isn't supported yet" table in step with B above
+
+
+Status from Claude's notes (2026-11-26)
+---------------------------------------
+
+What the compliance session's private notes held that this file didn't, still true on 2026-11-26.  The design, the
+rulings and what is done are in Docs/compiler/design/front-end.md.
+
+Where the conformance lists stand (TestCPPConformance.cpp, 2026-11-26): every group empty but Clause5 on the 65C64
+(ConstantInactiveUnionMemberRefused, B 1) and Clause7 on both targets (DclConstexprObjectDefaultConstructed(C), a
+constexpr object of a class with a constexpr default constructor refused; DclConstexprStaticMemberNeverInitialisedRefused
+(A)): both found by SemanticLayerPlan.txt's stage 0 (2026-11-22) and left to its stage 11, which didn't take them.
+TestCPPConformanceChecked.h lists 37 cases the semantic pass gets wrong: 20 need constant evaluation, 6 are templates',
+5 exceptions' and the rest one-offs.
+
+Checking a change on dev7 (Linux), in private copies so other sessions' runs and Output folders aren't touched:
+  - TestCppCompilerLib: build ../build/TestCppCompilerLib64Release, copy Tests/TestCppCompilerLib to a private tree with
+    CommonLibraries/Libraries and HCP65 symlinked beside it, run python3 RunParallel.py -exe <exe> -jobs 12 (about
+    100 s).  A group that "did not finish (exit -5)" hit a failed assert: run <exe> -only <File> under gdb -batch -ex
+    "handle SIGTRAP nostop noprint nopass" -ex run --args to see every failure.
+  - TestLibc65 (../build/TestLibc6564Release, argument 65C64 or W65C816, about 10 s each): mirror
+    HCP65/Tests/TestLibc65/TestLibc65 with HCP65/Libraries and CommonLibraries symlinked at the same relative places.
+  - The *65 compiles: ../build/Test{BaseLib,StandardLib,SupportLib}65_64Release with TEST_PROJECT65_ONLY=NoSuchTest
+    (TEST_PROJECT65_WARN_NARROWING=1 for the narrowing warnings), mirroring Tests/<Suite>65/<Suite>65 with
+    Tests/TestBaseLib and the others symlinked beside it (40 to 70 s each).
+  - The kernal and ModPlay: hcp65build HCP65Kernal.hcp65build -config "Debug|W65C816" in HCP65/Kernal; the sum of the
+    "Segment ..., N bytes" lines is the size.  Build hcp65build and HCP65IDERef privately from HCP65-IDE/HCP65IDE: the
+    ../build/HCP65IDERelease ones go stale.
+  - TestHCP65Lib (about 20 minutes) and TestBuildLib the same way, mirroring only the test's own folder.  IDE checks:
+    python3 IDEChecks.py <HCP65IDERef> <names> in HCP65-IDE/HCP65IDE/Checks, then delete __pycache__.
+  - A baseline for an A/B: git worktree add --detach <scratch>/wt/<repo> HEAD for HCP65 and CommonLibraries, removed
+    after.
+  - The scripts in /home/r2d2/.claude/projects/-home-r2d2-Codaphela/sweep-clause4-5/ (README.txt there): verify.sh
+    (about 7 minutes; one snapshot folder, so one verification at a time), snapcommit.sh (commits the snapshot's
+    files; refuses if HEAD changed one since), try.sh prints only Try( lines (nothing printed: the test crashed, run it under gdb),
+    measure.py, judge.py and peel2.py measure a clause and split a failing case.  Don't run two lists.py or try.sh runs
+    at once.  The snapshot's library compiles count 4 fewer asserts than the main tree's (it leaves out the Log.txt
+    files the tests copy).  When lists.py says Exceptions cases are NOT DONE after a change, the change did it:
+    SNAP_LISTS=1 lists.py -why.
+  - The conformance lists alone missed every regression of the clause 6 to 14 fixes: they showed in TestCPP65Generator's
+    and TestCPPW65C816's library compiles, TestBaseLib65 and the HCP65 builds.  Run verify.sh and hcpcheck.sh both.
+
+Gotchas the fixes found, for whoever changes the same places:
+  - Mem-initialiser names are resolved after BeginFunction: StandardLib names inherited injected class names
+    (": CPrimitive(x)").
+  - An anonymous union inside a class isn't constructed on its own (BaseLib's ArrayTemplateEmbedded).
+  - While a class is laid out there is no OuterFunction, so protected access from a class body can't be asked of
+    CCPPAccess.
+  - TestCPP65IR has a template with a block declaration T Back(T);: don't limit names found in a block (two-phase
+    lookup).
+  - StandardLib's SMemberCall Init(O*, void(M::*)(...)) needs the old member-pointer deduction after the pattern match.
+  - BaseLib's SFloat32Vec3 has using SVec3::operator=;: a class's using-declarations count as its own operator=.
+  - CCPPInstantiator::ExpandArguments caches expansions by argument list, bindings and function.
+  - g++ -Wimplicit-fallthrough accepts only a comment line that is nothing but "//Falls through.".
+  - Uncommitted edits in the main tree can be committed by the user while a session is away (it happened 2026-11-20,
+    "Half-done CPP deduction stuff."): work that isn't ready belongs in the snapshot, not the main tree.
+
+Offered to the user and not asked for (2026-11-19): Libc65's strcpy, strcat, strcmp, strchr and strrchr have one
+assembly body each meant to pass 64KB on the W65C816 (the bank moves on when Y wraps), and no test runs them on a long
+string.

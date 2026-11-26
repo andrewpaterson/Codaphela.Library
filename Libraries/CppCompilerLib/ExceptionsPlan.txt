@@ -1246,3 +1246,7 @@ Progress
      - On the way: the other session's 736f445bb (getters return const X*) broke HCP65IDE.cpp and four other apps;
        it fixed it in 24bc0f0fb.
      So the plan is finished.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/front-end.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

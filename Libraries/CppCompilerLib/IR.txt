@@ -898,3 +898,7 @@ Steps
 
 Each step is measured by instruction and cycle counts of the runnable projects on
 CFast65C64 and C65C64.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/ir.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

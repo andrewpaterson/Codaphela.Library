@@ -712,3 +712,29 @@ Questions for the user
 	frame".  The direct page frame first; step 7 measures the other where it may win
 	(leaf functions).
 4.	Answered (2026-10-25): Assembler65Lib's style.
+
+
+Status from Claude's notes (2026-11-26)
+---------------------------------------
+
+What the memory notes of 2026-10-29 to 2026-11-03 said about step 7 that this file didn't, checked against the code
+on 2026-11-26.  The design and the rulings are in Docs/compiler/design/w65c816.md.
+
+Step 7, ideas from the speed rounds not built yet:
+- The phi copies left are mostly real interference (TimSort's right = mid): they need live range splitting or better
+  scheduling, not another placement order.
+- Runtime routine operands written straight into the scratch bytes, beyond the fused case (CanFuse into
+  IsScratchCall's operands).
+- The dead high words of sign extensions: the computations, not only their stores.
+Ideas from the same notes that were built since: words known to be 0 read as the constant (FindZeroWords), two word
+loads and stores through Y for IRF_InArray indices (FoldIndices), i8 values not masked when only their low byte is
+read (FindLowByteUses), register arguments, small functions inlined across units (CIRImports), R816_Mul64 in
+assembly, faster R816_UDiv32/URem32.
+
+Where the copies were (TestBaseLib65 816, 2026-10-31, listing lines weighted by the profile's line entries), for
+whoever takes the first idea up: slot to slot copies about 1.5G cycles (phi copies just before a jump about 45% of
+them, operands copied into the runtime's scratch bytes about 17%), pei pushes about 1.0G, aligned frames' argument
+copies about 0.2G, out of about 19.4G.
+
+Measuring: compare like with like.  A suite run beside another (in parallel) read about 0.13% more cycles than the
+same suite run alone.

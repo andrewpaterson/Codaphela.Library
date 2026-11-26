@@ -831,6 +831,12 @@
     <None Include="Docs\compiler\w65c816.md" />
     <None Include="Docs\compiler\65c64.md" />
     <None Include="Docs\compiler\testing.md" />
+    <None Include="Docs\compiler\design\index.md" />
+    <None Include="Docs\compiler\design\front-end.md" />
+    <None Include="Docs\compiler\design\ir.md" />
+    <None Include="Docs\compiler\design\w65c816.md" />
+    <None Include="Docs\compiler\design\65c64.md" />
+    <None Include="Docs\compiler\design\self-hosting.md" />
     <None Include="Docs\65c64\calling-convention.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

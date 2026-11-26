@@ -407,3 +407,7 @@ What was rebuilt (8):
   one in that Output, Kernal/Output's Debug and Release ones with their .lines, and the emulator's Input/Kernal.rom of
   2026-11-03, which was in the repository (HCP65 b2c2534).
   Not done: the emulator and the IDE themselves weren't run, as either needs a window on the user's screen.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/w65c816.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

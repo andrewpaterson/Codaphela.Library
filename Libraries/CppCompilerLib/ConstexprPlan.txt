@@ -126,3 +126,7 @@ What could go wrong
   - A header's constants now depend on the bodies of functions, so what the header cache and the lazy parser may skip changes: a constexpr function's body is needed by any unit that uses it in a constant.
   - The function limit (CCPPCompileOptions::muiFunctionLimit, muiAttempts) and the inliner's imports must not count or see constant functions' IR.
   - Two evaluators: anything the tree folder gets wrong is now visible as a disagreement.  That is a gain, but expect to fix the folder.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/front-end.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

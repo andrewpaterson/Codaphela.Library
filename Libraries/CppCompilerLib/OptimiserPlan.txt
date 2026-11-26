@@ -717,3 +717,7 @@ What was done, stage by stage (2026-11-21 and 22)
 	- The quotient of a division by a constant as a copy (stage 10): a copy is the back end's, and no
 	  pass takes one away.
 	- Carrying nowrites between modules (stage 3): sound, and it changes the code; not asked for.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/ir.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

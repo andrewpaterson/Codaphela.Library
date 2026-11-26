@@ -226,3 +226,7 @@ Risks
 - Rounding a large allocation up to whole banks costs up to 64KB less one each time; the machine's large
   allocations are few and big (modules, images, file buffers).
 - gameengine-09's exceptions branch touches CPP65IRFrontEnd*.cpp: tell it before step 4.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/w65c816.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

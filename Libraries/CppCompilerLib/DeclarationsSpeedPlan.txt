@@ -312,3 +312,7 @@ What the stages passed (stage 5).
 	  as a set.  A header's class's warning (a function that overrides and isn't declared override) is now
 	  given by the units that lay the class out and not by every unit that names it, so a few are said in
 	  fewer units (70 lines to 67 in TestBaseLib65 on the 65C64); none is no longer said at all.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/front-end.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.

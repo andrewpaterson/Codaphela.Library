@@ -932,3 +932,7 @@ Decisions for the user (when the rest of Part B is done)
   - The library: only the B-4 headers, or the whole C++14 library, which is a separate project of about the same size again.  Answered 2026-11-19: freestanding first, then the standard libraries (question 2 above).
 
 Compliance can only be measured by tests: add a test file for each item as it is done, in TestCppCompilerLib.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/compiler/design/front-end.md; this file is kept only as the record code, tests and other plans cite by
+step or number.  Don't add to it: change the page.
