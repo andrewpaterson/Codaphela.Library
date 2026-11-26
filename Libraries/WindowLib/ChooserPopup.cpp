@@ -51,6 +51,7 @@ void CChooserPopup::Init(Ptr<CWindow> pWindow, SDialogLook* psLook, Ptr<CFont> p
 	maiRows.Init();
 	mcMatcher.Init("");
 	mbSortMatches = false;
+	mbShorterFirst = true;
 	mbOpensAbove = false;
 	mbDriven = false;
 	mszFilter.Init();
@@ -94,6 +95,7 @@ void CChooserPopup::Class(void)
 	U_Unknown(CArrayInt, maiRows);
 	U_Unknown(CNameMatcher, mcMatcher);
 	U_Bool(mbSortMatches);
+	U_Bool(mbShorterFirst);
 	U_Bool(mbOpensAbove);
 	U_Bool(mbDriven);
 	U_String(mszFilter);
@@ -246,6 +248,34 @@ void CChooserPopup::AddButton(const char* szCaption)
 void CChooserPopup::SetSortMatches(bool bSortMatches)
 {
 	mbSortMatches = bSortMatches;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Sorted matches as good as each other are the shorter name first (the
+// default: the matcher's score counts a name's length against it), or
+// stay in the order they were added.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChooserPopup::SetShorterFirst(bool bShorterFirst)
+{
+	mbShorterFirst = bShorterFirst;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What an item's match is sorted by: its score, without what its name's
+// length took off it unless shorter names go first.
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CChooserPopup::GetSortScore(size uiItem)
+{
+	SGoToItem*	psItem;
+
+	psItem = mcItems.Get(uiItem);
+	return mbShorterFirst ? psItem->sMatch.iScore : psItem->sMatch.iScore + (int32)psItem->szName.Length();
 }
 
 
@@ -703,7 +733,7 @@ void CChooserPopup::Filter(void)
 			iBest = (int)i;
 			for (j = i + 1; j < maiRows.NumElements(); j++)
 			{
-				if (mcItems.Get((size)maiRows.GetValue(j))->sMatch.iScore > mcItems.Get((size)maiRows.GetValue((size)iBest))->sMatch.iScore)
+				if (GetSortScore((size)maiRows.GetValue(j)) > GetSortScore((size)maiRows.GetValue((size)iBest)))
 				{
 					iBest = (int)j;
 				}

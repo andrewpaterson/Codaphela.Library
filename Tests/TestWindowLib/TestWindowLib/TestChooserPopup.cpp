@@ -948,6 +948,18 @@ void TestChooserPopupDriven(void)
 		AssertInt(1, cListener.miChosen);
 		AssertInt(2, cListener.miClosed);
 
+		//Matches as good as each other, the shorter name first; or, with that off, in the order they were added.
+		pChooser->Open(sPosition, pOwner);
+		pChooser->SetFilterText("Get");
+		AssertString("GetValue,GetLimit,GetSelectedNode", PrintChooserRows(pChooser, &szRows));
+		pChooser->SetShorterFirst(false);
+		pChooser->SetFilterText("Ge");
+		AssertString("GetValue,GetSelectedNode,GetLimit", PrintChooserRows(pChooser, &szRows));
+		pChooser->SetFilterText("getl");
+		AssertString("GetLimit", PrintChooserRows(pChooser, &szRows));
+		pChooser->SetShorterFirst(true);
+		pChooser->Close();
+
 		//It is driven or not from before it is first opened.
 		pChooser->SetDriven(false);
 		AssertTrue(pChooser->IsDriven());

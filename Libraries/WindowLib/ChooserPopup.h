@@ -47,7 +47,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //move through the rows and enter chooses the selected one.  Without one the list has them, and typing finds a row
 //(CListContainer::SetTypeToFind).  A click chooses too.
 //Escape, or a press outside it, closes it.  Filtered items keep the order they were added in unless they are sorted
-//best match first (SetSortMatches).
+//best match first (SetSortMatches); of matches as good, the shorter name is first, unless that is turned off
+//(SetShorterFirst) for items added in an order that says more than their length does, as what is nearest in scope.
 //
 //A driven chooser (SetDriven) is one something else has the keys for, as an editor that goes on being typed in has
 //for the list of what could be written at its caret: it has no title and no field, it doesn't take the keys when it
@@ -84,6 +85,7 @@ protected:
 	CArrayInt				maiRows;  //The item each row shows.
 	CNameMatcher			mcMatcher;
 	bool					mbSortMatches;
+	bool					mbShorterFirst;  //Of matches as good, the shorter name first (the matcher's score); else in the order added.
 	bool					mbOpensAbove;  //Open's position is where its bottom left goes.
 	bool					mbDriven;  //The keys stay with what opened it.
 	CChars					mszFilter;  //A driven chooser's pattern, in place of a field's text.
@@ -108,6 +110,7 @@ public:
 	void			AddPreview(Ptr<CFont> pTitleFont, Ptr<CFontFamily> pCodeFamily);
 	void			AddButton(const char* szCaption);
 	void			SetSortMatches(bool bSortMatches);
+	void			SetShorterFirst(bool bShorterFirst);
 	void			SetOpensAbove(bool bOpensAbove);
 	void			SetDriven(bool bDriven);
 	bool			IsDriven(void) const;
@@ -165,6 +168,7 @@ protected:
 	void			PopupClosed(void);
 	void			Enter(void);
 	const char*		GetPattern(void);
+	int32			GetSortScore(size uiItem);
 	void			Resize(void);
 };
 
