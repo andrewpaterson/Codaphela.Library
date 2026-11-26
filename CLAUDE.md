@@ -85,6 +85,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 ## Testing recipes
 
 - After a StandardLib change run TestStandardLib, TestWindowLib and TestSupportLib.
+- TestCppCompilerLib runs its files as processes side by side with `python3 Tests/TestCppCompilerLib/RunParallel.py
+  -jobs 12` (`-exe` names the binary; the totals are added up into one `Log.txt`); run it from a private copy of the
+  folder when another session may be running it.
 - "All tests, all configurations": every native suite 32- and 64-bit, Debug and Release, plus 64-bit ASan and the
   Size16 builds; TestCppCompilerLib Release x64 only; the `65` suites Release on the 65C64 and the W65C816
   (argument `W65C816`); TestLibc65 also on the W65C816; the apps built Release x64, not run.  Show the matrix and wait
