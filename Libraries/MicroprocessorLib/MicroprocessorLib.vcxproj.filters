@@ -1438,11 +1438,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="PowerPlan.txt">
+      <Filter>Plans</Filter>
+    </None>
     <None Include="65C64Simulator.txt">
       <Filter>Source\Microprocessor\Codaphela\65C64</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="Plans">
+      <UniqueIdentifier>{7c3e9a41-5d2b-4f86-9e0a-3b1f6c8d2e57}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Docs">
       <UniqueIdentifier>{5205fe25-6534-411e-836b-ddc95474957b}</UniqueIdentifier>
     </Filter>

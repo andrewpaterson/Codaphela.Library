@@ -639,6 +639,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="65C64Simulator.txt" />
+    <None Include="PowerPlan.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Docs\65c64\emulator.md" />

@@ -1,0 +1,126 @@
+Power-up in the simulation
+==========================
+
+Planned 2026-11-26 (the user: "the way power works in Logicim is a bit weird / broken.  Power is instantaneously
+applied on connection", then "a proper power-up model.  Let's go on a tangent and plan it").  Nothing is built.  The
+electronics choices here are mine (the user, 2026-11-26: "whatever you suggest goes"); the questions at the end are
+the user's.  Beside LogiCim's KicadImporterLib/ResistorsPlan.txt and PullsPlan.txt, which this leans on for the
+weak drive (step 7).
+
+
+How power works today
+---------------------
+
+  - A supply (CPowerSource, its CPowerOutPort) drives its fixed voltage from the moment it is connected, and always.
+    Nothing switches it on or off, and nothing ramps it.
+  - A chip asks IsPowered when it acts (an input transition, a tick): VCC above zero and GND zero.  Any VCC counts:
+    0.1V powers a chip (CFamilyVoltageConfiguration::HasPower is VCC not zero).
+  - A chip starts once, when the simulation starts (CIntegratedCircuit::Reset: ResetState, SimulationStarted,
+    WriteOutputs), powered or not.  A chip without power slews forever.
+  - Nothing tells a chip its power came or went: CIntegratedCircuit::TraceConnected does nothing, and a chip whose
+    supply is cut keeps driving what it last drove.  A chip wired to a supply while the simulation runs never starts
+    (its outputs stay as an unpowered chip left them) until something it reads changes.
+
+
+What the HCP65 does at power-up (HCP65/Kicad/Computer, HCP65/Datasheets)
+---------------------------------------------------------------------------
+
+  - Power and Reset: 18V in (J1), the power switch S1, D1, an L7812 to 12V, LD1117s to 5V and 3.3V, 100uF on every
+    rail.  The other boards make their own 5V from 12V (23 LD1117S50Cs; dropout about 1.1V).  The Processor Reset
+    Device makes its 3.3V from 5V (AP7365: start-up 200us).
+  - Reset: a DS1813-10 on 5V holds ~{RST} low until VCC passes 4.35V (4.25 to 4.49), then for 150ms (100 to 300)
+    more; pulled low (the reset button, or the Processor Reset Device's 74LVC1G125, a software reset) it holds reset
+    150ms after the pull ends.  Its output is open drain with a 5.5k internal pull-up.  Then a 74LVC14, 20 ohm and
+    10pF, another 74LVC14: ~{Reset}.
+  - MAX6816 switch debouncers (Clock Push Button, the Mainboards): 50ms (20 to 80), undervoltage lockout 1.9 to 2.6V.
+
+What a simulation of power-up should show: the rails rise, each chip comes alive as its rail passes its working
+voltage, its outputs rise with the rail, and nothing is trusted until reset is released, 150ms after 5V is good.
+
+
+The model (decided)
+-------------------
+
+  - A supply has a switch and a rise time: switched on, its voltage rises in a straight line from 0 to its voltage
+    over its rise time (a regulator charging its output capacitor at its current limit); switched off, it falls the
+    same way.  An imported board's rise time is 1ms (100uF at a regulator's current limit), a named constant.
+  - A supply can be fed by another (a regulator): it switches on when its feed passes its voltage plus its dropout
+    (LD1117: 1.1V), and off when its feed falls below that.
+  - The rise is a series of steps (every 0.1V), each an ordinary change of the supply's trace, so the machinery that
+    exists sees each one.  At every step each chip on the rail re-reads its inputs and re-drives its outputs at the
+    new VCC (the family's voltages at that VCC: CFamilyVoltageConfiguration already interpolates).
+  - A chip works at or above its family's lowest VCC in PropagationTimes.csv (LVC 1.8V), GND at 0, not at any VCC
+    above zero.  Below it the chip is off: it drives nothing and ignores its inputs.
+  - Power coming, by any way (a supply switched on or rising past the working voltage, a wire to VCC or GND
+    connected while running), starts a chip: its state at power-up (question 1), SimulationStarted, WriteOutputs.
+    Power going stops it: its outputs undriven (their traces' other ports told, CTrace::NotifyUndriven), its events
+    off the timeline, its state forgotten.
+  - Not modelled: a chip powered through its inputs' clamp diodes, inrush current, a rail sagging under load, brown
+    out glitches.
+
+
+Steps
+-----
+
+MicroprocessorLib (with logic.md's sections on voltages, traces and chips, and its decisions)
+
+1. CPowerSource: on and off (and times to switch, for tests and saved simulations), its rise time, its feed and
+   dropout.  CPowerOutPort's voltage at a time from its ramp; each 0.1V step a change on its trace.
+2. A chip's working voltage: CFamilyVoltageConfiguration's lowest VCC (CFixedVoltageConfiguration: any VCC above
+   zero, as now); IsPowered uses it.
+3. Power events.  A chip's CPowerInPorts tell it when its power comes, goes or steps (from the supply's steps,
+   TraceConnected, Disconnect, NotifyUndriven on the rail): a PowerChanged on CIntegratedCircuit that starts, stops
+   or re-drives it as the model says.  Gates re-evaluate their inputs; chips that remember re-drive through
+   WriteOutputs.
+4. Start at power-up.  CIntegratedCircuit::Reset at the simulation's start starts only powered chips; the others
+   start when their power comes.
+5. Tests: a chip starting when its rail's ramp passes the working voltage, at the time worked out by hand; its high
+   output rising with the rail; power cut, its outputs undriven and its traces' readers told; a VCC wire connected
+   while running starting a chip; a regulator fed by a ramping rail switching on after its dropout.
+
+Supervisors (after LogiCim's PullsPlan.txt: the DS1813's output is a pull)
+
+6. A reset supervisor chip (the DS1813-10's figures; its trip voltage and reset time properties): ~{RST} low while
+   VCC is under the trip voltage, and for the reset time after it passes it; pulled low from outside, low for the
+   reset time after the pull ends; its output open drain with its 5.5k internal pull-up (PullsPlan's weak drive).
+   The reset time is the datasheet's 150ms by default; a simulation may set it shorter, since running 150ms of the
+   HCP65's clocks is millions of edges.
+7. Tests: reset released the reset time after VCC passes the trip voltage; a 1us pushbutton pulse holding reset for
+   the reset time; VCC dipping under the trip voltage asserting reset at once.
+
+LogicimLib
+
+8. A supply's view gets a switch, clicked to turn it on and off while running, and its rise time and feed in its
+   properties; a ramping rail coloured by its voltage as any trace is.  The supervisor drawn as a chip with its pins.
+   Saved and loaded in a circuit's XML and a simulation's state, as every other component is.
+
+KicadImporterLib
+
+9. Supplies get the imported rise time.  A regulator (today the implied supply of the chips its output reaches)
+   becomes a supply fed by its input's net, with its datasheet's dropout.  A DS1813 becomes a supervisor, found by a
+   list of part numbers as ResistorsPlan's comparators are.
+10. Tests: Power and Reset imported and switched on: 12V, then 5V and 3.3V rising, ~{Reset}_{5V} going high the
+    reset time after 5V passes 4.35V, plus the 74LVC1G17's delay.  The Processor Reset Device: ~{Reset} high after
+    the DS1813, the two 74LVC14s and the 20 ohm and 10pF; a software reset (IC8 driving ~{Reset Switch} low) giving a
+    reset 150ms long.  The expected circuits regenerated (supplies' new properties only); TestMicroprocessorLib,
+    TestLogicimLib, TestKicadImporterLib; the website's decode check.
+
+
+Questions for the user (put one at a time, recommendation first)
+------------------------------------------------------------------
+
+  1. What a chip remembers when its power comes (a flip-flop's bit, a counter, a register): recommended random from
+     a seed the simulation keeps (a real part comes up random; the same seed gives the same run, so a failure can be
+     repeated, and another seed shows whether reset really sets everything).  Or zero, as ResetState gives now
+     (repeatable, but hides a chip reset doesn't set).  Or unknown until reset or clocked (shows it most plainly, but
+     the unknown spreads, and a flip-flop fed back to itself never starts).
+  2. A supply placed by hand, and every circuit saved before this: recommended on from time 0 with no rise, as now,
+     so the tests and saved circuits keep their timing; imported boards rise over 1ms.  Or every supply rises over
+     1ms, the timing of every test moving by it.
+
+
+Order
+-----
+
+Steps 1 to 5 can be built at any time.  The supervisor (6, 7) after LogiCim's PullsPlan.txt; the views and the
+importer (8 to 10) after the supervisor.
