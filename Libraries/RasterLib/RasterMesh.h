@@ -40,7 +40,7 @@ typedef SVec3<SRasterUnit, int32>	SRasterUnitVec3;
 
 struct SRasterVertex
 {
-	SInt32Vec3	sPosition;
+	SInt32Vec3		sPosition;
 	SRasterUnitVec3	sNormal;
 };
 
