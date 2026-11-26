@@ -58,7 +58,7 @@ public:
 	void			ShowPlace(size uiStart, size uiLength);
 	void			Clear(void);
 
-	const char*		GetTitle(void) const;
+	const char*			GetTitle(void) const;
 	Ptr<CCodeEditor>	GetEditor(void) const;
 	Ptr<CTextArea>		GetTextArea(void);
 	Ptr<CScrollPane>	GetScrollPane(void) const;

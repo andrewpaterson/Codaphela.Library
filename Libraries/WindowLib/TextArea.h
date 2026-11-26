@@ -136,7 +136,7 @@ public:
 
 	void						SetText(const char* szText);
 	void						AppendText(const char* szText, ARGB32 sColour);
-	const char*			GetText(void) const;
+	const char*					GetText(void) const;
 	size						GetChangeCount(void) const;
 	bool						Undo(void);
 	bool						Redo(void);

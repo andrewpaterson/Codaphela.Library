@@ -158,7 +158,7 @@ void CSettingsDialog::AddPage(Ptr<CSettingsPage> pPage)
 //////////////////////////////////////////////////////////////////////////
 void CSettingsDialog::PageSelected(void)
 {
-	Ptr<CSettingsPage>	pPage;
+	Ptr<CSettingsPage>		pPage;
 	int32					iSelected;
 
 	iSelected = mpPageList->GetSelected();

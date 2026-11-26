@@ -653,7 +653,7 @@ void CCanvas::DrawBox(CInt32Rect* pcRect, bool bFilled, ARGB32 sColour)
 	int		iLeft;
 	int		iTop;
 	int		iRight;
-	int			iBottom;
+	int		iBottom;
 	CInt32Rect	cDrawable;
 
 	if (mpcNativeCanvas == NULL)

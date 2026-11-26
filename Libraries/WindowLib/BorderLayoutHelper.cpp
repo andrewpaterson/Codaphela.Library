@@ -24,11 +24,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Indexed by EBorderLayoutCell.  Each outer cell's component is aligned towards the centre cell.
 static EContainerStyleHorizontal gaeBorderHorizontal[9] = {	CSH_Right,	CSH_Center,	CSH_Left,
-																CSH_Right,	CSH_Center,	CSH_Left,
-																CSH_Right,	CSH_Center,	CSH_Left };
+	CSH_Right,	CSH_Center,	CSH_Left,
+	CSH_Right,	CSH_Center,	CSH_Left };
 static EContainerStyleVertical gaeBorderVertical[9] = {		CSV_Bottom,	CSV_Bottom,	CSV_Bottom,
-																CSV_Center,	CSV_Center,	CSV_Center,
-																CSV_Top,	CSV_Top,	CSV_Top };
+	CSV_Center,	CSV_Center,	CSV_Center,
+	CSV_Top,	CSV_Top,	CSV_Top };
 
 
 //////////////////////////////////////////////////////////////////////////

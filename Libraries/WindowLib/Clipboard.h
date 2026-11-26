@@ -47,9 +47,9 @@ class CClipboard : public CObject
 CONSTRUCTABLE(CClipboard);
 DESTRUCTABLE(CClipboard);
 protected:
-	CNativeClipboard*	mpcNativeClipboard;  //NULL if the factory couldn't make one, then nothing is copied or pasted.
+	CNativeClipboard*		mpcNativeClipboard;  //NULL if the factory couldn't make one, then nothing is copied or pasted.
 	Ptr<CNativeWindowFactory>	mpFactory;  //Made mpcNativeClipboard.  Nes: freed after the clipboard.
-	Ptr<CWindow>		mpWindow;
+	Ptr<CWindow>			mpWindow;
 	Ptr<CClipboardHistory>	mpHistory;  //Its own, NULL until it is wanted or while it shares another's.
 	Ptr<CClipboard>			mpShared;  //The clipboard whose history it shares, NULL for its own.
 	bool					mbDetached;  //Its text is mszText, not the system's.

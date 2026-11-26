@@ -783,6 +783,12 @@ void CCodeEditor::SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour)
 {
 	SetLineGlyph(uiLine, cGlyph, sColour, 0, false);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCodeEditor::SetLineGlyph(size uiLine, char cGlyph, ARGB32 sColour, ARGB32 sBackground)
 {
 	SetLineGlyph(uiLine, cGlyph, sColour, sBackground, true);
@@ -927,12 +933,22 @@ void CCodeEditor::SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sCo
 {
 	SetLineIcon(uiColumn, uiLine, cIcon, sColour, 0, false);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCodeEditor::SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour, ARGB32 sBackground)
 {
 	SetLineIcon(uiColumn, uiLine, cIcon, sColour, sBackground, true);
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCodeEditor::SetLineIcon(size uiColumn, size uiLine, char cIcon, ARGB32 sColour, ARGB32 sBackground, bool bBackground)
 {
 	SCodeEditorGlyph*	psGlyph;

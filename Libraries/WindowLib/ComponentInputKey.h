@@ -42,8 +42,8 @@ public:
 	CInputSourceDesc*	mpcSource;
 	EComponentInputKey	meKey;
 
-	void Init(CInputSourceDesc*	pcSource, EComponentInputKey eKey);
-	void Kill(void);
+	void	Init(CInputSourceDesc*	pcSource, EComponentInputKey eKey);
+	void	Kill(void);
 };
 
 

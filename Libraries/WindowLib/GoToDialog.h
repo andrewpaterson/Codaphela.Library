@@ -107,7 +107,7 @@ public:
 	Ptr<CCodePreview>	GetPreview(void) const;
 	CComponentEvent<CGoToDialog>*	GetSelectedEvent(void);
 	int32				GetLine(void) const;
-	const char*		GetPattern(void);
+	const char*			GetPattern(void);
 	Ptr<CTextField>		GetField(void) const;
 	Ptr<CListContainer>	GetList(void) const;
 	Ptr<CDialog>		GetDialog(void) const;

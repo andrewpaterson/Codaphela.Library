@@ -138,7 +138,7 @@ protected:
 	Ptr<CButton>				mpReset;
 	Ptr<CButton>				mpResetAll;
 	Ptr<CLabel>					mpStatus;
-	Ptr<CKeyCaptureDialog>	mpCapture;  //Add Shortcut, while it's shown.
+	Ptr<CKeyCaptureDialog>		mpCapture;  //Add Shortcut, while it's shown.
 	CArrayKeymapRows			masRows;
 	CArrayInt					maiListRows;  //The row in masRows of each row of the list, -1 for a group's heading.
 	CKeyGiver					mcGiver;  //Gives the rows keys, asking over the dialog when they move.

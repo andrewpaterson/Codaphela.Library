@@ -32,8 +32,8 @@ public:
 	CInputSourceDesc*	mpcYesNumLockRemap;
 	CInputSourceDesc*	mpcNoNumLockRemap;
 
-	void Init(CInputSourceDesc*	pcSource, CInputSourceDesc* pcYesNumLockRemap, CInputSourceDesc* pcNoNumLockRemap);
-	void Kill(void);
+	void	Init(CInputSourceDesc*	pcSource, CInputSourceDesc* pcYesNumLockRemap, CInputSourceDesc* pcNoNumLockRemap);
+	void	Kill(void);
 };
 
 

@@ -34,9 +34,9 @@ public:
 	char				mcNoShiftYesCaps;
 	char				mcYesShiftYesCaps;
 
-	void Init(CInputSourceDesc*	pcSource, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
-	void Kill(void);
-	char Get(bool bShift, bool bCapsLock);
+	void	Init(CInputSourceDesc*	pcSource, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
+	void	Kill(void);
+	char	Get(bool bShift, bool bCapsLock);
 };
 
 

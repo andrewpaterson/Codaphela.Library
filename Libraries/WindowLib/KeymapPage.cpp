@@ -345,7 +345,7 @@ Ptr<CComponent> CKeymapPage::GetFirstEditor(void) const { return mpFilter; }
 //////////////////////////////////////////////////////////////////////////
 void CKeymapPage::AddRows(void)
 {
-	SKeymapRow*	psRow;
+	SKeymapRow*		psRow;
 	Ptr<CCommand>	pCommand;
 	size			uiNumGroups;
 	size			uiGroup;
@@ -502,7 +502,7 @@ void CKeymapPage::ShowKeys(size uiRow, CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 bool CKeymapPage::IsShown(size uiRow)
 {
-	SKeymapRow*	psRow;
+	SKeymapRow*		psRow;
 	CChars			szKeys;
 	const char*		szFilter;
 	bool			bResult;
@@ -534,7 +534,7 @@ void CKeymapPage::ShowList(void)
 {
 	Ptr<CWindow>	pWindow;
 	SDialogLook*	psLook;
-	SKeymapRow*	psRow;
+	SKeymapRow*		psRow;
 	Ptr<CLabel>		pLabel;
 	CChars			szCaption;
 	CChars			szKeys;
@@ -638,6 +638,10 @@ CCommand* CKeymapPage::GetKeyListCommand(size uiIndex) { return masRows.Get(uiIn
 CCommandKeyList* CKeymapPage::GetKeyList(size uiIndex) { return &masRows.Get(uiIndex)->cKeys; }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CKeymapPage::AppendKeyListCaption(size uiIndex, CChars* pszDest)
 {
 	pszDest->Append(GetGroupCaption(masRows.Get(uiIndex)->pcCommand));

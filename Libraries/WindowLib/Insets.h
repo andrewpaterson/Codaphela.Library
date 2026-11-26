@@ -34,10 +34,10 @@ struct SInsets
 {
 	int aiWidths[4];
 
-	void Init(void);
-	void Init(int* paiWidths);
-	void Init(int iTop, int iRight, int iBottom, int iLeft);
-	void Init(int iHorizontal, int iVertical);
+	void	Init(void);
+	void	Init(int* paiWidths);
+	void	Init(int iTop, int iRight, int iBottom, int iLeft);
+	void	Init(int iHorizontal, int iVertical);
 
 	int	GetLeftAndRight(void) const;
 	int	GetTopAndBottom(void) const;

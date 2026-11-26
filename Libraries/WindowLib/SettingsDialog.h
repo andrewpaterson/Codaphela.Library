@@ -57,7 +57,7 @@ protected:
 	Ptr<CDialog>				mpDialog;
 	Ptr<CListContainer>			mpPageList;
 	Ptr<CGridContainer>			mpPageHolder;
-	CArray<CSettingsPage>	maPages;
+	CArray<CSettingsPage>		maPages;
 
 public:
 	void			Init(Ptr<CWindow> pOwner, SDialogLook* psLook);

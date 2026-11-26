@@ -138,8 +138,8 @@ public:
 	EComponentInputCommand		meCommand;
 	CInputSourceDesc*			mpcSource;
 
-	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource);
-	void Kill(void);
+	void	Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource);
+	void	Kill(void);
 };
 
 

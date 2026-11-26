@@ -195,7 +195,7 @@ public:
 	bool			BeginEdit(const char* szText);
 	bool			EndEdit(bool bKeep);
 	bool			IsEditing(void) const;
-	Ptr<CCellField>		GetEditField(void) const;
+	Ptr<CCellField>	GetEditField(void) const;
 	Ptr<CTableCombo>	GetEditCombo(void) const;
 	bool			ToggleTick(void);
 	bool			MoveSelectedRow(int32 iBy);
