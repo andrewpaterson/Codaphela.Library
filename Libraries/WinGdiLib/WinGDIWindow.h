@@ -32,7 +32,7 @@ CONSTRUCTABLE(CWinGDIWindow);
 protected:
 	CChars			mszWindowClass;
 	HINSTANCE		mhInstance;
-	HINSTANCE 		mhPrevInstance;
+	HINSTANCE		mhPrevInstance;
 	int				miCmdShow;
 	HWND			mhWnd;
 	HDC				mhLastDC;

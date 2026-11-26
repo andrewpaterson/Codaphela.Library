@@ -10,19 +10,19 @@
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
 {
-    PreInit();
+	PreInit();
 
-    CNativeWindowFactory::Init(pcMallocator);
+	CNativeWindowFactory::Init(pcMallocator);
 
-    mszWindowClass.Init(szWindowClass);
-    mhInstance = hInstance;
-    mhPrevInstance = NULL;
-    miCmdShow = nCmdShow;
-    memset(&mhWnd, 0, sizeof(HWND));
-    mfRawInput = NULL;
-    mpvRawInputContext = NULL;
+	mszWindowClass.Init(szWindowClass);
+	mhInstance = hInstance;
+	mhPrevInstance = NULL;
+	miCmdShow = nCmdShow;
+	memset(&mhWnd, 0, sizeof(HWND));
+	mfRawInput = NULL;
+	mpvRawInputContext = NULL;
 
-    PostInit();
+	PostInit();
 }
 
 
@@ -32,15 +32,15 @@ void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, 
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::Class(void)
 {
-    CNativeWindowFactory::Class();
+	CNativeWindowFactory::Class();
 
-    U_String(mszWindowClass);
-    U_Pointer(mhInstance);
-    U_Pointer(mhPrevInstance);
-    U_Pointer(mhWnd);
-    U_SInt(miCmdShow);
-    U_Pointer(mfRawInput);
-    U_Pointer(mpvRawInputContext);
+	U_String(mszWindowClass);
+	U_Pointer(mhInstance);
+	U_Pointer(mhPrevInstance);
+	U_Pointer(mhWnd);
+	U_SInt(miCmdShow);
+	U_Pointer(mfRawInput);
+	U_Pointer(mpvRawInputContext);
 }
 
 
@@ -50,8 +50,8 @@ void CWinGDIWindowFactory::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::Free(void)
 {
-    mszWindowClass.Kill();
-    CNativeWindowFactory::Free();
+	mszWindowClass.Kill();
+	CNativeWindowFactory::Free();
 }
 
 
@@ -61,17 +61,17 @@ void CWinGDIWindowFactory::Free(void)
 //////////////////////////////////////////////////////////////////////////
 CNativeWindow* CWinGDIWindowFactory::CreateNativeWindow(CWindow* pcWindow)
 {
-    CWinGDIWindow*  pcNativeWindow;
+	CWinGDIWindow*  pcNativeWindow;
 
-    pcNativeWindow = NativeMalloc<CWinGDIWindow>();
-    pcNativeWindow->Init(pcWindow, 
-                         this, 
-                         mhInstance,
-                         mhPrevInstance,
-                         miCmdShow,
-                         mszWindowClass.Text());
+	pcNativeWindow = NativeMalloc<CWinGDIWindow>();
+	pcNativeWindow->Init(pcWindow,
+	                     this,
+	                     mhInstance,
+	                     mhPrevInstance,
+	                     miCmdShow,
+	                     mszWindowClass.Text());
 
-    return pcNativeWindow;
+	return pcNativeWindow;
 }
 
 
@@ -81,21 +81,21 @@ CNativeWindow* CWinGDIWindowFactory::CreateNativeWindow(CWindow* pcWindow)
 //////////////////////////////////////////////////////////////////////////
 CNativeCanvas* CWinGDIWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 {
-    CWinGDICanvas*  pcNativeCanvas;
-    bool            bResult;
+	CWinGDICanvas*	pcNativeCanvas;
+	bool			bResult;
 
-    pcNativeCanvas = NativeMalloc<CWinGDICanvas>();
-    pcNativeCanvas->Init(pcCanvas, this);
-    bResult = pcNativeCanvas->CreateNativeCanvas();
-    if (!bResult)
-    {
-        DestroyNativeCanvas(pcNativeCanvas);
-        return NULL;
-    }
-    else
-    {
-        return pcNativeCanvas;
-    }
+	pcNativeCanvas = NativeMalloc<CWinGDICanvas>();
+	pcNativeCanvas->Init(pcCanvas, this);
+	bResult = pcNativeCanvas->CreateNativeCanvas();
+	if (!bResult)
+	{
+		DestroyNativeCanvas(pcNativeCanvas);
+		return NULL;
+	}
+	else
+	{
+		return pcNativeCanvas;
+	}
 }
 
 
@@ -106,11 +106,11 @@ CNativeCanvas* CWinGDIWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
 //////////////////////////////////////////////////////////////////////////
 CNativeClipboard* CWinGDIWindowFactory::CreateNativeClipboard(CClipboard* pcClipboard)
 {
-    CWinGDIClipboard*   pcNativeClipboard;
+	CWinGDIClipboard*   pcNativeClipboard;
 
-    pcNativeClipboard = NativeMalloc<CWinGDIClipboard>();
-    pcNativeClipboard->Init(pcClipboard, this);
-    return pcNativeClipboard;
+	pcNativeClipboard = NativeMalloc<CWinGDIClipboard>();
+	pcNativeClipboard->Init(pcClipboard, this);
+	return pcNativeClipboard;
 }
 
 
@@ -129,8 +129,8 @@ HWND CWinGDIWindowFactory::GetHWnd(void) const { return mhWnd; }
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::SetRawInput(WinGDIRawInputFunc fRawInput, void* pvContext)
 {
-    mfRawInput = fRawInput;
-    mpvRawInputContext = pvContext;
+	mfRawInput = fRawInput;
+	mpvRawInputContext = pvContext;
 }
 
 
@@ -140,9 +140,9 @@ void CWinGDIWindowFactory::SetRawInput(WinGDIRawInputFunc fRawInput, void* pvCon
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::RawInput(void* pvRawInput)
 {
-    if (mfRawInput)
-    {
-        mfRawInput(mpvRawInputContext, pvRawInput);
-    }
+	if (mfRawInput)
+	{
+		mfRawInput(mpvRawInputContext, pvRawInput);
+	}
 }
 

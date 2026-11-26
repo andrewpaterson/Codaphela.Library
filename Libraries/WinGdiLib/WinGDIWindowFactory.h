@@ -20,7 +20,7 @@ DESTRUCTABLE(CWinGDIWindowFactory);
 protected:
 	CChars					mszWindowClass;
 	HINSTANCE				mhInstance;
-	HINSTANCE 				mhPrevInstance;
+	HINSTANCE				mhPrevInstance;
 	HWND					mhWnd;
 	int						miCmdShow;
 	WinGDIRawInputFunc		mfRawInput;

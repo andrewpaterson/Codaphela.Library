@@ -46,79 +46,79 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 bool CWinGDIClipboard::SetText(const char* szText)
 {
-    CChars          szWindows;
-    CArrayUint16    auiUTF16;
-    CUTF8           cUTF8;
-    CUnicodeWriter  cWriter;
-    int             iResult;
-    HWND            hOwner;
-    HGLOBAL         hGlobal;
-    void*           pvText;
-    size            i;
-    bool            bResult;
+	CChars	szWindows;
+	CArrayUint16	auiUTF16;
+	CUTF8	cUTF8;
+	CUnicodeWriter	cWriter;
+	int		iResult;
+	HWND	hOwner;
+	HGLOBAL	hGlobal;
+	void*	pvText;
+	size	i;
+	bool	bResult;
 
-    hOwner = GetOwner();
-    if (hOwner == NULL)
-    {
-        return gcLogger.Error2(__METHOD__, " There is no window to own the clipboard.", NULL);
-    }
+	hOwner = GetOwner();
+	if (hOwner == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " There is no window to own the clipboard.", NULL);
+	}
 
-    //Line feeds become carriage return and line feed pairs, those already in pairs are left.
-    szWindows.Init();
-    for (i = 0; szText[i] != '\0'; i++)
-    {
-        if ((szText[i] == '\n') && ((i == 0) || (szText[i - 1] != '\r')))
-        {
-            szWindows.Append('\r');
-        }
-        szWindows.Append(szText[i]);
-    }
+	//Line feeds become carriage return and line feed pairs, those already in pairs are left.
+	szWindows.Init();
+	for (i = 0; szText[i] != '\0'; i++)
+	{
+		if ((szText[i] == '\n') && ((i == 0) || (szText[i - 1] != '\r')))
+		{
+			szWindows.Append('\r');
+		}
+		szWindows.Append(szText[i]);
+	}
 
-    auiUTF16.Init();
-    cUTF8.Init(szWindows.Text());
-    cWriter.Init(&cUTF8, UE_UTF16LE, &auiUTF16);
-    iResult = cWriter.WriteCharacters();
-    cWriter.Kill();
-    cUTF8.Kill();
-    szWindows.Kill();
-    if (iResult != -1)
-    {
-        auiUTF16.Kill();
-        return gcLogger.Error2(__METHOD__, " The text isn't valid UTF8.", NULL);
-    }
-    auiUTF16.Push(0);
+	auiUTF16.Init();
+	cUTF8.Init(szWindows.Text());
+	cWriter.Init(&cUTF8, UE_UTF16LE, &auiUTF16);
+	iResult = cWriter.WriteCharacters();
+	cWriter.Kill();
+	cUTF8.Kill();
+	szWindows.Kill();
+	if (iResult != -1)
+	{
+		auiUTF16.Kill();
+		return gcLogger.Error2(__METHOD__, " The text isn't valid UTF8.", NULL);
+	}
+	auiUTF16.Push(0);
 
-    hGlobal = GlobalAlloc(GMEM_MOVEABLE, (SIZE_T)auiUTF16.ByteSize());
-    if (hGlobal == NULL)
-    {
-        auiUTF16.Kill();
-        return gcLogger.Error2(__METHOD__, " Could not allocate the clipboard's text.", NULL);
-    }
-    pvText = GlobalLock(hGlobal);
-    memcpy(pvText, auiUTF16.GetData(), auiUTF16.ByteSize());
-    GlobalUnlock(hGlobal);
-    auiUTF16.Kill();
+	hGlobal = GlobalAlloc(GMEM_MOVEABLE, (SIZE_T)auiUTF16.ByteSize());
+	if (hGlobal == NULL)
+	{
+		auiUTF16.Kill();
+		return gcLogger.Error2(__METHOD__, " Could not allocate the clipboard's text.", NULL);
+	}
+	pvText = GlobalLock(hGlobal);
+	memcpy(pvText, auiUTF16.GetData(), auiUTF16.ByteSize());
+	GlobalUnlock(hGlobal);
+	auiUTF16.Kill();
 
-    if (!Open(hOwner))
-    {
-        GlobalFree(hGlobal);
-        return gcLogger.Error2(__METHOD__, " Could not open the clipboard.", NULL);
-    }
+	if (!Open(hOwner))
+	{
+		GlobalFree(hGlobal);
+		return gcLogger.Error2(__METHOD__, " Could not open the clipboard.", NULL);
+	}
 
-    //Once set the clipboard owns the memory.
-    EmptyClipboard();
-    bResult = SetClipboardData(CF_UNICODETEXT, hGlobal) != NULL;
-    if (!bResult)
-    {
-        GlobalFree(hGlobal);
-    }
-    CloseClipboard();
+	//Once set the clipboard owns the memory.
+	EmptyClipboard();
+	bResult = SetClipboardData(CF_UNICODETEXT, hGlobal) != NULL;
+	if (!bResult)
+	{
+		GlobalFree(hGlobal);
+	}
+	CloseClipboard();
 
-    if (!bResult)
-    {
-        return gcLogger.Error2(__METHOD__, " Could not set the clipboard's text.", NULL);
-    }
-    return true;
+	if (!bResult)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not set the clipboard's text.", NULL);
+	}
+	return true;
 }
 
 
@@ -131,69 +131,69 @@ bool CWinGDIClipboard::SetText(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CWinGDIClipboard::GetText(CChars* pszDest)
 {
-    HGLOBAL         hGlobal;
-    WCHAR*          pwszText;
-    CArrayUint8     auiUTF8;
-    CUTF16          cUTF16;
-    CUnicodeWriter  cWriter;
-    int             iResult;
-    char*           szUTF8;
-    size            uiLength;
-    size            i;
-    bool            bAppended;
+	HGLOBAL	hGlobal;
+	WCHAR*	pwszText;
+	CArrayUint8	auiUTF8;
+	CUTF16	cUTF16;
+	CUnicodeWriter	cWriter;
+	int		iResult;
+	char*	szUTF8;
+	size	uiLength;
+	size	i;
+	bool	bAppended;
 
-    if (!Open(GetOwner()))
-    {
-        return false;
-    }
+	if (!Open(GetOwner()))
+	{
+		return false;
+	}
 
-    bAppended = false;
-    hGlobal = IsClipboardFormatAvailable(CF_UNICODETEXT) ? GetClipboardData(CF_UNICODETEXT) : NULL;
-    pwszText = hGlobal ? (WCHAR*)GlobalLock(hGlobal) : NULL;
-    if (pwszText)
-    {
-        uiLength = wcslen(pwszText);
-        if (uiLength > 0)
-        {
-            auiUTF8.Init();
-            cUTF16.Init((uint16*)pwszText, uiLength);
-            cWriter.Init(&cUTF16, UE_UTF8, &auiUTF8);
-            iResult = cWriter.WriteCharacters();
-            cWriter.Kill();
-            cUTF16.Kill();
+	bAppended = false;
+	hGlobal = IsClipboardFormatAvailable(CF_UNICODETEXT) ? GetClipboardData(CF_UNICODETEXT) : NULL;
+	pwszText = hGlobal ? (WCHAR*)GlobalLock(hGlobal) : NULL;
+	if (pwszText)
+	{
+		uiLength = wcslen(pwszText);
+		if (uiLength > 0)
+		{
+			auiUTF8.Init();
+			cUTF16.Init((uint16*)pwszText, uiLength);
+			cWriter.Init(&cUTF16, UE_UTF8, &auiUTF8);
+			iResult = cWriter.WriteCharacters();
+			cWriter.Kill();
+			cUTF16.Kill();
 
-            if (iResult == -1)
-            {
-                //Carriage return and line feed pairs, and carriage returns alone, become line feeds.
-                szUTF8 = (char*)auiUTF8.GetData();
-                uiLength = auiUTF8.NumElements();
-                for (i = 0; i < uiLength; i++)
-                {
-                    if (szUTF8[i] == '\r')
-                    {
-                        if ((i + 1 >= uiLength) || (szUTF8[i + 1] != '\n'))
-                        {
-                            pszDest->Append('\n');
-                        }
-                    }
-                    else
-                    {
-                        pszDest->Append(szUTF8[i]);
-                    }
-                }
-                bAppended = true;
-            }
-            else
-            {
-                gcLogger.Error2(__METHOD__, " The clipboard's text isn't valid UTF16.", NULL);
-            }
-            auiUTF8.Kill();
-        }
-        GlobalUnlock(hGlobal);
-    }
+			if (iResult == -1)
+			{
+				//Carriage return and line feed pairs, and carriage returns alone, become line feeds.
+				szUTF8 = (char*)auiUTF8.GetData();
+				uiLength = auiUTF8.NumElements();
+				for (i = 0; i < uiLength; i++)
+				{
+					if (szUTF8[i] == '\r')
+					{
+						if ((i + 1 >= uiLength) || (szUTF8[i + 1] != '\n'))
+						{
+							pszDest->Append('\n');
+						}
+					}
+					else
+					{
+						pszDest->Append(szUTF8[i]);
+					}
+				}
+				bAppended = true;
+			}
+			else
+			{
+				gcLogger.Error2(__METHOD__, " The clipboard's text isn't valid UTF16.", NULL);
+			}
+			auiUTF8.Kill();
+		}
+		GlobalUnlock(hGlobal);
+	}
 
-    CloseClipboard();
-    return bAppended;
+	CloseClipboard();
+	return bAppended;
 }
 
 
@@ -205,22 +205,22 @@ bool CWinGDIClipboard::GetText(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 HWND CWinGDIClipboard::GetOwner(void) const
 {
-    CWinGDIWindow*          pcWindow;
-    CWinGDIWindowFactory*   pcFactory;
-    HWND                    hWnd;
+	CWinGDIWindow*			pcWindow;
+	CWinGDIWindowFactory*	pcFactory;
+	HWND					hWnd;
 
-    hWnd = NULL;
-    pcWindow = (CWinGDIWindow*)mpcClipboard->GetWindow()->GetNativeWindow();
-    if (pcWindow)
-    {
-        hWnd = pcWindow->GetHWnd();
-    }
-    if (hWnd == NULL)
-    {
-        pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
-        hWnd = pcFactory->GetHWnd();
-    }
-    return hWnd;
+	hWnd = NULL;
+	pcWindow = (CWinGDIWindow*)mpcClipboard->GetWindow()->GetNativeWindow();
+	if (pcWindow)
+	{
+		hWnd = pcWindow->GetHWnd();
+	}
+	if (hWnd == NULL)
+	{
+		pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
+		hWnd = pcFactory->GetHWnd();
+	}
+	return hWnd;
 }
 
 
@@ -232,16 +232,16 @@ HWND CWinGDIClipboard::GetOwner(void) const
 //////////////////////////////////////////////////////////////////////////
 bool CWinGDIClipboard::Open(HWND hOwner)
 {
-    int     i;
+	int     i;
 
-    for (i = 0; i < WIN_GDI_CLIPBOARD_OPEN_ATTEMPTS; i++)
-    {
-        if (OpenClipboard(hOwner))
-        {
-            return true;
-        }
-        Sleep(WIN_GDI_CLIPBOARD_OPEN_WAIT);
-    }
-    return false;
+	for (i = 0; i < WIN_GDI_CLIPBOARD_OPEN_ATTEMPTS; i++)
+	{
+		if (OpenClipboard(hOwner))
+		{
+			return true;
+		}
+		Sleep(WIN_GDI_CLIPBOARD_OPEN_WAIT);
+	}
+	return false;
 }
 
