@@ -150,6 +150,16 @@ Questions for the user (put one at a time, recommendation first)
      output rail.  The drawing doesn't change.
 
 
+Built
+-----
+
+2026-11-26, all eleven steps, with the decisions above: MicroprocessorLib (supplies, chips' power, the power-up
+state, the DS1813 on PullsPlan's weak drive; TestPower, TestPull), LogicimLib and LogiCim (supply views, rails,
+the supervisor's view, Power On/Off, the power-up setting, fast-forward), KicadImporterLib (rails, regulators as fed
+supplies, the DS1813; TestKicadSchemPower runs Power and Reset and the Processor Reset Device).  Left: LVC has no
+figures above 3.3V in the propagation times, so LVC parts on a 5V rail don't drive; series resistors aren't joined
+yet (ResistorsPlan part 1), so the Processor Reset Device's reset stops at R1.
+
 Order
 -----
 
