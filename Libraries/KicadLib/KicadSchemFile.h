@@ -79,7 +79,7 @@ public:
 	CKicadSchemSheet*		AddSheet(SFloat64Vec2* psPosition, SFloat64Vec2* psSize);
 
 	const char*					GetFileName(void) const;
-	int32					GetVersion(void) const;
+	int32						GetVersion(void) const;
 	const char*					GetGenerator(void) const;
 	const char*					GetGeneratorVersion(void) const;
 	const char*					GetUuid(void) const;

@@ -476,7 +476,7 @@ void CKicadSchemNetlist::NameNet(CKicadSchemNet* pcNet)
 	CKicadSchemLabel*		pcLabel;
 	const char*				szGlobal;
 	const char*				szLocal;
-	const char*					szName;
+	const char*				szName;
 	int						iCompare;
 	CChars					szPinName;
 

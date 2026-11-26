@@ -63,7 +63,7 @@ public:
 	bool					IsSymbol(const char* szText);
 
 	const char*					GetText(void) const;
-	size					GetLine(void) const;
+	size						GetLine(void) const;
 
 	size					NumChildren(void) const;
 	CKicadSchemExpression*	GetChild(size uiIndex);
@@ -72,7 +72,7 @@ public:
 	size					CountChildren(const char* szName);
 	bool					ContainsSymbol(const char* szSymbol);
 
-	const char*					GetAtomText(size uiIndex);
+	const char*				GetAtomText(size uiIndex);
 	bool					GetDouble(size uiIndex, float64* pfValue);
 	bool					GetInt(size uiIndex, int32* piValue);
 

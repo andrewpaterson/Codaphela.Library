@@ -48,7 +48,7 @@ public:
 	void						SetName(const char* szName, EKicadSchemNetNameSource eSource);
 	void						AddSubnet(CKicadSchemSubnet* pcSubnet);
 
-	const char*						GetName(void) const;
+	const char*					GetName(void) const;
 	EKicadSchemNetNameSource	GetNameSource(void) const;
 	size						NumSubnets(void) const;
 	CKicadSchemSubnet*			GetSubnet(size uiIndex);

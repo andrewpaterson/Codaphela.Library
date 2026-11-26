@@ -49,8 +49,8 @@ public:
 	void					SetPinNamesHidden(bool bHidden);
 	void					SetPinNumbersHidden(bool bHidden);
 
-	const char*					GetName(void) const;
-	const char*					GetExtends(void) const;
+	const char*				GetName(void) const;
+	const char*				GetExtends(void) const;
 	CKicadSchemProperties*	GetProperties(void);
 	bool					IsPower(void) const;
 	bool					ArePinNamesHidden(void);

@@ -40,7 +40,7 @@ public:
 	const char*	GetProject(void) const;
 	const char*	GetPath(void) const;
 	const char*	GetReference(void) const;
-	int32	GetUnit(void) const;
+	int32		GetUnit(void) const;
 };
 
 

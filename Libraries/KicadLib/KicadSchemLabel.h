@@ -51,7 +51,7 @@ public:
 	void					SetShape(EKicadSchemLabelShape eShape);
 
 	EKicadSchemLabelType	GetType(void) const;
-	const char*					GetText(void) const;
+	const char*				GetText(void) const;
 	SFloat64Vec2*			GetPosition(void);
 	float64					GetAngle(void) const;
 	EKicadSchemLabelShape	GetShape(void) const;

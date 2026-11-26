@@ -53,9 +53,9 @@ public:
 	void				SetHidden(bool bHidden);
 
 	EKicadSchemPinType	GetType(void) const;
-	const char*				GetGraphicStyle(void) const;
-	const char*				GetName(void) const;
-	const char*				GetNumber(void) const;
+	const char*			GetGraphicStyle(void) const;
+	const char*			GetName(void) const;
+	const char*			GetNumber(void) const;
 	SFloat64Vec2*		GetPosition(void);
 	float64				GetAngle(void) const;
 	float64				GetLength(void) const;

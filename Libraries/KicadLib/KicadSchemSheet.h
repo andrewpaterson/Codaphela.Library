@@ -44,7 +44,7 @@ public:
 
 	SFloat64Vec2*			GetPosition(void);
 	SFloat64Vec2*			GetSize(void);
-	const char*					GetUuid(void) const;
+	const char*				GetUuid(void) const;
 	CKicadSchemProperties*	GetProperties(void);
 	const char*				GetSheetName(void);
 	const char*				GetSheetFile(void);

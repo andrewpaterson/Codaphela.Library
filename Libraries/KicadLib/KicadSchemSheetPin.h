@@ -41,7 +41,7 @@ public:
 
 	void					SetPosition(SFloat64Vec2* psPosition, float64 fAngle);
 
-	const char*					GetName(void) const;
+	const char*				GetName(void) const;
 	EKicadSchemLabelShape	GetShape(void) const;
 	SFloat64Vec2*			GetPosition(void);
 	float64					GetAngle(void) const;

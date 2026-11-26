@@ -103,7 +103,7 @@ public:
 
 	static bool			IsGlobalPowerPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
 	static bool			IsSharedPin(CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemSymbol* pcSymbol, CKicadSchemLibPin* pcPin);
-	static const char*		GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
+	static const char*	GetGlobalPowerName(CKicadSchemSymbol* pcSymbol, CKicadSchemLibSymbol* pcLibSymbol, CKicadSchemLibPin* pcPin);
 
 protected:
 	bool				AddNodes(void);

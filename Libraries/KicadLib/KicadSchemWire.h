@@ -44,7 +44,7 @@ public:
 	SFloat64Vec2*		GetStart(void);
 	SFloat64Vec2*		GetEnd(void);
 	bool				IsBus(void) const;
-	const char*				GetUuid(void) const;
+	const char*			GetUuid(void) const;
 	bool				IsEnd(SFloat64Vec2* psPoint);
 	bool				Contains(SFloat64Vec2* psPoint);
 };

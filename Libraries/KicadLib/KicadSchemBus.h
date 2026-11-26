@@ -64,7 +64,7 @@ public:
 	void					AddMember(char* szMember);
 
 	CKicadSchemSubnet*		GetSubnet(void);
-	const char*					GetName(void);
+	const char*				GetName(void);
 	size					NumLabels(void) const;
 	CKicadSchemLabel*		GetLabel(size uiIndex);
 	size					NumTaps(void) const;
