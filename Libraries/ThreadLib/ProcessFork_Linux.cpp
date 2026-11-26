@@ -22,7 +22,7 @@ extern char** environ;
 //////////////////////////////////////////////////////////////////////////
 static void ReapProcess(void* pvProcess)
 {
-    waitpid((pid_t)(size_t)pvProcess, NULL, 0);
+	waitpid((pid_t)(size_t)pvProcess, NULL, 0);
 }
 
 
@@ -32,18 +32,18 @@ static void ReapProcess(void* pvProcess)
 //////////////////////////////////////////////////////////////////////////
 bool GetThisExecutable(CChars* pszDest)
 {
-    char        szExecutable[PATH_MAX + 1];
-    ssize_t     iLength;
+	char	szExecutable[PATH_MAX + 1];
+	ssize_t	iLength;
 
-    iLength = readlink("/proc/self/exe", szExecutable, PATH_MAX);
-    if (iLength == -1)
-    {
-        gcLogger.Error2(__METHOD__, "readlink failed [", LinuxErrorCodeToString(errno), "].", NULL);
-        return false;
-    }
-    szExecutable[iLength] = '\0';
-    pszDest->Append(szExecutable);
-    return true;
+	iLength = readlink("/proc/self/exe", szExecutable, PATH_MAX);
+	if (iLength == -1)
+	{
+		gcLogger.Error2(__METHOD__, "readlink failed [", LinuxErrorCodeToString(errno), "].", NULL);
+		return false;
+	}
+	szExecutable[iLength] = '\0';
+	pszDest->Append(szExecutable);
+	return true;
 }
 
 
@@ -53,58 +53,58 @@ bool GetThisExecutable(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
 {
-    CChars          szExecutable;
-    char**          aszArguments;
-    CStackMemory<>  cArguments;
-    size            uiNumParameters;
-    size            i;
-    pid_t           iProcess;
-    int             iResult;
-    CNativeThread   cReaper;
+	CChars	szExecutable;
+	char**	aszArguments;
+	CStackMemory<>	cArguments;
+	size	uiNumParameters;
+	size	i;
+	pid_t	iProcess;
+	int		iResult;
+	CNativeThread	cReaper;
 
-    szExecutable.Init();
-    if (!GetThisExecutable(&szExecutable))
-    {
-        szExecutable.Kill();
-        return false;
-    }
+	szExecutable.Init();
+	if (!GetThisExecutable(&szExecutable))
+	{
+		szExecutable.Kill();
+		return false;
+	}
 
-    //argv is the program followed by the parameters, and ends with NULL.
-    uiNumParameters = paszParameters->NumElements();
-    aszArguments = (char**)cArguments.Init((uiNumParameters + 2) * sizeof(char*));
-    aszArguments[0] = szExecutable.Text();
-    for (i = 0; i < uiNumParameters; i++)
-    {
-        aszArguments[i + 1] = paszParameters->GetText(i);
-    }
-    aszArguments[uiNumParameters + 1] = NULL;
+	//argv is the program followed by the parameters, and ends with NULL.
+	uiNumParameters = paszParameters->NumElements();
+	aszArguments = (char**)cArguments.Init((uiNumParameters + 2) * sizeof(char*));
+	aszArguments[0] = szExecutable.Text();
+	for (i = 0; i < uiNumParameters; i++)
+	{
+		aszArguments[i + 1] = paszParameters->GetText(i);
+	}
+	aszArguments[uiNumParameters + 1] = NULL;
 
-    // Start the child process.
-    iResult = posix_spawn(&iProcess, szExecutable.Text(), NULL, NULL, aszArguments, environ);
-    cArguments.Kill();
-    szExecutable.Kill();
-    if (iResult != 0)
-    {
-        gcLogger.Error2(__METHOD__, "posix_spawn failed [", LinuxErrorCodeToString(iResult), "].", NULL);
-        return false;
-    }
+	// Start the child process.
+	iResult = posix_spawn(&iProcess, szExecutable.Text(), NULL, NULL, aszArguments, environ);
+	cArguments.Kill();
+	szExecutable.Kill();
+	if (iResult != 0)
+	{
+		gcLogger.Error2(__METHOD__, "posix_spawn failed [", LinuxErrorCodeToString(iResult), "].", NULL);
+		return false;
+	}
 
-    if (bWaitForProcessToExit)
-    {
-        // Wait until child process exits.
-        waitpid(iProcess, NULL, 0);
-    }
-    else
-    {
-        //Windows forgets the child once its handles are closed.  A Linux child
-        //stays a zombie until it is waited for, so wait for it in the background.
-        cReaper.Init();
-        cReaper.Start(ReapProcess, (void*)(size_t)iProcess);
-        cReaper.Detach();
-        cReaper.Kill();
-    }
+	if (bWaitForProcessToExit)
+	{
+		// Wait until child process exits.
+		waitpid(iProcess, NULL, 0);
+	}
+	else
+	{
+		//Windows forgets the child once its handles are closed.  A Linux child
+		//stays a zombie until it is waited for, so wait for it in the background.
+		cReaper.Init();
+		cReaper.Start(ReapProcess, (void*)(size_t)iProcess);
+		cReaper.Detach();
+		cReaper.Kill();
+	}
 
-    return true;
+	return true;
 }
 
 

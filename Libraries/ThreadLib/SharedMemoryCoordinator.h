@@ -19,7 +19,7 @@ struct SResizableSharedMemoryFile : SSharedMemoryDescriptor
 	int								iNumSharedMemoryFiles;
 	int								iValidSharedMemoryIndex;
 	CAtomicInt						miClients;
-	SSharedMemoryFileName	macMemoryFiles[1]; //...
+	SSharedMemoryFileName			macMemoryFiles[1]; //...
 };
 
 
@@ -28,7 +28,7 @@ class CSharedMemoryCoordinator
 protected:
 	CSharedMemoryFile			mcMemory;
 	SResizableSharedMemoryFile*	mpsDescriptor;
-	
+
 public:
 	bool							Init(char* szCoordinatorMemoryName);
 	void							Kill(void);

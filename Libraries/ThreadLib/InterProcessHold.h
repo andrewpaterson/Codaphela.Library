@@ -8,10 +8,10 @@
 class CInterProcessHold : public CInterProcessCounter
 {
 public:
-	bool Start(void);
-	bool Touch(void);
-	bool Wait(int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
-	void Stop(void);
+	bool	Start(void);
+	bool	Touch(void);
+	bool	Wait(int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
+	void	Stop(void);
 };
 
 

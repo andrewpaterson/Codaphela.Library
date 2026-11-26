@@ -14,7 +14,7 @@ static_assert(sizeof(HANDLE) <= INTER_PROCESS_MUTEX_HANDLE_SIZE, "INTER_PROCESS_
 //////////////////////////////////////////////////////////////////////////
 static HANDLE& MutexHandle(uint8* paMutex)
 {
-    return *(HANDLE*)paMutex;
+	return *(HANDLE*)paMutex;
 }
 
 
@@ -24,8 +24,8 @@ static HANDLE& MutexHandle(uint8* paMutex)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessMutex::Init(char* szName)
 {
-    mszName.Init(szName);
-    MutexHandle(maMutex) = NULL;
+	mszName.Init(szName);
+	MutexHandle(maMutex) = NULL;
 }
 
 
@@ -35,8 +35,8 @@ void CInterProcessMutex::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessMutex::Kill(void)
 {
-    mszName.Kill();
-    MutexHandle(maMutex) = NULL;
+	mszName.Kill();
+	MutexHandle(maMutex) = NULL;
 }
 
 
@@ -46,29 +46,29 @@ void CInterProcessMutex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Create(void)
 {
-    HANDLE  hMutex;
+	HANDLE  hMutex;
 
-    hMutex = CreateMutex(
-                NULL,               // default security descriptor
-                false,              // mutex not owned
-                mszName.Text());    // object name
+	hMutex = CreateMutex(
+	            NULL,               // default security descriptor
+	            false,              // mutex not owned
+	            mszName.Text());    // object name
 
-    MutexHandle(maMutex) = hMutex;
-    if (hMutex == NULL)
-    {
-        return gcLogger.Error2(__METHOD__, " Could not create mutex [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-    }
-    else
-    {
-        if (GetLastError() == ERROR_ALREADY_EXISTS)
-        {
-            return true;
-        }
-        else
-        {
-            return true;
-        }
-    }
+	MutexHandle(maMutex) = hMutex;
+	if (hMutex == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not create mutex [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+	}
+	else
+	{
+		if (GetLastError() == ERROR_ALREADY_EXISTS)
+		{
+			return true;
+		}
+		else
+		{
+			return true;
+		}
+	}
 }
 
 
@@ -78,22 +78,22 @@ bool CInterProcessMutex::Create(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Connect(void)
 {
-    HANDLE  hMutex;
+	HANDLE  hMutex;
 
-    hMutex = OpenMutex( 
-                MUTEX_ALL_ACCESS,   // request full access
-                false,              // handle not inheritable
-                mszName.Text());    // object name
+	hMutex = OpenMutex(
+	            MUTEX_ALL_ACCESS,   // request full access
+	            false,              // handle not inheritable
+	            mszName.Text());    // object name
 
-    MutexHandle(maMutex) = hMutex;
-    if (hMutex == NULL)
-    {
-        return gcLogger.Error2(__METHOD__, " Could not open mutex [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-    }
-    else
-    {
-        return true;
-    }
+	MutexHandle(maMutex) = hMutex;
+	if (hMutex == NULL)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not open mutex [", mszName.Text(), "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+	}
+	else
+	{
+		return true;
+	}
 }
 
 
@@ -103,7 +103,7 @@ bool CInterProcessMutex::Connect(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessMutex::Close(void)
 {
-    CloseHandle(MutexHandle(maMutex));
+	CloseHandle(MutexHandle(maMutex));
 }
 
 
@@ -113,25 +113,25 @@ void CInterProcessMutex::Close(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Lock(void)
 {
-    DWORD dwWaitResult;
+	DWORD dwWaitResult;
 
-    dwWaitResult = WaitForSingleObject(
-                        MutexHandle(maMutex),    // handle to mutex
-                        INFINITE);  // no time-out interval
+	dwWaitResult = WaitForSingleObject(
+	                    MutexHandle(maMutex),    // handle to mutex
+	                    INFINITE);  // no time-out interval
 
-    if (dwWaitResult == WAIT_OBJECT_0)
-    {
-        return true;
-    }
-    else if (dwWaitResult == WAIT_ABANDONED)
-    {
-        // The thread got ownership of an abandoned mutex
-        return false;
-    }
-    else
-    {
-        return gcLogger.Error2(__METHOD__, " Lock failed with unknown return code.", NULL);
-    }
+	if (dwWaitResult == WAIT_OBJECT_0)
+	{
+		return true;
+	}
+	else if (dwWaitResult == WAIT_ABANDONED)
+	{
+		// The thread got ownership of an abandoned mutex
+		return false;
+	}
+	else
+	{
+		return gcLogger.Error2(__METHOD__, " Lock failed with unknown return code.", NULL);
+	}
 }
 
 
@@ -141,14 +141,14 @@ bool CInterProcessMutex::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInterProcessMutex::Unlock(void)
 {
-    if (!ReleaseMutex(MutexHandle(maMutex)))
-    {
-        return false;
-    }
-    else
-    {
-        return true;
-    }
+	if (!ReleaseMutex(MutexHandle(maMutex)))
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 

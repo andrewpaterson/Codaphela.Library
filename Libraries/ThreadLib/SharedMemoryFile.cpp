@@ -8,8 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Reinit(void)
 {
-    Kill();
-    Init();
+	Kill();
+	Init();
 }
 
 
@@ -19,8 +19,8 @@ void CSharedMemoryFile::Reinit(void)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Reinit(char* szName)
 {
-    Kill();
-    Init(szName);
+	Kill();
+	Init(szName);
 }
 
 
@@ -30,11 +30,11 @@ void CSharedMemoryFile::Reinit(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CSharedMemoryFile::IsNamed(void) const
 {
-    if (StrEmpty(mszName))
-    {
-        return false;
-    }
-    return true;
+	if (StrEmpty(mszName))
+	{
+		return false;
+	}
+	return true;
 }
 
 
@@ -44,6 +44,6 @@ bool CSharedMemoryFile::IsNamed(void) const
 //////////////////////////////////////////////////////////////////////////
 char* CSharedMemoryFile::GetName(void)
 {
-    return mszName;
+	return mszName;
 }
 

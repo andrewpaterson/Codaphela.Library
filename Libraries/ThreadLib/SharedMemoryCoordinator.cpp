@@ -27,7 +27,7 @@ bool CSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 		mpsDescriptor->miClients.Increment();
 		return true;
 	}
-	
+
 	sResult = mcMemory.Create(8192);
 	if (sResult.IsSuccess())
 	{
@@ -39,7 +39,7 @@ bool CSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 		memset(&mpsDescriptor->macMemoryFiles[0], 0, sizeof(SSharedMemoryFileName));
 		return true;
 	}
-	
+
 	mpsDescriptor = NULL;
 	return false;
 }
@@ -70,7 +70,7 @@ void CSharedMemoryCoordinator::Kill(void)
 SSharedMemoryFileName* CSharedMemoryCoordinator::Add(char* szName)
 {
 	CChars							sz;
-	SSharedMemoryFileName*	pcMemoryFile;
+	SSharedMemoryFileName*			pcMemoryFile;
 
 	if (mpsDescriptor)
 	{

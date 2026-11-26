@@ -55,13 +55,13 @@ bool CMainProcessDirector::Run(int argc, char* argv[])
 		{
 			sz.RemoveFromStart(1);
 		}
-		
+
 		pfMain = (main_func*)(mmszRedirects.Get(sz.Text()));
 		sz.Kill();
 		if (pfMain)
 		{
 			mbRanRedirect = true;
-			miRedirectResult =(*pfMain)(argc-2, &argv[2]);
+			miRedirectResult = (*pfMain)(argc - 2, &argv[2]);
 			return true;
 		}
 	}

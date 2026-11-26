@@ -6,7 +6,7 @@
 class CSharedMemory
 {
 protected:
-	CSharedMemoryFile	mcMappedFile;
+	CSharedMemoryFile			mcMappedFile;
 	SSharedMemoryDescriptor*	mpsDescriptor;
 	void*						mpvMemory;
 

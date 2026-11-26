@@ -11,16 +11,16 @@ class CResizableSharedMemory
 {
 private:
 	CSharedMemoryCoordinator	mcCoordinator;
-	SSharedMemoryFileName*	mpcCoordinatorMappedFile;
+	SSharedMemoryFileName*		mpcCoordinatorMappedFile;
 
-	CSharedMemoryFile		mcMappedFile;
+	CSharedMemoryFile				mcMappedFile;
 	SSharedMemoryDescriptor*		mpsDescriptor;
 	void*							mpvMemory;
 
 	CChars							mszSharedName;
 	CChars							mszDebugIdentifier;
 
-	CSharedMemoryFile		mcHoldingMappedFile;
+	CSharedMemoryFile				mcHoldingMappedFile;
 	SSharedMemoryDescriptor*		mpsHoldingDescriptor;
 
 public:

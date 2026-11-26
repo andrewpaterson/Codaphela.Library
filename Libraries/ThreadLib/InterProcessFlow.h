@@ -9,9 +9,9 @@ protected:
 	CSharedMemory		mcSharedMemory;
 
 public:
-	void Init(char* szSharedMemoryName);
-	void Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix);
-	void Kill(void);
+	void	Init(char* szSharedMemoryName);
+	void	Init(char* szSharedMemoryName, char* szSharedMemoryNamePostfix);
+	void	Kill(void);
 };
 
 

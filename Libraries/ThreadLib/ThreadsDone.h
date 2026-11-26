@@ -9,8 +9,8 @@ class CThreadsDone : public CThreadStateNotifer
 public:
 	CAtomicInt	miThreadsStopped;
 
-	void Init(void);
-	bool Wait(int iCount, int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
+	void	Init(void);
+	bool	Wait(int iCount, int iTimeoutMilliseconds = ATOMIC_WAIT_FOREVER);
 
 protected:
 	void ThreadStateChanged(CThread* pcThread, EThreadState eState);

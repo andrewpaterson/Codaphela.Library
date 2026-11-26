@@ -10,7 +10,7 @@ typedef int(*main_func)(int argc, char* argv[]);
 class CMainProcessDirector
 {
 private:
-	CMapStringBlock mmszRedirects;
+	CMapStringBlock	mmszRedirects;
 	bool			mbRanRedirect;
 	int				miRedirectResult;
 

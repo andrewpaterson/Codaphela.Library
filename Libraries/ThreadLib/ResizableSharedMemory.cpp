@@ -23,24 +23,24 @@
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 {
-    bool    bResult;
+	bool    bResult;
 
-    bResult = InitCoordinator(szMemoryName);
-    mcHoldingMappedFile.Init();
-    mpsHoldingDescriptor = NULL;
+	bResult = InitCoordinator(szMemoryName);
+	mcHoldingMappedFile.Init();
+	mpsHoldingDescriptor = NULL;
 
-    ShortenInterProcessName(&mszSharedName, szMemoryName, RESIZABLE_SHARED_MEMORY_NAME_LENGTH);
+	ShortenInterProcessName(&mszSharedName, szMemoryName, RESIZABLE_SHARED_MEMORY_NAME_LENGTH);
 
-    if (szDebugIdentifier)
-    {
-        mszDebugIdentifier.Init(szDebugIdentifier);
-    }
-    else
-    {
-        mszDebugIdentifier.Init();
-    }
+	if (szDebugIdentifier)
+	{
+		mszDebugIdentifier.Init(szDebugIdentifier);
+	}
+	else
+	{
+		mszDebugIdentifier.Init();
+	}
 
-    return bResult;
+	return bResult;
 }
 
 
@@ -50,23 +50,23 @@ bool CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::InitCoordinator(char* szMemoryName)
 {
-    CChars  sz;
-    bool    bResult;
+	CChars	sz;
+	bool	bResult;
 
-    sz.Init(szMemoryName);
-    sz.Append(":C");
-    bResult = mcCoordinator.Init(sz.Text());
-    sz.Kill();
+	sz.Init(szMemoryName);
+	sz.Append(":C");
+	bResult = mcCoordinator.Init(sz.Text());
+	sz.Kill();
 
-    //mpcCoordinatorMappedFile, mcMappedFile, mpvMemory and mpsDescriptor all move together
-    mpcCoordinatorMappedFile = NULL;
+	//mpcCoordinatorMappedFile, mcMappedFile, mpvMemory and mpsDescriptor all move together
+	mpcCoordinatorMappedFile = NULL;
 
-    mcMappedFile.Init();
+	mcMappedFile.Init();
 
-    mpvMemory = NULL;
-    mpsDescriptor = NULL;
+	mpvMemory = NULL;
+	mpsDescriptor = NULL;
 
-    return bResult;
+	return bResult;
 }
 
 
@@ -76,13 +76,13 @@ bool CResizableSharedMemory::InitCoordinator(char* szMemoryName)
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::ReinitCoordinator(void)
 {
-    mpcCoordinatorMappedFile = NULL;
-    mcMappedFile.Close();
-    mcMappedFile.Reinit();
-    mpsDescriptor = NULL;
-    mpvMemory = NULL;
+	mpcCoordinatorMappedFile = NULL;
+	mcMappedFile.Close();
+	mcMappedFile.Reinit();
+	mpsDescriptor = NULL;
+	mpvMemory = NULL;
 
-    return false;
+	return false;
 }
 
 
@@ -92,7 +92,7 @@ bool CResizableSharedMemory::ReinitCoordinator(void)
 //////////////////////////////////////////////////////////////////////////
 void CResizableSharedMemory::Kill(void)
 {
-    Kill(false);
+	Kill(false);
 }
 
 
@@ -106,25 +106,25 @@ void CResizableSharedMemory::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CResizableSharedMemory::Kill(bool bHandOver)
 {
-    if (mpsHoldingDescriptor)
-    {
-        if (bHandOver)
-        {
-            HandOver();
-        }
-        mcHoldingMappedFile.Unmap(mpsHoldingDescriptor);
-        mcHoldingMappedFile.Close();
-        mpsHoldingDescriptor = NULL;
-    }
-    mcHoldingMappedFile.Kill();
+	if (mpsHoldingDescriptor)
+	{
+		if (bHandOver)
+		{
+			HandOver();
+		}
+		mcHoldingMappedFile.Unmap(mpsHoldingDescriptor);
+		mcHoldingMappedFile.Close();
+		mpsHoldingDescriptor = NULL;
+	}
+	mcHoldingMappedFile.Kill();
 
-    mszDebugIdentifier.Kill();
-    mszSharedName.Kill();
+	mszDebugIdentifier.Kill();
+	mszSharedName.Kill();
 
-    mpvMemory = NULL;
-    mpsDescriptor = NULL;
+	mpvMemory = NULL;
+	mpsDescriptor = NULL;
 
-    mcCoordinator.Kill();
+	mcCoordinator.Kill();
 }
 
 
@@ -134,36 +134,36 @@ void CResizableSharedMemory::Kill(bool bHandOver)
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::Create(size_t uiSize)
 {
-    TouchHolding();
+	TouchHolding();
 
-    if (mcMappedFile.IsNamed())
-    {
-        return gcLogger.Error2(__METHOD__, " Could not create map file.  Already exists [", mcMappedFile.GetName(), "].", NULL);
-    }
+	if (mcMappedFile.IsNamed())
+	{
+		return gcLogger.Error2(__METHOD__, " Could not create map file.  Already exists [", mcMappedFile.GetName(), "].", NULL);
+	}
 
-    mpcCoordinatorMappedFile = mcCoordinator.Add(mszSharedName.Text());
-    if (!mpcCoordinatorMappedFile)
-    {
-        return gcLogger.Error2(__METHOD__, " Could not create map file.  Previously created must be invalidated first [", mcMappedFile.GetName(), "].", NULL);
-    }
+	mpcCoordinatorMappedFile = mcCoordinator.Add(mszSharedName.Text());
+	if (!mpcCoordinatorMappedFile)
+	{
+		return gcLogger.Error2(__METHOD__, " Could not create map file.  Previously created must be invalidated first [", mcMappedFile.GetName(), "].", NULL);
+	}
 
-    mcMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
+	mcMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
 
-    SSharedMemoryResult sResult = mcMappedFile.Create(uiSize);
-    if (sResult.IsFailed())
-    {
-        return ReinitCoordinator();
-    }
+	SSharedMemoryResult sResult = mcMappedFile.Create(uiSize);
+	if (sResult.IsFailed())
+	{
+		return ReinitCoordinator();
+	}
 
-    if (Map(uiSize))
-    {
-        StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), SHARED_MEMORY_NAME_SIZE);
-        return true;
-    }
-    else
-    {
-        return true;
-    }
+	if (Map(uiSize))
+	{
+		StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), SHARED_MEMORY_NAME_SIZE);
+		return true;
+	}
+	else
+	{
+		return true;
+	}
 
 }
 
@@ -174,38 +174,38 @@ bool CResizableSharedMemory::Create(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::Connect(void)
 {
-    TouchHolding();
+	TouchHolding();
 
-    if (mcMappedFile.IsNamed())
-    {
-        return gcLogger.Error2(__METHOD__, " Could not connect to map file.  Already connected [", mcMappedFile.GetName(), "].", NULL);
-    }
+	if (mcMappedFile.IsNamed())
+	{
+		return gcLogger.Error2(__METHOD__, " Could not connect to map file.  Already connected [", mcMappedFile.GetName(), "].", NULL);
+	}
 
-    mpcCoordinatorMappedFile = mcCoordinator.GetCurrent();
-    if (mpcCoordinatorMappedFile)
-    {
-        if (StrEmpty(mpcCoordinatorMappedFile->mszName))
-        {
-            return gcLogger.Error2(__METHOD__, " Could not connect to map file.  Co-ordinator name is empty.", NULL);
-        }
+	mpcCoordinatorMappedFile = mcCoordinator.GetCurrent();
+	if (mpcCoordinatorMappedFile)
+	{
+		if (StrEmpty(mpcCoordinatorMappedFile->mszName))
+		{
+			return gcLogger.Error2(__METHOD__, " Could not connect to map file.  Co-ordinator name is empty.", NULL);
+		}
 
-        mcMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
+		mcMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
 
-        SSharedMemoryResult sResult = mcMappedFile.Open();
-        if (sResult.IsFailed())
-        {
-            
-            gcLogger.Error2(__METHOD__, " Could not connect to map file.  No map file exists [", mpcCoordinatorMappedFile->mszName, "].", NULL);
-            return ReinitCoordinator();
-        }
+		SSharedMemoryResult sResult = mcMappedFile.Open();
+		if (sResult.IsFailed())
+		{
 
-        return Map(sResult.GetSize());
-    }
-    else
-    {
-        gcLogger.Error2(__METHOD__, " Could not connect to map file.  No map file exists.", NULL);
-        return ReinitCoordinator();
-    }
+			gcLogger.Error2(__METHOD__, " Could not connect to map file.  No map file exists [", mpcCoordinatorMappedFile->mszName, "].", NULL);
+			return ReinitCoordinator();
+		}
+
+		return Map(sResult.GetSize());
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Could not connect to map file.  No map file exists.", NULL);
+		return ReinitCoordinator();
+	}
 }
 
 
@@ -215,36 +215,36 @@ bool CResizableSharedMemory::Connect(void)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap CResizableSharedMemory::Touch(void)
 {
-    bool    bResult;
+	bool    bResult;
 
-    if (mpsDescriptor)
-    {
-        if (mpsDescriptor->iInvalid)
-        {
-            Close();
-            bResult = Connect();
-            
-            if (bResult)
-            {
-                return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
-            }
-            return SSharedMemoryMap();
-        }
-        else 
-        {
-            //Test the name and the map count.
-            return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
-        }
-    }
-    else
-    {
-        Close();
-        if (Connect())
-        {
-            return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
-        }
-        return SSharedMemoryMap();
-    }
+	if (mpsDescriptor)
+	{
+		if (mpsDescriptor->iInvalid)
+		{
+			Close();
+			bResult = Connect();
+
+			if (bResult)
+			{
+				return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
+			}
+			return SSharedMemoryMap();
+		}
+		else
+		{
+			//Test the name and the map count.
+			return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
+		}
+	}
+	else
+	{
+		Close();
+		if (Connect())
+		{
+			return SSharedMemoryMap(mpvMemory, (size_t)mpsDescriptor->uiSize);
+		}
+		return SSharedMemoryMap();
+	}
 }
 
 
@@ -254,16 +254,16 @@ SSharedMemoryMap CResizableSharedMemory::Touch(void)
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::Map(size_t uiSize)
 {
-    mpsDescriptor = mcMappedFile.Map(uiSize);
-    if (mpsDescriptor == NULL)
-    {
-        gcLogger.Error2(__METHOD__, " Could not map view of file [", mpcCoordinatorMappedFile->mszName, "].  Failed with [", mcMappedFile.GetLastErrorString(), "].", NULL);
-        return ReinitCoordinator();
-    }
+	mpsDescriptor = mcMappedFile.Map(uiSize);
+	if (mpsDescriptor == NULL)
+	{
+		gcLogger.Error2(__METHOD__, " Could not map view of file [", mpcCoordinatorMappedFile->mszName, "].  Failed with [", mcMappedFile.GetLastErrorString(), "].", NULL);
+		return ReinitCoordinator();
+	}
 
-    mpsDescriptor->iMapCount++;
-    mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
-    return true;
+	mpsDescriptor->iMapCount++;
+	mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
+	return true;
 }
 
 
@@ -273,40 +273,40 @@ bool CResizableSharedMemory::Map(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 bool CResizableSharedMemory::Remap(size_t uiSize)
 {
-    uint64                      uiOldSize;
+	uint64                      uiOldSize;
 
-    if (mpsDescriptor)
-    {
-        uiOldSize = mpsDescriptor->uiSize;
-        mpsDescriptor->iMapCount--;
-        mcMappedFile.Unmap(mpsDescriptor);
-     
-        mpsDescriptor = mcMappedFile.Map(uiSize);
-        if (mpsDescriptor == NULL)
-        {
-            mpvMemory = NULL;
-            mpsDescriptor = mcMappedFile.Map((size_t)uiOldSize);
-            if (mpsDescriptor == NULL)
-            {
-                gcLogger.Error2(__METHOD__, " Could not re-map view of file [", mpcCoordinatorMappedFile->mszName, "] back to original size.  Failed with [", mcMappedFile.GetLastErrorString(), "].", NULL);
-                return ReinitCoordinator();
-            }
-            mpsDescriptor->iMapCount++;
-            mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
-            return false;
-        }
-        else
-        {
-            mpsDescriptor->iMapCount++;
-            mpsDescriptor->uiSize = uiSize;
-            mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
-            return true;
-        }
-    }
-    else
-    {
-        return false;
-    }
+	if (mpsDescriptor)
+	{
+		uiOldSize = mpsDescriptor->uiSize;
+		mpsDescriptor->iMapCount--;
+		mcMappedFile.Unmap(mpsDescriptor);
+
+		mpsDescriptor = mcMappedFile.Map(uiSize);
+		if (mpsDescriptor == NULL)
+		{
+			mpvMemory = NULL;
+			mpsDescriptor = mcMappedFile.Map((size_t)uiOldSize);
+			if (mpsDescriptor == NULL)
+			{
+				gcLogger.Error2(__METHOD__, " Could not re-map view of file [", mpcCoordinatorMappedFile->mszName, "] back to original size.  Failed with [", mcMappedFile.GetLastErrorString(), "].", NULL);
+				return ReinitCoordinator();
+			}
+			mpsDescriptor->iMapCount++;
+			mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
+			return false;
+		}
+		else
+		{
+			mpsDescriptor->iMapCount++;
+			mpsDescriptor->uiSize = uiSize;
+			mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
+			return true;
+		}
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -316,9 +316,9 @@ bool CResizableSharedMemory::Remap(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CResizableSharedMemory::HoldValid(void)
 {
-    mcHoldingMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
-    mcHoldingMappedFile.Open();
-    mpsHoldingDescriptor = mcHoldingMappedFile.Map(0);
+	mcHoldingMappedFile.Reinit(mpcCoordinatorMappedFile->mszName);
+	mcHoldingMappedFile.Open();
+	mpsHoldingDescriptor = mcHoldingMappedFile.Map(0);
 }
 
 
@@ -328,15 +328,15 @@ void CResizableSharedMemory::HoldValid(void)
 //////////////////////////////////////////////////////////////////////////
 void CResizableSharedMemory::TouchHolding(void)
 {
-    if (mpsHoldingDescriptor)
-    {
-        if (mpsHoldingDescriptor->iInvalid == SHARED_MEMORY_INVALID)
-        {
-            mcHoldingMappedFile.Unmap(mpsHoldingDescriptor);
-            mcHoldingMappedFile.Close();
-            mpsHoldingDescriptor = NULL;
-        }
-    }
+	if (mpsHoldingDescriptor)
+	{
+		if (mpsHoldingDescriptor->iInvalid == SHARED_MEMORY_INVALID)
+		{
+			mcHoldingMappedFile.Unmap(mpsHoldingDescriptor);
+			mcHoldingMappedFile.Close();
+			mpsHoldingDescriptor = NULL;
+		}
+	}
 }
 
 
@@ -351,27 +351,27 @@ void CResizableSharedMemory::TouchHolding(void)
 //////////////////////////////////////////////////////////////////////////
 void CResizableSharedMemory::HandOver(void)
 {
-    volatile SSharedMemoryDescriptor*   psDescriptor;
-    CTimer                              cTimer;
+	volatile SSharedMemoryDescriptor*	psDescriptor;
+	CTimer								cTimer;
 
-    psDescriptor = mpsHoldingDescriptor;
-    if ((psDescriptor->iInvalid != SHARED_MEMORY_VALID) || (psDescriptor->iMapCount != 0) || (mcCoordinator.NumClients() <= 1))
-    {
-        return;
-    }
+	psDescriptor = mpsHoldingDescriptor;
+	if ((psDescriptor->iInvalid != SHARED_MEMORY_VALID) || (psDescriptor->iMapCount != 0) || (mcCoordinator.NumClients() <= 1))
+	{
+		return;
+	}
 
-    cTimer.Init();
-    while ((psDescriptor->iInvalid == SHARED_MEMORY_VALID) && (psDescriptor->iMapCount == 0) && (mcCoordinator.NumClients() > 1))
-    {
-        cTimer.Update();
-        if (cTimer.GetTotalTimeInMillieconds() >= RESIZABLE_SHARED_MEMORY_HAND_OVER_MILLISECONDS)
-        {
-            gcLogger.Error2(__METHOD__, " Could not hand over shared memory [", mcHoldingMappedFile.GetName(), "].  No other client took it, so it is lost.", NULL);
-            break;
-        }
-        ThreadYield();
-    }
-    cTimer.Kill();
+	cTimer.Init();
+	while ((psDescriptor->iInvalid == SHARED_MEMORY_VALID) && (psDescriptor->iMapCount == 0) && (mcCoordinator.NumClients() > 1))
+	{
+		cTimer.Update();
+		if (cTimer.GetTotalTimeInMillieconds() >= RESIZABLE_SHARED_MEMORY_HAND_OVER_MILLISECONDS)
+		{
+			gcLogger.Error2(__METHOD__, " Could not hand over shared memory [", mcHoldingMappedFile.GetName(), "].  No other client took it, so it is lost.", NULL);
+			break;
+		}
+		ThreadYield();
+	}
+	cTimer.Kill();
 }
 
 
@@ -381,32 +381,32 @@ void CResizableSharedMemory::HandOver(void)
 //////////////////////////////////////////////////////////////////////////
 int CResizableSharedMemory::Close(void)
 {
-    int     iStillMapped;
+	int     iStillMapped;
 
-    TouchHolding();
+	TouchHolding();
 
-    if (mpsDescriptor)
-    {
-        mpsDescriptor->iMapCount--;
-        iStillMapped = mpsDescriptor->iMapCount;
-        if (mpsDescriptor->iMapCount == 0)
-        {
-            if (mpsDescriptor->iInvalid == SHARED_MEMORY_VALID)
-            {
-                HoldValid();
-            }
-        }
+	if (mpsDescriptor)
+	{
+		mpsDescriptor->iMapCount--;
+		iStillMapped = mpsDescriptor->iMapCount;
+		if (mpsDescriptor->iMapCount == 0)
+		{
+			if (mpsDescriptor->iInvalid == SHARED_MEMORY_VALID)
+			{
+				HoldValid();
+			}
+		}
 
-        mcMappedFile.Unmap(mpsDescriptor);
-        mcMappedFile.Close();
-    }
-    else
-    {
-        iStillMapped = 0;
-    }
-    ReinitCoordinator();
+		mcMappedFile.Unmap(mpsDescriptor);
+		mcMappedFile.Close();
+	}
+	else
+	{
+		iStillMapped = 0;
+	}
+	ReinitCoordinator();
 
-    return iStillMapped;
+	return iStillMapped;
 }
 
 
@@ -416,7 +416,7 @@ int CResizableSharedMemory::Close(void)
 //////////////////////////////////////////////////////////////////////////
 size_t CResizableSharedMemory::GetSize(void) const
 {
-    return (size_t)mpsDescriptor->uiSize;
+	return (size_t)mpsDescriptor->uiSize;
 }
 
 
@@ -426,17 +426,17 @@ size_t CResizableSharedMemory::GetSize(void) const
 //////////////////////////////////////////////////////////////////////////
 void* CResizableSharedMemory::GetValidMemory(void) const
 {
-    if (mpsDescriptor == NULL)
-    {
-        return NULL;
-    }
+	if (mpsDescriptor == NULL)
+	{
+		return NULL;
+	}
 
-    //Another process sets iInvalid when it moves the memory to a new file.
-    if (*(volatile int*)&mpsDescriptor->iInvalid != SHARED_MEMORY_VALID)
-    {
-        return NULL;
-    }
-    return mpvMemory;
+	//Another process sets iInvalid when it moves the memory to a new file.
+	if (*(volatile int*)&mpsDescriptor->iInvalid != SHARED_MEMORY_VALID)
+	{
+		return NULL;
+	}
+	return mpvMemory;
 }
 
 
@@ -446,42 +446,42 @@ void* CResizableSharedMemory::GetValidMemory(void) const
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
 {
-    bool                        bResult;
-    uint64                      uiOldSize;
-    void*                       pvMemory;
-    CStackMemory<>              cTemp;
+	bool	bResult;
+	uint64	uiOldSize;
+	void*	pvMemory;
+	CStackMemory<>	cTemp;
 
-    bResult = Remap(uiSize);
-    if (!bResult)
-    { 
-        mcCoordinator.Invalidate();
-        mpsDescriptor->iInvalid = SHARED_MEMORY_INVALID;
-        uiOldSize = mpsDescriptor->uiSize;
-        pvMemory = cTemp.Init((size_t)uiOldSize);
-        memcpy(pvMemory, mpvMemory, (size_t)uiOldSize);
+	bResult = Remap(uiSize);
+	if (!bResult)
+	{
+		mcCoordinator.Invalidate();
+		mpsDescriptor->iInvalid = SHARED_MEMORY_INVALID;
+		uiOldSize = mpsDescriptor->uiSize;
+		pvMemory = cTemp.Init((size_t)uiOldSize);
+		memcpy(pvMemory, mpvMemory, (size_t)uiOldSize);
 
-        Close();
-        bResult = Create(uiSize);
-        if (bResult)
-        {
-            memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
-            cTemp.Kill();
-         
-            return SSharedMemoryMap(mpvMemory, uiSize);
+		Close();
+		bResult = Create(uiSize);
+		if (bResult)
+		{
+			memcpy(mpvMemory, pvMemory, (size_t)uiOldSize);
+			cTemp.Kill();
 
-        }
-        else
-        {
-            cTemp.Kill();
+			return SSharedMemoryMap(mpvMemory, uiSize);
 
-            gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
-            return SSharedMemoryMap();
-        }
-    }
-    else
-    {
-        return SSharedMemoryMap(mpvMemory, uiSize);
-    }
+		}
+		else
+		{
+			cTemp.Kill();
+
+			gcLogger.Error2(__METHOD__, " Could not resize file.", NULL);
+			return SSharedMemoryMap();
+		}
+	}
+	else
+	{
+		return SSharedMemoryMap(mpvMemory, uiSize);
+	}
 }
 
 
@@ -491,19 +491,19 @@ SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap CResizableSharedMemory::IncreaseSize(size_t uiMore)
 {
-    size_t  uiSize;
+	size_t  uiSize;
 
-    if (mpsDescriptor)
-    {
-        uiSize = (size_t)mpsDescriptor->uiSize + uiMore;
-        uiSize = (size_t)(uiSize + uiSize / 2);
-    }
-    else
-    {
-        uiSize = 16000 + uiMore;
-    }
+	if (mpsDescriptor)
+	{
+		uiSize = (size_t)mpsDescriptor->uiSize + uiMore;
+		uiSize = (size_t)(uiSize + uiSize / 2);
+	}
+	else
+	{
+		uiSize = 16000 + uiMore;
+	}
 
-    return Resize(uiSize);
+	return Resize(uiSize);
 }
 
 

@@ -15,7 +15,7 @@ static_assert(sizeof(HANDLE) <= SHARED_MEMORY_FILE_HANDLE_SIZE, "SHARED_MEMORY_F
 //////////////////////////////////////////////////////////////////////////
 static HANDLE& MapFileHandle(uint8* paMapFile)
 {
-    return *(HANDLE*)paMapFile;
+	return *(HANDLE*)paMapFile;
 }
 
 
@@ -25,7 +25,7 @@ static HANDLE& MapFileHandle(uint8* paMapFile)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Init(void)
 {
-    memset(this, 0, sizeof(CSharedMemoryFile));
+	memset(this, 0, sizeof(CSharedMemoryFile));
 }
 
 
@@ -54,7 +54,7 @@ bool CSharedMemoryFile::Kill(void)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Kill windows shared memory file [", mszName, "].  It's handle has not been closed.", NULL);
 	}
-    return true;
+	return true;
 }
 
 
@@ -64,61 +64,61 @@ bool CSharedMemoryFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 {
-    size_t          iAdjustedSize;
-    SSharedMemoryDescriptor*  psDescriptor;
+	size_t						iAdjustedSize;
+	SSharedMemoryDescriptor*	psDescriptor;
 
-    iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
+	iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
 
-    if (MapFileHandle(maMapFile))
-    {
-        gcLogger.Error2(__METHOD__, " Could not create mapping [", mszName, "].  Map file handle must be NULL.", NULL);
-        return SSharedMemoryResult(SMR_FileHandleAlreadySet);
-    }
+	if (MapFileHandle(maMapFile))
+	{
+		gcLogger.Error2(__METHOD__, " Could not create mapping [", mszName, "].  Map file handle must be NULL.", NULL);
+		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
+	}
 
-    MapFileHandle(maMapFile) = OpenFileMapping(
-        FILE_MAP_ALL_ACCESS,
-        false,
-        mszName);
-    if (MapFileHandle(maMapFile))
-    {
-        CloseHandle(MapFileHandle(maMapFile));
-        MapFileHandle(maMapFile) = NULL;
-        gcLogger.Error2(__METHOD__, " Could not create mapping [", mszName, "].  File already exists.", NULL);
-        return SSharedMemoryResult(SMR_FileHandleAlreadySet);
-    }
+	MapFileHandle(maMapFile) = OpenFileMapping(
+	    FILE_MAP_ALL_ACCESS,
+	    false,
+	    mszName);
+	if (MapFileHandle(maMapFile))
+	{
+		CloseHandle(MapFileHandle(maMapFile));
+		MapFileHandle(maMapFile) = NULL;
+		gcLogger.Error2(__METHOD__, " Could not create mapping [", mszName, "].  File already exists.", NULL);
+		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
+	}
 
-    MapFileHandle(maMapFile) = CreateFileMapping(
-        INVALID_HANDLE_VALUE,
-        NULL,
-        PAGE_READWRITE,
-        (DWORD)((uint64)iAdjustedSize >> 32),   // maximum object size (high-order DWORD)
-        (DWORD)iAdjustedSize,                   // maximum object size (low-order DWORD)
-        mszName);
+	MapFileHandle(maMapFile) = CreateFileMapping(
+	    INVALID_HANDLE_VALUE,
+	    NULL,
+	    PAGE_READWRITE,
+	    (DWORD)((uint64)iAdjustedSize >> 32),   // maximum object size (high-order DWORD)
+	    (DWORD)iAdjustedSize,                   // maximum object size (low-order DWORD)
+	    mszName);
 
-    if (MapFileHandle(maMapFile) == NULL)
-    {
-        gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", mszName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-        return SSharedMemoryResult(SMR_CannotCreate);
-    }
+	if (MapFileHandle(maMapFile) == NULL)
+	{
+		gcLogger.Warning2(__METHOD__, " Could not create file mapping object [", mszName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		return SSharedMemoryResult(SMR_CannotCreate);
+	}
 
-    psDescriptor = Map(0);
-    if (psDescriptor == NULL)
-    {
-        CloseHandle(MapFileHandle(maMapFile));
-        gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-        return SSharedMemoryResult(SMR_CannotMap);
-    }
+	psDescriptor = Map(0);
+	if (psDescriptor == NULL)
+	{
+		CloseHandle(MapFileHandle(maMapFile));
+		gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		return SSharedMemoryResult(SMR_CannotMap);
+	}
 
-    memset(psDescriptor, 0, sizeof(SSharedMemoryDescriptor));
-    psDescriptor->uiMagic = SHARED_MEMORY_MAGIC;
-    psDescriptor->uiSize = uiSize;
-    psDescriptor->iInvalid = SHARED_MEMORY_VALID;
-    psDescriptor->iMapCount = 0;
-    strcpy(psDescriptor->szName, "Not Set");
+	memset(psDescriptor, 0, sizeof(SSharedMemoryDescriptor));
+	psDescriptor->uiMagic = SHARED_MEMORY_MAGIC;
+	psDescriptor->uiSize = uiSize;
+	psDescriptor->iInvalid = SHARED_MEMORY_VALID;
+	psDescriptor->iMapCount = 0;
+	strcpy(psDescriptor->szName, "Not Set");
 
-    UnmapViewOfFile(psDescriptor);
+	UnmapViewOfFile(psDescriptor);
 
-    return SSharedMemoryResult(uiSize);
+	return SSharedMemoryResult(uiSize);
 }
 
 
@@ -128,45 +128,45 @@ SSharedMemoryResult CSharedMemoryFile::Create(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult CSharedMemoryFile::Open(void)
 {
-    SSharedMemoryDescriptor*  psDescriptor;
-    size_t          uiSize;
+	SSharedMemoryDescriptor*	psDescriptor;
+	size_t						uiSize;
 
-    if (MapFileHandle(maMapFile))
-    {
-        gcLogger.Error2(__METHOD__, " Could not open mapping [", mszName, "].  Map file handle must be NULL.", NULL);
-        return SSharedMemoryResult(SMR_FileHandleAlreadySet);
-    }
+	if (MapFileHandle(maMapFile))
+	{
+		gcLogger.Error2(__METHOD__, " Could not open mapping [", mszName, "].  Map file handle must be NULL.", NULL);
+		return SSharedMemoryResult(SMR_FileHandleAlreadySet);
+	}
 
-    MapFileHandle(maMapFile) = OpenFileMapping(
-        FILE_MAP_ALL_ACCESS,
-        false,
-        mszName);
+	MapFileHandle(maMapFile) = OpenFileMapping(
+	    FILE_MAP_ALL_ACCESS,
+	    false,
+	    mszName);
 
-    if (MapFileHandle(maMapFile) == NULL)
-    {
-        return SSharedMemoryResult(SMR_CannotOpen);
-    }
+	if (MapFileHandle(maMapFile) == NULL)
+	{
+		return SSharedMemoryResult(SMR_CannotOpen);
+	}
 
-    psDescriptor = Map(0);
-  
-    if (psDescriptor == NULL)
-    {
-        CloseHandle(MapFileHandle(maMapFile));
-        gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-        return SSharedMemoryResult(SMR_CannotMap);
-    }
+	psDescriptor = Map(0);
 
-    if (psDescriptor->iInvalid == SHARED_MEMORY_INVALID)
-    {
-        UnmapViewOfFile(psDescriptor);
-        CloseHandle(MapFileHandle(maMapFile));
-        return SSharedMemoryResult(SMR_Invalid);
-    }
+	if (psDescriptor == NULL)
+	{
+		CloseHandle(MapFileHandle(maMapFile));
+		gcLogger.Warning2(__METHOD__, " Could not map view of file  [", mszName, "].  Failed with [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		return SSharedMemoryResult(SMR_CannotMap);
+	}
 
-    uiSize = (size_t)psDescriptor->uiSize;
-    UnmapViewOfFile(psDescriptor);
+	if (psDescriptor->iInvalid == SHARED_MEMORY_INVALID)
+	{
+		UnmapViewOfFile(psDescriptor);
+		CloseHandle(MapFileHandle(maMapFile));
+		return SSharedMemoryResult(SMR_Invalid);
+	}
 
-    return SSharedMemoryResult(uiSize);
+	uiSize = (size_t)psDescriptor->uiSize;
+	UnmapViewOfFile(psDescriptor);
+
+	return SSharedMemoryResult(uiSize);
 }
 
 
@@ -176,11 +176,11 @@ SSharedMemoryResult CSharedMemoryFile::Open(void)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Close(void)
 {
-    if (MapFileHandle(maMapFile))
-    {
-        CloseHandle(MapFileHandle(maMapFile));
-        MapFileHandle(maMapFile) = NULL;
-    }
+	if (MapFileHandle(maMapFile))
+	{
+		CloseHandle(MapFileHandle(maMapFile));
+		MapFileHandle(maMapFile) = NULL;
+	}
 }
 
 
@@ -190,26 +190,26 @@ void CSharedMemoryFile::Close(void)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryDescriptor* CSharedMemoryFile::Map(size_t uiSize)
 {
-    SSharedMemoryDescriptor*  psDescriptor;
-    size_t          iAdjustedSize;
+	SSharedMemoryDescriptor*	psDescriptor;
+	size_t						iAdjustedSize;
 
-    if (MapFileHandle(maMapFile) != NULL)
-    {
-        iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
+	if (MapFileHandle(maMapFile) != NULL)
+	{
+		iAdjustedSize = uiSize + sizeof(SSharedMemoryDescriptor);
 
-        psDescriptor = (SSharedMemoryDescriptor*)MapViewOfFile(
-            MapFileHandle(maMapFile),
-            FILE_MAP_ALL_ACCESS,
-            0,
-            0,
-            iAdjustedSize);
+		psDescriptor = (SSharedMemoryDescriptor*)MapViewOfFile(
+		    MapFileHandle(maMapFile),
+		    FILE_MAP_ALL_ACCESS,
+		    0,
+		    0,
+		    iAdjustedSize);
 
-        return psDescriptor;
-    }
-    else
-    {
-        return NULL;
-    }
+		return psDescriptor;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -219,7 +219,7 @@ SSharedMemoryDescriptor* CSharedMemoryFile::Map(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 void CSharedMemoryFile::Unmap(SSharedMemoryDescriptor* psDescriptor)
 {
-    UnmapViewOfFile(psDescriptor);
+	UnmapViewOfFile(psDescriptor);
 }
 
 
@@ -229,7 +229,7 @@ void CSharedMemoryFile::Unmap(SSharedMemoryDescriptor* psDescriptor)
 //////////////////////////////////////////////////////////////////////////
 char* CSharedMemoryFile::GetLastErrorString(void) const
 {
-    return WindowsErrorCodeToString(GetLastError());
+	return WindowsErrorCodeToString(GetLastError());
 }
 
 

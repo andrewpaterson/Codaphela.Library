@@ -15,39 +15,39 @@
 //////////////////////////////////////////////////////////////////////////
 void AppendQuotedArgument(CChars* psz, char* szArgument)
 {
-    size    uiBackslashes;
-    char*   pc;
+	size	uiBackslashes;
+	char*	pc;
 
-    if ((szArgument[0] != '\0') && (strpbrk(szArgument, " \t\"") == NULL))
-    {
-        psz->Append(szArgument);
-        return;
-    }
+	if ((szArgument[0] != '\0') && (strpbrk(szArgument, " \t\"") == NULL))
+	{
+		psz->Append(szArgument);
+		return;
+	}
 
-    psz->Append('"');
-    uiBackslashes = 0;
-    for (pc = szArgument; *pc != '\0'; pc++)
-    {
-        if (*pc == '\\')
-        {
-            uiBackslashes++;
-        }
-        else if (*pc == '"')
-        {
-            psz->Append('\\', uiBackslashes * 2 + 1);
-            psz->Append('"');
-            uiBackslashes = 0;
-        }
-        else
-        {
-            psz->Append('\\', uiBackslashes);
-            psz->Append(*pc);
-            uiBackslashes = 0;
-        }
-    }
-    //Backslashes before the closing quote are doubled so it stays a quote.
-    psz->Append('\\', uiBackslashes * 2);
-    psz->Append('"');
+	psz->Append('"');
+	uiBackslashes = 0;
+	for (pc = szArgument; *pc != '\0'; pc++)
+	{
+		if (*pc == '\\')
+		{
+			uiBackslashes++;
+		}
+		else if (*pc == '"')
+		{
+			psz->Append('\\', uiBackslashes * 2 + 1);
+			psz->Append('"');
+			uiBackslashes = 0;
+		}
+		else
+		{
+			psz->Append('\\', uiBackslashes);
+			psz->Append(*pc);
+			uiBackslashes = 0;
+		}
+	}
+	//Backslashes before the closing quote are doubled so it stays a quote.
+	psz->Append('\\', uiBackslashes * 2);
+	psz->Append('"');
 }
 
 
@@ -57,34 +57,34 @@ void AppendQuotedArgument(CChars* psz, char* szArgument)
 //////////////////////////////////////////////////////////////////////////
 bool GetThisExecutable(CChars* pszDest)
 {
-    CStackMemory<>  cTemp;
-    unsigned long   uiSize;
-    unsigned long   uiLength;
-    char*           sz;
+	CStackMemory<>	cTemp;
+	unsigned long	uiSize;
+	unsigned long	uiLength;
+	char*			sz;
 
-    //GetModuleFileName fills the whole buffer when the path does not fit.
-    uiSize = (unsigned long)cTemp.GetStackSize();
-    sz = (char*)cTemp.Init();
-    for (;;)
-    {
-        uiLength = GetModuleFileName(NULL, sz, uiSize);
-        if (uiLength == 0)
-        {
-            cTemp.Kill();
-            gcLogger.Error2(__METHOD__, "GetModuleFileName failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-            return false;
-        }
-        if (uiLength < uiSize)
-        {
-            break;
-        }
-        cTemp.Kill();
-        uiSize *= 2;
-        sz = (char*)cTemp.Init(uiSize);
-    }
-    pszDest->Append(sz);
-    cTemp.Kill();
-    return true;
+	//GetModuleFileName fills the whole buffer when the path does not fit.
+	uiSize = (unsigned long)cTemp.GetStackSize();
+	sz = (char*)cTemp.Init();
+	for (;;)
+	{
+		uiLength = GetModuleFileName(NULL, sz, uiSize);
+		if (uiLength == 0)
+		{
+			cTemp.Kill();
+			gcLogger.Error2(__METHOD__, "GetModuleFileName failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+			return false;
+		}
+		if (uiLength < uiSize)
+		{
+			break;
+		}
+		cTemp.Kill();
+		uiSize *= 2;
+		sz = (char*)cTemp.Init(uiSize);
+	}
+	pszDest->Append(sz);
+	cTemp.Kill();
+	return true;
 }
 
 
@@ -94,63 +94,63 @@ bool GetThisExecutable(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 bool ForkProcess(CArrayChars* paszParameters, bool bWaitForProcessToExit)
 {
-    CChars                  szExecutable;
-    CChars                  szCommandLine;
-    size                    uiNumParameters;
-    size                    i;
-    STARTUPINFO             sStartUpInfo;
-    PROCESS_INFORMATION     sProcessInformation;
+	CChars	szExecutable;
+	CChars	szCommandLine;
+	size	uiNumParameters;
+	size	i;
+	STARTUPINFO	sStartUpInfo;
+	PROCESS_INFORMATION	sProcessInformation;
 
-    szExecutable.Init();
-    if (!GetThisExecutable(&szExecutable))
-    {
-        szExecutable.Kill();
-        return false;
-    }
-    szCommandLine.Init();
-    AppendQuotedArgument(&szCommandLine, szExecutable.Text());
-    szExecutable.Kill();
+	szExecutable.Init();
+	if (!GetThisExecutable(&szExecutable))
+	{
+		szExecutable.Kill();
+		return false;
+	}
+	szCommandLine.Init();
+	AppendQuotedArgument(&szCommandLine, szExecutable.Text());
+	szExecutable.Kill();
 
-    ZeroMemory(&sStartUpInfo, sizeof(STARTUPINFO));
-    sStartUpInfo.cb = sizeof(STARTUPINFO);
-    ZeroMemory(&sProcessInformation, sizeof(PROCESS_INFORMATION));
+	ZeroMemory(&sStartUpInfo, sizeof(STARTUPINFO));
+	sStartUpInfo.cb = sizeof(STARTUPINFO);
+	ZeroMemory(&sProcessInformation, sizeof(PROCESS_INFORMATION));
 
-    uiNumParameters = paszParameters->NumElements();
-    for (i = 0; i < uiNumParameters; i++)
-    {
-        szCommandLine.Append(" ");
-        AppendQuotedArgument(&szCommandLine, paszParameters->GetText(i));
-    }
+	uiNumParameters = paszParameters->NumElements();
+	for (i = 0; i < uiNumParameters; i++)
+	{
+		szCommandLine.Append(" ");
+		AppendQuotedArgument(&szCommandLine, paszParameters->GetText(i));
+	}
 
-    // Start the child process. 
-    if (!CreateProcess(NULL,    // No module name (use command line)
-        szCommandLine.Text(),
-        NULL,                   // Process handle not inheritable
-        NULL,                   // Thread handle not inheritable
-        false,                  // Set handle inheritance to false
-        0,                      // No creation flags
-        NULL,                   // Use parent's environment block
-        NULL,                   // Use parent's starting directory 
-        &sStartUpInfo,          // Pointer to STARTUPINFO structure
-        &sProcessInformation))  // Pointer to PROCESS_INFORMATION structure
-    {
-        szCommandLine.Kill();
-        gcLogger.Error2(__METHOD__, "CreateProcess failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-        return false;
-    }
-    szCommandLine.Kill();
+	// Start the child process.
+	if (!CreateProcess(NULL,    // No module name (use command line)
+	    szCommandLine.Text(),
+	    NULL,                   // Process handle not inheritable
+	    NULL,                   // Thread handle not inheritable
+	    false,                  // Set handle inheritance to false
+	    0,                      // No creation flags
+	    NULL,                   // Use parent's environment block
+	    NULL,                   // Use parent's starting directory
+	    &sStartUpInfo,          // Pointer to STARTUPINFO structure
+	    &sProcessInformation))  // Pointer to PROCESS_INFORMATION structure
+	{
+		szCommandLine.Kill();
+		gcLogger.Error2(__METHOD__, "CreateProcess failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
+		return false;
+	}
+	szCommandLine.Kill();
 
-    // Wait until child process exits.
-    if (bWaitForProcessToExit)
-    {
-        WaitForSingleObject(sProcessInformation.hProcess, INFINITE);
-    }
+	// Wait until child process exits.
+	if (bWaitForProcessToExit)
+	{
+		WaitForSingleObject(sProcessInformation.hProcess, INFINITE);
+	}
 
-    // Close process and thread handles. 
-    CloseHandle(sProcessInformation.hProcess);
-    CloseHandle(sProcessInformation.hThread);
+	// Close process and thread handles.
+	CloseHandle(sProcessInformation.hProcess);
+	CloseHandle(sProcessInformation.hThread);
 
-    return true;
+	return true;
 }
 
 

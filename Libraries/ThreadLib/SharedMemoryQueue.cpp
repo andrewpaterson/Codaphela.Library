@@ -327,7 +327,7 @@ bool CSharedMemoryQueue::IsEmpty(void)
 	SSharedMemoryMap sMap = mcSharedMemory.Touch();
 	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
-	
+
 	bEmpty = mcQueue.IsEmpty();
 
 	mcMutex.Unlock();
@@ -404,7 +404,7 @@ bool CSharedMemoryQueue::ValidateQueue(void)
 	mcQueue.Remap((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 
 	bResult = mcQueue.ValidateCache();
-	
+
 	mcMutex.Unlock();
 	return bResult;
 }

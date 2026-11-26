@@ -14,14 +14,14 @@ protected:
 	alignas(8) uint8	maMutex[INTER_PROCESS_MUTEX_HANDLE_SIZE];
 
 public:
-	void Init(char* szName);
-	void Kill(void);
+	void	Init(char* szName);
+	void	Kill(void);
 
-	bool Create(void);
-	bool Connect(void);
-	void Close(void);
-	bool Lock(void);
-	bool Unlock(void);
+	bool	Create(void);
+	bool	Connect(void);
+	void	Close(void);
+	bool	Lock(void);
+	bool	Unlock(void);
 };
 
 

@@ -7,8 +7,8 @@
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult::SSharedMemoryResult(void)
 {
-    this->uiSize = 0;
-    this->eResult = SMR_NotSet;
+	this->uiSize = 0;
+	this->eResult = SMR_NotSet;
 }
 
 
@@ -18,8 +18,8 @@ SSharedMemoryResult::SSharedMemoryResult(void)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult::SSharedMemoryResult(size_t uiSize)
 {
-    this->uiSize = uiSize;
-    this->eResult = SMR_Success;
+	this->uiSize = uiSize;
+	this->eResult = SMR_Success;
 }
 
 
@@ -29,8 +29,8 @@ SSharedMemoryResult::SSharedMemoryResult(size_t uiSize)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryResult::SSharedMemoryResult(ESharedMemoryResult eResult)
 {
-    this->uiSize = 0;
-    this->eResult = eResult;
+	this->uiSize = 0;
+	this->eResult = eResult;
 }
 
 
@@ -40,7 +40,7 @@ SSharedMemoryResult::SSharedMemoryResult(ESharedMemoryResult eResult)
 //////////////////////////////////////////////////////////////////////////
 bool SSharedMemoryResult::IsFailed(void) const
 {
-    return eResult != SMR_Success;
+	return eResult != SMR_Success;
 }
 
 
@@ -50,7 +50,7 @@ bool SSharedMemoryResult::IsFailed(void) const
 //////////////////////////////////////////////////////////////////////////
 bool SSharedMemoryResult::IsSuccess(void) const
 {
-    return eResult == SMR_Success;
+	return eResult == SMR_Success;
 }
 
 
@@ -60,7 +60,7 @@ bool SSharedMemoryResult::IsSuccess(void) const
 //////////////////////////////////////////////////////////////////////////
 bool SSharedMemoryResult::IsInvalid(void) const
 {
-    return eResult == SMR_Invalid;
+	return eResult == SMR_Invalid;
 }
 
 
@@ -70,7 +70,7 @@ bool SSharedMemoryResult::IsInvalid(void) const
 //////////////////////////////////////////////////////////////////////////
 size_t SSharedMemoryResult::GetSize(void) const
 {
-    return uiSize;
+	return uiSize;
 }
 
 
@@ -80,8 +80,8 @@ size_t SSharedMemoryResult::GetSize(void) const
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap::SSharedMemoryMap()
 {
-    uiSize = 0;
-    pvMemory = NULL;
+	uiSize = 0;
+	pvMemory = NULL;
 }
 
 
@@ -91,7 +91,7 @@ SSharedMemoryMap::SSharedMemoryMap()
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap::SSharedMemoryMap(void* pvMemory, size_t uiSize)
 {
-    this->uiSize = uiSize;
-    this->pvMemory = pvMemory;
+	this->uiSize = uiSize;
+	this->pvMemory = pvMemory;
 }
 
