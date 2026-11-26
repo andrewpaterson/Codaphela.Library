@@ -41,6 +41,7 @@ void TestVoltageConfiguration(void);
 void TestLogicPort(void);
 void TestPassive(void);
 void TestPower(void);
+void TestPull(void);
 void TestStandardIntegratedCircuits(void);
 void TestGroupIntegratedCircuits(void);
 void TestProcessorChips(void);
@@ -92,6 +93,7 @@ int __cdecl main(void)
 	TestLogicPort();
 	TestPassive();
 	TestPower();
+	TestPull();
 	TestStandardIntegratedCircuits();
 	TestGroupIntegratedCircuits();
 	TestProcessorChips();

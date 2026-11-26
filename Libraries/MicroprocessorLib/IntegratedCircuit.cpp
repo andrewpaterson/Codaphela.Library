@@ -22,6 +22,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "BaseLib/PointerFunctions.h"
 #include "Voltage.h"
 #include "Timeline.h"
+#include "Trace.h"
 #include "PowerInPort.h"
 #include "LogicPort.h"
 #include "Circuit.h"
@@ -121,36 +122,51 @@ void CIntegratedCircuit::PowerChanged(CTimeline* pcTimeline)
 {
 	int64	iTime;
 	bool	bPowered;
+	bool	bWasPowered;
 	float32	fVcc;
 	float32	fOldVcc;
-	size	i;
-	CPort*	pcPort;
 
 	iTime = pcTimeline->GetTime();
 	bPowered = IsPowered(iTime);
 	fVcc = GetVCC(iTime);
 	fOldVcc = mfPoweredVcc;
-	if (bPowered && !mbPowered)
+	bWasPowered = mbPowered;
+	if (bPowered && !bWasPowered)
 	{
 		Start(pcTimeline);
 	}
-	else if (!bPowered && mbPowered)
+	else if (!bPowered && bWasPowered)
 	{
 		Stop(pcTimeline);
 	}
-	else if (bPowered && (fVcc != fOldVcc))
-	{
-		for (i = 0; i < mpPins->NumPorts(); i++)
-		{
-			pcPort = mpPins->GetPort(i);
-			if (pcPort->IsLogicPort())
-			{
-				((CLogicPort*)pcPort)->VccChanged(pcTimeline, fOldVcc);
-			}
-		}
-	}
 	mbPowered = bPowered;
 	mfPoweredVcc = fVcc;
+	if (bPowered && bWasPowered && (fVcc != fOldVcc))
+	{
+		VccChanged(pcTimeline, fOldVcc);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chip's VCC has moved from fOldVcc while it has power: its ports
+// write again at the new VCC and read their traces at its thresholds.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::VccChanged(CTimeline* pcTimeline, float32 fOldVcc)
+{
+	size	i;
+	CPort*	pcPort;
+
+	for (i = 0; i < mpPins->NumPorts(); i++)
+	{
+		pcPort = mpPins->GetPort(i);
+		if (pcPort->IsLogicPort())
+		{
+			((CLogicPort*)pcPort)->VccChanged(pcTimeline, fOldVcc);
+		}
+	}
 }
 
 
@@ -179,8 +195,9 @@ void CIntegratedCircuit::Disconnect(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 //
 // Starts the chip again with new state, and if it has power drives its
-// outputs from it; without power it starts when its power comes, see
-// PowerChanged.  Its events must already be off the timeline, as when
+// outputs from it and reads the inputs that only supplies and pulls
+// hold, which no slew will tell it about; without power it starts when
+// its power comes, see PowerChanged.  Its events must already be off the timeline, as when
 // the timeline is new.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -197,6 +214,7 @@ void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
 	{
 		SimulationStarted(pcTimeline);
 		WriteOutputs(pcTimeline);
+		ReadInputs(pcTimeline, false);
 	}
 }
 
@@ -299,23 +317,40 @@ void CIntegratedCircuit::RemoveAllEvents(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 //
 // The chip's power has come while the simulation runs: it starts as from
-// power up, and reads the inputs that are already at a level, which no
-// transition will tell it about.
+// power up, and reads the inputs that other chips already drive, which
+// no transition will tell it about.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::Start(CTimeline* pcTimeline)
 {
-	size	i;
-	CPort*	pcPort;
-
 	RemoveAllEvents(pcTimeline);
 	Reset(pcTimeline);
+	ReadInputs(pcTimeline, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A transition next tick for each input whose trace is at a level and
+// is driven by another chip (bLogicDriven) or only by supplies and pulls.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::ReadInputs(CTimeline* pcTimeline, bool bLogicDriven)
+{
+	size	i;
+	CPort*	pcPort;
+	CTrace*	pcTrace;
+
 	for (i = 0; i < mpPins->NumPorts(); i++)
 	{
 		pcPort = mpPins->GetPort(i);
-		if (pcPort->IsLogicPort() && (pcPort->GetPortType() != PT_Output))
+		pcTrace = pcPort->GetTrace();
+		if (pcPort->IsLogicPort() && (pcPort->GetPortType() != PT_Output) && (pcTrace != NULL))
 		{
-			((CLogicPort*)pcPort)->ReadTraceLevel(pcTimeline);
+			if (pcTrace->HasLogicDriver(pcTimeline->GetTime()) == bLogicDriven)
+			{
+				((CLogicPort*)pcPort)->ReadTraceLevel(pcTimeline);
+			}
 		}
 	}
 }

@@ -187,21 +187,12 @@ void CPowerOutPort::SetSwitched(CTimeline* pcTimeline, bool bOn, int64 iSwitchTi
 void CPowerOutPort::Step(CTimeline* pcTimeline)
 {
 	float32	fOldVoltage;
-	size	i;
-	CPort*	pcPort;
 
 	fOldVoltage = mfToldVoltage;
 	mfToldVoltage = GetVoltageOut(pcTimeline->GetTime());
 	if ((mpcTrace != NULL) && (mfToldVoltage != fOldVoltage))
 	{
-		for (i = 0; i < mpcTrace->NumConnectedPorts(); i++)
-		{
-			pcPort = mpcTrace->GetConnectedPort(i);
-			if (pcPort != this)
-			{
-				pcPort->SupplyChanged(pcTimeline, fOldVoltage);
-			}
-		}
+		mpcTrace->NotifyVoltageChanged(pcTimeline, fOldVoltage, this);
 	}
 	mpcHolder->TraceConnected(pcTimeline, this);
 	if (mpcStepEvent == NULL)
@@ -333,6 +324,7 @@ float32 CPowerOutPort::GetVoltage(void) const { return mfVoltage; }
 void CPowerOutPort::SetRiseTime(int64 iRiseTime) { miRiseTime = iRiseTime; }
 int64 CPowerOutPort::GetRiseTime(void) const { return miRiseTime; }
 bool CPowerOutPort::IsOn(void) const { return mbOn; }
+bool CPowerOutPort::HasStep(void) const { return mpcStepEvent != NULL; }
 int64 CPowerOutPort::GetSwitchTime(void) const { return miSwitchTime; }
 float32 CPowerOutPort::GetSwitchVoltage(void) const { return mfSwitchVoltage; }
 

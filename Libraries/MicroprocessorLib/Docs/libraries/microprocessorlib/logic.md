@@ -47,7 +47,10 @@ store, where Logicim has a static one; the default family is LVC.
 
 ## Traces and ports
 
-A [`CTrace`] is an analog wire.  Its voltage is the average of what the ports on it drive, NaN when nothing does.
+A [`CTrace`] is an analog wire.  Its voltage is the average of what the ports on it drive strongly, NaN when nothing
+does.  A port drives weakly through a resistance ([`CPort::GetDrive`]): a pull ([`CPull`], its [`CPullPort`]) or an
+open drain output's pull-up ([`CLogicPort::SetPullUp`]).  Weak drives count only while nothing drives the trace
+strongly, and then share by conductance, as a divider does.
 A [`CPort`] joins a [`CPortHolder`] (a chip's pins or a passive) to a trace:
 
 | Port | Is |
@@ -56,6 +59,7 @@ A [`CPort`] joins a [`CPortHolder`] (a chip's pins or a passive) to a trace:
 | [`CPowerOutPort`] | a power supply, driving its trace with its voltage, see Supplies below |
 | [`CTracePort`] | a passive connection, a wire's or a splitter's end, that neither drives nor reads |
 | [`CLogicPort`] | a chip's input or output |
+| [`CPullPort`] | a pull's end on the trace it pulls, driving its supply's voltage weakly |
 
 Writing a logic port schedules a [`CSlewEvent`] after the family's hold time.  When it executes the port slews its
 trace to the new voltage and schedules a [`CDriveEvent`] at the end of the slew, and every other logic port on the
@@ -74,6 +78,9 @@ Driving and undriving are changes the ports must see:
   circuit before it runs.
 - [`CPort::Disconnect`] is the reverse: the port sees undriven, and if the trace is left undriven so do its other
   ports ([`CTrace::NotifyUndriven`]).  A drive of NaN, and a slew from a chip without power, notify the same way.
+- A strong driver letting go of a pulled trace leaves it at its pulls' voltage at once, and its ports are told it moved
+  ([`CTrace::NotifyVoltageChanged`]); a driver taking a pulled trace slews from the pulled level.  An input held only by
+  supplies and pulls is read as its chip starts ([`CIntegratedCircuit::Reset`]): no slew will tell it.
 - [`CLogicPort::WriteImpedance`] drops the port's pending slews and drives after it, so the last write wins;
   Logicim lets an earlier write's slew drive the trace again.
 - A chip with no power slews forever (its slew time is the largest [`int64`]); such a slew drives nothing and its
@@ -84,7 +91,7 @@ Driving and undriving are changes the ports must see:
 A supply ([`CPowerSource`], its [`CPowerOutPort`]) is switched on and off ([`CPowerSource::Switch`]).  Switched on, it
 rises from where it is to its voltage over its rise time, and switched off it falls to 0V the same way: a regulator
 charging the rail's capacitors and the load discharging them.  It moves in steps of 0.1V (`#!text POWER_STEP_VOLTAGE`),
-each a [`CPowerStepEvent`] that tells the ports on its trace ([`CPort::SupplyChanged`]): a chip's power port tells the
+each a [`CPowerStepEvent`] that tells the ports on its trace ([`CPort::TraceVoltageChanged`]): a chip's power port tells the
 chip, which starts, writes again at its new VCC or stops, and a logic port tied to the rail tells its chip when it reads
 another level.  Its voltage at a time is worked out from when it was last switched and the voltage it had then.  With
 no rise time it switches at once, the next tick, and when the simulation starts it is on at its voltage, as Logicim's

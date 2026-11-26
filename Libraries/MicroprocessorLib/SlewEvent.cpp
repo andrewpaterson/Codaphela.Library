@@ -188,16 +188,28 @@ int64 CSlewEvent::CalculateSlewTime(CVoltageConfigurationSource* pcVoltageConfig
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the port drives now; if nothing, the trace's voltage when only
+// pulls hold it, else the family's low voltage out.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CSlewEvent::CalculateStartVoltage(int64 iNowTime, CVoltageConfigurationSource* pcVoltageConfiguration, float32 fVcc)
 {
 	float32	fVoltage;
+	CTrace*	pcTrace;
 
 	fVoltage = mpcPort->GetVoltageOut(iNowTime);
 	if (IsVoltage(fVoltage))
 	{
 		return fVoltage;
+	}
+	pcTrace = mpcPort->GetTrace();
+	if ((pcTrace != NULL) && !pcTrace->HasStrongDriver(iNowTime))
+	{
+		fVoltage = pcTrace->GetVoltage(iNowTime);
+		if (IsVoltage(fVoltage))
+		{
+			return fVoltage;
+		}
 	}
 	return pcVoltageConfiguration->GetVoltageOut(false, fVcc);
 }

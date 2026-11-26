@@ -72,25 +72,39 @@ void CTrace::Kill(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The average of the driven voltages, NaN when nothing drives the trace.
+// The average of the strong drives, or with none the weak drives' voltages
+// weighted by their conductance; NaN when nothing drives the trace.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CTrace::GetVoltage(int64 iTime)
 {
 	size	i;
 	float32	fVoltage;
+	float32	fResistance;
 	float32	fDrivenVoltage;
 	size	uiDrivers;
+	float32	fWeakCurrent;
+	float32	fWeakConductance;
 
 	fDrivenVoltage = 0;
 	uiDrivers = 0;
+	fWeakCurrent = 0;
+	fWeakConductance = 0;
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
-		fVoltage = mapcConnectedPorts.GetPtr(i)->GetVoltageOut(iTime);
+		fVoltage = mapcConnectedPorts.GetPtr(i)->GetDrive(iTime, &fResistance);
 		if (IsVoltage(fVoltage))
 		{
-			fDrivenVoltage += fVoltage;
-			uiDrivers++;
+			if (fResistance == 0.0f)
+			{
+				fDrivenVoltage += fVoltage;
+				uiDrivers++;
+			}
+			else
+			{
+				fWeakCurrent += fVoltage / fResistance;
+				fWeakConductance += 1.0f / fResistance;
+			}
 		}
 	}
 
@@ -98,11 +112,60 @@ float32 CTrace::GetVoltage(int64 iTime)
 	{
 		return fDrivenVoltage;
 	}
-	if (uiDrivers == 0)
+	if (uiDrivers > 1)
 	{
-		return NoVoltage();
+		return fDrivenVoltage / uiDrivers;
 	}
-	return fDrivenVoltage / uiDrivers;
+	if (fWeakConductance > 0.0f)
+	{
+		return fWeakCurrent / fWeakConductance;
+	}
+	return NoVoltage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a port drives the trace strongly, so its weak drives don't
+// count.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrace::HasStrongDriver(int64 iTime)
+{
+	size	i;
+	float32	fResistance;
+
+	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
+	{
+		if (IsVoltage(mapcConnectedPorts.GetPtr(i)->GetDrive(iTime, &fResistance)) && (fResistance == 0.0f))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether a chip's output drives the trace, rather than only supplies and
+// pulls.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTrace::HasLogicDriver(int64 iTime)
+{
+	size	i;
+	CPort*	pcPort;
+
+	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
+	{
+		pcPort = mapcConnectedPorts.GetPtr(i);
+		if (pcPort->IsLogicPort() && IsVoltage(pcPort->GetVoltageOut(iTime)))
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -129,20 +192,24 @@ float32 CTrace::GetShortVoltage(int64 iTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// NaN when nothing drives the trace.
+// Of the strong drives, or the weak ones when there are none; NaN when
+// nothing drives the trace.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CTrace::GetMinimumVoltage(int64 iTime)
 {
 	size	i;
 	float32	fVoltage;
+	float32	fResistance;
 	float32	fMinimum;
+	bool	bStrong;
 
+	bStrong = HasStrongDriver(iTime);
 	fMinimum = NoVoltage();
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
-		fVoltage = mapcConnectedPorts.GetPtr(i)->GetVoltageOut(iTime);
-		if (IsVoltage(fVoltage))
+		fVoltage = mapcConnectedPorts.GetPtr(i)->GetDrive(iTime, &fResistance);
+		if (IsVoltage(fVoltage) && ((fResistance == 0.0f) == bStrong))
 		{
 			if (!IsVoltage(fMinimum) || (fVoltage < fMinimum))
 			{
@@ -156,20 +223,24 @@ float32 CTrace::GetMinimumVoltage(int64 iTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// NaN when nothing drives the trace.
+// Of the strong drives, or the weak ones when there are none; NaN when
+// nothing drives the trace.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CTrace::GetMaximumVoltage(int64 iTime)
 {
 	size	i;
 	float32	fVoltage;
+	float32	fResistance;
 	float32	fMaximum;
+	bool	bStrong;
 
+	bStrong = HasStrongDriver(iTime);
 	fMaximum = NoVoltage();
 	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
 	{
-		fVoltage = mapcConnectedPorts.GetPtr(i)->GetVoltageOut(iTime);
-		if (IsVoltage(fVoltage))
+		fVoltage = mapcConnectedPorts.GetPtr(i)->GetDrive(iTime, &fResistance);
+		if (IsVoltage(fVoltage) && ((fResistance == 0.0f) == bStrong))
 		{
 			if (!IsVoltage(fMaximum) || (fVoltage > fMaximum))
 			{
@@ -230,6 +301,28 @@ void CTrace::NotifyUndriven(CTimeline* pcTimeline, CPort* pcExcept)
 		if (pcPort != pcExcept)
 		{
 			pcPort->TraceUndriven(pcTimeline);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The trace's voltage has moved from fOldVoltage without a slew; its
+// ports but pcExcept are told, see CPort::TraceVoltageChanged.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTrace::NotifyVoltageChanged(CTimeline* pcTimeline, float32 fOldVoltage, CPort* pcExcept)
+{
+	size	i;
+	CPort*	pcPort;
+
+	for (i = 0; i < mapcConnectedPorts.NumElements(); i++)
+	{
+		pcPort = mapcConnectedPorts.GetPtr(i);
+		if (pcPort != pcExcept)
+		{
+			pcPort->TraceVoltageChanged(pcTimeline, fOldVoltage);
 		}
 	}
 }

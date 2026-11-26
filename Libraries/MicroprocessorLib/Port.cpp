@@ -213,11 +213,11 @@ void CPort::TraceConnected(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A supply on the trace has stepped from fOldVoltage.  A power port tells
-// its holder, as when its trace is connected.
+// The trace's voltage has moved from fOldVoltage without a slew.  A power
+// port tells its holder, as when its trace is connected.
 //
 //////////////////////////////////////////////////////////////////////////
-void CPort::SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage)
+void CPort::TraceVoltageChanged(CTimeline* pcTimeline, float32 fOldVoltage)
 {
 	if (IsPowerIn())
 	{
@@ -243,6 +243,18 @@ void CPort::Reset(void)
 float32 CPort::GetVoltageOut(int64 iTime)
 {
 	return NoVoltage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The voltage the port drives, strongly: no resistance.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CPort::GetDrive(int64 iTime, float32* pfResistance)
+{
+	*pfResistance = 0.0f;
+	return GetVoltageOut(iTime);
 }
 
 

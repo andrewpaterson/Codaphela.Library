@@ -30,7 +30,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //connected.  Here a supply is switched on and off: switched on it rises from where it is to its voltage over its rise
 //time, and switched off falls to 0V the same way, a regulator charging and its load discharging the rail's
 //capacitors.  It moves in steps of POWER_STEP_VOLTAGE, each a CPowerStepEvent that tells the trace's other ports
-//(CPort::SupplyChanged), so a chip powered from it starts, writes again at its new VCC or stops
+//(CPort::TraceVoltageChanged), so a chip powered from it starts, writes again at its new VCC or stops
 //(CIntegratedCircuit::PowerChanged), and its holder (CPortHolder::TraceConnected).  With no rise time it switches at
 //once, the next tick.
 //
@@ -60,6 +60,7 @@ public:
 			void		Step(CTimeline* pcTimeline);
 			void		StepNextTick(CTimeline* pcTimeline);
 			void		StepRemoved(CPowerStepEvent* pcEvent);
+			bool		HasStep(void) const;
 
 			float32		GetVoltage(void) const;
 			void		SetRiseTime(int64 iRiseTime);

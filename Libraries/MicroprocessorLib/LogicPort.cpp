@@ -43,6 +43,7 @@ void CLogicPort::Init(EPortType eType, CPins* pcPins, const char* szName, CVolta
 	mapcEvents.Init();
 	mcOutput.Init();
 	meWritten = PW_None;
+	mfPullUpResistance = 0.0f;
 }
 
 
@@ -267,23 +268,33 @@ void CLogicPort::DriveEvent(CTimeline* pcTimeline, CDriveEvent* pcDriveEvent)
 
 	fVoltageBefore = (mpcTrace != NULL) ? mpcTrace->GetVoltage(pcTimeline->GetTime()) : NoVoltage();
 	pcDriveEvent->CopyOutput(&mcOutput);
-	NotifyIfTraceUndriven(pcTimeline, fVoltageBefore);
+	NotifyTraceChange(pcTimeline, fVoltageBefore);
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 // If the port's new output has left its trace undriven, as a drive of
-// NaN or a slew with no power can, the other ports on it are told.
+// NaN or a slew with no power can, the other ports on it are told; if it
+// has left it to its pulls at another voltage they are told it moved.
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogicPort::NotifyIfTraceUndriven(CTimeline* pcTimeline, float32 fVoltageBefore)
+void CLogicPort::NotifyTraceChange(CTimeline* pcTimeline, float32 fVoltageBefore)
 {
+	int64	iTime;
+	float32	fVoltage;
+
 	if ((mpcTrace != NULL) && IsVoltage(fVoltageBefore))
 	{
-		if (!IsVoltage(mpcTrace->GetVoltage(pcTimeline->GetTime())))
+		iTime = pcTimeline->GetTime();
+		fVoltage = mpcTrace->GetVoltage(iTime);
+		if (!IsVoltage(fVoltage))
 		{
 			mpcTrace->NotifyUndriven(pcTimeline, this);
+		}
+		else if ((fVoltage != fVoltageBefore) && !mpcTrace->HasStrongDriver(iTime))
+		{
+			mpcTrace->NotifyVoltageChanged(pcTimeline, fVoltageBefore, this);
 		}
 	}
 }
@@ -332,7 +343,7 @@ void CLogicPort::SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent)
 	}
 
 	mcOutput = cSlew;
-	NotifyIfTraceUndriven(pcTimeline, fVoltageBefore);
+	NotifyTraceChange(pcTimeline, fVoltageBefore);
 }
 
 
@@ -511,7 +522,7 @@ void CLogicPort::VccChanged(CTimeline* pcTimeline, float32 fOldVcc)
 // tied to a rail sees it ramp: the chip is told if it reads another level.
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogicPort::SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage)
+void CLogicPort::TraceVoltageChanged(CTimeline* pcTimeline, float32 fOldVoltage)
 {
 	int64	iTime;
 	float32	fVcc;
@@ -714,6 +725,27 @@ float32 CLogicPort::GetVoltageOut(int64 iTime)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// What the port drives, strongly; with a pull-up and nothing driven, its
+// chip's VCC through the pull-up.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CLogicPort::GetDrive(int64 iTime, float32* pfResistance)
+{
+	float32	fVoltage;
+
+	*pfResistance = 0.0f;
+	fVoltage = mcOutput.GetVoltage(iTime);
+	if (!IsVoltage(fVoltage) && (mfPullUpResistance > 0.0f))
+	{
+		*pfResistance = mfPullUpResistance;
+		return GetVCC(iTime);
+	}
+	return fVoltage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CLogicPort::GetVCC(int64 iTime)
@@ -762,6 +794,8 @@ bool CLogicPort::IsLogicPort(void) const { return true; }
 CVoltageConfigurationSource* CLogicPort::GetVoltageConfigurationSource(void) const { return mpcVoltageConfigurationSource; }
 CPortOutput* CLogicPort::GetOutput(void) { return &mcOutput; }
 EPortWritten CLogicPort::GetWritten(void) const { return meWritten; }
+void CLogicPort::SetPullUp(float32 fResistance) { mfPullUpResistance = fResistance; }
+float32 CLogicPort::GetPullUp(void) const { return mfPullUpResistance; }
 bool CLogicPort::IsHalf(void) const { return meWritten == PW_Half; }
 CPins* CLogicPort::GetPins(void) const { return (CPins*)mpcHolder; }
 

@@ -79,6 +79,7 @@ public:
 	virtual void							Reset(CTimeline* pcTimeline);
 	virtual void							ResetState(void);
 	virtual void							WriteOutputs(CTimeline* pcTimeline);
+	virtual void							VccChanged(CTimeline* pcTimeline, float32 fOldVcc);
 
 	virtual void							SimulationStarted(CTimeline* pcTimeline) =0;
 	virtual void							InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
@@ -114,6 +115,7 @@ protected:
 			void							RemoveAllEvents(CTimeline* pcTimeline);
 			void							Start(CTimeline* pcTimeline);
 			void							Stop(CTimeline* pcTimeline);
+			void							ReadInputs(CTimeline* pcTimeline, bool bLogicDriven);
 };
 
 

@@ -38,8 +38,13 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's OutputPortHelper.getPortOutputVoltage is GetVoltageOut here: the voltage the port drives its trace with,
 //NaN for ports that don't drive.
 //
-//SupplyChanged tells a port that a supply on its trace has stepped, as it ramps (CPowerOutPort): a power port tells its
+//TraceVoltageChanged tells a port that its trace's voltage has moved without a slew: a supply on it has stepped, as it
+//ramps (CPowerOutPort), or its last strong driver has let go of it, leaving it to its pulls.  A power port tells its
 //holder, so a chip sees its power change; a logic port tells its chip if its trace is now at another level.
+//
+//GetDrive is what a port drives its trace with and how strongly: no resistance is a strong drive (an output, a supply),
+//a resistance a weak one (a pull, CPullPort, or an open drain output's pull-up).  A trace's strong drives win over its
+//weak ones (CTrace::GetVoltage).
 class CTimeline;
 class CTrace;
 class CPortHolder;
@@ -64,12 +69,13 @@ public:
 			void			TraceKilled(void);
 	virtual void			TraceConnected(CTimeline* pcTimeline);
 	virtual void			TraceUndriven(CTimeline* pcTimeline);
-	virtual void			SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage);
+	virtual void			TraceVoltageChanged(CTimeline* pcTimeline, float32 fOldVoltage);
 	virtual void			Reset(void);
 
 	virtual bool			IsLogicPort(void) const;
 	virtual bool			IsPowerIn(void) const;
 	virtual float32			GetVoltageOut(int64 iTime);
+	virtual float32			GetDrive(int64 iTime, float32* pfResistance);
 
 			const char*		GetName(void) const;
 			EPortType		GetPortType(void) const;

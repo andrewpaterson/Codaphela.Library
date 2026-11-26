@@ -193,8 +193,9 @@ void TestPowerSwitchedOff(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // A buffer powered from VCC with its input tied to a second rail that
-// ramps: high once the rail reaches VIH, 2.0V, and low once it falls to
-// VIL, 0.8V; between them the input is unsettled and changes nothing.
+// ramps: low from the start, which it reads as it starts, high once the
+// rail reaches VIH, 2.0V, and low again once it falls to VIL, 0.8V;
+// between them the input is unsettled and changes nothing.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPowerTiedInput(void)
@@ -217,7 +218,7 @@ void TestPowerTiedInput(void)
 	cBoard.Start();
 
 	cBoard.mpcTimeline->RunToTime(19 * iStep + iSettle);
-	AssertInt(TV_Undriven, cBoard.Value(pcOut));
+	AssertInt(TV_Low, cBoard.Value(pcOut));
 	cBoard.mpcTimeline->RunToTime(iStep);
 	AssertFloat(2.0f, TestPowerVoltage(&cBoard, pcRail), 3);
 	AssertInt(TV_High, cBoard.Value(pcOut));

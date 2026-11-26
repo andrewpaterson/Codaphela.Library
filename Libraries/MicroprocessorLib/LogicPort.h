@@ -40,6 +40,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //The port keeps its pending events in time order, see CPortEvent; the timeline owns them.  What it drives its trace
 //with is a CPortOutput copied from its last executed output event, as the timeline frees the event.
 //
+//An open drain output with an internal pull-up (SetPullUp), as a DS1813's reset, drives low strongly and, when it
+//isn't driving, pulls its trace weakly to its chip's VCC.
+//
 //The port remembers what it was last told to write (EPortWritten) so that when its chip's VCC changes, as a supply
 //ramps, it can write it again at the new VCC (VccChanged).  WriteHalf drives VCC/2, neither high nor low, for an
 //output whose chip came up from power not knowing what it remembers (EPowerUpState).
@@ -67,6 +70,7 @@ protected:
 	CArrayPortEventPtr				mapcEvents;
 	CPortOutput						mcOutput;
 	EPortWritten					meWritten;
+	float32							mfPullUpResistance;  //0 for none.
 
 public:
 			void							Init(EPortType eType, CPins* pcPins, const char* szName, CVoltageConfigurationSource* pcVoltageConfigurationSource);
@@ -92,10 +96,13 @@ public:
 			void							RemoveEvents(CTimeline* pcTimeline);
 	virtual void							TraceConnected(CTimeline* pcTimeline);
 	virtual void							TraceUndriven(CTimeline* pcTimeline);
-	virtual void							SupplyChanged(CTimeline* pcTimeline, float32 fOldVoltage);
+	virtual void							TraceVoltageChanged(CTimeline* pcTimeline, float32 fOldVoltage);
 	virtual void							Reset(void);
 	virtual bool							IsLogicPort(void) const;
 	virtual float32							GetVoltageOut(int64 iTime);
+	virtual float32							GetDrive(int64 iTime, float32* pfResistance);
+			void							SetPullUp(float32 fResistance);
+			float32							GetPullUp(void) const;
 
 			void							DriveEvent(CTimeline* pcTimeline, CDriveEvent* pcDriveEvent);
 			void							SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent);
@@ -114,7 +121,7 @@ public:
 protected:
 			void							WriteVoltage(CTimeline* pcTimeline, float32 fOutVoltage);
 			bool							CreateTransitionEventFromVoltage(CTimeline* pcTimeline, float32 fVoltage);
-			void							NotifyIfTraceUndriven(CTimeline* pcTimeline, float32 fVoltageBefore);
+			void							NotifyTraceChange(CTimeline* pcTimeline, float32 fVoltageBefore);
 			int64							CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fLowVoltageIn);
 			int64							CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fHighVoltageIn);
 			int64							CalculateTransitionTime(float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, float32 fY);

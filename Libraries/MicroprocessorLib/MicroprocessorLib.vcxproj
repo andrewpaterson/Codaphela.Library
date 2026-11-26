@@ -175,6 +175,8 @@
     <ClCompile Include="PowerInPort.cpp" />
     <ClCompile Include="PowerOutPort.cpp" />
     <ClCompile Include="PowerStepEvent.cpp" />
+    <ClCompile Include="PullPort.cpp" />
+    <ClCompile Include="Pull.cpp" />
     <ClCompile Include="TracePort.cpp" />
     <ClCompile Include="PortOutput.cpp" />
     <ClCompile Include="Trace.cpp" />
@@ -407,6 +409,8 @@
     <ClInclude Include="PowerInPort.h" />
     <ClInclude Include="PowerOutPort.h" />
     <ClInclude Include="PowerStepEvent.h" />
+    <ClInclude Include="PullPort.h" />
+    <ClInclude Include="Pull.h" />
     <ClInclude Include="TracePort.h" />
     <ClInclude Include="PortOutput.h" />
     <ClInclude Include="Trace.h" />
