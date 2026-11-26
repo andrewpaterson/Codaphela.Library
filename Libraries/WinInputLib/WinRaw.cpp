@@ -259,7 +259,7 @@ CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* sz
 	cGuid.Init(szGuid.Text());
 
 	szKeyName.Init(szDeviceName);
-	szKeyName.RemoveFromStart(4); // Remove the \??\
+	szKeyName.RemoveFromStart(4); // Remove the "\??\" prefix.
 	szKeyName.Replace('#', '\\');
 	szKeyName.Insert(0, "System\\CurrentControlSet\\Enum\\");
 	iEnd = szKeyName.FindFromEnd('\\');
