@@ -397,6 +397,9 @@ Deliberately not as the standard says (the user accepted each, 2026-11-16 unless
 - The macro expansion core was rewritten, not mended; the project, library, header maps, directive tokenising and
   conditional stack were kept (the user, 2026-10-21).
 - One error class, [`CCPPErrors`], an instance for each stage (the user, 2026-10-23).
+- A function that overrides a base class's virtual function without `override` or `final` is warned about, as
+  g++'s `-Wsuggest-override` does, and the warning is on by default (`mbWarnMissingOverride` in
+  [`CCPPCompileOptions`]; the user, 2026-11-16).  A destructor isn't warned about.
 - `__cplusplus` is `201402L` (2026-11-15).  `"%"PRId64` with no space is read as g++ reads it.
 - Access control is enforced, and what it broke in BaseLib and HCP65 was fixed with it (the user, 2026-11-15).
 - `constexpr` by running the IR, planned on its own (the user, 2026-11-15).
