@@ -130,6 +130,9 @@
     <ClCompile Include="TestPassive.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="TestPower.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="TestStandardIntegratedCircuits.cpp">
       <Filter>Source</Filter>
     </ClCompile>

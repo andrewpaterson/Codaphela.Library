@@ -44,6 +44,8 @@ void CIntegratedCircuit::Init(CSubcircuitSimulation* pcContainingSubcircuitSimul
 	mpPins = pPins;
 	mpPins->SetIntegratedCircuit(this);
 	mapcEvents.Init();
+	mbPowered = false;
+	mfPoweredVcc = NoVoltage();
 	GetCircuit()->Add(this);
 
 	PostInit();
@@ -60,6 +62,8 @@ void CIntegratedCircuit::Class(void)
 
 	M_Pointer(mpPins);
 	U_Unknown(CArrayEventPtr, mapcEvents);
+	U_Bool(mbPowered);
+	U_Float32(mfPoweredVcc);
 }
 
 
@@ -92,10 +96,60 @@ void CIntegratedCircuit::ExecuteTick(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A power port connected, cut or left undriven may have changed the
+// chip's power.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
 {
+	if (pcPort->IsPowerIn())
+	{
+		PowerChanged(pcTimeline);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Starts the chip if its power has come, stops it if its power has gone,
+// and if only its VCC has moved has its ports write again at the new VCC
+// and read their traces at its thresholds.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::PowerChanged(CTimeline* pcTimeline)
+{
+	int64	iTime;
+	bool	bPowered;
+	float32	fVcc;
+	float32	fOldVcc;
+	size	i;
+	CPort*	pcPort;
+
+	iTime = pcTimeline->GetTime();
+	bPowered = IsPowered(iTime);
+	fVcc = GetVCC(iTime);
+	fOldVcc = mfPoweredVcc;
+	if (bPowered && !mbPowered)
+	{
+		Start(pcTimeline);
+	}
+	else if (!bPowered && mbPowered)
+	{
+		Stop(pcTimeline);
+	}
+	else if (bPowered && (fVcc != fOldVcc))
+	{
+		for (i = 0; i < mpPins->NumPorts(); i++)
+		{
+			pcPort = mpPins->GetPort(i);
+			if (pcPort->IsLogicPort())
+			{
+				((CLogicPort*)pcPort)->VccChanged(pcTimeline, fOldVcc);
+			}
+		}
+	}
+	mbPowered = bPowered;
+	mfPoweredVcc = fVcc;
 }
 
 
@@ -123,17 +177,26 @@ void CIntegratedCircuit::Disconnect(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts the chip again with new state, and drives its outputs from it.
-// Its events must already be off the timeline, as when the timeline is
-// new.
+// Starts the chip again with new state, and if it has power drives its
+// outputs from it; without power it starts when its power comes, see
+// PowerChanged.  Its events must already be off the timeline, as when
+// the timeline is new.
 //
 //////////////////////////////////////////////////////////////////////////
 void CIntegratedCircuit::Reset(CTimeline* pcTimeline)
 {
+	int64	iTime;
+
 	ResetEventsAndPorts();
 	ResetState();
-	SimulationStarted(pcTimeline);
-	WriteOutputs(pcTimeline);
+	iTime = pcTimeline->GetTime();
+	mbPowered = IsPowered(iTime);
+	mfPoweredVcc = GetVCC(iTime);
+	if (mbPowered)
+	{
+		SimulationStarted(pcTimeline);
+		WriteOutputs(pcTimeline);
+	}
 }
 
 
@@ -150,6 +213,81 @@ void CIntegratedCircuit::ResetEventsAndPorts(void)
 	for (i = 0; i < mpPins->NumPorts(); i++)
 	{
 		mpPins->GetPort(i)->Reset();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Takes the chip's events and its ports' events off the timeline.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::RemoveAllEvents(CTimeline* pcTimeline)
+{
+	size	i;
+	CPort*	pcPort;
+
+	Disconnect(pcTimeline);
+	for (i = 0; i < mpPins->NumPorts(); i++)
+	{
+		pcPort = mpPins->GetPort(i);
+		if (pcPort->IsLogicPort())
+		{
+			((CLogicPort*)pcPort)->RemoveEvents(pcTimeline);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chip's power has come while the simulation runs: it starts as from
+// power up, and reads the inputs that are already at a level, which no
+// transition will tell it about.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Start(CTimeline* pcTimeline)
+{
+	size	i;
+	CPort*	pcPort;
+
+	RemoveAllEvents(pcTimeline);
+	Reset(pcTimeline);
+	for (i = 0; i < mpPins->NumPorts(); i++)
+	{
+		pcPort = mpPins->GetPort(i);
+		if (pcPort->IsLogicPort() && (pcPort->GetPortType() != PT_Output))
+		{
+			((CLogicPort*)pcPort)->ReadTraceLevel(pcTimeline);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chip's power has gone: it forgets what it was doing and its
+// outputs stop driving, which the ports on their traces are told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CIntegratedCircuit::Stop(CTimeline* pcTimeline)
+{
+	size		i;
+	CPort*		pcPort;
+	CLogicPort*	pcLogicPort;
+
+	RemoveAllEvents(pcTimeline);
+	for (i = 0; i < mpPins->NumPorts(); i++)
+	{
+		pcPort = mpPins->GetPort(i);
+		if (pcPort->IsLogicPort())
+		{
+			pcLogicPort = (CLogicPort*)pcPort;
+			if (!pcLogicPort->GetOutput()->IsNone())
+			{
+				pcLogicPort->WriteImpedance(pcTimeline);
+			}
+		}
 	}
 }
 
@@ -235,7 +373,7 @@ float32 CIntegratedCircuit::GetGND(int64 iTime)
 //
 // GND is zero and VCC is one the chip's family works at, see
 // CVoltageConfigurationSource::IsPowered; any VCC above zero for a chip
-// with no family.
+// with no family.  Always for a chip that needs no power.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CIntegratedCircuit::IsPowered(int64 iTime)
@@ -244,6 +382,10 @@ bool CIntegratedCircuit::IsPowered(int64 iTime)
 	float32							fGnd;
 	CVoltageConfigurationSource*	pcSource;
 
+	if (!NeedsPower())
+	{
+		return true;
+	}
 	fGnd = GetGND(iTime);
 	if (!IsVoltage(fGnd) || (fGnd != 0.0f))
 	{
@@ -256,6 +398,18 @@ bool CIntegratedCircuit::IsPowered(int64 iTime)
 		return pcSource->IsPowered(fVcc);
 	}
 	return IsVoltage(fVcc) && (fVcc > 0.0f);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// An instrument, as an oscilloscope, runs whether or not the circuit has
+// power.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::NeedsPower(void) const
+{
+	return true;
 }
 
 

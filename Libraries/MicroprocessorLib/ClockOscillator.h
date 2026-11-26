@@ -29,8 +29,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 //Logicim's ClockOscillator: while powered its output toggles every half cycle, starting low, so the first tick, the
 //initialisation time after the simulation starts, drives it high.  The initialisation time is half a cycle unless
-//given.  A full tick is counted each time the output goes high.  Connecting its power starts it ticking, or stops it
-//driving when there is no power.  The output's level and the count of full ticks are what it remembers; they're set
+//given.  A full tick is counted each time the output goes high.  Its power coming starts it from the beginning, as
+//any chip, and its power going stops it (CIntegratedCircuit::PowerChanged).  The output's level and the count of full ticks are what it remembers; they're set
 //back by ResetState.
 class CClockOscillator : public CIntegratedCircuit
 {
@@ -49,7 +49,6 @@ public:
 	virtual void					SimulationStarted(CTimeline* pcTimeline);
 	virtual void					InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort);
 	virtual void					ExecuteTick(CTimeline* pcTimeline);
-	virtual void					TraceConnected(CTimeline* pcTimeline, CPort* pcPort);
 	virtual const char*				GetType(void);
 	virtual const char*				GetStateXMLName(void) const;
 	virtual void					SaveXML(CXMLWriter* pcWriter);
@@ -66,7 +65,6 @@ public:
 
 protected:
 			void					CreateTickEvent(CTimeline* pcTimeline, int64 iDelay);
-			bool					HasTickEvent(void);
 };
 
 

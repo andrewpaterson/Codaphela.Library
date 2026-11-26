@@ -39,6 +39,20 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //The port keeps its pending events in time order, see CPortEvent; the timeline owns them.  What it drives its trace
 //with is a CPortOutput copied from its last executed output event, as the timeline frees the event.
+//
+//The port remembers what it was last told to write (EPortWritten) so that when its chip's VCC changes, as a supply
+//ramps, it can write it again at the new VCC (VccChanged).  WriteHalf drives VCC/2, neither high nor low, for an
+//output whose chip came up from power not knowing what it remembers (EPowerUpState).
+enum EPortWritten
+{
+	PW_None,
+	PW_Low,
+	PW_High,
+	PW_Half,
+	PW_Impedance,
+};
+
+
 class CPins;
 class CPortEvent;
 class CDriveEvent;
@@ -52,6 +66,7 @@ protected:
 	CVoltageConfigurationSource*	mpcVoltageConfigurationSource;
 	CArrayPortEventPtr				mapcEvents;
 	CPortOutput						mcOutput;
+	EPortWritten					meWritten;
 
 public:
 			void							Init(EPortType eType, CPins* pcPins, const char* szName, CVoltageConfigurationSource* pcVoltageConfigurationSource);
@@ -65,6 +80,11 @@ public:
 			void							WriteBool(CTimeline* pcTimeline, bool bValue);
 	virtual void							Write(CTimeline* pcTimeline, bool bValue);
 	virtual void							WriteImpedance(CTimeline* pcTimeline);
+			void							WriteHalf(CTimeline* pcTimeline);
+			bool							IsHalf(void) const;
+			EPortWritten					GetWritten(void) const;
+			void							VccChanged(CTimeline* pcTimeline, float32 fOldVcc);
+			void							ReadTraceLevel(CTimeline* pcTimeline);
 			STraceValue						ReadValue(int64 iTime);
 	virtual STraceValue						Read(CTimeline* pcTimeline);
 
@@ -91,8 +111,8 @@ public:
 			void							AppendEvents(CChars* psz);
 
 protected:
+			void							WriteVoltage(CTimeline* pcTimeline, float32 fOutVoltage);
 			bool							CreateTransitionEventFromVoltage(CTimeline* pcTimeline, float32 fVoltage);
-			void							CreateTransitionEventFromExistingVoltage(CTimeline* pcTimeline);
 			void							NotifyIfTraceUndriven(CTimeline* pcTimeline, float32 fVoltageBefore);
 			int64							CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fLowVoltageIn);
 			int64							CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fHighVoltageIn);

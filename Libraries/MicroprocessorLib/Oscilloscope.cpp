@@ -227,6 +227,7 @@ void COscilloscope::SetTickPosition(size uiTickPosition)
 //
 //////////////////////////////////////////////////////////////////////////
 const char* COscilloscope::GetStateXMLName(void) const { return "OscilloscopeState"; }
+bool COscilloscope::NeedsPower(void) const { return false; }
 
 
 //////////////////////////////////////////////////////////////////////////

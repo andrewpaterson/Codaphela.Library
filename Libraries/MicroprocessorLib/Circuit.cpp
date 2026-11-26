@@ -259,20 +259,21 @@ CTrace* CCircuit::AddTrace(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Resets every component, as Logicim does when a simulation starts.
+// Resets every component, as Logicim does when a simulation starts: the
+// passives first, so the supplies are on before the chips look for power.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuit::SimulationStarted(CTimeline* pcTimeline)
 {
 	size	i;
 
-	for (i = 0; i < maIntegratedCircuits.NumElements(); i++)
-	{
-		GetIntegratedCircuit(i)->Reset(pcTimeline);
-	}
 	for (i = 0; i < maPassives.NumElements(); i++)
 	{
 		GetPassive(i)->Reset(pcTimeline);
+	}
+	for (i = 0; i < maIntegratedCircuits.NumElements(); i++)
+	{
+		GetIntegratedCircuit(i)->Reset(pcTimeline);
 	}
 }
 

@@ -264,6 +264,7 @@
     <ClCompile Include="TestVoltageConfiguration.cpp" />
     <ClCompile Include="TestLogicPort.cpp" />
     <ClCompile Include="TestPassive.cpp" />
+    <ClCompile Include="TestPower.cpp" />
     <ClCompile Include="TestStandardIntegratedCircuits.cpp" />
     <ClCompile Include="TestGroupIntegratedCircuits.cpp" />
     <ClCompile Include="TestProcessorChips.cpp" />

@@ -40,6 +40,7 @@ void TestTimeline(void);
 void TestVoltageConfiguration(void);
 void TestLogicPort(void);
 void TestPassive(void);
+void TestPower(void);
 void TestStandardIntegratedCircuits(void);
 void TestGroupIntegratedCircuits(void);
 void TestProcessorChips(void);
@@ -90,6 +91,7 @@ int __cdecl main(void)
 	TestVoltageConfiguration();
 	TestLogicPort();
 	TestPassive();
+	TestPower();
 	TestStandardIntegratedCircuits();
 	TestGroupIntegratedCircuits();
 	TestProcessorChips();

@@ -20,7 +20,6 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Logger.h"
-#include "BaseLib/StringHelper.h"
 #include "LongTime.h"
 #include "Timeline.h"
 #include "TickEvent.h"
@@ -133,64 +132,11 @@ void CClockOscillator::ExecuteTick(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Connecting a power port with power starts the clock ticking if it has
-// stopped; without power the outputs stop driving.
-//
-//////////////////////////////////////////////////////////////////////////
-void CClockOscillator::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
-{
-	CClockOscillatorPins*	pcPins;
-
-	CIntegratedCircuit::TraceConnected(pcTimeline, pcPort);
-
-	if (pcPort->IsPowerIn())
-	{
-		if (IsPowered(pcTimeline->GetTime()))
-		{
-			if (!HasTickEvent())
-			{
-				CreateTickEvent(pcTimeline, miHalfCycleTime);
-			}
-		}
-		else
-		{
-			pcPins = GetClockOscillatorPins();
-			pcPins->GetOutput()->WriteImpedance(pcTimeline);
-			if (pcPins->GetOutputInverse() != NULL)
-			{
-				pcPins->GetOutputInverse()->WriteImpedance(pcTimeline);
-			}
-		}
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
 //
 //////////////////////////////////////////////////////////////////////////
 void CClockOscillator::CreateTickEvent(CTimeline* pcTimeline, int64 iDelay)
 {
 	CTickEvent::Schedule(iDelay, this, pcTimeline);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CClockOscillator::HasTickEvent(void)
-{
-	size	i;
-
-	for (i = 0; i < mapcEvents.NumElements(); i++)
-	{
-		if (StringCompare(mapcEvents.GetPtr(i)->ClassName(), "CTickEvent") == 0)
-		{
-			return true;
-		}
-	}
-	return false;
 }
 
 

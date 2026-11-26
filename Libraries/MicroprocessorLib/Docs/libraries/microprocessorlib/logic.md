@@ -116,7 +116,16 @@ A chip responds to its inputs in `InputTransition`, schedules [`CTickEvent`]s fo
 keeps what it remembers in its own fields (Logicim keeps that in a separate state object).  A chip whose outputs
 come from what it remembers drives them from it as soon as it starts, as a real part does from power up
 ([`CIntegratedCircuit::WriteOutputs`]); Logicim's only drive them when what they remember changes, so a flip-flop
-fed back to itself never started.  A chip that remembers something saves it as XML with a saved simulation
+fed back to itself never started.
+
+A chip starts when its power comes and stops when it goes ([`CIntegratedCircuit::PowerChanged`]), however that
+happens.  When the simulation starts only the powered chips start (the circuit resets its passives, the supplies among
+them, first).  A VCC or GND wire connected or cut while it runs, or a supply switched or ramping, starts a chip (it
+resets, then reads the inputs already at a level, [`CLogicPort::ReadTraceLevel`]) or stops it (its events dropped and
+its outputs undriven).  When only its VCC moves, its ports write what they were told to write again at the new VCC and
+read their traces at its new thresholds ([`CLogicPort::VccChanged`]).  An instrument, the oscilloscope, needs no power
+([`CIntegratedCircuit::NeedsPower`]).  Logicim's power was there from the moment a supply was connected and no chip was
+told it came or went: only its clock looked.  A chip that remembers something saves it as XML with a saved simulation
 ([`CIntegratedCircuit::SaveXML`]).
 
 Inputs that nothing drives are unknown.  A gate whose output an unknown input could decide stops driving, and the
@@ -178,6 +187,9 @@ The test circuits are built on a board in [`TestMicroprocessorLib/TestCircuitBoa
 - Connecting a port in a running circuit tells the ports what changed, not a firing of every connection event (the
   user, 2026-10-23, replacing `#!text FireConnectionEvents`); a driver removed so its trace goes undriven is seen
   the same way (the user asked for a solution, 2026-10-23).
+- Power comes and goes: a chip starts and stops with it, and works only from its family's lowest VCC (the user: "the
+  way power works in Logicim is a bit weird / broken.  Power is instantaneously applied on connection", 2026-11-26;
+  `PowerPlan.txt`).
 - Undriven inputs are unknown only: there is no per-family rule that a floating TTL input reads high (the user,
   2026-10-23).
 - Things returned by pointer are allocated one by one ([`CArrayTemplatePtr`] and [`NewMalloc`]), never pointers

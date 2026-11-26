@@ -30,7 +30,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's Oscilloscope: samples its inputs' traces at the sample frequency, numberOfDivsWide * samplesPerDiv samples
 //per input in a ring.  Each tick moves on a sample then takes it.  Logicim's view colours are left to a view.  The
 //samples (each the trace's minimum and maximum voltage, 0 when undriven) and the ring's position are what it
-//remembers; ResetState clears them.
+//remembers; ResetState clears them.  It is an instrument, not a part of the circuit: it needs no power.
 class COscilloscope : public CIntegratedCircuit
 {
 CONSTRUCTABLE(COscilloscope);
@@ -56,6 +56,7 @@ public:
 	virtual void				SaveXML(CXMLWriter* pcWriter);
 	virtual bool				LoadXML(CMarkupTag* pcTag);
 	virtual void				ResetState(void);
+	virtual bool				NeedsPower(void) const;
 			void				Class(void) override;
 			void				Free(void) override;
 

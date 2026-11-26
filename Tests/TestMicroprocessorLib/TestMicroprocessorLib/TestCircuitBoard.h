@@ -49,6 +49,7 @@ public:
 	CTimeline*							mpcTimeline;
 	CTrace*								mpcVCC;
 	CTrace*								mpcGND;
+	CPowerSource*						mpcPower;  //VCC.
 
 	void Init(void)
 	{
@@ -66,8 +67,8 @@ public:
 		mpcTimeline = mpSimulation->GetTimeline();
 		mpcVCC = NewTrace();
 		mpcGND = NewTrace();
-		pcPower = &OMalloc<CPowerSource>(mpcTop, "VCC", 3.3f);
-		pcPower->GetPowerOutPort()->Connect(mpcVCC);
+		mpcPower = &OMalloc<CPowerSource>(mpcTop, "VCC", 3.3f);
+		mpcPower->GetPowerOutPort()->Connect(mpcVCC);
 		pcPower = &OMalloc<CPowerSource>(mpcTop, "GND", 0.0f);
 		pcPower->GetPowerOutPort()->Connect(mpcGND);
 	}

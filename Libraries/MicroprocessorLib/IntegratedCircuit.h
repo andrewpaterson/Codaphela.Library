@@ -37,7 +37,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //
 //A chip whose outputs come from what it remembers drives them from it in WriteOutputs, which Reset calls once the
 //chip has started, as a real part drives its outputs from power up, and which the chip calls itself whenever what it
-//remembers changes.  Logicim's chips only drive them when what they
+//remembers changes.
+//
+//A chip starts when its power comes (IsPowered) and stops when it goes, however that happens: the simulation
+//starting, a supply switched or ramping, a VCC or GND wire connected or cut while it runs.  Its power ports tell it,
+//through TraceConnected, and PowerChanged starts it (Reset, then it reads its inputs), stops it (its events dropped
+//and its outputs undriven) or, when only its VCC has moved, has its ports write again at the new VCC.  Logicim's chips only drive them when what they
 //remember changes, so until then they're undriven, and a chip fed back to itself (a flip-flop's QB to its D) never
 //starts.  Chips whose outputs follow their inputs (gates) don't override it; undriven inputs leave them undriven.
 //
@@ -56,6 +61,8 @@ CONSTRUCTABLE(CIntegratedCircuit);
 protected:
 	Ptr<CPins>		mpPins;
 	CArrayEventPtr	mapcEvents;
+	bool			mbPowered;
+	float32			mfPoweredVcc;  //The VCC when the chip last saw its power change.
 
 public:
 			void							Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CPins> pPins);
@@ -73,6 +80,7 @@ public:
 	virtual void							InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort) =0;
 	virtual const char*						GetType(void) =0;
 
+	virtual bool							NeedsPower(void) const;
 	virtual const char*						GetStateXMLName(void) const;
 	virtual void							SaveXML(CXMLWriter* pcWriter);
 	virtual bool							LoadXML(CMarkupTag* pcTag);
@@ -87,6 +95,7 @@ public:
 			float32							GetGND(int64 iTime);
 			bool							IsPowered(int64 iTime);
 			CVoltageConfigurationSource*	GetVoltageConfigurationSource(void);
+			void							PowerChanged(CTimeline* pcTimeline);
 
 			void							Add(CIntegratedCircuitEvent* pcEvent);
 			bool							Remove(CIntegratedCircuitEvent* pcEvent);
@@ -95,6 +104,9 @@ public:
 
 protected:
 			void							ResetEventsAndPorts(void);
+			void							RemoveAllEvents(CTimeline* pcTimeline);
+			void							Start(CTimeline* pcTimeline);
+			void							Stop(CTimeline* pcTimeline);
 };
 
 

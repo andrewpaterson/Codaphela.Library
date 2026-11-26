@@ -42,6 +42,7 @@ void CLogicPort::Init(EPortType eType, CPins* pcPins, const char* szName, CVolta
 	mpcVoltageConfigurationSource = pcVoltageConfigurationSource;
 	mapcEvents.Init();
 	mcOutput.Init();
+	meWritten = PW_None;
 }
 
 
@@ -107,15 +108,41 @@ void CLogicPort::Remove(CPortEvent* pcEvent)
 //////////////////////////////////////////////////////////////////////////
 void CLogicPort::WriteBool(CTimeline* pcTimeline, bool bValue)
 {
+	meWritten = bValue ? PW_High : PW_Low;
+	WriteVoltage(pcTimeline, mpcVoltageConfigurationSource->GetVoltageOut(bValue, GetVCC(pcTimeline->GetTime())));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Slews to half the chip's VCC, which reads as neither high nor low.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::WriteHalf(CTimeline* pcTimeline)
+{
+	meWritten = PW_Half;
+	WriteVoltage(pcTimeline, GetVCC(pcTimeline->GetTime()) / 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Slews to fOutVoltage after the family's hold time.  Nothing happens
+// when the chip has no power.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::WriteVoltage(CTimeline* pcTimeline, float32 fOutVoltage)
+{
 	int64	iTime;
 	float32	fVcc;
-	float32	fOutVoltage;
 	int64	iHoldTime;
 
+	if (!IsVoltage(fOutVoltage))
+	{
+		return;
+	}
 	iTime = pcTimeline->GetTime();
 	fVcc = GetVCC(iTime);
-
-	fOutVoltage = mpcVoltageConfigurationSource->GetVoltageOut(bValue, fVcc);
 	iHoldTime = mpcVoltageConfigurationSource->CalculateHoldTime(fOutVoltage, GetVoltageOut(iTime), fVcc);
 	if (iHoldTime != MAX_INT64)
 	{
@@ -146,6 +173,7 @@ void CLogicPort::WriteImpedance(CTimeline* pcTimeline)
 	int64			iDelay;
 	CArrayEventPtr	apcLater;
 
+	meWritten = PW_Impedance;
 	iDelay = NanosecondsToTime(0.01);
 	apcLater.Init();
 	GetOutputEventsAfter(pcTimeline->GetTime() + iDelay, &apcLater);
@@ -419,18 +447,61 @@ void CLogicPort::TraceConnected(CTimeline* pcTimeline)
 
 	if (!bSlewInProgress)
 	{
-		CreateTransitionEventFromExistingVoltage(pcTimeline);
+		ReadTraceLevel(pcTimeline);
 	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A transition next tick if the port's trace is at a valid level, so its
+// chip reads it, as when the chip has just started.
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogicPort::CreateTransitionEventFromExistingVoltage(CTimeline* pcTimeline)
+void CLogicPort::ReadTraceLevel(CTimeline* pcTimeline)
 {
-	CreateTransitionEventFromVoltage(pcTimeline, mpcTrace->GetVoltage(pcTimeline->GetTime()));
+	if (mpcTrace != NULL)
+	{
+		CreateTransitionEventFromVoltage(pcTimeline, mpcTrace->GetVoltage(pcTimeline->GetTime()));
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The chip's VCC has changed from fOldVcc, as a supply ramps: what the
+// port was told to write is written again at the new VCC, and if the new
+// VCC's thresholds read its trace at another level the chip is told.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::VccChanged(CTimeline* pcTimeline, float32 fOldVcc)
+{
+	int64	iTime;
+	float32	fVoltage;
+
+	if (meWritten == PW_Low)
+	{
+		WriteBool(pcTimeline, false);
+	}
+	else if (meWritten == PW_High)
+	{
+		WriteBool(pcTimeline, true);
+	}
+	else if (meWritten == PW_Half)
+	{
+		WriteHalf(pcTimeline);
+	}
+
+	if ((mpcTrace == NULL) || (mpcVoltageConfigurationSource == NULL) || (meType == PT_Output))
+	{
+		return;
+	}
+	iTime = pcTimeline->GetTime();
+	fVoltage = mpcTrace->GetVoltage(iTime);
+	if (mpcVoltageConfigurationSource->GetValue(fVoltage, fOldVcc) != mpcVoltageConfigurationSource->GetValue(fVoltage, GetVCC(iTime)))
+	{
+		CreateTransitionEventFromVoltage(pcTimeline, fVoltage);
+	}
 }
 
 
@@ -601,6 +672,7 @@ void CLogicPort::Reset(void)
 {
 	mcOutput.Init();
 	mapcEvents.ReInit();
+	meWritten = PW_None;
 }
 
 
@@ -663,5 +735,7 @@ CPortEvent* CLogicPort::GetEvent(size uiIndex) { return mapcEvents.SafeGetPtr(ui
 bool CLogicPort::IsLogicPort(void) const { return true; }
 CVoltageConfigurationSource* CLogicPort::GetVoltageConfigurationSource(void) const { return mpcVoltageConfigurationSource; }
 CPortOutput* CLogicPort::GetOutput(void) { return &mcOutput; }
+EPortWritten CLogicPort::GetWritten(void) const { return meWritten; }
+bool CLogicPort::IsHalf(void) const { return meWritten == PW_Half; }
 CPins* CLogicPort::GetPins(void) const { return (CPins*)mpcHolder; }
 
