@@ -90,8 +90,8 @@ struct SVulkanDraw
 
 //One Vulkan device and what everything it draws shares: the pipelines, the frame's uniforms, and the target it draws into,
 //which is offscreen and read back when a frame ends.  Init finds Vulkan and a device that has version 1.3, which dynamic rendering
-//and a dynamic front face need, and is ready (IsReady) if it does: a program can go on without one.  A Debug build uses the
-//validation layer if it's installed, and logs what it reports.
+//and a dynamic front face need, and is ready (IsReady) if it does: a program can go on without one.  The instance its device is
+//made on is the process's (gcVulkanInstance), which every renderer shares and none destroys.
 //
 //A frame is BeginFrame, then the meshes' draws, then EndFrame, which waits for the GPU and gives the pixels.  So nothing is in
 //flight between frames, and a mesh's buffers are destroyed as soon as it's freed.  Every buffer is in memory the CPU sees and
@@ -110,10 +110,8 @@ CONSTRUCTABLE(CVulkanRenderer);
 DESTRUCTABLE(CVulkanRenderer);
 friend class CVulkanTexture;
 protected:
-	CVulkanFunctions					mcVulkan;
-	VkInstance							mhInstance;
-	VkDebugUtilsMessengerEXT			mhMessenger;
-	PFN_vkDestroyDebugUtilsMessengerEXT	mpfDestroyMessenger;
+	CVulkanFunctions					mcVulkan;			//The process's instance's functions (copied, not its library) and its own device's.
+	VkInstance							mhInstance;			//gcVulkanInstance's.
 	VkPhysicalDevice					mhPhysicalDevice;
 	VkPhysicalDeviceMemoryProperties	msMemory;
 	VkDevice							mhDevice;
@@ -180,7 +178,6 @@ public:
 	bool					EndFrame(uint32* puiPixels);
 
 protected:
-	bool					CreateInstance(void);
 	bool					ChooseDevice(void);
 	bool					CreateDevice(void);
 	bool					CreateCommands(void);

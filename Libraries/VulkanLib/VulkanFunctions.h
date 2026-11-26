@@ -23,6 +23,7 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 #include "BaseLib/SharedLibrary.h"
+#include "BaseLib/SpinLock.h"
 
 
 //What's found without an instance.
@@ -107,7 +108,8 @@ along with Codaphela VulkanLib.  If not, see <http://www.gnu.org/licenses/>.
 //Vulkan's functions, found in the library the driver installs (vulkan-1.dll, libvulkan.so.1) while the program runs, so that
 //nothing links against Vulkan and a program runs without it, finding it isn't there.  Load opens the library and finds what
 //needs no instance, LoadInstance and LoadDevice what needs those.  Each is false if anything is missing.  GetInstanceFunction
-//finds what an instance may not have, as an extension's functions.
+//finds what an instance may not have, as an extension's functions.  CopyFunctions takes another's global and instance functions
+//but not its library, as a renderer does from the process's instance (CVulkanInstance) before it finds its own device's.
 class CVulkanFunctions
 {
 protected:
@@ -125,9 +127,41 @@ public:
 	bool	Load(void);
 	bool	LoadInstance(VkInstance hInstance);
 	bool	LoadDevice(VkDevice hDevice);
+	void	CopyFunctions(const CVulkanFunctions* pcSource);
 
 	PFN_vkVoidFunction	GetInstanceFunction(VkInstance hInstance, const char* szName);
 };
+
+
+//The process's Vulkan (gcVulkanInstance): the library, what needs no device, and the one instance every renderer makes its
+//device on.  The first Get makes them and they're kept until the program ends.  The driver mustn't be unloaded while the program
+//runs: NVIDIA's 32-bit driver (nvoglv32.dll, 32.0.15.6094) leaves a thread of its own running that faults when the driver is
+//loaded again, as it was twelve times in a TestVulkanLib run when each renderer had an instance of its own (an access violation
+//in Win32 builds now and then, never in x64).  Get is false, quietly, if there's no Vulkan 1.3, and stays false.  A Debug build
+//uses the validation layer if it's installed, and logs what it reports.  Kill is for a program that wants it gone before it
+//ends, after its last renderer; none needs to, as the instance holds nothing the program's memory knows about.
+class CVulkanInstance
+{
+protected:
+	CSpinLock							mcLock;		//All zeros is unlocked, so gcVulkanInstance needs no Init.  Held while the instance is made, once.
+	bool								mbTried;
+	bool								mbReady;
+	CVulkanFunctions					mcVulkan;
+	VkInstance							mhInstance;
+	VkDebugUtilsMessengerEXT			mhMessenger;
+	PFN_vkDestroyDebugUtilsMessengerEXT	mpfDestroyMessenger;
+
+public:
+	bool	Get(CVulkanFunctions* pcFunctions, VkInstance* phInstance);
+	void	Kill(void);
+
+protected:
+	bool	Create(void);
+	void	Destroy(void);
+};
+
+
+extern CVulkanInstance	gcVulkanInstance;
 
 
 #endif // __VULKAN_FUNCTIONS_H__
