@@ -80,7 +80,8 @@ exit:
   so they print and parse exactly.
 - Flags follow the opcode: `load volatile i32 %a`, `ptradd inbank ptr %p, %o`.
 
-In debug builds a verifier checks every function after every pass: each block ends with a jump,
+A verifier ([`CCPP65IRFrontEnd::VerifyIR`]) checks each function, in every build, once the front end and the
+optimiser are done with it and again after inlining: each block ends with a jump,
 each phi has an argument for each predecessor, each temporary is defined once before its uses,
 and each operand has the type its opcode needs.
 
@@ -111,6 +112,7 @@ when a pass asks for them and kept until a pass changes the function.
 | `ReplaceLoopCounters` | Linear test replacement: a counter only tested is replaced by another value going up beside it. |
 | `NarrowCounters` | 32 bit counters that stay in 16 bits count in 16 bits. |
 | `ReduceMultiplies` | A multiply of a loop's counter by an invariant becomes an add each time round. |
+| `ReduceDivisions` | A loop's counter divided by a constant each time round has its quotient and remainder stepped beside it. |
 | `ReplaceExitValues` | A value's final value after a loop, worked out without the loop. |
 | `DeleteDeadLoops` | Removes a loop whose results nothing uses. |
 | `ReduceStrength` | `p + i * size` in a loop becomes a pointer stepped by `#!text size`. |
@@ -126,13 +128,13 @@ when a pass asks for them and kept until a pass changes the function.
 | `BiasSignedIndices` | A signed 16 bit index becomes an unsigned one on a moved base, so the W65C816 can index with Y.  After the rounds. |
 
 The 65C64 leaves out `DivisibilityTests`, `ConstantDivisions`, `MergeAddressPhis`,
-`NarrowCounters`, `NarrowMultiplies` and `BiasSignedIndices`: it has a divide instruction and
-32 bit registers.
+`NarrowCounters`, `NarrowMultiplies`, `ReduceDivisions` and `BiasSignedIndices`
+([`CCPPTarget65C64::BuildPipeline`]): it has a divide instruction, 32 bit registers and indexed addresses.
 
 Besides the per function passes:
 
-- **The inliner** ([`CIRInliner`]) puts small functions into their callers, within a unit and, on the
-  W65C816, across units.
+- **The inliner** ([`CIRInliner`]) puts small functions into their callers, within a unit and across units
+  ([`CCPPTarget::InlinesAcrossUnits`]).
 - **Interprocedural passes** ([`CIRInterprocedural`]) work over a unit's functions together.
 - **Indirect calls through known data** (a vtable entry of a known class, a constant table) become
   direct calls.

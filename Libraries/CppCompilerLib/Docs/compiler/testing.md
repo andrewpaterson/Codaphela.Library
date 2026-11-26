@@ -26,7 +26,7 @@ _Sum__FPKij:
 ```
 
 The code is the same with or without listings; `.line` and `.fingerprint` are for the
-[line table](linker.md#line-tables).  [W65C816 Code](w65c816.md#an-example) and
+[line table](linker.md#debug-info).  [W65C816 Code](w65c816.md#an-example) and
 [65C64 Code](65c64.md#an-example) walk through one.
 
 ## The test suites

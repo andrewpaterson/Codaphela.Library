@@ -5,7 +5,7 @@ for both processors.
 
 | Stage | Classes | Does |
 |---|---|---|
-| Preprocess | `CPreprocessor`, [`CPPHeaderCache`] | Includes, macros and conditional compilation, to a token stream. |
+| Preprocess | [`CCPPPreprocessor`], [`CPPHeaderCache`] | Includes, macros and conditional compilation, to a token stream. |
 | Tokenise and parse | [`CCPPTokeniser`], [`CCPPParser`] | C++ tokens to a syntax tree ([`CCPPSyntaxTree`]), with names resolved to scopes and symbols. |
 | Declarations and types | [`CCPPUnit`], [`CCPP65TypeChecker`] | Classes laid out, templates instantiated, overloads chosen, each expression's type worked out. |
 | IR front end | [`CCPP65IRFrontEnd`] | Each function body written as [IR](ir.md), already in SSA form. |
@@ -109,10 +109,10 @@ construct it was.
 ## Optimiser and inliner
 
 The optimiser works on one function at a time, in rounds, until a round changes nothing.  The
-target chooses the passes: the W65C816 runs every one, the 65C64 leaves out six that don't pay on
+target chooses the passes: the W65C816 runs every one, the 65C64 leaves out seven that don't pay on
 it.  [Intermediate Representation](ir.md#the-optimisers-passes) lists them.
 
-The inliner puts small functions into their callers.  On the W65C816, small functions are also
+The inliner puts small functions into their callers.  On both processors small functions are also
 inlined *across units*: each unit's small functions are kept after it is compiled, and a unit that
 called one before it was kept is compiled again at the end.  Functions that name a unit's own
 symbols (its string literals, static globals and static functions) aren't shared.
