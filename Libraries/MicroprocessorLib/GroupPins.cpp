@@ -222,6 +222,22 @@ void CGroupPins::WriteImpedance(CTimeline* pcTimeline, size uiRole, size uiGroup
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Drives a group's bits of a role at VCC/2, neither high nor low.
+//
+//////////////////////////////////////////////////////////////////////////
+void CGroupPins::WriteHalf(CTimeline* pcTimeline, size uiRole, size uiGroup)
+{
+	size	i;
+
+	for (i = 0; i < GetBitCount(uiRole); i++)
+	{
+		GetPin(uiRole, uiGroup, i)->WriteHalf(pcTimeline);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 bool CGroupPins::IsLow(CTimeline* pcTimeline, size uiRole, size uiGroup, size uiBit)

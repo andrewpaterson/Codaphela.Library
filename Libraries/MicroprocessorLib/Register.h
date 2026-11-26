@@ -44,14 +44,16 @@ enum ERegisterRole
 //74LVC16374 (two) are: "D0" up in, "CP", "OE" and "Q0" up out.  A rising clock takes the data; a transparent register
 //(a latch, as a 74LVC573) takes it while its latch enable ("LE" for "CP") is high and holds it when it goes low.  The
 //outputs drive what's held while their output enable is low and stop driving otherwise (an undriven output enable
-//isn't asserted).  A data bit that isn't high or low isn't taken.  What each group holds starts at zero and is what
-//it remembers.  Its pins are a CGroupPins of GetRoles' roles.
+//isn't asserted).  A data bit that isn't high or low isn't taken.  What each group holds is what it remembers, from
+//the simulation's power-up state (EPowerUpState), its outputs at VCC/2 while it isn't known.  Its pins are a CGroupPins
+//of GetRoles' roles.
 class CRegister : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CRegister);
 protected:
 	bool	mbTransparent;
 	uint32	mauiValues[REGISTER_MAX_GROUPS];
+	bool	mabUnset[REGISTER_MAX_GROUPS];  //Not known since power up.
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CGroupPins> pPins, bool bTransparent);

@@ -20,9 +20,19 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 ** ------------------------------------------------------------------------ **/
 #ifndef __CIRCUIT_SIMULATION_H__
 #define __CIRCUIT_SIMULATION_H__
+#include "BaseLib/StdRandom.h"
 #include "Timeline.h"
 #include "Circuit.h"
 #include "SubcircuitSimulation.h"
+
+
+//What a chip remembers (a flip-flop's bit, a counter's count, a register) when its power comes.
+enum EPowerUpState
+{
+	PUS_Zero,  //Every bit low, as Logicim's.
+	PUS_Random,  //Each bit high or low from the simulation's seed, as a real part comes up.
+	PUS_HalfSupply,  //Not known: the chip's outputs at VCC/2 until it is reset or clocked.
+};
 
 
 //Logicim's CircuitSimulation, with its Simulation folded in: a circuit and the timeline it runs on.  Logicim's
@@ -33,6 +43,10 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //The circuit is a CObject made in Init and kept by mpCircuit.  The circuit needs (Nes) the simulation, so the
 //simulation is freed after the circuit and its components, which take their events off its timeline as they are
 //freed.  The timeline's context is the circuit simulation.  Every one gets the next id unless it is given one.
+//
+//It keeps the power-up state, what chips remember when their power comes (EPowerUpState), Zero unless it is set, and the
+//seed its random bits come from.  The generator starts again from the seed each time the simulation starts, and the
+//chips draw from it in the circuit's order, so a run repeats.
 class CCircuitSimulation : public CObject
 {
 CONSTRUCTABLE(CCircuitSimulation);
@@ -44,6 +58,9 @@ protected:
 	CChars							mszName;
 	CSubcircuitTopSimulation*		mpcSubcircuitTopSimulation;
 	CArraySubcircuitSimulationPtr	mapcInstanceSimulations;
+	EPowerUpState					mePowerUpState;
+	uint32							muiPowerUpSeed;
+	CRandom							mcPowerUpRandom;
 
 public:
 	void							Init(const char* szName);
@@ -72,6 +89,12 @@ public:
 	CSubcircuitTopSimulation*		GetSubcircuitTopSimulation(void) const;
 	size							NumInstanceSimulations(void) const;
 	CSubcircuitInstanceSimulation*	GetInstanceSimulation(size uiIndex);
+
+	void							SetPowerUpState(EPowerUpState ePowerUpState);
+	EPowerUpState					GetPowerUpState(void) const;
+	void							SetPowerUpSeed(uint32 uiSeed);
+	uint32							GetPowerUpSeed(void) const;
+	bool							NextPowerUpBit(void);
 
 	static void						ResetNextID(void);
 };

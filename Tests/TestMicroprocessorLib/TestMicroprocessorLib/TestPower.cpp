@@ -1,4 +1,6 @@
 #include "MicroprocessorLib/PowerOutPort.h"
+#include "MicroprocessorLib/GroupPins.h"
+#include "MicroprocessorLib/Register.h"
 #include "TestCircuitBoard.h"
 #include "TestLib/Assert.h"
 
@@ -288,6 +290,130 @@ void TestPowerRegulator(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A 74LVC574 holding 8 bits, its clock and output enable low and 0x5A on
+// its data, its outputs on new traces.
+//
+//////////////////////////////////////////////////////////////////////////
+CRegister* TestPowerRegister(CTestBoard* pcBoard, CConstant** ppcData, CConstant** ppcClock, CTrace** apcQ)
+{
+	SGroupPinRole	asRoles[8];
+	size			uiRoles;
+	CRegister*		pcRegister;
+	CGroupPins*		pcPins;
+	CTrace*			apcData[8];
+	CTrace*			pcClock;
+	size			i;
+
+	uiRoles = CRegister::GetRoles(asRoles, 8, false);
+	pcRegister = &OMalloc<CRegister>(pcBoard->mpcTop, "U1", OMalloc<CGroupPins>(1, asRoles, uiRoles, pcBoard->mpcFamily), false);
+	pcPins = pcRegister->GetGroupPins();
+	pcBoard->Power(pcRegister);
+	*ppcData = pcBoard->Input("D", 0x5A, 8, apcData);
+	*ppcClock = pcBoard->Input("CP", 0, 1, &pcClock);
+	pcPins->GetPin(RR_Clock, 0)->Connect(pcClock);
+	pcPins->GetPin(RR_OutputEnable, 0)->Connect(pcBoard->Input("OE", false));
+	for (i = 0; i < 8; i++)
+	{
+		pcPins->GetPin(RR_Data, 0, i)->Connect(apcData[i]);
+		apcQ[i] = pcBoard->NewTrace();
+		pcPins->GetPin(RR_Output, 0, i)->Connect(apcQ[i]);
+	}
+	return pcRegister;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The outputs' bits, or -1 if one isn't high or low.
+//
+//////////////////////////////////////////////////////////////////////////
+int64 TestPowerRead(CTestBoard* pcBoard, CTrace** apcQ)
+{
+	size		i;
+	int64		iValue;
+	ETraceValue	eValue;
+
+	iValue = 0;
+	for (i = 0; i < 8; i++)
+	{
+		eValue = pcBoard->Value(apcQ[i]);
+		if (eValue == TV_High)
+		{
+			iValue |= (int64)1 << i;
+		}
+		else if (eValue != TV_Low)
+		{
+			return -1;
+		}
+	}
+	return iValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the register holds as its power comes: zero; random from the
+// seed, the same each time the simulation starts and different from
+// another seed; or not known, its outputs at VCC/2 until it is clocked.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPowerUpState(void)
+{
+	CTestBoard		cBoard;
+	CRegister*		pcRegister;
+	CConstant*		pcData;
+	CConstant*		pcClock;
+	CTrace*			apcQ[8];
+	int64			iFirst;
+	size			i;
+
+	cBoard.Init();
+	pcRegister = TestPowerRegister(&cBoard, &pcData, &pcClock, apcQ);
+	AssertInt(PUS_Zero, cBoard.mpSimulation->GetPowerUpState());
+	cBoard.Start();
+	cBoard.Run();
+	AssertLong(0, TestPowerRead(&cBoard, apcQ));
+
+	cBoard.mpSimulation->SetPowerUpState(PUS_Random);
+	cBoard.mpSimulation->SetPowerUpSeed(7);
+	cBoard.Start();
+	cBoard.Run();
+	iFirst = TestPowerRead(&cBoard, apcQ);
+	AssertLong((int64)pcRegister->GetValue(0), iFirst);
+	cBoard.Start();
+	cBoard.Run();
+	AssertLong(iFirst, TestPowerRead(&cBoard, apcQ));
+	cBoard.mpSimulation->SetPowerUpSeed(8);
+	AssertInt(8, cBoard.mpSimulation->GetPowerUpSeed());
+	cBoard.Start();
+	cBoard.Run();
+	AssertTrue(iFirst != TestPowerRead(&cBoard, apcQ));
+
+	cBoard.mpSimulation->SetPowerUpState(PUS_HalfSupply);
+	cBoard.Start();
+	cBoard.Run();
+	AssertLong(-1, TestPowerRead(&cBoard, apcQ));
+	AssertFloat(1.65f, TestPowerVoltage(&cBoard, apcQ[0]), 2);
+	AssertInt(TV_Unsettled, cBoard.Value(apcQ[0]));
+
+	//Clocked, what it takes is known, though it is the zero it held.
+	for (i = 0; i < 8; i++)
+	{
+		pcData->GetConstantPins()->GetOutput(i)->Write(cBoard.mpcTimeline, false);
+	}
+	cBoard.Run();
+	AssertLong(-1, TestPowerRead(&cBoard, apcQ));
+	AssertInt(0, pcRegister->GetValue(0));
+	cBoard.Write(pcClock, true);
+	cBoard.Run();
+	AssertLong(0, TestPowerRead(&cBoard, apcQ));
+
+	cBoard.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPower(void)
@@ -300,6 +426,7 @@ void TestPower(void)
 	TestPowerSwitchedOff();
 	TestPowerTiedInput();
 	TestPowerRegulator();
+	TestPowerUpState();
 
 	TestStatistics();
 }

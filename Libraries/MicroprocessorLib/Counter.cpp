@@ -55,6 +55,7 @@ void CCounter::Class(void)
 	U_UInt32(muiTerminalValue);
 	U_UInt32(muiCount);
 	U_Bool(mbTerminal);
+	U_Bool(mbUnset);
 	U_Bool(mbSynchronousLoad);
 }
 
@@ -65,8 +66,9 @@ void CCounter::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CCounter::ResetState(void)
 {
-	muiCount = 0;
+	muiCount = PowerUpBits(muiBitWidth);
 	mbTerminal = false;
+	mbUnset = IsPowerUpUnknown();
 }
 
 
@@ -87,10 +89,22 @@ void CCounter::SimulationStarted(CTimeline* pcTimeline)
 void CCounter::WriteOutputs(CTimeline* pcTimeline)
 {
 	CCounterPins*	pcPins;
+	size			i;
 
 	pcPins = GetCounterPins();
-	pcPins->WriteOutput(pcTimeline, muiCount, muiBitWidth);
-	pcPins->GetTerminalOutput()->WriteBool(pcTimeline, mbTerminal);
+	if (mbUnset)
+	{
+		for (i = 0; i < muiBitWidth; i++)
+		{
+			pcPins->GetOutput()->GetPtr(i)->WriteHalf(pcTimeline);
+		}
+		pcPins->GetTerminalOutput()->WriteHalf(pcTimeline);
+	}
+	else
+	{
+		pcPins->WriteOutput(pcTimeline, muiCount, muiBitWidth);
+		pcPins->GetTerminalOutput()->WriteBool(pcTimeline, mbTerminal);
+	}
 }
 
 
@@ -105,17 +119,21 @@ void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	bool			bLoadLow;
 	bool			bCountEnable;
 	bool			bCountEnableTerminal;
+	bool			bClockRising;
 	uint32			uiOldState;
 	uint32			uiState;
 	bool			bOldTerminal;
 	bool			bTerminal;
+	bool			bAssigned;
 
 	pcPins = GetCounterPins();
 	bResetLow = pcPins->GetReset()->Read(pcTimeline).IsLow();
 	bLoadLow = pcPins->GetLoad()->Read(pcTimeline).IsLow();
 	bCountEnable = pcPins->GetCountEnable()->Read(pcTimeline).IsHigh();
 	bCountEnableTerminal = pcPins->GetCountEnableTerminal()->Read(pcTimeline).IsHigh();
+	bClockRising = pcPins->IsClock(pcPort) && pcPort->Read(pcTimeline).IsHigh();
 	uiOldState = muiCount;
+	bAssigned = true;
 	if (bResetLow)
 	{
 		muiCount = 0;
@@ -124,37 +142,33 @@ void CCounter::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	{
 		muiCount = pcPins->ReadData(pcTimeline, muiBitWidth);
 	}
-	else if (bLoadLow)
+	else if (bLoadLow && bClockRising)
 	{
-		if (pcPins->IsClock(pcPort) && pcPort->Read(pcTimeline).IsHigh())
+		muiCount = pcPins->ReadData(pcTimeline, muiBitWidth);
+	}
+	else if (!bLoadLow && bClockRising && bCountEnable && bCountEnableTerminal)
+	{
+		if (muiCount >= muiTerminalValue)
 		{
-			muiCount = pcPins->ReadData(pcTimeline, muiBitWidth);
+			muiCount = 0;
+		}
+		else
+		{
+			muiCount++;
 		}
 	}
-	else if (pcPins->IsClock(pcPort))
+	else
 	{
-		if (bCountEnable && bCountEnableTerminal)
-		{
-			if (pcPort->Read(pcTimeline).IsHigh())
-			{
-				if (muiCount >= muiTerminalValue)
-				{
-					muiCount = 0;
-				}
-				else
-				{
-					muiCount++;
-				}
-			}
-		}
+		bAssigned = false;
 	}
 
 	uiState = muiCount;
 	bOldTerminal = mbTerminal;
 	bTerminal = (uiState == muiTerminalValue) && bCountEnableTerminal;
 	mbTerminal = bTerminal;
-	if ((uiOldState != uiState) || (bOldTerminal != bTerminal))
+	if ((uiOldState != uiState) || (bOldTerminal != bTerminal) || (bAssigned && mbUnset))
 	{
+		mbUnset = false;
 		WriteOutputs(pcTimeline);
 	}
 }
@@ -182,7 +196,7 @@ void CCounter::AppendCounterValueHex(CChars* psz)
 const char* CCounter::GetType(void) { return COUNTER_TYPE; }
 CCounterPins* CCounter::GetCounterPins(void) { return (CCounterPins*)&mpPins; }
 uint32 CCounter::GetCount(void) const { return muiCount; }
-void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; }
+void CCounter::SetCount(uint32 uiCount) { muiCount = uiCount; mbUnset = false; }
 bool CCounter::IsTerminal(void) const { return mbTerminal; }
 bool CCounter::IsSynchronousLoad(void) const { return mbSynchronousLoad; }
 void CCounter::SetTerminal(bool bTerminal) { mbTerminal = bTerminal; }
@@ -203,6 +217,10 @@ void CCounter::SaveXML(CXMLWriter* pcWriter)
 {
 	pcWriter->Attribute("count", (int64)GetCount());
 	pcWriter->Attribute("terminal", IsTerminal());
+	if (mbUnset)
+	{
+		pcWriter->Attribute("unset", true);
+	}
 }
 
 
@@ -221,6 +239,10 @@ bool CCounter::LoadXML(CMarkupTag* pcTag)
 	}
 	SetCount((uint32)iCount);
 	SetTerminal(bTerminal);
+	if (!pcTag->GetBoolAttribute("unset", &mbUnset))
+	{
+		mbUnset = false;
+	}
 	return true;
 }
 

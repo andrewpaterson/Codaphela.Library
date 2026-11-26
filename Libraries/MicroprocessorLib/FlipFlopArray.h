@@ -42,13 +42,14 @@ enum EFlipFlopArrayRole
 
 //D-type flip flops each with their own clock and active low set and reset, as a 74LVC74 (two) is: each one's "CP",
 //"D", "SD" and "RD" in and "Q" and "QB" out, numbered "1CP" up when there's more than one.  Each behaves as a
-//CDTypeFlipFlop does.  What each holds starts low and is what it remembers.  Its pins are a CGroupPins of GetRoles'
-//roles.
+//CDTypeFlipFlop does.  What each holds is what it remembers, from the simulation's power-up state (EPowerUpState),
+//its Q and QB at VCC/2 while it isn't known.  Its pins are a CGroupPins of GetRoles' roles.
 class CFlipFlopArray : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CFlipFlopArray);
 protected:
 	bool	mabStates[FLIP_FLOP_ARRAY_MAX];
+	bool	mabUnset[FLIP_FLOP_ARRAY_MAX];  //Not known since power up.
 
 public:
 			void			Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CGroupPins> pPins);

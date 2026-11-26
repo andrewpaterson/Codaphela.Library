@@ -42,7 +42,11 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //A chip starts when its power comes (IsPowered) and stops when it goes, however that happens: the simulation
 //starting, a supply switched or ramping, a VCC or GND wire connected or cut while it runs.  Its power ports tell it,
 //through TraceConnected, and PowerChanged starts it (Reset, then it reads its inputs), stops it (its events dropped
-//and its outputs undriven) or, when only its VCC has moved, has its ports write again at the new VCC.  Logicim's chips only drive them when what they
+//and its outputs undriven) or, when only its VCC has moved, has its ports write again at the new VCC.
+//
+//What a chip remembers as its power comes is the simulation's power-up state (EPowerUpState): its ResetState takes its
+//bits from PowerUpBit, and with HalfSupply (IsPowerUpUnknown) its WriteOutputs drives VCC/2 until it is reset or
+//clocked.  Logicim's chips only drive them when what they
 //remember changes, so until then they're undriven, and a chip fed back to itself (a flip-flop's QB to its D) never
 //starts.  Chips whose outputs follow their inputs (gates) don't override it; undriven inputs leave them undriven.
 //
@@ -104,6 +108,9 @@ public:
 
 protected:
 			void							ResetEventsAndPorts(void);
+			bool							PowerUpBit(void);
+			uint32							PowerUpBits(size uiBits);
+			bool							IsPowerUpUnknown(void);
 			void							RemoveAllEvents(CTimeline* pcTimeline);
 			void							Start(CTimeline* pcTimeline);
 			void							Stop(CTimeline* pcTimeline);

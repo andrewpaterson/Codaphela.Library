@@ -32,8 +32,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //terminal value.  Terminal count is high at the terminal value while enable terminal is high.  The count starts at
 //zero and the outputs are driven from it when the chip starts (see CIntegratedCircuit::WriteOutputs), and again
 //whenever they change; Logicim's only drives them when they change, so they're undriven until the count first
-//changes.  The count and whether terminal count is high are what it remembers; ResetState sets them back to zero and
-//low.
+//changes.  The count and whether terminal count is high are what it remembers; ResetState sets the count as the
+//simulation's power-up state says (EPowerUpState): zero, random, or not known (unset), the outputs then at VCC/2 until
+//it is reset, loaded or counts.
 //
 //A counter with bSynchronousLoad is a real 74161's: load takes the data on a rising clock, not at once (reset still
 //clears it at once).
@@ -45,6 +46,7 @@ protected:
 	uint32	muiTerminalValue;
 	uint32	muiCount;
 	bool	mbTerminal;
+	bool	mbUnset;  //Not known since power up.
 	bool	mbSynchronousLoad;
 
 public:

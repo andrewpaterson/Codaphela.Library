@@ -49,6 +49,7 @@ void CFlipFlopArray::Class(void)
 	CIntegratedCircuit::Class();
 
 	U_Data(bool[FLIP_FLOP_ARRAY_MAX], mabStates);
+	U_Data(bool[FLIP_FLOP_ARRAY_MAX], mabUnset);
 }
 
 
@@ -86,6 +87,12 @@ void CFlipFlopArray::ResetState(void)
 	for (i = 0; i < FLIP_FLOP_ARRAY_MAX; i++)
 	{
 		mabStates[i] = false;
+		mabUnset[i] = false;
+	}
+	for (i = 0; i < GetGroupPins()->GetGroupCount(); i++)
+	{
+		mabStates[i] = PowerUpBit();
+		mabUnset[i] = IsPowerUpUnknown();
 	}
 }
 
@@ -121,8 +128,16 @@ void CFlipFlopArray::WriteOutputs(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CFlipFlopArray::WriteFlipFlop(CTimeline* pcTimeline, size uiFlipFlop)
 {
-	GetGroupPins()->GetPin(FFAR_Q, uiFlipFlop)->WriteBool(pcTimeline, mabStates[uiFlipFlop]);
-	GetGroupPins()->GetPin(FFAR_QB, uiFlipFlop)->WriteBool(pcTimeline, !mabStates[uiFlipFlop]);
+	if (mabUnset[uiFlipFlop])
+	{
+		GetGroupPins()->GetPin(FFAR_Q, uiFlipFlop)->WriteHalf(pcTimeline);
+		GetGroupPins()->GetPin(FFAR_QB, uiFlipFlop)->WriteHalf(pcTimeline);
+	}
+	else
+	{
+		GetGroupPins()->GetPin(FFAR_Q, uiFlipFlop)->WriteBool(pcTimeline, mabStates[uiFlipFlop]);
+		GetGroupPins()->GetPin(FFAR_QB, uiFlipFlop)->WriteBool(pcTimeline, !mabStates[uiFlipFlop]);
+	}
 }
 
 
@@ -140,6 +155,7 @@ void CFlipFlopArray::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	bool			bSetLow;
 	bool			bResetLow;
 	bool			bState;
+	bool			bAssigned;
 	STraceValue		sData;
 
 	pcPins = GetGroupPins();
@@ -149,6 +165,7 @@ void CFlipFlopArray::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 	}
 
 	bState = mabStates[uiFlipFlop];
+	bAssigned = true;
 	bSetLow = pcPins->IsLow(pcTimeline, FFAR_Set, uiFlipFlop);
 	bResetLow = pcPins->IsLow(pcTimeline, FFAR_Reset, uiFlipFlop);
 	if (bSetLow)
@@ -170,11 +187,20 @@ void CFlipFlopArray::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 		{
 			bState = false;
 		}
+		else
+		{
+			bAssigned = false;
+		}
+	}
+	else
+	{
+		bAssigned = false;
 	}
 
-	if (bState != mabStates[uiFlipFlop])
+	if ((bState != mabStates[uiFlipFlop]) || (bAssigned && mabUnset[uiFlipFlop]))
 	{
 		mabStates[uiFlipFlop] = bState;
+		mabUnset[uiFlipFlop] = false;
 		WriteFlipFlop(pcTimeline, uiFlipFlop);
 	}
 }
@@ -187,7 +213,7 @@ void CFlipFlopArray::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 const char* CFlipFlopArray::GetType(void) { return FLIP_FLOP_ARRAY_TYPE; }
 CGroupPins* CFlipFlopArray::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
 bool CFlipFlopArray::GetState(size uiFlipFlop) { return (uiFlipFlop < FLIP_FLOP_ARRAY_MAX) ? mabStates[uiFlipFlop] : false; }
-void CFlipFlopArray::SetState(size uiFlipFlop, bool bState) { if (uiFlipFlop < FLIP_FLOP_ARRAY_MAX) { mabStates[uiFlipFlop] = bState; } }
+void CFlipFlopArray::SetState(size uiFlipFlop, bool bState) { if (uiFlipFlop < FLIP_FLOP_ARRAY_MAX) { mabStates[uiFlipFlop] = bState; mabUnset[uiFlipFlop] = false; } }
 const char* CFlipFlopArray::GetStateXMLName(void) const { return "FlipFlopArrayState"; }
 
 
@@ -207,6 +233,13 @@ void CFlipFlopArray::SaveXML(CXMLWriter* pcWriter)
 		szName.Append((int32)(i + 1));
 		pcWriter->Attribute(szName.Text(), mabStates[i]);
 		szName.Kill();
+		if (mabUnset[i])
+		{
+			szName.Init("unset");
+			szName.Append((int32)(i + 1));
+			pcWriter->Attribute(szName.Text(), true);
+			szName.Kill();
+		}
 	}
 }
 
@@ -231,6 +264,13 @@ bool CFlipFlopArray::LoadXML(CMarkupTag* pcTag)
 		{
 			return false;
 		}
+		szName.Init("unset");
+		szName.Append((int32)(i + 1));
+		if (!pcTag->GetBoolAttribute(szName.Text(), &mabUnset[i]))
+		{
+			mabUnset[i] = false;
+		}
+		szName.Kill();
 	}
 	return true;
 }

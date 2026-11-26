@@ -63,6 +63,9 @@ void CCircuitSimulation::Init(int64 iID, const char* szName)
 	mpcSubcircuitTopSimulation = NewMalloc<CSubcircuitTopSimulation>();
 	mpcSubcircuitTopSimulation->Init(this);
 	mapcInstanceSimulations.Init();
+	mePowerUpState = PUS_Zero;
+	muiPowerUpSeed = 1;
+	mcPowerUpRandom.Init(muiPowerUpSeed);
 
 	PostInit();
 }
@@ -80,6 +83,9 @@ void CCircuitSimulation::Class(void)
 	U_String(mszName);
 	U_Pointer(mpcSubcircuitTopSimulation);
 	U_Unknown(CArraySubcircuitSimulationPtr, mapcInstanceSimulations);
+	U_Enum(mePowerUpState);
+	U_UInt32(muiPowerUpSeed);
+	U_Unknown(CRandom, mcPowerUpRandom);
 }
 
 
@@ -101,6 +107,7 @@ void CCircuitSimulation::Free(void)
 	}
 	mapcInstanceSimulations.Kill();
 	SafeKill(mpcSubcircuitTopSimulation);
+	mcPowerUpRandom.Kill();
 
 	mcTimeline.Kill();
 	mszName.Kill();
@@ -156,12 +163,44 @@ bool CCircuitSimulation::Reset(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Resets every component, as Logicim does when a simulation starts.
+// Resets every component, as Logicim does when a simulation starts, the
+// power-up bits drawn again from the seed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CCircuitSimulation::SimulationStarted(void)
 {
+	mcPowerUpRandom.Kill();
+	mcPowerUpRandom.Init(muiPowerUpSeed);
 	mpCircuit->SimulationStarted(&mcTimeline);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit a chip remembers as its power comes: random from the seed, or low
+// for Zero and HalfSupply (whose outputs the chip drives at VCC/2).
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCircuitSimulation::NextPowerUpBit(void)
+{
+	if (mePowerUpState == PUS_Random)
+	{
+		return mcPowerUpRandom.Next(0, 1) == 1;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The generator starts again from the new seed.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCircuitSimulation::SetPowerUpSeed(uint32 uiSeed)
+{
+	muiPowerUpSeed = uiSeed;
+	mcPowerUpRandom.Kill();
+	mcPowerUpRandom.Init(muiPowerUpSeed);
 }
 
 
@@ -267,4 +306,7 @@ const char* CCircuitSimulation::GetName(void) const { return mszName.Text(); }
 CSubcircuitTopSimulation* CCircuitSimulation::GetSubcircuitTopSimulation(void) const { return mpcSubcircuitTopSimulation; }
 size CCircuitSimulation::NumInstanceSimulations(void) const { return mapcInstanceSimulations.NumElements(); }
 CSubcircuitInstanceSimulation* CCircuitSimulation::GetInstanceSimulation(size uiIndex) { return (CSubcircuitInstanceSimulation*)mapcInstanceSimulations.SafeGetPtr(uiIndex); }
+void CCircuitSimulation::SetPowerUpState(EPowerUpState ePowerUpState) { mePowerUpState = ePowerUpState; }
+EPowerUpState CCircuitSimulation::GetPowerUpState(void) const { return mePowerUpState; }
+uint32 CCircuitSimulation::GetPowerUpSeed(void) const { return muiPowerUpSeed; }
 

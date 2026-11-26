@@ -49,6 +49,7 @@ void CDTypeFlipFlop::Class(void)
 	CIntegratedCircuit::Class();
 
 	U_Bool(mbState);
+	U_Bool(mbUnset);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,7 +59,8 @@ void CDTypeFlipFlop::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CDTypeFlipFlop::ResetState(void)
 {
-	mbState = false;
+	mbState = PowerUpBit();
+	mbUnset = IsPowerUpUnknown();
 }
 
 
@@ -81,8 +83,16 @@ void CDTypeFlipFlop::WriteOutputs(CTimeline* pcTimeline)
 	CDTypeFlipFlopPins*		pcPins;
 
 	pcPins = GetDTypeFlipFlopPins();
-	pcPins->GetOutputQ()->WriteBool(pcTimeline, mbState);
-	pcPins->GetOutputQB()->WriteBool(pcTimeline, !mbState);
+	if (mbUnset)
+	{
+		pcPins->GetOutputQ()->WriteHalf(pcTimeline);
+		pcPins->GetOutputQB()->WriteHalf(pcTimeline);
+	}
+	else
+	{
+		pcPins->GetOutputQ()->WriteBool(pcTimeline, mbState);
+		pcPins->GetOutputQB()->WriteBool(pcTimeline, !mbState);
+	}
 }
 
 
@@ -143,14 +153,16 @@ void CDTypeFlipFlop::InputTransition(CTimeline* pcTimeline, CLogicPort* pcPort)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Whether the state changed.
+// Sets the state.  Whether the outputs must be written: it changed, or
+// wasn't known.
 //
 //////////////////////////////////////////////////////////////////////////
 bool CDTypeFlipFlop::ChangeState(bool bState)
 {
-	if (bState != mbState)
+	if ((bState != mbState) || mbUnset)
 	{
 		mbState = bState;
+		mbUnset = false;
 		return true;
 	}
 	return false;
@@ -164,7 +176,7 @@ bool CDTypeFlipFlop::ChangeState(bool bState)
 const char* CDTypeFlipFlop::GetType(void) { return D_TYPE_FLIP_FLOP_TYPE; }
 CDTypeFlipFlopPins* CDTypeFlipFlop::GetDTypeFlipFlopPins(void) { return (CDTypeFlipFlopPins*)&mpPins; }
 bool CDTypeFlipFlop::GetState(void) const { return mbState; }
-void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; }
+void CDTypeFlipFlop::SetState(bool bState) { mbState = bState; mbUnset = false; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -181,6 +193,10 @@ const char* CDTypeFlipFlop::GetStateXMLName(void) const { return "DTypeFlipFlopS
 void CDTypeFlipFlop::SaveXML(CXMLWriter* pcWriter)
 {
 	pcWriter->Attribute("state", GetState());
+	if (mbUnset)
+	{
+		pcWriter->Attribute("unset", true);
+	}
 }
 
 
@@ -197,6 +213,10 @@ bool CDTypeFlipFlop::LoadXML(CMarkupTag* pcTag)
 		return gcLogger.Error2(__METHOD__, " [", pcTag->GetName(), "] needs a true or false state.", NULL);
 	}
 	SetState(bState);
+	if (!pcTag->GetBoolAttribute("unset", &mbUnset))
+	{
+		mbUnset = false;
+	}
 	return true;
 }
 

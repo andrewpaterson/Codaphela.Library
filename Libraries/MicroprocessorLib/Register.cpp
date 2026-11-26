@@ -51,6 +51,7 @@ void CRegister::Class(void)
 
 	U_Bool(mbTransparent);
 	U_Data(uint32[REGISTER_MAX_GROUPS], mauiValues);
+	U_Data(bool[REGISTER_MAX_GROUPS], mabUnset);
 }
 
 
@@ -93,6 +94,12 @@ void CRegister::ResetState(void)
 	for (i = 0; i < REGISTER_MAX_GROUPS; i++)
 	{
 		mauiValues[i] = 0;
+		mabUnset[i] = false;
+	}
+	for (i = 0; i < GetGroupPins()->GetGroupCount(); i++)
+	{
+		mauiValues[i] = PowerUpBits(GetGroupPins()->GetBitCount(RR_Data));
+		mabUnset[i] = IsPowerUpUnknown();
 	}
 }
 
@@ -133,7 +140,14 @@ void CRegister::WriteGroupOutputs(CTimeline* pcTimeline, size uiGroup)
 	pcPins = GetGroupPins();
 	if (pcPins->IsLow(pcTimeline, RR_OutputEnable, uiGroup))
 	{
-		pcPins->WriteBits(pcTimeline, RR_Output, uiGroup, mauiValues[uiGroup]);
+		if (mabUnset[uiGroup])
+		{
+			pcPins->WriteHalf(pcTimeline, RR_Output, uiGroup);
+		}
+		else
+		{
+			pcPins->WriteBits(pcTimeline, RR_Output, uiGroup, mauiValues[uiGroup]);
+		}
 	}
 	else
 	{
@@ -207,9 +221,10 @@ void CRegister::TakeData(CTimeline* pcTimeline, size uiGroup)
 			uiValue &= ~(1 << i);
 		}
 	}
-	if (uiValue != mauiValues[uiGroup])
+	if ((uiValue != mauiValues[uiGroup]) || mabUnset[uiGroup])
 	{
 		mauiValues[uiGroup] = uiValue;
+		mabUnset[uiGroup] = false;
 		WriteGroupOutputs(pcTimeline, uiGroup);
 	}
 }
@@ -223,7 +238,7 @@ const char* CRegister::GetType(void) { return mbTransparent ? LATCH_TYPE : REGIS
 CGroupPins* CRegister::GetGroupPins(void) { return (CGroupPins*)&mpPins; }
 bool CRegister::IsTransparent(void) const { return mbTransparent; }
 uint32 CRegister::GetValue(size uiGroup) { return (uiGroup < REGISTER_MAX_GROUPS) ? mauiValues[uiGroup] : 0; }
-void CRegister::SetValue(size uiGroup, uint32 uiValue) { if (uiGroup < REGISTER_MAX_GROUPS) { mauiValues[uiGroup] = uiValue; } }
+void CRegister::SetValue(size uiGroup, uint32 uiValue) { if (uiGroup < REGISTER_MAX_GROUPS) { mauiValues[uiGroup] = uiValue; mabUnset[uiGroup] = false; } }
 const char* CRegister::GetStateXMLName(void) const { return "RegisterState"; }
 
 
@@ -243,6 +258,13 @@ void CRegister::SaveXML(CXMLWriter* pcWriter)
 		szName.Append((int32)(i + 1));
 		pcWriter->Attribute(szName.Text(), (int64)mauiValues[i]);
 		szName.Kill();
+		if (mabUnset[i])
+		{
+			szName.Init("unset");
+			szName.Append((int32)(i + 1));
+			pcWriter->Attribute(szName.Text(), true);
+			szName.Kill();
+		}
 	}
 }
 
@@ -269,6 +291,13 @@ bool CRegister::LoadXML(CMarkupTag* pcTag)
 			return false;
 		}
 		mauiValues[i] = (uint32)iValue;
+		szName.Init("unset");
+		szName.Append((int32)(i + 1));
+		if (!pcTag->GetBoolAttribute(szName.Text(), &mabUnset[i]))
+		{
+			mabUnset[i] = false;
+		}
+		szName.Kill();
 	}
 	return true;
 }

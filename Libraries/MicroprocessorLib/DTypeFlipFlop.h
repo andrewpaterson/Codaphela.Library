@@ -31,12 +31,14 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //together set it, as an LVC part most likely does.  The state starts low and Q and QB are driven from it when the
 //chip starts (see CIntegratedCircuit::WriteOutputs), and again whenever it changes; Logicim's only drives them when it
 //changes, so they're undriven until it first goes high.  Undriven set and reset inputs are not asserted.  The state
-//is what it remembers; ResetState sets it back to low.
+//is what it remembers; ResetState sets it as the simulation's power-up state says (EPowerUpState): low, random, or
+//not known (unset), Q and QB then at VCC/2 until it is set, reset or clocked.
 class CDTypeFlipFlop : public CIntegratedCircuit
 {
 CONSTRUCTABLE(CDTypeFlipFlop);
 protected:
 	bool	mbState;
+	bool	mbUnset;  //Not known since power up; Q and QB at VCC/2.
 
 public:
 			void					Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation, const char* szName, Ptr<CDTypeFlipFlopPins> pPins);

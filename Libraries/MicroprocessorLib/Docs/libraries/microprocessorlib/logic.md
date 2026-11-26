@@ -139,7 +139,14 @@ resets, then reads the inputs already at a level, [`CLogicPort::ReadTraceLevel`]
 its outputs undriven).  When only its VCC moves, its ports write what they were told to write again at the new VCC and
 read their traces at its new thresholds ([`CLogicPort::VccChanged`]).  An instrument, the oscilloscope, needs no power
 ([`CIntegratedCircuit::NeedsPower`]).  Logicim's power was there from the moment a supply was connected and no chip was
-told it came or went: only its clock looked.  A chip that remembers something saves it as XML with a saved simulation
+told it came or went: only its clock looked.
+
+What a chip remembers as its power comes (a flip-flop's bit, a counter's count, a register) is the simulation's
+power-up state ([`EPowerUpState`], [`CCircuitSimulation::SetPowerUpState`]): Zero, every bit low, as Logicim's (the
+default); Random, each bit from the simulation's seed ([`CCircuitSimulation::SetPowerUpSeed`]), drawn again from it
+each time the simulation starts so a run repeats; or HalfSupply, not known, the chip's outputs at VCC/2
+([`CLogicPort::WriteHalf`]), which reads as neither high nor low, until it is set, reset, loaded or clocked.  An input
+reads VCC/2 as unsettled, so a flip-flop fed back to itself never starts with HalfSupply.  A chip that remembers something saves it as XML with a saved simulation
 ([`CIntegratedCircuit::SaveXML`]).
 
 Inputs that nothing drives are unknown.  A gate whose output an unknown input could decide stops driving, and the
@@ -204,6 +211,8 @@ The test circuits are built on a board in [`TestMicroprocessorLib/TestCircuitBoa
 - Power comes and goes: a chip starts and stops with it, and works only from its family's lowest VCC (the user: "the
   way power works in Logicim is a bit weird / broken.  Power is instantaneously applied on connection", 2026-11-26;
   `PowerPlan.txt`).
+- What a chip remembers at power up is a setting of the simulation: Random from a seed, Zero, or Half supply (the
+  user, 2026-11-26).
 - Undriven inputs are unknown only: there is no per-family rule that a floating TTL input reads high (the user,
   2026-10-23).
 - Things returned by pointer are allocated one by one ([`CArrayTemplatePtr`] and [`NewMalloc`]), never pointers

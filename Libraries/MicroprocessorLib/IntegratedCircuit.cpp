@@ -25,6 +25,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "PowerInPort.h"
 #include "LogicPort.h"
 #include "Circuit.h"
+#include "CircuitSimulation.h"
 #include "SubcircuitSimulation.h"
 #include "IntegratedCircuitEvent.h"
 #include "IntegratedCircuit.h"
@@ -214,6 +215,62 @@ void CIntegratedCircuit::ResetEventsAndPorts(void)
 	{
 		mpPins->GetPort(i)->Reset();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A bit the chip remembers as its power comes, see
+// CCircuitSimulation::NextPowerUpBit.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::PowerUpBit(void)
+{
+	CCircuitSimulation*	pcSimulation;
+
+	pcSimulation = (CCircuitSimulation*)GetTimeline()->GetContext();
+	if (pcSimulation != NULL)
+	{
+		return pcSimulation->NextPowerUpBit();
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// uiBits power-up bits, the lowest first.
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CIntegratedCircuit::PowerUpBits(size uiBits)
+{
+	size	i;
+	uint32	uiValue;
+
+	uiValue = 0;
+	for (i = 0; i < uiBits; i++)
+	{
+		if (PowerUpBit())
+		{
+			uiValue |= 1 << i;
+		}
+	}
+	return uiValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Whether what the chip remembers isn't known as its power comes, so its
+// outputs are driven at VCC/2 until it is reset or clocked.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIntegratedCircuit::IsPowerUpUnknown(void)
+{
+	CCircuitSimulation*	pcSimulation;
+
+	pcSimulation = (CCircuitSimulation*)GetTimeline()->GetContext();
+	return (pcSimulation != NULL) && (pcSimulation->GetPowerUpState() == PUS_HalfSupply);
 }
 
 

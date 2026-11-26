@@ -76,6 +76,7 @@ public:
 			uint32				ReadBits(CTimeline* pcTimeline, size uiRole, size uiGroup, bool* pbAllDriven);
 			void				WriteBits(CTimeline* pcTimeline, size uiRole, size uiGroup, uint32 uiValue);
 			void				WriteImpedance(CTimeline* pcTimeline, size uiRole, size uiGroup);
+			void				WriteHalf(CTimeline* pcTimeline, size uiRole, size uiGroup);
 			bool				IsLow(CTimeline* pcTimeline, size uiRole, size uiGroup, size uiBit = 0);
 			bool				IsHigh(CTimeline* pcTimeline, size uiRole, size uiGroup, size uiBit = 0);
 };
