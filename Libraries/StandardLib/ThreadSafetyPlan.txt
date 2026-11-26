@@ -1267,3 +1267,7 @@ Decisions (the user's, 2026-11-17)
   14. A name a worker's object has that the main object system already uses is found at Adopt, which then refuses the
      whole graph and moves nothing.  (Not at creation, as Codabase transactions do it.)
   15. The memory index is replaced within step 25, before level 3 is built on it.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/standardlib/threads.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

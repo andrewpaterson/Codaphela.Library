@@ -1,6 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{ef618658-ae05-40e6-9ad2-cd2973bbab95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{ab261229-68df-486c-875b-9095f5ef39b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\standardlib">
+      <UniqueIdentifier>{2db80632-141f-4a78-90c6-42ba70cbe4c6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{636ed3f8-f643-4300-ba93-2e051f543ca6}</UniqueIdentifier>
     </Filter>
@@ -977,5 +986,25 @@
     <ClCompile Include="NamedObjectFile.cpp">
       <Filter>Source\Object\Object\IO\ChunkFile</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\standardlib\index.md">
+      <Filter>Docs\libraries\standardlib</Filter>
+    </None>
+    <None Include="Docs\libraries\standardlib\objects.md">
+      <Filter>Docs\libraries\standardlib</Filter>
+    </None>
+    <None Include="Docs\libraries\standardlib\weak-references.md">
+      <Filter>Docs\libraries\standardlib</Filter>
+    </None>
+    <None Include="Docs\libraries\standardlib\threads.md">
+      <Filter>Docs\libraries\standardlib</Filter>
+    </None>
+    <None Include="Docs\libraries\standardlib\text-diff.md">
+      <Filter>Docs\libraries\standardlib</Filter>
+    </None>
+    <None Include="Docs\libraries\standardlib\compression.md">
+      <Filter>Docs\libraries\standardlib</Filter>
+    </None>
   </ItemGroup>
 </Project>

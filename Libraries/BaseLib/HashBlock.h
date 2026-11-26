@@ -26,7 +26,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 //A hash table of entries of one size, knowing nothing of what is in them but where the key and the value are (see
-//HashMapPlan.txt).  Each entry is its hash (a uint32, first), its key and its value.
+//BaseLib's design page Docs/libraries/baselib/containers.md).  Each entry is its hash (a uint32, first), its key and its value.
 //
 //  - The entries are kept in an array in the order they were added: iterating is indexing it from 0 to
 //    NumElements(), and an entry's index is its own until something is removed.

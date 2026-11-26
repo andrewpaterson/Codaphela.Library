@@ -329,3 +329,7 @@ What the session that does this needs to know
   - Commit without a Co-Authored-By line, through a temporary index, leaving nothing staged; don't push.
   - The HCP65 IDE's refactorings exist now and could do some of this text's moving, but they refuse macro-made
     code, which is what this is: this conversion is by hand.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/baselib/containers.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

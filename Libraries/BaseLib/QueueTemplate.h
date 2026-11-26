@@ -31,7 +31,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 //the redo end).  The elements from muiFront to the array's end are the queue, in order, so Get(0) is the front.
 //Taking the front moves muiFront on; when the dead elements before it outnumber the live ones (and are at least
 //QUEUE_TEMPLATE_MIN_COMPACT) one RemoveRange moves the live ones down, so taking the front is amortised O(1).  A
-//pointer into the queue lasts until the next Push, Pop or Remove (see HashMapPlan.txt's CQueueTemplate).  BLOCK is
+//pointer into the queue lasts until the next Push, Pop or Remove (see BaseLib's design page Docs/libraries/baselib/containers.md).  BLOCK is
 //CArrayBlock (counted in size) or CArrayLargeBlock (lsize), as the arrays'.  A new element is given its virtual
 //function table but isn't zeroed, as CArrayTemplate's aren't: the caller initialises it.  Nothing is destructed: a
 //caller that must Kill an element does so before taking it.

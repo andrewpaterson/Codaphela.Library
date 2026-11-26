@@ -256,3 +256,7 @@ History
 -------
 
 An earlier transaction implementation in CoreLib (Transaction, SubTransaction, TransactionController, TransactionIndexedData, IndexedMemory, TransientIndexedFile, TransientIndexedFileDescriptor) was removed in commits b17537b5 and fa534136 (2016-05-02).  It created a separate database per transaction holding copies of objects other transactions wrote.  That approach made writers copy old values into every concurrent reader's database and could not prevent phantoms.  This design reverses it: one shared store of old versions per key, and private write sets per transaction.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/baselib/codabase.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

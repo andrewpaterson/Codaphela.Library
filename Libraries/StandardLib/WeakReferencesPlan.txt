@@ -146,3 +146,7 @@ Open
 Weak maps (weak keys or weak values), if a lookup by key turns out to need one; the texture caches don't (a linear find
 over a weak array, as they do now).
 Threads: the object system isn't thread safe; weak references don't change that.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/standardlib/weak-references.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

@@ -1107,7 +1107,6 @@
   <ItemGroup>
     <None Include="TimSort.inl" />
     <None Include="TypeConverter_Mapping.inl" />
-    <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt" />
     <None Include="CodabaseLayers.txt" />
     <None Include="FatW65C816.inc" />
@@ -1116,6 +1115,14 @@
     <None Include="FatFilenameHelperW65C816.asm" />
     <None Include="FatInfoSectorCacheW65C816.asm" />
     <None Include="FatVolumeW65C816.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\baselib\index.md" />
+    <None Include="Docs\libraries\baselib\containers.md" />
+    <None Include="Docs\libraries\baselib\memory.md" />
+    <None Include="Docs\libraries\baselib\numbers-and-lines.md" />
+    <None Include="Docs\libraries\baselib\parsers-and-markup.md" />
+    <None Include="Docs\libraries\baselib\codabase.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

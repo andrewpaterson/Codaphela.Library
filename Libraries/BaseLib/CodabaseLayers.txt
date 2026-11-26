@@ -116,3 +116,15 @@ Open questions
   - What a read-only database does with a refused write (options above).
   - Whether new objects in a read-only session are an error, or allowed until one has to be written.
   - Whether write-through (IWT_Yes) becomes "autocommit per change".
+
+
+Status from Claude's notes (2026-11-26)
+---------------------------------------
+
+The line at the top ("Nothing here is implemented yet") is out of date.  Built and committed 2026-11-06:
+  - Stored objects, Kill and Destroy, as described above (dff91473f, bbbe1f66a, 20e9ac535, 921cb61bc, bdc54cff8, fa2a8611b, 515337840, b45ee91a3).  Tests in TestStoredObjects.cpp.
+  - The layered connection, steps 1 to 3: CSequence::ReserveRange / AdvanceTo / GetEnd and range-limited sequences (CSequenceFactory::CreateRange, CValueSequenceConfig::CreateRange) (118ca1aa0, bb39bee72); CLayeredConnection with the Removed Codabase for tombstones and each read-only layer's highest OIndex from its own sequence (e6630a577); CObjects over it, TestLayeredObjects (034bb7558); CCodabaseFactory::CreateSmall for the Removed Codabase, so it fits on the 65C64 (3cde82dc7, 0b63abe61); Destroy through it (d72b9f3bb).
+
+Not built: the read-only database mode (and the open questions about refused writes), the virtual memory layer without durability, a spillable write set (a CCodabase session keeps everything written in memory until Close), a level reserving and recording its range for the game, save games, the transient pointer fields, dirty detection by hashing.  Also open (the user's, 2026-11-05/06): the database's garbage collection (record format with a to-list, freeing a subroot, scope of a run, restarting).
+
+The design as built is described on the BaseLib "The Codabase" page (BaseLib/Docs/libraries/baselib/codabase.md).

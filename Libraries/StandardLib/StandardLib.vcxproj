@@ -470,6 +470,14 @@
     <ClCompile Include="ArrayWeakObject.cpp" />
     <ClCompile Include="NamedObjectFile.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\standardlib\index.md" />
+    <None Include="Docs\libraries\standardlib\objects.md" />
+    <None Include="Docs\libraries\standardlib\weak-references.md" />
+    <None Include="Docs\libraries\standardlib\threads.md" />
+    <None Include="Docs\libraries\standardlib\text-diff.md" />
+    <None Include="Docs\libraries\standardlib\compression.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,6 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{510f31f0-5402-4727-83a4-ac05545b3f9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{1ebc68be-0c60-4105-a862-36564e8bbaaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\baselib">
+      <UniqueIdentifier>{64deb48e-93a8-4042-9065-4ec93ecc8930}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{506ea173-25a5-42cb-9648-7878fd53c328}</UniqueIdentifier>
     </Filter>
@@ -3118,7 +3127,6 @@
     <None Include="TypeConverter_Mapping.inl">
       <Filter>Source\Data\Types\Converter</Filter>
     </None>
-    <None Include="LibraryBreakdown.txt" />
     <None Include="CodabaseTransactions.txt">
       <Filter>Source\Database\Codabase</Filter>
     </None>
@@ -3157,6 +3165,26 @@
     </None>
     <None Include="FunctionCaller_ThisMultiCall.inl">
       <Filter>Source\Function</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\baselib\index.md">
+      <Filter>Docs\libraries\baselib</Filter>
+    </None>
+    <None Include="Docs\libraries\baselib\containers.md">
+      <Filter>Docs\libraries\baselib</Filter>
+    </None>
+    <None Include="Docs\libraries\baselib\memory.md">
+      <Filter>Docs\libraries\baselib</Filter>
+    </None>
+    <None Include="Docs\libraries\baselib\numbers-and-lines.md">
+      <Filter>Docs\libraries\baselib</Filter>
+    </None>
+    <None Include="Docs\libraries\baselib\parsers-and-markup.md">
+      <Filter>Docs\libraries\baselib</Filter>
+    </None>
+    <None Include="Docs\libraries\baselib\codabase.md">
+      <Filter>Docs\libraries\baselib</Filter>
     </None>
   </ItemGroup>
 </Project>
