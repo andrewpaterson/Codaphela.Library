@@ -227,3 +227,7 @@ Literature
   Hart, Sphere Tracing, The Visual Computer 12(10) 1996.  Distances as bounds.
   Quilez, distance functions and smooth minimum, iquilezles.org/articles/distfunctions and /smin.
   de Araujo, Lopes, Jepp, Jorge and Wyvill, A Survey on Implicit Surface Polygonization, ACM Computing Surveys 47(4) 2015.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/procedurallib/isosurface.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

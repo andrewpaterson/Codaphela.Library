@@ -343,3 +343,7 @@ Literature
   Blinn, Simulation of Wrinkled Surfaces, SIGGRAPH 1978.  Bump mapping.
   Quilez, iquilezles.org: filtered procedural patterns, noise derivatives, domain warping.
   Giesen (ryg), the .werkkzeug 3 texture generator; source in github.com/farbrausch/fr_public.
+
+Finished (2026-11-26, HCP65/Website/DocsPlan.txt G4).  Its design, decisions and open items are now the design
+page Docs/libraries/procedurallib/textures.md; this file is kept only as the record code, tests and other plans cite.  Don't add to it:
+change the page.

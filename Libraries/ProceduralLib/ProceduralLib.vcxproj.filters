@@ -1,6 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{06123036-e8f1-467d-b922-60cb085caeb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries">
+      <UniqueIdentifier>{ac184ee3-0d39-49e3-bed8-514b298fedd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs\libraries\procedurallib">
+      <UniqueIdentifier>{19088790-5648-44cf-967a-54cdbf6609e8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source">
       <UniqueIdentifier>{1adb7826-1b30-4a3c-8fc0-ac28d3f05e9b}</UniqueIdentifier>
     </Filter>
@@ -158,5 +167,16 @@
     <ClInclude Include="SolidMaterialFile.h">
       <Filter>Source</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\procedurallib\index.md">
+      <Filter>Docs\libraries\procedurallib</Filter>
+    </None>
+    <None Include="Docs\libraries\procedurallib\isosurface.md">
+      <Filter>Docs\libraries\procedurallib</Filter>
+    </None>
+    <None Include="Docs\libraries\procedurallib\textures.md">
+      <Filter>Docs\libraries\procedurallib</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -240,6 +240,11 @@
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="Docs\libraries\procedurallib\index.md" />
+    <None Include="Docs\libraries\procedurallib\isosurface.md" />
+    <None Include="Docs\libraries\procedurallib\textures.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
