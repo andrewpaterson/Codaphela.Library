@@ -266,6 +266,7 @@
     <ClCompile Include="TestPassive.cpp" />
     <ClCompile Include="TestPower.cpp" />
     <ClCompile Include="TestPull.cpp" />
+    <ClCompile Include="TestRCFilter.cpp" />
     <ClCompile Include="TestStandardIntegratedCircuits.cpp" />
     <ClCompile Include="TestGroupIntegratedCircuits.cpp" />
     <ClCompile Include="TestProcessorChips.cpp" />

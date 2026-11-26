@@ -27,6 +27,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "BaseLib/FileUtil.h"
 #include "LongTime.h"
 #include "Voltage.h"
+#include "SchmittThresholds.h"
 #include "FamilyVoltageConfigurationStore.h"
 
 
@@ -37,6 +38,7 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 void CFamilyVoltageConfigurationStore::Init(void)
 {
 	mapcFamilies.Init();
+	mapcPartFamilies.Init();
 }
 
 
@@ -55,6 +57,12 @@ void CFamilyVoltageConfigurationStore::Kill(void)
 		SafeKill(pcFamily);
 	}
 	mapcFamilies.Kill();
+	for (i = 0; i < mapcPartFamilies.NumElements(); i++)
+	{
+		pcFamily = mapcPartFamilies.GetPtr(i);
+		SafeKill(pcFamily);
+	}
+	mapcPartFamilies.Kill();
 }
 
 
@@ -551,6 +559,58 @@ CFamilyVoltageConfiguration* CFamilyVoltageConfigurationStore::Get(const char* s
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The family szFamily as its part szPart has it: a Schmitt trigger
+// part's is the family with its VT- and VT+ as each VCC's input
+// thresholds, made the first time it's asked for.  NULL if there is no
+// family szFamily.
+//
+//////////////////////////////////////////////////////////////////////////
+CFamilyVoltageConfiguration* CFamilyVoltageConfigurationStore::GetPart(const char* szFamily, const char* szPart)
+{
+	CFamilyVoltageConfiguration*	pcFamily;
+	CFamilyVoltageConfiguration*	pcPartFamily;
+	CVoltageConfiguration			cConfiguration;
+	CChars							szName;
+	size							i;
+	float32							fPositive;
+	float32							fNegative;
+
+	pcFamily = Get(szFamily);
+	if ((pcFamily == NULL) || (szPart == NULL) || !IsSchmittPart(szFamily, szPart))
+	{
+		return pcFamily;
+	}
+
+	szName.Init(szFamily);
+	szName.Append(' ');
+	szName.Append(szPart);
+	for (i = 0; i < mapcPartFamilies.NumElements(); i++)
+	{
+		pcPartFamily = mapcPartFamilies.GetPtr(i);
+		if (szName.Equals(pcPartFamily->GetFamily()))
+		{
+			szName.Kill();
+			return pcPartFamily;
+		}
+	}
+
+	pcPartFamily = NewMalloc<CFamilyVoltageConfiguration>();
+	pcPartFamily->Init(szName.Text());
+	szName.Kill();
+	for (i = 0; i < pcFamily->NumConfigurations(); i++)
+	{
+		cConfiguration = *pcFamily->GetConfiguration(i);
+		GetSchmittThresholds(szFamily, szPart, cConfiguration.GetVcc(), &fPositive, &fNegative);
+		cConfiguration.SetVoltagesIn(fNegative, fPositive);
+		pcPartFamily->Add(&cConfiguration, pcFamily->GetLogicLevel(cConfiguration.GetVcc()));
+	}
+	mapcPartFamilies.Add(pcPartFamily);
+	return pcPartFamily;
 }
 
 

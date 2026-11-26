@@ -31,9 +31,18 @@ enum EPortOutput
 };
 
 
+//The time constants an RC curve slews over before it is taken to have arrived: within e^-5, under 1%, of its end.
+#define RC_CURVE_TIME_CONSTANTS		5
+
+
 //What a CLogicPort is driving its trace with: nothing, a fixed voltage from a CDriveEvent or a slew from a
 //CSlewEvent.  Logicim's LogicPort keeps its last executed output event; here the timeline frees an event once it has
 //executed, so the port keeps a copy of what it was.
+//
+//A slew is a straight line from its start to its end voltage over its slew time, or, with a time constant, an RC
+//curve: a capacitor charging towards its end voltage, V(t) = Vend + (Vstart - Vend) e^(-t / RC), which never quite
+//arrives, so its slew time is RC_CURVE_TIME_CONSTANTS of them and the drive at its end takes it the last step.
+//CalculateTimeAtVoltage is when either shape reaches a voltage, as an input's threshold.
 class CPortOutput
 {
 protected:
@@ -42,14 +51,16 @@ protected:
 	float32		mfStartVoltage;
 	float32		mfEndVoltage;  //The drive voltage of a drive.
 	int64		miSlewTime;
+	int64		miTimeConstant;  //0 for a straight line.
 
 public:
 	void		Init(void);
 	void		InitDrive(int64 iTime, float32 fVoltage);
-	void		InitSlew(int64 iTime, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime);
+	void		InitSlew(int64 iTime, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, int64 iTimeConstant = 0);
 
 	float32		GetVoltage(int64 iTime);
 	float32		CalculateVoltageAtTime(int64 iTime, float32 fStartVoltage);
+	int64		CalculateTimeAtVoltage(float32 fStartVoltage, float32 fVoltage);
 	bool		ForTime(int64 iTime);
 	int64		GetEndTime(void) const;
 
@@ -60,6 +71,8 @@ public:
 	float32		GetStartVoltage(void) const;
 	float32		GetEndVoltage(void) const;
 	int64		GetSlewTime(void) const;
+	int64		GetTimeConstant(void) const;
+	bool		IsCurve(void) const;
 };
 
 

@@ -140,6 +140,18 @@ void CVoltageConfiguration::SetVoltages(float32 fVcc, float32 fLowVoltageIn, flo
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The input thresholds only, as a Schmitt trigger part's VT- and VT+.
+//
+//////////////////////////////////////////////////////////////////////////
+void CVoltageConfiguration::SetVoltagesIn(float32 fLowVoltageIn, float32 fHighVoltageIn)
+{
+	mfLowVoltageIn = fLowVoltageIn;
+	mfHighVoltageIn = fHighVoltageIn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CVoltageConfiguration::SetPropagationTime(int64 iHighToLowPropagation, int64 iLowToHighPropagation)

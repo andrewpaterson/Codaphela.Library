@@ -26,6 +26,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //Logicim's SlewEvent: a port starts slewing its trace to a new voltage.  The start voltage and slew time are worked
 //out when it executes, from what the port was driving then and the family's slew rate, and a CDriveEvent at the end
 //of the slew replaces any later drives.  The slew time is MAX_INT64 when the chip has no power.
+//
+//With a time constant it is an RC curve (see CPortOutput), as an RC element's capacitor charges: from what the port
+//drives, or its trace's voltage, along the curve, whatever the family and the chip's power.
 class CTimeline;
 class CDriveEvent;
 class CVoltageConfigurationSource;
@@ -36,12 +39,13 @@ protected:
 	float32		mfStartVoltage;  //At the event's time.
 	float32		mfEndVoltage;  //At the event's time plus the slew time.
 	int64		miSlewTime;
+	int64		miTimeConstant;  //0 for a straight line.
 
 public:
-	static	CSlewEvent*		Schedule(CLogicPort* pcPort, float32 fEndVoltage, int64 iDelay, CTimeline* pcTimeline);
+	static	CSlewEvent*		Schedule(CLogicPort* pcPort, float32 fEndVoltage, int64 iDelay, CTimeline* pcTimeline, int64 iTimeConstant = 0);
 
-			void			Init(CLogicPort* pcPort, int64 iTime, float32 fEndVoltage);
-			void			Init(CLogicPort* pcPort, int64 iTime, int64 iID, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime);
+			void			Init(CLogicPort* pcPort, int64 iTime, float32 fEndVoltage, int64 iTimeConstant = 0);
+			void			Init(CLogicPort* pcPort, int64 iTime, int64 iID, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, int64 iTimeConstant);
 
 	virtual void			Execute(CTimeline* pcTimeline);
 			CDriveEvent*	Update(CTimeline* pcTimeline);
@@ -54,6 +58,7 @@ public:
 			float32			GetStartVoltage(void) const;
 			float32			GetEndVoltage(void) const;
 			int64			GetSlewTime(void) const;
+			int64			GetTimeConstant(void) const;
 	virtual void			PrintShort(CChars* psz);
 			void			AppendDebugString(CChars* psz);
 

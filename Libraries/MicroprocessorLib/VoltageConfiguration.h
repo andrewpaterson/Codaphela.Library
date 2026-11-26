@@ -79,6 +79,7 @@ public:
 	float32		GetHighVoltageOut(void) const;
 	void		SetInputCapacitance(float32 fInputCapacitance);
 	float32		GetInputCapacitance(void) const;
+	void		SetVoltagesIn(float32 fLowVoltageIn, float32 fHighVoltageIn);
 	float32		GetVoltageOut(bool bValue);
 
 	int64		CalculateHoldTime(float32 fOutVoltage, float32 fPortVoltage);

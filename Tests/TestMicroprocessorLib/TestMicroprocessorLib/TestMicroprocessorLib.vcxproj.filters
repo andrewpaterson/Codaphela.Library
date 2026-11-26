@@ -136,6 +136,9 @@
     <ClCompile Include="TestPull.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="TestRCFilter.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="TestStandardIntegratedCircuits.cpp">
       <Filter>Source</Filter>
     </ClCompile>

@@ -154,6 +154,22 @@ void CLogicPort::WriteVoltage(CTimeline* pcTimeline, float32 fOutVoltage)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Slews iDelay from now along an RC curve of iTimeConstant towards
+// fVoltage, from wherever the port's last curve has got to, as a
+// capacitor charging through a resistor.  Nothing happens for no voltage.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogicPort::WriteCurve(CTimeline* pcTimeline, float32 fVoltage, int64 iTimeConstant, int64 iDelay)
+{
+	if (IsVoltage(fVoltage))
+	{
+		CSlewEvent::Schedule(this, fVoltage, iDelay, pcTimeline, iTimeConstant);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void CLogicPort::Write(CTimeline* pcTimeline, bool bValue)
@@ -410,7 +426,7 @@ bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTra
 		{
 			return false;
 		}
-		iTransitionTime = CalculateLowTransitionTime(pcSlew, fStartVoltage, fEndVoltage, fTransitionVoltage);
+		iTransitionTime = CalculateLowTransitionTime(pcSlew, fStartVoltage, fTransitionVoltage);
 	}
 	else if (fEndVoltage >= fHighVoltageIn)
 	{
@@ -419,7 +435,7 @@ bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTra
 		{
 			return false;
 		}
-		iTransitionTime = CalculateHighTransitionTime(pcSlew, fStartVoltage, fEndVoltage, fTransitionVoltage);
+		iTransitionTime = CalculateHighTransitionTime(pcSlew, fStartVoltage, fTransitionVoltage);
 	}
 	else
 	{
@@ -428,7 +444,7 @@ bool CLogicPort::TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTra
 		{
 			return false;
 		}
-		iTransitionTime = CalculateTransitionTime(fStartVoltage, fEndVoltage, iSlewTime, fTransitionVoltage);
+		iTransitionTime = pcSlew->CalculateTimeAtVoltage(fStartVoltage, fTransitionVoltage);
 	}
 
 	if (iTransitionTime > 0)
@@ -593,28 +609,27 @@ bool CLogicPort::CreateTransitionEventFromVoltage(CTimeline* pcTimeline, float32
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The straight line estimate, then stepped on until the slew's voltage is
-// really at or below the threshold.
+// The slew's estimate, then stepped on until the slew's voltage is really
+// at or below the threshold, or the slew ends (the drive at its end
+// takes the trace the rest of the way).
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CLogicPort::CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fLowVoltageIn)
+int64 CLogicPort::CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fLowVoltageIn)
 {
 	int64	iTransitionTime;
 	float32	fVoltage;
 
-	iTransitionTime = CalculateTransitionTime(fStartVoltage, fEndVoltage, pcSlew->GetSlewTime(), fLowVoltageIn);
-	for (;;)
+	iTransitionTime = pcSlew->CalculateTimeAtVoltage(fStartVoltage, fLowVoltageIn);
+	while (iTransitionTime < pcSlew->GetSlewTime())
 	{
 		fVoltage = pcSlew->CalculateVoltageAtTime(pcSlew->GetTime() + iTransitionTime, fStartVoltage);
-		if (fVoltage > fLowVoltageIn)
+		if (fVoltage <= fLowVoltageIn)
 		{
-			iTransitionTime++;
+			break;
 		}
-		else
-		{
-			return iTransitionTime;
-		}
+		iTransitionTime++;
 	}
+	return iTransitionTime;
 }
 
 
@@ -622,41 +637,22 @@ int64 CLogicPort::CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStart
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CLogicPort::CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fHighVoltageIn)
+int64 CLogicPort::CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fHighVoltageIn)
 {
 	int64	iTransitionTime;
 	float32	fVoltage;
 
-	iTransitionTime = CalculateTransitionTime(fStartVoltage, fEndVoltage, pcSlew->GetSlewTime(), fHighVoltageIn);
-	for (;;)
+	iTransitionTime = pcSlew->CalculateTimeAtVoltage(fStartVoltage, fHighVoltageIn);
+	while (iTransitionTime < pcSlew->GetSlewTime())
 	{
 		fVoltage = pcSlew->CalculateVoltageAtTime(pcSlew->GetTime() + iTransitionTime, fStartVoltage);
-		if (fVoltage < fHighVoltageIn)
+		if (fVoltage >= fHighVoltageIn)
 		{
-			iTransitionTime++;
+			break;
 		}
-		else
-		{
-			return iTransitionTime;
-		}
+		iTransitionTime++;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// When the line from fStartVoltage to fEndVoltage over iSlewTime reaches
-// fY.
-//
-//////////////////////////////////////////////////////////////////////////
-int64 CLogicPort::CalculateTransitionTime(float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, float32 fY)
-{
-	float32	fC;
-	float32	fM;
-
-	fC = fStartVoltage;
-	fM = (fEndVoltage - fStartVoltage) / iSlewTime;
-	return RoundFloat32ToInt64((fY - fC) / fM);
+	return iTransitionTime;
 }
 
 

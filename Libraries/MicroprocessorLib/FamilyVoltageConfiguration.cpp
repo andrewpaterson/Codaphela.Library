@@ -220,6 +220,26 @@ CVoltageConfiguration* CFamilyVoltageConfiguration::GetLowerConfiguration(float3
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The logic level the configuration at fVcc is the default one of, NULL
+// for none.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CFamilyVoltageConfiguration::GetLogicLevel(float32 fVcc)
+{
+	if (fVcc == mfTTLVcc)
+	{
+		return LOGIC_LEVEL_TTL;
+	}
+	else if (fVcc == mfCMOSVcc)
+	{
+		return LOGIC_LEVEL_CMOS;
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The TTL or CMOS configuration, matched exactly as in Logicim, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////

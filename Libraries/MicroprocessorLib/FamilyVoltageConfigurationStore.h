@@ -38,6 +38,9 @@ typedef CArrayTemplatePtr<CFamilyVoltageConfiguration>	CArrayFamilyVoltageConfig
 //Documents/Propagation Times (541).csv; here the caller owns the store and passes Load the file.  Logicim's Family is
 //only a name, so the name is kept in the CFamilyVoltageConfiguration.
 //
+//GetPart is the family as one of its parts has it: a Schmitt trigger part's (SchmittThresholds.h) input thresholds
+//are its VT- and VT+, in a family made when first asked for and kept with the store; any other part's is the family.
+//
 //The file has a header row naming the columns, Family, VCC, Logic Level, Propagation, Minimum, Typical, Maximum, VIH,
 //VIL, VOH, VOL and Manufacturer, then a row for each delay of a family at a VCC.  Every family at every VCC needs all
 //six delays (tPD is tPHL and tPLH, tEN is tPZH and tPZL, tDIS is tPHZ and tPLZ) and the four voltages; the hold times
@@ -48,6 +51,7 @@ class CFamilyVoltageConfigurationStore
 {
 protected:
 	CArrayFamilyVoltageConfigurationPtr	mapcFamilies;
+	CArrayFamilyVoltageConfigurationPtr	mapcPartFamilies;  //Schmitt trigger parts' families, named "<family> <part>".
 
 public:
 	void							Init(void);
@@ -57,6 +61,7 @@ public:
 	bool							Add(CVoltageConfiguration* pcConfiguration, const char* szLogicLevel, const char* szFamily);
 
 	CFamilyVoltageConfiguration*	Get(const char* szFamily);
+	CFamilyVoltageConfiguration*	GetPart(const char* szFamily, const char* szPart);
 	CFamilyVoltageConfiguration*	GetDefaultFamily(void);
 	size							NumFamilies(void) const;
 	CFamilyVoltageConfiguration*	GetFamily(size uiIndex);

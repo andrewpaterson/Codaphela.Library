@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <math.h>
 #include "Voltage.h"
 #include "PortOutput.h"
 
@@ -34,6 +35,7 @@ void CPortOutput::Init(void)
 	mfStartVoltage = NoVoltage();
 	mfEndVoltage = NoVoltage();
 	miSlewTime = -1;
+	miTimeConstant = 0;
 }
 
 
@@ -48,6 +50,7 @@ void CPortOutput::InitDrive(int64 iTime, float32 fVoltage)
 	mfStartVoltage = NoVoltage();
 	mfEndVoltage = fVoltage;
 	miSlewTime = -1;
+	miTimeConstant = 0;
 }
 
 
@@ -55,13 +58,14 @@ void CPortOutput::InitDrive(int64 iTime, float32 fVoltage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPortOutput::InitSlew(int64 iTime, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime)
+void CPortOutput::InitSlew(int64 iTime, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, int64 iTimeConstant)
 {
 	meType = PO_Slew;
 	miTime = iTime;
 	mfStartVoltage = fStartVoltage;
 	mfEndVoltage = fEndVoltage;
 	miSlewTime = iSlewTime;
+	miTimeConstant = iTimeConstant;
 }
 
 
@@ -96,15 +100,47 @@ float32 CPortOutput::GetVoltage(int64 iTime)
 //////////////////////////////////////////////////////////////////////////
 //
 // Straight from fStartVoltage at the slew's time to its end voltage at
-// its end time, and on beyond it.
+// its end time, and on beyond it; or along the RC curve from
+// fStartVoltage towards the end voltage.
 //
 //////////////////////////////////////////////////////////////////////////
 float32 CPortOutput::CalculateVoltageAtTime(int64 iTime, float32 fStartVoltage)
 {
 	float32	fFractionStart;
 
+	if (miTimeConstant > 0)
+	{
+		return mfEndVoltage + (fStartVoltage - mfEndVoltage) * (float32)exp(-(float64)(iTime - miTime) / (float64)miTimeConstant);
+	}
 	fFractionStart = (iTime - miTime) / (float32)miSlewTime;
 	return fFractionStart * mfEndVoltage + (1 - fFractionStart) * fStartVoltage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// How long after the slew's time it reaches fVoltage, from fStartVoltage,
+// rounded: on the line, or t = RC ln((Vstart - Vend) / (V - Vend)) on the
+// curve.  The slew time if the curve reaches it only at its end (fVoltage
+// is its end voltage, or beyond it).
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CPortOutput::CalculateTimeAtVoltage(float32 fStartVoltage, float32 fVoltage)
+{
+	float64	fFraction;
+	int64	iTime;
+
+	if (miTimeConstant > 0)
+	{
+		fFraction = ((float64)fStartVoltage - mfEndVoltage) / ((float64)fVoltage - mfEndVoltage);
+		if (fFraction <= 1.0)
+		{
+			return miSlewTime;
+		}
+		iTime = (int64)(miTimeConstant * log(fFraction) + 0.5);
+		return (iTime < miSlewTime) ? iTime : miSlewTime;
+	}
+	return RoundFloat32ToInt64((fVoltage - fStartVoltage) / ((mfEndVoltage - fStartVoltage) / miSlewTime));
 }
 
 
@@ -147,4 +183,6 @@ int64 CPortOutput::GetTime(void) const { return miTime; }
 float32 CPortOutput::GetStartVoltage(void) const { return mfStartVoltage; }
 float32 CPortOutput::GetEndVoltage(void) const { return mfEndVoltage; }
 int64 CPortOutput::GetSlewTime(void) const { return miSlewTime; }
+int64 CPortOutput::GetTimeConstant(void) const { return miTimeConstant; }
+bool CPortOutput::IsCurve(void) const { return miTimeConstant > 0; }
 

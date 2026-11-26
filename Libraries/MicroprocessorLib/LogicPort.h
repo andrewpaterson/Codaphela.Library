@@ -85,10 +85,11 @@ public:
 	virtual void							Write(CTimeline* pcTimeline, bool bValue);
 	virtual void							WriteImpedance(CTimeline* pcTimeline);
 			void							WriteHalf(CTimeline* pcTimeline);
+			void							WriteCurve(CTimeline* pcTimeline, float32 fVoltage, int64 iTimeConstant, int64 iDelay);
 			bool							IsHalf(void) const;
 			EPortWritten					GetWritten(void) const;
 			void							VccChanged(CTimeline* pcTimeline, float32 fOldVcc);
-			void							ReadTraceLevel(CTimeline* pcTimeline);
+	virtual void							ReadTraceLevel(CTimeline* pcTimeline);
 			STraceValue						ReadValue(int64 iTime);
 	virtual STraceValue						Read(CTimeline* pcTimeline);
 
@@ -106,8 +107,8 @@ public:
 
 			void							DriveEvent(CTimeline* pcTimeline, CDriveEvent* pcDriveEvent);
 			void							SlewEvent(CTimeline* pcTimeline, CSlewEvent* pcSlewEvent);
-			bool							TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTraceWasUndriven = false);
-			void							TransitionEvent(CTimeline* pcTimeline, CTransitionEvent* pcEvent);
+	virtual bool							TraceSlew(CTimeline* pcTimeline, CPortOutput* pcSlew, bool bTraceWasUndriven = false);
+	virtual void							TransitionEvent(CTimeline* pcTimeline, CTransitionEvent* pcEvent);
 			void							GetFutureDriveEvents(int64 iTime, CArrayEventPtr* papcDriveEvents);
 			void							GetOutputEventsAfter(int64 iTime, CArrayEventPtr* papcOutputEvents);
 
@@ -122,9 +123,8 @@ protected:
 			void							WriteVoltage(CTimeline* pcTimeline, float32 fOutVoltage);
 			bool							CreateTransitionEventFromVoltage(CTimeline* pcTimeline, float32 fVoltage);
 			void							NotifyTraceChange(CTimeline* pcTimeline, float32 fVoltageBefore);
-			int64							CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fLowVoltageIn);
-			int64							CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fEndVoltage, float32 fHighVoltageIn);
-			int64							CalculateTransitionTime(float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, float32 fY);
+			int64							CalculateLowTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fLowVoltageIn);
+			int64							CalculateHighTransitionTime(CPortOutput* pcSlew, float32 fStartVoltage, float32 fHighVoltageIn);
 };
 
 

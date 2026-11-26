@@ -34,12 +34,12 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 // it.  NULL if it couldn't be added.
 //
 //////////////////////////////////////////////////////////////////////////
-CSlewEvent* CSlewEvent::Schedule(CLogicPort* pcPort, float32 fEndVoltage, int64 iDelay, CTimeline* pcTimeline)
+CSlewEvent* CSlewEvent::Schedule(CLogicPort* pcPort, float32 fEndVoltage, int64 iDelay, CTimeline* pcTimeline, int64 iTimeConstant)
 {
 	CSlewEvent*	pcEvent;
 
 	pcEvent = NewMalloc<CSlewEvent>();
-	pcEvent->Init(pcPort, pcTimeline->GetTime() + iDelay, fEndVoltage);
+	pcEvent->Init(pcPort, pcTimeline->GetTime() + iDelay, fEndVoltage, iTimeConstant);
 	if (pcTimeline->AddNewFutureEvent(pcEvent))
 	{
 		return pcEvent;
@@ -53,12 +53,13 @@ CSlewEvent* CSlewEvent::Schedule(CLogicPort* pcPort, float32 fEndVoltage, int64 
 // The start voltage and slew time are worked out when it executes.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSlewEvent::Init(CLogicPort* pcPort, int64 iTime, float32 fEndVoltage)
+void CSlewEvent::Init(CLogicPort* pcPort, int64 iTime, float32 fEndVoltage, int64 iTimeConstant)
 {
 	CPortOutputEvent::Init(pcPort, iTime);
 	mfStartVoltage = NoVoltage();
 	mfEndVoltage = fEndVoltage;
 	miSlewTime = -1;
+	miTimeConstant = iTimeConstant;
 }
 
 
@@ -67,12 +68,13 @@ void CSlewEvent::Init(CLogicPort* pcPort, int64 iTime, float32 fEndVoltage)
 // For a loaded event.
 //
 //////////////////////////////////////////////////////////////////////////
-void CSlewEvent::Init(CLogicPort* pcPort, int64 iTime, int64 iID, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime)
+void CSlewEvent::Init(CLogicPort* pcPort, int64 iTime, int64 iID, float32 fStartVoltage, float32 fEndVoltage, int64 iSlewTime, int64 iTimeConstant)
 {
 	CPortOutputEvent::Init(pcPort, iTime, iID);
 	mfStartVoltage = fStartVoltage;
 	mfEndVoltage = fEndVoltage;
 	miSlewTime = iSlewTime;
+	miTimeConstant = iTimeConstant;
 }
 
 
@@ -99,6 +101,10 @@ void CSlewEvent::Execute(CTimeline* pcTimeline)
 // undriven trace being driven high read low for a while, see
 // CLogicPort::TraceSlew.
 //
+// An RC curve starts from where the port's last curve has got to (or the
+// trace's voltage) as it is, and takes RC_CURVE_TIME_CONSTANTS of its
+// time constant, power or not.
+//
 //////////////////////////////////////////////////////////////////////////
 CDriveEvent* CSlewEvent::Update(CTimeline* pcTimeline)
 {
@@ -117,6 +123,18 @@ CDriveEvent* CSlewEvent::Update(CTimeline* pcTimeline)
 	{
 		mfStartVoltage = mfEndVoltage;
 	}
+	else if (miTimeConstant > 0)
+	{
+		mfStartVoltage = mpcPort->GetVoltageOut(iNowTime);
+		if (!IsVoltage(mfStartVoltage) && (mpcPort->GetTrace() != NULL))
+		{
+			mfStartVoltage = mpcPort->GetTrace()->GetVoltage(iNowTime);
+		}
+		if (!IsVoltage(mfStartVoltage))
+		{
+			mfStartVoltage = mfEndVoltage;
+		}
+	}
 	else
 	{
 		fStartVoltage = CalculateStartVoltage(iNowTime, pcVoltageConfiguration, fVcc);
@@ -124,7 +142,14 @@ CDriveEvent* CSlewEvent::Update(CTimeline* pcTimeline)
 		mfStartVoltage = pcVoltageConfiguration->CalculateStartVoltage(fPortVoltage, fVcc);
 	}
 
-	miSlewTime = CalculateSlewTime(pcVoltageConfiguration, fVcc);
+	if (miTimeConstant > 0)
+	{
+		miSlewTime = (mfStartVoltage != mfEndVoltage) ? RC_CURVE_TIME_CONSTANTS * miTimeConstant : 1;
+	}
+	else
+	{
+		miSlewTime = CalculateSlewTime(pcVoltageConfiguration, fVcc);
+	}
 	if (miSlewTime == MAX_INT64)
 	{
 		return NULL;
@@ -273,7 +298,7 @@ int64 CSlewEvent::GetEndTime(void)
 //////////////////////////////////////////////////////////////////////////
 void CSlewEvent::CopyOutput(CPortOutput* pcOutput)
 {
-	pcOutput->InitSlew(miTime, mfStartVoltage, mfEndVoltage, miSlewTime);
+	pcOutput->InitSlew(miTime, mfStartVoltage, mfEndVoltage, miSlewTime, miTimeConstant);
 }
 
 
@@ -310,4 +335,5 @@ void CSlewEvent::PrintShort(CChars* psz)
 float32 CSlewEvent::GetStartVoltage(void) const { return mfStartVoltage; }
 float32 CSlewEvent::GetEndVoltage(void) const { return mfEndVoltage; }
 int64 CSlewEvent::GetSlewTime(void) const { return miSlewTime; }
+int64 CSlewEvent::GetTimeConstant(void) const { return miTimeConstant; }
 

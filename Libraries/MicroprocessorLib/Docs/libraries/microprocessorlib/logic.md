@@ -45,6 +45,11 @@ one configuration at any VCC, for tests and simple circuits; both are a [`CVolta
 `Documents/Propagation Times (541).csv` (a copy is the test's [`TestMicroprocessorLib/Input/PropagationTimes.csv`]).  The caller owns the
 store, where Logicim has a static one; the default family is LVC.
 
+A Schmitt trigger part (a 74LVC14, a 74LVC1G17, a 74VHCT14) switches rising at VT+ and falling at VT-.  An input's
+unsettled band already ignores a slow input until it passes the threshold on its way, so such a part is its family with
+VT- as VIL and VT+ as VIH ([`CFamilyVoltageConfigurationStore::GetPart`]), from its datasheet's figures
+([`MicroprocessorLib/SchmittThresholds.h`]).  Any other part is its family.
+
 ## Traces and ports
 
 A [`CTrace`] is an analog wire.  Its voltage is the average of what the ports on it drive strongly, NaN when nothing
@@ -192,6 +197,25 @@ circuit simulation, a whole 74 series part is simulated as one generic chip, and
 timeline's times, each chip's state and its pending events) is saved and loaded as XML.  Interface code belongs
 there, not here: MicroprocessorLib depends only on BaseLib and StandardLib.
 
+## RC curves, RC elements and comparators
+
+A slew can be an RC curve rather than a straight line ([`CPortOutput`], [`CLogicPort::WriteCurve`]): a capacitor
+charging towards its end voltage, V(t) = Vend + (Vstart - Vend) e^(-t / RC).  It never quite arrives, so it slews for
+five time constants and the drive at its end takes it the last step.  An input on its trace crosses its threshold at
+t = RC ln((Vstart - Vend) / (Vthreshold - Vend)) ([`CPortOutput::CalculateTimeAtVoltage`]).  A new curve starts from
+where the last one has got to, so a pulse shorter than the time to an input's threshold turns the curve back before it
+gets there: the transition pending for the first curve then reads the level the input still has, and nothing changes.
+That is the glitch filtering of the boards' RC filters.
+
+- An RC element ([`CRCFilter`]) is a resistor from its input to its output and a capacitor from its output to ground.
+  Its input follows the voltage the driving trace is going to ([`CAnalogInPort`]: a slew is told half way along it),
+  and its output curves towards it, at a rising and a falling time constant (a diode across the resistor makes one of
+  them short).  With its input undriven its output holds.  It is passive: it needs no power.
+- An analog comparator ([`CAnalogComparator`], a MAX9010) drives its output high while IN+ is above IN-.  Its inputs
+  read voltages, not levels ([`CAnalogComparatorInPort`]): a slewing input is a transition where it passes the other
+  input's voltage, by the MAX9010's 1mV offset.  The other input moving at the same time isn't followed.  Its output
+  is the MAX9010's: 0.3V and 3.3V, 5ns.
+
 ## Tests
 
 | Test | Covers |
@@ -202,6 +226,9 @@ there, not here: MicroprocessorLib depends only on BaseLib and StandardLib.
 | [`TestMicroprocessorLib/TestPassive.cpp`] | power sources, pins, splitters, subcircuit instances and simulations |
 | [`TestMicroprocessorLib/TestStandardIntegratedCircuits.cpp`] | truth tables, gates made of NANDs, a 4 bit ripple adder over all 256 sums, latches, flip-flops and counters on LVC at 3.3V, live wiring |
 | [`TestMicroprocessorLib/TestGroupIntegratedCircuits.cpp`] | the generic 74 series parts |
+| [`TestMicroprocessorLib/TestPower.cpp`] | supplies switching and ramping, regulators, chips starting and stopping with their power, the power-up states, the DS1813 |
+| [`TestMicroprocessorLib/TestPull.cpp`] | pulls holding, dividing and losing to a strong driver, an open drain's pull-up, a pull on a ramping rail |
+| [`TestMicroprocessorLib/TestRCFilter.cpp`] | RC curves crossing thresholds at times worked out by hand, a short pulse filtered out, the diode's fast direction, holding, the comparator against a fixed voltage, a Schmitt part's thresholds |
 | [`TestMicroprocessorLib/TestProcessorChips.cpp`] | the same program on a meta processor and on a chip with a test RAM: registers and memory must match (the W65C816S's fails without releasing the data bus) |
 
 The test circuits are built on a board in [`TestMicroprocessorLib/TestCircuitBoard.h`].

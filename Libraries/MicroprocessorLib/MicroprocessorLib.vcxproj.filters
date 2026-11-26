@@ -663,6 +663,27 @@
     <ClCompile Include="ResetSupervisor.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
+    <ClCompile Include="AnalogInPort.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="RCFilterPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="RCFilter.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="AnalogComparatorInPort.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="AnalogComparatorPins.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="AnalogComparator.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="SchmittThresholds.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
     <ClCompile Include="ClockOscillatorPins.cpp">
       <Filter>Source\Common</Filter>
     </ClCompile>
@@ -1374,6 +1395,27 @@
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="ResetSupervisor.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AnalogInPort.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="RCFilterPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="RCFilter.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AnalogComparatorInPort.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AnalogComparatorPins.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="AnalogComparator.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SchmittThresholds.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="ClockOscillatorPins.h">

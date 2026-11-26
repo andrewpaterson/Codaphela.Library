@@ -227,6 +227,13 @@
     <ClCompile Include="Probe.cpp" />
     <ClCompile Include="ResetSupervisorPins.cpp" />
     <ClCompile Include="ResetSupervisor.cpp" />
+    <ClCompile Include="AnalogInPort.cpp" />
+    <ClCompile Include="RCFilterPins.cpp" />
+    <ClCompile Include="RCFilter.cpp" />
+    <ClCompile Include="AnalogComparatorInPort.cpp" />
+    <ClCompile Include="AnalogComparatorPins.cpp" />
+    <ClCompile Include="AnalogComparator.cpp" />
+    <ClCompile Include="SchmittThresholds.cpp" />
     <ClCompile Include="ClockOscillatorPins.cpp" />
     <ClCompile Include="ClockOscillator.cpp" />
     <ClCompile Include="DTypeFlipFlopPins.cpp" />
@@ -466,6 +473,13 @@
     <ClInclude Include="Probe.h" />
     <ClInclude Include="ResetSupervisorPins.h" />
     <ClInclude Include="ResetSupervisor.h" />
+    <ClInclude Include="AnalogInPort.h" />
+    <ClInclude Include="RCFilterPins.h" />
+    <ClInclude Include="RCFilter.h" />
+    <ClInclude Include="AnalogComparatorInPort.h" />
+    <ClInclude Include="AnalogComparatorPins.h" />
+    <ClInclude Include="AnalogComparator.h" />
+    <ClInclude Include="SchmittThresholds.h" />
     <ClInclude Include="ClockOscillatorPins.h" />
     <ClInclude Include="ClockOscillator.h" />
     <ClInclude Include="DTypeFlipFlopPins.h" />
