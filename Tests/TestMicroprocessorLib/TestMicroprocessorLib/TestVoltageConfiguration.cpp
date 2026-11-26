@@ -354,6 +354,12 @@ void TestVoltageConfigurationStoreLoad(void)
 	AssertLong(1638, pcConfiguration->GetLowToHighSlewTime());
 	AssertTrue(pcFamily->GetVoltsPerTimeLowToHigh(5.0f) != InfiniteVoltsPerTime());
 
+	//Input capacitance: LVC's 5pF (the 74LVC541's), HCT's 3.5pF; none in the TI families' datasheets.
+	AssertFloat(5.0f, pcFamily->GetInputCapacitance(), 3);
+	AssertFloat(5.0f, pcConfiguration->GetInputCapacitance(), 3);
+	AssertFloat(3.5f, cStore.Get("HCT")->GetInputCapacitance(), 3);
+	AssertFalse(IsVoltage(cStore.Get("LS")->GetInputCapacitance()));
+
 	//LVT's TTL row is at 2.7V; Logicim would carry it on to 3.3V.
 	pcFamily = cStore.Get("LVT");
 	AssertNotNull(pcFamily);

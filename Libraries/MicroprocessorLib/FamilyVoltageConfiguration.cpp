@@ -150,6 +150,29 @@ bool CFamilyVoltageConfiguration::IsPowered(float32 fVcc)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// An input's capacitance in picofarads, the same at every VCC: the first
+// configuration's that has one, NaN if none does.
+//
+//////////////////////////////////////////////////////////////////////////
+float32 CFamilyVoltageConfiguration::GetInputCapacitance(void)
+{
+	size	i;
+	float32	fCapacitance;
+
+	for (i = 0; i < macConfigurations.NumElements(); i++)
+	{
+		fCapacitance = macConfigurations.Get(i)->GetInputCapacitance();
+		if (IsVoltage(fCapacitance))
+		{
+			return fCapacitance;
+		}
+	}
+	return NoVoltage();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The configuration with the lowest VCC at or above fVcc, or NULL.
 //
 //////////////////////////////////////////////////////////////////////////

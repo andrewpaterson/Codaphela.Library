@@ -26,7 +26,8 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 
 
 //Logicim's VoltagePropagationTimeRow: one row of the propagation times file, see CFamilyVoltageConfigurationStore.
-//The delay type is tPD, tPHL, tPLH, tEN, tPZH, tPZL, tDIS, tPHZ or tPLZ and the delays are in nanoseconds.  A number
+//The delay type is tPD, tPHL, tPLH, tEN, tPZH, tPZL, tDIS, tPHZ or tPLZ and the delays are in nanoseconds; the input
+//capacitance (CI, a column Logicim hasn't) is in picofarads.  A number
 //that is empty in the file is NaN; Logicim has null.
 struct SVoltagePropagationTimeRow
 {
@@ -44,6 +45,7 @@ struct SVoltagePropagationTimeRow
 	float32		fVIL;
 	float32		fVOH;
 	float32		fVOL;
+	float32		fCI;  //Input capacitance, pF.
 
 	void	Init(void);
 	void	Kill(void);

@@ -133,6 +133,8 @@ void CVoltageConfiguration::SetVoltages(float32 fVcc, float32 fLowVoltageIn, flo
 
 	mfLowVoltageOut = fLowVoltageOut;
 	mfHighVoltageOut = fHighVoltageOut;
+
+	mfInputCapacitance = NoVoltage();
 }
 
 
@@ -327,6 +329,8 @@ float32 CVoltageConfiguration::GetLowVoltageIn(void) const { return mfLowVoltage
 float32 CVoltageConfiguration::GetHighVoltageIn(void) const { return mfHighVoltageIn; }
 float32 CVoltageConfiguration::GetLowVoltageOut(void) const { return mfLowVoltageOut; }
 float32 CVoltageConfiguration::GetHighVoltageOut(void) const { return mfHighVoltageOut; }
+void CVoltageConfiguration::SetInputCapacitance(float32 fInputCapacitance) { mfInputCapacitance = fInputCapacitance; }
+float32 CVoltageConfiguration::GetInputCapacitance(void) const { return mfInputCapacitance; }
 int64 CVoltageConfiguration::GetHighToLowHoldTime(void) const { return miHighToLowHoldTime; }
 int64 CVoltageConfiguration::GetHighToLowSlewTime(void) const { return miHighToLowSlewTime; }
 int64 CVoltageConfiguration::GetLowToHighHoldTime(void) const { return miLowToHighHoldTime; }

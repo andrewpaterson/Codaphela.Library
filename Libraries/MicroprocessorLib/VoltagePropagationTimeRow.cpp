@@ -43,6 +43,7 @@ void SVoltagePropagationTimeRow::Init(void)
 	fVIL = NoVoltage();
 	fVOH = NoVoltage();
 	fVOL = NoVoltage();
+	fCI = NoVoltage();
 }
 
 

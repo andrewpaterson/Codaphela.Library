@@ -173,6 +173,7 @@ bool CFamilyVoltageConfigurationStore::CreateVoltageConfiguration(CVoltageConfig
 	float32						fVIL;
 	float32						fVOH;
 	float32						fVOL;
+	float32						fCI;
 	size						i;
 	char*						szDelayType;
 
@@ -186,6 +187,7 @@ bool CFamilyVoltageConfigurationStore::CreateVoltageConfiguration(CVoltageConfig
 	fVIL = NoVoltage();
 	fVOH = NoVoltage();
 	fVOL = NoVoltage();
+	fCI = NoVoltage();
 
 	for (i = 0; i < papsRows->NumElements(); i++)
 	{
@@ -247,6 +249,10 @@ bool CFamilyVoltageConfigurationStore::CreateVoltageConfiguration(CVoltageConfig
 		{
 			fVOL = psRow->fVOL;
 		}
+		if (IsVoltage(psRow->fCI))
+		{
+			fCI = psRow->fCI;
+		}
 	}
 
 	if ((psPHL == NULL) || (psPLH == NULL) ||
@@ -272,7 +278,7 @@ bool CFamilyVoltageConfigurationStore::CreateVoltageConfiguration(CVoltageConfig
 		return false;
 	}
 
-	return pcConfiguration->Init(fVcc,
+	if (!pcConfiguration->Init(fVcc,
 								 fVIL, fVIH,
 								 fVOL, fVOH,
 								 NanosecondsToTime((float64)(psPHL->fTypicalDelay / 2)),
@@ -286,7 +292,12 @@ bool CFamilyVoltageConfigurationStore::CreateVoltageConfiguration(CVoltageConfig
 								 NanosecondsToTime((float64)(psPZH->fTypicalDelay / 2)),
 								 NanosecondsToTime((float64)psPZH->fTypicalDelay),
 								 NanosecondsToTime((float64)(psPZL->fTypicalDelay / 2)),
-								 NanosecondsToTime((float64)psPZL->fTypicalDelay));
+								 NanosecondsToTime((float64)psPZL->fTypicalDelay)))
+	{
+		return false;
+	}
+	pcConfiguration->SetInputCapacitance(fCI);
+	return true;
 }
 
 
@@ -407,6 +418,7 @@ bool CFamilyVoltageConfigurationStore::ReadRow(SCSVRowImmutable* psCSVRow, SCSVR
 	bResult &= GetNumber(psCSVRow, psHeader, "VIL", &psRow->fVIL);
 	bResult &= GetNumber(psCSVRow, psHeader, "VOH", &psRow->fVOH);
 	bResult &= GetNumber(psCSVRow, psHeader, "VOL", &psRow->fVOL);
+	bResult &= GetNumber(psCSVRow, psHeader, "CI", &psRow->fCI);
 	if (!bResult)
 	{
 		gcLogger.Error2(__METHOD__, " Propagation time numbers must be numbers.", NULL);

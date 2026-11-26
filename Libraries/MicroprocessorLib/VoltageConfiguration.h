@@ -45,6 +45,8 @@ protected:
 	float32		mfLowVoltageOut;
 	float32		mfHighVoltageOut;
 
+	float32		mfInputCapacitance;  //Picofarads, NaN when not known.
+
 	int64		miHighToLowHoldTime;
 	int64		miHighToLowSlewTime;
 	int64		miLowToHighHoldTime;
@@ -75,6 +77,8 @@ public:
 	float32		GetHighVoltageIn(void) const;
 	float32		GetLowVoltageOut(void) const;
 	float32		GetHighVoltageOut(void) const;
+	void		SetInputCapacitance(float32 fInputCapacitance);
+	float32		GetInputCapacitance(void) const;
 	float32		GetVoltageOut(bool bValue);
 
 	int64		CalculateHoldTime(float32 fOutVoltage, float32 fPortVoltage);
