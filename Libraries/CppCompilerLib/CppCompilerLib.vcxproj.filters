@@ -2062,4 +2062,9 @@
       <Filter>Docs\65c64</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\compiler\design\test-suites.md">
+      <Filter>Docs\compiler\design</Filter>
+    </None>
+  </ItemGroup>
 </Project>

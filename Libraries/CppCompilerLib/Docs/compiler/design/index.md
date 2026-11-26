@@ -11,6 +11,9 @@ does; these pages don't repeat them.
 | [W65C816 Back End](w65c816.md) | The target machine, the large model, D as the frame, calls, widths, alignment, allocation and speed. |
 | [65C64 Back End](65c64.md) | The back end's shape, its registers (V, W and B as homes), its passes and the choices it makes. |
 | [Self-Hosting](self-hosting.md) | Compiling the compiler for the W65C816 and running it there: where that stands and what blocks it. |
+| [Assembler and Linker](assembler.md) | The assemblers, objects and libraries, the linker, its outputs and debug info, and the toolchain's shape. |
+| [Libc65](libc65.md) | The C library and runtime: soft float, string routines, the maths tables, the heap, FAT in assembly. |
+| [The 65 Test Suites](test-suites.md) | The libraries' own tests compiled for and run on the simulators: the harness, each suite and its exclusions. |
 
 The plans the compiler is still being built from stay beside its code: [`CppCompilerLib/Cpp14CompliancePlan.txt`],
 [`CppCompilerLib/W65C816.txt`], [`CppCompilerLib/SemanticLayerPlan.txt`] and `ConsolidationPlan.txt`.

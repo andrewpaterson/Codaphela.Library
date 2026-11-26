@@ -839,6 +839,9 @@
     <None Include="Docs\compiler\design\self-hosting.md" />
     <None Include="Docs\65c64\calling-convention.md" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\compiler\design\test-suites.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

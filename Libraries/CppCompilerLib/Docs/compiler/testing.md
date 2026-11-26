@@ -46,8 +46,9 @@ difference between the two shows the moment it happens.
 
 ## Running the Lib65 suites
 
-The Lib65 suites (and TestLibc65) share a runner, `TestProject65`, which reads these environment
-variables:
+The Lib65 suites share a runner, `TestProject65` ([`TestBaseLib65/TestProject65.cpp`]), which reads these
+environment variables (TestLibc65 has its own, sharing only the choice of processor; [The 65 Test
+Suites](design/test-suites.md) has how both are designed):
 
 | Variable | Does |
 |---|---|

@@ -93,7 +93,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 - Leaks: a `BASELIB_ASAN` build, run from the test's folder with
   `ASAN_OPTIONS=detect_leaks=1:replace_intrin=0:detect_stack_use_after_return=0`.
 - W65C816 size bugs: try the mechanical catchers before bisecting on the simulator: the `BASELIB_SIZE16` host build
-  (`-Wconversion`), the front end's widening and loop-counter warnings, the linker's missing names.
+  (`-Wconversion`; `(size)a * b` casts and explicit `(size)` hide from it, so grep for them), the W65C816 warnings a
+  `65` suite prints as it compiles (`sort -u` of its "Warning" lines), the front end's widening and loop-counter
+  warnings, the linker's missing names.  No catcher sees a wrap within one width.
 - Windows code compiles here with MinGW (compile only): `i686-w64-mingw32-g++` and `x86_64-w64-mingw32-g++ -std=c++17
   -c -DWIN_GNU_32 -D_DEBUG -I.` over the files each `.vcxproj` lists, from `Libraries`.  Windows SDK headers in lower
   case; no `##` pasting of string literals.
@@ -102,9 +104,15 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   TestThreadLib wants the arguments `--test param1 --param:2`; a crashed run leaves `/dev/shm` names with
   backslashes (delete them with `find -name`).  A sweep's script marks most runs "FAIL rc=1": read each log's totals.
   Never wait on `pgrep -f` in a loop (it matches its own shell); don't edit sources a running `65` suite compiles.
-- A `65` suite's run copies its programs into one shared `Output` copy (`TestProject65CopyDirectory`): don't start a
-  one-test run (`TEST_PROJECT65_ONLY`) while a whole run of the same suite is going, nor run it on both processors at
-  once.  Its switches are on the site's `compiler/testing.md`.
+- A `65` suite runs its programs in copies of its folder, `Output/<target>/<project>[.n]` (one a processor and a
+  worker): both processors can run at once, but don't start a one-test run (`TEST_PROJECT65_ONLY`) while a whole run
+  of the same suite on the same processor is going.  The `65` suites and TestLibc65 take `W65C816` (or `816`) as
+  their only argument, else run on the 65C64; TestLibc65's W65C816 run is the 64-bit Release binary.  Their switches
+  are on the site's `compiler/testing.md`, their design on `compiler/design/test-suites.md`.
+- A sweep: build from `git archive HEAD` snapshots in private folders, and copy the run folder back from the snapshot
+  before each configuration.  Classify a gdb run by `[Inferior 1 ... exited normally|with code NN]` and the last
+  `Total Failed: N`; a crash is `received signal` (also `Thread N ... received signal`).  Under ASan a failed assert
+  ends the suite.  No LSan pass unless asked.
 
 ## Working in these repositories
 
