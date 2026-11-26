@@ -49,6 +49,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //Escape, or a press outside it, closes it.  Filtered items keep the order they were added in unless they are sorted
 //best match first (SetSortMatches).
 //
+//A driven chooser (SetDriven) is one something else has the keys for, as an editor that goes on being typed in has
+//for the list of what could be written at its caret: it has no title and no field, it doesn't take the keys when it
+//opens, and whoever opened it gives it what to filter by (SetFilterText), moves its selection (Up, Down, PageUp,
+//PageDown) and chooses (ChooseSelected).  A press on a row still chooses it.  Items can be added to it while it is
+//open (AddItem, then ItemsChanged): the selected item stays selected and it grows to its rows.  A note (SetNote) is a
+//dim line under its rows, as "Working..." while more are found.
+//
 //Its events: chosen (GetChosen is the item, the popup is closed already), selected (the selected item changed: fill
 //the preview from GetSelectedItem), the button's click (the popup is closed already) and closed, however it went.
 //
@@ -62,7 +69,8 @@ protected:
 	SDialogLook*			mpsLook;  //Not held: whoever made the chooser keeps it.
 	Ptr<CFont>				mpMatchFont;
 	Ptr<CGridContainer>		mpPanel;  //What the popup holds.
-	Ptr<CLabel>				mpTitle;
+	Ptr<CLabel>				mpTitle;  //NULL for a driven chooser.
+	Ptr<CLabel>				mpNote;  //A driven chooser's, under its rows.
 	Ptr<CTextField>			mpField;  //NULL without a filter.
 	Ptr<CScrollPane>		mpScrollPane;
 	Ptr<CListContainer>		mpList;
@@ -77,6 +85,10 @@ protected:
 	CNameMatcher			mcMatcher;
 	bool					mbSortMatches;
 	bool					mbOpensAbove;  //Open's position is where its bottom left goes.
+	bool					mbDriven;  //The keys stay with what opened it.
+	CChars					mszFilter;  //A driven chooser's pattern, in place of a field's text.
+	CChars					mszNote;
+	SInt32Vec2				msOpenPosition;  //Where it was opened, for when its size changes.
 	int32					miChosen;  //The item chosen, -1 until one is.
 
 	CComponentEvent<CChooserPopup>	mcChosen;
@@ -97,11 +109,16 @@ public:
 	void			AddButton(const char* szCaption);
 	void			SetSortMatches(bool bSortMatches);
 	void			SetOpensAbove(bool bOpensAbove);
+	void			SetDriven(bool bDriven);
+	bool			IsDriven(void) const;
+	void			SetNote(const char* szNote);
+	const char*		GetNote(void) const;
 
 	int32			AddIcon(Ptr<CImageCel> pIcon);
 	SGoToItem*		AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData);
 	SGoToItem*		AddHeading(const char* szName);
 	void			RemoveAllItems(void);
+	void			ItemsChanged(void);
 	size			NumItems(void) const;
 	SGoToItem*		GetItem(size uiIndex);
 
@@ -118,6 +135,10 @@ public:
 	SGoToItem*		GetSelectedItem(void);
 	SGoToItem*		GetChosen(void);
 	bool			ChooseSelected(void);
+	void			Up(void);
+	void			Down(void);
+	void			PageUp(void);
+	void			PageDown(void);
 
 	Ptr<CComponent>		GetPanel(void) const;
 	Ptr<CTextField>		GetField(void) const;
@@ -142,11 +163,9 @@ protected:
 	void			RowActivated(void);
 	void			ButtonClicked(void);
 	void			PopupClosed(void);
-	void			Up(void);
-	void			Down(void);
-	void			PageUp(void);
-	void			PageDown(void);
 	void			Enter(void);
+	const char*		GetPattern(void);
+	void			Resize(void);
 };
 
 

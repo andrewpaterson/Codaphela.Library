@@ -52,6 +52,10 @@ void CChooserPopup::Init(Ptr<CWindow> pWindow, SDialogLook* psLook, Ptr<CFont> p
 	mcMatcher.Init("");
 	mbSortMatches = false;
 	mbOpensAbove = false;
+	mbDriven = false;
+	mszFilter.Init();
+	mszNote.Init();
+	msOpenPosition.Init(0, 0);
 	miChosen = -1;
 	mcChosen.Init();
 	mcSelected.Init();
@@ -76,6 +80,7 @@ void CChooserPopup::Class(void)
 	M_Pointer(mpMatchFont);
 	M_Pointer(mpPanel);
 	M_Pointer(mpTitle);
+	M_Pointer(mpNote);
 	M_Pointer(mpField);
 	M_Pointer(mpScrollPane);
 	M_Pointer(mpList);
@@ -90,6 +95,10 @@ void CChooserPopup::Class(void)
 	U_Unknown(CNameMatcher, mcMatcher);
 	U_Bool(mbSortMatches);
 	U_Bool(mbOpensAbove);
+	U_Bool(mbDriven);
+	U_String(mszFilter);
+	U_String(mszNote);
+	U_Data(SInt32Vec2, msOpenPosition);
 	U_Int32(miChosen);
 	U_Unknown(CComponentEvent<CChooserPopup>, mcChosen);
 	U_Unknown(CComponentEvent<CChooserPopup>, mcSelected);
@@ -134,6 +143,8 @@ void CChooserPopup::Free(void)
 	mcMatcher.Kill();
 	maiRows.Kill();
 	mcItems.Kill();
+	mszNote.Kill();
+	mszFilter.Kill();
 	mszTitle.Kill();
 }
 
@@ -252,6 +263,46 @@ void CChooserPopup::SetOpensAbove(bool bOpensAbove)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The keys stay with whatever has them: it has no title and no field,
+// and is filtered, moved through and chosen from by what opened it.
+// Before the chooser is first opened.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChooserPopup::SetDriven(bool bDriven)
+{
+	if (mpPanel.IsNull())
+	{
+		mbDriven = bDriven;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A driven chooser's dim line under its rows; empty for none.  It can
+// change while the chooser is open, which is then as tall as it needs.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChooserPopup::SetNote(const char* szNote)
+{
+	if (mszNote.Equals(szNote))
+	{
+		return;
+	}
+	mszNote.Set(szNote);
+	if (mpNote.IsNotNull())
+	{
+		mpNote->SetText(szNote);
+	}
+	if (mpPopup.IsNotNull())
+	{
+		Resize();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // An icon items can have, its index returned.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -266,7 +317,8 @@ int32 CChooserPopup::AddIcon(Ptr<CImageCel> pIcon)
 //
 // An item: its name, where it is (NULL for nowhere), its icon (-1 for
 // none) and what it is to whoever added it, which mustn't be
-// CHOOSER_HEADING.  Items are added while the chooser is closed.
+// CHOOSER_HEADING.  Items are added while the chooser is closed, or to an
+// open one that is then told (ItemsChanged).
 //
 //////////////////////////////////////////////////////////////////////////
 SGoToItem* CChooserPopup::AddItem(const char* szName, const char* szLocation, int32 iIcon, size uiData)
@@ -301,8 +353,41 @@ void CChooserPopup::RemoveAllItems(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The title, the field, the rows with the preview beside them, and the
-// button, each only if it was asked for.
+// Items were added while the chooser is open: its rows are made again
+// for them, filtered as they were, the selected item still selected and
+// in view, and it is as tall as its rows now need.
+//
+//////////////////////////////////////////////////////////////////////////
+void CChooserPopup::ItemsChanged(void)
+{
+	SInt32Vec2	sScroll;
+	int32		iSelected;
+	int32		iRow;
+
+	if (mpPopup.IsNull())
+	{
+		return;
+	}
+	iRow = mpList->GetSelected();
+	iSelected = ((iRow >= 0) && ((size)iRow < maiRows.NumElements())) ? maiRows.GetValue((size)iRow) : -1;
+	sScroll = mpScrollPane->GetScrollPosition();
+	Filter();
+	Resize();
+	iRow = (iSelected >= 0) ? FindItemRow((size)iSelected) : -1;
+	if (iRow >= 0)
+	{
+		mpList->Select(iRow);
+		mpWindow->Layout();
+		mpScrollPane->SetScrollPosition(sScroll.x, sScroll.y);
+		mpList->ShowRow(iRow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The title, the field, the rows with the preview beside them, the
+// button and the note, each only if it was asked for.
 //
 //////////////////////////////////////////////////////////////////////////
 void CChooserPopup::CreatePanel(void)
@@ -317,14 +402,17 @@ void CChooserPopup::CreatePanel(void)
 	mpPanel = OMalloc<CGridContainer>(mpWindow);
 	iRow = 0;
 
-	mpTitle = OMalloc<CLabel>(mpWindow, mpsLook->pcDimFont, mszTitle.Text());
-	mpTitle->SetAlignment(CSH_Left, CSV_Center);
-	mpPanel->AddComponent(mpTitle, 0, iRow, 1, 1, 1, 0);
-	iRow++;
-	pGap = OMalloc<CFillContainer>(mpWindow);
-	pGap->SetDesiredSize(iGap, iGap / 2);
-	mpPanel->AddComponent(pGap, 0, iRow);
-	iRow++;
+	if (!mbDriven)
+	{
+		mpTitle = OMalloc<CLabel>(mpWindow, mpsLook->pcDimFont, mszTitle.Text());
+		mpTitle->SetAlignment(CSH_Left, CSV_Center);
+		mpPanel->AddComponent(mpTitle, 0, iRow, 1, 1, 1, 0);
+		iRow++;
+		pGap = OMalloc<CFillContainer>(mpWindow);
+		pGap->SetDesiredSize(iGap, iGap / 2);
+		mpPanel->AddComponent(pGap, 0, iRow);
+		iRow++;
+	}
 
 	if (mpField.IsNotNull())
 	{
@@ -342,7 +430,7 @@ void CChooserPopup::CreatePanel(void)
 	mpList->SetWrapAround(true);
 	mpList->GetSelectionEvent()->Add(this, &CChooserPopup::RowSelected);
 	mpList->GetActivationEvent()->Add(this, &CChooserPopup::RowActivated);
-	if (mpField.IsNull())
+	if (mpField.IsNull() && !mbDriven)
 	{
 		//With no field to filter them, typing finds a row.
 		mpList->SetTypeToFind(true);
@@ -371,6 +459,14 @@ void CChooserPopup::CreatePanel(void)
 		mpPanel->AddComponent(pGap, 0, iRow);
 		iRow++;
 		mpPanel->AddComponent(mpButton, 0, iRow);
+		iRow++;
+	}
+
+	if (mbDriven)
+	{
+		mpNote = OMalloc<CLabel>(mpWindow, mpsLook->pcDimFont, mszNote.Text());
+		mpNote->SetAlignment(CSH_Left, CSV_Center);
+		mpPanel->AddComponent(mpNote, 0, iRow, 1, 1, 1, 0);
 	}
 }
 
@@ -383,19 +479,14 @@ void CChooserPopup::CreatePanel(void)
 // can be chosen if it can't.  pOwner is the component it is opened for: a
 // press on it closes the chooser, as one anywhere else outside it does.
 // The field, or without one the list, gets the keys; what had them gets
-// them back when it closes.
+// them back when it closes.  A driven chooser leaves them where they
+// are, and is filtered by nothing until it is told.
 //
 //////////////////////////////////////////////////////////////////////////
 void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSelectedItem)
 {
 	SInsets		sInsets;
-	int32		iRows;
-	int32		iRowHeight;
-	int32		iMaximum;
 	int32		iRow;
-	int32		iGap;
-	int32		iWidth;
-	int32		iHeight;
 
 	Close();
 	if (mpPanel.IsNull())
@@ -411,11 +502,60 @@ void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSe
 		mpField->ClearUndo();
 		mpField->GetChangeEvent()->Add(this, &CChooserPopup::Filter);
 	}
-	mcMatcher.Kill();
-	mcMatcher.Init("");
+	mszFilter.Set("");
 	Filter();
 
-	//As tall as its rows, to the theme's most; with a preview, always that many, so the code has room.
+	msOpenPosition = sPosition;
+	mpPreviousFocus = mpWindow->GetFocus()->GetFocussedComponent();
+	mpPopup = mpWindow->OpenPopup(mpPanel, sPosition, pOwner);
+	sInsets.Init(CHOOSER_POPUP_INSET, CHOOSER_POPUP_INSET);
+	mpPopup->SetLook(mpsLook->pcTheme->GetColour(TC_MenuBackground), mpsLook->pcTheme->GetColour(TC_MenuBorder), &sInsets);
+	mpPopup->SetOwnerPressKeepsOpen(false);
+	mpPopup->GetClosedEvent()->Add(this, &CChooserPopup::PopupClosed);
+	Resize();
+	if (!mbDriven)
+	{
+		if (mpField.IsNotNull())
+		{
+			mpWindow->GetFocus()->SetFocus(mpField);
+		}
+		else
+		{
+			mpWindow->GetFocus()->SetFocus(mpList);
+		}
+	}
+
+	iRow = FindItemRow(uiSelectedItem);
+	if ((iRow < 0) || !mpList->IsRowEnabled(iRow))
+	{
+		iRow = FindFirstRow();
+	}
+	mpList->Select(iRow);
+	if (iRow >= 0)
+	{
+		mpWindow->Layout();
+		mpList->ShowRow(iRow);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The open chooser is the size its parts need now, where it was opened:
+// as tall as its rows, to the theme's most (with a preview, always that
+// many, so the code has room).
+//
+//////////////////////////////////////////////////////////////////////////
+void CChooserPopup::Resize(void)
+{
+	SInt32Vec2	sPosition;
+	int32		iRows;
+	int32		iRowHeight;
+	int32		iMaximum;
+	int32		iGap;
+	int32		iWidth;
+	int32		iHeight;
+
 	iRowHeight = mpsLook->pcTheme->GetMetric(TM_GoToRowHeight);
 	iMaximum = mpsLook->pcTheme->GetMetric(TM_ChooserRows);
 	iRows = (int32)maiRows.NumElements();
@@ -432,7 +572,15 @@ void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSe
 	//A grid is the size it is given, not the size its parts need: the panel is given what they add up to.
 	iGap = mpsLook->pcTheme->GetMetric(TM_GoToGap);
 	iWidth = mpsLook->pcTheme->GetMetric(TM_ChooserWidth);
-	iHeight = mpTitle->GetDesiredSize().y + iGap / 2 + iRows * iRowHeight;
+	iHeight = iRows * iRowHeight;
+	if (mpTitle.IsNotNull())
+	{
+		iHeight += mpTitle->GetDesiredSize().y + iGap / 2;
+	}
+	if (mpNote.IsNotNull() && !mszNote.Empty())
+	{
+		iHeight += mpNote->GetDesiredSize().y;
+	}
 	if (mpField.IsNotNull())
 	{
 		iHeight += mpField->GetDesiredSize().y + iGap / 2;
@@ -446,37 +594,13 @@ void CChooserPopup::Open(SInt32Vec2 sPosition, Ptr<CComponent> pOwner, size uiSe
 		iHeight += iGap / 2 + mpButton->GetDesiredSize().y;
 	}
 	mpPanel->SetDesiredSize(iWidth, iHeight);
+	sPosition = msOpenPosition;
 	if (mbOpensAbove)
 	{
 		sPosition.y = (sPosition.y > iHeight) ? sPosition.y - iHeight : 0;
 	}
-
-	mpPreviousFocus = mpWindow->GetFocus()->GetFocussedComponent();
-	mpPopup = mpWindow->OpenPopup(mpPanel, sPosition, pOwner);
-	sInsets.Init(CHOOSER_POPUP_INSET, CHOOSER_POPUP_INSET);
-	mpPopup->SetLook(mpsLook->pcTheme->GetColour(TC_MenuBackground), mpsLook->pcTheme->GetColour(TC_MenuBorder), &sInsets);
-	mpPopup->SetOwnerPressKeepsOpen(false);
-	mpPopup->GetClosedEvent()->Add(this, &CChooserPopup::PopupClosed);
-	if (mpField.IsNotNull())
-	{
-		mpWindow->GetFocus()->SetFocus(mpField);
-	}
-	else
-	{
-		mpWindow->GetFocus()->SetFocus(mpList);
-	}
-
-	iRow = FindItemRow(uiSelectedItem);
-	if ((iRow < 0) || !mpList->IsRowEnabled(iRow))
-	{
-		iRow = FindFirstRow();
-	}
-	mpList->Select(iRow);
-	if (iRow >= 0)
-	{
-		mpWindow->Layout();
-		mpList->ShowRow(iRow);
-	}
+	mpPopup->SetOpenPosition(sPosition);
+	mpWindow->InvalidateLayout();
 }
 
 
@@ -536,8 +660,8 @@ void CChooserPopup::Filter(void)
 	int			iItem;
 
 	mcMatcher.Kill();
-	mcMatcher.Init(mpField.IsNotNull() ? mpField->GetText() : "");
-	bAll = mpField.IsNull() || (mpField->GetText()[0] == '\0');
+	mcMatcher.Init(GetPattern());
+	bAll = GetPattern()[0] == '\0';
 
 	maiRows.ReInit();
 	iHeading = -1;
@@ -678,7 +802,9 @@ int32 CChooserPopup::FindFirstRow(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The field's text, as typed: the rows are filtered by it.
+// The field's text, as typed: the rows are filtered by it.  A driven
+// chooser has no field: it is filtered by the text, and as tall as the
+// rows left need.
 //
 //////////////////////////////////////////////////////////////////////////
 void CChooserPopup::SetFilterText(const char* szText)
@@ -687,6 +813,33 @@ void CChooserPopup::SetFilterText(const char* szText)
 	{
 		mpField->SetText(szText);
 	}
+	else if (mbDriven && !mszFilter.Equals(szText))
+	{
+		mszFilter.Set(szText);
+		if (mpPanel.IsNotNull())
+		{
+			Filter();
+			if (mpPopup.IsNotNull())
+			{
+				Resize();
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the rows are filtered by: the field's text, or a driven chooser's.
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CChooserPopup::GetPattern(void)
+{
+	if (mpField.IsNotNull())
+	{
+		return mpField->GetText();
+	}
+	return mszFilter.Text();
 }
 
 
@@ -793,7 +946,8 @@ void CChooserPopup::ButtonClicked(void)
 //////////////////////////////////////////////////////////////////////////
 //
 // The keys typed into the field move the rows' selection, as a Go to
-// dialog's do, and enter chooses.
+// dialog's do, and enter chooses.  A driven chooser's are called by what
+// has the keys.
 //
 //////////////////////////////////////////////////////////////////////////
 void CChooserPopup::Up(void) { mpList->Up(); }
@@ -813,7 +967,9 @@ SGoToItem* CChooserPopup::GetItem(size uiIndex) { return mcItems.Get(uiIndex); }
 size CChooserPopup::NumRows(void) const { return maiRows.NumElements(); }
 bool CChooserPopup::SelectRow(int32 iRow) { return mpList->Select(iRow); }
 int32 CChooserPopup::GetSelectedRow(void) { return mpList->GetSelected(); }
-const char* CChooserPopup::GetFilterText(void) { return mpField.IsNotNull() ? mpField->GetText() : ""; }
+const char* CChooserPopup::GetFilterText(void) { return GetPattern(); }
+bool CChooserPopup::IsDriven(void) const { return mbDriven; }
+const char* CChooserPopup::GetNote(void) const { return mszNote.Text(); }
 const char* CChooserPopup::GetTitle(void) const { return mszTitle.Text(); }
 Ptr<CComponent> CChooserPopup::GetPanel(void) const { return mpPanel; }
 Ptr<CTextField> CChooserPopup::GetField(void) const { return mpField; }

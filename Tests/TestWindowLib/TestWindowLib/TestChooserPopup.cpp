@@ -813,6 +813,163 @@ void TestInfoPopup(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A driven chooser: the keys stay with what opened it, which filters it,
+// moves through it and chooses.  It has no title and no field.  Items
+// added while it is open are listed, the selected one still selected,
+// and it grows to its rows; a note is a line under them.  When it closes
+// the keys are where they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestChooserPopupDriven(void)
+{
+	Ptr<CWinRefWindowFactory>	pNativeFactory;
+
+	{
+		Ptr<CWindow>				pTestWindow;
+		Ptr<CTickTestRefWindow>		pTick;
+		SDataTestRefWindow			cData;
+		SDialogLook					sLook;
+		Ptr<CWindowTheme>			pTheme;
+		Ptr<CFillContainer>			pFill;
+		Ptr<CTextField>				pOwner;
+		Ptr<CChooserPopup>			pChooser;
+		CTestChooserListener		cListener;
+		CChars						szRows;
+		SInt32Vec2					sPosition;
+		int32						iRowHeight;
+		int32						iHeight;
+
+		szRows.Init();
+		cListener.Init();
+		pNativeFactory = OMalloc<CWinRefWindowFactory>(&gcMemoryAllocator, 800, 600, (char*)NULL);
+		pTick = OMalloc<CTickTestRefWindow>(&cData, 1);
+		pTestWindow = OMalloc<CWindow>("Driven Owner", &pNativeFactory, pTick, OMalloc<CClearCanvasDraw>(JEWEL_EDITOR), CFT_RGB, CCO_RGB, CRGB_24bit, ARGB_None);
+		ORoot()->Add(pTestWindow);
+		pTheme = CJewelTheme::CreateDarkTheme(pTestWindow, GenerateMenuFont(pTestWindow));
+		sLook.pcTheme = &pTheme;
+		sLook.pcDimFont = &pTheme->GetFont();
+		iRowHeight = pTheme->GetMetric(TM_GoToRowHeight);
+
+		pFill = OMalloc<CFillContainer>(pTestWindow);
+		pTestWindow->SetContainer(pFill);
+		pOwner = OMalloc<CTextField>(pTestWindow, pTheme, "owner");
+		pFill->AddComponent(pOwner);
+		pTestWindow->Layout();
+		pTestWindow->GetFocus()->SetFocus(pOwner);
+
+		pChooser = OMalloc<CChooserPopup>(pTestWindow, &sLook, pTheme->GetFont());
+		ORoot()->Add(pChooser);
+		pChooser->GetChosenEvent()->Add(&cListener, &CTestChooserListener::Chosen);
+		pChooser->GetClosedEvent()->Add(&cListener, &CTestChooserListener::Closed);
+		AssertFalse(pChooser->IsDriven());
+		pChooser->SetDriven(true);
+		pChooser->SetSortMatches(true);
+		AssertTrue(pChooser->IsDriven());
+		pChooser->AddItem("GetValue", "int", -1, 10);
+		pChooser->AddItem("GetSelectedNode", "CNode*", -1, 11);
+		pChooser->AddItem("SetValue", "bool", -1, 12);
+
+		//Opened, the keys are still its owner's; it has no field and is as tall as its three rows.
+		sPosition.Init(20, 30);
+		pChooser->Open(sPosition, pOwner);
+		AssertTrue(pChooser->IsOpen());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+		AssertTrue(pChooser->GetField().IsNull());
+		AssertString("GetValue,GetSelectedNode,SetValue", PrintChooserRows(pChooser, &szRows));
+		AssertInt(0, pChooser->GetSelectedRow());
+		pTestWindow->Layout();
+		AssertInt(3 * iRowHeight, pChooser->GetPanel()->GetActualSize().y);
+		AssertInt(20, pChooser->GetPopup()->GetPosition().x);
+
+		//Its owner moves the selection, round the ends.
+		pChooser->Down();
+		AssertInt(1, pChooser->GetSelectedRow());
+		pChooser->Down();
+		pChooser->Down();
+		AssertInt(0, pChooser->GetSelectedRow());
+		pChooser->Up();
+		AssertInt(2, pChooser->GetSelectedRow());
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		//Filtered by what its owner gives it, as a field's text would: the names' capitals match, and it is as tall
+		//as the rows left.  Nothing matching leaves no rows, and none can be chosen.
+		pChooser->SetFilterText("GSN");
+		AssertString("GSN", pChooser->GetFilterText());
+		AssertString("GetSelectedNode", PrintChooserRows(pChooser, &szRows));
+		AssertInt(0, pChooser->GetSelectedRow());
+		pTestWindow->Layout();
+		AssertInt(iRowHeight, pChooser->GetPanel()->GetActualSize().y);
+		pChooser->SetFilterText("Zz");
+		AssertString("", PrintChooserRows(pChooser, &szRows));
+		AssertFalse(pChooser->ChooseSelected());
+		AssertTrue(pChooser->IsOpen());
+		pChooser->SetFilterText("Get");
+		AssertString("GetValue,GetSelectedNode", PrintChooserRows(pChooser, &szRows));
+		pChooser->Down();
+		AssertInt(1, pChooser->GetSelectedRow());
+
+		//Items added while it is open: listed if they match, where their match puts them, the selected item still
+		//selected, and it grows.
+		pChooser->AddItem("GetLimit", "int", -1, 13);
+		pChooser->AddItem("Reset", "void", -1, 14);
+		pChooser->ItemsChanged();
+		AssertString("GetValue,GetLimit,GetSelectedNode", PrintChooserRows(pChooser, &szRows));
+		AssertInt(2, pChooser->GetSelectedRow());
+		AssertSize(11, pChooser->GetSelectedItem()->uiData);
+		pTestWindow->Layout();
+		AssertInt(3 * iRowHeight, pChooser->GetPanel()->GetActualSize().y);
+
+		//A note is a line under the rows, and goes when it is emptied.
+		AssertString("", pChooser->GetNote());
+		pChooser->SetNote("Working...");
+		AssertString("Working...", pChooser->GetNote());
+		pTestWindow->Layout();
+		iHeight = pChooser->GetPanel()->GetActualSize().y;
+		AssertTrue(iHeight > 3 * iRowHeight);
+		pChooser->SetNote("");
+		pTestWindow->Layout();
+		AssertInt(3 * iRowHeight, pChooser->GetPanel()->GetActualSize().y);
+
+		//Its owner chooses: the selected item, and it has closed with the keys where they were.
+		AssertTrue(pChooser->ChooseSelected());
+		AssertFalse(pChooser->IsOpen());
+		AssertInt(1, cListener.miChosen);
+		AssertInt(1, cListener.miClosed);
+		AssertSize(11, pChooser->GetChosen()->uiData);
+		AssertTrue(pTestWindow->GetFocus()->GetFocussedComponent() == pOwner);
+
+		//Opened again it is filtered by nothing, and Close chooses nothing.
+		pChooser->Open(sPosition, pOwner);
+		AssertString("", pChooser->GetFilterText());
+		AssertString("GetValue,GetSelectedNode,SetValue,GetLimit,Reset", PrintChooserRows(pChooser, &szRows));
+		pChooser->Close();
+		AssertFalse(pChooser->IsOpen());
+		AssertTrue(pChooser->GetChosen() == NULL);
+		AssertInt(1, cListener.miChosen);
+		AssertInt(2, cListener.miClosed);
+
+		//It is driven or not from before it is first opened.
+		pChooser->SetDriven(false);
+		AssertTrue(pChooser->IsDriven());
+
+		pChooser->GetChosenEvent()->Remove(&cListener);
+		pChooser->GetClosedEvent()->Remove(&cListener);
+		szRows.Kill();
+		pChooser = NULL;
+		pOwner = NULL;
+		pFill = NULL;
+		pTheme = NULL;
+		pTick = NULL;
+		pTestWindow = NULL;
+	}
+
+	AssertTrue(ORoot()->RemoveAll());
+	pNativeFactory = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestChooserPopup(void)
@@ -822,6 +979,7 @@ void TestChooserPopup(void)
 
 	TestChooserPopupFilter();
 	TestChooserPopupHeadings();
+	TestChooserPopupDriven();
 
 	ObjectsFlush();
 	ObjectsKill();
