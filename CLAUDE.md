@@ -96,6 +96,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   -c -DWIN_GNU_32 -D_DEBUG -I.` over the files each `.vcxproj` lists, from `Libraries`.  Windows SDK headers in lower
   case; no `##` pasting of string literals.
 - Warning work leaves CppCompilerLib out.
+- A `65` suite's run copies its programs into one shared `Output` copy (`TestProject65CopyDirectory`): don't start a
+  one-test run (`TEST_PROJECT65_ONLY`) while a whole run of the same suite is going, nor run it on both processors at
+  once.  Its switches are on the site's `compiler/testing.md`.
 
 ## Working in these repositories
 
