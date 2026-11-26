@@ -132,6 +132,7 @@ Questions for the user (put one at a time, recommendation first)
   2. A supply placed by hand, and every circuit saved before this: recommended on from time 0 with no rise, as now,
      so the tests and saved circuits keep their timing; imported boards rise over 1ms.  Or every supply rises over
      1ms, the timing of every test moving by it.
+     Decided 2026-11-26 (the user): as recommended.
 
 
 Order
