@@ -70,27 +70,9 @@ first, so a prompt appears before it waits.  Libc65's [`stdin`] reads it on both
 Assemble the source, load the output into a memory, connect a simulator and run:
 
 ```cpp
-CAsm65C64Assembler	cAssembler;
-CAsm65Memory		cMemory;
-CFast65C64		cMPU;
+--8<-- "TestAsm65C64Website.cpp:emulator"
 
-cAssembler.Init();
-cAssembler.Assemble(szSource);
-
-cMemory.Init();
-cMemory.LoadProgram(cAssembler.GetOutput(), 0x2000);	//Also points the reset vector at $2000.
-cMemory.InitFast65C64(&cMPU);
-cAssembler.Kill();
-
-cMPU.Reset();
-cMPU.Run(1000000);		//Until an stp, or a million instructions.
-
-cMPU.GetA();			//The registers: GetB, GetX, GetY, GetS, GetV, GetW, GetP.
-cMPU.NumCycles();		//The clock cycles taken.
-cMemory.GetLong(0x3000);	//And the memory.
-
-cMPU.Kill();
-cMemory.Kill();
+--8<-- "TestAsm65C64Website.cpp:emulator-kill"
 ```
 
 `SetEdgeInterrupt` and `SetLevelInterrupt` drive the [interrupt](interrupts.md) pins.

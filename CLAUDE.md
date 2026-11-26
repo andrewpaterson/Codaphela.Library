@@ -28,6 +28,10 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 - Name code in a page with a reference: [`CTextArea`], [`CTextArea::ReplaceRanges`], [`CShape::Init(int)`] or
   [`BaseLib/Chars.h`].  The site build links it to its line on GitHub and fails on one that names nothing; a plain
   `CTextArea` naming a real class is a warning.  A span that isn't C++ but looks it is written `#!text abs`.
+- A ```` ```cpp ```` block in a page compiles (the site build checks it, `hcp65index -examples`, as the project the
+  page is an item of compiles): a hidden comment under the page's title, `<!-- cpp`, then the `#include`s and the
+  declarations its examples use without declaring, then `-->`, goes before each block; a block of statements is
+  compiled in a function.  ```` ```{.cpp .no-check} ```` is for one that shows an edit, not an API.
 - A finished plan becomes a design page and is deleted, the page naming its last commit (`DocsPlan.txt` decision 17);
   one that code or tests cite by step is kept as that record, with a note at its end, and isn't added to.
 - Plans still being built from are text files beside their code; list them with
