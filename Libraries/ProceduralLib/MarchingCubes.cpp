@@ -67,7 +67,7 @@ void CMarchingCubes::MakeCase(SMarchingCubesCase* psCase, int iInside, int iJoin
 {
 	static const int	aaiNearOrder[4][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}};
 	static const int	aaiFarOrder[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
-	const int			(*paaiOrder)[2];
+	const				int			(*paaiOrder)[2];
 	int					aiNext[MARCHING_CUBES_EDGES];
 	int					aiCorners[4];
 	int					aiLoop[MARCHING_CUBES_EDGES];
