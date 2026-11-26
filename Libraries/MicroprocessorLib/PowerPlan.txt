@@ -158,8 +158,8 @@ state, the DS1813 on PullsPlan's weak drive; TestPower, TestPull), LogicimLib an
 the supervisor's view, Power On/Off, the power-up setting, fast-forward), KicadImporterLib (rails, regulators as fed
 supplies, the DS1813; TestKicadSchemPower runs Power and Reset and the Processor Reset Device).  LVC's 5V figures
 were added then (the user), from the single gates' datasheets, so Power and Reset's 74LVC1G17 buffers the reset at
-5V.  Left: series resistors aren't joined yet (ResistorsPlan part 1), so the Processor Reset Device's reset stops at
-R1.
+5V.  The Processor Reset Device's reset reached past R1 once ResistorsPlan's part 1 joined series resistors (later
+on 2026-11-26).
 
 Order
 -----
