@@ -60,6 +60,7 @@ enum ECPPUsageType
 	CPPUT_Parameter,			//In a parameter's declaration.
 	CPPUT_Function,				//In a function's declaration or definition: its return type, or its class in C::F.
 	CPPUT_Alias,				//In a typedef, an alias or a using declaration.
+	CPPUT_Documentation,		//Named by a reference in a documentation page, [`CShape::Init`] (HCP65/Website/DocsPlan.txt E3).
 	CPPUT_NumUsageTypes
 };
 
