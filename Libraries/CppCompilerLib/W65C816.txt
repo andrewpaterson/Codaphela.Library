@@ -738,3 +738,6 @@ copies about 0.2G, out of about 19.4G.
 
 Measuring: compare like with like.  A suite run beside another (in parallel) read about 0.13% more cycles than the
 same suite run alone.
+
+Seen in listings 2026-10-31 and not re-checked since (from a handoff note, 2026-11-26): a doubled `and 0xFF`, and
+`adc 0x8000` where `eor 0x8000` would do.

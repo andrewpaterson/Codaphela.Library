@@ -163,5 +163,7 @@ when written (libopenmpt pans MOD channels 75/25, so compare one channel at a ti
 
 ## Not done
 
+- [`CModPlayer::Render(int16*,lsize)`] doubles the 16 bit mix, so its lowest bit is always clear: one bit less than
+  full precision, inaudible (noted 2026-10-31).
 - XM modules.
 - The Amiga's LED filter and its resampling; E3x glissando, EFx funk repeat, and Soundtracker's own effects.
