@@ -46,30 +46,30 @@ enum ERawDeviceType
 
 struct SKeyboardID
 {
-	DWORD dwType;
-	DWORD dwSubType;
-	DWORD dwKeyboardMode;
-	DWORD dwNumberOfFunctionKeys;
-	DWORD dwNumberOfIndicators;
-	DWORD dwNumberOfKeysTotal;
+	DWORD	dwType;
+	DWORD	dwSubType;
+	DWORD	dwKeyboardMode;
+	DWORD	dwNumberOfFunctionKeys;
+	DWORD	dwNumberOfIndicators;
+	DWORD	dwNumberOfKeysTotal;
 };
 
 
 struct SMouseID
 {
-	DWORD dwId;
-	DWORD dwNumberOfButtons;
-	DWORD dwSampleRate;
+	DWORD	dwId;
+	DWORD	dwNumberOfButtons;
+	DWORD	dwSampleRate;
 };
 
 
 struct SGeneralID
 {
-	DWORD dwVendorId;
-	DWORD dwProductId;
-	DWORD dwVersionNumber;
-	USHORT usUsagePage;
-	USHORT usUsage;
+	DWORD	dwVendorId;
+	DWORD	dwProductId;
+	DWORD	dwVersionNumber;
+	USHORT	usUsagePage;
+	USHORT	usUsage;
 };
 
 
@@ -149,10 +149,10 @@ public:
 	CWinInput*				mpcWinInput;
 	CArrayRawInputEvent		masRawEvents;  //This needs to be thread safe.
 
-	void 					Init(CWinInput* pcWinInput);
-	void 					Kill(void);
-	void 					ResetDeviceDetails(void);
-	void 					AddDeviceDetails(void* pDevice);
+	void					Init(CWinInput* pcWinInput);
+	void					Kill(void);
+	void					ResetDeviceDetails(void);
+	void					AddDeviceDetails(void* pDevice);
 	CRawInputDeviceDetail*	AddRawDeviceDetails(void* pDevice, char* szDeviceName, void* psRidInfo);
 	void					UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* psRIDeviceDetail, char* szDeviceName);
 	void					DumpDetails(void);

@@ -236,7 +236,7 @@ void CWinRawInput::ResetDeviceDetails(void)
 //////////////////////////////////////////////////////////////////////////
 CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* szDeviceName, void* psRidInfo)
 {
-	HKEY 				hKey;
+	HKEY				hKey;
 	DWORD				dwLength;
 	CChars				szKeyName;
 	size				iEnd;
@@ -244,7 +244,7 @@ CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* sz
 	CChars				szGuid;
 	CGuidClass			cGuid;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
-	char 				lszValue[1000];
+	char				lszValue[1000];
 	RAWINPUTDEVICELIST*	pRawInputDeviceList;
 	RID_DEVICE_INFO*	pRidDeviceInfo;
 	URawID				uRawID;
@@ -252,14 +252,14 @@ CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* sz
 
 	pRawInputDeviceList = (RAWINPUTDEVICELIST*)pDevice;
 	pRidDeviceInfo = (RID_DEVICE_INFO*)psRidInfo;
-	dwLength=1000;
+	dwLength = 1000;
 	szGuid.Init(szDeviceName);
 	iEnd = szGuid.FindFromEnd('#');
-	szGuid.RemoveFromStart(iEnd+1);
+	szGuid.RemoveFromStart(iEnd + 1);
 	cGuid.Init(szGuid.Text());
 
 	szKeyName.Init(szDeviceName);
-	szKeyName.RemoveFromStart(4); // Remove the \??\ 
+	szKeyName.RemoveFromStart(4); // Remove the \??\
 	szKeyName.Replace('#', '\\');
 	szKeyName.Insert(0, "System\\CurrentControlSet\\Enum\\");
 	iEnd = szKeyName.FindFromEnd('\\');
@@ -267,7 +267,7 @@ CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* sz
 
 	lRet = RegOpenKeyEx(HKEY_LOCAL_MACHINE, szKeyName.Text(), 0L, KEY_READ , &hKey);
 	lszValue[0] = '\0';
-	if(lRet == ERROR_SUCCESS)
+	if (lRet == ERROR_SUCCESS)
 	{
 		lRet = RegQueryValueEx(hKey, "DeviceDesc", NULL, NULL, (unsigned char*)lszValue, &dwLength);
 	}
@@ -322,17 +322,17 @@ CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* sz
 //////////////////////////////////////////////////////////////////////////
 void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* psRIDeviceDetail, char* szDeviceName)
 {
-	LONG 				lRet;
-	LONG 				lEnumRet;
-	HKEY 				hKey;
-	HKEY 				hKey2;
+	LONG				lRet;
+	LONG				lEnumRet;
+	HKEY				hKey;
+	HKEY				hKey2;
 	DWORD				dwLength;
 	uint32				j;
 	CChars				szKeyName;
 	CChars				szFullKey;
 	size				iStart;
-	char 				szValueName[1000];
-	char 				szJoystickName[1000];
+	char				szValueName[1000];
+	char				szJoystickName[1000];
 	char				szJoystickRegPath[] = "SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\OEM";
 	RAWINPUTDEVICELIST*	pRawInputDeviceList;
 	size				iLen;
@@ -342,12 +342,12 @@ void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* p
 	pRawInputDeviceList = (RAWINPUTDEVICELIST*)pDevice;
 	szKeyName.Init(szDeviceName);
 	iStart = szKeyName.Find(0, '#');
-	szKeyName.RemoveFromStart(iStart+1);
+	szKeyName.RemoveFromStart(iStart + 1);
 	iStart = szKeyName.Find(0, '#');
 	szKeyName.RemoveFromEnd(szKeyName.Length() - iStart);
 
 	lRet = RegOpenKeyEx(HKEY_LOCAL_MACHINE, szJoystickRegPath, 0L, KEY_READ , &hKey);
-	if(lRet == ERROR_SUCCESS)
+	if (lRet == ERROR_SUCCESS)
 	{
 		lEnumRet = RegEnumKey(hKey, j, szValueName, dwLength);
 		while (lEnumRet == ERROR_SUCCESS)
@@ -404,7 +404,7 @@ void CWinRawInput::AddDeviceDetails(void* pDevice)
 	pRawInputDeviceList = (RAWINPUTDEVICELIST*)pDevice;
 
 	//Length is returned in uiLength.
-	uiReturn = GetRawInputDeviceInfo(pRawInputDeviceList->hDevice, RIDI_DEVICENAME, NULL, &uiLength);  
+	uiReturn = GetRawInputDeviceInfo(pRawInputDeviceList->hDevice, RIDI_DEVICENAME, NULL, &uiLength);
 
 	//Get the device name into acName.
 	uiReturn = GetRawInputDeviceInfo(pRawInputDeviceList->hDevice, RIDI_DEVICENAME, szDeviceName, &uiLength);
@@ -487,7 +487,7 @@ CRawInputDeviceDetail* CWinRawInput::GetDetailForHandle(ERawDeviceType eType, HA
 //////////////////////////////////////////////////////////////////////////
 void CWinRawInput::AddDevicesTo(CInputDevices* pcDevices)
 {
-	size						i;
+	size					i;
 	CRawInputDeviceDetail*	pcDetail;
 	CInputDevice*			pcInputDevice;
 	CInputDeviceDesc*		pcDeviceDesc;
@@ -500,7 +500,7 @@ void CWinRawInput::AddDevicesTo(CInputDevices* pcDevices)
 			pcDeviceDesc = pcDevices->GetDescription(pcDetail->szID.Text());
 			if (!pcDeviceDesc)
 			{
-				if (pcDetail->eType == RDT_Mouse) 
+				if (pcDetail->eType == RDT_Mouse)
 				{
 					pcDeviceDesc = GetStandardMouseDesc(pcDevices, pcDetail->uID.sMouseID.dwNumberOfButtons);
 				}

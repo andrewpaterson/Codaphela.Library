@@ -43,11 +43,11 @@ public:
 	bool			mbNotInitialised;
 	bool			mbUsable;
 
-	void Init(void);
-	void Init(HWND hWnd, bool bExclusive);
-	void Kill(void) override;
-	void AddDevicesTo(CInputDevices* pcDevices) override;
-	void Update(CInputDevices* pcDevices, uint32 uiSequence) override;
+	void	Init(void);
+	void	Init(HWND hWnd, bool bExclusive);
+	void	Kill(void) override;
+	void	AddDevicesTo(CInputDevices* pcDevices) override;
+	void	Update(CInputDevices* pcDevices, uint32 uiSequence) override;
 
 	const CDirectInput*	GetJoystick(void) const;
 	const CWinRawInput*	GetRaw(void) const;

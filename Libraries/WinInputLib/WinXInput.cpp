@@ -65,7 +65,7 @@ void CXInputDetail::AppendDescription(CChars* sz)
 		sz->Append("Gamepad ");
 		break;
 	}
-	
+
 	sz->Append(": Battery(");
 	sz->Append(")");
 }
@@ -114,7 +114,7 @@ void CXInputDetail::Dump(void)
 void CWinXInput::Init(CWinInput* pcWinInput)
 {
 	mpcWinInput = pcWinInput;
-//	XInputEnable(true);
+	//	XInputEnable(true);
 	ResetDetails();
 
 	DumpDetails();
@@ -127,7 +127,7 @@ void CWinXInput::Init(CWinInput* pcWinInput)
 //////////////////////////////////////////////////////////////////////////
 void CWinXInput::Kill(void)
 {
-//	XInputEnable(false);
+	//	XInputEnable(false);
 }
 
 
@@ -151,7 +151,7 @@ void CWinXInput::ResetDetails(void)
 			masXInputDetail[i].bConnected = true;
 
 			XInputGetCapabilities(i, XINPUT_FLAG_GAMEPAD, &sXCaps);
-			
+
 			masXInputDetail[i].Init(sXCaps.Type, sXCaps.SubType, sXCaps.Flags);
 		}
 		else
@@ -260,7 +260,7 @@ void CWinXInput::DumpDetails(void)
 	int		i;
 
 	for (i = 0; i < MAX_XINPUT_CONTROLLERS; i++)
-	{	
+	{
 		if (masXInputDetail[i].bConnected)
 		{
 			masXInputDetail[i].Dump();

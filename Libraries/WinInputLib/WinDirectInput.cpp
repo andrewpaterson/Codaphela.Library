@@ -126,7 +126,7 @@ void CDirectInputDetail::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::Init(CWinInput* pcWinInput)
 {
-	HRESULT 	hRet;
+	HRESULT		hRet;
 
 	mpcWinInput = pcWinInput;
 	hRet = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&mpDInput, NULL);
@@ -253,7 +253,7 @@ void CDirectInput::ResetDetails(void)
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::Update(void)
 {
-	DIDEVICEOBJECTDATA		sData[256];	
+	DIDEVICEOBJECTDATA		sData[256];
 	DWORD					dwItems;
 	size					iJoystick;
 	DWORD					dwItem;
@@ -267,8 +267,8 @@ void CDirectInput::Update(void)
 	{
 		pcDetail = masDIJoystickDetail.Get(iJoystick);
 		hResult = pcDetail->lpDIDevice->GetDeviceState(sizeof(DIJOYSTATE2), &cJoyState);
-		if (FAILED(hResult)) 
-		{ 
+		if (FAILED(hResult))
+		{
 			//May be unplugged, not just tabbed out.
 			pcDetail->lpDIDevice->Unacquire();
 			pcDetail->lpDIDevice->Acquire();
@@ -276,8 +276,8 @@ void CDirectInput::Update(void)
 
 		dwItems = 256;
 		hResult = pcDetail->lpDIDevice->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), sData, &dwItems, 0);
-		if (SUCCEEDED(hResult)) 
-		{ 
+		if (SUCCEEDED(hResult))
+		{
 			for (dwItem = 0; dwItem < dwItems; dwItem++)
 			{
 				//Er?

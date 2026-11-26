@@ -43,11 +43,11 @@ public:
 
 	CChars			szID;
 
-	void Init(unsigned char	ucType, unsigned char ucSubType, unsigned short	usFlags);
-	void Kill(void);
-	void AppendDescription(CChars* sz);
-	void Disconnect(void);
-	void Dump(void);
+	void	Init(unsigned char	ucType, unsigned char ucSubType, unsigned short	usFlags);
+	void	Kill(void);
+	void	AppendDescription(CChars* sz);
+	void	Disconnect(void);
+	void	Dump(void);
 };
 
 
@@ -58,11 +58,11 @@ public:
 	CXInputDetail	masXInputDetail[MAX_XINPUT_CONTROLLERS];
 	CWinInput*		mpcWinInput;
 
-	void 				Init(CWinInput* pcWinInput);
-	void 				Kill(void);
-	void 				ResetDetails(void);
-	void 				Update(CInputDevices* pcDevices, uint32 uiSequence);
-	void 				AddDevicesTo(CInputDevices* pcDevices);
+	void				Init(CWinInput* pcWinInput);
+	void				Kill(void);
+	void				ResetDetails(void);
+	void				Update(CInputDevices* pcDevices, uint32 uiSequence);
+	void				AddDevicesTo(CInputDevices* pcDevices);
 	CInputDeviceDesc*	AddStandardGamepad(CInputDevices* pcDevices);
 	void				DumpDetails(void);
 };

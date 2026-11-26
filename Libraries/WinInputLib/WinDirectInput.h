@@ -34,22 +34,22 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CDirectInputDetail : public CNativeDetail
 {
 public:
-	GUID    				guidInstance;
-	GUID    				guidProduct;
-	CChars    				szInstanceName;
-	CChars    				szProductName;
-	GUID    				guidFFDriver;
-	WORD    				wUsagePage;
-	WORD    				wUsage;
+	GUID					guidInstance;
+	GUID					guidProduct;
+	CChars					szInstanceName;
+	CChars					szProductName;
+	GUID					guidFFDriver;
+	WORD					wUsagePage;
+	WORD					wUsage;
 	LPDIRECTINPUTDEVICE8	lpDIDevice;
 	bool					bXInput;
 	CChars					szID;
-	
-	void Init(GUID guidInstance, GUID guidProduct, char* szInstanceName,  char* szProductName, GUID guidFFDriver, WORD wUsagePage, WORD wUsage);
-	void Kill(void);
-	void AppendDescription(CChars* sz);
-	void ReleaseDevice(void);
-	void Dump(void);
+
+	void	Init(GUID guidInstance, GUID guidProduct, char* szInstanceName,  char* szProductName, GUID guidFFDriver, WORD wUsagePage, WORD wUsage);
+	void	Kill(void);
+	void	AppendDescription(CChars* sz);
+	void	ReleaseDevice(void);
+	void	Dump(void);
 };
 
 
@@ -64,18 +64,18 @@ public:
 	CArrayDirectInputDetail		masDIJoystickDetail;
 	CWinInput*					mpcWinInput;
 
-	void 				Init(CWinInput* pcWinInput);
-	void 				Kill(void);
-	void 				Update(void);
-	void 				ResetDetails(void);
-	void 				CreateDevices(void);
-	void 				ReleaseDevices(void);
-	void 				AddDetails(DIDEVICEINSTANCE* pcdiDeviceInstance);
-	bool 				IsXInputDevice(CDirectInputDetail* psDetail);
-	void 				AddDevicesTo(CInputDevices* pcDevices);
+	void				Init(CWinInput* pcWinInput);
+	void				Kill(void);
+	void				Update(void);
+	void				ResetDetails(void);
+	void				CreateDevices(void);
+	void				ReleaseDevices(void);
+	void				AddDetails(DIDEVICEINSTANCE* pcdiDeviceInstance);
+	bool				IsXInputDevice(CDirectInputDetail* psDetail);
+	void				AddDevicesTo(CInputDevices* pcDevices);
 	CInputDeviceDesc*	AddStandardJoystick(CInputDevices* pcDevices, size iAxes, size iButtons, size iPOVs);
-	void 				Update(CInputDevices* pcDevices, size uiSequence);
-	void 				DumpDetaills(void);
+	void				Update(CInputDevices* pcDevices, size uiSequence);
+	void				DumpDetaills(void);
 };
 
 
