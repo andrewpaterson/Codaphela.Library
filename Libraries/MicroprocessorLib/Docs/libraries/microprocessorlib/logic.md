@@ -40,7 +40,7 @@ zero, above the highest they scale with VCC, and with no VCC there is no power. 
 one configuration at any VCC, for tests and simple circuits; both are a [`CVoltageConfigurationSource`].
 
 [`CFamilyVoltageConfigurationStore`] loads the families from a CSV file, Logicim's
-`Documents/Propagation Times (541).csv` (a copy is the test's [`Input/PropagationTimes.csv`]).  The caller owns the
+`Documents/Propagation Times (541).csv` (a copy is the test's [`TestMicroprocessorLib/Input/PropagationTimes.csv`]).  The caller owns the
 store, where Logicim has a static one; the default family is LVC.
 
 ## Traces and ports
