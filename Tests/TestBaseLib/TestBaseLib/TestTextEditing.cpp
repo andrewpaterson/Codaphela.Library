@@ -301,8 +301,9 @@ void TestTextEditingCharacterAt(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Tab puts in spaces to the next tab stop; over more than one line it
-// indents the lines, and back tab takes a tab's worth of spaces off them.
+// Tab types a tab; over more than one line it indents the lines that
+// have anything on them with one, and back tab takes a tab, or a tab's
+// worth of spaces, off them.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestTextEditingTabs(void)
@@ -314,30 +315,285 @@ void TestTextEditingTabs(void)
 	s.Init("a\nb\nc");
 	s.cEditing.SetCaretPosition(1);
 	s.cEditing.Tab(true);
-	AssertString("a   \nb\nc", s.Text());
+	AssertString("a\t\nb\nc", s.Text());
+	AssertSize(2, s.Caret());
 
-	s.cEditing.SetTabWidth(2);
+	//It replaces a selection in one line.
+	s.cEditing.Select(0, 2);
+	s.cEditing.Tab(true);
+	AssertString("\t\nb\nc", s.Text());
+	s.cEditing.ReplaceText("a\t\nb\n\nc");
+
+	//Over lines: a tab at the start of each but the empty one, and the selection still starts where it did.
 	s.cEditing.Select(0, 7);
 	s.cEditing.Tab(true);
-	AssertString("  a   \n  b\nc", s.Text());
+	AssertString("\ta\t\n\tb\n\n\tc", s.Text());
 	s.cEditing.GetSelection(&uiStart, &uiEnd);
 	AssertSize(0, uiStart);
-	AssertSize(11, uiEnd);
+	AssertSize(10, uiEnd);
 
 	s.cEditing.BackTab();
-	AssertString("a   \nb\nc", s.Text());
+	AssertString("a\t\nb\n\nc", s.Text());
 
-	//Back tab without a selection, on the caret's line; a tab is taken off whole.
+	//Back tab without a selection, on the caret's line: a tab is taken off whole, and spaces up to a tab's worth.
 	s.cEditing.SetCaretPosition(0);
 	s.cEditing.BackTab();
-	AssertString("a   \nb\nc", s.Text());
-	s.cEditing.SetCaretPosition(7);
-	s.cEditing.Printable('\t', true);
-	s.cEditing.DocumentEnd();
-	s.cEditing.Printable('\t', true);
-	AssertString("a   \nb\n\tc\t", s.Text());
+	AssertString("a\t\nb\n\nc", s.Text());
+	s.cEditing.ReplaceText("\tc\n      d");
+	s.cEditing.SetCaretPosition(1);
 	s.cEditing.BackTab();
-	AssertString("a   \nb\nc\t", s.Text());
+	AssertString("c\n      d", s.Text());
+	s.cEditing.SetTabWidth(4);
+	s.cEditing.DocumentEnd();
+	s.cEditing.BackTab();
+	AssertString("c\n  d", s.Text());
+	s.cEditing.BackTab();
+	AssertString("c\nd", s.Text());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Enter starts the new line with the indent of the line it leaves, and
+// so do Enter at Line Start and at Line End.  In code a line after a "{"
+// has a tab more, Enter between a "{" and its "}" puts the "}" on a line
+// of its own, and a "}" typed on a line of its own goes under the line
+// of the "{" it closes.  Each is one undo.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingIndent(void)
+{
+	STestTextEditing	s;
+
+	//The indent is the tabs and spaces the line starts with, as they are.
+	s.Init("\tone\n  \ttwo");
+	s.cEditing.SetCaretPosition(4);
+	s.cEditing.Enter();
+	AssertString("\tone\n\t\n  \ttwo", s.Text());
+	AssertSize(6, s.Caret());
+	s.cEditing.DocumentEnd();
+	s.cEditing.Enter();
+	AssertString("\tone\n\t\n  \ttwo\n  \t", s.Text());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("\tone\n\t\n  \ttwo", s.Text());
+
+	//In the middle of a line what is after the caret goes down with the indent before it; in the indent, only what
+	//is before the caret is the new line's.
+	s.cEditing.ReplaceText("\t\tab");
+	s.cEditing.SetCaretPosition(3);
+	s.cEditing.Enter();
+	AssertString("\t\ta\n\t\tb", s.Text());
+	AssertSize(6, s.Caret());
+	s.cEditing.ReplaceText("\t\tab");
+	s.cEditing.SetCaretPosition(1);
+	s.cEditing.Enter();
+	AssertString("\t\n\t\tab", s.Text());
+	AssertSize(3, s.Caret());
+
+	//It replaces a selection, indented as the line the selection starts on.
+	s.cEditing.ReplaceText("\tab\ncd");
+	s.cEditing.Select(2, 5);
+	s.cEditing.Enter();
+	AssertString("\ta\n\td", s.Text());
+
+	//Enter at Line End and at Line Start: a line after or before the caret's, with its indent.
+	s.cEditing.ReplaceText("\tone\ntwo");
+	s.cEditing.SetCaretPosition(2);
+	s.cEditing.EndEnter();
+	AssertString("\tone\n\t\ntwo", s.Text());
+	AssertSize(6, s.Caret());
+	s.cEditing.ReplaceText("\tone\ntwo");
+	s.cEditing.SetCaretPosition(2);
+	s.cEditing.HomeEnter();
+	AssertString("\t\n\tone\ntwo", s.Text());
+	AssertSize(1, s.Caret());
+
+	//A brace means nothing to a text that isn't code.
+	s.cEditing.ReplaceText("\tif (b) {");
+	s.cEditing.DocumentEnd();
+	s.cEditing.Enter();
+	AssertString("\tif (b) {\n\t", s.Text());
+	AssertFalse(s.cEditing.IsBraceIndent());
+
+	//In code: a tab more after a "{", spaces after it or not, by Enter and by Enter at Line End.
+	s.cEditing.SetBraceIndent(true);
+	AssertTrue(s.cEditing.IsBraceIndent());
+	s.cEditing.ReplaceText("\tif (b)\n\t{ ");
+	s.cEditing.DocumentEnd();
+	s.cEditing.Enter();
+	AssertString("\tif (b)\n\t{ \n\t\t", s.Text());
+	s.cEditing.ReplaceText("\t{\nx");
+	s.cEditing.SetCaretPosition(1);
+	s.cEditing.EndEnter();
+	AssertString("\t{\n\t\t\nx", s.Text());
+	AssertSize(5, s.Caret());
+
+	//Between a "{" and its "}": the "}" goes on its own line, under the "{"'s, and the caret is on the line between.
+	s.cEditing.ReplaceText("\tvoid F() {}");
+	s.cEditing.SetCaretPosition(11);
+	s.cEditing.Enter();
+	AssertString("\tvoid F() {\n\t\t\n\t}", s.Text());
+	AssertSize(14, s.Caret());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("\tvoid F() {}", s.Text());
+
+	//A "}" typed on a line of its own goes under the line of the "{" it closes, however that is indented.
+	s.cEditing.ReplaceText("\tif (b)\n\t{\n\t\tx();\n\t\t");
+	s.cEditing.DocumentEnd();
+	s.cEditing.Printable('}', true);
+	AssertString("\tif (b)\n\t{\n\t\tx();\n\t}", s.Text());
+	AssertSize(20, s.Caret());
+	s.cEditing.ReplaceText("  {\n\t\t\t");
+	s.cEditing.DocumentEnd();
+	s.cEditing.Printable('}', true);
+	AssertString("  {\n  }", s.Text());
+
+	//One after something else on its line, or that closes nothing, stays where it is typed.
+	s.cEditing.ReplaceText("\t{\n\t\tx();");
+	s.cEditing.DocumentEnd();
+	s.cEditing.Printable('}', true);
+	AssertString("\t{\n\t\tx();}", s.Text());
+	s.cEditing.ReplaceText("\t\t");
+	s.cEditing.DocumentEnd();
+	s.cEditing.Printable('}', true);
+	AssertString("\t\t}", s.Text());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The caret's line, or the selected lines, change places with the line
+// before or after them, and the caret and selection go with them; not
+// past the text's ends.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingMoveLines(void)
+{
+	STestTextEditing	s;
+	size				uiStart;
+	size				uiEnd;
+
+	s.Init("one\ntwo\nthree\nfour");
+	s.cEditing.SetCaretPosition(5);
+	s.cEditing.MoveLines(true);
+	AssertString("one\nthree\ntwo\nfour", s.Text());
+	AssertSize(11, s.Caret());
+	s.cEditing.MoveLines(true);
+	AssertString("one\nthree\nfour\ntwo", s.Text());
+	AssertSize(16, s.Caret());
+
+	//The last line goes no further down; one undo takes a move back.
+	s.cEditing.MoveLines(true);
+	AssertString("one\nthree\nfour\ntwo", s.Text());
+	AssertTrue(s.cEditing.Undo());
+	AssertString("one\nthree\ntwo\nfour", s.Text());
+
+	s.cEditing.SetCaretPosition(4);
+	s.cEditing.MoveLines(false);
+	AssertString("three\none\ntwo\nfour", s.Text());
+	AssertSize(0, s.Caret());
+	s.cEditing.MoveLines(false);
+	AssertString("three\none\ntwo\nfour", s.Text());
+
+	//A selection's lines move together and stay selected; one that ends at a line's start doesn't take that line.
+	s.cEditing.Select(7, 12);
+	s.cEditing.MoveLines(true);
+	AssertString("three\nfour\none\ntwo", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(12, uiStart);
+	AssertSize(17, uiEnd);
+	s.cEditing.Select(11, 15);
+	s.cEditing.MoveLines(false);
+	AssertString("three\none\nfour\ntwo", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(6, uiStart);
+	AssertSize(10, uiEnd);
+
+	//A text of one line has nowhere to move it.
+	s.cEditing.ReplaceText("only");
+	s.cEditing.MoveLines(true);
+	s.cEditing.MoveLines(false);
+	AssertString("only", s.Text());
+
+	s.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// With the text's comment marks: the caret's line or the selected lines
+// are commented out, or uncommented if all of them are comments already,
+// and the selection is made a block comment or stops being one.  A text
+// without marks has neither.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestTextEditingComments(void)
+{
+	STestTextEditing	s;
+	size				uiStart;
+	size				uiEnd;
+
+	s.Init("\tone\n\ttwo\n\n\tthree");
+	s.cEditing.SetCaretPosition(2);
+	s.cEditing.ToggleLineComment();
+	s.cEditing.Select(0, 4);
+	s.cEditing.ToggleBlockComment();
+	AssertString("\tone\n\ttwo\n\n\tthree", s.Text());
+
+	//A line with nothing selected: the mark at its start, and the caret goes down a line at its column.
+	s.cEditing.SetComments("//", "/*", "*/");
+	s.cEditing.SetCaretPosition(2);
+	s.cEditing.ToggleLineComment();
+	AssertString("//\tone\n\ttwo\n\n\tthree", s.Text());
+	AssertSize(9, s.Caret());
+	s.cEditing.ToggleLineComment();
+	AssertString("//\tone\n//\ttwo\n\n\tthree", s.Text());
+
+	//Selected lines: all commented, the empty one left; the selection still over them.  Again takes the marks off,
+	//after the indent too.
+	s.cEditing.ReplaceText("\tone\n\ttwo\n\n\tthree");
+	s.cEditing.Select(0, 17);
+	s.cEditing.ToggleLineComment();
+	AssertString("//\tone\n//\ttwo\n\n//\tthree", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(0, uiStart);
+	AssertSize(23, uiEnd);
+	AssertTrue(s.cEditing.Undo());
+	AssertString("\tone\n\ttwo\n\n\tthree", s.Text());
+	s.cEditing.ReplaceText("\t//one\n//\ttwo\n\n\tthree");
+	s.cEditing.Select(0, 14);
+	s.cEditing.ToggleLineComment();
+	AssertString("\tone\n\ttwo\n\n\tthree", s.Text());
+
+	//Lines some of which aren't comments are all commented again.
+	s.cEditing.ReplaceText("//one\ntwo");
+	s.cEditing.Select(0, 9);
+	s.cEditing.ToggleLineComment();
+	AssertString("////one\n//two", s.Text());
+
+	//A block comment round the selection, which stays selected; again takes it off.
+	s.cEditing.ReplaceText("a = b + c;");
+	s.cEditing.Select(4, 9);
+	s.cEditing.ToggleBlockComment();
+	AssertString("a = /*b + c*/;", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(4, uiStart);
+	AssertSize(13, uiEnd);
+	s.cEditing.ToggleBlockComment();
+	AssertString("a = b + c;", s.Text());
+	AssertTrue(s.cEditing.GetSelection(&uiStart, &uiEnd));
+	AssertSize(4, uiStart);
+	AssertSize(9, uiEnd);
+
+	//With nothing selected the marks go in at the caret, which is between them.
+	s.cEditing.SetCaretPosition(4);
+	s.cEditing.ToggleBlockComment();
+	AssertString("a = /**/b + c;", s.Text());
+	AssertSize(6, s.Caret());
 
 	s.Kill();
 }
@@ -807,7 +1063,7 @@ void TestTextEditingBox(void)
 	s.cEditing.Reset();
 	AssertFalse(s.cEditing.IsBox());
 
-	//Cut copies the rows and leaves a caret on each; tab goes to the next stop from the left edge.
+	//Cut copies the rows and leaves a caret on each; tab types a tab on each.
 	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
 	s.cEditing.BoxSelect(0, 1, 2, 3);
 	sz.Clear();
@@ -815,7 +1071,7 @@ void TestTextEditingBox(void)
 	AssertString("bc\nb\nbc", sz.Text());
 	AssertString("adef\na\nadefgh", s.Text());
 	s.cEditing.Tab(true);
-	AssertString("a   def\na   \na   defgh", s.Text());
+	AssertString("a\tdef\na\t\na\tdefgh", s.Text());
 
 	//Moved with the box keys from the caret: down, right, left, end and home on the caret's row.
 	s.cEditing.ReplaceText("abcdef\nab\nabcdefgh");
@@ -1223,6 +1479,9 @@ void TestTextEditing(void)
 	TestTextEditingSelection();
 	TestTextEditingCharacterAt();
 	TestTextEditingTabs();
+	TestTextEditingIndent();
+	TestTextEditingMoveLines();
+	TestTextEditingComments();
 	TestTextEditingLines();
 	TestTextEditingUndo();
 	TestTextEditingMoveText();

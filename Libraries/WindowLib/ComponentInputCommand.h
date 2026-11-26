@@ -93,6 +93,10 @@ enum EComponentInputCommand
 	CIC_DeleteWordRemainingLeft,
 	CIC_DeleteWordRemainingRight,
 	CIC_DeleteLine,  //Control+Y, as IntelliJ's.
+	CIC_MoveLinesUp,  //The caret's line or the selected lines change places with the line before them,
+	CIC_MoveLinesDown,  //or after them: Control+Shift+Up and Down.
+	CIC_CommentLines,  //Comment or uncomment the caret's line or the selected lines: Control+/, as IntelliJ's.
+	CIC_CommentBlock,  //Make the selection a block comment, or stop it being one: Control+Shift+/.
 	CIC_Undo,
 	CIC_Redo,  //Control+Shift+Z, as IntelliJ's.
 	CIC_ToggleInsert,  //An editor's keys for insert and overwrite (bound in the Editor context); the insert key does it itself elsewhere.

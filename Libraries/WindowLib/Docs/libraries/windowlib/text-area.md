@@ -71,8 +71,17 @@ history of them.
 - Up and down keep the caret's x; home is smart (first character that isn't a space, then the line's start); a
   second home or end on a wrapped row goes to the ends of the line.  These work on the view's rows, so on wrapped
   lines.
-- Tab inserts spaces to the next tab stop, or indents the lines of a selection over more than one line; back tab
-  takes a tab's worth of spaces off them.
+- Tab types a tab, or indents the lines of a selection over more than one line with one; back tab takes a tab, or
+  a tab's worth of spaces, off them.  Enter starts the new line with the indent of the line it leaves, and so do
+  Enter at Line Start and at Line End.
+- A text that is code ([`CTextArea::SetCode`], as a [`CCodeEditor`]'s is) indents by its braces
+  ([`CTextEditing::SetBraceIndent`]): a line after a `{` has a tab more, a `}` typed on a line of its own goes under
+  the line of the `{` it closes, and Enter between a `{` and its `}` puts the `}` on a line of its own.  With its
+  comment marks ([`CTextEditing::SetComments`]) lines are commented and uncommented
+  ([`CTextEditing::ToggleLineComment`], Control+/) and so is the selection
+  ([`CTextEditing::ToggleBlockComment`], Control+Shift+/).
+- The caret's line or the selected lines move over the line beside them ([`CTextEditing::MoveLines`],
+  Control+Shift+Up and Down).
 - Extend Selection ([`CTextEditing::ExtendSelection`]) grows to the smallest bigger range around the selection: the
   word, inside then with quotes, inside then with brackets, the line without its indent, whole lines, a comment,
   the whole text, and what a [`CTextSelectionRanges`] adds (the IDE adds its parse's syntax).  Shrink Selection goes

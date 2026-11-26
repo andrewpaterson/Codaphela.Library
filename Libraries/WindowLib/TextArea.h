@@ -228,6 +228,7 @@ public:
 	STextRange*			GetHighlightRange(size uiLayer, size uiIndex);
 	size				GetCaretLine(void) const;
 	CTextEditing*		GetEditing(void);
+	void				SetCode(bool bBraceIndent, const char* szLineComment, const char* szBlockOpen, const char* szBlockClose);
 	size				GetCaretPosition(void) const;
 	void				SetCaretPosition(size uiPosition);
 	bool				GetSelection(size* puiStart, size* puiEnd);

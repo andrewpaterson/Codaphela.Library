@@ -133,8 +133,14 @@ public:
 //are bytes of the UTF8 text, always at the start of a character, and the caret and selection follow the document's
 //edits.  Up, down, home and end work on the view's rows, so on wrapped lines too; up and down keep the caret's x and
 //home is smart, it goes to the first character that isn't a space and then to the start of the line, and a second home
-//or end on a wrapped row goes to the ends of the line.  Tab inserts spaces to the next tab stop, or with a selection
-//over more than one line indents its lines; back tab removes a tab's worth of spaces from them.  A text that isn't
+//or end on a wrapped row goes to the ends of the line.  Tab types a tab, or with a selection over more than one line
+//indents its lines with one; back tab removes a tab, or a tab's worth of spaces, from them.  Enter starts the new
+//line with the indent of the line it leaves, and so do Enter at Line Start and at Line End; in code (SetBraceIndent)
+//a line after one that ends with "{" has a tab more, a "}" typed on a line of its own goes under the line of the "{"
+//it closes, and Enter between a "{" and its "}" puts the "}" on a line of its own after the new one.  Lines move up
+//and down over the line beside them (MoveLines).  With the text's comment marks given (SetComments) lines are
+//commented and uncommented with its line mark (ToggleLineComment) and the selection with its block marks
+//(ToggleBlockComment).  A text that isn't
 //editable can still be navigated, selected and copied from.  A single line text (SetSingleLine) gets no line feeds:
 //enters do nothing, line breaks pasted become spaces, and cutting with nothing selected cuts nothing.
 //
@@ -177,6 +183,10 @@ protected:
 	bool				mbBox;  //A box is selected (see BoxSelect).
 	STextBox			msBox;  //Its corners, while mbBox.
 	bool				mbBoxEditing;  //The box's own edit is changing the document: it doesn't end the box.
+	bool				mbBraceIndent;  //Enter and "}" indent by the braces round them, as code is.
+	const char*			mszLineComment;  //What comments a line out ("//"); NULL for a text with no comments.  Not held.
+	const char*			mszBlockOpen;  //What a comment in a line starts with ("/*") and ends with; NULL for none.  Not held.
+	const char*			mszBlockClose;
 
 public:
 	void		Init(CTextDocument* pcDocument, CTextEditingView* pcView);
@@ -189,6 +199,9 @@ public:
 	size		GetTabWidth(void) const;
 	void		SetSingleLine(bool bSingleLine);
 	bool		IsSingleLine(void) const;
+	void		SetBraceIndent(bool bBraceIndent);
+	bool		IsBraceIndent(void) const;
+	void		SetComments(const char* szLine, const char* szBlockOpen, const char* szBlockClose);
 	CTextNavigation*	GetNavigation(void) const;
 	CTextEditingView*	GetView(void) const;
 
@@ -267,6 +280,9 @@ public:
 	void		DeleteWordRemainingLeft(void);
 	void		DeleteLine(void);
 	void		Duplicate(void);
+	void		MoveLines(bool bDown);
+	void		ToggleLineComment(void);
+	void		ToggleBlockComment(void);
 	void		Cut(CChars* pszDest);
 	void		CutLine(CChars* pszDest);
 	void		Copy(CChars* pszDest);
@@ -317,6 +333,11 @@ protected:
 	void		FindLines(size uiStart, size uiEnd, CArrayTextLineStart* pauiLineStarts);
 	void		IndentLines(size uiStart, size uiEnd);
 	void		OutdentLines(size uiStart, size uiEnd);
+	void		AppendIndent(size uiPosition, CChars* pszDest);
+	bool		IsBraceBefore(size uiPosition);
+	void		AlignClosingBrace(void);
+	void		FindLinesSelected(size* puiStart, size* puiEnd);
+	void		KeepSelectionStart(size uiStart, bool bAnchorFirst);
 
 	void		BeginEdit(void);
 	bool		BeginEditIfEditable(void);

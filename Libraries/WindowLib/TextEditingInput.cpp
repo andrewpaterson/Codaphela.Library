@@ -146,6 +146,10 @@ void CTextEditingInput::AddActions(CComponent* pcComponent, CTextEditing* pcEdit
 	pcComponent->AddInputAction(CIC_EndEnter, this, &CTextEditingInput::EndEnterAction);
 	pcComponent->AddInputAction(CIC_Duplicate, pcEditing, &CTextEditing::Duplicate);
 	pcComponent->AddInputAction(CIC_DeleteLine, pcEditing, &CTextEditing::DeleteLine);
+	pcComponent->AddInputAction(CIC_MoveLinesUp, this, &CTextEditingInput::MoveLinesUpAction);
+	pcComponent->AddInputAction(CIC_MoveLinesDown, this, &CTextEditingInput::MoveLinesDownAction);
+	pcComponent->AddInputAction(CIC_CommentLines, pcEditing, &CTextEditing::ToggleLineComment);
+	pcComponent->AddInputAction(CIC_CommentBlock, pcEditing, &CTextEditing::ToggleBlockComment);
 }
 
 
@@ -249,6 +253,15 @@ void CTextEditingInput::EndEnterAction(void) { if (mpcEnterPresser != NULL) { mp
 void CTextEditingInput::SetEnterPresser(CTextEnterPresser* pcPresser) { mpcEnterPresser = pcPresser; }
 void CTextEditingInput::SetLinkPresser(CTextLinkPresser* pcPresser) { mpcLinkPresser = pcPresser; }
 void CTextEditingInput::SetDoubleClickPresser(CTextDoubleClickPresser* pcPresser) { mpcDoubleClickPresser = pcPresser; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Move Line Up and Move Line Down (Control+Shift+Up and Down).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditingInput::MoveLinesUpAction(void) { mpcEditing->MoveLines(false); }
+void CTextEditingInput::MoveLinesDownAction(void) { mpcEditing->MoveLines(true); }
 
 
 //////////////////////////////////////////////////////////////////////////

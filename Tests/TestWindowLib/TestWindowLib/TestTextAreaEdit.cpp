@@ -355,27 +355,27 @@ void TestTextAreaEditModification(void)
 		pTextArea->GetEditing()->Printable('Y', false);
 		AssertString("abcXY", pTextArea->GetText());
 
-		//Tab inserts spaces to the next stop.
+		//Tab types a tab.
 		pTextArea->GetEditing()->Enter();
 		AssertString("abcXY\n", pTextArea->GetText());
 		pTextArea->GetEditing()->Tab(true);
 		pTextArea->GetEditing()->Printable('y', true);
 		pTextArea->GetEditing()->Tab(true);
-		AssertString("abcXY\n    y   ", pTextArea->GetText());
-		AssertSize(14, pTextArea->GetCaretPosition());
+		AssertString("abcXY\n\ty\t", pTextArea->GetText());
+		AssertSize(9, pTextArea->GetCaretPosition());
 
 		//Tab indents the lines of a selection over more than one, and back tab removes it.
 		pTextArea->SetText("one\ntwo\nthree");
 		pTextArea->Select(0, 6);
 		pTextArea->GetEditing()->Tab(true);
-		AssertString("    one\n    two\nthree", pTextArea->GetText());
-		AssertTextAreaSelection(0, 14, pTextArea);
+		AssertString("\tone\n\ttwo\nthree", pTextArea->GetText());
+		AssertTextAreaSelection(0, 8, pTextArea);
 		pTextArea->GetEditing()->BackTab();
 		AssertString("one\ntwo\nthree", pTextArea->GetText());
 		AssertTextAreaSelection(0, 6, pTextArea);
 		pTextArea->Select(4, 8);
 		pTextArea->GetEditing()->Tab(true);
-		AssertString("one\n    two\nthree", pTextArea->GetText());
+		AssertString("one\n\ttwo\nthree", pTextArea->GetText());
 		pTextArea->SetCaretPosition(5);
 		pTextArea->GetEditing()->BackTab();
 		AssertString("one\ntwo\nthree", pTextArea->GetText());
@@ -1139,7 +1139,7 @@ void TestTextAreaEditLineGaps(void)
 		//Indenting lines (no line feeds) moves no gaps.
 		pTextArea->SelectAll();
 		pTextArea->GetEditing()->Tab(true);
-		AssertString("    a\n    d", pTextArea->GetText());
+		AssertString("\ta\n\td", pTextArea->GetText());
 		AssertTextAreaLineStarts(pTextArea);
 		AssertInt(5, pTextArea->GetLineGap(0));
 		AssertInt(8, pTextArea->GetLineGap(1));

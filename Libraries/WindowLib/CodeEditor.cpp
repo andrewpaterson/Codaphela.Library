@@ -59,6 +59,7 @@ void CCodeEditor::Init(Ptr<CWindow> pWindow, Ptr<CWindowTheme> pTheme, Ptr<CFont
 	mpTextArea = OMalloc<CTextArea>(pWindow, pTheme, pFamily, szText);
 	mpTextArea->SetAlignment(CSH_Left, CSV_Top);
 	mpTextArea->GetChangeEvent()->Add(this, &CCodeEditor::CodeChanged);
+	mpTextArea->SetCode(true, "//", "/*", "*/");  //C and C++ unless whoever made it says otherwise (GetTextArea).
 
 	//The gutter is only to read: a press in it passes to the code editor.
 	mpGutter = OMalloc<CTextArea>(pWindow, pTheme, pFamily, "");

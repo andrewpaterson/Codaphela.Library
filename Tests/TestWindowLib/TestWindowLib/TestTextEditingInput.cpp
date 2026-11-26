@@ -148,6 +148,8 @@ void TestTextEditingInputSingleLine(void)
 	AssertFalse(s.Command(CIC_PageDown));
 	AssertFalse(s.Command(CIC_Duplicate));
 	AssertFalse(s.Command(CIC_DeleteLine));
+	AssertFalse(s.Command(CIC_MoveLinesDown));
+	AssertFalse(s.Command(CIC_CommentLines));
 	AssertString("xab", s.Text());
 
 	//Copied all, pasted at the end.
@@ -190,7 +192,7 @@ void TestTextEditingInputMultiLine(void)
 	AssertTrue(s.Command(CIC_Down));
 	AssertSize(3, s.Caret());
 	AssertTrue(s.Command(CIC_Tab));
-	AssertString("ab\n    cd", s.Text());
+	AssertString("ab\n\tcd", s.Text());
 	AssertTrue(s.Command(CIC_BackTab));
 	AssertString("ab\ncd", s.Text());
 	AssertTrue(s.Command(CIC_Enter));
@@ -200,6 +202,24 @@ void TestTextEditingInputMultiLine(void)
 	AssertString("ab\ncd", s.Text());
 	AssertTrue(s.Command(CIC_Duplicate));
 	AssertString("ab\ncd\ncd", s.Text());
+
+	//Move Line Up and Down; the comment commands, once the text has comment marks.
+	AssertTrue(s.Command(CIC_MoveLinesUp));
+	AssertTrue(s.Command(CIC_MoveLinesUp));
+	AssertString("cd\nab\ncd", s.Text());
+	AssertTrue(s.Command(CIC_MoveLinesDown));
+	AssertString("ab\ncd\ncd", s.Text());
+	s.cEditing.SetComments("//", "/*", "*/");
+	AssertTrue(s.Command(CIC_CommentLines));
+	AssertString("ab\n//cd\ncd", s.Text());
+	AssertTrue(s.Command(CIC_Up));
+	AssertTrue(s.Command(CIC_CommentLines));
+	AssertString("ab\ncd\ncd", s.Text());
+	AssertTrue(s.Command(CIC_SelectLeft));
+	AssertTrue(s.Command(CIC_CommentBlock));
+	AssertTrue(s.Command(CIC_CommentBlock));
+	AssertString("ab\ncd\ncd", s.Text());
+	s.cEditing.SetComments(NULL, NULL, NULL);
 	AssertTrue(s.Command(CIC_Up));
 	AssertTrue(s.Command(CIC_SelectDown));
 	AssertTrue(s.cEditing.IsSelected());

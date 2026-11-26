@@ -92,6 +92,10 @@ static SComponentInputChordRow	gasKeyboardChordRows[] =
 	{ true,  false, false, "Z",			CIC_Undo,						CIC_Ignored },
 	{ true,  true,  false, "Z",			CIC_Redo,						CIC_Ignored },
 	{ true,  false, false, "Y",			CIC_DeleteLine,					CIC_Ignored },
+	{ true,  true,  false, "Cursor Up",	CIC_MoveLinesUp,				CIC_Ignored },
+	{ true,  true,  false, "Cursor Down",	CIC_MoveLinesDown,				CIC_Ignored },
+	{ true,  false, false, "/",			CIC_CommentLines,				CIC_Ignored },
+	{ true,  true,  false, "/",			CIC_CommentBlock,				CIC_Ignored },
 	{ false, true,  false, "F7",			CIC_PreviousDifference,			CIC_Ignored },
 	{ false, true,  false, "F10",			CIC_ContextMenuKey,				CIC_Ignored },
 	{ true,  false, false, "F4",			CIC_CloseDocument,				CIC_Ignored },
@@ -1041,6 +1045,8 @@ bool CComponentInput::IsRepeatCommand(EComponentInputCommand eCommand)
 	case CIC_DeleteWordRemainingLeft:
 	case CIC_DeleteWordRemainingRight:
 	case CIC_DeleteLine:
+	case CIC_MoveLinesUp:
+	case CIC_MoveLinesDown:
 	case CIC_Undo:
 	case CIC_Redo:
 	case CIC_NextDifference:

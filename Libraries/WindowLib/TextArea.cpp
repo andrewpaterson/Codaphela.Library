@@ -776,6 +776,20 @@ void CTextArea::SetSelectable(bool bSelectable)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// A text that is code: Enter and "}" indent by the braces round them, and
+// its lines and selections are commented with the marks given (NULL for
+// what it hasn't), as CTextEditing::SetBraceIndent and SetComments say.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextArea::SetCode(bool bBraceIndent, const char* szLineComment, const char* szBlockOpen, const char* szBlockClose)
+{
+	mcEditing.SetBraceIndent(bBraceIndent);
+	mcEditing.SetComments(szLineComment, szBlockOpen, szBlockClose);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // How many spaces apart the tab stops are.
 //
 //////////////////////////////////////////////////////////////////////////

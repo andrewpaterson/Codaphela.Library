@@ -41,6 +41,10 @@ void CTextEditing::Init(CTextDocument* pcDocument, CTextEditingView* pcView)
 	muiTabWidth = 4;
 	mbEditable = true;
 	mbSingleLine = false;
+	mbBraceIndent = false;
+	mszLineComment = NULL;
+	mszBlockOpen = NULL;
+	mszBlockClose = NULL;
 	mbEdited = false;
 	mpcSelectionRanges = NULL;
 	masShrinks.Init();
@@ -105,6 +109,31 @@ void CTextEditing::SetEditable(bool bEditable)
 void CTextEditing::SetTabWidth(size uiTabWidth)
 {
 	muiTabWidth = (uiTabWidth < 1) ? 1 : uiTabWidth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// Code: Enter and a "}" indent by the braces round them (Enter, EndEnter,
+// AlignClosingBrace).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::SetBraceIndent(bool bBraceIndent) { mbBraceIndent = bBraceIndent; }
+bool CTextEditing::IsBraceIndent(void) const { return mbBraceIndent; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What the text's comments are written with: what comments a line out
+// ("//"), and what a comment in a line starts and ends with ("/*" and
+// "*/").  NULL for what it hasn't.  They aren't copied: literals.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::SetComments(const char* szLine, const char* szBlockOpen, const char* szBlockClose)
+{
+	mszLineComment = szLine;
+	mszBlockOpen = szBlockOpen;
+	mszBlockClose = szBlockClose;
 }
 
 
@@ -1281,34 +1310,61 @@ void CTextEditing::Printable(char c, bool bInsert)
 		RemoveText(muiCaret, mpcNavigation->NextPosition(muiCaret));
 	}
 	ReplaceSelection(sz);
+	if ((c == '}') && mbBraceIndent)
+	{
+		AlignClosingBrace();
+	}
 	EditDone();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Spaces to the next tab stop replace the selection, or are inserted.  A
-// selection over more than one line has its lines indented instead.
-// bInsert is ignored, tabs never overwrite.
+// In code, a "}" has just been typed before the caret: if it is the
+// first thing on its line, the line's indent becomes that of the line
+// the "{" it closes is on.  One that closes nothing is left where it is.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::AlignClosingBrace(void)
+{
+	CChars	szIndent;
+	size	uiClose;
+	size	uiOpen;
+	size	uiLineStart;
+
+	uiClose = muiCaret - 1;
+	uiLineStart = mpcNavigation->FindLineStart(uiClose);
+	if ((mpcNavigation->FindLineIndent(uiLineStart) != uiClose) || !mpcNavigation->FindOpeningBracket(uiClose, &uiOpen))
+	{
+		return;
+	}
+	szIndent.Init();
+	AppendIndent(mpcNavigation->FindLineEnd(uiOpen), &szIndent);
+	if (!szIndent.Equals(&mpcDocument->Text()[uiLineStart], uiClose - uiLineStart))
+	{
+		RemoveText(uiLineStart, uiClose);
+		InsertText(uiLineStart, szIndent.Text());
+		muiCaret = uiLineStart + szIndent.Length() + 1;
+	}
+	szIndent.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A tab replaces the selection, or is inserted; in a box, on each of its
+// rows.  A selection over more than one line has its lines indented
+// instead.  bInsert is ignored, tabs never overwrite.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Tab(bool bInsert)
 {
 	size	uiStart;
 	size	uiEnd;
-	bool	bRowEnd;
-	size	uiColumns;
-	CChars	szSpaces;
 
 	if (mbBox)
 	{
-		//To the next tab stop from the box's left edge on its caret row.
-		uiStart = mpcView->FindPositionInRow(msBox.uiCaretRow, msBox.Left(), &bRowEnd);
-		uiColumns = mpcNavigation->CountColumns(mpcNavigation->FindLineStart(uiStart), uiStart);
-		szSpaces.Init();
-		szSpaces.Append(' ', muiTabWidth - (uiColumns % muiTabWidth));
-		TypeInBox(szSpaces.Text());
-		szSpaces.Kill();
+		TypeInBox("\t");
 		return;
 	}
 	if (!BeginEditIfEditable())
@@ -1323,11 +1379,7 @@ void CTextEditing::Tab(bool bInsert)
 	}
 	else
 	{
-		uiColumns = mpcNavigation->CountColumns(mpcNavigation->FindLineStart(uiStart), uiStart);
-		szSpaces.Init();
-		szSpaces.Append(' ', muiTabWidth - (uiColumns % muiTabWidth));
-		ReplaceSelection(szSpaces.Text());
-		szSpaces.Kill();
+		ReplaceSelection("\t");
 	}
 	EditDone();
 }
@@ -1335,7 +1387,7 @@ void CTextEditing::Tab(bool bInsert)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Removes a tab's worth of spaces, or a tab, from the start of the lines
+// Removes a tab, or a tab's worth of spaces, from the start of the lines
 // the selection is over, or the caret's line.
 //
 //////////////////////////////////////////////////////////////////////////
@@ -1358,30 +1410,116 @@ void CTextEditing::BackTab(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A line feed replaces the selection, or is inserted.  Not in a single
-// line text, nor are the other enters.
+// The spaces and tabs the line uiPosition is on starts with, as far as
+// uiPosition, appended: what a line started from there is indented by.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::AppendIndent(size uiPosition, CChars* pszDest)
+{
+	size	uiLineStart;
+	size	uiIndent;
+
+	uiLineStart = mpcNavigation->FindLineStart(uiPosition);
+	uiIndent = mpcNavigation->FindLineIndent(uiLineStart);
+	if (uiIndent > uiPosition)
+	{
+		uiIndent = uiPosition;
+	}
+	pszDest->AppendSubString(mpcDocument->Text(), uiLineStart, uiIndent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// In code: whether the last thing before uiPosition on its line, spaces
+// and tabs aside, is a "{", so that what follows it is a level deeper.
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextEditing::IsBraceBefore(size uiPosition)
+{
+	const char*	szText;
+	size		uiLineStart;
+
+	if (!mbBraceIndent)
+	{
+		return false;
+	}
+	szText = mpcDocument->Text();
+	uiLineStart = mpcNavigation->FindLineStart(uiPosition);
+	while ((uiPosition > uiLineStart) && CTextNavigation::IsSpaceOrTab(szText[uiPosition - 1]))
+	{
+		uiPosition--;
+	}
+	return (uiPosition > uiLineStart) && (szText[uiPosition - 1] == '{');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A line feed replaces the selection, or is inserted, and the new line
+// starts with the indent of the line it was typed on.  In code, a tab
+// more after a "{"; and between a "{" and the "}" that follows it the "}"
+// goes on a line of its own after the new one, under its "{"'s line.  Not
+// in a single line text, nor are the other enters.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::Enter(void)
 {
+	const char*	szText;
+	CChars		szLine;
+	CChars		szIndent;
+	size		uiStart;
+	size		uiEnd;
+	size		uiCaret;
+	bool		bBrace;
+
 	if (mbSingleLine || !BeginEditIfEditable())
 	{
 		return;
 	}
 	EndBox();
 
-	ReplaceSelection("\n");
+	GetSelection(&uiStart, &uiEnd);
+	szIndent.Init();
+	AppendIndent(uiStart, &szIndent);
+	szLine.Init("\n");
+	szLine.Append(szIndent);
+	bBrace = IsBraceBefore(uiStart);
+	if (bBrace)
+	{
+		szLine.Append('\t');
+	}
+	szText = mpcDocument->Text();
+	while (CTextNavigation::IsSpaceOrTab(szText[uiEnd]))
+	{
+		uiEnd++;
+	}
+	bBrace = bBrace && (szText[uiEnd] == '}');
+
+	ReplaceSelection(szLine.Text());
+	if (bBrace)
+	{
+		uiCaret = muiCaret;
+		szLine.Set("\n");
+		szLine.Append(szIndent);
+		InsertText(uiCaret, szLine.Text());
+		muiCaret = uiCaret;
+	}
+	szLine.Kill();
+	szIndent.Kill();
 	EditDone();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts a new line before the caret's line, and the caret goes to it.
+// Starts a new line before the caret's line, with that line's indent,
+// and the caret goes to it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::HomeEnter(void)
 {
+	CChars	szLine;
 	size	uiLineStart;
 
 	if (mbSingleLine || !BeginEditIfEditable())
@@ -1392,19 +1530,26 @@ void CTextEditing::HomeEnter(void)
 
 	muiAnchor = MAX_SIZE;
 	uiLineStart = mpcNavigation->FindLineStart(muiCaret);
-	InsertText(uiLineStart, "\n");
-	muiCaret = uiLineStart;
+	szLine.Init();
+	AppendIndent(mpcNavigation->FindLineEnd(uiLineStart), &szLine);
+	szLine.Append('\n');
+	InsertText(uiLineStart, szLine.Text());
+	muiCaret = uiLineStart + szLine.Length() - 1;
+	szLine.Kill();
 	EditDone();
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Starts a new line after the caret's line, and the caret goes to it.
+// Starts a new line after the caret's line, with that line's indent (in
+// code, a tab more after a "{"), and the caret goes to it.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::EndEnter(void)
 {
+	CChars	szLine;
+
 	if (mbSingleLine || !BeginEditIfEditable())
 	{
 		return;
@@ -1413,7 +1558,14 @@ void CTextEditing::EndEnter(void)
 
 	muiAnchor = MAX_SIZE;
 	muiCaret = mpcNavigation->FindLineEnd(muiCaret);
-	InsertText(muiCaret, "\n");
+	szLine.Init("\n");
+	AppendIndent(muiCaret, &szLine);
+	if (IsBraceBefore(muiCaret))
+	{
+		szLine.Append('\t');
+	}
+	InsertText(muiCaret, szLine.Text());
+	szLine.Kill();
 	EditDone();
 }
 
@@ -1524,7 +1676,6 @@ void CTextEditing::DeleteLine(void)
 	size	uiStart;
 	size	uiEnd;
 	size	uiColumn;
-	bool	bSelected;
 
 	SelectBoxLines();
 	if (!BeginEditIfEditable())
@@ -1533,14 +1684,7 @@ void CTextEditing::DeleteLine(void)
 	}
 
 	uiColumn = mpcNavigation->CountColumns(mpcNavigation->FindLineStart(muiCaret), muiCaret);
-	bSelected = GetSelection(&uiStart, &uiEnd);
-	uiStart = mpcNavigation->FindLineStart(uiStart);
-	if (bSelected && (uiEnd > uiStart) && (mpcNavigation->FindLineStart(uiEnd) == uiEnd))
-	{
-		//A selection that ends at the start of a line doesn't take that line.
-		uiEnd = mpcNavigation->PreviousPosition(uiEnd);
-	}
-	uiEnd = mpcNavigation->FindLineEnd(uiEnd);
+	FindLinesSelected(&uiStart, &uiEnd);
 	if (uiEnd < mpcDocument->Length())
 	{
 		uiEnd = mpcNavigation->NextPosition(uiEnd);
@@ -2120,46 +2264,302 @@ void CTextEditing::FindLines(size uiStart, size uiEnd, CArrayTextLineStart* paui
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Inserts a tab's worth of spaces at the start of each line from
-// uiStart's to uiEnd's (FindLines).  A selection that started at the
+// Inserts a tab at the start of each line from uiStart's to uiEnd's
+// (FindLines) that has anything on it.  A selection that started at the
 // start of a line still does.
 //
 //////////////////////////////////////////////////////////////////////////
 void CTextEditing::IndentLines(size uiStart, size uiEnd)
 {
 	CArrayTextLineStart	auiLineStarts;
+	size				uiLine;
 	size				i;
-	CChars				szSpaces;
 	bool				bAnchorFirst;
 	bool				bAtLineStart;
 
 	auiLineStarts.Init();
 	FindLines(uiStart, uiEnd, &auiLineStarts);
 	bAtLineStart = (*auiLineStarts.Get(0) == uiStart);
-
-	szSpaces.Init();
-	szSpaces.Append(' ', muiTabWidth);
 	bAnchorFirst = (muiAnchor != MAX_SIZE) && (muiAnchor < muiCaret);
 	i = auiLineStarts.NumElements();
 	while (i > 0)
 	{
 		i--;
-		InsertText(*auiLineStarts.Get(i), szSpaces.Text());
+		uiLine = *auiLineStarts.Get(i);
+		if (mpcNavigation->FindLineEnd(uiLine) > uiLine)
+		{
+			InsertText(uiLine, "\t");
+		}
 	}
-	szSpaces.Kill();
 	auiLineStarts.Kill();
 
 	if (bAtLineStart)
 	{
-		if (bAnchorFirst)
+		KeepSelectionStart(uiStart, bAnchorFirst);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// What was put in at the start of the selection's first line pushed the
+// selection's start along with it: it is put back at uiStart, the anchor
+// if that was first (bAnchorFirst, as it was before the edit), else the
+// caret.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::KeepSelectionStart(size uiStart, bool bAnchorFirst)
+{
+	if (bAnchorFirst)
+	{
+		muiAnchor = uiStart;
+	}
+	else if (muiAnchor != MAX_SIZE)
+	{
+		muiCaret = uiStart;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The whole lines the selection is over, or the caret's line: from the
+// first's start to the last's end, before its line feed.  A selection
+// that ends at the start of a line doesn't take that line.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::FindLinesSelected(size* puiStart, size* puiEnd)
+{
+	size	uiStart;
+	size	uiEnd;
+	bool	bSelected;
+
+	bSelected = GetSelection(&uiStart, &uiEnd);
+	uiStart = mpcNavigation->FindLineStart(uiStart);
+	if (bSelected && (uiEnd > uiStart) && (mpcNavigation->FindLineStart(uiEnd) == uiEnd))
+	{
+		uiEnd = mpcNavigation->PreviousPosition(uiEnd);
+	}
+	*puiStart = uiStart;
+	*puiEnd = mpcNavigation->FindLineEnd(uiEnd);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selected lines, or the caret's line, change places with the line
+// after them (bDown) or before them, and the caret and the selection go
+// with them.  Nothing moves past the text's ends, nor in a single line
+// text.
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::MoveLines(bool bDown)
+{
+	CChars	szMoved;
+	CChars	szBreak;
+	size	uiStart;
+	size	uiEnd;
+	size	uiOtherStart;
+	size	uiOtherEnd;
+	size	uiCaret;
+	size	uiAnchor;
+	size	uiShift;
+
+	SelectBoxLines();
+	if (mbSingleLine || !BeginEditIfEditable())
+	{
+		return;
+	}
+	FindLinesSelected(&uiStart, &uiEnd);
+	if (bDown ? (uiEnd >= mpcDocument->Length()) : (uiStart == 0))
+	{
+		EditDone();
+		return;
+	}
+
+	//The line beside them, and what parts it from them: it is taken out and put back on their other side.
+	uiCaret = muiCaret;
+	uiAnchor = muiAnchor;
+	szMoved.Init();
+	szBreak.Init();
+	if (bDown)
+	{
+		uiOtherStart = mpcNavigation->NextPosition(uiEnd);
+		uiOtherEnd = mpcNavigation->FindLineEnd(uiOtherStart);
+		szBreak.AppendSubString(mpcDocument->Text(), uiEnd, uiOtherStart);
+		szMoved.AppendSubString(mpcDocument->Text(), uiOtherStart, uiOtherEnd);
+		szMoved.Append(szBreak);
+		RemoveText(uiEnd, uiOtherEnd);
+		InsertText(uiStart, szMoved.Text());
+		uiShift = szMoved.Length();
+		muiCaret = uiCaret + uiShift;
+		muiAnchor = (uiAnchor == MAX_SIZE) ? MAX_SIZE : uiAnchor + uiShift;
+	}
+	else
+	{
+		uiOtherEnd = mpcNavigation->PreviousPosition(uiStart);
+		uiOtherStart = mpcNavigation->FindLineStart(uiOtherEnd);
+		szBreak.AppendSubString(mpcDocument->Text(), uiOtherEnd, uiStart);
+		szMoved.Append(szBreak);
+		szMoved.AppendSubString(mpcDocument->Text(), uiOtherStart, uiOtherEnd);
+		InsertText(uiEnd, szMoved.Text());
+		RemoveText(uiOtherStart, uiStart);
+		uiShift = uiStart - uiOtherStart;
+		muiCaret = uiCaret - uiShift;
+		muiAnchor = (uiAnchor == MAX_SIZE) ? MAX_SIZE : uiAnchor - uiShift;
+	}
+	szBreak.Kill();
+	szMoved.Kill();
+	EditDone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selected lines, or the caret's line, are commented out with the
+// text's line mark at their starts; or, if every one of them that has
+// anything on it starts with the mark already (after its indent), the
+// marks are taken off.  Lines with nothing on them are left.  With
+// nothing selected the caret goes down a line, for the next.  Nothing in
+// a text without a line mark (SetComments).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::ToggleLineComment(void)
+{
+	CArrayTextLineStart	auiLineStarts;
+	const char*			szText;
+	size				uiMark;
+	size				uiStart;
+	size				uiEnd;
+	size				uiLine;
+	size				uiIndent;
+	size				uiColumn;
+	size				i;
+	bool				bCommented;
+	bool				bSelected;
+	bool				bAnchorFirst;
+	bool				bAtLineStart;
+
+	if (mszLineComment == NULL)
+	{
+		return;
+	}
+	SelectBoxLines();
+	if (!BeginEditIfEditable())
+	{
+		return;
+	}
+	uiMark = (size)strlen(mszLineComment);
+	bSelected = GetSelection(&uiStart, &uiEnd);
+	auiLineStarts.Init();
+	FindLines(uiStart, uiEnd, &auiLineStarts);
+	bAtLineStart = (*auiLineStarts.Get(0) == uiStart);
+	bAnchorFirst = (muiAnchor != MAX_SIZE) && (muiAnchor < muiCaret);
+	uiColumn = mpcNavigation->CountColumns(mpcNavigation->FindLineStart(muiCaret), muiCaret);
+
+	szText = mpcDocument->Text();
+	bCommented = true;
+	for (i = 0; bCommented && (i < auiLineStarts.NumElements()); i++)
+	{
+		uiLine = *auiLineStarts.Get(i);
+		uiIndent = mpcNavigation->FindLineIndent(uiLine);
+		bCommented = (uiIndent == mpcNavigation->FindLineEnd(uiLine)) || (memcmp(&szText[uiIndent], mszLineComment, uiMark) == 0);
+	}
+
+	i = auiLineStarts.NumElements();
+	while (i > 0)
+	{
+		i--;
+		uiLine = *auiLineStarts.Get(i);
+		uiIndent = mpcNavigation->FindLineIndent(uiLine);
+		if (uiIndent == mpcNavigation->FindLineEnd(uiLine))
 		{
-			muiAnchor = uiStart;
+			continue;
 		}
-		else if (muiAnchor != MAX_SIZE)
+		if (bCommented)
 		{
-			muiCaret = uiStart;
+			RemoveText(uiIndent, uiIndent + uiMark);
+		}
+		else
+		{
+			InsertText(uiLine, mszLineComment);
 		}
 	}
+	auiLineStarts.Kill();
+
+	if (!bSelected)
+	{
+		//To the same column of the next line, if there is one.
+		uiLine = mpcNavigation->FindLineEnd(muiCaret);
+		if (uiLine < mpcDocument->Length())
+		{
+			muiCaret = mpcNavigation->FindColumn(mpcNavigation->NextPosition(uiLine), uiColumn);
+		}
+	}
+	else if (bAtLineStart && !bCommented)
+	{
+		KeepSelectionStart(uiStart, bAnchorFirst);
+	}
+	EditDone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The selection is made a comment with the text's block marks round it;
+// or, if it has them round it already, they are taken off.  It stays
+// selected.  With nothing selected the marks are put in at the caret,
+// which goes between them.  Nothing in a text without block marks
+// (SetComments).
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextEditing::ToggleBlockComment(void)
+{
+	const char*	szText;
+	size		uiOpen;
+	size		uiClose;
+	size		uiStart;
+	size		uiEnd;
+	bool		bAnchorFirst;
+
+	if ((mszBlockOpen == NULL) || (mszBlockClose == NULL))
+	{
+		return;
+	}
+	if (!BeginEditIfEditable())
+	{
+		return;
+	}
+	EndBox();
+	uiOpen = (size)strlen(mszBlockOpen);
+	uiClose = (size)strlen(mszBlockClose);
+	if (!GetSelection(&uiStart, &uiEnd))
+	{
+		InsertText(muiCaret, mszBlockOpen);
+		uiStart = muiCaret;
+		InsertText(uiStart, mszBlockClose);
+		muiCaret = uiStart;
+		EditDone();
+		return;
+	}
+
+	bAnchorFirst = muiAnchor < muiCaret;
+	szText = mpcDocument->Text();
+	if ((uiEnd - uiStart >= uiOpen + uiClose) && (memcmp(&szText[uiStart], mszBlockOpen, uiOpen) == 0) && (memcmp(&szText[uiEnd - uiClose], mszBlockClose, uiClose) == 0))
+	{
+		RemoveText(uiEnd - uiClose, uiEnd);
+		RemoveText(uiStart, uiStart + uiOpen);
+		uiEnd -= uiOpen + uiClose;
+	}
+	else
+	{
+		InsertText(uiEnd, mszBlockClose);
+		InsertText(uiStart, mszBlockOpen);
+		uiEnd += uiOpen + uiClose;
+	}
+	muiAnchor = bAnchorFirst ? uiStart : uiEnd;
+	muiCaret = bAnchorFirst ? uiEnd : uiStart;
+	EditDone();
 }
 
 

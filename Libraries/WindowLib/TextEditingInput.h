@@ -145,6 +145,8 @@ public:
 	void	RedoAction(void);
 	void	EnterAction(void);
 	void	EndEnterAction(void);
+	void	MoveLinesUpAction(void);
+	void	MoveLinesDownAction(void);
 	void	CutToClipboard(void);
 	void	CopyToClipboard(void);
 	void	PasteFromClipboard(void);
