@@ -12,7 +12,7 @@ platform, and one, WinRefLib, that is no platform at all but a screen in memory 
 | [`CWinRefWindowFactory`] | WinRefLib | [`CWinRefInput`], whose devices are never pressed | Windows on a reference screen in memory: TestWindowLib and the applications' scripted checks. |
 
 An application picks one in its `main` and hands it to the same code.  The HCP65 IDE has three mains,
-[`HCP65IDE/HCP65IDE.cpp`] (Windows), [`HCP65IDE/HCP65IDELinux.cpp`] (X11) and [`HCP65IDE/HCP65IDERef.cpp`] (the
+[`HCP65IDE/HCP65IDE_Windows.cpp`] (Windows), [`HCP65IDE/HCP65IDE_Linux.cpp`] (X11) and [`HCP65IDE/HCP65IDERef.cpp`] (the
 reference screen, which its checks run), each making its factory and native input and calling the one [`RunIDE`].  The
 HCP65 emulator is built the same way.
 
