@@ -117,6 +117,7 @@ target_compile_definitions(baselib_options INTERFACE
 # file on a Windows drive under WSL (/mnt/d) has, so files there would seem not to exist.
 # -fno-strict-aliasing: MSVC never optimises on the strict aliasing rule and the
 # code relies on that (e.g. (CUnknown**)&pcTyped), so optimised builds break without it.
+# -fno-exceptions: /EHs-c-, as the Visual Studio configurations have it.  Nothing built here throws or catches.
 # -Wno-ignored-attributes: g++ drops ALIGN_64 when int64/uint64/float64 is a
 # template argument.  Templates that store such a type by value use MSVC_ALIGN
 # instead (see PrimitiveTypes.h), so the warning only reports the drop.
@@ -132,7 +133,7 @@ if(BASELIB_64)
 else()
 	set(BASELIB_ARCH_OPTIONS -m32 -msse2 -mfpmath=sse -D_FILE_OFFSET_BITS=64)
 endif()
-target_compile_options(baselib_options INTERFACE ${BASELIB_ARCH_OPTIONS} -fno-strict-aliasing -Wall -Wextra -Wno-ignored-attributes -Wno-write-strings -Wno-multichar -Wno-class-memaccess -Wno-overloaded-virtual -Wno-comment -Wno-unused-parameter)
+target_compile_options(baselib_options INTERFACE ${BASELIB_ARCH_OPTIONS} -fno-strict-aliasing -fno-exceptions -Wall -Wextra -Wno-ignored-attributes -Wno-write-strings -Wno-multichar -Wno-class-memaccess -Wno-overloaded-virtual -Wno-comment -Wno-unused-parameter)
 target_link_options(baselib_options INTERFACE $<IF:$<BOOL:${BASELIB_64}>,-m64,-m32>)
 # The Visual Studio configurations all use /arch:AVX2, which lets MSVC use AVX2, FMA, BMI, LZCNT and POPCNT
 # instructions and defines __AVX2__ (PNGWriter.cpp has an AVX2 path).  -march=haswell is the same set.  Floating
