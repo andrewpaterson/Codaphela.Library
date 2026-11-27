@@ -63,6 +63,7 @@ def read_sheet(path, values):
 		for configuration in CONFIGURATIONS:
 			if is_for(m.group(3), configuration):
 				for name, attributes, value in settings:
+					value = value.replace("$(MSBuildThisFileDirectory)", here)
 					if is_for(attributes, configuration):
 						own = LISTS.get(name) or ("%(" + name.split(".")[-1] + ")" if "." in name else "$(" + name + ")")
 						old = values[configuration].get(name)
@@ -71,6 +72,16 @@ def read_sheet(path, values):
 
 def parts(value, own):
 	return [p.strip() for p in value.split(";") if p.strip() and p.strip() != own]
+
+
+def expand(value, properties):
+	"""A sheet's value with the sheet's own properties ($(CommonLibrariesDir)) put in."""
+	for _ in range(8):
+		m = re.search(r"\$\((\w+)\)", value)
+		if not m or m.group(1) not in properties:
+			break
+		value = value.replace(m.group(0), properties[m.group(1)])
+	return value
 
 
 def directory(part, project_directory):
@@ -93,7 +104,7 @@ def reduce_setting(name, value, configuration, sheet, project_directory, sheet_d
 		theirs = parts(given, own)
 		mine = parts(value, own)
 		if name == "IncludePath":
-			theirs = [directory(p.replace("$(CommonLibrariesDir)", sheet_directory + os.sep), sheet_directory) for p in theirs]
+			theirs = [directory(expand(p, sheet[configuration]), sheet_directory) for p in theirs]
 			extra = [p for p in mine if directory(p, project_directory) not in theirs]
 		else:
 			extra = [p for p in mine if p not in theirs and not (name.endswith("PreprocessorDefinitions") and

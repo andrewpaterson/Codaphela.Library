@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Gives Visual Studio solutions their GCC-x64 configurations (HCP65-IDE's ConfigurationsPlan.txt, The solution's rows).
+
+    python3 solution_rows.py [--write] [--add <project.vcxproj>]... <solution.sln>...
+
+For Debug and Release, where a solution has them on x64 (another name, HCP65IDE's Reference, is the plan's C13), it adds the solution configuration <name>|GCC-x64
+and a row for each project: mapped to what the project's <name>|x64 row maps to, and built if that row is built,
+unless the project is one only Windows builds.  A project only Linux builds has a row for every configuration and is
+built in GCC-x64's alone.  --add puts such a project (X11Lib) into the solutions that haven't it.
+
+The HCP65 IDE builds what the rows say (Visual Studio shows GCC-x64 in its configuration boxes; choosing it there
+builds the ticked projects with MSVC, which isn't what it is for).  Only the lines added change: the rest of each
+file stays byte for byte, each new row put where Visual Studio would sort it among its project's.  A solution that
+has the configurations already is left as it is.
+"""
+import os
+import re
+import sys
+
+PLATFORM = "GCC-x64"
+NAMES = ("Debug", "Release")
+BASE = "x64"
+WINDOWS_ONLY = {"WinGdiLib", "WinInputLib", "WinWaveoutLib"}
+LINUX_ONLY = {"X11Lib", "PulseAudioLib"}
+PROJECT = re.compile(r'^Project\("\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}"\) = "([^"]+)", "([^"]+)", "(\{[0-9A-Fa-f-]+\})"')
+
+
+def project_guid(path):
+	return re.search(r"<ProjectGuid>(\{[^}]+\})</ProjectGuid>", open(path, encoding="utf-8-sig").read()).group(1).upper()
+
+
+def rows(text, write, additions, path):
+	newline = "\r\n" if "\r\n" in text else "\n"
+	lines = text.split(newline)
+	directory = os.path.dirname(os.path.abspath(path))
+	projects = {m.group(3).upper(): m.group(1) for m in map(PROJECT.match, lines) if m}
+
+	# Projects only Linux builds that the solution hasn't, before Global.
+	added = []
+	for addition in additions:
+		guid = project_guid(addition)
+		if guid not in projects:
+			name = os.path.splitext(os.path.basename(addition))[0]
+			relative = os.path.relpath(os.path.abspath(addition), directory).replace(os.sep, "\\")
+			at = lines.index("Global")
+			lines[at:at] = ['Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "%s", "%s", "%s"' % (name, relative, guid), "EndProject"]
+			projects[guid] = name
+			added.append(name)
+
+	start = next(i for i, l in enumerate(lines) if "GlobalSection(SolutionConfigurationPlatforms)" in l)
+	end = lines.index("\tEndGlobalSection", start)
+	configurations = [l.strip().split(" = ")[0] for l in lines[start + 1:end]]
+	names = [c.split("|")[0] for c in configurations if c.endswith("|" + BASE) and c.split("|")[0] in NAMES]
+	wanted = [n for n in names if "%s|%s" % (n, PLATFORM) not in configurations]
+	rows_start = next(i for i, l in enumerate(lines) if "GlobalSection(ProjectConfigurationPlatforms)" in l)
+	rows_end = lines.index("\tEndGlobalSection", rows_start)
+	old = lines[rows_start + 1:rows_end]
+	mapped = {}			# (guid, solution configuration) -> the project configuration it maps to
+	built = set()
+	for l in old:
+		m = re.match(r"\t\t(\{[0-9A-Fa-f-]+\})\.(.+)\.(ActiveCfg|Build\.0) = (.+)$", l)
+		if m:
+			mapped[(m.group(1).upper(), m.group(2))] = m.group(4)
+			if m.group(3) == "Build.0":
+				built.add((m.group(1).upper(), m.group(2)))
+
+	def key(row):
+		m = re.match(r"\t\t(\{[0-9A-Fa-f-]+\})\.(.+)\.(ActiveCfg|Build\.0|Deploy\.0) = ", row)
+		return (m.group(1).upper(), m.group(2), m.group(3)) if m else None
+
+	def insert(rows_, row, same):
+		"""Puts row before the first of rows_ that same() says is its kind and sorts after it, else after the last such."""
+		last = None
+		for at, other in enumerate(rows_):
+			if same(other):
+				if key(other)[1:] > key(row)[1:]:
+					rows_.insert(at, row)
+					return
+				last = at
+		rows_.insert(len(rows_) if last is None else last + 1, row)
+
+	new = list(old)
+	for guid, name in projects.items():
+		for configuration in configurations + ["%s|%s" % (n, PLATFORM) for n in wanted]:
+			gcc = configuration.endswith("|" + PLATFORM)
+			if (guid, configuration) in mapped:
+				continue
+			like = configuration.split("|")[0] + "|" + BASE if gcc else configuration
+			target = mapped.get((guid, like)) or (like if name in LINUX_ONLY else None)
+			if target is None:
+				continue
+			build = gcc if name in LINUX_ONLY else (((guid, like) in built) and name not in WINDOWS_ONLY)
+			for suffix in ["ActiveCfg"] + (["Build.0"] if build else []):
+				insert(new, "\t\t%s.%s.%s = %s" % (guid, configuration, suffix, target), lambda other: key(other) is not None and key(other)[0] == guid)
+	lines[rows_start + 1:rows_end] = new
+	listed = lines[start + 1:end]
+	for name in wanted:
+		row = "\t\t%s|%s = %s|%s" % (name, PLATFORM, name, PLATFORM)
+		at = next((i for i, other in enumerate(listed) if other.strip() > row.strip()), len(listed))
+		listed.insert(at, row)
+	lines[start + 1:end] = listed
+	return newline.join(lines), wanted, added
+
+
+def main(arguments):
+	write = "--write" in arguments
+	additions = []
+	solutions = []
+	arguments = [a for a in arguments if a != "--write"]
+	while arguments:
+		argument = arguments.pop(0)
+		if argument == "--add":
+			additions.append(arguments.pop(0))
+		else:
+			solutions.append(argument)
+	if not solutions:
+		print(__doc__)
+		return 1
+	for path in solutions:
+		data = open(path, "rb").read()
+		bom = data[:3] if data.startswith(b"\xef\xbb\xbf") else b""
+		text, wanted, added = rows(data[len(bom):].decode("utf-8"), write, additions, path)
+		changed = bom + text.encode("utf-8") != data
+		print("%s: %s%s%s" % (path, ("rewritten" if write else "would change") if changed else "as it is",
+								(", " + " and ".join("%s|%s" % (n, PLATFORM) for n in wanted)) if wanted else "",
+								(", with " + " and ".join(added)) if added else ""))
+		if write and changed:
+			open(path, "wb").write(bom + text.encode("utf-8"))
+	return 0
+
+
+if __name__ == "__main__":
+	sys.exit(main(sys.argv[1:]))
