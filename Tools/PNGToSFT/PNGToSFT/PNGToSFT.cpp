@@ -80,7 +80,7 @@ static bool Convert(char* szOutput, char** aszInputs, int iNumInputs, uint16 uiM
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[])
+int __cdecl main(int argc, char* argv[])
 {
 	int		i;
 	int		iColours;
