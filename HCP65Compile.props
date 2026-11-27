@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What every project the HCP65 compiler builds shares: a Debug configuration's code is compiled for the debugger.
+  Common.props imports it, for the libraries; an HCP65 program's project (a Makefile project, which has nothing of
+  Common.props') imports it itself.  The settings are the HCP65 IDE's and hcp65build's (HCP65Compile, as
+  HCP65-IDE's Docs/ide/building.md has them); Visual Studio has no HCP65C816 or HCP65C64 platform and reads none.
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|HCP65C816'">
+    <HCP65Compile>
+      <Debug>true</Debug>
+    </HCP65Compile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|HCP65C64'">
+    <HCP65Compile>
+      <Debug>true</Debug>
+    </HCP65Compile>
+  </ItemDefinitionGroup>
+</Project>

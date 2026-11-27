@@ -30,6 +30,9 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 #include "CPP65Assembly.h"
 
 
+typedef CArrayTemplate<CCPPCompileOptions>	CArrayCPPCompileOptions;
+
+
 struct SCPP65IncludeDirectory
 {
 	CChars	szDirectory;
@@ -45,7 +48,7 @@ class CLibrary;
 
 
 //What is being built and how (CCPP65Builder has one): the target, the include directories, the options (and those of
-//the libraries compiled for a debugger, SetUnoptimised), and what is written beside the code: each unit's listing
+//the libraries compiled for a debugger, SetUnoptimised, or with their own, SetLibraryOptions), and what is written beside the code: each unit's listing
 //(SetListingDirectory), the classes laid out (SetLayoutsFile), a line table (SetLineTable).  Generate compiles one
 //source with it, giving its assembly and errors, and its warnings, the labels it uses and doesn't define, the
 //functions it calls and tests and its counts to where SetWarnings, SetExternals, SetTested and SetStatistics say.
@@ -57,6 +60,8 @@ protected:
 	CCPPCompileOptions				mcOptions;				//How the units are compiled where there is a choice (GetOptions).
 	CArrayChars						maszUnoptimised;		//The libraries (projects) whose units aren't optimised (SetUnoptimised)...
 	CCPPCompileOptions				mcUnoptimisedOptions;	//...as mcOptions without the optimiser, for a debugger (FixOptions).
+	CArrayChars						maszOwnLibraries;		//The libraries with options of their own (SetLibraryOptions)...
+	CArrayCPPCompileOptions			macOwnOptions;			//...and each one's.
 	CAsm65Profile*					mpcFrameProfile;		//Measured functions, for the W65C816's aligned frames, or NULL.
 	bool							mbListing;				//The code has comments with its C++ source lines (SetListing)...
 	CChars							mszListings;			//...and each unit's listing is written here (SetListingDirectory), empty for none.
@@ -80,6 +85,7 @@ public:
 	void					AddIncludeDirectory(const char* szDirectory, bool bIncludeSubDirectories, bool bSystem);
 	CCPPCompileOptions*		GetOptions(void);
 	void					SetUnoptimised(const char* szLibrary);
+	void					SetLibraryOptions(const char* szLibrary, CCPPCompileOptions* pcOptions);
 	void					FixOptions(void);
 	CCPPCompileOptions*		LibraryOptions(CLibrary* pcLibrary);
 	void					SetFrameProfile(CAsm65Profile* pcProfile);

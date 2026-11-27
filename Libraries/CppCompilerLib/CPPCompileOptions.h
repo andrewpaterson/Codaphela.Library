@@ -75,6 +75,7 @@ public:
 
 	void		Init(void);
 	void		SetAssemblyUnits(bool bAssemblyUnits);
+	void		SetOwn(CCPPCompileOptions* pcSource);
 	bool		PrefersSize(void) const;
 	bool		Inlines(void) const;
 };

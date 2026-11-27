@@ -15,6 +15,7 @@
   project_sheets.py moves a project onto its sheet and says what it would leave in it.
 -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)HCP65Compile.props" />
   <PropertyGroup>
     <CommonLibrariesDir>$(MSBuildThisFileDirectory)</CommonLibrariesDir>
     <IncludePath>$(CommonLibrariesDir)Libraries\;$(IncludePath)</IncludePath>

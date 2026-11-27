@@ -672,6 +672,18 @@ void CCPP65Builder::SetUnoptimised(const char* szLibrary)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// The units of szLibrary (a project) are compiled with pcOptions in place
+// of GetOptions (CCPPBuild::SetLibraryOptions).
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPP65Builder::SetLibraryOptions(const char* szLibrary, CCPPCompileOptions* pcOptions)
+{
+	mcBuild.SetLibraryOptions(szLibrary, pcOptions);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // The units reported since the last time, in the order they finished,
 // added to pasDest (KillUnitReports frees them).  Safe while Compile runs
 // on another thread.

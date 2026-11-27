@@ -85,6 +85,7 @@ public:
 	CCPPCompileStatistics*	GetStatistics(void);
 	CCPPCompileOptions*		GetOptions(void);
 	void					SetUnoptimised(const char* szLibrary);
+	void					SetLibraryOptions(const char* szLibrary, CCPPCompileOptions* pcOptions);
 	void					TakeUnitReports(CArrayCPP65UnitReports* pasDest);
 	static void				KillUnitReports(CArrayCPP65UnitReports* pasReports);
 	size					NumLazySkipped(void) const;

@@ -73,6 +73,24 @@ void CCPPCompileOptions::Init(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// Takes from pcSource what is about one project's code, where a program's
+// projects may differ (CCPPBuild::SetLibraryOptions): its warnings, the
+// conversions it is allowed and whether it is compiled for a debugger.
+// The rest is the whole program's.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPCompileOptions::SetOwn(CCPPCompileOptions* pcSource)
+{
+	mbWarnMissingOverride = pcSource->mbWarnMissingOverride;
+	mbWarnStringToPointer = pcSource->mbWarnStringToPointer;
+	mbMultiWordCasts = pcSource->mbMultiWordCasts;
+	mbCConversions = pcSource->mbCConversions;
+	mbDebuggable = pcSource->mbDebuggable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 // Whether the target's assembly beside a unit (the W65C816's XW65C816.asm) is
 // built, with __W65C816_ASSEMBLY__ defined to leave out the C++ it
 // replaces, or the C++ is compiled.  The W65C816's soft float is one of

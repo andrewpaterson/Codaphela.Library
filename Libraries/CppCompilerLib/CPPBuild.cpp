@@ -49,6 +49,8 @@ void CCPPBuild::Init(void)
 	mcOptions.Init();
 	maszUnoptimised.Init();
 	mcUnoptimisedOptions.Init();
+	maszOwnLibraries.Init();
+	macOwnOptions.Init();
 	mpcFrameProfile = NULL;
 	mbListing = false;
 	mszListings.Init();
@@ -76,6 +78,8 @@ void CCPPBuild::Kill(void)
 	maszLayouts.Kill();
 	mszLayouts.Kill();
 	mszListings.Kill();
+	macOwnOptions.Kill();
+	maszOwnLibraries.Kill();
 	maszUnoptimised.Kill();
 	for (i = 0; i < macIncludeDirectories.NumElements(); i++)
 	{
@@ -150,28 +154,78 @@ void CCPPBuild::SetUnoptimised(const char* szLibrary)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The options of the units SetUnoptimised names, set once before the
-// units' threads read them.
+// The units of szLibrary (a project) are compiled with what pcOptions has
+// that is about one project's code (CCPPCompileOptions::SetOwn: its
+// warnings, the conversions it is allowed, whether it is for a debugger),
+// and GetOptions' for the rest, which is the whole program's.  Given
+// again, they replace those given before.
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPBuild::FixOptions(void)
+void CCPPBuild::SetLibraryOptions(const char* szLibrary, CCPPCompileOptions* pcOptions)
 {
-	mcUnoptimisedOptions = mcOptions;
-	mcUnoptimisedOptions.mbOptimise = false;
-	mcUnoptimisedOptions.mbDebuggable = true;
+	size	uiIndex;
+
+	uiIndex = maszOwnLibraries.GetIndex(szLibrary);
+	if (uiIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		maszOwnLibraries.Add(szLibrary);
+		macOwnOptions.Add(pcOptions);
+	}
+	else
+	{
+		*macOwnOptions.Get(uiIndex) = *pcOptions;
+	}
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
-// The options a unit of pcLibrary is compiled with: GetOptions, unless
-// the library is one SetUnoptimised named.
+// The options of the units SetUnoptimised names, set once before the
+// units' threads read them: GetOptions, or the library's own, without
+// the optimiser.  And those of the libraries with their own: GetOptions
+// as they are now, with the library's own.
+//
+//////////////////////////////////////////////////////////////////////////
+void CCPPBuild::FixOptions(void)
+{
+	CCPPCompileOptions	cOptions;
+	size				ui;
+
+	mcUnoptimisedOptions = mcOptions;
+	mcUnoptimisedOptions.mbOptimise = false;
+	mcUnoptimisedOptions.mbDebuggable = true;
+	for (ui = 0; ui < maszOwnLibraries.NumElements(); ui++)
+	{
+		cOptions = mcOptions;
+		cOptions.SetOwn(macOwnOptions.Get(ui));
+		*macOwnOptions.Get(ui) = cOptions;
+		if (maszUnoptimised.Contains(maszOwnLibraries.GetText(ui)))
+		{
+			macOwnOptions.Get(ui)->mbOptimise = false;
+			macOwnOptions.Get(ui)->mbDebuggable = true;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// The options a unit of pcLibrary is compiled with: its own
+// (SetLibraryOptions), else GetOptions, unless the library is one
+// SetUnoptimised named.
 //
 //////////////////////////////////////////////////////////////////////////
 CCPPCompileOptions* CCPPBuild::LibraryOptions(CLibrary* pcLibrary)
 {
 	size	ui;
 
+	for (ui = 0; pcLibrary && (ui < maszOwnLibraries.NumElements()); ui++)
+	{
+		if (pcLibrary->IsNamed(maszOwnLibraries.GetText(ui)))
+		{
+			return macOwnOptions.Get(ui);
+		}
+	}
 	for (ui = 0; pcLibrary && (ui < maszUnoptimised.NumElements()); ui++)
 	{
 		if (pcLibrary->IsNamed(maszUnoptimised.GetText(ui)))
