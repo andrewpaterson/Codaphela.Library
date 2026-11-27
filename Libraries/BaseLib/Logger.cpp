@@ -77,6 +77,24 @@ void CLogger::Init(const char* szName)
 	msConfig.bBreakOnError = true;
 	msConfig.bBreakOnWarning = true;
 #endif
+
+	ApplyBreakSwitch(GetBreakSwitch());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// BASELIB_BREAK over what the build's BREAK_ON_ERROR and BREAK_ON_WARNING
+// set: off or on for both, or left as built.
+//
+//////////////////////////////////////////////////////////////////////////
+void CLogger::ApplyBreakSwitch(EBreakSwitch eSwitch)
+{
+	if (eSwitch != BSW_AsBuilt)
+	{
+		msConfig.bBreakOnError = (eSwitch == BSW_On);
+		msConfig.bBreakOnWarning = (eSwitch == BSW_On);
+	}
 }
 
 

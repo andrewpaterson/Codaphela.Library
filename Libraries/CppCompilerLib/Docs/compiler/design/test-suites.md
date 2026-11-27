@@ -113,8 +113,8 @@ is 0008:0000 to 000F:FFFF, which TestLibc65 uses.
 
 ### What a failure looks like
 
-Asserts in the host program break (`int3`), so run a suite under gdb with `handle SIGTRAP nostop noprint nopass` to
-see every failure.  Each program is checked with one assert: its test's name, expected, against what happened.
+Asserts in the host program break (`int3`), so run a suite with `BASELIB_BREAK=0` in the environment to see every
+failure ([BaseLib](../../libraries/baselib/index.md#stopping-on-an-error)).  Each program is checked with one assert: its test's name, expected, against what happened.
 What happened is the name alone when the program linked, returned with the stack where it started, printed no
 failed asserts and made no bad stores; otherwise the name and one of:
 

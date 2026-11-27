@@ -45,6 +45,47 @@ void TestLoggerMemoryOutput(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// BASELIB_BREAK's values, and what each does to the logger's breaks: "0"
+// turns both off, "1" both on, anything else leaves them as they were.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestLoggerBreakSwitch(void)
+{
+	SLogConfig	sSaved;
+	SLogConfig	sConfig;
+
+	AssertInt(BSW_AsBuilt, ParseBreakSwitch(NULL));
+	AssertInt(BSW_AsBuilt, ParseBreakSwitch(""));
+	AssertInt(BSW_AsBuilt, ParseBreakSwitch("2"));
+	AssertInt(BSW_AsBuilt, ParseBreakSwitch("00"));
+	AssertInt(BSW_Off, ParseBreakSwitch("0"));
+	AssertInt(BSW_On, ParseBreakSwitch("1"));
+
+	gcLogger.GetConfig(&sSaved);
+
+	gcLogger.SetBreakOnError(true);
+	gcLogger.SetBreakOnWarning(false);
+	gcLogger.ApplyBreakSwitch(BSW_AsBuilt);
+	gcLogger.GetConfig(&sConfig);
+	AssertTrue(sConfig.bBreakOnError);
+	AssertFalse(sConfig.bBreakOnWarning);
+
+	gcLogger.ApplyBreakSwitch(BSW_Off);
+	gcLogger.GetConfig(&sConfig);
+	AssertFalse(sConfig.bBreakOnError);
+	AssertFalse(sConfig.bBreakOnWarning);
+
+	gcLogger.ApplyBreakSwitch(BSW_On);
+	gcLogger.GetConfig(&sConfig);
+	AssertTrue(sConfig.bBreakOnError);
+	AssertTrue(sConfig.bBreakOnWarning);
+
+	gcLogger.SetConfig(&sSaved);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
 //
 //////////////////////////////////////////////////////////////////////////
 void TestLogger(void)
@@ -52,6 +93,7 @@ void TestLogger(void)
 	BeginTests();
 
 	TestLoggerMemoryOutput();
+	TestLoggerBreakSwitch();
 
 	TestStatistics();
 }

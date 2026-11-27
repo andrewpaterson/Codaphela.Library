@@ -30,6 +30,28 @@ The project's filter tree ([`BaseLib/BaseLib.vcxproj.filters`]) groups the files
 | Platform | Threads, mutexes, condition variables, jobs, sockets, timers. |
 | Function calling | The function callers made from generated `*_Call.inl` files. |
 
+## Stopping on an error
+
+Two things stop a program where something went wrong, each with a breakpoint (`int3`: in a debugger it stops on the
+line, and with none the run ends, on Linux with SIGTRAP):
+
+- The logger, on an error or a warning it is given ([`CLogger::Break`]), when its configuration says so.  A build
+  with `BREAK_ON_ERROR` or `BREAK_ON_WARNING` defined starts with it on; [`CLogger::SetBreakOnError`],
+  [`CLogger::SetBreakOnWarning`] and [`CLogger::SetSilent`] change it while the program runs, as a test that expects
+  an error does.
+- A failed test assert: every `Assert...` of TestLib is a `Validate` ([`BaseLib/Validation.h`]), in every build.
+
+The environment variable `BASELIB_BREAK` decides for one run without building again ([`GetBreakSwitch`], read once):
+
+| `BASELIB_BREAK` | The logger | A failed assert |
+|---|---|---|
+| not set | as built | breaks |
+| `0` | doesn't break | is counted, and the run goes on to its totals |
+| `1` | breaks on errors and warnings | breaks |
+
+So a run that has to get through its failures (a sweep, `ctest`) sets `BASELIB_BREAK=0`, and one that should stop at
+the first is left alone.  A program for the HCP65 has no environment and breaks as built.
+
 ## Sizes on every target
 
 Counts and sizes are written in two types from [`BaseLib/PrimitiveTypes.h`]:

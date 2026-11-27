@@ -920,6 +920,7 @@
     <ClCompile Include="ErrorHandler.cpp" />
     <ClCompile Include="ErrorTypes.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Validation.cpp" />
     <ClCompile Include="FloatHelper.cpp" />
     <ClCompile Include="IntegerHelper.cpp" />
     <ClCompile Include="FixedPoint.cpp" />

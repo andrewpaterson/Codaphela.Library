@@ -203,7 +203,8 @@ What is still duplicated was surveyed on 2026-10-23 and, at the user's word ("ju
 ## Tests
 
 TestMicroprocessorLib ([`TestMicroprocessorLib/TestMicroprocessorLib.cpp`]) runs every processor's tests.  Failed
-asserts trap, so on Linux run it under gdb with SIGTRAP ignored.
+asserts trap, so run it with `BASELIB_BREAK=0` in the environment
+([BaseLib](../baselib/index.md#stopping-on-an-error)).
 
 | Test | Covers |
 |---|---|

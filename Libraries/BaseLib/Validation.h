@@ -22,7 +22,21 @@
 #endif // __LIBC65__
 
 
-#define Validate(test)	if (!test) BREAK();
+//What the environment variable BASELIB_BREAK asks of a run: "0" turns its breaks off (the logger's on an error or a
+//warning, and a failed Validate's), "1" turns the logger's on, and anything else leaves them as the build has them.
+enum EBreakSwitch
+{
+	BSW_AsBuilt,
+	BSW_Off,
+	BSW_On
+};
+
+
+EBreakSwitch	ParseBreakSwitch(const char* szValue);
+EBreakSwitch	GetBreakSwitch(void);
+
+
+#define Validate(test)	if (!test && (GetBreakSwitch() != BSW_Off)) BREAK();
 
 
 #endif // __VALIDATION_H__

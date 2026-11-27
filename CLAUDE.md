@@ -100,8 +100,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 - "All tests, all configurations": every native suite 32- and 64-bit, Debug and Release, plus 64-bit ASan and the
   Size16 builds; TestCppCompilerLib Release x64 only; the `65` suites Release on the 65C64 and the W65C816
   (argument `W65C816`); TestLibc65 also on the W65C816; the apps built Release x64, not run.  Show the matrix and wait
-  for the go-ahead.  Run suites under gdb with `handle SIGTRAP nostop noprint nopass` (asserts break), ASan ones
-  without it.  A sweep's builds take about 9 GB each: check free space first (`df -h`) and delete them after.
+  for the go-ahead.  Run suites with `BASELIB_BREAK=0` in the environment: unset, a failed assert breaks (SIGTRAP ends a
+  run that has no debugger); with it the failure is counted and the run goes on to its totals.  gdb is for a crash.
+  A sweep's builds take about 9 GB each: check free space first (`df -h`) and delete them after.
 - Leaks: a `BASELIB_ASAN` build, run from the test's folder with
   `ASAN_OPTIONS=detect_leaks=1:replace_intrin=0:detect_stack_use_after_return=0`.
 - W65C816 size bugs: try the mechanical catchers before bisecting on the simulator: the `BASELIB_SIZE16` host build
@@ -122,9 +123,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   their only argument, else run on the 65C64; TestLibc65's W65C816 run is the 64-bit Release binary.  Their switches
   are on the site's `compiler/testing.md`, their design on `compiler/design/test-suites.md`.
 - A sweep: build from `git archive HEAD` snapshots in private folders, and copy the run folder back from the snapshot
-  before each configuration.  Classify a gdb run by `[Inferior 1 ... exited normally|with code NN]` and the last
-  `Total Failed: N`; a crash is `received signal` (also `Thread N ... received signal`).  Under ASan a failed assert
-  ends the suite.  No LSan pass unless asked.
+  before each configuration.  Classify a run by its last `Total Failed: N`, and one under gdb by
+  `[Inferior 1 ... exited normally|with code NN]`; a crash is `received signal` (also `Thread N ... received signal`).
+  No LSan pass unless asked.
 
 ## Working in these repositories
 

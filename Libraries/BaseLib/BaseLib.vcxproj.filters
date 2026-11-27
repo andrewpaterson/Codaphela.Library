@@ -1934,6 +1934,9 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Source\Error</Filter>
     </ClCompile>
+    <ClCompile Include="Validation.cpp">
+      <Filter>Source\Validation</Filter>
+    </ClCompile>
     <ClCompile Include="Number.cpp">
       <Filter>Source\Math\Number</Filter>
     </ClCompile>

@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __LOGGER_H__
 #include "Define.h"
 #include "LogConfig.h"
+#include "Validation.h"
 #include "LogString.h"
 #include "ArrayTemplatePtr.h"
 #include "AbstractFile.h"
@@ -66,6 +67,7 @@ public:
 	void		Enable(void);
 	void		SetBreakOnError(bool bBreakOnError);
 	void		SetBreakOnWarning(bool bBreakOnWarning);
+	void		ApplyBreakSwitch(EBreakSwitch eSwitch);
 	SLogConfig	SetSilent(bool bBreakOnError = false);
 	void		SetConfig(SLogConfig* psConfig);
 	void		GetConfig(SLogConfig* psConfig);
