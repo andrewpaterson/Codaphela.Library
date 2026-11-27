@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Gives Visual Studio solutions their GCC-x64 configurations (HCP65-IDE's ConfigurationsPlan.txt, The solution's rows).
+"""Gives Visual Studio solutions their GCC-x64 configurations, or with --platform an HCP65 solution its HCP65C816
+ones (HCP65-IDE's ConfigurationsPlan.txt, The solution's rows).
 
-    python3 solution_rows.py [--write] [--add <project.vcxproj>]... <solution.sln>...
+    python3 solution_rows.py [--write] [--platform HCP65C816] [--add <project.vcxproj>]... <solution.sln>...
 
 For Debug and Release, where a solution has them on x64 (another name, HCP65IDE's Reference, is the plan's C13), it adds the solution configuration <name>|GCC-x64
 and a row for each project: mapped to what the project's <name>|x64 row maps to, and built if that row is built,
@@ -12,6 +13,9 @@ The HCP65 IDE builds what the rows say (Visual Studio shows GCC-x64 in its confi
 builds the ticked projects with MSVC, which isn't what it is for).  Only the lines added change: the rest of each
 file stays byte for byte, each new row put where Visual Studio would sort it among its project's.  A solution that
 has the configurations already is left as it is.
+
+An HCP65 platform's rows are as Win32's, the platform the HCP65 compiler's configurations are read beside: every
+project built that Win32 builds (Libc65, the runtime, is still given to the build and not built as a project).
 """
 import os
 import re
@@ -20,6 +24,7 @@ import sys
 PLATFORM = "GCC-x64"
 NAMES = ("Debug", "Release")
 BASE = "x64"
+BASES = {"GCC-x64": "x64", "HCP65C816": "Win32", "HCP65C64": "Win32"}
 WINDOWS_ONLY = {"WinGdiLib", "WinInputLib", "WinWaveoutLib"}
 LINUX_ONLY = {"X11Lib", "PulseAudioLib"}
 PROJECT = re.compile(r'^Project\("\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}"\) = "([^"]+)", "([^"]+)", "(\{[0-9A-Fa-f-]+\})"')
@@ -82,14 +87,15 @@ def rows(text, write, additions, path):
 	new = list(old)
 	for guid, name in projects.items():
 		for configuration in configurations + ["%s|%s" % (n, PLATFORM) for n in wanted]:
-			gcc = configuration.endswith("|" + PLATFORM)
+			new_row = configuration.endswith("|" + PLATFORM)
+			gcc = new_row and (PLATFORM == "GCC-x64")
 			if (guid, configuration) in mapped:
 				continue
-			like = configuration.split("|")[0] + "|" + BASE if gcc else configuration
+			like = configuration.split("|")[0] + "|" + BASE if new_row else configuration
 			target = mapped.get((guid, like)) or (like if name in LINUX_ONLY else None)
 			if target is None:
 				continue
-			build = gcc if name in LINUX_ONLY else (((guid, like) in built) and name not in WINDOWS_ONLY)
+			build = gcc if name in LINUX_ONLY else (((guid, like) in built) and ((name not in WINDOWS_ONLY) or (PLATFORM != "GCC-x64")))
 			for suffix in ["ActiveCfg"] + (["Build.0"] if build else []):
 				insert(new, "\t\t%s.%s.%s = %s" % (guid, configuration, suffix, target), lambda other: key(other) is not None and key(other)[0] == guid)
 	lines[rows_start + 1:rows_end] = new
@@ -103,6 +109,7 @@ def rows(text, write, additions, path):
 
 
 def main(arguments):
+	global PLATFORM, BASE
 	write = "--write" in arguments
 	additions = []
 	solutions = []
@@ -111,6 +118,9 @@ def main(arguments):
 		argument = arguments.pop(0)
 		if argument == "--add":
 			additions.append(arguments.pop(0))
+		elif argument == "--platform":
+			PLATFORM = arguments.pop(0)
+			BASE = BASES[PLATFORM]
 		else:
 			solutions.append(argument)
 	if not solutions:
