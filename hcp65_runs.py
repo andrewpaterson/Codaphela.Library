@@ -16,6 +16,8 @@ Run after hcp65_groups.py, which leaves a .hcp65build with only its configuratio
   Kernel).
 - The .hcp65build is deleted: the solution lists its HCP65 configurations itself (solution_rows.py --platform).
 
+The files are written as the IDE writes them (CXMLWriter), so its saving one changes nothing.
+
 It stops at anything it can't move, and changes nothing without --write.
 """
 import os
@@ -88,7 +90,7 @@ def main(arguments):
 				add(image, full(directory, other["File"]), other["CardPath"], other.get("Space", "Kernel"))
 			if loads:
 				lines[0] += ">"
-				lines += ['\t<Load File=%s Address=%s/>' % (quoteattr(l["File"]), quoteattr(l["Address"])) for l in loads]
+				lines += ['  <Load File=%s Address=%s/>' % (quoteattr(l["File"]), quoteattr(l["Address"])) for l in loads]
 				lines.append("</RunConfiguration>")
 			else:
 				lines[0] += "/>"
@@ -99,7 +101,7 @@ def main(arguments):
 		card_file = os.path.join(cards_folder, os.path.splitext(os.path.basename(image))[0] + ".hcp65card")
 		lines = ['<Card Image=%s>' % quoteattr(windows(image, cards_folder))]
 		for program, path, space in sorted(entries, key=lambda e: (e[1].lower(), e[2])):
-			lines.append('\t<Program File=%s Path=%s%s/>' % (quoteattr(windows(program, cards_folder)), quoteattr(path), (' Lines=%s' % quoteattr(space)) if space else ""))
+			lines.append('  <Program File=%s Path=%s%s/>' % (quoteattr(windows(program, cards_folder)), quoteattr(path), (' Lines=%s' % quoteattr(space)) if space else ""))
 		lines.append("</Card>")
 		runs.append((card_file, "\n".join(lines) + "\n"))
 
@@ -107,7 +109,7 @@ def main(arguments):
 		print("%s %s" % ("wrote" if write else "would write", os.path.relpath(path)))
 		if write:
 			os.makedirs(os.path.dirname(path), exist_ok=True)
-			open(path, "w", newline="\n").write('<?xml version="1.0" encoding="utf-8"?>\n' + text)
+			open(path, "w", newline="\n").write('<?xml version="1.0" encoding="UTF-8"?>\n' + text)
 	for path in removed:
 		print("%s %s" % ("removed" if write else "would remove", os.path.relpath(path)))
 		if write:
