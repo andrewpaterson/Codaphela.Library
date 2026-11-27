@@ -9,7 +9,8 @@ setting of its four configurations that the sheet (and the sheets it imports) al
 What is left is the project's own.  Only those lines change: the rest of the file stays byte for byte.
 
 Decided in the plan's question 8 and done here: the defines _LIB, WIN32, _WINDOWS, _CONSOLE and D3D_DEBUG_INFO go
-(nothing tests them); Microsoft.CPP.UpgradeFromVC70.props isn't imported; an OutDir or IntDir that is Visual
+(nothing tests them), and BREAK_ON_WARNING and BREAK_ON_ERROR from a Release configuration that had them;
+Microsoft.CPP.UpgradeFromVC70.props isn't imported; an OutDir or IntDir that is Visual
 Studio's default goes; and a project's own DisableSpecificWarnings, ExceptionHandling and LinkIncremental go
 whatever they are, the sheet's being every project's.  A project's Configuration groups (its type, toolset and character set) stay: they are read
 before a sheet is.
@@ -20,6 +21,7 @@ import sys
 
 CONFIGURATIONS = [(c, p) for c in ("Debug", "Release") for p in ("Win32", "x64")]
 GONE_DEFINES = {"_LIB", "WIN32", "_WINDOWS", "_CONSOLE", "D3D_DEBUG_INFO"}
+GONE_RELEASE_DEFINES = {"BREAK_ON_WARNING", "BREAK_ON_ERROR"}
 DEFAULT_DIRECTORIES = {
 	("OutDir", "Win32"): "$(SolutionDir)$(Configuration)\\", ("IntDir", "Win32"): "$(Configuration)\\",
 	("OutDir", "x64"): "$(SolutionDir)$(Platform)\\$(Configuration)\\", ("IntDir", "x64"): "$(Platform)\\$(Configuration)\\",
@@ -94,7 +96,8 @@ def reduce_setting(name, value, configuration, sheet, project_directory, sheet_d
 			theirs = [directory(p.replace("$(CommonLibrariesDir)", sheet_directory + os.sep), sheet_directory) for p in theirs]
 			extra = [p for p in mine if directory(p, project_directory) not in theirs]
 		else:
-			extra = [p for p in mine if p not in theirs and not (name.endswith("PreprocessorDefinitions") and p in GONE_DEFINES)]
+			extra = [p for p in mine if p not in theirs and not (name.endswith("PreprocessorDefinitions") and
+					 (p in GONE_DEFINES or (configuration[0] == "Release" and p in GONE_RELEASE_DEFINES)))]
 		if not extra:
 			return None
 		return ";".join(extra + [own])
