@@ -45,8 +45,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 
 ## Building and testing
 
-- CMake reads each target's sources from its `.vcxproj` (`CMake/VcxprojSources.cmake`): a new file goes in
-  the `.vcxproj` and its `.vcxproj.filters`, never only in CMake.
+- CMake reads each target's sources from its `.vcxproj` and g++'s options from the projects' property sheet,
+  `Common.props` (`CMake/Codaphela.cmake`, which every `CMakeLists.txt` includes): a new file goes in the `.vcxproj`
+  and its `.vcxproj.filters`, never only in CMake, and an option in the sheet's GCC-x64 groups.
 - A test suite, configured into the shared build folder:
 
   ```sh

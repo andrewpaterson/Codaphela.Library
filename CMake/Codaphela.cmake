@@ -1,0 +1,166 @@
+# What every Codaphela CMake build shares.  include() it after project(), with COMMON_DIR CommonLibraries' Libraries:
+#
+#	include("${COMMON_DIR}/../CMake/Codaphela.cmake")
+#	codaphela_options("${COMMON_DIR}")						# baselib_options, which every target links
+#	vcxproj_sources(BASELIB_SOURCES "${BASELIB_DIR}/BaseLib.vcxproj")
+#
+# The builds read their sources from the Visual Studio projects and their g++ options from the projects' property
+# sheet, CommonLibraries/Common.props, so each is written once, for Visual Studio, the HCP65 IDE and CMake alike
+# (HCP65-IDE's ConfigurationsPlan.txt, C6).  A CMakeLists.txt keeps its targets.
+
+include_guard(GLOBAL)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+option(BASELIB_64 "Build 64-bit (otherwise 32-bit, which needs g++-multilib)" OFF)
+option(BASELIB_ASAN "Build with AddressSanitizer and LeakSanitizer" OFF)
+option(BASELIB_TSAN "Build with ThreadSanitizer (64-bit; run it under setarch -R)" OFF)
+option(BASELIB_SIZE16 "32-bit only: size is 16 bits and lsize 32, as on the W65C816, with -Wconversion" OFF)
+option(BASELIB_MALLOC "gcSystemAllocator uses malloc, whose blocks valgrind knows" OFF)
+
+
+# baselib_options: an interface library holding what every target is compiled and linked with.  The include
+# directories are the arguments.  ONLY_64 is for a program that is never built 32-bit (it needs X11).
+#
+# From Common.props' GCC-x64 groups (project_sheets.py --cmake reads them): the defines, which are Visual Studio's for
+# the configuration and LINUX_GNU, and g++'s options, which the sheet and TestBaseLib's history explain.  A Debug
+# build's defines include BREAK_ON_ERROR and BREAK_ON_WARNING, so ctest runs every test with BASELIB_BREAK=0: a run
+# gets through its failures to its totals, and a test run by hand stops at the first.
+#
+# CMake's own, here once:
+# - 32-bit: -m32 -msse2 -mfpmath=sse in place of the sheet's -m64 (MSVC uses SSE2 for 32-bit code; the x87 FPU keeps
+#   float constants at long double precision, so float comparisons would differ), and -D_FILE_OFFSET_BITS=64 (a 32-bit
+#   stat() fails on a file whose inode number needs 64 bits, as every file on a Windows drive under WSL has).
+# - -Wall -Wextra: the warnings a build here is kept clean of.
+# - Link time optimisation in Release, as /GL and /LTCG.
+# - The switches above.
+function(codaphela_options)
+	cmake_parse_arguments(ARG "ONLY_64" "" "" ${ARGN})
+	if(ARG_ONLY_64)
+		set(BASELIB_64 ON)
+	endif()
+
+	find_package(Python3 REQUIRED COMPONENTS Interpreter)
+	set(SHEET "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../Common.props")
+	set(READER "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../project_sheets.py")
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${SHEET}" "${READER}")
+	execute_process(COMMAND "${Python3_EXECUTABLE}" -I "${READER}" --cmake "${SHEET}" OUTPUT_FILE "${CMAKE_BINARY_DIR}/Sheet.cmake" RESULT_VARIABLE SHEET_RESULT)
+	if(NOT SHEET_RESULT EQUAL 0)
+		message(FATAL_ERROR "Could not read ${SHEET}")
+	endif()
+	include("${CMAKE_BINARY_DIR}/Sheet.cmake")
+
+	add_library(baselib_options INTERFACE)
+	target_include_directories(baselib_options INTERFACE ${ARG_UNPARSED_ARGUMENTS})
+	foreach(KIND DEFINES OPTIONS LINK_OPTIONS)
+		if(NOT BASELIB_64)
+			list(TRANSFORM SHEET_${KIND}_DEBUG REPLACE "^-m64$" "-m32")
+			list(TRANSFORM SHEET_${KIND}_RELEASE REPLACE "^-m64$" "-m32")
+		endif()
+	endforeach()
+	target_compile_definitions(baselib_options INTERFACE "$<$<CONFIG:Debug>:${SHEET_DEFINES_DEBUG}>" "$<$<NOT:$<CONFIG:Debug>>:${SHEET_DEFINES_RELEASE}>")
+	target_compile_options(baselib_options INTERFACE "$<$<CONFIG:Debug>:${SHEET_OPTIONS_DEBUG}>" "$<$<NOT:$<CONFIG:Debug>>:${SHEET_OPTIONS_RELEASE}>" -Wall -Wextra)
+	target_link_options(baselib_options INTERFACE "$<$<CONFIG:Debug>:${SHEET_LINK_OPTIONS_DEBUG}>" "$<$<NOT:$<CONFIG:Debug>>:${SHEET_LINK_OPTIONS_RELEASE}>")
+	if(NOT BASELIB_64)
+		target_compile_options(baselib_options INTERFACE -msse2 -mfpmath=sse -D_FILE_OFFSET_BITS=64)
+	endif()
+
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT BASELIB_IPO_SUPPORTED LANGUAGES CXX)
+	if(BASELIB_IPO_SUPPORTED)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON PARENT_SCOPE)
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON PARENT_SCOPE)
+	endif()
+
+	if(BASELIB_SIZE16)
+		if(BASELIB_64)
+			message(FATAL_ERROR "BASELIB_SIZE16 is for 32-bit builds.")
+		endif()
+		target_compile_definitions(baselib_options INTERFACE BASELIB_SIZE16)
+		target_compile_options(baselib_options INTERFACE -Wconversion)
+	endif()
+	if(BASELIB_ASAN)
+		target_compile_options(baselib_options INTERFACE -fsanitize=address -fno-omit-frame-pointer)
+		target_link_options(baselib_options INTERFACE -fsanitize=address)
+	endif()
+	if(BASELIB_MALLOC)
+		target_compile_definitions(baselib_options INTERFACE SYSTEM_ALLOCATOR_USES_MALLOC)
+	endif()
+	if(BASELIB_TSAN)
+		target_compile_options(baselib_options INTERFACE -fsanitize=thread -fno-omit-frame-pointer)
+		target_link_options(baselib_options INTERFACE -fsanitize=thread)
+	endif()
+
+	cmake_language(DEFER CALL codaphela_tests_dont_break)
+endfunction()
+
+
+# Every test of the directory runs with BASELIB_BREAK=0 (see codaphela_options).
+function(codaphela_tests_dont_break)
+	get_property(DIRECTORY_TESTS DIRECTORY PROPERTY TESTS)
+	foreach(DIRECTORY_TEST ${DIRECTORY_TESTS})
+		set_property(TEST ${DIRECTORY_TEST} APPEND PROPERTY ENVIRONMENT "BASELIB_BREAK=0")
+	endforeach()
+endfunction()
+
+
+# Reads <ClCompile Include="..."/> entries from a .vcxproj and resolves them
+# against the files on disk case-insensitively (Windows paths are not
+# case-sensitive).  A file the project excludes from GCC-x64's build
+# (ExcludedFromBuild) is left out, and so are the files named in EXCLUDE
+# (paths relative to the project, any case): a main, for a program built
+# with more than one.
+function(vcxproj_sources OUT_VAR VCXPROJ)
+	cmake_parse_arguments(ARG "" "" "EXCLUDE" ${ARGN})
+	get_filename_component(PROJ_DIR "${VCXPROJ}" DIRECTORY)
+
+	# Re-run the configure step when Visual Studio adds or removes files.
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${VCXPROJ}")
+
+	file(GLOB_RECURSE DISK_FILES RELATIVE "${PROJ_DIR}" "${PROJ_DIR}/*.cpp" "${PROJ_DIR}/*.c")
+	foreach(DISK_FILE ${DISK_FILES})
+		string(TOLOWER "${DISK_FILE}" KEY)
+		set("DISK_${KEY}" "${DISK_FILE}")
+	endforeach()
+
+	set(EXCLUDED "")
+	foreach(EXCLUDE_FILE ${ARG_EXCLUDE})
+		string(TOLOWER "${EXCLUDE_FILE}" KEY)
+		list(APPEND EXCLUDED "${KEY}")
+	endforeach()
+
+	file(STRINGS "${VCXPROJ}" LINES REGEX "<ClCompile Include=\"[^\"]+\"|<ExcludedFromBuild Condition=\"'\\$\\(Platform\\)'=='GCC-x64'\">true<")
+	set(SOURCES "")
+	foreach(LINE ${LINES})
+		if(LINE MATCHES "<ExcludedFromBuild ")
+			list(POP_BACK SOURCES)
+			continue()
+		endif()
+		string(REGEX REPLACE ".*<ClCompile Include=\"([^\"]+)\".*" "\\1" SOURCE "${LINE}")
+		string(REPLACE "\\" "/" SOURCE "${SOURCE}")
+		string(TOLOWER "${SOURCE}" KEY)
+		if(KEY IN_LIST EXCLUDED)
+			continue()
+		endif()
+		# A file of another project (..\..\TestBaseLib65\TestTarget65.cpp) is used where it is.
+		if(SOURCE MATCHES "^\\.\\./")
+			if(NOT EXISTS "${PROJ_DIR}/${SOURCE}")
+				message(FATAL_ERROR "${VCXPROJ} lists ${SOURCE} but it was not found on disk")
+			endif()
+			get_filename_component(OUTSIDE "${PROJ_DIR}/${SOURCE}" ABSOLUTE)
+			list(APPEND SOURCES "${OUTSIDE}")
+			continue()
+		endif()
+		if(NOT DEFINED "DISK_${KEY}")
+			message(FATAL_ERROR "${VCXPROJ} lists ${SOURCE} but it was not found on disk")
+		endif()
+		list(APPEND SOURCES "${PROJ_DIR}/${DISK_${KEY}}")
+	endforeach()
+
+	set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
+endfunction()

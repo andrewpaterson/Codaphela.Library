@@ -3,6 +3,7 @@
 
     python3 project_sheets.py <sheet.props> <project.vcxproj>...             what each project would keep
     python3 project_sheets.py --write <sheet.props> <project.vcxproj>...     and rewrite them
+    python3 project_sheets.py --cmake <sheet.props>                          the sheet's GCC-x64 groups, as CMake set()s
 
 A project imports the sheet once, with no condition, after the import groups Visual Studio wrote, and loses each
 setting of its four configurations that the sheet (and the sheets it imports) already gives that configuration.
@@ -44,7 +45,7 @@ def is_for(tag, configuration):
 						  "$(Platform)": configuration[1]}[m.group(1)]
 
 
-def read_sheet(path, values):
+def read_sheet(path, values, configurations=CONFIGURATIONS):
 	"""What a sheet gives each configuration, values[configuration][name], the sheets it imports first where it does."""
 	text = open(path, encoding="utf-8-sig").read()
 	text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
@@ -52,7 +53,7 @@ def read_sheet(path, values):
 	for m in re.finditer(r"<Import ([^>]*)/>|<(PropertyGroup|ItemDefinitionGroup)([^>]*)>(.*?)</\2>", text, re.S):
 		if m.group(1) is not None:
 			imported = re.search(r'Project="([^"]*)"', m.group(1)).group(1).replace("$(MSBuildThisFileDirectory)", "")
-			read_sheet(os.path.join(here, imported.replace("\\", os.sep)), values)
+			read_sheet(os.path.join(here, imported.replace("\\", os.sep)), values, configurations)
 			continue
 		settings = []
 		if m.group(2) == "PropertyGroup":
@@ -60,7 +61,7 @@ def read_sheet(path, values):
 		else:
 			for tool in re.finditer(r"<(\w+)>(.*?)</\1>", m.group(4), re.S):
 				settings += [(tool.group(1) + "." + s.group(1), s.group(2), s.group(3)) for s in re.finditer(r"<(\w+)([^>]*)>([^<]*)</\1>", tool.group(2))]
-		for configuration in CONFIGURATIONS:
+		for configuration in configurations:
 			if is_for(m.group(3), configuration):
 				for name, attributes, value in settings:
 					value = value.replace("$(MSBuildThisFileDirectory)", here)
@@ -188,7 +189,24 @@ def move(path, sheet_path, sheet, write):
 	return kept, changed
 
 
+def cmake(sheet_path):
+	"""What CMake/Codaphela.cmake builds with: the sheet's GCC-x64 configurations' defines, options and link options."""
+	gcc = [("Debug", "GCC-x64"), ("Release", "GCC-x64")]
+	values = {configuration: {} for configuration in gcc}
+	read_sheet(sheet_path, values, gcc)
+	for configuration in gcc:
+		name = configuration[0].upper()
+		given = values[configuration]
+		print('set(SHEET_DEFINES_%s "%s")' % (name, ";".join(parts(given.get("ClCompile.PreprocessorDefinitions", ""), "%(PreprocessorDefinitions)"))))
+		for tool, variable in (("ClCompile", "OPTIONS"), ("Link", "LINK_OPTIONS")):
+			options = given.get(tool + ".AdditionalOptions", "").replace("%(AdditionalOptions)", "").split()
+			print('set(SHEET_%s_%s "%s")' % (variable, name, ";".join(options)))
+	return 0
+
+
 def main(arguments):
+	if arguments[:1] == ["--cmake"] and len(arguments) == 2:
+		return cmake(arguments[1])
 	write = "--write" in arguments
 	arguments = [a for a in arguments if a != "--write"]
 	if len(arguments) < 2:
