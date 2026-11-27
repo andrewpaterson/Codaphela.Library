@@ -62,6 +62,7 @@ class CDriveEvent;
 class CSlewEvent;
 class CTransitionEvent;
 typedef CArrayTemplatePtr<CPortEvent>	CArrayPortEventPtr;
+//Design page: Docs/libraries/microprocessorlib/logic.md
 class CLogicPort : public CPort, public CLogicSignal
 {
 CONSTRUCTABLE(CLogicPort);

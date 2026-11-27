@@ -231,6 +231,7 @@ uint16	CPPArithmeticOpcode(ECppTokens eOperator, bool bSigned);
 //(having changed nothing) and the function is an error (CCPPUnit::GenerateDefinition).  Locals are slots,
 //read and written with load and store; parameters are where their caller pushed them (argaddr).  What is
 //supported is in IR.txt (Front end).
+//Design page: Docs/compiler/design/ir.md
 class CCPP65IRFrontEnd : public CIRInlineProfile, public CIRUnitFunctions
 {
 protected:

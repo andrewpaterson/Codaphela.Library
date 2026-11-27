@@ -15,6 +15,7 @@ class CFileWriter;
 template<class M>
 class CArrayTemplatePtr;
 typedef CArrayTemplatePtr<void>	CArrayVoidPtr;
+//Design page: Docs/libraries/baselib/memory.md
 class CMallocator : public CConstructable, public CKillable
 {
 public:

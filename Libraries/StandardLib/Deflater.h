@@ -33,6 +33,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Compresses data with deflate (RFC 1951), optionally wrapped in a zlib stream (RFC 1950).  Matches are found with
 //hash chains and lazy evaluation.  Each block is written stored, with the fixed code or with its own dynamic codes,
 //whichever is smallest.  The same input always gives the same output.
+//Design page: Docs/libraries/standardlib/compression.md
 class CDeflater
 {
 protected:

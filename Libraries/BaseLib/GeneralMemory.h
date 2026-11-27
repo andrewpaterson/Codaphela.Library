@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns.
 //  It finds it's use mostly in CUnknowns.
 //  It It's not a replacement for malloc / free.
+//Design page: Docs/libraries/baselib/memory.md
 class CGeneralMemory : public CBaseMemory
 {
 private:

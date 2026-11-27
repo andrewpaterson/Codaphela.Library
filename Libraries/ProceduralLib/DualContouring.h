@@ -44,6 +44,7 @@ typedef CArrayLargeTemplate<SDualContouringPieces>	CArrayDualContouringPieces;
 //of the grid makes a quad of the vertices of its piece in the four cells around it, from its inside end to its outside end, split
 //into two triangles along the diagonal whose middle is nearer the surface (the one that follows a crease).  Each vertex is one
 //corner of the mesh, shared by every face on it.
+//Design page: Docs/libraries/procedurallib/isosurface.md
 class CDualContouring
 {
 public:

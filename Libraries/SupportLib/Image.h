@@ -49,6 +49,7 @@ struct SImageChangingDesc
 
 
 class CImageCelBlitterCache;
+//Design page: Docs/libraries/supportlib/images.md
 class CImage : public CObject
 {
 friend class CImageCopier;

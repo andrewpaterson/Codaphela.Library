@@ -106,6 +106,7 @@ struct SModChannel
 //delays, retriggers, note cuts and delays, fine slides and finetune), plus 8xx and E8x panning which ProTracker ignores.
 //Channels are panned left, right, right, left as on the Amiga, scaled by the stereo separation.  The song ends when it
 //would play a row it has already played (outside a pattern loop), or at F00.
+//Design page: Docs/libraries/supportlib/sound.md
 class CModPlayer
 {
 protected:

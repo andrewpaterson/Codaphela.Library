@@ -35,6 +35,7 @@ along with Codaphela SupportLib.  If not, see <http://www.gnu.org/licenses/>.
 //central differences across a crease average its faces.  Bounds may be as large as a float32 goes (a half space).  AddMesh adds
 //the mesh its own mesh editor makes of it, with the same values (ShapePlan.txt, section 5), for a primitive that has one.
 class CMeshEditor;
+//Design page: Docs/libraries/supportlib/shapes.md
 class CShape : public CObject
 {
 CONSTRUCTABLE(CShape);

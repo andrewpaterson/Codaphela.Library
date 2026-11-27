@@ -155,6 +155,7 @@ struct S65C64CoreState
 	bool					bPreviousClockHigh;
 	bool					bReset;
 };
+//Design page: Docs/libraries/microprocessorlib/simulators.md
 class C65C64
 {
 protected:

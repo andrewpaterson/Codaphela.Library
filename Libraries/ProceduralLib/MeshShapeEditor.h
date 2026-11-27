@@ -35,6 +35,7 @@ along with Codaphela ProceduralLib.  If not, see <http://www.gnu.org/licenses/>.
 //than mfSplitAngle or a cell's centre is more than mfCentreTolerance from what its corners predict.  A shape with endless
 //bounds (a half space) and no editor makes nothing.  It makes faces only; CMeshShapeNormals after it gives them normals from the
 //shape, smooth across curves however coarse the faces and sharp at creases.
+//Design page: Docs/libraries/procedurallib/isosurface.md
 class CMeshShapeEditor : public CMeshSourceModifier
 {
 CONSTRUCTABLE(CMeshShapeEditor);

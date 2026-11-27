@@ -49,6 +49,7 @@ typedef void(*CFast65C64WriteByte)(void* pvContext, uint32 uiAddress, uint8 uiVa
 //kind of access is watched its fast path's limit (muiReadLimit, muiWriteLimit) is 0, so every access of that kind
 //looks (WatchesChanged).  Fetches and vectors are read with ReadWord and are never watched.
 struct SFast65C64Op;
+//Design page: Docs/libraries/microprocessorlib/simulators.md
 class CFast65C64
 {
 protected:

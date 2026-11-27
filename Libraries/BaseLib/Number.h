@@ -62,6 +62,7 @@ protected:
 
 
 class CNumberControl;
+//Design page: Docs/libraries/baselib/numbers-and-lines.md
 class CNumber : public CNumberDetail
 {
 public:

@@ -11,6 +11,7 @@
 #include "VectorShapes.h"
 
 
+//Design page: Docs/libraries/supportlib/images.md
 class CImageDraw
 {
 protected:

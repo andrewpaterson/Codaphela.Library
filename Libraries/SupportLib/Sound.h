@@ -40,6 +40,7 @@ struct SSoundChangingDesc
 //The bit sized types (crumb, tribble, nybble, nickle and sixbits) are unsigned too: a nybble's 8 is silence, 0 is -1.0 and 15 is
 //0.875.  A bit has no middle so 0 is -1.0 and 1 is 1.0.  Samples needn't be byte aligned, so packed formats (like two nybbles a
 //frame) can be read and written; byte aligned channels are faster.
+//Design page: Docs/libraries/supportlib/sound.md
 class CSound : public CObject
 {
 CONSTRUCTABLE(CSound);

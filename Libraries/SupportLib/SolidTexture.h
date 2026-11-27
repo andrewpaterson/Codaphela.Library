@@ -68,6 +68,7 @@ struct SSolidSample
 //axis (ToOwn), its normal turned the same way and the width divided by the scale; the sample's height, which the texture gives
 //in its own units, is multiplied by the scale, so a texture placed half the size is raised half as far and slopes as it did.
 //It starts at the world's origin, along the world's axes, at scale 1.
+//Design page: Libraries/ProceduralLib/Docs/libraries/procedurallib/textures.md
 class CSolidTexture : public CObject
 {
 CONSTRUCTABLE(CSolidTexture);

@@ -33,6 +33,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MeshSmoothing.h"
 
 
+//Design page: Docs/libraries/supportlib/scenes.md
 class CMesh : public CObject
 {
 CONSTRUCTABLE(CMesh);

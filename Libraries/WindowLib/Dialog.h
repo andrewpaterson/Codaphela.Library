@@ -76,6 +76,7 @@ public:
 //
 //A dialog is an object: make it with OMalloc and keep it in the root, or in an object that is, while it's shown.  It
 //holds its window.
+//Design page: Docs/libraries/windowlib/components.md
 class CDialog : public CObject
 {
 CONSTRUCTABLE(CDialog);

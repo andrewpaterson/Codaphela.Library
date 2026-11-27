@@ -54,6 +54,7 @@ extern const char*	gaszPowerUpStateNames[POWER_UP_STATES];
 //It keeps the power-up state, what chips remember when their power comes (EPowerUpState), Zero unless it is set, and the
 //seed its random bits come from.  The generator starts again from the seed each time the simulation starts, and the
 //chips draw from it in the circuit's order, so a run repeats.
+//Design page: Docs/libraries/microprocessorlib/logic.md
 class CCircuitSimulation : public CObject
 {
 CONSTRUCTABLE(CCircuitSimulation);

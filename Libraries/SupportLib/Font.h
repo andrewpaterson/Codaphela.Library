@@ -39,6 +39,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //says.  A glyph is generated the first time its character is asked for and kept by its description's index.  A lazy
 //font's image starts empty and each glyph's pixels are drawn into it when the glyph is generated: a white font's by
 //the description's rasteriser, a coloured font's by recolouring the white font's.
+//Design page: Docs/libraries/supportlib/fonts.md
 class CFont : public CObject
 {
 CONSTRUCTABLE(CFont);

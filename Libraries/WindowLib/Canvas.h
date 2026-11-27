@@ -33,6 +33,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CNativeCanvas;
 class CNativeWindowFactory;
 class CContainer;
+//Design page: Docs/libraries/windowlib/drawing.md
 class CCanvas : public CComponent
 {
 CONSTRUCTABLE(CCanvas);

@@ -98,6 +98,7 @@ struct SW65CCoreState
 };
 
 
+//Design page: Docs/libraries/microprocessorlib/simulators.md
 class CW65CCore
 {
 protected:

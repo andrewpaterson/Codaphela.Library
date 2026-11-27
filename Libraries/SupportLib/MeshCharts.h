@@ -43,6 +43,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //(more than 85 degrees) leaves it and starts or joins another.
 //
 //Regrow: the faces of some charts grown again (at a smaller angle, by a chart that overlaps itself laid flat), the others kept.
+//Design page: Docs/libraries/supportlib/unwrapping.md
 class CMeshCharts
 {
 public:

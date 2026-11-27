@@ -25,6 +25,8 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   `Libraries/MicroprocessorLib/Docs/65c64/emulator.md`.  The website (MkDocs, `../HCP65/Website`) gathers every
   repository's `Docs` folders through its `mkdocs.yml`'s `extra.sources`; `../HCP65/Website/DocsPlan.txt` is the
   plan for the documentation.  Read a library's design pages before changing it.
+- A design page's main classes name it in their headers, one line above the class, `//Design page: Docs/...`
+  (`DocsPlan.txt` G1); a new design page adds it to its own.
 - Name code in a page with a reference: [`CTextArea`], [`CTextArea::ReplaceRanges`], [`CShape::Init(int)`] or
   [`BaseLib/Chars.h`].  The site build links it to its line on GitHub and fails on one that names nothing; a plain
   `CTextArea` naming a real class is a warning.  A span that isn't C++ but looks it is written `#!text abs`.

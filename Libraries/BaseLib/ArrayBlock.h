@@ -235,6 +235,7 @@ extern template class CArrayBlockBase<SArrayLargeSize>;
 //The names the arrays are known by.  They are classes, not typedefs, so they can be declared ahead.
 struct SArrayTemplateHeader : public SArrayHeaderBase<SArrayNaturalSize> {};
 struct SArrayLargeTemplateHeader : public SArrayHeaderBase<SArrayLargeSize> {};
+//Design page: Docs/libraries/baselib/containers.md
 class CArrayBlock : public CArrayBlockBase<SArrayNaturalSize> {};
 class CArrayLargeBlock : public CArrayBlockBase<SArrayLargeSize> {};
 

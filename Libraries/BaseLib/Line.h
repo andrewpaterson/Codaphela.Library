@@ -33,6 +33,7 @@ class CChars;
 
 //A line between two points on an integer grid, ported from Logicim's Line.  Traces are horizontal or vertical lines;
 //a line that is neither has direction LD_Cannot and never overlaps or touches another.
+//Design page: Docs/libraries/baselib/numbers-and-lines.md
 class CLine
 {
 protected:

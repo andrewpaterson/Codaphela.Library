@@ -68,6 +68,7 @@ typedef void(*CFastW65C816Signal)(void* pvContext, uint8 uiSignal);
 //They also return after an instruction that read or wrote a watched address (GetWatches, UseWatches, IsAtWatch):
 //reads and writes have bank tables of their own (mapuiReadBanks, mapuiWriteBanks), without the banks a watch is in,
 //so only accesses to those banks look (WatchesChanged).  Fetches use mapuiBanks and are never watched.
+//Design page: Docs/libraries/microprocessorlib/simulators.md
 class CFastW65C816
 {
 protected:

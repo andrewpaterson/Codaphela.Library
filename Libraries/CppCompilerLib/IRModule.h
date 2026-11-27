@@ -125,6 +125,7 @@ typedef CArrayTemplate<uint8>			CArrayIRSpaceSizes;
 
 //One translation unit: address spaces, the symbols the functions and globals use (defined here or not), the
 //functions and the globals.  A target's opcodes (machine IR) are numbered from IRO_NumGeneric.
+//Design page: Docs/compiler/design/ir.md
 class CIRModule
 {
 public:

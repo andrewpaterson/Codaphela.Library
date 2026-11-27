@@ -32,6 +32,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //Decompresses deflate data (RFC 1951), optionally wrapped in a zlib stream (RFC 1950) whose header and Adler-32
 //checksum are checked.  Input is read from a file; output is appended to an array.  Corrupt, truncated or
 //over long input fails rather than reading or writing out of bounds.
+//Design page: Docs/libraries/standardlib/compression.md
 class CInflater
 {
 protected:

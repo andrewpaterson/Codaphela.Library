@@ -27,6 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //sides come from (strings, files, later git revisions) the diff is always computed here, text to text, under the
 //producer's whitespace and highlight policies.  Produce recomputes a diff whose contents are already set, so a view can
 //change policy without reloading.
+//Design page: Docs/libraries/standardlib/text-diff.md
 class CTextDiffProducer
 {
 protected:

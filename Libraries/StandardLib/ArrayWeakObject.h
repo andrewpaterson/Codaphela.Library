@@ -30,6 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //only NULLs it), so nothing iterating sees the array change size then; Remove and Compact take entries out, moving the last
 //into the gap, so the order isn't kept.  Get is a Ptr, which holds the object while it's used.  Nothing is saved: it loads
 //empty, as a weak pointer loads NULL.  Its entries come off their objects' weak froms when it's freed.
+//Design page: Docs/libraries/standardlib/weak-references.md
 class CArrayWeakObject : public CObject, public CWeakHolder
 {
 CONSTRUCTABLE(CArrayWeakObject)

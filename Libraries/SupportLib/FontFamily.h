@@ -46,6 +46,7 @@ typedef CArrayTemplate<SFontFamilySize>	CArrayFontFamilySize;
 //CFontColours that makes the colours.  A size is lazy: its glyphs are only rasterised (and coloured) as they are
 //first asked for.  A style with no face is an error.  A family can instead be given fonts already
 //made, each in only the one size it was made for.
+//Design page: Docs/libraries/supportlib/fonts.md
 class CFontFamily : public CObject
 {
 CONSTRUCTABLE(CFontFamily);

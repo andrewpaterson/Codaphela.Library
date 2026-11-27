@@ -79,6 +79,7 @@ struct SDiffViewScrolls
 //Scrolling either side scrolls the other: the line at the middle of the scrolled side is mapped across the blocks
 //(CTextDiffLineMapper) and the other side is scrolled to put that line at its middle; sideways the other side is
 //scrolled the same.  A side scrolled by the view doesn't scroll the first back.
+//Design page: Docs/libraries/windowlib/diff-view.md
 class CDiffView : public CGridContainer
 {
 CONSTRUCTABLE(CDiffView);

@@ -32,6 +32,7 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 //What's in a world.  Meshes, materials, images and connections are reached through what uses them, so one nothing uses isn't here, and isn't
 //kept from a file that has it.  ReadFile adds to what's here.  WriteFile fails, leaving no file, if a scene file can't hold what's here.
 //UpdateConnections makes every connection's world matrix from its local one and its parents'.
+//Design page: Docs/libraries/supportlib/scenes.md
 class CScene : public CObject
 {
 CONSTRUCTABLE(CScene);

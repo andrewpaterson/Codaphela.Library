@@ -31,6 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "TextParserParameters.h"
 
 
+//Design page: Docs/libraries/baselib/parsers-and-markup.md
 class CTextParser
 {
 public:

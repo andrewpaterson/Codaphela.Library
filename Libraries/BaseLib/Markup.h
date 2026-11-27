@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MarkupReference.h"
 
 
+//Design page: Docs/libraries/baselib/parsers-and-markup.md
 class CMarkup
 {
 public:

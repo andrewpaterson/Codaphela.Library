@@ -30,6 +30,7 @@ class CDamageArea;
 class CNativeWindowFactory;
 class CNativeCanvas;
 class CWindow;
+//Design page: Docs/libraries/windowlib/backends.md
 class CNativeWindow : public CNativeComponent
 {
 CONSTRUCTABLE(CNativeWindow);

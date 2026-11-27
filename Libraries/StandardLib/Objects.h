@@ -87,6 +87,8 @@ struct SForwardingHollow
 typedef CArrayTemplate<SForwardingHollow>	CArrayForwardingHollow;
 
 
+//Design page: Docs/libraries/standardlib/objects.md
+//Design page: Docs/libraries/standardlib/threads.md
 class CObjects
 {
 friend class CBaseObject;

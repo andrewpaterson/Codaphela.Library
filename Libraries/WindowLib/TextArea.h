@@ -83,6 +83,7 @@ typedef CComponentValueEvent<CTextArea, size>				CTextAreaLinkEvent;  //The posi
 //
 //The moves and edits themselves (Up, SelectRight, Printable, Paste ...) are the editing's: GetEditing gives it, and the
 //input actions reach it directly.  The text area has only what it adds to them: the text, its layout and what is drawn.
+//Design page: Docs/libraries/windowlib/text-area.md
 class CTextArea : public CCanvas, public CTextEditingView, public CTextUndoPresser, public CRevealingUndoHost, public CTextEnterPresser, public CTextLinkPresser, public CTextDoubleClickPresser
 {
 CONSTRUCTABLE(CTextArea);

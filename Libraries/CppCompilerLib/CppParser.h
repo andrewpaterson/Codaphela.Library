@@ -123,6 +123,7 @@ enum ECPPDeclaratorKind
 //C++14 recursive descent parser.  Names are looked up as they are parsed so types can be told from values.  Member
 //function bodies are parsed when their class is complete.  Declarations in system headers are only skimmed: their
 //function bodies are skipped and parse errors in them are ignored.
+//Design page: Docs/compiler/design/front-end.md
 class CCPPParser : public CCPPLazyLoader
 {
 protected:

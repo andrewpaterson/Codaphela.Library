@@ -122,6 +122,7 @@ typedef CArrayTemplate<SComponentInputContext>	CArrayComponentInputContext;
 //Kill a CComponentInput before the CWindowInputSource it was given.
 class CWindow;
 class CComponent;
+//Design page: Docs/libraries/windowlib/input.md
 class CComponentInput
 {
 protected:

@@ -25,6 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Int32Rect.h"
 
 
+//Design page: Docs/libraries/windowlib/layout.md
 class CContainer : public CComponent
 {
 CONSTRUCTABLE(CContainer);

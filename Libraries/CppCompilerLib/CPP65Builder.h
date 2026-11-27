@@ -52,6 +52,7 @@ along with Codaphela CppCompilerLib.  If not, see <http://www.gnu.org/licenses/>
 //front over four parts, keeping the project, the errors, the warnings and the counts: what is built and how
 //(CCPPBuild, GetBuild), the project's units compiled (CCPPUnitSchedule, each unit by a CCPPUnitCompiler) and the
 //objects linked (CCPPProgramLinker).
+//Design page: Docs/compiler/design/self-hosting.md
 class CCPP65Builder
 {
 protected:

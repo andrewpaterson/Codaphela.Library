@@ -40,6 +40,7 @@ class CContextMenu;
 //Input reaches a component through the input actions added to it (see AddInputAction), given by the window's focus.
 //
 //A component can have a context menu (SetContextMenu), opened by the right button or the Menu key, see CContextMenu.
+//Design page: Docs/libraries/windowlib/components.md
 class CComponent : public CObject
 {
 CONSTRUCTABLE(CComponent);

@@ -76,6 +76,7 @@ public:
 //
 //A command that turns something on and off (Group by Project) says which it is (SetCheckedCheck): a toolbar shows its
 //button on while it is.
+//Design page: Docs/libraries/windowlib/input.md
 class CCommand : public CObject
 {
 CONSTRUCTABLE(CCommand);

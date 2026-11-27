@@ -24,6 +24,7 @@ typedef CArrayTemplatePtr<CWriteTransaction> CArrayWriteTransaction;
 //session.  A direct session (Open ... Close) is an implicit write transaction that is always the oldest, so it waits
 //but never dies.  Direct calls between Open and Close go through it, from any thread; Close commits it.  Without a
 //session direct reads see the committed store and direct writes fail.
+//Design page: Docs/libraries/baselib/codabase.md
 class CCodabase : public CDataConnection, public CKillable
 {
 friend class CWriteTransaction;
