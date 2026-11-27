@@ -23,9 +23,13 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 #include "Passive.h"
 #include "PowerOutPort.h"
 #include "PowerInPort.h"
+#include "PowerPinNames.h"
 
 
 #define POWER_PIN_FEED		"In"
+
+//How far from 0V a regulator's ground may be and still be its ground.
+#define POWER_SOURCE_GROUND_TOLERANCE	0.1f
 #define POWER_SOURCE_TYPE	"Power Source"
 
 
@@ -33,8 +37,9 @@ along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/license
 //over its rise time, see CPowerOutPort.  When the simulation starts it is on, or off if it isn't on at start; on, it
 //rises from 0V over its rise time (at once with none, as Logicim's).
 //
-//A supply fed by another, a regulator, has a power in port, In, on its feed's trace: it is on while its feed is at
-//its voltage plus its dropout or above, and off below it, whatever it was told at start.
+//A supply fed by another, a regulator, has two power in ports: In, on its feed's trace, and GND, on its ground's.  It
+//is on while its ground is at 0V and its feed is at its voltage plus its dropout or above it, and off otherwise (a
+//regulator with nothing on its In or GND is off), whatever it was told at start.
 class CPowerSource : public CPassive
 {
 CONSTRUCTABLE(CPowerSource);
@@ -42,6 +47,7 @@ protected:
 	CPowerOutPort*	mpcPowerOutPort;
 	bool			mbOnAtStart;
 	CPowerInPort*	mpcFeedPort;  //NULL unless it is fed.
+	CPowerInPort*	mpcGroundPort;  //NULL unless it is fed.
 	float32			mfDropout;
 
 public:
@@ -61,6 +67,7 @@ public:
 			int64			GetRiseTime(void) const;
 			void			SetFeed(float32 fDropout);
 			CPowerInPort*	GetFeedPort(void) const;
+			CPowerInPort*	GetGroundPort(void) const;
 			float32			GetDropout(void) const;
 			CPowerOutPort*	GetPowerOutPort(void) const;
 

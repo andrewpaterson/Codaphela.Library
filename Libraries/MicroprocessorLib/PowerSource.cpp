@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MicroprocessorLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <math.h>
 #include "BaseLib/ConstructorCall.h"
 #include "Voltage.h"
 #include "Timeline.h"
@@ -37,6 +38,7 @@ void CPowerSource::Init(CSubcircuitSimulation* pcContainingSubcircuitSimulation,
 	mpcPowerOutPort->Init(POWER_PIN_POWER, this, fVoltage);
 	mbOnAtStart = true;
 	mpcFeedPort = NULL;
+	mpcGroundPort = NULL;
 	mfDropout = 0.0f;
 	PostInit();
 }
@@ -53,6 +55,7 @@ void CPowerSource::Class(void)
 	U_Pointer(mpcPowerOutPort);
 	U_Bool(mbOnAtStart);
 	U_Pointer(mpcFeedPort);
+	U_Pointer(mpcGroundPort);
 	U_Float32(mfDropout);
 }
 
@@ -80,8 +83,8 @@ void CPowerSource::SimulationStarted(CTimeline* pcTimeline)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Its feed has stepped, or been connected or cut, or its own port has
-// stepped: a fed supply follows its feed.
+// Its feed or ground has stepped, or been connected or cut, or its own
+// port has stepped: a fed supply follows its feed.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPowerSource::TraceConnected(CTimeline* pcTimeline, CPort* pcPort)
@@ -104,12 +107,14 @@ bool CPowerSource::IsPoweringUp(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// On while the feed is at the supply's voltage plus its dropout or above.
+// On while the ground is at 0V and the feed is at the supply's voltage
+// plus its dropout or above.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPowerSource::FollowFeed(CTimeline* pcTimeline)
 {
 	float32	fFeed;
+	float32	fGround;
 	bool	bOn;
 
 	if (mpcFeedPort == NULL)
@@ -117,7 +122,8 @@ void CPowerSource::FollowFeed(CTimeline* pcTimeline)
 		return;
 	}
 	fFeed = mpcFeedPort->GetVoltageIn(pcTimeline->GetTime());
-	bOn = IsVoltage(fFeed) && (fFeed >= mpcPowerOutPort->GetVoltage() + mfDropout);
+	fGround = mpcGroundPort->GetVoltageIn(pcTimeline->GetTime());
+	bOn = IsVoltage(fFeed) && IsVoltage(fGround) && (fabsf(fGround) <= POWER_SOURCE_GROUND_TOLERANCE) && (fFeed >= mpcPowerOutPort->GetVoltage() + mfDropout);
 	if (bOn != mpcPowerOutPort->IsOn())
 	{
 		mpcPowerOutPort->Switch(pcTimeline, bOn);
@@ -138,8 +144,8 @@ void CPowerSource::Switch(CTimeline* pcTimeline, bool bOn)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// Makes it a regulator, fed through its In port, which is then connected
-// to its feed's trace.
+// Makes it a regulator, fed through its In port and grounded through its
+// GND port, which are then connected to its feed's and ground's traces.
 //
 //////////////////////////////////////////////////////////////////////////
 void CPowerSource::SetFeed(float32 fDropout)
@@ -148,6 +154,8 @@ void CPowerSource::SetFeed(float32 fDropout)
 	{
 		mpcFeedPort = NewMalloc<CPowerInPort>();
 		mpcFeedPort->Init(PT_PowerIn, POWER_PIN_FEED, this);
+		mpcGroundPort = NewMalloc<CPowerInPort>();
+		mpcGroundPort->Init(PT_PowerIn, POWER_PIN_GND, this);
 	}
 	mfDropout = fDropout;
 }
@@ -165,5 +173,6 @@ bool CPowerSource::IsOnAtStart(void) const { return mbOnAtStart; }
 void CPowerSource::SetRiseTime(int64 iRiseTime) { mpcPowerOutPort->SetRiseTime(iRiseTime); }
 int64 CPowerSource::GetRiseTime(void) const { return mpcPowerOutPort->GetRiseTime(); }
 CPowerInPort* CPowerSource::GetFeedPort(void) const { return mpcFeedPort; }
+CPowerInPort* CPowerSource::GetGroundPort(void) const { return mpcGroundPort; }
 float32 CPowerSource::GetDropout(void) const { return mfDropout; }
 

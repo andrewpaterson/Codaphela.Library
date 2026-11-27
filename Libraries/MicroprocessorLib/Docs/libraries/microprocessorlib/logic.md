@@ -105,8 +105,9 @@ another level.  Its voltage at a time is worked out from when it was last switch
 no rise time it switches at once, the next tick, and when the simulation starts it is on at its voltage, as Logicim's
 was.  With a rise time it starts at 0V and rises, or stays off if it isn't on at start.
 
-A supply fed by another, a regulator ([`CPowerSource::SetFeed`]), has a power in port on its feed's rail: it is on
-while its feed is at its voltage plus its dropout or above, and off below it.
+A supply fed by another, a regulator ([`CPowerSource::SetFeed`]), has two power in ports, In on its feed's rail and
+GND on its ground's: it is on while its GND is at 0V and its In is at its voltage plus its dropout or above, and off
+otherwise, so a regulator with nothing on its In or GND stays off.
 
 A component still coming up from power on, a supply ramping or a supervisor holding its power-on reset, says so
 ([`CCircuitComponent::IsPoweringUp`]), so an application can run the simulation flat out until nothing is

@@ -238,9 +238,9 @@ void TestPowerTiedInput(void)
 
 //////////////////////////////////////////////////////////////////////////
 //
-// A 3.3V regulator with a 1.1V dropout fed by a rail rising 0.1V every
-// 100ns to 5V: on, at once, once its feed reaches 4.4V, and off again as
-// the feed falls below it.
+// A 3.3V regulator with a 1.1V dropout, grounded, fed by a rail rising
+// 0.1V every 100ns to 5V: on, at once, once its feed reaches 4.4V, and off
+// again as the feed falls below it.
 //
 //////////////////////////////////////////////////////////////////////////
 void TestPowerRegulator(void)
@@ -248,22 +248,29 @@ void TestPowerRegulator(void)
 	CTestBoard		cBoard;
 	CTrace*			pcFeed;
 	CTrace*			pcRail;
+	CTrace*			pcGround;
 	CPowerSource*	pcSupply;
+	CPowerSource*	pcGroundSupply;
 	CPowerSource*	pcRegulator;
 	int64			iStep;
 
 	cBoard.Init();
 	pcFeed = cBoard.NewTrace();
 	pcRail = cBoard.NewTrace();
+	pcGround = cBoard.NewTrace();
 	pcRegulator = &OMalloc<CPowerSource>(cBoard.mpcTop, "Regulator", 3.3f);
 	pcRegulator->SetFeed(1.1f);
 	pcRegulator->GetFeedPort()->Connect(pcFeed);
+	pcRegulator->GetGroundPort()->Connect(pcGround);
 	pcRegulator->GetPowerOutPort()->Connect(pcRail);
+	pcGroundSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "Ground", 0.0f);
+	pcGroundSupply->GetPowerOutPort()->Connect(pcGround);
 	pcSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "Supply", 5.0f);
 	pcSupply->SetRiseTime(NanosecondsToTime((int64)5000));
 	pcSupply->GetPowerOutPort()->Connect(pcFeed);
 	iStep = NanosecondsToTime((int64)100);
 	AssertString(POWER_PIN_FEED, pcRegulator->GetFeedPort()->GetName());
+	AssertString(POWER_PIN_GND, pcRegulator->GetGroundPort()->GetName());
 	AssertFloat(1.1f, pcRegulator->GetDropout(), 3);
 	cBoard.Start();
 	AssertFloat(0.0f, TestPowerVoltage(&cBoard, pcRail), 3);
@@ -286,6 +293,76 @@ void TestPowerRegulator(void)
 	AssertFalse(pcRegulator->IsOn());
 	AssertFloat(0.0f, TestPowerVoltage(&cBoard, pcRail), 3);
 
+	cBoard.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+// A 3.3V regulator on a 5V feed stays off with nothing on its GND, and
+// with its GND at 5V; it comes on once its GND is at 0V.
+//
+//////////////////////////////////////////////////////////////////////////
+void TestPowerRegulatorGround(void)
+{
+	CTestBoard		cBoard;
+	CTrace*			pcFeed;
+	CTrace*			pcRail;
+	CTrace*			pcGround;
+	CPowerSource*	pcSupply;
+	CPowerSource*	pcRegulator;
+
+	cBoard.Init();
+	pcFeed = cBoard.NewTrace();
+	pcRail = cBoard.NewTrace();
+	pcGround = cBoard.NewTrace();
+	pcRegulator = &OMalloc<CPowerSource>(cBoard.mpcTop, "Regulator", 3.3f);
+	pcRegulator->SetFeed(1.1f);
+	pcRegulator->GetFeedPort()->Connect(pcFeed);
+	pcRegulator->GetGroundPort()->Connect(pcGround);
+	pcRegulator->GetPowerOutPort()->Connect(pcRail);
+	pcSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "Supply", 5.0f);
+	pcSupply->GetPowerOutPort()->Connect(pcFeed);
+	cBoard.Start();
+	cBoard.Run();
+	AssertFloat(5.0f, TestPowerVoltage(&cBoard, pcFeed), 3);
+	AssertFalse(pcRegulator->IsOn());
+	AssertFloat(0.0f, TestPowerVoltage(&cBoard, pcRail), 3);
+	cBoard.Kill();
+
+	cBoard.Init();
+	pcFeed = cBoard.NewTrace();
+	pcRail = cBoard.NewTrace();
+	pcRegulator = &OMalloc<CPowerSource>(cBoard.mpcTop, "Regulator", 3.3f);
+	pcRegulator->SetFeed(1.1f);
+	pcRegulator->GetFeedPort()->Connect(pcFeed);
+	pcRegulator->GetGroundPort()->Connect(pcFeed);
+	pcRegulator->GetPowerOutPort()->Connect(pcRail);
+	pcSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "Supply", 5.0f);
+	pcSupply->GetPowerOutPort()->Connect(pcFeed);
+	cBoard.Start();
+	cBoard.Run();
+	AssertFalse(pcRegulator->IsOn());
+	AssertFloat(0.0f, TestPowerVoltage(&cBoard, pcRail), 3);
+	cBoard.Kill();
+
+	cBoard.Init();
+	pcFeed = cBoard.NewTrace();
+	pcRail = cBoard.NewTrace();
+	pcGround = cBoard.NewTrace();
+	pcRegulator = &OMalloc<CPowerSource>(cBoard.mpcTop, "Regulator", 3.3f);
+	pcRegulator->SetFeed(1.1f);
+	pcRegulator->GetFeedPort()->Connect(pcFeed);
+	pcRegulator->GetGroundPort()->Connect(pcGround);
+	pcRegulator->GetPowerOutPort()->Connect(pcRail);
+	pcSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "Supply", 5.0f);
+	pcSupply->GetPowerOutPort()->Connect(pcFeed);
+	pcSupply = &OMalloc<CPowerSource>(cBoard.mpcTop, "Ground", 0.0f);
+	pcSupply->GetPowerOutPort()->Connect(pcGround);
+	cBoard.Start();
+	cBoard.Run();
+	AssertTrue(pcRegulator->IsOn());
+	AssertFloat(3.3f, TestPowerVoltage(&cBoard, pcRail), 3);
 	cBoard.Kill();
 }
 
@@ -515,6 +592,7 @@ void TestPower(void)
 	TestPowerSwitchedOff();
 	TestPowerTiedInput();
 	TestPowerRegulator();
+	TestPowerRegulatorGround();
 	TestPowerUpState();
 	TestPowerSupervisor();
 
