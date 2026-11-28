@@ -2,7 +2,7 @@
 """Gives Visual Studio solutions their GCC-x64 configurations, or with --platform an HCP65 solution its HCP65C816
 ones (HCP65-IDE's ConfigurationsPlan.txt, The solution's rows).
 
-    python3 solution_rows.py [--write] [--platform HCP65C816] [--add <project.vcxproj>]... <solution.sln>...
+    python3 solution_rows.py [--write] [--platform HCP65C816] [--add <project.vcxproj>]... [--build <Project>]... <solution.sln>...
 
 For Debug, Release and Reference (HCP65IDE's, the plan's C13), where a solution has them on x64, it adds the solution configuration <name>|GCC-x64
 and a row for each project: mapped to what the project's <name>|x64 row maps to, and built if that row is built,
@@ -15,7 +15,9 @@ file stays byte for byte, each new row put where Visual Studio would sort it amo
 has the configurations already is left as it is.
 
 An HCP65 platform's rows are as Win32's, the platform the HCP65 compiler's configurations are read beside: every
-project built that Win32 builds (Libc65, the runtime, is still given to the build and not built as a project).
+project built that Win32 builds.  --build names a project the platform's configurations build though Win32's don't:
+Libc65, the runtime, which an HCP65 build takes from the rows (the plan's C4-7, question 23) and Visual Studio never
+builds.  Each of its rows on the platform that has no .Build.0 is given one.
 """
 import os
 import re
@@ -117,16 +119,37 @@ def rows(text, write, additions, path):
 	return newline.join(lines), wanted, added
 
 
+def build(text, names):
+	"""Gives each project named a .Build.0 beside each of its rows on the platform that hasn't one."""
+	newline = "\r\n" if "\r\n" in text else "\n"
+	lines = text.split(newline)
+	guids = {m.group(3).upper() for m in map(PROJECT.match, lines) if m and m.group(1) in names}
+	start = next(i for i, l in enumerate(lines) if "GlobalSection(ProjectConfigurationPlatforms)" in l)
+	end = lines.index("\tEndGlobalSection", start)
+	old = lines[start + 1:end]
+	keys = {key(l) for l in old}
+	new = list(old)
+	for line in old:
+		k = key(line)
+		if k and k[0] in guids and k[2] == "ActiveCfg" and k[1].endswith("|" + PLATFORM) and (k[0], k[1], "Build.0") not in keys:
+			insert_row(new, line.replace(".ActiveCfg = ", ".Build.0 = "))
+	lines[start + 1:end] = new
+	return newline.join(lines)
+
+
 def main(arguments):
 	global PLATFORM, BASE
 	write = "--write" in arguments
 	additions = []
+	built = []
 	solutions = []
 	arguments = [a for a in arguments if a != "--write"]
 	while arguments:
 		argument = arguments.pop(0)
 		if argument == "--add":
 			additions.append(arguments.pop(0))
+		elif argument == "--build":
+			built.append(arguments.pop(0))
 		elif argument == "--platform":
 			PLATFORM = arguments.pop(0)
 			BASE = BASES[PLATFORM]
@@ -139,6 +162,8 @@ def main(arguments):
 		data = open(path, "rb").read()
 		bom = data[:3] if data.startswith(b"\xef\xbb\xbf") else b""
 		text, wanted, added = rows(data[len(bom):].decode("utf-8"), write, additions, path)
+		if built:
+			text = build(text, built)
 		changed = bom + text.encode("utf-8") != data
 		print("%s: %s%s%s" % (path, ("rewritten" if write else "would change") if changed else "as it is",
 								(", " + " and ".join("%s|%s" % (n, PLATFORM) for n in wanted)) if wanted else "",
