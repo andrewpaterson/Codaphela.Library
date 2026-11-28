@@ -20,6 +20,8 @@
     <CommonLibrariesDir>$(MSBuildThisFileDirectory)</CommonLibrariesDir>
     <IncludePath>$(CommonLibrariesDir)Libraries\;$(IncludePath)</IncludePath>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <GccOptimised>-O3 -ffunction-sections -fdata-sections -fno-stack-protector -U_FORTIFY_SOURCE -fno-lifetime-dse -fno-math-errno -fno-trapping-math</GccOptimised>
+    <GccOptimisedLink>-Wl,--gc-sections</GccOptimisedLink>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
@@ -125,10 +127,23 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|GCC-x64'">
     <ClCompile>
-      <AdditionalOptions>%(AdditionalOptions) -O3 -ffunction-sections -fdata-sections -fno-stack-protector -U_FORTIFY_SOURCE -fno-lifetime-dse -fno-math-errno -fno-trapping-math</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) $(GccOptimised)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalOptions>%(AdditionalOptions) -Wl,--gc-sections</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) $(GccOptimisedLink)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <!--
+    Reference: a program that draws into memory on WinRefLib where it would open a window (HCP65IDERef, which the IDE's
+    checks run).  It is built as Release is; its project says which of its mains each configuration compiles.
+  -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Reference|GCC-x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>%(AdditionalOptions) $(GccOptimised)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>%(AdditionalOptions) $(GccOptimisedLink)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
 </Project>

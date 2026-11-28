@@ -4,10 +4,10 @@ ones (HCP65-IDE's ConfigurationsPlan.txt, The solution's rows).
 
     python3 solution_rows.py [--write] [--platform HCP65C816] [--add <project.vcxproj>]... <solution.sln>...
 
-For Debug and Release, where a solution has them on x64 (another name, HCP65IDE's Reference, is the plan's C13), it adds the solution configuration <name>|GCC-x64
+For Debug, Release and Reference (HCP65IDE's, the plan's C13), where a solution has them on x64, it adds the solution configuration <name>|GCC-x64
 and a row for each project: mapped to what the project's <name>|x64 row maps to, and built if that row is built,
 unless the project is one only Windows builds.  A project only Linux builds has a row for every configuration and is
-built in GCC-x64's alone.  --add puts such a project (X11Lib) into the solutions that haven't it.
+built in GCC-x64's alone, but not in Reference's, which has no window.  --add puts such a project (X11Lib) into the solutions that haven't it.
 
 The HCP65 IDE builds what the rows say (Visual Studio shows GCC-x64 in its configuration boxes; choosing it there
 builds the ticked projects with MSVC, which isn't what it is for).  Only the lines added change: the rest of each
@@ -22,7 +22,8 @@ import re
 import sys
 
 PLATFORM = "GCC-x64"
-NAMES = ("Debug", "Release")
+NAMES = ("Debug", "Release", "Reference")
+REFERENCE = "Reference"		# A program drawn into memory on WinRefLib: no window, so nothing of X11Lib's.
 BASE = "x64"
 BASES = {"GCC-x64": "x64", "HCP65C816": "Win32", "HCP65C64": "Win32"}
 WINDOWS_ONLY = {"WinGdiLib", "WinInputLib", "WinWaveoutLib"}
@@ -92,10 +93,10 @@ def rows(text, write, additions, path):
 			if (guid, configuration) in mapped:
 				continue
 			like = configuration.split("|")[0] + "|" + BASE if new_row else configuration
-			target = mapped.get((guid, like)) or (like if name in LINUX_ONLY else None)
+			target = mapped.get((guid, like)) or (like.replace(REFERENCE + "|", "Release|") if name in LINUX_ONLY else None)
 			if target is None:
 				continue
-			build = gcc if name in LINUX_ONLY else (((guid, like) in built) and ((name not in WINDOWS_ONLY) or (PLATFORM != "GCC-x64")))
+			build = (gcc and not configuration.startswith(REFERENCE + "|")) if name in LINUX_ONLY else (((guid, like) in built) and ((name not in WINDOWS_ONLY) or (PLATFORM != "GCC-x64")))
 			for suffix in ["ActiveCfg"] + (["Build.0"] if build else []):
 				insert(new, "\t\t%s.%s.%s = %s" % (guid, configuration, suffix, target), lambda other: key(other) is not None and key(other)[0] == guid)
 	lines[rows_start + 1:rows_end] = new

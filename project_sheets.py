@@ -199,7 +199,7 @@ def cmake(sheet_path):
 		given = values[configuration]
 		print('set(SHEET_DEFINES_%s "%s")' % (name, ";".join(parts(given.get("ClCompile.PreprocessorDefinitions", ""), "%(PreprocessorDefinitions)"))))
 		for tool, variable in (("ClCompile", "OPTIONS"), ("Link", "LINK_OPTIONS")):
-			options = given.get(tool + ".AdditionalOptions", "").replace("%(AdditionalOptions)", "").split()
+			options = expand(given.get(tool + ".AdditionalOptions", "").replace("%(AdditionalOptions)", ""), given).split()
 			print('set(SHEET_%s_%s "%s")' % (variable, name, ";".join(options)))
 	return 0
 
