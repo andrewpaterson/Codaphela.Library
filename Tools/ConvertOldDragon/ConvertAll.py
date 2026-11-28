@@ -4,7 +4,7 @@ the old ones were left where they are.  It's here to say where each new file cam
     python ConvertAll.py [output directory]
 
 With no directory each file goes where it belongs in the repositories.  With one they all go there, to try it.
-Run from anywhere, after building ConvertOldDragon.sln Release|x64.
+Run from anywhere, after building ConvertOldDragon.sln Release|MSVC-x64.
 """
 import glob
 import os
