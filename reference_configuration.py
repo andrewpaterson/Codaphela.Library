@@ -9,8 +9,8 @@ Reference builds the program with its reference main, <Program>Ref.cpp, which dr
 configuration but Debug what Release has, so the project says only what is its own.
 
 The project gains:
-- Reference|x64: in its configurations, and a copy of each Release|x64 group it has (its type, its user sheet, what
-  it keeps of its own, with SubSystem Console: the reference main is main, not WinMain).
+- Reference|x64: in its configurations, and a copy of each Release|x64 group and property it has (its type, its user
+  sheet, its include path, what it keeps of its own, with SubSystem Console: the reference main is main, not WinMain).
 - <Program>Ref.cpp as an item, kept out of every other configuration; <Program>_Windows.cpp kept out of
   Reference|x64 and <Program>_Linux.cpp out of Reference|GCC-x64.
 - A reference to WinRefLib.
@@ -70,6 +70,17 @@ def project(path, winreflib, write):
 		copy = group.group(0).replace(condition(LIKE), condition(CONFIGURATION)).replace("<SubSystem>Windows</SubSystem>", "<SubSystem>Console</SubSystem>")
 		text = text[:group.end()] + copy + text[group.end():]
 		at = group.end() + len(copy)
+
+	# And of each property that says Release|x64 itself, in a group with no condition (its IncludePath).
+	own = re.compile(r'    <(?!ExcludedFromBuild)(\w+) Condition="%s">[^\r\n]*</\1>%s' % (re.escape(condition(LIKE)), nl))
+	at = 0
+	while True:
+		setting = own.search(text, at)
+		if not setting:
+			break
+		copy = setting.group(0).replace(condition(LIKE), condition(CONFIGURATION))
+		text = text[:setting.end()] + copy + text[setting.end():]
+		at = setting.end() + len(copy)
 
 	# The three mains.
 	windows = '    <ClCompile Include="%s_Windows.cpp" />%s' % (name, nl)
