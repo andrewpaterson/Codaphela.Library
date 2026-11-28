@@ -17,7 +17,8 @@ has the configurations already is left as it is.
 An HCP65 platform's rows are as Win32's, the platform the HCP65 compiler's configurations are read beside: every
 project built that Win32 builds.  --build names a project the platform's configurations build though Win32's don't:
 Libc65, the runtime, which an HCP65 build takes from the rows (the plan's C4-7, question 23) and Visual Studio never
-builds.  Each of its rows on the platform that has no .Build.0 is given one.
+builds.  Each of its rows on the platform that has no .Build.0 is given one, and nothing else is done: a solution
+gets no configuration it hasn't.
 """
 import os
 import re
@@ -161,9 +162,11 @@ def main(arguments):
 	for path in solutions:
 		data = open(path, "rb").read()
 		bom = data[:3] if data.startswith(b"\xef\xbb\xbf") else b""
-		text, wanted, added = rows(data[len(bom):].decode("utf-8"), write, additions, path)
 		if built:
-			text = build(text, built)
+			# Only that: the platform's configurations are the solution's as they are.
+			text, wanted, added = build(data[len(bom):].decode("utf-8"), built), [], []
+		else:
+			text, wanted, added = rows(data[len(bom):].decode("utf-8"), write, additions, path)
 		changed = bom + text.encode("utf-8") != data
 		print("%s: %s%s%s" % (path, ("rewritten" if write else "would change") if changed else "as it is",
 								(", " + " and ".join("%s|%s" % (n, PLATFORM) for n in wanted)) if wanted else "",
