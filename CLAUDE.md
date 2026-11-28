@@ -48,10 +48,13 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
 - CMake reads each target's sources from its `.vcxproj` and g++'s options from the projects' property sheet,
   `Common.props` (`CMake/Codaphela.cmake`, which every `CMakeLists.txt` includes): a new file goes in the `.vcxproj`
   and its `.vcxproj.filters`, never only in CMake, and an option in the sheet's GCC-x64 groups.
-- A program's `CMakeLists.txt` names its solution and its programs (`codaphela_solution`): the libraries, which
-  projects a configuration builds and what a program links come from the solution's GCC-x64 rows, as the HCP65 IDE's
-  own GCC build reads them.  A library added to a program goes in its `.sln`'s rows, not in CMake.
-  `CMake/Tests/Solution` tests it; `compare_builds.py` compares the two builds' commands.
+- Every `CMakeLists.txt`, a program's or a test suite's, names its solution and its programs (`codaphela_solution`,
+  `PROGRAMS` or `TESTS`): the libraries, which projects a configuration builds and what a program links come from
+  the solution's GCC-x64 rows, as the HCP65 IDE's own GCC build reads them, and a project's own defines from its
+  `.vcxproj`.  A library added to a program goes in its `.sln`'s rows (and the project's references), not in CMake.
+  A test that is a project of its program's solution (HCP65-IDE's, TestHCP65Lib) says `REFERENCED`: only the
+  libraries its project references are built.  `CMake/Tests/Solution` tests the module; `compare_builds.py` compares
+  the two builds' commands.
 - A test suite, configured into the shared build folder:
 
   ```sh

@@ -13,12 +13,13 @@
 #   one says so, and one linked with both doesn't link.
 # - Tool, a program named here under another target name; Unnamed, a program not named here, and Command, a project
 #   built by its own command: neither is a target, and neither would compile.
+# - Tool references Shared, so named again with REFERENCED (as a test, under a third name) it is linked with Shared
+#   alone.  Shared defines SHARED_DEBUG in its Debug configuration and SHARED_NOT_DEBUG in the others: its own defines.
 cmake_minimum_required(VERSION 3.24)
 project(TestCodaphelaSolution CXX)
 
 get_filename_component(COMMON_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 include("${COMMON_ROOT}/CMake/Codaphela.cmake")
-enable_testing()
 
 codaphela_options(ONLY_64)
 codaphela_solution("${CMAKE_CURRENT_SOURCE_DIR}/Solution.sln"
@@ -64,3 +65,28 @@ add_test(NAME ProgramRef COMMAND ProgramRef)
 set_tests_properties(ProgramRef PROPERTIES PASS_REGULAR_EXPRESSION "^reference main, reference library, shared\n$")
 add_test(NAME tool COMMAND tool)
 set_tests_properties(tool PROPERTIES PASS_REGULAR_EXPRESSION "^tool, shared\n$")
+
+
+# A program named with REFERENCED is linked with the libraries its project references alone, and one of TESTS is a
+# test, run in its project's folder.
+codaphela_solution("${CMAKE_CURRENT_SOURCE_DIR}/Solution.sln" TESTS Tool=referenced REFERENCED)
+get_target_property(LINKED referenced LINK_LIBRARIES)
+if(NOT "${LINKED}" MATCHES "RESCAN,Shared>")
+	message(FATAL_ERROR "referenced is linked with [${LINKED}], not with Shared alone")
+endif()
+get_property(REFERENCED_FOLDER TEST referenced PROPERTY WORKING_DIRECTORY)
+if(NOT REFERENCED_FOLDER STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}/Tool")
+	message(FATAL_ERROR "referenced runs in [${REFERENCED_FOLDER}], not in its project's folder")
+endif()
+set_tests_properties(referenced PROPERTIES PASS_REGULAR_EXPRESSION "^tool, shared\n$")
+
+# A library has its project's own defines for the configuration it is built as.
+get_target_property(OWN_DEFINES Shared COMPILE_DEFINITIONS)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(EXPECTED_DEFINES "SHARED_DEBUG")
+else()
+	set(EXPECTED_DEFINES "SHARED_NOT_DEBUG")
+endif()
+if(NOT "${OWN_DEFINES}" STREQUAL "${EXPECTED_DEFINES}")
+	message(FATAL_ERROR "Shared has the defines [${OWN_DEFINES}], not [${EXPECTED_DEFINES}]")
+endif()

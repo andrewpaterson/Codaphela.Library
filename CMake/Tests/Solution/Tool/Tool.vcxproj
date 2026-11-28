@@ -23,4 +23,9 @@
   <ItemGroup>
     <ClCompile Include="Tool.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.vcxproj">
+      <Project>{10000000-0000-0000-0000-000000000002}</Project>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

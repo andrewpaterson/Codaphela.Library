@@ -13,6 +13,9 @@ names, on GCC-x64.  It prints CMake that sets, with <C> the configuration's name
     SOLUTION_<C>_<Project>_AS          the project's own configuration it is built as ("Release" in Reference's)
     SOLUTION_<C>_<Project>_LINKS       a program's system libraries: its Link AdditionalDependencies for GCC-x64
     SOLUTION_<Project>_FILE            the project's .vcxproj
+    SOLUTION_<Project>_REFERENCES      a program's project references, and theirs, that are projects of the solution
+    SOLUTION_<Project>_<As>_DEFINES    the defines that are the project's own when built as <As>, its configuration
+                                       (StandardLib's DEBUG_POINTER in Debug|GCC-x64): its sheets' are codaphela_options'
 
 A project built by a command of its own (a Makefile project) is neither.  CommonLibraries/CMake/Codaphela.cmake's
 codaphela_solution makes the targets from these.
@@ -54,6 +57,47 @@ def kind(text, configuration):
 		if t and m.group(1) == configuration and (found is None or m.group(2) == BASE):
 			found = t.group(1)
 	return found
+
+
+def holds(condition, configuration, platform):
+	"""Whether a group's condition holds for a project's configuration: none, the configuration and platform, the
+	configuration (is, or is not), or the platform."""
+	if condition is None:
+		return True
+	m = re.fullmatch(r"\s*'\$\(([A-Za-z|$()]+)\)'\s*([=!]=)\s*'([^']*)'\s*", condition)
+	if not m:
+		return False
+	value = {"Configuration": configuration, "Platform": platform, "Configuration)|$(Platform": "%s|%s" % (configuration, platform)}.get(m.group(1))
+	return value is not None and (value == m.group(3)) == (m.group(2) == "==")
+
+
+def defines(text, configuration):
+	"""A project's own defines as the configuration it is built as says them on GCC-x64, in its own groups: the IDE's
+	GCC build gives a project these and its sheets', and the sheets' are what codaphela_options reads for every
+	target.  A group for the configuration on x64 isn't GCC-x64's (StandardLib has one for each)."""
+	result = []
+	for m in re.finditer(r"<ItemDefinitionGroup(?: Condition=\"([^\"]*)\")?>(.*?)</ItemDefinitionGroup>", text, re.S):
+		if not holds(m.group(1), configuration, PLATFORM):
+			continue
+		compile_group = re.search(r"<ClCompile>(.*?)</ClCompile>", m.group(2), re.S)
+		own = re.search(r"<PreprocessorDefinitions>([^<]*)</PreprocessorDefinitions>", compile_group.group(1)) if compile_group else None
+		if own:
+			named = [d for d in own.group(1).split(";") if d and d != "%(PreprocessorDefinitions)"]
+			result = named + (result if "%(PreprocessorDefinitions)" in own.group(1) else [])
+	return result
+
+
+def references(path, names, seen=None):
+	"""The solution's projects a project references (its ProjectReference items), and those they reference."""
+	seen = [] if seen is None else seen
+	directory = os.path.dirname(os.path.abspath(path))
+	for m in re.finditer(r'<ProjectReference Include="([^"]+)"', read(path)):
+		file = os.path.normpath(find_file(directory, m.group(1)))
+		name = names.get(file)
+		if name is not None and name not in seen:
+			seen.append(name)
+			references(file, names, seen)
+	return seen
 
 
 def sheets(path, seen=None):
@@ -113,6 +157,9 @@ def solution(path, configurations):
 	have = [c for c in configurations if "%s|%s" % (c, PLATFORM) in listed]
 	out.append('set(SOLUTION_CONFIGURATIONS "%s")' % ";".join(have))
 	files = {}
+	own = {}
+	names = {os.path.normpath(find_file(directory, relative)): project for project, relative, _ in projects}
+	referenced = {}
 	for configuration in have:
 		name = "%s|%s" % (configuration, PLATFORM)
 		libraries = []
@@ -130,15 +177,23 @@ def solution(path, configurations):
 				libraries.append(project)
 			elif project_kind == "Application":
 				programs.append(project)
+				referenced[project] = references(file, names)
 				out.append('set(SOLUTION_%s_%s_LINKS "%s")' % (configuration, project, ";".join(links(file, built_as))))
 			else:
 				continue
 			files[project] = file
+			# A Debug build builds what Reference's rows build as Release as Debug, so each configuration named too.
+			for own_as in [built_as] + have:
+				own[(project, own_as)] = defines(text, own_as)
 			out.append('set(SOLUTION_%s_%s_AS "%s")' % (configuration, project, built_as))
 		out.append('set(SOLUTION_%s_LIBRARIES "%s")' % (configuration, ";".join(libraries)))
 		out.append('set(SOLUTION_%s_PROGRAMS "%s")' % (configuration, ";".join(programs)))
 	for project, file in files.items():
 		out.append('set(SOLUTION_%s_FILE "%s")' % (project, file.replace("\\", "/")))
+	for project, others in referenced.items():
+		out.append('set(SOLUTION_%s_REFERENCES "%s")' % (project, ";".join(others)))
+	for (project, own_as), named in own.items():
+		out.append('set(SOLUTION_%s_%s_DEFINES "%s")' % (project, own_as, ";".join(named)))
 	return "\n".join(out) + "\n"
 
 

@@ -17,6 +17,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)		# compile_commands.json, which compare_bu
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
 endif()
+enable_testing()		# here, in the including directory's scope: called in a function it writes no tests for ctest
 
 option(BASELIB_64 "Build 64-bit (otherwise 32-bit, which needs g++-multilib)" OFF)
 option(BASELIB_ASAN "Build with AddressSanitizer and LeakSanitizer" OFF)
@@ -214,19 +215,27 @@ endfunction()
 #	codaphela_solution("${DIR}/HCP65IDE.sln"
 #		PROGRAMS HCP65IDE HCP65Build=hcp65build
 #		REFERENCE HCP65IDE=HCP65IDERef)
+#	codaphela_solution("${DIR}/TestBaseLib.sln" TESTS TestBaseLib)
 #
 # - Each static library the configuration builds is a library target of the project's name, its sources the project's
-#   (vcxproj_sources).
+#   (vcxproj_sources) and its defines the project's own for the configuration it is built as (StandardLib's
+#   DEBUG_POINTER in Debug), with baselib_options' for every target.
 # - Each of PROGRAMS, a project or Project=Target, is a program: linked with every library the configuration builds,
 #   in any order, and its Link group's AdditionalDependencies for GCC-x64 (X11 as -lX11), as the IDE's build links it.
 #   The other applications a solution has (its tests) are no targets unless named.
+# - Each of TESTS is a program as PROGRAMS' are, and a test of its name that ctest runs in the project's folder,
+#   where a suite's Input files are.
+# - REFERENCED, for a program of a solution that builds more than it needs (TestBuildLib, a test in HCP65IDE.sln):
+#   only the libraries the programs named reference, and those they reference (the projects' ProjectReference
+#   items), are targets, and each program is linked with its own.  The IDE's build builds and links them all.
 # - Each of REFERENCE, Project=Target, is the project again as Reference|GCC-x64 builds it: its reference main in
 #   place of its window's, the libraries that configuration builds (WinRefLib, and no X11Lib).  What the two
-#   configurations compile alike is compiled once, as the library <Project>Lib (codaphela_shared_sources).
+#   configurations compile alike is compiled once, as the library <Project>Lib (codaphela_shared_sources), or
+#   <Project>Shared where the solution has a library of that name.
 # A program's own folder is one of its include directories.  codaphela_options comes first: every target links
 # baselib_options.
 function(codaphela_solution SOLUTION)
-	cmake_parse_arguments(ARG "" "" "PROGRAMS;REFERENCE" ${ARGN})
+	cmake_parse_arguments(ARG "REFERENCED" "" "PROGRAMS;TESTS;REFERENCE" ${ARGN})
 	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(CONFIGURATION "Debug")
 	else()
@@ -247,6 +256,25 @@ function(codaphela_solution SOLUTION)
 	endif()
 	if(ARG_REFERENCE AND NOT "Reference" IN_LIST SOLUTION_CONFIGURATIONS)
 		message(FATAL_ERROR "${SOLUTION} has no Reference|GCC-x64")
+	endif()
+
+	# With REFERENCED, each configuration's libraries are those a program named references, and a program's its own.
+	if(ARG_REFERENCED)
+		set(NAMED_REFERENCES "")
+		foreach(PAIR ${ARG_PROGRAMS} ${ARG_TESTS} ${ARG_REFERENCE})
+			string(REGEX REPLACE "=.*$" "" PROJECT_NAME "${PAIR}")
+			list(APPEND NAMED_REFERENCES ${SOLUTION_${PROJECT_NAME}_REFERENCES})
+			list(JOIN SOLUTION_${PROJECT_NAME}_REFERENCES "|" SOLUTION_${PROJECT_NAME}_REFERENCES_REGEX)
+		endforeach()
+		foreach(EACH ${CONFIGURATION} Reference)
+			set(KEPT "")
+			foreach(LIBRARY ${SOLUTION_${EACH}_LIBRARIES})
+				if(LIBRARY IN_LIST NAMED_REFERENCES)
+					list(APPEND KEPT "${LIBRARY}")
+				endif()
+			endforeach()
+			set(SOLUTION_${EACH}_LIBRARIES "${KEPT}")
+		endforeach()
 	endif()
 
 	# The libraries: those of the build's configuration and, with a reference program, of Reference's.  Reference's
@@ -278,6 +306,7 @@ function(codaphela_solution SOLUTION)
 		if(LIBRARY_SOURCES)
 			add_library(${LIBRARY} STATIC ${LIBRARY_SOURCES})
 			target_link_libraries(${LIBRARY} PUBLIC baselib_options)
+			target_compile_definitions(${LIBRARY} PRIVATE ${SOLUTION_${LIBRARY}_${BUILT_AS_${LIBRARY}}_DEFINES})
 		endif()
 	endforeach()
 
@@ -291,7 +320,7 @@ function(codaphela_solution SOLUTION)
 		list(APPEND REFERENCE_PROJECTS "${CMAKE_MATCH_1}")
 		set(REFERENCE_TARGET_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}")
 	endforeach()
-	foreach(PAIR ${ARG_PROGRAMS})
+	foreach(PAIR ${ARG_PROGRAMS} ${ARG_TESTS})
 		if(PAIR MATCHES "^([^=]+)=(.+)$")
 			set(PROJECT_NAME "${CMAKE_MATCH_1}")
 			set(TARGET_NAME "${CMAKE_MATCH_2}")
@@ -303,24 +332,44 @@ function(codaphela_solution SOLUTION)
 			message(FATAL_ERROR "${SOLUTION} doesn't build a program ${PROJECT_NAME} in ${CONFIGURATION}|GCC-x64")
 		endif()
 		get_filename_component(PROGRAM_DIR "${SOLUTION_${PROJECT_NAME}_FILE}" DIRECTORY)
-		vcxproj_sources(PROGRAM_SOURCES "${SOLUTION_${PROJECT_NAME}_FILE}" CONFIGURATION "${SOLUTION_${CONFIGURATION}_${PROJECT_NAME}_AS}")
+		set(PROGRAM_LIBRARIES ${SOLUTION_${CONFIGURATION}_LIBRARIES})
+		set(REFERENCE_LIBRARIES ${SOLUTION_Reference_LIBRARIES})
+		if(ARG_REFERENCED)
+			list(FILTER PROGRAM_LIBRARIES INCLUDE REGEX "^(${SOLUTION_${PROJECT_NAME}_REFERENCES_REGEX})$")
+			list(FILTER REFERENCE_LIBRARIES INCLUDE REGEX "^(${SOLUTION_${PROJECT_NAME}_REFERENCES_REGEX})$")
+		endif()
+		set(PROGRAM_AS "${SOLUTION_${CONFIGURATION}_${PROJECT_NAME}_AS}")
+		vcxproj_sources(PROGRAM_SOURCES "${SOLUTION_${PROJECT_NAME}_FILE}" CONFIGURATION "${PROGRAM_AS}")
 		if(PROJECT_NAME IN_LIST REFERENCE_PROJECTS)
 			if(NOT PROJECT_NAME IN_LIST SOLUTION_Reference_PROGRAMS)
 				message(FATAL_ERROR "${SOLUTION} doesn't build a program ${PROJECT_NAME} in Reference|GCC-x64")
 			endif()
-			vcxproj_sources(REFERENCE_SOURCES "${SOLUTION_${PROJECT_NAME}_FILE}" CONFIGURATION "${SOLUTION_Reference_${PROJECT_NAME}_AS}")
+			set(REFERENCE_AS "${SOLUTION_Reference_${PROJECT_NAME}_AS}")
+			vcxproj_sources(REFERENCE_SOURCES "${SOLUTION_${PROJECT_NAME}_FILE}" CONFIGURATION "${REFERENCE_AS}")
 			codaphela_shared_sources(SHARED_SOURCES PROGRAM_OWN REFERENCE_OWN "${PROGRAM_SOURCES}" "${REFERENCE_SOURCES}")
-			add_library(${PROJECT_NAME}Lib STATIC ${SHARED_SOURCES})
-			target_include_directories(${PROJECT_NAME}Lib PUBLIC "${PROGRAM_DIR}")
-			target_link_libraries(${PROJECT_NAME}Lib PUBLIC baselib_options)
+			# <Project>Lib, or <Project>Shared where a library has that name (Battle's BattleLib).
+			set(SHARED_NAME "${PROJECT_NAME}Lib")
+			if(TARGET ${SHARED_NAME})
+				set(SHARED_NAME "${PROJECT_NAME}Shared")
+			endif()
+			add_library(${SHARED_NAME} STATIC ${SHARED_SOURCES})
+			target_include_directories(${SHARED_NAME} PUBLIC "${PROGRAM_DIR}")
+			target_link_libraries(${SHARED_NAME} PUBLIC baselib_options)
+			target_compile_definitions(${SHARED_NAME} PRIVATE ${SOLUTION_${PROJECT_NAME}_${PROGRAM_AS}_DEFINES})
 			add_executable(${TARGET_NAME} ${PROGRAM_OWN})
-			codaphela_link_program(${TARGET_NAME} "${PROJECT_NAME}Lib;${SOLUTION_${CONFIGURATION}_LIBRARIES}" "${SOLUTION_${CONFIGURATION}_${PROJECT_NAME}_LINKS}")
+			target_compile_definitions(${TARGET_NAME} PRIVATE ${SOLUTION_${PROJECT_NAME}_${PROGRAM_AS}_DEFINES})
+			codaphela_link_program(${TARGET_NAME} "${SHARED_NAME};${PROGRAM_LIBRARIES}" "${SOLUTION_${CONFIGURATION}_${PROJECT_NAME}_LINKS}")
 			add_executable(${REFERENCE_TARGET_${PROJECT_NAME}} ${REFERENCE_OWN})
-			codaphela_link_program(${REFERENCE_TARGET_${PROJECT_NAME}} "${PROJECT_NAME}Lib;${SOLUTION_Reference_LIBRARIES}" "${SOLUTION_Reference_${PROJECT_NAME}_LINKS}")
+			target_compile_definitions(${REFERENCE_TARGET_${PROJECT_NAME}} PRIVATE ${SOLUTION_${PROJECT_NAME}_${REFERENCE_AS}_DEFINES})
+			codaphela_link_program(${REFERENCE_TARGET_${PROJECT_NAME}} "${SHARED_NAME};${REFERENCE_LIBRARIES}" "${SOLUTION_Reference_${PROJECT_NAME}_LINKS}")
 		else()
 			add_executable(${TARGET_NAME} ${PROGRAM_SOURCES})
 			target_include_directories(${TARGET_NAME} PRIVATE "${PROGRAM_DIR}")
-			codaphela_link_program(${TARGET_NAME} "${SOLUTION_${CONFIGURATION}_LIBRARIES}" "${SOLUTION_${CONFIGURATION}_${PROJECT_NAME}_LINKS}")
+			target_compile_definitions(${TARGET_NAME} PRIVATE ${SOLUTION_${PROJECT_NAME}_${PROGRAM_AS}_DEFINES})
+			codaphela_link_program(${TARGET_NAME} "${PROGRAM_LIBRARIES}" "${SOLUTION_${CONFIGURATION}_${PROJECT_NAME}_LINKS}")
+		endif()
+		if(PAIR IN_LIST ARG_TESTS)
+			add_test(NAME ${TARGET_NAME} COMMAND ${TARGET_NAME} WORKING_DIRECTORY "${PROGRAM_DIR}")
 		endif()
 	endforeach()
 endfunction()

@@ -150,7 +150,8 @@ def main(arguments):
 			continue
 		ide = ide_links[(project, built_as)]
 		cmake = cmake_link(folder, target)
-		cmake["libraries"].discard("lib%sLib.a" % project)
+		shared = "lib%sLib.a" % project		# or <Project>Shared, where a library of the solution has that name
+		cmake["libraries"].discard("lib%sShared.a" % project if shared in ide["libraries"] else shared)
 		cmake["options"] -= BUILD_TYPE		# CMake links with its build type's compile flags too.
 		cmake["defines"] -= BUILD_TYPE
 		for kind in ("libraries", "system", "options"):
