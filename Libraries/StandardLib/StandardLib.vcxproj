@@ -82,6 +82,11 @@
       <PreprocessorDefinitions>DEBUG_POINTER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|GCC-x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>DEBUG_POINTER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="ArrayUnknownPtr.h" />
