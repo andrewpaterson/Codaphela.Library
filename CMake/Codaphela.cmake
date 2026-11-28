@@ -111,13 +111,22 @@ endfunction()
 
 # Reads <ClCompile Include="..."/> entries from a .vcxproj and resolves them
 # against the files on disk case-insensitively (Windows paths are not
-# case-sensitive).  A file the project excludes from GCC-x64's build
-# (ExcludedFromBuild) is left out, and so are the files named in EXCLUDE
-# (paths relative to the project, any case): a main, for a program built
-# with more than one.
+# case-sensitive).  A file the project excludes from the configuration's
+# build (ExcludedFromBuild, for GCC-x64 or for the configuration on it) is
+# left out, and so are the files named in EXCLUDE (paths relative to the
+# project, any case).  CONFIGURATION is the project's configuration read
+# (Reference, of Reference|GCC-x64); without it, Debug or Release as the
+# build is.
 function(vcxproj_sources OUT_VAR VCXPROJ)
-	cmake_parse_arguments(ARG "" "" "EXCLUDE" ${ARGN})
+	cmake_parse_arguments(ARG "" "CONFIGURATION" "EXCLUDE" ${ARGN})
 	get_filename_component(PROJ_DIR "${VCXPROJ}" DIRECTORY)
+	if(NOT ARG_CONFIGURATION)
+		if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set(ARG_CONFIGURATION "Debug")
+		else()
+			set(ARG_CONFIGURATION "Release")
+		endif()
+	endif()
 
 	# Re-run the configure step when Visual Studio adds or removes files.
 	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${VCXPROJ}")
@@ -134,13 +143,20 @@ function(vcxproj_sources OUT_VAR VCXPROJ)
 		list(APPEND EXCLUDED "${KEY}")
 	endforeach()
 
-	file(STRINGS "${VCXPROJ}" LINES REGEX "<ClCompile Include=\"[^\"]+\"|<ExcludedFromBuild Condition=\"'\\$\\(Platform\\)'=='GCC-x64'\">true<")
+	# An item's line, then the lines of its exclusions: one that is this configuration's takes the item out again.
+	file(STRINGS "${VCXPROJ}" LINES REGEX "<ClCompile Include=\"[^\"]+\"|<ExcludedFromBuild Condition=\"[^\"]+\">true<")
 	set(SOURCES "")
+	set(ITEM "")
 	foreach(LINE ${LINES})
-		if(LINE MATCHES "<ExcludedFromBuild ")
-			list(POP_BACK SOURCES)
+		if(LINE MATCHES "<ExcludedFromBuild Condition=\"'\\$\\(([A-Za-z|$()]+)\\)'=='([^']*)'\"")
+			if((CMAKE_MATCH_1 STREQUAL "Platform" AND CMAKE_MATCH_2 STREQUAL "GCC-x64")
+			   OR (CMAKE_MATCH_1 STREQUAL "Configuration" AND CMAKE_MATCH_2 STREQUAL "${ARG_CONFIGURATION}")
+			   OR (CMAKE_MATCH_1 STREQUAL "Configuration)|$(Platform" AND CMAKE_MATCH_2 STREQUAL "${ARG_CONFIGURATION}|GCC-x64"))
+				list(REMOVE_ITEM SOURCES "${ITEM}")
+			endif()
 			continue()
 		endif()
+		set(ITEM "")
 		string(REGEX REPLACE ".*<ClCompile Include=\"([^\"]+)\".*" "\\1" SOURCE "${LINE}")
 		string(REPLACE "\\" "/" SOURCE "${SOURCE}")
 		string(TOLOWER "${SOURCE}" KEY)
@@ -152,15 +168,39 @@ function(vcxproj_sources OUT_VAR VCXPROJ)
 			if(NOT EXISTS "${PROJ_DIR}/${SOURCE}")
 				message(FATAL_ERROR "${VCXPROJ} lists ${SOURCE} but it was not found on disk")
 			endif()
-			get_filename_component(OUTSIDE "${PROJ_DIR}/${SOURCE}" ABSOLUTE)
-			list(APPEND SOURCES "${OUTSIDE}")
-			continue()
+			get_filename_component(ITEM "${PROJ_DIR}/${SOURCE}" ABSOLUTE)
+		else()
+			if(NOT DEFINED "DISK_${KEY}")
+				message(FATAL_ERROR "${VCXPROJ} lists ${SOURCE} but it was not found on disk")
+			endif()
+			set(ITEM "${PROJ_DIR}/${DISK_${KEY}}")
 		endif()
-		if(NOT DEFINED "DISK_${KEY}")
-			message(FATAL_ERROR "${VCXPROJ} lists ${SOURCE} but it was not found on disk")
-		endif()
-		list(APPEND SOURCES "${PROJ_DIR}/${DISK_${KEY}}")
+		list(APPEND SOURCES "${ITEM}")
 	endforeach()
 
 	set(${OUT_VAR} ${SOURCES} PARENT_SCOPE)
+endfunction()
+
+
+# What two configurations of a project compile alike, and what each compiles alone: a program built two ways (with
+# its window, and as its reference program) is a library of the first and a program of each of the others, so no
+# CMakeLists.txt names a main (HCP65-IDE's ConfigurationsPlan.txt, C13-2).
+#	vcxproj_sources(PROGRAM "${DIR}/HCP65IDE.vcxproj")
+#	vcxproj_sources(REFERENCE "${DIR}/HCP65IDE.vcxproj" CONFIGURATION Reference)
+#	codaphela_shared_sources(SHARED PROGRAM_OWN REFERENCE_OWN "${PROGRAM}" "${REFERENCE}")
+function(codaphela_shared_sources OUT_SHARED OUT_FIRST OUT_SECOND FIRST SECOND)
+	set(SHARED "")
+	set(FIRST_OWN "")
+	foreach(SOURCE ${FIRST})
+		if(SOURCE IN_LIST SECOND)
+			list(APPEND SHARED "${SOURCE}")
+		else()
+			list(APPEND FIRST_OWN "${SOURCE}")
+		endif()
+	endforeach()
+	set(SECOND_OWN ${SECOND})
+	list(REMOVE_ITEM SECOND_OWN ${SHARED})
+	set(${OUT_SHARED} ${SHARED} PARENT_SCOPE)
+	set(${OUT_FIRST} ${FIRST_OWN} PARENT_SCOPE)
+	set(${OUT_SECOND} ${SECOND_OWN} PARENT_SCOPE)
 endfunction()
