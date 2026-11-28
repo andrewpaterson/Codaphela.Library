@@ -28,6 +28,10 @@ RUN_PARALLEL = os.path.join(HERE, "TestCppCompilerLib", "RunParallel.py")
 BUILD_FREE = 3 << 30		#A build needs this much memory free to start...
 RUN_FREE = 2 << 30			#...and a suite this much.
 WEIGHTS = {"TestCppCompilerLib": 4, "TestBaseLib65": 4, "TestStandardLib65": 4, "TestSupportLib65": 4, "TestHCP65Lib": 2}	#By exe; 1 for the others.
+#What a solution calls the projects' platforms, which MSBuild is given: a solution's configurations are names of its
+#own (HCP65-IDE's ConfigurationsPlan.txt, C11-2).  The configurations here, and the folders the programs are built
+#in, are the projects'.
+SOLUTION_PLATFORMS = {"x64": "MSVC-x64", "Win32": "MSVC-x86"}
 RELEASE = ["Release|x64", "Release|Win32"]
 CONFIGS = RELEASE + ["Debug|x64"]
 CONDITIONAL = "Debug|Win32"	#Only for a solution whose build or suite failed in a Release configuration (the user, 2026-11-18).
@@ -163,7 +167,7 @@ class CSweep:
 				szBuild, szPlatform = szConfig.split("|")
 				szBegan = time.strftime("%Y-%m-%d %H:%M:%S")
 				fStart = time.time()
-				sResult = subprocess.run([MSBUILD, szSolution, "-m:2", "-nodeReuse:false", "-p:Configuration=" + szBuild, "-p:Platform=" + szPlatform,
+				sResult = subprocess.run([MSBUILD, szSolution, "-m:2", "-nodeReuse:false", "-p:Configuration=" + szBuild, "-p:Platform=" + SOLUTION_PLATFORMS[szPlatform],
 										  "-v:m", "-nologo"], capture_output=True, text=True, errors="replace")
 				szOutput = sResult.stdout + sResult.stderr
 				open(os.path.join(OUTPUT, "SweepBuild.%s.log" % szConfig.replace("|", "-")), "w", encoding="utf-8").write(szOutput)

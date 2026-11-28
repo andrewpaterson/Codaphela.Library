@@ -24,6 +24,8 @@ import os
 import re
 import sys
 
+import solution_platforms
+
 PLATFORM = "GCC-x64"
 NAMES = ("Debug", "Release", "Reference")
 REFERENCE = "Reference"		# A program drawn into memory on WinRefLib: no window, so nothing of X11Lib's.
@@ -162,11 +164,16 @@ def main(arguments):
 	for path in solutions:
 		data = open(path, "rb").read()
 		bom = data[:3] if data.startswith(b"\xef\xbb\xbf") else b""
+		# The rows are read by Visual Studio's own platform names, which a solution may have renamed (MSVC-x64:
+		# solution_platforms.py): it is worked on as it was named and written as it is named.
+		old, was_renamed = solution_platforms.to_old(data[len(bom):].decode("utf-8"))
 		if built:
 			# Only that: the platform's configurations are the solution's as they are.
-			text, wanted, added = build(data[len(bom):].decode("utf-8"), built), [], []
+			text, wanted, added = build(old, built), [], []
 		else:
-			text, wanted, added = rows(data[len(bom):].decode("utf-8"), write, additions, path)
+			text, wanted, added = rows(old, write, additions, path)
+		if was_renamed:
+			text = solution_platforms.to_new(text)
 		changed = bom + text.encode("utf-8") != data
 		print("%s: %s%s%s" % (path, ("rewritten" if write else "would change") if changed else "as it is",
 								(", " + " and ".join("%s|%s" % (n, PLATFORM) for n in wanted)) if wanted else "",

@@ -55,6 +55,9 @@ one at `../CommonLibraries`, and builds go in a shared `../build`.
   A test that is a project of its program's solution (HCP65-IDE's, TestHCP65Lib) says `REFERENCED`: only the
   libraries its project references are built.  `CMake/Tests/Solution` tests the module; `compare_builds.py` compares
   the two builds' commands.
+- A solution's own platforms are `MSVC-x86` and `MSVC-x64` (and `GCC-x64`, and `HCP65C816` in HCP65's); its rows say
+  which of a project's `Win32` and `x64` configurations each builds, and the projects keep those names.  MSBuild is
+  given the solution's: `/p:Platform=MSVC-x64`.  `solution_platforms.py` renames a new solution's.
 - A test suite, configured into the shared build folder:
 
   ```sh

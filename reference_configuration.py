@@ -23,6 +23,7 @@ import os
 import re
 import sys
 
+import solution_platforms
 import solution_rows
 
 CONFIGURATION = "Reference|x64"
@@ -113,6 +114,9 @@ def project(path, winreflib, write):
 
 def solution(path, program, winreflib, write):
 	bom, text, nl = read(path)
+	# Worked on by Visual Studio's own platform names, and written as the solution names them (MSVC-x64:
+	# solution_platforms.py).
+	text, was_renamed = solution_platforms.to_old(text)
 	lines = text.split(nl)
 	directory = os.path.dirname(os.path.abspath(path))
 	program_guid = guid_of(program)
@@ -151,7 +155,8 @@ def solution(path, program, winreflib, write):
 	configurations.insert(at, "\t\t%s = %s" % (CONFIGURATION, CONFIGURATION))
 	lines[start + 1:end] = configurations
 	if write:
-		open(path, "wb").write(bom + nl.join(lines).encode("utf-8"))
+		text = nl.join(lines)
+		open(path, "wb").write(bom + (solution_platforms.to_new(text) if was_renamed else text).encode("utf-8"))
 	return "%s: %s" % (path, "rewritten" if write else "would change")
 
 
