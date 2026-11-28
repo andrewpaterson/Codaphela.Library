@@ -403,7 +403,7 @@ bool AppendSFTContained(CFileBasic* pcFile, const void* pvRecord, lsize uiSize, 
 	bool			bResult;
 
 	uiPosition = pcFile->Tell();
-	if ((uiPosition / (64 KB)) != ((uiPosition + uiSize) / (64 KB)))
+	if ((uiPosition / (64 KB)) != ((uiPosition + (filePos)uiSize) / (64 KB)))
 	{
 		pcFile->Seek((uiPosition / (64 KB) + 1) * (64 KB));
 		uiPosition = pcFile->Tell();
