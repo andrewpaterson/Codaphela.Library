@@ -31,6 +31,29 @@ LINUX_ONLY = {"X11Lib", "PulseAudioLib"}
 PROJECT = re.compile(r'^Project\("\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}"\) = "([^"]+)", "([^"]+)", "(\{[0-9A-Fa-f-]+\})"')
 
 
+def key(row):
+	"""A row's project, solution configuration and kind; None for a line that isn't a row."""
+	m = re.match(r"\t\t(\{[0-9A-Fa-f-]+\})\.(.+)\.(ActiveCfg|Build\.0|Deploy\.0) = ", row)
+	return (m.group(1).upper(), m.group(2), m.group(3)) if m else None
+
+def insert(rows_, row, same):
+	"""Puts row before the first of rows_ that same() says is its kind and sorts after it, else after the last such."""
+	last = None
+	for at, other in enumerate(rows_):
+		if same(other):
+			if key(other)[1:] > key(row)[1:]:
+				rows_.insert(at, row)
+				return
+			last = at
+	rows_.insert(len(rows_) if last is None else last + 1, row)
+
+
+def insert_row(rows_, row):
+	"""Puts a project's row where Visual Studio would sort it among that project's, leaving the others as they are."""
+	guid = key(row)[0]
+	insert(rows_, row, lambda other: key(other) is not None and key(other)[0] == guid)
+
+
 def project_guid(path):
 	return re.search(r"<ProjectGuid>(\{[^}]+\})</ProjectGuid>", open(path, encoding="utf-8-sig").read()).group(1).upper()
 
@@ -70,21 +93,6 @@ def rows(text, write, additions, path):
 			if m.group(3) == "Build.0":
 				built.add((m.group(1).upper(), m.group(2)))
 
-	def key(row):
-		m = re.match(r"\t\t(\{[0-9A-Fa-f-]+\})\.(.+)\.(ActiveCfg|Build\.0|Deploy\.0) = ", row)
-		return (m.group(1).upper(), m.group(2), m.group(3)) if m else None
-
-	def insert(rows_, row, same):
-		"""Puts row before the first of rows_ that same() says is its kind and sorts after it, else after the last such."""
-		last = None
-		for at, other in enumerate(rows_):
-			if same(other):
-				if key(other)[1:] > key(row)[1:]:
-					rows_.insert(at, row)
-					return
-				last = at
-		rows_.insert(len(rows_) if last is None else last + 1, row)
-
 	new = list(old)
 	for guid, name in projects.items():
 		for configuration in configurations + ["%s|%s" % (n, PLATFORM) for n in wanted]:
@@ -98,7 +106,7 @@ def rows(text, write, additions, path):
 				continue
 			build = (gcc and not configuration.startswith(REFERENCE + "|")) if name in LINUX_ONLY else (((guid, like) in built) and ((name not in WINDOWS_ONLY) or (PLATFORM != "GCC-x64")))
 			for suffix in ["ActiveCfg"] + (["Build.0"] if build else []):
-				insert(new, "\t\t%s.%s.%s = %s" % (guid, configuration, suffix, target), lambda other: key(other) is not None and key(other)[0] == guid)
+				insert_row(new, "\t\t%s.%s.%s = %s" % (guid, configuration, suffix, target))
 	lines[rows_start + 1:rows_end] = new
 	listed = lines[start + 1:end]
 	for name in wanted:

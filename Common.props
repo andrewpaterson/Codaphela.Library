@@ -10,7 +10,8 @@
   Visual Studio builds the Win32 and x64 platforms.  GCC-x64 is g++ on 64-bit Linux, read by the HCP65 IDE's build
   and the CMake builds, never by Visual Studio: its ClCompile and Link AdditionalOptions are g++'s own arguments, and
   its Link AdditionalDependencies the libraries a program is linked with (pthread is -lpthread).  Conditions are of
-  three kinds only, which is all the IDE reads: a whole configuration, a configuration's name and a platform.
+  four kinds only, which is all the IDE reads: a whole configuration, a configuration's name, every configuration
+  but one of a name ('$(Configuration)'!='Debug': Release, and Reference, which is built as Release is) and a platform.
 
   project_sheets.py moves a project onto its sheet and says what it would leave in it.
 -->
@@ -26,7 +27,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+  <PropertyGroup Condition="'$(Configuration)'!='Debug'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
 
@@ -74,7 +75,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+  <ItemDefinitionGroup Condition="'$(Configuration)'!='Debug'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>MaxSpeed</Optimization>

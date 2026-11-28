@@ -31,18 +31,21 @@ SHEETS_ALONE = {"ClCompile.DisableSpecificWarnings", "ClCompile.ExceptionHandlin
 TOOLS = {"ClCompile", "Link", "Lib", "Bscmake", "ResourceCompile", "Midl", "PreBuildEvent", "PostBuildEvent", "CustomBuildStep", "Manifest"}
 LISTS = {"ClCompile.PreprocessorDefinitions": "%(PreprocessorDefinitions)", "Link.AdditionalDependencies": "%(AdditionalDependencies)",
 		 "IncludePath": "$(IncludePath)"}
-CONDITION = re.compile(r"""Condition="'(\$\(Configuration\)\|\$\(Platform\)|\$\(Configuration\)|\$\(Platform\))'\s*==\s*'([^']*)'\"""")
+CONDITION = re.compile(r"""Condition="'(\$\(Configuration\)\|\$\(Platform\)|\$\(Configuration\)|\$\(Platform\))'\s*([=!])=\s*'([^']*)'\"""")
 
 
 def is_for(tag, configuration):
-	"""Whether an element's Condition (none, or one of the three kinds the IDE reads) is true of a configuration."""
+	"""Whether an element's Condition (none, or one of the kinds the IDE reads) is true of a configuration."""
 	if "Condition=" not in tag:
 		return True
 	m = CONDITION.search(tag)
 	if not m:
 		return False
-	return m.group(2) == {"$(Configuration)|$(Platform)": "%s|%s" % configuration, "$(Configuration)": configuration[0],
-						  "$(Platform)": configuration[1]}[m.group(1)]
+	value = {"$(Configuration)|$(Platform)": "%s|%s" % configuration, "$(Configuration)": configuration[0],
+			 "$(Platform)": configuration[1]}[m.group(1)]
+	if m.group(2) == "!":
+		return m.group(1) == "$(Configuration)" and m.group(3) != value
+	return m.group(3) == value
 
 
 def read_sheet(path, values, configurations=CONFIGURATIONS):
@@ -142,7 +145,7 @@ def move(path, sheet_path, sheet, write):
 		m = re.match(r"<(PropertyGroup|ItemDefinitionGroup)\b([^>]*)>$", stripped)
 		if m:
 			c = CONDITION.search(m.group(2))
-			configuration = tuple(c.group(2).split("|")) if (c and c.group(1) == "$(Configuration)|$(Platform)") else None
+			configuration = tuple(c.group(3).split("|")) if (c and c.group(2) == "=" and c.group(1) == "$(Configuration)|$(Platform)") else None
 			if configuration not in CONFIGURATIONS or 'Label="Configuration"' in m.group(2):
 				configuration = None if 'Label="Configuration"' in m.group(2) or m.group(2).strip() else "each"
 			tool = None
@@ -158,7 +161,7 @@ def move(path, sheet_path, sheet, write):
 		if s and configuration:
 			# A property with its own Condition says its configuration itself (a group with none holds several).
 			c = CONDITION.search(s.group(2))
-			own = tuple(c.group(2).split("|")) if (c and c.group(1) == "$(Configuration)|$(Platform)") else (None if s.group(2).strip() else configuration)
+			own = tuple(c.group(3).split("|")) if (c and c.group(2) == "=" and c.group(1) == "$(Configuration)|$(Platform)") else (None if s.group(2).strip() else configuration)
 			if own in CONFIGURATIONS:
 				name = (tool + "." if tool else "") + s.group(1)
 				value = reduce_setting(name, s.group(3), own, sheet, project_directory, sheet_directory)
